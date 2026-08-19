@@ -113,6 +113,7 @@ public enum RewardStatus: String, Codable, CaseIterable, Equatable, Hashable, Se
 	case pending
 	case verified
 	case trusted
+	case attribution
 	case disabled
 }
 

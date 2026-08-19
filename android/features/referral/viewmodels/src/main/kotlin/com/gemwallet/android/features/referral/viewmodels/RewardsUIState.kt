@@ -26,7 +26,7 @@ data class RewardsUIState(
             }
             val verifyAfter = rewards.verifyAfter
             return RewardsUIState(
-                canInvite = rewards.status == RewardStatus.Verified || rewards.status == RewardStatus.Trusted,
+                canInvite = rewards.status == RewardStatus.Verified || rewards.status == RewardStatus.Trusted || rewards.status == RewardStatus.Attribution,
                 isUnverified = rewards.code != null && rewards.status == RewardStatus.Unverified && verifyAfter == null,
                 hasPendingReferral = verifyAfter != null,
                 canActivatePendingReferral = verifyAfter != null && System.currentTimeMillis() > verifyAfter,

@@ -31,6 +31,12 @@ class RewardsUIStateTest {
     }
 
     @Test
+    fun testAttributionCanInvite() {
+        val state = RewardsUIState.from(rewards(status = RewardStatus.Attribution, code = "user1"))
+        assertEquals(true, state.canInvite)
+    }
+
+    @Test
     fun testUnverifiedWithCode() {
         val state = RewardsUIState.from(rewards(status = RewardStatus.Unverified, code = "user1"))
         assertEquals(false, state.canInvite)

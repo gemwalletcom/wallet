@@ -101,7 +101,7 @@ fn compute_verification_delay(base_delay: std::time::Duration, multiplier: i64, 
 
 fn referral_verification_delay(config: &mut dyn ConfigRepository, referrer_status: &PrimitiveRewardStatus) -> Result<Option<std::time::Duration>, DatabaseError> {
     let base_delay = config.get_config_duration(ConfigKey::ReferralVerificationDelay)?;
-    let multiplier = if referrer_status.is_verified() {
+    let multiplier = if referrer_status.is_verified() || *referrer_status == PrimitiveRewardStatus::Attribution {
         config.get_config_i64(ConfigKey::ReferralVerifiedMultiplier)?
     } else {
         1
@@ -157,15 +157,23 @@ fn ensure_wallet_reward_identity(client: &mut DatabaseClient, wallet_id: i32) ->
     }
 }
 
-fn add_referral_verified_event_rows(client: &mut DatabaseClient, referrer_username: &str, referred_username: &str) -> Result<Vec<RewardEventRow>, DatabaseError> {
-    let referrer_event = RewardsStore::add_event(
-        client,
-        NewRewardEventRow {
-            username: referrer_username.to_string(),
-            event_type: RewardEventType::InviteNew,
-        },
-        RewardEventType::InviteNew.points(),
-    )?;
+fn add_referral_verified_event_rows(
+    client: &mut DatabaseClient,
+    referrer_username: &str,
+    referrer_status: &PrimitiveRewardStatus,
+    referred_username: &str,
+) -> Result<Vec<RewardEventRow>, DatabaseError> {
+    let mut events = Vec::new();
+    if *referrer_status != PrimitiveRewardStatus::Attribution {
+        events.push(RewardsStore::add_event(
+            client,
+            NewRewardEventRow {
+                username: referrer_username.to_string(),
+                event_type: RewardEventType::InviteNew,
+            },
+            RewardEventType::InviteNew.points(),
+        )?);
+    }
 
     let referred_event = RewardsStore::add_event(
         client,
@@ -175,18 +183,27 @@ fn add_referral_verified_event_rows(client: &mut DatabaseClient, referrer_userna
         },
         RewardEventType::Joined.points(),
     )?;
+    events.push(referred_event);
 
-    Ok(vec![referrer_event, referred_event])
+    Ok(events)
 }
 
-fn add_referral_verified_events(client: &mut DatabaseClient, referrer_username: &str, referred_username: &str) -> Result<Vec<RewardEvent>, DatabaseError> {
-    Ok(add_referral_verified_event_rows(client, referrer_username, referred_username)?
+fn add_referral_verified_events(
+    client: &mut DatabaseClient,
+    referrer_username: &str,
+    referrer_status: &PrimitiveRewardStatus,
+    referred_username: &str,
+) -> Result<Vec<RewardEvent>, DatabaseError> {
+    Ok(add_referral_verified_event_rows(client, referrer_username, referrer_status, referred_username)?
         .into_iter()
         .map(|event| event.as_primitive())
         .collect())
 }
 
-fn add_referral_pending_events(client: &mut DatabaseClient, referrer_username: &str) -> Result<Vec<RewardEvent>, DatabaseError> {
+fn add_referral_pending_events(client: &mut DatabaseClient, referrer_username: &str, referrer_status: &PrimitiveRewardStatus) -> Result<Vec<RewardEvent>, DatabaseError> {
+    if *referrer_status == PrimitiveRewardStatus::Attribution {
+        return Ok(vec![]);
+    }
     let event = RewardsStore::add_event(
         client,
         NewRewardEventRow {
@@ -203,8 +220,9 @@ fn add_referral_with_events(
     referrer_username: &str,
     referred_username: &str,
     device_id: i32,
-    risk_signal_id: i32,
+    risk_signal_id: Option<i32>,
     verified_at: Option<NaiveDateTime>,
+    referrer_status: &PrimitiveRewardStatus,
 ) -> Result<Vec<RewardEvent>, DatabaseError> {
     ReferralsStore::add_referral(
         client,
@@ -218,9 +236,9 @@ fn add_referral_with_events(
     )?;
 
     if verified_at.is_some() {
-        add_referral_verified_events(client, referrer_username, referred_username)
+        add_referral_verified_events(client, referrer_username, referrer_status, referred_username)
     } else {
-        add_referral_pending_events(client, referrer_username)
+        add_referral_pending_events(client, referrer_username, referrer_status)
     }
 }
 
@@ -234,7 +252,8 @@ fn complete_referral(client: &mut DatabaseClient, referred_username: &str) -> Re
     }
 
     ReferralsStore::update_referral(client, referral.id, ReferralUpdate::VerifiedAt(now()))?;
-    Ok(add_referral_verified_event_rows(client, &referral.referrer_username, referred_username)?
+    let referrer_status = *require_rewards(client, &referral.referrer_username)?.status;
+    Ok(add_referral_verified_event_rows(client, &referral.referrer_username, &referrer_status, referred_username)?
         .into_iter()
         .map(|event| event.id)
         .collect())
@@ -257,7 +276,7 @@ pub trait RewardsRepository {
         wallet_id: i32,
         device_id: i32,
         device_created_at: NaiveDateTime,
-        eligibility_days: i64,
+        eligibility_days: Option<i64>,
     ) -> Result<(), ReferralValidationError>;
     fn add_referral_attempt(&mut self, referrer_username: &str, referred_wallet_id: i32, device_id: i32, risk_signal_id: Option<i32>, reason: &str) -> Result<(), DatabaseError>;
     fn get_first_subscription_date_by_wallet_id(&mut self, wallet_id: i32) -> Result<Option<NaiveDateTime>, DatabaseError>;
@@ -279,7 +298,7 @@ pub trait RewardsRepository {
         referrer_status: &PrimitiveRewardStatus,
         referred_wallet_id: i32,
         device_id: i32,
-        risk_signal_id: i32,
+        risk_signal_id: Option<i32>,
     ) -> Result<Vec<RewardEvent>, DatabaseError>;
 }
 
@@ -289,15 +308,20 @@ impl RewardsRepository for DatabaseClient {
         let rewards = require_rewards(self, &username.username)?;
         let code = username.has_custom_username().then(|| username.username.clone());
         let status = *rewards.status;
-        let types = [RewardRedemptionType::Asset];
-        let redemption_options = RewardsRedemptionsRepository::get_redemption_options(self, &types)?
-            .into_iter()
-            .filter(|option| option.remaining.unwrap_or_default() > 0)
-            .collect();
+        let is_attribution = status == PrimitiveRewardStatus::Attribution;
+        let redemption_options = if is_attribution {
+            vec![]
+        } else {
+            let types = [RewardRedemptionType::Asset];
+            RewardsRedemptionsRepository::get_redemption_options(self, &types)?
+                .into_iter()
+                .filter(|option| option.remaining.unwrap_or_default() > 0)
+                .collect()
+        };
 
         Ok(Rewards {
             code,
-            invite_reward_points: RewardEventType::InviteNew.points(),
+            invite_reward_points: if is_attribution { 0 } else { RewardEventType::InviteNew.points() },
             referral_count: rewards.referral_count,
             points: rewards.points,
             used_referral_code: rewards.referrer_username,
@@ -395,33 +419,33 @@ impl RewardsRepository for DatabaseClient {
         wallet_id: i32,
         device_id: i32,
         device_created_at: NaiveDateTime,
-        eligibility_days: i64,
+        eligibility_days: Option<i64>,
     ) -> Result<(), ReferralValidationError> {
-        let eligibility_cutoff = now() - chrono::Duration::days(eligibility_days);
+        if let Some(eligibility_days) = eligibility_days {
+            let eligibility_cutoff = now() - chrono::Duration::days(eligibility_days);
+            if device_created_at <= eligibility_cutoff {
+                return Err(ReferralValidationError::EligibilityExpired(eligibility_days));
+            }
 
-        if device_created_at <= eligibility_cutoff {
-            return Err(ReferralValidationError::EligibilityExpired(eligibility_days));
+            if let Some(first_subscription_at) = WalletsStore::get_first_subscription_date_by_wallet_id(self, wallet_id)?
+                && first_subscription_at.is_older_than_days(eligibility_days)
+            {
+                return Err(ReferralValidationError::EligibilityExpired(eligibility_days));
+            }
         }
 
-        if let Some(first_subscription_at) = WalletsStore::get_first_subscription_date_by_wallet_id(self, wallet_id)?
-            && first_subscription_at.is_older_than_days(eligibility_days)
-        {
-            return Err(ReferralValidationError::EligibilityExpired(eligibility_days));
-        }
-
-        let device_subscriptions = WalletsStore::get_device_addresses(self, device_id, ChainRow::from(Chain::Ethereum))?;
-
-        for address in &device_subscriptions {
-            let wallet_identifier = WalletId::Multicoin(address.clone()).id();
-            if let Some(wallet) = find_wallet(self, &wallet_identifier)? {
-                if let Some(first_subscription_at) = WalletsStore::get_first_subscription_date_by_wallet_id(self, wallet.id)?
-                    && first_subscription_at.is_older_than_days(eligibility_days)
-                {
-                    return Err(ReferralValidationError::EligibilityExpired(eligibility_days));
-                }
-                if referrer_wallet_id == wallet.id {
-                    return Err(ReferralValidationError::CannotReferSelf);
-                }
+        for address in WalletsStore::get_device_addresses(self, device_id, ChainRow::from(Chain::Ethereum))? {
+            let Some(wallet) = find_wallet(self, &WalletId::Multicoin(address).id())? else {
+                continue;
+            };
+            if let Some(eligibility_days) = eligibility_days
+                && let Some(first_subscription_at) = WalletsStore::get_first_subscription_date_by_wallet_id(self, wallet.id)?
+                && first_subscription_at.is_older_than_days(eligibility_days)
+            {
+                return Err(ReferralValidationError::EligibilityExpired(eligibility_days));
+            }
+            if referrer_wallet_id == wallet.id {
+                return Err(ReferralValidationError::CannotReferSelf);
             }
         }
 
@@ -591,7 +615,7 @@ impl RewardsRepository for DatabaseClient {
         referrer_status: &PrimitiveRewardStatus,
         referred_wallet_id: i32,
         device_id: i32,
-        risk_signal_id: i32,
+        risk_signal_id: Option<i32>,
     ) -> Result<Vec<RewardEvent>, DatabaseError> {
         let referred_username = ensure_wallet_reward_identity(self, referred_wallet_id)?.username;
         let referred_rewards = require_rewards(self, &referred_username)?;
@@ -603,7 +627,9 @@ impl RewardsRepository for DatabaseClient {
         }
 
         match ReferralsStore::get_referral_by_username(self, &referred_username)? {
-            Some(referral) if referral.verified_at.is_none() => self.confirm_pending_referral(referral, referrer_username, &referred_username, device_id, can_verify),
+            Some(referral) if referral.verified_at.is_none() => {
+                self.confirm_pending_referral(referral, referrer_username, referrer_status, &referred_username, device_id, can_verify)
+            }
             Some(_) => Err(DatabaseError::Error("Referral already verified".to_string())),
             None => self.create_new_referral(referrer_username, &referred_username, device_id, risk_signal_id, can_verify, referrer_status),
         }
@@ -615,6 +641,7 @@ impl DatabaseClient {
         &mut self,
         referral: RewardReferralRow,
         referrer_username: &str,
+        referrer_status: &PrimitiveRewardStatus,
         referred_username: &str,
         device_id: i32,
         can_verify: bool,
@@ -627,7 +654,7 @@ impl DatabaseClient {
         }
         if can_verify {
             ReferralsStore::update_referral(self, referral.id, ReferralUpdate::VerifiedAt(now()))?;
-            add_referral_verified_events(self, &referral.referrer_username, referred_username)
+            add_referral_verified_events(self, &referral.referrer_username, referrer_status, referred_username)
         } else {
             Ok(vec![])
         }
@@ -638,7 +665,7 @@ impl DatabaseClient {
         referrer_username: &str,
         referred_username: &str,
         device_id: i32,
-        risk_signal_id: i32,
+        risk_signal_id: Option<i32>,
         can_verify: bool,
         referrer_status: &PrimitiveRewardStatus,
     ) -> Result<Vec<RewardEvent>, DatabaseError> {
@@ -652,7 +679,7 @@ impl DatabaseClient {
 
         let skip_delay = can_verify || delay.is_none();
         let verified_at = skip_delay.then_some(now());
-        add_referral_with_events(self, referrer_username, referred_username, device_id, risk_signal_id, verified_at)
+        add_referral_with_events(self, referrer_username, referred_username, device_id, risk_signal_id, verified_at, referrer_status)
     }
 }
 
@@ -699,6 +726,7 @@ mod tests {
 
         assert!(!can_verify_referral(&PrimitiveRewardStatus::Unverified, None));
         assert!(!can_verify_referral(&PrimitiveRewardStatus::Pending, None));
+        assert!(!can_verify_referral(&PrimitiveRewardStatus::Attribution, None));
 
         let past = (chrono::Utc::now() - chrono::Duration::hours(1)).naive_utc();
         assert!(can_verify_referral(&PrimitiveRewardStatus::Unverified, Some(past)));
@@ -719,7 +747,7 @@ mod tests {
             referrer_username: "alice".to_string(),
             referred_username: "bob".to_string(),
             referred_device_id: 10,
-            risk_signal_id: 20,
+            risk_signal_id: Some(20),
             verified_at: None,
             updated_at: now,
             created_at: now,
@@ -740,16 +768,10 @@ mod tests {
     fn test_compute_verification_delay() {
         let base = DAY;
 
-        // Trusted: no delay regardless of multiplier
         assert_eq!(compute_verification_delay(base, 2, &PrimitiveRewardStatus::Trusted), None);
-
-        // Verified with multiplier 2: 24h / 2 = 12h
         assert_eq!(compute_verification_delay(base, 2, &PrimitiveRewardStatus::Verified), Some(HOUR * 12));
-
-        // Unverified: full delay (multiplier applied as 1 by caller)
         assert_eq!(compute_verification_delay(base, 1, &PrimitiveRewardStatus::Unverified), Some(base));
-
-        // Multiplier 0: no delay
+        assert_eq!(compute_verification_delay(base, 2, &PrimitiveRewardStatus::Attribution), Some(HOUR * 12));
         assert_eq!(compute_verification_delay(base, 0, &PrimitiveRewardStatus::Verified), None);
     }
 }

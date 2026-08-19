@@ -9,19 +9,19 @@
 ## Referral Flow
 
 ```
-User1 (Verified/Trusted): shares code
+User1 (Verified/Trusted/Attribution): shares code
   ─> User2 redeems (POST /devices/rewards/referrals/use)
      ─> delay = compute_verification_delay(base, multiplier, referrer_status)
         Trusted referrer: no delay (immediate verification)
-        Verified referrer: base_delay / verified_multiplier
+        Verified/Attribution referrer: base_delay / verified_multiplier
         Other: base_delay
      ─> if delay: status = Pending, verify_after = now + delay
-     ─> if no delay: verified immediately, both get rewards
+     ─> if no delay: verified immediately, both get rewards unless User1 is Attribution
   ─> delay passes
   ─> User2 calls same endpoint again
      ─> status reset to Unverified, verify_after cleared
      ─> referral marked verified_at = now
-     ─> both get reward events (InviteNew / Joined)
+     ─> both get reward events (InviteNew / Joined), or only Joined when User1 is Attribution
   ─> worker later promotes User2 Unverified ─> Verified
 ```
 
@@ -31,20 +31,21 @@ Two paths depending on whether the referred user is confirming a pending referra
 
 **Pending confirmation path** (user already redeemed, delay passed, calling again):
 1. `is_pending_referral` — checks Pending status, matching referrer+device+unverified referral
-2. `get_referrer_info` — verifies referrer is still Verified/Trusted (rejects if Disabled)
-3. `use_or_verify_referral` — confirms the referral, creates reward events
+2. `get_referrer_info` — verifies referrer can still refer (Verified/Trusted/Attribution)
+3. `use_or_verify_referral` — confirms the referral and creates normal reward events for the referred user; Attribution referrers receive none
 
 **New referral path** (first-time redemption):
 1. `get_referrer_info` — fetches referrer status, referral_count, wallet_id (single query)
-2. Referrer rate limits — cooldown, hourly, daily, weekly (multiplied by status tier)
-3. `validate_referral_use` — device/wallet eligibility, subscription age, self-refer check
-4. DB connection released
-5. Android device token validation (async)
-6. IP check + geo restrictions (async, tor, ineligible countries)
-7. New DB connection acquired
-8. Global rate limits — daily total, per-device, per-IP (daily + weekly), per-country
-9. Risk scoring — fingerprint, abuse patterns, device model rings
-10. Signal storage + threshold check
+2. Attribution referrer — validates referral identity, records the referral without a risk signal, and skips to the normal referred-user verification delay
+3. Other referrers — apply cooldown, hourly, daily, and weekly rate limits
+4. `validate_referral_use` — device/wallet eligibility, subscription age, self-refer check
+5. DB connection released
+6. Android device token validation (async)
+7. IP check + geo restrictions (async, tor, ineligible countries)
+8. New DB connection acquired
+9. Global rate limits — daily total, per-device, per-IP (daily + weekly), per-country
+10. Risk scoring — fingerprint, abuse patterns, device model rings
+11. Signal storage + threshold check
 
 ## Statuses
 
@@ -54,6 +55,7 @@ Two paths depending on whether the referred user is confirming a pending referra
 | `Pending` | No | Used a referral code, awaiting `verify_after` delay. |
 | `Verified` | Yes | Promoted by worker. Can share referral code. |
 | `Trusted` | Yes | Higher-tier verified. Higher referral limits, no verification delay. |
+| `Attribution` | Yes | Internal attribution account. Skips referrer checks and rewards while referred users follow the normal lifecycle. |
 | `Disabled` | No | Account disabled. |
 
 ## Worker Promotion
@@ -69,6 +71,7 @@ Two paths depending on whether the referred user is confirming a pending referra
 | `verify_after` in future | "Bonus Pending" + countdown, confirm disabled |
 | `verify_after` in past | "Your bonus is ready!", confirm enabled |
 | `Verified`/`Trusted` | Invite Friends + share button |
+| `Attribution` | Internal account; no redemption options or referrer rewards |
 | `Disabled` | Error with `disable_reason` |
 
 ## Key Config

@@ -117,6 +117,7 @@ impl RewardsStore for DatabaseClient {
 
         rewards_events::table
             .inner_join(rewards::table.on(rewards_events::username.eq(rewards::username)))
+            .filter(rewards::status.ne(RewardStatus::Attribution))
             .filter(rewards::status.ne(RewardStatus::Disabled))
             .filter(rewards_events::event_type.eq_any(event_types))
             .filter(rewards_events::created_at.ge(since))
