@@ -21,10 +21,6 @@ public struct AssetConfiguration: Sendable {
 
     public static let allChains: [Chain] = Chain.allCases
 
-    public static let networkAnchorAssetIds: Set<AssetId> = [
-        AssetId(chain: .tempo),
-    ]
-
     public static let enabledByDefault: [AssetId] = [
         AssetId(chain: .bitcoin),
         AssetId(chain: .ethereum),

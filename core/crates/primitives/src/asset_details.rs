@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::{Asset, AssetAssociation, AssetId, AssetMarket, AssetScore, Chain, LinkType, Price, perpetual::PerpetualBasic};
+use crate::{Asset, AssetAssociation, AssetId, AssetMarket, AssetScore, LinkType, Price, perpetual::PerpetualBasic};
 
 #[typeshare(swift = "Sendable")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -103,10 +103,11 @@ pub struct AssetProperties {
 
 impl AssetProperties {
     pub fn default(asset_id: AssetId) -> Self {
-        let is_stakeable = asset_id.is_native() && asset_id.chain.is_stake_supported();
-        let is_swapable = asset_id.chain.is_swap_supported() && !(asset_id.chain == Chain::Tempo && asset_id.is_native());
+        let is_enabled = asset_id.is_token() || asset_id.chain.rank() >= 0;
+        let is_stakeable = is_enabled && asset_id.is_native() && asset_id.chain.is_stake_supported();
+        let is_swapable = is_enabled && asset_id.chain.is_swap_supported();
         Self {
-            is_enabled: true,
+            is_enabled,
             is_buyable: false,
             is_sellable: false,
             is_swapable,
@@ -142,11 +143,14 @@ mod tests {
     use chrono::Utc;
 
     use super::*;
-    use crate::{Asset, PriceProvider, asset_constants::TEMPO_PATHUSD_ASSET_ID};
+    use crate::{Asset, Chain, PriceProvider, asset_constants::TEMPO_PATHUSD_ASSET_ID};
 
     #[test]
-    fn tempo_network_anchor_is_not_swappable() {
-        assert!(!AssetProperties::default(AssetId::from_chain(Chain::Tempo)).is_swapable);
+    fn negative_rank_native_asset_is_disabled() {
+        let properties = AssetProperties::default(AssetId::from_chain(Chain::Tempo));
+
+        assert!(!properties.is_enabled);
+        assert!(!properties.is_swapable);
         assert!(AssetProperties::default(TEMPO_PATHUSD_ASSET_ID.clone()).is_swapable);
     }
 

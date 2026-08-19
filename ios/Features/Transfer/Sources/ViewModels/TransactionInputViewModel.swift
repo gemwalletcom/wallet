@@ -48,9 +48,7 @@ public struct TransactionInputViewModel: Sendable {
     }
 
     var infoModel: TransactionInfoViewModel {
-        let asset = data.type.asset
-
-        return TransactionInfoViewModel(
+        TransactionInfoViewModel(
             currency: preferences.currency,
             asset: displayAsset,
             assetPrice: metaData?.assetPrice,

@@ -20,7 +20,7 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.defaultBasic
-import com.gemwallet.android.domains.asset.networkAnchorAssetIds
+import com.gemwallet.android.domains.asset.defaultAssetRank
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.toAssetId
@@ -123,7 +123,7 @@ class AssetsRepository @Inject constructor(
         val assetIds = mutableListOf<AssetId>()
         wallet.accounts.forEach { account ->
             val asset = account.chain.asset()
-            if (asset.id in networkAnchorAssetIds) {
+            if (account.chain.defaultAssetRank < 0) {
                 add(listOf(asset.defaultBasic))
                 return@forEach
             }
@@ -256,7 +256,7 @@ class AssetsRepository @Inject constructor(
     fun invalidateDefault(wallet: Wallet) = scope.launch(Dispatchers.IO) {
         val assets = getNativeAssets(wallet).associateBy( { it.id.toIdentifier() }, { it })
 
-        wallet.accounts.filterNot { AssetId(it.chain) in networkAnchorAssetIds }.map { account ->
+        wallet.accounts.filter { it.chain.defaultAssetRank >= 0 }.map { account ->
             val asset = account.chain.asset()
             async {
                 if (assets[account.chain.string] == null) {

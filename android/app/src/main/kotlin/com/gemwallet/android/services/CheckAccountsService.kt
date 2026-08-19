@@ -4,7 +4,7 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.domains.asset.networkAnchorAssetIds
+import com.gemwallet.android.domains.asset.defaultAssetRank
 import com.gemwallet.android.ext.available
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -30,16 +30,17 @@ class CheckAccountsService @Inject constructor(
 
         wallets.forEach { wallet ->
             val nativeAssets = assetsRepository.getNativeAssets(wallet)
+            val accountChains = wallet.accounts.map { it.chain }.toSet()
+            val expectedNativeAssetIds = accountChains.filter { it.defaultAssetRank >= 0 }.map(::AssetId)
 
             if (wallet.type != WalletType.Multicoin) {
-                if (wallet.accounts.any { AssetId(it.chain) !in networkAnchorAssetIds } && nativeAssets.isEmpty()) {
+                if (expectedNativeAssetIds.isNotEmpty() && nativeAssets.isEmpty()) {
                     assetsRepository.invalidateDefault(wallet)
                 }
                 assetsRepository.ensureDefaultAssets(wallet)
                 return@forEach
             }
 
-            val accountChains = wallet.accounts.map { it.chain }.toSet()
             val newChains = Chain.available().filterNot(accountChains::contains)
 
             // Backfill new chains via add_accounts, skips gracefully if the v4 keystore isn't ready (e.g. migration pending) and retries next launch.
@@ -60,7 +61,7 @@ class CheckAccountsService @Inject constructor(
             }
 
             val nativeAssetIds = nativeAssets.map { it.id }.toSet()
-            val missingNativeAssetIds = accountChains.map { AssetId(it) }.filterNot(networkAnchorAssetIds::contains).filterNot(nativeAssetIds::contains)
+            val missingNativeAssetIds = expectedNativeAssetIds.filterNot(nativeAssetIds::contains)
             if (missingNativeAssetIds.isNotEmpty()) {
                 assetsRepository.invalidateDefault(wallet)
             }

@@ -19,7 +19,7 @@ let package = Package(
             name: "ImageGalleryService",
             dependencies: [],
             path: "ImageGalleryService",
-            exclude: ["Tests", "TestKit"],
+            exclude: ["TestKit"],
         ),
         .target(
             name: "ConnectivityService",

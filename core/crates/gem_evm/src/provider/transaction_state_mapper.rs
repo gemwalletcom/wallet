@@ -6,7 +6,6 @@ pub fn map_transaction_status(receipt: &TransactionReceipt) -> TransactionUpdate
     map_transaction_status_with_fee(receipt, receipt.get_fee().into())
 }
 
-/// Maps a receipt with a fee already converted to the chain's fee-asset units (Tempo scales to TIP-20 decimals).
 pub fn map_transaction_status_with_fee(receipt: &TransactionReceipt, network_fee: BigInt) -> TransactionUpdate {
     let state = match receipt.get_state() {
         TransactionState::Confirmed => TransactionState::Confirmed,

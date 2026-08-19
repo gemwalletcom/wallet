@@ -1408,7 +1408,8 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             token_activation_fee: None,
             minimum_account_balance: None,
             block_time: 500,
-            rank: 30,
+            // Tempo has no native asset; retain only its database anchor.
+            rank: -1,
             is_swap_supported: true,
             is_nft_supported: false,
             is_defi_supported: false,

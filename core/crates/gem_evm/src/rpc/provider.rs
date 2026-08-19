@@ -8,7 +8,6 @@ use primitives::{AssetBalance, TransactionFee, TransactionLoadInput};
 
 use super::EthereumClient;
 
-/// Chain-specific fee calculation seam for EVM-family chains (Tempo pays fees in TIP-20 tokens).
 #[async_trait]
 pub trait EvmFeeCalculator: Send + Sync {
     async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>>;

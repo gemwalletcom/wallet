@@ -74,15 +74,16 @@ class AssetDefaultsTest {
     }
 
     @Test
-    fun defaultBasic_tempoNetworkAnchor_isNotSwappable() {
-        mockkStatic("com.gemwallet.android.ext.ChainKt")
+    fun defaultBasic_negativeRankNativeAsset_isDisabled() {
         mockkStatic("uniffi.gemstone.GemstoneKt")
+        every { assetDefaultRank(Chain.Tempo.string) } returns -1
         every { assetIsSwapable(any()) } returns false
-        every { Chain.Tempo.isStakeSupported() } returns false
-        every { assetDefaultRank(Chain.Tempo.string) } returns 15
 
         val basic = mockAsset(chain = Chain.Tempo).defaultBasic
 
+        assertEquals(-1, basic.score.rank)
+        assertFalse(basic.properties.isEnabled)
         assertFalse(basic.properties.isSwapable)
     }
+
 }

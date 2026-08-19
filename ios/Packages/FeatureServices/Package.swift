@@ -176,7 +176,7 @@ let package = Package(
                 "Store",
             ],
             path: "AvatarService",
-            exclude: ["Tests", "TestKit"],
+            exclude: ["TestKit"],
         ),
         .target(
             name: "PriceService",
@@ -421,6 +421,7 @@ let package = Package(
                 "Keystore",
                 "Store",
                 "Preferences",
+                "GemstonePrimitives",
                 "AvatarService",
                 "WalletSessionService",
                 "BalanceService",

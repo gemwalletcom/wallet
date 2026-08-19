@@ -8,19 +8,20 @@ public extension AssetBasic {
     static func native(_ asset: Asset) -> AssetBasic {
         let chain = asset.chain
         let score = AssetScore.defaultScore(chain: chain)
+        let isEnabled = score.rank >= 0
         let config = GemstoneConfig.shared.getChainConfig(chain: chain.rawValue)
         return AssetBasic(
             asset: asset,
             properties: AssetProperties(
-                isEnabled: true,
+                isEnabled: isEnabled,
                 isBuyable: score.rank >= 40,
                 isSellable: false,
                 isSwapable: Gemstone.assetIsSwapable(assetId: asset.id.identifier),
-                isStakeable: config.isStakeSupported,
+                isStakeable: isEnabled && config.isStakeSupported,
                 stakingApr: .none,
                 isEarnable: false,
                 earnApr: .none,
-                hasImage: true,
+                hasImage: isEnabled,
             ),
             score: score,
             price: nil,
