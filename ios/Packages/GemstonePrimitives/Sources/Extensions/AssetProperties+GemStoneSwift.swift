@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.assetIsSwapable
 import func Gemstone.defaultTokenRank
 import Primitives
 
@@ -10,12 +11,11 @@ public extension AssetProperties {
         case .native: assetId.chain.isStakeSupported
         case .token: false
         }
-        let isSwapable = assetId.chain.isSwapSupported && !AssetConfiguration.networkAnchorAssetIds.contains(assetId)
         return AssetProperties(
             isEnabled: true,
             isBuyable: false,
             isSellable: false,
-            isSwapable: isSwapable,
+            isSwapable: Gemstone.assetIsSwapable(assetId: assetId.identifier),
             isStakeable: isStakeable,
             stakingApr: .none,
             isEarnable: false,

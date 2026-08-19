@@ -1,7 +1,7 @@
 package com.gemwallet.android.domains.asset
 
 import com.gemwallet.android.ext.isStakeSupported
-import com.gemwallet.android.ext.isSwapSupport
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.type
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetBasic
@@ -11,6 +11,7 @@ import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.assetDefaultRank
+import uniffi.gemstone.assetIsSwapable
 import uniffi.gemstone.defaultTokenRank
 
 val Chain.defaultAssetRank: Int
@@ -32,7 +33,7 @@ private val AssetId.defaultProperties: AssetProperties
             isEnabled = true,
             isBuyable = false,
             isSellable = false,
-            isSwapable = this !in networkAnchorAssetIds && chain.isSwapSupport(),
+            isSwapable = assetIsSwapable(toIdentifier()),
             isStakeable = isNative && chain.isStakeSupported(),
             isEarnable = false,
             hasImage = false,

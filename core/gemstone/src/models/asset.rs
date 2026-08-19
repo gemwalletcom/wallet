@@ -1,4 +1,4 @@
-use primitives::{Asset, AssetId, AssetScore, AssetType, Chain, ChainAsset};
+use primitives::{Asset, AssetId, AssetProperties, AssetScore, AssetType, Chain, ChainAsset};
 
 pub type GemAsset = Asset;
 pub type GemAssetType = AssetType;
@@ -48,6 +48,11 @@ pub fn asset_default_rank(chain: Chain) -> i32 {
 #[uniffi::export]
 pub fn default_token_rank() -> i32 {
     AssetScore::default().rank
+}
+
+#[uniffi::export]
+pub fn asset_is_swapable(asset_id: AssetId) -> bool {
+    AssetProperties::default(asset_id).is_swapable
 }
 
 #[uniffi::export]
