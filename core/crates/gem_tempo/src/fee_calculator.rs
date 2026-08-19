@@ -85,7 +85,7 @@ mod tests {
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::{
         Asset, AssetType, Chain, EVMChain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadInput,
-        asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDC_TOKEN_ID},
+        asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDT0_TOKEN_ID},
         known_assets::TEMPO_BRIDGED_USDC,
         swap::SwapData,
     };
@@ -175,7 +175,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_account_fee_token_requires_usd_currency() {
-        let account_token = TEMPO_USDC_TOKEN_ID.parse().unwrap();
+        let account_token = TEMPO_USDT0_TOKEN_ID.parse().unwrap();
         let calculator = new_calculator(move |_, params| {
             if params[0]["to"].as_str().unwrap().eq_ignore_ascii_case(FEE_MANAGER_ADDRESS) {
                 Ok(user_token_response(account_token))

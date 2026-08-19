@@ -376,8 +376,8 @@ pub static SEI_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from
 pub const TEMPO_BRIDGED_USDC_TOKEN_ID: &str = "0x20C000000000000000000000b9537d11c60E8b50";
 pub static TEMPO_BRIDGED_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tempo, TEMPO_BRIDGED_USDC_TOKEN_ID));
 
-pub const TEMPO_USDC_TOKEN_ID: &str = "0x20C00000000000000000000014f22CA97301EB73";
-pub static TEMPO_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tempo, TEMPO_USDC_TOKEN_ID));
+pub const TEMPO_USDT0_TOKEN_ID: &str = "0x20C00000000000000000000014f22CA97301EB73";
+pub static TEMPO_USDT0_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tempo, TEMPO_USDT0_TOKEN_ID));
 
 pub const TEMPO_PATHUSD_TOKEN_ID: &str = "0x20C0000000000000000000000000000000000000";
 pub static TEMPO_PATHUSD_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tempo, TEMPO_PATHUSD_TOKEN_ID));
