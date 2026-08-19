@@ -2,6 +2,7 @@ package com.gemwallet.android.features.bridge.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
 import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
@@ -9,6 +10,7 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.walletConnectAppName
 import com.gemwallet.android.ext.walletConnectIcon
+import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.gemwallet.android.ui.models.ButtonState
@@ -39,6 +41,7 @@ class ProposalSceneViewModel @Inject constructor(
     private val bridgesRepository: BridgesRepository,
     private val walletsRepository: WalletsRepository,
     private val originVerifier: WalletConnectOriginVerifier,
+    private val activeRequest: ActiveWalletConnectRequest,
 ) : ViewModel() {
 
     val state = MutableStateFlow<ProposalSceneState>(ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN))
@@ -82,40 +85,41 @@ class ProposalSceneViewModel @Inject constructor(
 
     fun onProposal(
         proposal: WalletConnectSessionProposal,
-        verifyContext: WalletConnectVerifyContext
+        verifyContext: WalletConnectVerifyContext,
+        onNotify: (BridgeRequestError) -> Unit,
     ) {
         val verification = originVerifier.verify(proposal.url, verifyContext)
         if (verification.isScam) {
-            onReject(proposal, ProposalSceneState.ScamCanceled)
+            onNotify(BridgeRequestError.MaliciousSession)
+            reject(proposal)
             return
         }
         state.update { ProposalSceneState.Init(verification.status) }
         _proposal.update { proposal }
     }
 
-    fun onApprove() {
+    fun onApprove(onError: (String) -> Unit) {
         val wallet = selectedWallet.value
         val proposal = _proposal.value
-        val currentState = state.value as? ProposalSceneState.Content ?: return
-        if (currentState is ProposalSceneState.Approving) {
+        if (state.value is ProposalSceneState.Approving) {
             return
         }
 
         if (wallet == null || proposal == null) {
-            state.update { ProposalSceneState.Canceled }
+            finish()
             return
         }
-        state.update { ProposalSceneState.Approving(currentState.verificationStatus) }
+        state.update { ProposalSceneState.Approving(it.verificationStatus) }
         viewModelScope.launch(Dispatchers.IO) {
             val result = runCatching {
                 bridgesRepository.approveConnection(
                     wallet = wallet,
                     proposal = proposal,
-                    onSuccess = { state.update { ProposalSceneState.Canceled } },
-                    onError = { message -> state.update { ProposalSceneState.Fail(message) } }
+                    onSuccess = { finish(proposal) },
+                    onError = { message -> fail(proposal, message, onError) }
                 )
             }
-            result.onFailure { err -> state.update { ProposalSceneState.Fail(err.message ?: "Connection failed") } }
+            result.onFailure { err -> fail(proposal, err.message ?: "Connection failed", onError) }
         }
     }
 
@@ -123,15 +127,12 @@ class ProposalSceneViewModel @Inject constructor(
         if (state.value is ProposalSceneState.Approving) {
             return
         }
-        onReject(_proposal.value ?: return)
-    }
-
-    fun onReject(proposal: WalletConnectSessionProposal, withState: ProposalSceneState = ProposalSceneState.Canceled) = viewModelScope.launch(Dispatchers.IO) {
-        bridgesRepository.rejectConnection(
-            proposal = proposal,
-            onSuccess = { state.update { withState } },
-            onError = { state.update { withState } }
-        )
+        val proposal = _proposal.value
+        if (proposal == null) {
+            finish()
+            return
+        }
+        reject(proposal)
     }
 
     fun onWalletSelected(walletId: WalletId) {
@@ -141,24 +142,50 @@ class ProposalSceneViewModel @Inject constructor(
         _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId } }
     }
 
+    private fun reject(proposal: WalletConnectSessionProposal) {
+        viewModelScope.launch(Dispatchers.IO) {
+            bridgesRepository.rejectConnection(
+                proposal = proposal,
+                onSuccess = { finish(proposal) },
+                onError = { finish(proposal) }
+            )
+        }
+    }
+
+    private fun fail(proposal: WalletConnectSessionProposal, message: String, onError: (String) -> Unit) {
+        if (activeRequest.finish(proposal)) {
+            reset()
+            onError(message)
+        }
+    }
+
+    private fun finish(proposal: WalletConnectSessionProposal) {
+        if (activeRequest.finish(proposal)) {
+            reset()
+        }
+    }
+
+    private fun finish() {
+        reset()
+        activeRequest.finish()
+    }
+
+    private fun reset() {
+        _proposal.update { null }
+        _selectedWallet.update { null }
+        state.update { ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN) }
+    }
+
 }
 
 sealed interface ProposalSceneState {
-    sealed interface Content : ProposalSceneState {
-        val verificationStatus: WalletConnectionVerificationStatus
-    }
+    val verificationStatus: WalletConnectionVerificationStatus
 
     data class Init(
         override val verificationStatus: WalletConnectionVerificationStatus,
-    ) : Content
+    ) : ProposalSceneState
 
     data class Approving(
         override val verificationStatus: WalletConnectionVerificationStatus,
-    ) : Content
-
-    data object Canceled : ProposalSceneState
-
-    data object ScamCanceled : ProposalSceneState
-
-    class Fail(val message: String) : ProposalSceneState
+    ) : ProposalSceneState
 }

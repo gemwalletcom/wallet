@@ -27,7 +27,6 @@ fun RequestScene(
     request: WalletConnectSessionRequest,
     verifyContext: WalletConnectVerifyContext,
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
-    onCancel: () -> Unit,
     onError: (String) -> Unit,
 ) {
     val viewModel: WCRequestViewModel = hiltViewModel()
@@ -82,6 +81,5 @@ fun RequestScene(
                 )
             }
         }
-        RequestSceneState.Cancel -> onCancel()
     }
 }

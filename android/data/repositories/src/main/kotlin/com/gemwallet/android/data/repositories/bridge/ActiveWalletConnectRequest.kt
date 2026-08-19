@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -29,7 +30,21 @@ class ActiveWalletConnectRequest(
     fun finish() {
         _current.update { null }
     }
+
+    fun finish(payload: Any): Boolean {
+        val previous = _current.getAndUpdate { current ->
+            if (current?.payload === payload) null else current
+        }
+        return previous?.payload === payload
+    }
 }
+
+private val WalletConnectUserRequest.payload: Any
+    get() = when (this) {
+        is WalletConnectUserRequest.SessionRequest -> request
+        is WalletConnectUserRequest.AuthenticationRequest -> request
+        is WalletConnectUserRequest.SessionProposal -> proposal
+    }
 
 sealed interface WalletConnectUserRequest {
 

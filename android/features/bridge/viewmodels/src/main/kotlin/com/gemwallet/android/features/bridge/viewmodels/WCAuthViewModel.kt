@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
+import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.ChainNamespace
 import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthPayloadParams
@@ -16,6 +17,7 @@ import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.walletConnectAppName
+import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectReviewModel
@@ -54,6 +56,7 @@ class WCAuthViewModel @Inject constructor(
     private val passwordStore: PasswordStore,
     private val signMessageOperator: GemSignMessageOperator,
     private val originVerifier: WalletConnectOriginVerifier,
+    private val activeRequest: ActiveWalletConnectRequest,
 ) : ViewModel() {
 
     private var authRequest: WalletConnectAuthenticationRequest? = null
@@ -69,21 +72,21 @@ class WCAuthViewModel @Inject constructor(
     fun onRequest(
         request: WalletConnectAuthenticationRequest,
         verifyContext: WalletConnectVerifyContext,
+        onNotify: (BridgeRequestError) -> Unit,
     ) {
         authRequest = request
         hasResponded = false
         _state.update { AuthSceneState.Loading }
+        val verification = originVerifier.verify(request.metadata?.url, verifyContext)
+        if (verification.isScam) {
+            onNotify(BridgeRequestError.MaliciousSession)
+            hasResponded = true
+            bridgesRepository.rejectAuthentication(request)
+            finish(request)
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val verification = originVerifier.verify(request.metadata?.url, verifyContext)
-                if (!isActiveRequest(request)) {
-                    return@launch
-                }
-                if (verification.isScam) {
-                    rejectRequest(request, AuthSceneState.ScamCanceled)
-                    return@launch
-                }
-
                 val availableWallets = (walletsRepository.getAll().firstOrNull() ?: emptyList())
                     .filter { wallet ->
                         wallet.type != WalletType.View && supportedAccounts(wallet, request).isNotEmpty()
@@ -174,7 +177,7 @@ class WCAuthViewModel @Inject constructor(
                     onSuccess = {
                         if (authRequest?.id == request.id) {
                             hasResponded = true
-                            _state.update { AuthSceneState.Canceled }
+                            finish(request)
                         }
                     },
                     onError = { message ->
@@ -196,33 +199,45 @@ class WCAuthViewModel @Inject constructor(
             return
         }
         val request = authRequest
-        if (request == null) {
-            _state.update { AuthSceneState.Canceled }
-            return
-        }
-        if (hasResponded) {
-            _state.update { AuthSceneState.Canceled }
+        if (request == null || hasResponded) {
+            finish()
             return
         }
         hasResponded = true
         bridgesRepository.rejectAuthentication(request)
-        _state.update { AuthSceneState.Canceled }
+        finish()
     }
 
     private fun rejectRequest(
         request: WalletConnectAuthenticationRequest,
-        state: AuthSceneState,
+        errorState: AuthSceneState.Error,
     ) {
         if (!isActiveRequest(request)) {
             return
         }
         hasResponded = true
         bridgesRepository.rejectAuthentication(request)
-        _state.update { state }
+        _state.update { errorState }
     }
 
     private fun isActiveRequest(request: WalletConnectAuthenticationRequest): Boolean {
         return authRequest?.id == request.id && !hasResponded
+    }
+
+    private fun finish(request: WalletConnectAuthenticationRequest) {
+        if (activeRequest.finish(request)) {
+            reset()
+        }
+    }
+
+    private fun finish() {
+        reset()
+        activeRequest.finish()
+    }
+
+    private fun reset() {
+        authRequest = null
+        _state.update { AuthSceneState.Loading }
     }
 
     private fun buildApproval(
@@ -330,10 +345,6 @@ class WCAuthViewModel @Inject constructor(
 sealed interface AuthSceneState {
 
     data object Loading : AuthSceneState
-
-    data object Canceled : AuthSceneState
-
-    data object ScamCanceled : AuthSceneState
 
     class Error(val message: String) : AuthSceneState
 
