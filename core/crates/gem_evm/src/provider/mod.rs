@@ -5,7 +5,6 @@ pub mod balances_smartchain;
 mod node_status;
 pub mod preload;
 pub mod preload_mapper;
-pub mod preload_optimism;
 pub mod request_classifier;
 pub mod simulation;
 pub mod simulation_mapper;

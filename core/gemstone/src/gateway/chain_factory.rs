@@ -10,6 +10,7 @@ use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 use gem_near::rpc::{NearClient, NearProvider};
+use gem_optimism::OptimismGasOracle;
 use gem_polkadot::rpc::{PolkadotClient, PolkadotProvider};
 use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_stellar::rpc::client::StellarClient;
@@ -76,8 +77,16 @@ impl ChainClientFactory {
                 Ok(Arc::new(SolanaProvider::new_rpc_only(SolanaClient::new(client))))
             }
             ChainType::Ethereum => {
-                let client = EthereumClient::new(JsonRpcClient::new(alien_client), EVMChain::from_chain(chain).unwrap());
-                let provider = TempoProvider::new_or_else(client, |client| Box::new(EthereumProvider::new_rpc_only(client)));
+                let evm_chain = EVMChain::from_chain(chain).unwrap();
+                let client = EthereumClient::new(JsonRpcClient::new(alien_client), evm_chain);
+                let provider = TempoProvider::new_or_else(client, |client| {
+                    if evm_chain.is_opstack() {
+                        let fee_calculator = Box::new(OptimismGasOracle::new(client.clone()));
+                        Box::new(EthereumProvider::new_rpc_only_with_fee_calculator(client, fee_calculator))
+                    } else {
+                        Box::new(EthereumProvider::new_rpc_only(client))
+                    }
+                });
                 Ok(Arc::from(provider))
             }
         }
