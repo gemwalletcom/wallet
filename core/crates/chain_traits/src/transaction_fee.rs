@@ -11,7 +11,6 @@ pub struct TransactionFeeEstimate {
     pub priority: FeePriority,
     pub gas_price_type: GasPriceType,
     pub fee: BigInt,
-    pub gas_limit: BigInt,
 }
 
 pub struct TransactionFeeEstimates {
@@ -47,7 +46,6 @@ impl TransactionFeeEstimate {
             priority: rate.priority,
             gas_price_type,
             fee,
-            gas_limit: units.unwrap_or(1).into(),
         }
     }
 }

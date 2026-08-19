@@ -11,7 +11,8 @@ data class AssetId (
 	constructor(identifier: String) : this(
 		chain = Chain.entries.firstOrNull { it.string == identifier.substringBefore("_") }
 			?: throw IllegalArgumentException("Invalid asset ID: $identifier"),
-		tokenId = identifier.substringAfter("_", "").takeIf { "_" in identifier },
+		tokenId = identifier.substringAfter("_").takeIf { "_" in identifier }
+			?.ifEmpty { throw IllegalArgumentException("Invalid asset ID: $identifier") },
 	)
 
 	override fun equals(other: Any?): Boolean {

@@ -173,8 +173,7 @@ impl<C: Client + Clone> ChainTraits for TempoProvider<C> {
             .transaction_fee_estimate_units(TransactionFeeOperation::Transfer)
             .ok_or("Missing transfer fee estimate units")?;
         for estimate in &mut estimates.transfer {
-            estimate.gas_limit = transfer_units.into();
-            estimate.fee = estimate.gas_price_type.total_fee() * &estimate.gas_limit;
+            estimate.fee = estimate.gas_price_type.total_fee() * transfer_units;
         }
 
         let scale = |estimates: &mut Vec<TransactionFeeEstimate>| {
@@ -198,7 +197,6 @@ impl<C: Client + Clone> ChainTraits for TempoProvider<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_evm::constants::TOKEN_TRANSFER_GAS_LIMIT;
     use gem_evm::encode::encode_erc20_transfer;
     use gem_evm::provider::preload_mapper::get_transaction_params;
     use gem_evm::rpc::model::TransactionReceipt;
@@ -255,7 +253,6 @@ mod tests {
         assert_eq!(estimates.transfer.len(), 1);
         assert_eq!(estimates.transfer[0].priority, FeePriority::Normal);
         assert_eq!(estimates.fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
-        assert_eq!(estimates.transfer[0].gas_limit, BigInt::from(TOKEN_TRANSFER_GAS_LIMIT));
         assert_eq!(estimates.transfer[0].fee, BigInt::from(1_300u64));
         assert_eq!(estimates.token_transfer.unwrap()[0].fee, BigInt::from(1_300u64));
     }

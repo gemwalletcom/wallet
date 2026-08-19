@@ -16,6 +16,7 @@ class TestAssetId {
     fun parsesIdentifier() {
         assertThrows(IllegalArgumentException::class.java) { AssetId("") }
         assertThrows(IllegalArgumentException::class.java) { AssetId("random_chain") }
+        assertThrows(IllegalArgumentException::class.java) { AssetId("ethereum_") }
         assertEquals(AssetId(Chain.Bitcoin), AssetId("bitcoin"))
         assertEquals(AssetId(Chain.Ethereum, "0x123"), AssetId("ethereum_0x123"))
     }

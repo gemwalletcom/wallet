@@ -1,4 +1,4 @@
-pub mod transaction;
+mod transaction;
 
 use std::str::FromStr;
 

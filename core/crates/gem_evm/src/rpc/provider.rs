@@ -55,12 +55,13 @@ impl<C: Client + Clone> EthereumProvider<C> {
         Self::new(client, Box::new(EmptyTransactionsProvider), Box::new(EmptyAssetBalanceProvider))
     }
 
-    pub fn new_rpc_only_with_fee_calculator(client: EthereumClient<C>, fee_calculator: Box<dyn EvmFeeCalculator>) -> Self {
+    pub fn new_rpc_only_with_fee_calculator(client: EthereumClient<C>, fee_calculator: Box<dyn EvmFeeCalculator>) -> Self
+    where
+        C: 'static,
+    {
         Self {
-            client,
-            transactions_by_address_provider: Box::new(EmptyTransactionsProvider),
-            asset_balance_provider: Box::new(EmptyAssetBalanceProvider),
             fee_calculator,
+            ..Self::new_rpc_only(client)
         }
     }
 
