@@ -43,6 +43,7 @@ data class DbAssetInfo(
     // price
     val priceValue: Double?,
     val priceDayChanges: Double?,
+    val priceUpdatedAt: Long?,
     val priceCurrency: Currency?,
     // balance
     val balanceAvailable: String?,
@@ -130,7 +131,6 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
         derivationPath = entity.derivationPath ?: "",
         extendedPublicKey = entity.extendedPublicKey,
     )
-    val currentTime = System.currentTimeMillis()
     return AssetInfo(
         owner = account,
         asset = asset,
@@ -142,7 +142,7 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
                     assetId = assetId,
                     price = entity.priceValue,
                     priceChangePercentage24h = entity.priceDayChanges ?: 0.0,
-                    updatedAt = currentTime
+                    updatedAt = entity.priceUpdatedAt ?: 0,
                 )
             )
         } else null,

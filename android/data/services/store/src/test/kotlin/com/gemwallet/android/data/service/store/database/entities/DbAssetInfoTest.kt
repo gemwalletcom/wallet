@@ -4,6 +4,7 @@ import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetAssociationType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -32,6 +33,22 @@ class DbAssetInfoTest {
         assertEquals(false, hidden?.metadata?.isEnabled)
         assertEquals(false, hidden?.metadata?.isBalanceEnabled)
         assertEquals(true, visible?.metadata?.isEnabled)
+    }
+
+    @Test
+    fun toDTO_usesStoredPriceUpdatedAt() {
+        val withTimestamp = mockDbAssetInfo(
+            priceValue = 100.0,
+            priceCurrency = Currency.USD,
+            priceUpdatedAt = 1_700_000_000_000,
+        ).toDTO()
+        val withoutTimestamp = mockDbAssetInfo(
+            priceValue = 100.0,
+            priceCurrency = Currency.USD,
+        ).toDTO()
+
+        assertEquals(1_700_000_000_000, withTimestamp?.price?.price?.updatedAt)
+        assertEquals(0L, withoutTimestamp?.price?.price?.updatedAt)
     }
 
     @Test
