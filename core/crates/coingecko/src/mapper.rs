@@ -47,7 +47,7 @@ const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
 ];
 
 pub fn get_chains_for_coingecko_market_id(id: &str) -> Vec<Chain> {
-    Chain::all().into_iter().filter(|chain| get_coingecko_market_id_for_chain(*chain) == id).collect()
+    Chain::all().into_iter().filter(|chain| get_coingecko_market_id_for_chain(*chain) == Some(id)).collect()
 }
 
 // Full list https://api.coingecko.com/api/v3/asset_platforms
@@ -73,8 +73,8 @@ pub fn get_asset_ids_for_coin(id: &str, platforms: &HashMap<String, Option<Strin
     chains.chain(tokens).collect()
 }
 
-pub fn get_coingecko_market_id_for_chain(chain: Chain) -> &'static str {
-    match chain {
+pub fn get_coingecko_market_id_for_chain(chain: Chain) -> Option<&'static str> {
+    let id = match chain {
         Chain::Bitcoin => "bitcoin",
         Chain::BitcoinCash => "bitcoin-cash",
         Chain::Litecoin => "litecoin",
@@ -128,8 +128,9 @@ pub fn get_coingecko_market_id_for_chain(chain: Chain) -> &'static str {
         Chain::Plasma => "plasma",
         Chain::XLayer => "okb",
         Chain::Stable => "tether", // USDT0 is the native gas token
-        Chain::Tempo => "",
-    }
+        Chain::Tempo => return None,
+    };
+    Some(id)
 }
 
 #[cfg(test)]

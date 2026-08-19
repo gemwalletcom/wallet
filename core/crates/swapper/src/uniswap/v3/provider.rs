@@ -73,8 +73,7 @@ impl UniswapV3 {
     async fn preload_pool_candidates(&self, chain: Chain, token_in: Address, token_out: Address) -> Result<(), SwapperError> {
         let deployment = self.provider.get_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let evm_chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
-        let use_weth = evm_chain.weth_contract().is_some();
-        let base_pair = get_base_pair(&evm_chain, use_weth).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = get_base_pair(&evm_chain, evm_chain.weth_contract()).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
         let client = self.client_for(chain)?;
         let fee_tiers = self.provider.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, crate::uniswap::swap_route::get_intermediaries(&token_in, &token_out, &base_pair));
@@ -162,8 +161,7 @@ impl Swapper for UniswapV3 {
         let client = self.client_for(from_chain)?;
 
         let fee_tiers = self.provider.get_tiers();
-        let use_weth = evm_chain.weth_contract().is_some();
-        let base_pair = get_base_pair(&evm_chain, use_weth).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = get_base_pair(&evm_chain, evm_chain.weth_contract()).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
 
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, token_in, token_out);
         let fee_bps = default_referral_fees().evm.bps;
@@ -287,8 +285,7 @@ impl Swapper for UniswapV3 {
         let sig_deadline = get_sig_deadline();
 
         let evm_chain = EVMChain::from_chain(from_chain).ok_or(SwapperError::NotSupportedChain)?;
-        let use_weth = evm_chain.weth_contract().is_some();
-        let base_pair = get_base_pair(&evm_chain, use_weth);
+        let base_pair = get_base_pair(&evm_chain, evm_chain.weth_contract());
         let fee_token_is_input = is_quote_input_fee_token(base_pair.as_ref(), request, token_in, token_out);
 
         let path: Bytes = build_paths_with_routes(&quote.data.routes)?;

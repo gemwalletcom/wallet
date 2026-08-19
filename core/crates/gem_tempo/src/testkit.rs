@@ -1,11 +1,5 @@
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
-use gem_client::ReqwestClient;
 #[cfg(feature = "signer")]
 use gem_evm::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT};
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
-use gem_evm::rpc::EthereumClient;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
-use primitives::EVMChain;
 use primitives::{Asset, Chain, TransactionInputType, TransferDataExtra, WalletConnectionSessionAppMetadata};
 #[cfg(feature = "signer")]
 use primitives::{
@@ -57,10 +51,4 @@ pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: AssetId, appro
     );
     input.fee.fee_asset = fee_asset;
     input
-}
-
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
-pub(crate) fn create_tempo_test_client() -> EthereumClient<ReqwestClient> {
-    let settings = settings::testkit::get_test_settings();
-    EthereumClient::mock_with_url(EVMChain::Tempo, &settings.chains.tempo.url)
 }

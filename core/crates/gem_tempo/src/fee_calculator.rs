@@ -4,7 +4,6 @@ use alloy_primitives::Address;
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_evm::provider::preload;
-use gem_evm::provider::preload_mapper::TransactionParams;
 use gem_evm::rpc::{EthereumClient, EvmFeeCalculator};
 use num_bigint::BigInt;
 use primitives::{AssetId, Chain, TransactionFee, TransactionLoadInput, TransactionType, asset_constants::TEMPO_PATHUSD_ASSET_ID};
@@ -18,7 +17,7 @@ pub struct TempoFeeCalculator<C: Client + Clone> {
 
 #[async_trait]
 impl<C: Client + Clone> EvmFeeCalculator for TempoFeeCalculator<C> {
-    async fn calculate_fee(&self, input: &TransactionLoadInput, _params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
+    async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
         let fee_asset = self.fee_asset(input).await?;
         let transaction_fee = preload::calculate_fee(input, gas_limit)?;
 
@@ -116,10 +115,6 @@ mod tests {
         )
     }
 
-    async fn calculate_fee(calculator: &TempoFeeCalculator<MockClient>, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
-        EvmFeeCalculator::calculate_fee(calculator, input, &TransactionParams::new(String::new(), vec![], BigInt::ZERO), gas_limit).await
-    }
-
     #[tokio::test]
     async fn test_calculate_fee() -> Result<(), Box<dyn Error + Sync + Send>> {
         let calculator = new_calculator(|_, params| {
@@ -132,7 +127,7 @@ mod tests {
         let gas_limit = BigInt::from(21_000u64);
         let mut input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_USDC.clone()), "1000000");
         input.gas_price = GasPriceType::eip1559(BigInt::from(20_000_000_001u64), BigInt::from(0u64));
-        let fee = calculate_fee(&calculator, &input, &gas_limit).await?;
+        let fee = calculator.calculate_fee(&input, &gas_limit).await?;
 
         assert_eq!(fee.fee, BigInt::from(421u64));
         assert_eq!(fee.fee_asset, TEMPO_USDC.id);
@@ -141,11 +136,11 @@ mod tests {
 
         let token_asset = TEMPO_USDC.clone();
         let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(token_asset.clone()), "1000000");
-        let fee = calculate_fee(&calculator, &input, &BigInt::from(65_000u64)).await?;
+        let fee = calculator.calculate_fee(&input, &BigInt::from(65_000u64)).await?;
         assert_eq!(fee.fee_asset, token_asset.id);
 
         let input = TransactionLoadInput::mock_evm(mock_tempo_generic_input("0x0000000000000000000000000000000000000001", vec![0xab, 0xcd]), "0");
-        let fee = calculate_fee(&calculator, &input, &BigInt::from(100_000u64)).await?;
+        let fee = calculator.calculate_fee(&input, &BigInt::from(100_000u64)).await?;
         assert_eq!(fee.fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
 
         Ok(())

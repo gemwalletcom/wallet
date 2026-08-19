@@ -8,7 +8,7 @@ use chain_traits::{
 };
 use gem_client::Client;
 use gem_evm::provider::transaction_state_mapper::map_transaction_status_with_fee;
-use gem_evm::rpc::{EthereumClient, EthereumProvider, EvmProviderExtensions};
+use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use primitives::{
     Asset, AssetBalance, BroadcastOptions, Chain, FeeRate, SimulationInput, SimulationResult, Transaction, TransactionInputType, TransactionLoadData, TransactionLoadInput,
     TransactionLoadMetadata, TransactionPreloadInput, TransactionState, TransactionStateRequest, TransactionUpdate, asset_constants::TEMPO_PATHUSD_ASSET_ID, fee::FeePriority,
@@ -22,11 +22,9 @@ pub struct TempoProvider<C: Client + Clone> {
 
 impl<C: Client + Clone + 'static> TempoProvider<C> {
     pub fn new(client: EthereumClient<C>) -> Self {
-        let extensions = EvmProviderExtensions {
-            fee_calculator: Some(Box::new(TempoFeeCalculator::new(client.clone()))),
-        };
+        let fee_calculator = Box::new(TempoFeeCalculator::new(client.clone()));
         Self {
-            provider: EthereumProvider::new_rpc_only_with_extensions(client, extensions),
+            provider: EthereumProvider::new_rpc_only_with_fee_calculator(client, fee_calculator),
         }
     }
 
@@ -265,13 +263,17 @@ mod tests {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use super::*;
-    use crate::testkit::{TEMPO_TEST_ADDRESS, create_tempo_test_client};
+    use crate::testkit::TEMPO_TEST_ADDRESS;
+    use gem_client::ReqwestClient;
+    use gem_jsonrpc::JsonRpcClient;
     use num_bigint::BigInt;
-    use primitives::TransactionPreloadInput;
+    use primitives::{EVMChain, TransactionPreloadInput};
 
     #[tokio::test]
     async fn test_get_transaction_load_pathusd_transfer() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let provider = TempoProvider::new(create_tempo_test_client());
+        let settings = settings::testkit::get_test_settings();
+        let client = ReqwestClient::new_test_client(settings.chains.tempo.url.clone());
+        let provider = TempoProvider::new(EthereumClient::new(JsonRpcClient::new(client), EVMChain::Tempo));
         let input_type = TransactionInputType::Transfer(primitives::known_assets::TEMPO_PATHUSD.clone());
 
         let metadata = provider

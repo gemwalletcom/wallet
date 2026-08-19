@@ -88,7 +88,7 @@ mod tests {
         let token_in = address!("0x6fd9d7AD17242c41f7131d257212c54A0e816691"); // UNI
         let token_out = address!("0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6"); // LINK
         let fee_tiers = vec![FeeTier::ThreeThousand, FeeTier::FiveHundred, FeeTier::Hundred];
-        let base_pair = get_base_pair(&EVMChain::Optimism, false).unwrap();
+        let base_pair = get_base_pair(&EVMChain::Optimism, None).unwrap();
 
         let v4_quoter = OPTIMISM_UNISWAP_V4_QUOTER_CONTRACT;
         let amount_in = 10000000000000000_u128;

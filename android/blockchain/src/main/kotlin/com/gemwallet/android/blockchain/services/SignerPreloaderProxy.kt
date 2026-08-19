@@ -8,7 +8,6 @@ import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.SignerParams
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ScanTransaction
 import com.wallet.core.primitives.ScanTransactionPayload
 import kotlinx.coroutines.Dispatchers

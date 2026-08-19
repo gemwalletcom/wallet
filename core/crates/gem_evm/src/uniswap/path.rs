@@ -67,11 +67,11 @@ impl BasePair {
     }
 }
 
-pub fn get_base_pair(chain: &EVMChain, contract_as_native: bool) -> Option<BasePair> {
-    let primary = match chain {
-        EVMChain::Tempo => TEMPO_PATHUSD_TOKEN_ID.parse().ok()?,
-        _ if contract_as_native => chain.native_asset_contract().or_else(|| chain.weth_contract())?.parse().ok()?,
-        _ => Address::ZERO,
+pub fn get_base_pair(chain: &EVMChain, native_asset_token: Option<&str>) -> Option<BasePair> {
+    let primary = match (chain, native_asset_token) {
+        (EVMChain::Tempo, _) => TEMPO_PATHUSD_TOKEN_ID.parse().ok()?,
+        (_, Some(token)) => token.parse().ok()?,
+        (_, None) => Address::ZERO,
     };
 
     let btc: &str = match chain {
@@ -282,7 +282,7 @@ mod tests {
 
     #[test]
     fn test_robinhood_base_pair() {
-        let base_pair = get_base_pair(&EVMChain::Robinhood, true).unwrap();
+        let base_pair = get_base_pair(&EVMChain::Robinhood, EVMChain::Robinhood.weth_contract()).unwrap();
 
         assert_eq!(base_pair.primary, ROBINHOOD_WETH_TOKEN_ID.parse::<Address>().unwrap());
         assert_eq!(base_pair.stables, vec![ROBINHOOD_USDG_TOKEN_ID.parse::<Address>().unwrap()]);

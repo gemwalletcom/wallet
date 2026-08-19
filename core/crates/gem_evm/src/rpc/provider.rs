@@ -7,17 +7,11 @@ use num_bigint::BigInt;
 use primitives::{AssetBalance, TransactionFee, TransactionLoadInput};
 
 use super::EthereumClient;
-use crate::provider::preload_mapper::TransactionParams;
 
 /// Chain-specific fee calculation seam for EVM-family chains (Tempo pays fees in TIP-20 tokens).
 #[async_trait]
 pub trait EvmFeeCalculator: Send + Sync {
-    async fn calculate_fee(&self, input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>>;
-}
-
-#[derive(Default)]
-pub struct EvmProviderExtensions {
-    pub fee_calculator: Option<Box<dyn EvmFeeCalculator>>,
+    async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>>;
 }
 
 #[async_trait]
@@ -38,32 +32,37 @@ pub struct EthereumProvider<C: Client + Clone> {
     client: EthereumClient<C>,
     transactions_by_address_provider: Box<dyn ChainTransactions>,
     asset_balance_provider: Box<dyn AssetBalanceProvider>,
-    fee_calculator: Option<Box<dyn EvmFeeCalculator>>,
+    pub(crate) fee_calculator: Box<dyn EvmFeeCalculator>,
 }
 
 impl<C: Client + Clone> EthereumProvider<C> {
-    pub fn new(client: EthereumClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>, asset_balance_provider: Box<dyn AssetBalanceProvider>) -> Self {
+    pub fn new(client: EthereumClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>, asset_balance_provider: Box<dyn AssetBalanceProvider>) -> Self
+    where
+        C: 'static,
+    {
+        let fee_calculator = Box::new(client.clone());
         Self {
             client,
             transactions_by_address_provider,
             asset_balance_provider,
-            fee_calculator: None,
+            fee_calculator,
         }
     }
 
-    pub fn new_rpc_only(client: EthereumClient<C>) -> Self {
+    pub fn new_rpc_only(client: EthereumClient<C>) -> Self
+    where
+        C: 'static,
+    {
         Self::new(client, Box::new(EmptyTransactionsProvider), Box::new(EmptyAssetBalanceProvider))
     }
 
-    pub fn new_rpc_only_with_extensions(client: EthereumClient<C>, extensions: EvmProviderExtensions) -> Self {
+    pub fn new_rpc_only_with_fee_calculator(client: EthereumClient<C>, fee_calculator: Box<dyn EvmFeeCalculator>) -> Self {
         Self {
-            fee_calculator: extensions.fee_calculator,
-            ..Self::new_rpc_only(client)
+            client,
+            transactions_by_address_provider: Box::new(EmptyTransactionsProvider),
+            asset_balance_provider: Box::new(EmptyAssetBalanceProvider),
+            fee_calculator,
         }
-    }
-
-    pub(crate) fn fee_calculator(&self) -> Option<&dyn EvmFeeCalculator> {
-        self.fee_calculator.as_deref()
     }
 
     pub(crate) async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
