@@ -12,11 +12,16 @@ import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockSwapParams
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.PaymentLink
+import com.wallet.core.primitives.PaymentMerchant
+import com.wallet.core.primitives.PaymentQuote
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,6 +31,40 @@ import uniffi.gemstone.GemTransactionInputType
 import java.math.BigInteger
 
 class ConfirmParamsTest {
+
+    @Test
+    fun paymentCalldataIsNotRecordedAsAMemo() {
+        fun generic(payment: PaymentData?) = ConfirmParams.TransferParams.Generic(
+            requestId = "pay_1",
+            asset = mockAssetEthereum(),
+            from = mockAccount(chain = Chain.Ethereum),
+            amount = BigInteger.ONE,
+            destination = DestinationAddress("0x57b2b4288220005234c0e88a04a7943193971d21"),
+            memo = "0xd3906488",
+            inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
+            isSendable = true,
+            name = "Merchant",
+            description = "",
+            url = "https://pay.walletconnect.com",
+            icon = "",
+            gasLimit = null,
+            decodedTransactionType = TransactionType.Transfer,
+            payment = payment,
+        )
+        val payment = PaymentData(
+            quote = PaymentQuote(
+                id = "option_1",
+                link = PaymentLink.WalletConnectPay("pay_1"),
+                assetId = AssetId(Chain.Ethereum),
+                value = "1",
+                providerData = "{}",
+            ),
+            merchant = PaymentMerchant(name = "Merchant", iconUrl = null),
+        )
+
+        assertNull(generic(payment).memo())
+        assertEquals("0xd3906488", generic(payment = null).memo())
+    }
 
     @Test
     fun packUnpackRoundTripsEveryVariant() {

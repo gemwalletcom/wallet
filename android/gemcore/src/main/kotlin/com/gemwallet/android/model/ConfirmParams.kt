@@ -188,7 +188,10 @@ sealed class ConfirmParams() {
             val icon: String,
             val gasLimit: String?,
             val decodedTransactionType: TransactionType = TransactionType.SmartContractCall,
+            val payment: PaymentData? = null,
         ) : TransferParams() {
+            override fun memo(): String? = if (payment == null) memo else null
+
             override fun toDto(): GemTransactionInputType {
                 val type = requireNotNull(inputType) { "inputType is required for Generic transactions" }
                 return Generic(
@@ -237,6 +240,7 @@ sealed class ConfirmParams() {
                 result = 31 * result + icon.hashCode()
                 result = 31 * result + (gasLimit?.hashCode() ?: 0)
                 result = 31 * result + decodedTransactionType.hashCode()
+                result = 31 * result + (payment?.hashCode() ?: 0)
                 return result
             }
 
