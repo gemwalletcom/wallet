@@ -14,24 +14,6 @@ data class AssetBalance(
     val isActive: Boolean = true,
 ) {
 
-    override fun equals(other: Any?): Boolean {
-        return other is AssetBalance
-                && asset.id == other.asset.id
-                && balance == other.balance
-                && totalAmount == other.totalAmount
-    }
-
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + asset.hashCode()
-        result = 31 * result + balance.hashCode()
-        result = 31 * result + balanceAmount.hashCode()
-        result = 31 * result + totalAmount.hashCode()
-        result = 31 * result + fiatTotalAmount.hashCode()
-        result = 31 * result + isActive.hashCode()
-        return result
-    }
-
     companion object {
         fun create(
             asset: Asset,

@@ -44,6 +44,7 @@ private const val ASSET_INFO_COLUMNS = """
     wallets.id AS walletId,
     prices.value AS priceValue,
     prices.day_changed AS priceDayChanges,
+    prices.updatedAt AS priceUpdatedAt,
     balances.available AS balanceAvailable,
     balances.available_amount AS balanceAvailableAmount,
     balances.frozen AS balanceFrozen,

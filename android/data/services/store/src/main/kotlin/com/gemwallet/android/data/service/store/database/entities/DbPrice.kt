@@ -17,6 +17,7 @@ data class DbPrice(
     @ColumnInfo("usd_value") val usdValue: Double? = 0.0,
     @ColumnInfo("day_changed") val dayChanged: Double? = 0.0,
     val currency: Currency,
+    val updatedAt: Long? = null,
 )
 
 fun AssetPrice.toRecord(rate: FiatRate): DbPrice {
@@ -25,7 +26,8 @@ fun AssetPrice.toRecord(rate: FiatRate): DbPrice {
         value = price * rate.rate,
         usdValue = price,
         dayChanged = priceChangePercentage24h,
-        currency = rate.symbol
+        currency = rate.symbol,
+        updatedAt = updatedAt,
     )
 }
 
@@ -39,6 +41,7 @@ fun AssetFull.toPriceRecord(rate: FiatRate): DbPrice? {
             usdValue = price.price,
             dayChanged = price.priceChangePercentage24h,
             currency = rate.symbol,
+            updatedAt = price.updatedAt,
         )
     }
 }
@@ -51,6 +54,7 @@ fun AssetBasic.toPriceRecord(rate: FiatRate): DbPrice? {
             usdValue = price.price,
             dayChanged = price.priceChangePercentage24h,
             currency = rate.symbol,
+            updatedAt = price.updatedAt,
         )
     }
 }
