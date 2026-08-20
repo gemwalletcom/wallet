@@ -83,6 +83,7 @@ sealed interface TransactionDetailsValue {
             explorerLink: BlockExplorerLink? = null,
         ) : Destination(data, chain = chain, name = name, explorerLink = explorerLink)
         class Provider(name: String) : Destination(name)
+        class Merchant(name: String) : Destination(name)
     }
 
     class Status(val data: TransactionState) : TransactionDetailsValue

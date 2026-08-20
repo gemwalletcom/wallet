@@ -30,6 +30,11 @@ fun DestinationPropertyItem(property: TransactionDetailsValue.Destination, listP
             explorerLink = property.explorerLink,
             listPosition = listPosition,
         )
+        is TransactionDetailsValue.Destination.Merchant -> PropertyItem(
+            title = { PropertyTitleText(R.string.transaction_recipient) },
+            data = { PropertyDataText(text = property.data) },
+            listPosition = listPosition,
+        )
         is TransactionDetailsValue.Destination.Provider -> PropertyItem(
             title = { PropertyTitleText(R.string.common_provider) },
             data = { PropertyDataText(text = property.data) },

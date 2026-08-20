@@ -4,6 +4,7 @@ import com.wallet.core.primitives.Transaction
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
+import com.wallet.core.primitives.TransactionPaymentMetadata
 import com.wallet.core.primitives.TransactionPerpetualMetadata
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransferDataOutputAction
@@ -35,6 +36,9 @@ fun Transaction.getPerpetualMetadata(): TransactionPerpetualMetadata? {
 
 fun Transaction.getNftMetadata(): TransactionNFTTransferMetadata? =
     decodeMetadata(type == TransactionType.TransferNFT, metadata)
+
+fun Transaction.getPaymentMetadata(): TransactionPaymentMetadata? =
+    decodeMetadata(type == TransactionType.Transfer, metadata)
 
 fun Transaction.getResourceMetadata(): TransactionResourceTypeMetadata? {
     val isResourceTransaction = type == TransactionType.StakeFreeze || type == TransactionType.StakeUnfreeze
