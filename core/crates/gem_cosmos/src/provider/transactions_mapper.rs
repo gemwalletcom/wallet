@@ -1,13 +1,14 @@
 use chrono::DateTime;
 use gem_encoding::decode_base64;
 use gem_hash::sha2::sha256;
+use num_bigint::BigUint;
 use primitives::chain_cosmos::CosmosChain;
 use primitives::{AssetId, Transaction, TransactionState, TransactionType};
 use std::error::Error;
 
 use crate::constants::get_base_fee;
 use crate::models::BroadcastResponse;
-use crate::models::{AuthInfo, Message, TransactionBody, TransactionResponse};
+use crate::models::{Message, TransactionResponse};
 
 pub fn map_transaction_broadcast(response: &BroadcastResponse) -> Result<String, Box<dyn Error + Sync + Send>> {
     if let Some(tx_response) = &response.tx_response {
@@ -35,39 +36,39 @@ pub fn get_hash(bytes: &[u8]) -> String {
 }
 
 pub fn map_transactions(chain: CosmosChain, transactions: Vec<TransactionResponse>) -> Vec<primitives::Transaction> {
-    transactions
-        .into_iter()
-        .filter_map(|x| {
-            let body = x.tx.body.clone();
-            let auth_info = x.tx.auth_info.clone();
-            map_transaction(chain, body, auth_info, x)
-        })
-        .collect()
+    transactions.into_iter().filter_map(|transaction| map_transaction(chain, transaction)).collect()
 }
 
 fn asset_id_from_denom(chain: primitives::Chain, denom: &str, default_denom: &str) -> AssetId {
     if denom == default_denom { chain.as_asset_id() } else { AssetId::token(chain, denom) }
 }
 
-pub fn map_transaction(cosmos_chain: CosmosChain, body: TransactionBody, auth_info: Option<AuthInfo>, transaction: TransactionResponse) -> Option<Transaction> {
+pub fn map_transaction(cosmos_chain: CosmosChain, transaction: TransactionResponse) -> Option<Transaction> {
     if transaction.tx_response.code != 0 {
         return None;
     }
 
-    let hash = transaction.tx_response.txhash.clone();
+    let TransactionResponse { tx, tx_response } = transaction;
+    let body = tx.body;
+    let auth_info = tx.auth_info;
+
+    let hash = tx_response.txhash.clone();
     let chain = cosmos_chain.as_chain();
     let default_denom = chain.as_denom()?.to_string();
     let native_asset_id = chain.as_asset_id();
 
     let fee_coin = auth_info.and_then(|info| info.fee.amount.into_iter().next());
-    let fee = fee_coin.as_ref().map_or_else(|| get_base_fee(cosmos_chain).to_string(), |coin| coin.amount.to_string());
+    let fee = match fee_coin.as_ref() {
+        Some(coin) => BigUint::try_from(coin.amount.clone()).ok()?.to_string(),
+        None => get_base_fee(cosmos_chain).to_string(),
+    };
     let fee_asset_id = fee_coin
         .as_ref()
         .map_or_else(|| native_asset_id.clone(), |coin| asset_id_from_denom(chain, &coin.denom, &default_denom));
 
     let memo = if body.memo.is_empty() { None } else { Some(body.memo.clone()) };
 
-    let created_at = DateTime::parse_from_rfc3339(&transaction.tx_response.timestamp).ok()?.into();
+    let created_at = DateTime::parse_from_rfc3339(&tx_response.timestamp).ok()?.into();
 
     if body.messages.len() != 1 {
         return None;
@@ -85,34 +86,34 @@ pub fn map_transaction(cosmos_chain: CosmosChain, body: TransactionBody, auth_in
             let coin = message.amount.first()?;
             asset_id = asset_id_from_denom(chain, &coin.denom, &default_denom);
             transaction_type = TransactionType::Transfer;
-            value = coin.amount.to_string();
+            value = BigUint::try_from(coin.amount.clone()).ok()?.to_string();
             from_address = message.from_address;
             to_address = message.to_address;
         }
         Message::MsgDelegate(message) => {
             asset_id = native_asset_id.clone();
             transaction_type = TransactionType::StakeDelegate;
-            value = message.amount?.amount.to_string();
+            value = BigUint::try_from(message.amount?.amount).ok()?.to_string();
             from_address = message.delegator_address;
             to_address = message.validator_address;
         }
         Message::MsgUndelegate(message) => {
             asset_id = native_asset_id.clone();
             transaction_type = TransactionType::StakeUndelegate;
-            value = message.amount?.amount.to_string();
+            value = BigUint::try_from(message.amount?.amount).ok()?.to_string();
             from_address = message.delegator_address;
             to_address = message.validator_address;
         }
         Message::MsgBeginRedelegate(message) => {
             asset_id = native_asset_id.clone();
             transaction_type = TransactionType::StakeRedelegate;
-            value = message.amount?.amount.to_string();
+            value = BigUint::try_from(message.amount?.amount).ok()?.to_string();
             from_address = message.delegator_address;
             to_address = message.validator_dst_address;
         }
         Message::MsgWithdrawDelegatorReward(message) => {
             asset_id = native_asset_id.clone();
-            value = transaction.get_rewards_value(&default_denom)?.to_string();
+            value = tx_response.get_rewards_value(&default_denom)?.to_string();
             transaction_type = TransactionType::StakeRewards;
             from_address = message.delegator_address;
             to_address = message.validator_address;
@@ -204,11 +205,13 @@ mod tests {
     }
 
     #[test]
-    fn test_map_reverted_transfer_is_ignored() {
-        let result = TransactionResponse::mock_reverted_transfer_spam();
-        let transactions = map_transactions(CosmosChain::Cosmos, vec![result]);
+    fn test_negative_amount_transaction_is_never_mapped() {
+        let reverted = TransactionResponse::mock_reverted_transfer_spam();
+        assert_eq!(map_transactions(CosmosChain::Cosmos, vec![reverted]), vec![]);
 
-        assert_eq!(transactions, vec![]);
+        let mut successful = TransactionResponse::mock_reverted_transfer_spam();
+        successful.tx_response.code = 0;
+        assert_eq!(map_transactions(CosmosChain::Cosmos, vec![successful]), vec![]);
     }
 
     #[test]
