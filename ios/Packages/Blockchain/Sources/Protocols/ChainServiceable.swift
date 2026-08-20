@@ -34,7 +34,7 @@ public extension ChainFeeRateFetchable {
     func defaultPriority(for type: TransferDataType) -> FeePriority {
         switch type {
         case let .swap(fromAsset, _, _): fromAsset.chain == .bitcoin ? .fast : .normal
-        case .tokenApprove, .stake, .transfer, .deposit, .transferNft, .generic, .account, .perpetual, .withdrawal, .earn: .normal
+        case .tokenApprove, .stake, .transfer, .deposit, .transferNft, .generic, .account, .perpetual, .withdrawal, .earn, .payment: .normal
         }
     }
 }

@@ -18,7 +18,8 @@ extension TransferData {
              .account(_, .activate),
              .stake(_, .stake),
              .stake(_, .freeze),
-             .earn(_, .deposit, _): metadata.available
+             .earn(_, .deposit, _),
+             .payment: metadata.available
         case let .stake(_, .unstake(delegation)),
              let .stake(_, .withdraw(delegation)),
              let .earn(_, .withdraw(delegation), _): delegation.base.balanceValue

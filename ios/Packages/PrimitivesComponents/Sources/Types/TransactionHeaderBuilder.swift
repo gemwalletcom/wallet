@@ -56,7 +56,8 @@ public enum TransactionHeaderTypeBuilder {
                  .deposit,
                  .withdrawal,
                  .stake,
-                 .generic:
+                 .generic,
+                 .payment:
                 return .amount(showFiat: true)
             case .tokenApprove:
                 return .assetImage

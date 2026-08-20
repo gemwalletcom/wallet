@@ -9,6 +9,7 @@ import EventPresenterService
 import ExplorerService
 import Foundation
 import Keystore
+import PaymentService
 import PriceService
 import Primitives
 import ScanService
@@ -28,6 +29,7 @@ public enum ConfirmServiceFactory {
         addressNameService: AddressNameService,
         activityService: ActivityService,
         eventPresenterService: EventPresenterService,
+        paymentService: any PaymentServiceable,
         chain: Chain,
     ) -> ConfirmService {
         let chainService = chainServiceFactory.service(for: chain)
@@ -52,6 +54,7 @@ public enum ConfirmServiceFactory {
                 chainService: chainService,
                 assetsEnabler: assetsEnabler,
                 transactionStateScheduler: transactionStateScheduler,
+                paymentService: paymentService,
             ),
             activityService: activityService,
             eventPresenterService: eventPresenterService,

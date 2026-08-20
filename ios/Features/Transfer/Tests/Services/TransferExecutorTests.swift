@@ -3,6 +3,7 @@
 import Blockchain
 import BlockchainTestKit
 import ChainServiceTestKit
+import PaymentServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import SignerTestKit
@@ -27,6 +28,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["action:1", "order:413978262893", "action:2"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
+            paymentService: .mock(),
         )
 
         let input = TransferConfirmationInput(
@@ -52,6 +54,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash0", "hash1"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
+            paymentService: .mock(),
         )
 
         let input = TransferConfirmationInput(
@@ -87,6 +90,7 @@ struct TransferExecutorTests {
             ]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
+            paymentService: .mock(),
         )
         let swapData = SwapData.mock(
             quote: .mock(
@@ -131,6 +135,7 @@ struct TransferExecutorTests {
             ]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
+            paymentService: .mock(),
         )
 
         let input = TransferConfirmationInput(
@@ -156,6 +161,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
+            paymentService: .mock(),
         )
 
         let input = TransferConfirmationInput(
@@ -182,6 +188,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
+            paymentService: .mock(),
         )
 
         let input = TransferConfirmationInput(

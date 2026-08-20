@@ -42,7 +42,7 @@ struct TransferDataViewModel {
 
     var title: String {
         switch type {
-        case .transfer: Localized.Transfer.Send.title
+        case .transfer, .payment: Localized.Transfer.Send.title
         case .deposit: Localized.Wallet.deposit
         case .withdrawal: Localized.Wallet.withdraw
         case .transferNft: Localized.Transfer.Send.title
@@ -89,7 +89,8 @@ struct TransferDataViewModel {
              .stake,
              .account,
              .perpetual,
-             .earn: .none
+             .earn,
+             .payment: .none
         case let .generic(_, metadata, _):
             URL(string: metadata.url)
         }

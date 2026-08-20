@@ -69,6 +69,12 @@ public extension TransferDataType {
             return .tokenApprove(asset: asset.map(), approvalData: approvalData.map())
         case let .generic(asset, metadata, extra):
             return .generic(asset: asset.map(), metadata: metadata.map(), extra: extra.map())
+        case let .payment(asset, payment, extra):
+            return .generic(
+                asset: asset.map(),
+                metadata: payment.merchant.appMetadata.map(),
+                extra: extra.map(),
+            )
         case let .withdrawal(asset):
             if asset.chain == .hyperCore {
                 return .withdrawal(asset: asset.map())
