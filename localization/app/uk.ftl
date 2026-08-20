@@ -191,6 +191,10 @@ settings_preferences_title = Налаштування
 settings_preferences_perpetual_default_leverage = Плече за замовчуванням
 settings_preferences_perpetual_default_take_profit = Тейк-профіт за замовчуванням
 settings_preferences_perpetual_default_stop_loss = Стоп-лосс за замовчуванням
+settings_appearance_title = Оформлення
+settings_appearance_system = Системне
+settings_appearance_light = Світле
+settings_appearance_dark = Темне
 
 # Support
 

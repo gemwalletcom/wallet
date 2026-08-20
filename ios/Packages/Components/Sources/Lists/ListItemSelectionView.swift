@@ -23,12 +23,12 @@ public struct ListItemSelectionView<T: Hashable>: View {
 
     public init(
         title: String?,
-        titleExtra: String?,
-        titleTag: String?,
-        titleTagType: TitleTagType,
+        titleExtra: String? = nil,
+        titleTag: String? = nil,
+        titleTagType: TitleTagType = .none,
         titleTagStyle: TextStyle = .body,
-        subtitle: String?,
-        subtitleExtra: String?,
+        subtitle: String? = nil,
+        subtitleExtra: String? = nil,
         imageStyle: ListItemImageStyle? = nil,
         placeholders: [ListItemViewPlaceholderType] = [],
         value: T,

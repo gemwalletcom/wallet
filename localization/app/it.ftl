@@ -191,6 +191,10 @@ settings_preferences_title = Preferenze
 settings_preferences_perpetual_default_leverage = Leva finanziaria predefinita
 settings_preferences_perpetual_default_take_profit = Take Profit predefinito
 settings_preferences_perpetual_default_stop_loss = Stop Loss predefinito
+settings_appearance_title = Aspetto
+settings_appearance_system = Sistema
+settings_appearance_light = Chiaro
+settings_appearance_dark = Scuro
 
 # Support
 

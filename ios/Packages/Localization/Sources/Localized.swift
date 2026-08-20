@@ -1196,6 +1196,14 @@ public enum Localized {
   public enum Settings {
     /// About Us
     public static let aboutus = Localized.tr("Localizable", "settings.aboutus", fallback: "About Us")
+    /// Dark
+    public static let appearanceDark = Localized.tr("Localizable", "settings.appearance_dark", fallback: "Dark")
+    /// Light
+    public static let appearanceLight = Localized.tr("Localizable", "settings.appearance_light", fallback: "Light")
+    /// System
+    public static let appearanceSystem = Localized.tr("Localizable", "settings.appearance_system", fallback: "System")
+    /// Appearance
+    public static let appearanceTitle = Localized.tr("Localizable", "settings.appearance_title", fallback: "Appearance")
     /// Community
     public static let community = Localized.tr("Localizable", "settings.community", fallback: "Community")
     /// Currency

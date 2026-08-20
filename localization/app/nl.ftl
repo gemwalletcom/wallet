@@ -191,6 +191,10 @@ settings_preferences_title = Voorkeuren
 settings_preferences_perpetual_default_leverage = Standaard hefboomwerking
 settings_preferences_perpetual_default_take_profit = Standaard take profit
 settings_preferences_perpetual_default_stop_loss = Standaard stop loss
+settings_appearance_title = Weergave
+settings_appearance_system = Systeem
+settings_appearance_light = Licht
+settings_appearance_dark = Donker
 
 # Support
 

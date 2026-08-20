@@ -191,6 +191,10 @@ settings_preferences_title = Préférences
 settings_preferences_perpetual_default_leverage = effet de levier par défaut
 settings_preferences_perpetual_default_take_profit = Take Profit par défaut
 settings_preferences_perpetual_default_stop_loss = Stop Loss par défaut
+settings_appearance_title = Apparence
+settings_appearance_system = Système
+settings_appearance_light = Clair
+settings_appearance_dark = Sombre
 
 # Support
 

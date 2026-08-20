@@ -160,6 +160,10 @@
 "settings.preferences.perpetual.default_leverage" = "Varsayılan Kaldıraç";
 "settings.preferences.perpetual.default_take_profit" = "Varsayılan Take Profit";
 "settings.preferences.perpetual.default_stop_loss" = "Varsayılan Stop Loss";
+"settings.appearance_title" = "Görünüm";
+"settings.appearance_system" = "Sistem";
+"settings.appearance_light" = "Açık";
+"settings.appearance_dark" = "Koyu";
 "support.state_empty_title" = "Size nasıl yardımcı olabiliriz?";
 "support.state_empty_description" = "Bize her şeyi sorabilirsiniz. Yardım için buradayız.";
 "support.message_placeholder" = "Mesaj";

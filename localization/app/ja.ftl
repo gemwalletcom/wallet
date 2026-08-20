@@ -191,6 +191,10 @@ settings_preferences_title = 設定
 settings_preferences_perpetual_default_leverage = デフォルトレバレッジ
 settings_preferences_perpetual_default_take_profit = デフォルト利確
 settings_preferences_perpetual_default_stop_loss = デフォルト損切り
+settings_appearance_title = 外観
+settings_appearance_system = システム
+settings_appearance_light = ライト
+settings_appearance_dark = ダーク
 
 # Support
 

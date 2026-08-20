@@ -9,15 +9,18 @@ import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.CheckAccountsService
 import com.gemwallet.android.services.MigrateV3KeystoreService
 import com.gemwallet.android.services.SyncService
+import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicLong
@@ -49,6 +52,9 @@ class MainViewModel @Inject constructor(
     private val activeAuthRequestId = AtomicLong(NoActiveAuthRequestId)
 
     val isWalletConnectEnabled: Boolean = bridgesRepository.isWalletConnectEnabled
+
+    val appearance = userConfig.appearance()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Appearance.System)
 
     private val walletConnectHandler = object : PendingNavigationCoordinator.WalletConnectHandler {
         override fun onPairing(uri: String) = addPairing(uri)

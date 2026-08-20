@@ -191,6 +191,10 @@ settings_preferences_title = Einstellungen
 settings_preferences_perpetual_default_leverage = Standardhebel
 settings_preferences_perpetual_default_take_profit = Standard-Take-Profit
 settings_preferences_perpetual_default_stop_loss = Standard-Stop-Loss
+settings_appearance_title = Erscheinungsbild
+settings_appearance_system = System
+settings_appearance_light = Hell
+settings_appearance_dark = Dunkel
 
 # Support
 

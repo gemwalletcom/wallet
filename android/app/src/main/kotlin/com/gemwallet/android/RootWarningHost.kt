@@ -14,9 +14,10 @@ import kotlinx.coroutines.withContext
 
 @Composable
 internal fun RootWarningHost(
+    darkTheme: Boolean,
     onCancel: () -> Unit,
 ) {
-    WalletTheme {
+    WalletTheme(darkTheme = darkTheme) {
         var showRootWarningDialog by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {

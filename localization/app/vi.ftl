@@ -191,6 +191,10 @@ settings_preferences_title = Sở thích
 settings_preferences_perpetual_default_leverage = Đòn bẩy mặc định
 settings_preferences_perpetual_default_take_profit = Take Profit mặc định
 settings_preferences_perpetual_default_stop_loss = Stop Loss mặc định
+settings_appearance_title = Giao diện
+settings_appearance_system = Hệ thống
+settings_appearance_light = Sáng
+settings_appearance_dark = Tối
 
 # Support
 

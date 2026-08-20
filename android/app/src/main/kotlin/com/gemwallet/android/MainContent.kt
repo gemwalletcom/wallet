@@ -21,6 +21,7 @@ import com.wallet.core.primitives.AssetId
 @Composable
 internal fun MainContent(
     state: MainViewModel.MainUIState,
+    darkTheme: Boolean,
     pendingNavigation: PendingNavigation?,
     systemAuthEnrollmentMissing: Boolean,
     activeWalletConnectRequest: ActiveWalletConnectRequest,
@@ -59,7 +60,7 @@ internal fun MainContent(
         }
     }
 
-    WalletTheme {
+    WalletTheme(darkTheme = darkTheme) {
         Box(modifier = Modifier.fillMaxSize()) {
             if (state.hasUnlockedApp) {
                 WalletApp(

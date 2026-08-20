@@ -191,6 +191,10 @@ settings_preferences_title = Preferensi
 settings_preferences_perpetual_default_leverage = Leverage Default
 settings_preferences_perpetual_default_take_profit = Take Profit default
 settings_preferences_perpetual_default_stop_loss = Stop Loss default
+settings_appearance_title = Tampilan
+settings_appearance_system = Sistem
+settings_appearance_light = Terang
+settings_appearance_dark = Gelap
 
 # Support
 

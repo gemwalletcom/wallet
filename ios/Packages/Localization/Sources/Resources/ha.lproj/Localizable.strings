@@ -160,6 +160,10 @@
 "settings.preferences.perpetual.default_leverage" = "Tsohuwar Leverage";
 "settings.preferences.perpetual.default_take_profit" = "Take Profit na asali";
 "settings.preferences.perpetual.default_stop_loss" = "Stop Loss na asali";
+"settings.appearance_title" = "Kamanni";
+"settings.appearance_system" = "Tsarin";
+"settings.appearance_light" = "Haske";
+"settings.appearance_dark" = "Duhu";
 "support.state_empty_title" = "Yaya za mu taimaka?";
 "support.state_empty_description" = "Tambaye mu kome. Muna nan don taimaka maka.";
 "support.message_placeholder" = "Saƙo";

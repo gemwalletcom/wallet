@@ -191,6 +191,10 @@ settings_preferences_title = Mga Kagustuhan
 settings_preferences_perpetual_default_leverage = Default na Leverage
 settings_preferences_perpetual_default_take_profit = Default na Take Profit
 settings_preferences_perpetual_default_stop_loss = Default na Stop Loss
+settings_appearance_title = Anyo
+settings_appearance_system = Sistema
+settings_appearance_light = Maliwanag
+settings_appearance_dark = Madilim
 
 # Support
 

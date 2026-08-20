@@ -134,6 +134,19 @@ public final class ObservablePreferences: Sendable {
         }
     }
 
+    @ObservationIgnored
+    public var appearance: Appearance {
+        get {
+            access(keyPath: \.appearance)
+            return preferences.appearance
+        }
+        set {
+            withMutation(keyPath: \.appearance) {
+                preferences.appearance = newValue
+            }
+        }
+    }
+
     public func showPerpetuals(for wallet: Wallet) -> Bool {
         access(keyPath: \.isPerpetualEnabled)
         return preferences.showPerpetuals(for: wallet)

@@ -8,6 +8,8 @@ public final class LockWindowManager: LockWindowManageable {
     public var lockModel: LockSceneViewModel
     public var overlayWindow: UIWindow?
 
+    private var userInterfaceStyle: UIUserInterfaceStyle = .unspecified
+
     public init(lockModel: LockSceneViewModel) {
         self.lockModel = lockModel
     }
@@ -26,6 +28,14 @@ public final class LockWindowManager: LockWindowManageable {
             return
         }
         lockModel.handleSceneChange(to: phase)
+    }
+
+    public func setColorScheme(_ colorScheme: ColorScheme) {
+        userInterfaceStyle = switch colorScheme {
+        case .dark: .dark
+        default: .light
+        }
+        overlayWindow?.overrideUserInterfaceStyle = userInterfaceStyle
     }
 
     public func toggleLock(show: Bool) {
@@ -69,6 +79,7 @@ extension LockWindowManager {
         window.rootViewController = host
         window.windowLevel = .alert + 1
         window.backgroundColor = .clear
+        window.overrideUserInterfaceStyle = userInterfaceStyle
         window.alpha = lockModel.privacyLockAlpha
         window.makeKeyAndVisible()
         return window

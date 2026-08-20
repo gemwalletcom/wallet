@@ -191,6 +191,10 @@ settings_preferences_title = Mapendeleo
 settings_preferences_perpetual_default_leverage = Uwiano wa Mtaji Chaguomsingi
 settings_preferences_perpetual_default_take_profit = Take Profit chaguomsingi
 settings_preferences_perpetual_default_stop_loss = Stop Loss chaguomsingi
+settings_appearance_title = Muonekano
+settings_appearance_system = Mfumo
+settings_appearance_light = Nuru
+settings_appearance_dark = Giza
 
 # Support
 

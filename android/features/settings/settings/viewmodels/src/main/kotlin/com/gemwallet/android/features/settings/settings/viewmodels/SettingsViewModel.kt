@@ -9,6 +9,7 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.model.NotificationsAvailable
+import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -57,6 +58,13 @@ class SettingsViewModel @Inject constructor(
 
     val isPerpetualEnabled = userConfig.isPerpetualEnabled()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val appearance = userConfig.appearance()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Appearance.System)
+
+    fun setAppearance(appearance: Appearance) = viewModelScope.launch(Dispatchers.IO) {
+        userConfig.setAppearance(appearance)
+    }
 
     val perpetualLeverage = userConfig.perpetualLeverage()
         .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualConfig.defaultLeverage)

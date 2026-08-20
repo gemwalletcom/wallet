@@ -191,6 +191,10 @@ settings_preferences_title = পছন্দসমূহ
 settings_preferences_perpetual_default_leverage = ডিফল্ট লিভারেজ
 settings_preferences_perpetual_default_take_profit = ডিফল্ট টেক প্রফিট
 settings_preferences_perpetual_default_stop_loss = ডিফল্ট স্টপ লস
+settings_appearance_title = চেহারা
+settings_appearance_system = সিস্টেম
+settings_appearance_light = হালকা
+settings_appearance_dark = গাঢ়
 
 # Support
 

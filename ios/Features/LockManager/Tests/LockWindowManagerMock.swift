@@ -9,6 +9,8 @@ final class LockWindowManagerMock: LockWindowManageable {
     var lockModel: LockSceneViewModel
     var overlayWindow: UIWindow?
 
+    private var userInterfaceStyle: UIUserInterfaceStyle = .unspecified
+
     init(lockModel: LockSceneViewModel) {
         self.lockModel = lockModel
     }
@@ -29,6 +31,14 @@ final class LockWindowManagerMock: LockWindowManageable {
         lockModel.handleSceneChange(to: phase)
     }
 
+    func setColorScheme(_ colorScheme: ColorScheme) {
+        userInterfaceStyle = switch colorScheme {
+        case .dark: .dark
+        default: .light
+        }
+        overlayWindow?.overrideUserInterfaceStyle = userInterfaceStyle
+    }
+
     func toggleLock(show: Bool) {
         show ? present() : dismiss()
     }
@@ -43,6 +53,7 @@ final class LockWindowManagerMock: LockWindowManageable {
             overlayWindow = Self.makeWindow(
                 model: lockModel,
                 visible: lockModel.isPrivacyLockVisible,
+                userInterfaceStyle: userInterfaceStyle,
             )
         }
         togglePrivacyLock(visible: lockModel.isPrivacyLockVisible)
@@ -55,12 +66,17 @@ final class LockWindowManagerMock: LockWindowManageable {
         overlayWindow?.isHidden = true
     }
 
-    private static func makeWindow(model: LockSceneViewModel, visible: Bool) -> UIWindow {
+    private static func makeWindow(
+        model: LockSceneViewModel,
+        visible: Bool,
+        userInterfaceStyle: UIUserInterfaceStyle,
+    ) -> UIWindow {
         let host = UIHostingController(rootView: LockScreenScene(model: model))
         let window = UIWindow(frame: .zero)
         window.rootViewController = host
         window.windowLevel = .alert + 1
         window.backgroundColor = .clear
+        window.overrideUserInterfaceStyle = userInterfaceStyle
         window.alpha = visible ? 1 : 0
         window.makeKeyAndVisible()
         return window

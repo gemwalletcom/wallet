@@ -42,6 +42,7 @@ final class RootSceneViewModel {
 
     var currentWallet: Wallet? { walletSessionService.currentWallet }
     var currentWalletId: WalletId? { walletSessionService.currentWalletId }
+    var colorScheme: ColorScheme? { observablePreferences.appearance.colorScheme }
     var updateVersionAlertMessage: AlertMessage?
 
     var isPresentingToastMessage: ToastMessage? {

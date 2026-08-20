@@ -191,6 +191,10 @@ settings_preferences_title = Preferências
 settings_preferences_perpetual_default_leverage = Alavancagem padrão
 settings_preferences_perpetual_default_take_profit = Take Profit padrão
 settings_preferences_perpetual_default_stop_loss = Stop Loss padrão
+settings_appearance_title = Aparência
+settings_appearance_system = Sistema
+settings_appearance_light = Claro
+settings_appearance_dark = Escuro
 
 # Support
 

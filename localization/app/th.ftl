@@ -191,6 +191,10 @@ settings_preferences_title = การตั้งค่า
 settings_preferences_perpetual_default_leverage = เลเวอเรจเริ่มต้น
 settings_preferences_perpetual_default_take_profit = Take Profit เริ่มต้น
 settings_preferences_perpetual_default_stop_loss = Stop Loss เริ่มต้น
+settings_appearance_title = ลักษณะที่ปรากฏ
+settings_appearance_system = ระบบ
+settings_appearance_light = สว่าง
+settings_appearance_dark = มืด
 
 # Support
 
