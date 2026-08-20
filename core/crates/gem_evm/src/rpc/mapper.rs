@@ -140,7 +140,7 @@ impl EthereumMapper {
             TransactionPayload::Erc721Transfer(transfer) | TransactionPayload::Erc1155Transfer(transfer) => build_nft_transfer(transfer),
             TransactionPayload::SmartContractCall => PrimitivesTransaction {
                 metadata: Self::asset_transfers_metadata(chain, transaction_receipt, &from, &to),
-                ..build_native_asset_transaction(TransactionType::SmartContractCall, None, None)
+                ..build_native_asset_transaction(TransactionType::SmartContractCall, None, Some(transaction.input.clone()))
             },
             TransactionPayload::Unknown => return None,
         };
@@ -200,6 +200,7 @@ mod tests {
         assert_eq!(transaction.hash, "0x876707912c2d625723aa14bf268d83ede36c2657c70da500628e40e6b51577c9");
         assert_eq!(transaction.from, "0x39ab5f6f1269590225EdAF9ad4c5967B09243747");
         assert_eq!(transaction.to, "0xB907Dcc926b5991A149d04Cb7C0a4a25dC2D8f9a");
+        assert_eq!(transaction.data, Some(contract_call_tx.input));
     }
 
     #[test]
