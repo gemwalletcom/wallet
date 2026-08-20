@@ -29,6 +29,7 @@ pub struct GemPaymentRequest {
 #[uniffi::remote(Enum)]
 pub enum GemPaymentLink {
     SolanaPay(String),
+    WalletConnectPay(String),
 }
 
 #[uniffi::export]
@@ -60,6 +61,9 @@ mod tests {
             payment_decode_url("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1").unwrap(),
             GemPayment::Link(GemPaymentLink::SolanaPay("https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1".to_string()))
         );
-        assert!(payment_decode_url("https://pay.walletconnect.com/?pid=pay_123").is_err());
+        assert_eq!(
+            payment_decode_url("https://pay.walletconnect.com/?pid=pay_123").unwrap(),
+            GemPayment::Link(GemPaymentLink::WalletConnectPay("pay_123".to_string()))
+        );
     }
 }

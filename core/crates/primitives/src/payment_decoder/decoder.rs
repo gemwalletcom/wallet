@@ -1,7 +1,7 @@
 use super::error::{PaymentDecoderError, Result};
 use crate::payment::Payment;
 
-use super::{bip21, erc681, solana_pay, ton_pay};
+use super::{bip21, erc681, solana_pay, ton_pay, wallet_connect_pay};
 
 #[derive(Debug)]
 pub struct PaymentURLDecoder;
@@ -9,7 +9,8 @@ pub struct PaymentURLDecoder;
 impl PaymentURLDecoder {
     pub fn decode(string: &str) -> Result<Payment> {
         let uri = string.trim();
-        let payment = Self::decode_uri(uri.split_once('#').map_or(uri, |(uri, _)| uri))?;
+        let uri = uri.split_once('#').map_or(uri, |(uri, _)| uri);
+        let payment = wallet_connect_pay::decode(uri).or_else(|_| Self::decode_request(uri))?;
 
         match payment {
             Payment::Request(request) if request.address.is_empty() => Err(PaymentDecoderError::MissingField("address".to_string())),
@@ -17,7 +18,7 @@ impl PaymentURLDecoder {
         }
     }
 
-    fn decode_uri(uri: &str) -> Result<Payment> {
+    fn decode_request(uri: &str) -> Result<Payment> {
         let Some((scheme, path)) = uri.split_once(':') else {
             return bip21::decode(None, uri);
         };
@@ -37,7 +38,7 @@ mod tests {
     use super::*;
     use crate::{
         AssetId, Chain,
-        payment::{PaymentAmount, PaymentRequest},
+        payment::{PaymentAmount, PaymentLink, PaymentRequest},
     };
 
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
@@ -116,10 +117,18 @@ mod tests {
     }
 
     #[test]
+    fn test_decode_link_before_request() {
+        assert_eq!(
+            PaymentURLDecoder::decode("https://pay.walletconnect.com/?pid=pay_123").unwrap(),
+            Payment::Link(PaymentLink::WalletConnectPay("pay_123".to_string()))
+        );
+    }
+
+    #[test]
     fn test_refuses_what_it_cannot_sign() {
         assert!(PaymentURLDecoder::decode("wc:abc123@2?relay-protocol=irn&symKey=deadbeef").is_err());
-        assert!(PaymentURLDecoder::decode("wc:abc@2?pay=https%3A%2F%2Fpay.walletconnect.com%2F%3Fpid%3Dpay_123").is_err());
-        assert!(PaymentURLDecoder::decode("https://pay.walletconnect.com/?pid=pay_123").is_err());
+        assert!(PaymentURLDecoder::decode("https://pay.walletconnect.com/?pid=checkout").is_err());
+        assert!(PaymentURLDecoder::decode("http://pay.walletconnect.com/?pid=pay_123").is_err());
         assert!(PaymentURLDecoder::decode("https://gemwallet.com/tokens/bitcoin").is_err());
         assert!(PaymentURLDecoder::decode("gem://wc?sessionTopic=abc").is_err());
         assert!(PaymentURLDecoder::decode("lightning:lnbc1pvjluezpp5qqqsyq").is_err());

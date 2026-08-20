@@ -8,6 +8,92 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
+data class PaymentMerchant (
+	val name: String,
+	val iconUrl: String? = null
+)
+
+@Serializable
+enum class PaymentStatus(val string: String) {
+	@SerialName("requires_action")
+	RequiresAction("requires_action"),
+	@SerialName("processing")
+	Processing("processing"),
+	@SerialName("succeeded")
+	Succeeded("succeeded"),
+	@SerialName("failed")
+	Failed("failed"),
+	@SerialName("expired")
+	Expired("expired"),
+	@SerialName("cancelled")
+	Cancelled("cancelled"),
+}
+
+@Serializable
+data class PaymentOutcome (
+	val status: PaymentStatus,
+	val transactionId: String? = null
+)
+
+@Serializable
+data class PaymentPrice (
+	val symbol: String,
+	val value: String,
+	val decimals: Int
+)
+
+@Serializable
+sealed class PaymentLink {
+	@Serializable
+	@SerialName("solanaPay")
+	data class SolanaPay(val content: String): PaymentLink()
+	@Serializable
+	@SerialName("walletConnectPay")
+	data class WalletConnectPay(val content: String): PaymentLink()
+}
+
+@Serializable
+data class PaymentQuote (
+	val id: String,
+	val link: PaymentLink,
+	val assetId: AssetId,
+	val value: String,
+	val expiresAt: SerializedDate? = null,
+	val collectDataUrl: String? = null,
+	val providerData: String
+)
+
+/// Generated type representing the anonymous struct variant `Send` of the `PaymentAction` Rust enum
+@Serializable
+data class PaymentActionSendInner (
+	val chain: Chain,
+	val recipient: String,
+	val value: String,
+	val data: String
+)
+
+@Serializable
+sealed class PaymentAction {
+	@Serializable
+	@SerialName("send")
+	data class Send(val content: PaymentActionSendInner): PaymentAction()
+}
+
+@Serializable
+data class PaymentQuoteData (
+	val quote: PaymentQuote,
+	val action: PaymentAction
+)
+
+@Serializable
+data class PaymentQuotes (
+	val merchant: PaymentMerchant,
+	val price: PaymentPrice? = null,
+	val expiresAt: SerializedDate? = null,
+	val quotes: List<PaymentQuote>
+)
+
+@Serializable
 sealed class PaymentAmount {
 	@Serializable
 	@SerialName("exactValue")
@@ -36,9 +122,12 @@ sealed class Payment {
 }
 
 @Serializable
-sealed class PaymentLink {
+sealed class PaymentOptions {
 	@Serializable
-	@SerialName("solanaPay")
-	data class SolanaPay(val content: String): PaymentLink()
+	@SerialName("quotes")
+	data class Quotes(val content: PaymentQuotes): PaymentOptions()
+	@Serializable
+	@SerialName("outcome")
+	data class Outcome(val content: PaymentOutcome): PaymentOptions()
 }
 

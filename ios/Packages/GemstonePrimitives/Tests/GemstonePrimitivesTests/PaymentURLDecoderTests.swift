@@ -34,12 +34,13 @@ final class PaymentURLDecoderTests {
             try PaymentURLDecoder.decode("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1")
                 == .link(.solanaPay("https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1")),
         )
+        #expect(try PaymentURLDecoder.decode("https://pay.walletconnect.com/?pid=pay_123") == .link(.walletConnectPay("pay_123")))
     }
 
     @Test
     func decodeUnsupported() throws {
         #expect(throws: (any Error).self) {
-            try PaymentURLDecoder.decode("https://pay.walletconnect.com/?pid=pay_123")
+            try PaymentURLDecoder.decode("https://pay.walletconnect.com/?pid=checkout")
         }
         #expect(throws: (any Error).self) {
             try PaymentURLDecoder.decode("WIFI:S:MyNet;T:WPA;P:secret;;")

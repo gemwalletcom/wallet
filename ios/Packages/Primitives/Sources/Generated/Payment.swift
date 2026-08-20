@@ -4,6 +4,186 @@
 
 import Foundation
 
+public struct PaymentMerchant: Codable, Equatable, Hashable, Sendable {
+	public let name: String
+	public let iconUrl: String?
+
+	public init(name: String, iconUrl: String?) {
+		self.name = name
+		self.iconUrl = iconUrl
+	}
+}
+
+public enum PaymentStatus: String, Codable, Equatable, Hashable, Sendable {
+	case requiresAction = "requires_action"
+	case processing
+	case succeeded
+	case failed
+	case expired
+	case cancelled
+}
+
+public struct PaymentOutcome: Codable, Equatable, Hashable, Sendable {
+	public let status: PaymentStatus
+	public let transactionId: String?
+
+	public init(status: PaymentStatus, transactionId: String?) {
+		self.status = status
+		self.transactionId = transactionId
+	}
+}
+
+public struct PaymentPrice: Codable, Equatable, Hashable, Sendable {
+	public let symbol: String
+	public let value: String
+	public let decimals: Int32
+
+	public init(symbol: String, value: String, decimals: Int32) {
+		self.symbol = symbol
+		self.value = value
+		self.decimals = decimals
+	}
+}
+
+public enum PaymentLink: Codable, Equatable, Hashable, Sendable {
+	case solanaPay(String)
+	case walletConnectPay(String)
+
+	enum CodingKeys: String, CodingKey, Codable {
+		case solanaPay,
+			walletConnectPay
+	}
+
+	private enum ContainerCodingKeys: String, CodingKey {
+		case type, content
+	}
+
+	public init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
+		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
+			switch type {
+			case .solanaPay:
+				if let content = try? container.decode(String.self, forKey: .content) {
+					self = .solanaPay(content)
+					return
+				}
+			case .walletConnectPay:
+				if let content = try? container.decode(String.self, forKey: .content) {
+					self = .walletConnectPay(content)
+					return
+				}
+			}
+		}
+		throw DecodingError.typeMismatch(PaymentLink.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for PaymentLink"))
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
+		switch self {
+		case .solanaPay(let content):
+			try container.encode(CodingKeys.solanaPay, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .walletConnectPay(let content):
+			try container.encode(CodingKeys.walletConnectPay, forKey: .type)
+			try container.encode(content, forKey: .content)
+		}
+	}
+}
+
+public struct PaymentQuote: Codable, Equatable, Hashable, Sendable {
+	public let id: String
+	public let link: PaymentLink
+	public let assetId: AssetId
+	public let value: String
+	public let expiresAt: Date?
+	public let collectDataUrl: String?
+	public let providerData: String
+
+	public init(id: String, link: PaymentLink, assetId: AssetId, value: String, expiresAt: Date?, collectDataUrl: String?, providerData: String) {
+		self.id = id
+		self.link = link
+		self.assetId = assetId
+		self.value = value
+		self.expiresAt = expiresAt
+		self.collectDataUrl = collectDataUrl
+		self.providerData = providerData
+	}
+}
+
+
+/// Generated type representing the anonymous struct variant `Send` of the `PaymentAction` Rust enum
+public struct PaymentActionSendInner: Codable, Equatable, Hashable, Sendable {
+	public let chain: Chain
+	public let recipient: String
+	public let value: String
+	public let data: String
+
+	public init(chain: Chain, recipient: String, value: String, data: String) {
+		self.chain = chain
+		self.recipient = recipient
+		self.value = value
+		self.data = data
+	}
+}
+public enum PaymentAction: Codable, Equatable, Hashable, Sendable {
+	case send(PaymentActionSendInner)
+
+	enum CodingKeys: String, CodingKey, Codable {
+		case send
+	}
+
+	private enum ContainerCodingKeys: String, CodingKey {
+		case type, content
+	}
+
+	public init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
+		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
+			switch type {
+			case .send:
+				if let content = try? container.decode(PaymentActionSendInner.self, forKey: .content) {
+					self = .send(content)
+					return
+				}
+			}
+		}
+		throw DecodingError.typeMismatch(PaymentAction.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for PaymentAction"))
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
+		switch self {
+		case .send(let content):
+			try container.encode(CodingKeys.send, forKey: .type)
+			try container.encode(content, forKey: .content)
+		}
+	}
+}
+
+public struct PaymentQuoteData: Codable, Equatable, Hashable, Sendable {
+	public let quote: PaymentQuote
+	public let action: PaymentAction
+
+	public init(quote: PaymentQuote, action: PaymentAction) {
+		self.quote = quote
+		self.action = action
+	}
+}
+
+public struct PaymentQuotes: Codable, Equatable, Hashable, Sendable {
+	public let merchant: PaymentMerchant
+	public let price: PaymentPrice?
+	public let expiresAt: Date?
+	public let quotes: [PaymentQuote]
+
+	public init(merchant: PaymentMerchant, price: PaymentPrice?, expiresAt: Date?, quotes: [PaymentQuote]) {
+		self.merchant = merchant
+		self.price = price
+		self.expiresAt = expiresAt
+		self.quotes = quotes
+	}
+}
+
 public enum PaymentAmount: Codable, Equatable, Hashable, Sendable {
 	case exactValue(String)
 	case atomicValue(String)
@@ -108,11 +288,13 @@ public enum Payment: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public enum PaymentLink: Codable, Equatable, Hashable, Sendable {
-	case solanaPay(String)
+public enum PaymentOptions: Codable, Equatable, Hashable, Sendable {
+	case quotes(PaymentQuotes)
+	case outcome(PaymentOutcome)
 
 	enum CodingKeys: String, CodingKey, Codable {
-		case solanaPay
+		case quotes,
+			outcome
 	}
 
 	private enum ContainerCodingKeys: String, CodingKey {
@@ -123,21 +305,29 @@ public enum PaymentLink: Codable, Equatable, Hashable, Sendable {
 		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
 		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
 			switch type {
-			case .solanaPay:
-				if let content = try? container.decode(String.self, forKey: .content) {
-					self = .solanaPay(content)
+			case .quotes:
+				if let content = try? container.decode(PaymentQuotes.self, forKey: .content) {
+					self = .quotes(content)
+					return
+				}
+			case .outcome:
+				if let content = try? container.decode(PaymentOutcome.self, forKey: .content) {
+					self = .outcome(content)
 					return
 				}
 			}
 		}
-		throw DecodingError.typeMismatch(PaymentLink.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for PaymentLink"))
+		throw DecodingError.typeMismatch(PaymentOptions.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for PaymentOptions"))
 	}
 
 	public func encode(to encoder: Encoder) throws {
 		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
 		switch self {
-		case .solanaPay(let content):
-			try container.encode(CodingKeys.solanaPay, forKey: .type)
+		case .quotes(let content):
+			try container.encode(CodingKeys.quotes, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .outcome(let content):
+			try container.encode(CodingKeys.outcome, forKey: .type)
 			try container.encode(content, forKey: .content)
 		}
 	}

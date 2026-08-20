@@ -120,7 +120,10 @@ pub use self::platform::Platform;
 pub mod platform_store;
 pub use self::platform_store::PlatformStore;
 pub mod payment;
-pub use self::payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest};
+pub use self::payment::{
+    Payment, PaymentAction, PaymentAmount, PaymentLink, PaymentMerchant, PaymentOptions, PaymentOutcome, PaymentPrice, PaymentQuote, PaymentQuoteData, PaymentQuotes,
+    PaymentRequest, PaymentStatus,
+};
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
@@ -184,7 +187,7 @@ pub use self::transaction_metadata_types::{
     TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata, TransactionSwapMetadata,
 };
 pub mod wallet_connect_namespace;
-pub use self::wallet_connect_namespace::WalletConnectCAIP2;
+pub use self::wallet_connect_namespace::{WalletConnectCAIP2, WalletConnectCAIP19};
 pub mod wallet_connect;
 pub use self::wallet_connect::{WCEthereumTransaction, WCTonMessage, WalletConnectLink, WalletConnectRequest};
 pub mod account;
@@ -217,7 +220,7 @@ pub use self::tag::AssetTag;
 pub mod chain_cosmos;
 pub use self::chain_cosmos::CosmosDenom;
 pub mod payment_decoder;
-pub use self::payment_decoder::PaymentURLDecoder;
+pub use self::payment_decoder::{PaymentURLDecoder, WALLET_CONNECT_PAY_HOST, is_payment_id};
 
 pub mod image_formatter;
 pub use self::image_formatter::ImageFormatter;
