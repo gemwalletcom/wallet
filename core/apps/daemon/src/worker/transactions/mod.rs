@@ -5,7 +5,7 @@ mod vault_addresses_updater;
 use cacher::CacherClient;
 use in_transit_updater::{InTransitConfig, InTransitUpdater};
 use job_runner::{JobHandle, ShutdownReceiver};
-use pending_transactions_updater::PendingTransactionsUpdater;
+use pending_transactions_updater::{PendingTransactionsUpdater, PendingTransactionsUpdaterConfig};
 use primitives::{ConfigKey, ConfigParamKey, JobConfiguration, SwapProvider};
 use settings::service_user_agent;
 use settings_chain::{ChainProviders, ProviderFactory};
@@ -36,6 +36,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
             step_factor: config.get_f64(ConfigKey::TransactionInTransitCheckIntervalFactor)? as f32,
         },
     };
+    let pending_config = PendingTransactionsUpdaterConfig::from_config(&config)?;
 
     let endpoints = ProviderFactory::get_chain_endpoints(&settings);
     let providers = Arc::new(ChainProviders::from_settings(&settings, &service_user_agent("daemon", Some("transactions"))));
@@ -57,6 +58,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
         cacher.clone(),
         stream_producer.clone(),
         database.clone(),
+        pending_config,
     ));
 
     ctx.plan_builder(WorkerService::Transactions, &config, shutdown_rx)

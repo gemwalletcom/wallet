@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 use chrono::{DateTime, NaiveDateTime};
 use primitives::{ConfigKey, ConfigParamKey};
 use serde::de::DeserializeOwned;
+use std::hash::Hash;
 
 use crate::database::config::ConfigStore;
 use crate::repositories::config_repository::ConfigRepository;
@@ -85,6 +86,20 @@ impl ConfigCacher {
 
     pub fn get_param_duration(&self, param: &ConfigParamKey) -> Result<Duration, DatabaseError> {
         parse_duration(&self.get_param_value(param))
+    }
+
+    pub fn get_param_durations<T>(
+        &self,
+        values: impl IntoIterator<Item = T>,
+        key: impl Fn(T) -> ConfigParamKey,
+    ) -> Result<HashMap<T, Duration>, DatabaseError>
+    where
+        T: Copy + Eq + Hash,
+    {
+        values
+            .into_iter()
+            .map(|value| self.get_param_duration(&key(value)).map(|duration| (value, duration)))
+            .collect()
     }
 
     pub fn get_param_usize(&self, param: &ConfigParamKey) -> Result<usize, DatabaseError> {
