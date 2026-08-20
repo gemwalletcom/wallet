@@ -5,6 +5,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.navigation3.runtime.EntryProviderScope
@@ -25,6 +26,7 @@ import com.gemwallet.android.features.settings.settings.presents.views.Preferenc
 import com.gemwallet.android.features.settings.settings.presents.views.SupportChatNavScreen
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
+import com.gemwallet.android.ui.open
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 
@@ -168,13 +170,14 @@ fun EntryProviderScope<NavKey>.settingsScreen(
     }
 
     entry<SupportRoute> {
+        val context = LocalContext.current
         val defaultUriHandler = LocalUriHandler.current
         val currentOnOpenUrl by rememberUpdatedState(onOpenUrl)
-        val uriHandler = remember(defaultUriHandler) {
+        val uriHandler = remember(defaultUriHandler, context) {
             object : UriHandler {
                 override fun openUri(uri: String) {
                     if (!currentOnOpenUrl(uri)) {
-                        defaultUriHandler.openUri(uri)
+                        defaultUriHandler.open(context, uri)
                     }
                 }
             }

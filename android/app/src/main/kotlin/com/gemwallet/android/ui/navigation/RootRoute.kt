@@ -82,6 +82,7 @@ import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.PaymentRequest
 import com.wallet.core.primitives.PortfolioType
@@ -279,10 +280,10 @@ class WalletNavigator(
     private fun clearSwapSelections() = swapSelections.clear()
     fun openBuy() = push(FiatSelectRoute)
     fun openBuy(assetId: AssetId) = openBuy(assetId, amount = null)
-    fun openBuy(assetId: AssetId, amount: Double?) = push(FiatInputRoute(assetId, amount))
+    fun openBuy(assetId: AssetId, amount: Int?) = push(FiatInputRoute(assetId, amount, FiatQuoteType.Buy))
     fun openAcquireAsset(action: AcquireAssetAction, assetId: AssetId) {
         when (action) {
-            is AcquireAssetAction.Buy -> openBuy(assetId, amount = action.amount?.toDouble())
+            is AcquireAssetAction.Buy -> openBuy(assetId, amount = action.amount)
             AcquireAssetAction.Swap -> openSwapTo(assetId)
             AcquireAssetAction.Receive -> openReceive(assetId)
         }

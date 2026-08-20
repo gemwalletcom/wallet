@@ -46,7 +46,7 @@ internal fun routeArguments(vararg arguments: Pair<RouteArgument, Any?>): Map<St
 internal fun assetIdArgument(assetId: AssetId): Pair<RouteArgument, String> =
     RouteArgument.AssetId to assetId.toIdentifier()
 
-internal fun fiatAmountArgument(amount: Double?): Pair<RouteArgument, Double?> =
+internal fun fiatAmountArgument(amount: Int?): Pair<RouteArgument, Int?> =
     RouteArgument.FiatAmount to amount
 
 internal fun contactIdArgument(contactId: String): Pair<RouteArgument, String> =

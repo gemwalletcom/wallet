@@ -9,14 +9,21 @@ const PATH_TOKENS: &str = "tokens";
 const PATH_PERPETUALS: &str = "perpetuals";
 const PATH_REWARDS: &str = "rewards";
 const PATH_JOIN: &str = "join";
+const PATH_RECEIVE: &str = "receive";
+const PATH_BUY: &str = "buy";
+const PATH_SELL: &str = "sell";
 
 const QUERY_CODE: &str = "code";
+const QUERY_AMOUNT: &str = "amount";
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Deeplink {
     Asset { asset_id: AssetId },
     Perpetuals,
     Rewards { code: Option<String> },
+    Receive { asset_id: Option<AssetId> },
+    Buy { asset_id: AssetId, amount: Option<i32> },
+    Sell { asset_id: AssetId, amount: Option<i32> },
 }
 
 impl Deeplink {
@@ -39,11 +46,23 @@ impl Deeplink {
 
         let deeplink = match component.as_str() {
             PATH_TOKENS => Deeplink::Asset {
-                asset_id: AssetId::from(params.first()?.parse().ok()?, params.get(1).cloned()),
+                asset_id: asset_id_from_segments(params)?,
             },
             PATH_PERPETUALS => Deeplink::Perpetuals,
             PATH_REWARDS | PATH_JOIN => Deeplink::Rewards {
                 code: params.first().cloned().or_else(|| query_value(url, QUERY_CODE)),
+            },
+            PATH_RECEIVE if params.is_empty() => Deeplink::Receive { asset_id: None },
+            PATH_RECEIVE => Deeplink::Receive {
+                asset_id: Some(asset_id_from_segments(params)?),
+            },
+            PATH_BUY => Deeplink::Buy {
+                asset_id: asset_id_from_segments(params)?,
+                amount: amount_from_query(url),
+            },
+            PATH_SELL => Deeplink::Sell {
+                asset_id: asset_id_from_segments(params)?,
+                amount: amount_from_query(url),
             },
             _ => return None,
         };
@@ -52,13 +71,36 @@ impl Deeplink {
 
     fn path(&self) -> String {
         match self {
-            Deeplink::Asset { asset_id } => match &asset_id.token_id {
-                Some(token_id) => format!("/{PATH_TOKENS}/{}/{token_id}", asset_id.chain.as_ref()),
-                None => format!("/{PATH_TOKENS}/{}", asset_id.chain.as_ref()),
-            },
+            Deeplink::Asset { asset_id } => format!("/{PATH_TOKENS}{}", asset_path(asset_id)),
             Deeplink::Perpetuals => format!("/{PATH_PERPETUALS}"),
             Deeplink::Rewards { code } => path_with_query(PATH_REWARDS, QUERY_CODE, code.clone()),
+            Deeplink::Receive { asset_id } => format!("/{PATH_RECEIVE}{}", asset_id.as_ref().map(asset_path).unwrap_or_default()),
+            Deeplink::Buy { asset_id, amount } => fiat_path(PATH_BUY, asset_id, *amount),
+            Deeplink::Sell { asset_id, amount } => fiat_path(PATH_SELL, asset_id, *amount),
         }
+    }
+}
+
+fn asset_id_from_segments(segments: &[String]) -> Option<AssetId> {
+    Some(AssetId::from(segments.first()?.parse().ok()?, segments.get(1).cloned()))
+}
+
+fn amount_from_query(url: &Url) -> Option<i32> {
+    query_value(url, QUERY_AMOUNT)?.parse().ok().filter(|amount: &i32| *amount > 0)
+}
+
+fn asset_path(asset_id: &AssetId) -> String {
+    match &asset_id.token_id {
+        Some(token_id) => format!("/{}/{token_id}", asset_id.chain.as_ref()),
+        None => format!("/{}", asset_id.chain.as_ref()),
+    }
+}
+
+fn fiat_path(component: &str, asset_id: &AssetId, amount: Option<i32>) -> String {
+    let path = format!("/{component}{}", asset_path(asset_id));
+    match amount {
+        Some(amount) => format!("{path}?{QUERY_AMOUNT}={amount}"),
+        None => path,
     }
 }
 
@@ -120,6 +162,30 @@ mod tests {
             }
             .to_url(),
             "https://gemwallet.com/rewards?code=gemcoder"
+        );
+        assert_eq!(Deeplink::Receive { asset_id: None }.to_url(), "https://gemwallet.com/receive");
+        assert_eq!(
+            Deeplink::Receive {
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+            }
+            .to_url(),
+            "https://gemwallet.com/receive/bitcoin"
+        );
+        assert_eq!(
+            Deeplink::Buy {
+                asset_id: AssetId::from_chain(Chain::Bitcoin),
+                amount: Some(100),
+            }
+            .to_url(),
+            "https://gemwallet.com/buy/bitcoin?amount=100"
+        );
+        assert_eq!(
+            Deeplink::Sell {
+                asset_id: AssetId::from_chain(Chain::Solana),
+                amount: None,
+            }
+            .to_url(),
+            "https://gemwallet.com/sell/solana"
         );
     }
 
@@ -192,5 +258,38 @@ mod tests {
         assert_eq!(Deeplink::from_url("https://example.com/tokens/bitcoin"), None);
         assert_eq!(Deeplink::from_url("https://gemwallet.com/unknown"), None);
         assert_eq!(Deeplink::from_url("not a url"), None);
+    }
+    #[test]
+    fn test_from_url_receive_buy_sell() {
+        assert_eq!(Deeplink::from_url("gem://receive"), Some(Deeplink::Receive { asset_id: None }));
+        assert_eq!(
+            Deeplink::from_url("gem://receive/bitcoin"),
+            Some(Deeplink::Receive {
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+            })
+        );
+        assert_eq!(
+            Deeplink::from_url("gem://buy/bitcoin?amount=100"),
+            Some(Deeplink::Buy {
+                asset_id: AssetId::from_chain(Chain::Bitcoin),
+                amount: Some(100),
+            })
+        );
+        assert_eq!(
+            Deeplink::from_url("gem://sell/ethereum/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+            Some(Deeplink::Sell {
+                asset_id: AssetId::token(Chain::Ethereum, "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+                amount: None,
+            })
+        );
+        assert_eq!(
+            Deeplink::from_url("gem://buy/bitcoin?amount=49.5"),
+            Some(Deeplink::Buy {
+                asset_id: AssetId::from_chain(Chain::Bitcoin),
+                amount: None,
+            })
+        );
+        assert_eq!(Deeplink::from_url("gem://receive/notachain"), None);
+        assert_eq!(Deeplink::from_url("gem://buy"), None);
     }
 }
