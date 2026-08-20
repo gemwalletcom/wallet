@@ -259,8 +259,8 @@ class TransactionDetailsAggregateImpl(
         TransactionType.Transfer,
         TransactionType.TransferNFT -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> data.transaction.getPaymentMetadata()?.merchant?.name?.let {
-                TransactionDetailsValue.Destination.Merchant(it)
+            TransactionDirection.Outgoing -> data.transaction.getPaymentMetadata()?.merchant?.let {
+                TransactionDetailsValue.Destination.Merchant(it.name, it.iconUrl)
             } ?: TransactionDetailsValue.Destination.Recipient(
                 data = data.transaction.to,
                 chain = data.asset.chain,

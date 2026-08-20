@@ -10,6 +10,7 @@ import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -40,6 +41,16 @@ fun PropertyDestination(
                 listPosition = listPosition,
             )
         }
+        is ConfirmProperty.Destination.Merchant -> PropertyItem(
+            title = { PropertyTitleText(R.string.transfer_recipient_title) },
+            data = {
+                PropertyDataText(
+                    text = model.data,
+                    badge = model.iconUrl?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },
+                )
+            },
+            listPosition = listPosition,
+        )
         is ConfirmProperty.Destination.Stake -> {
             val address = model.address
             if (address != null && model.explorerLink != null) {
@@ -67,6 +78,7 @@ fun PropertyDestination(
                 is ConfirmProperty.Destination.Provider -> R.string.common_provider
                 is ConfirmProperty.Destination.Generic -> R.string.wallet_connect_app
                 is ConfirmProperty.Destination.PerpetualOper -> R.string.common_provider
+                is ConfirmProperty.Destination.Merchant,
                 is ConfirmProperty.Destination.Stake,
                 is ConfirmProperty.Destination.Transfer -> return
             }
@@ -85,6 +97,7 @@ fun PropertyDestination(
 
 internal fun ConfirmProperty.Destination.displayData(): String = when (this) {
     is ConfirmProperty.Destination.Provider,
+    is ConfirmProperty.Destination.Merchant,
     is ConfirmProperty.Destination.Stake -> data
     is ConfirmProperty.Destination.Transfer -> domain ?: address
     is ConfirmProperty.Destination.Generic -> appName

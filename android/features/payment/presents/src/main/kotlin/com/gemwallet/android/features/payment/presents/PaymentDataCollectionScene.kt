@@ -2,6 +2,7 @@ package com.gemwallet.android.features.payment.presents
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.view.ContextThemeWrapper
 import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.util.Log
@@ -28,8 +29,9 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.foundation.layout.fillMaxHeight
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.open
 import org.json.JSONObject
 import androidx.core.net.toUri
@@ -43,31 +45,36 @@ private const val TAG = "PaymentDataCollection"
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-internal fun PaymentDataCollectionScene(
-    url: String,
+internal fun PaymentDataCollectionModal(
+    url: String?,
     onAction: (PaymentSceneAction) -> Unit,
 ) {
     var webView by remember { mutableStateOf<WebView?>(null) }
     val uriHandler = LocalUriHandler.current
 
-    BackHandler {
-        val view = webView
-        if (view != null && view.canGoBack()) view.goBack() else onAction(PaymentSceneAction.Cancel)
+    if (url != null) {
+        BackHandler {
+            val view = webView
+            if (view != null && view.canGoBack()) view.goBack() else onAction(PaymentSceneAction.DismissDataCollection)
+        }
     }
 
-    Scene(
+    ModalBottomSheet(
+        isVisible = url != null,
+        skipPartiallyExpanded = true,
         title = stringResource(R.string.transfer_payment_title),
-        onClose = { onAction(PaymentSceneAction.Cancel) },
+        onDismissRequest = { onAction(PaymentSceneAction.DismissDataCollection) },
     ) {
+        url ?: return@ModalBottomSheet
         AndroidView(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
+                .fillMaxHeight(),
             factory = { context ->
                 if (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
                     WebView.setWebContentsDebuggingEnabled(true)
                 }
-                WebView(context).apply {
+                WebView(ContextThemeWrapper(context, context.applicationInfo.theme)).apply {
                     layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
@@ -80,6 +87,11 @@ internal fun PaymentDataCollectionScene(
                     loadUrl(url)
                     webView = this
                 }
+            },
+            onRelease = { view ->
+                view.removeJavascriptInterface(MESSAGE_HANDLER)
+                view.destroy()
+                webView = null
             },
         )
     }

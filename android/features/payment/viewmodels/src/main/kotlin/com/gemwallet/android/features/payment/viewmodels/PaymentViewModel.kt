@@ -49,6 +49,7 @@ class PaymentViewModel @Inject constructor(
     private val payment = MutableStateFlow<ActivePayment?>(null)
     private val confirmScope = CoroutineScope(Dispatchers.IO)
     private var expiryJob: Job? = null
+    private var quotesScene: PaymentSceneState.Quotes? = null
 
     fun onPayment(link: PaymentLink) {
         state.value = PaymentSceneState.Loading
@@ -78,32 +79,65 @@ class PaymentViewModel @Inject constructor(
     }
 
     fun onConfirmQuote() {
-        val selected = (state.value as? PaymentSceneState.Quotes)?.selected ?: return
+        val current = state.value as? PaymentSceneState.Quotes ?: return
+        val selected = current.selected ?: return
         val quote = payment.value?.quotes?.quotes?.firstOrNull { it.id == selected }
         if (quote == null) {
             state.value = failure(PaymentLinkError.QuoteUnavailable, "confirm: quote $selected is gone")
             return
         }
-        expiryJob?.cancel()
         val collectDataUrl = quote.collectDataUrl
-        if (collectDataUrl != null) {
+        if (collectDataUrl != null && payment.value?.collected?.contains(quote.id) != true) {
             payment.value = payment.value?.collecting(quote)
-            state.value = PaymentSceneState.CollectData(collectDataUrl)
+            state.value = current.copy(collectData = collectDataUrl)
             return
         }
-        state.value = PaymentSceneState.Loading
-        viewModelScope.launch(Dispatchers.IO) { prepare(quote) }
+        prepare(current, quote)
     }
 
     fun onDataCollected() {
+        val current = state.value as? PaymentSceneState.Quotes ?: return
         val quote = payment.value?.collecting ?: return
-        state.value = PaymentSceneState.Loading
-        viewModelScope.launch(Dispatchers.IO) { prepare(quote) }
+        val collected = payment.value?.collected(quote) ?: return
+        payment.value = collected
+        state.value = current.copy(
+            collectData = null,
+            quotes = current.quotes.map {
+                if (it.id in collected.collected) it.copy(requiresVerification = false) else it
+            },
+        )
     }
 
     fun onDataCollectionError(message: String?) {
         Log.e(TAG, "Payment data collection failed: $message")
-        state.value = PaymentSceneState.Error(PaymentLinkError.DataCollection)
+    }
+
+    fun onDismissDataCollection() {
+        val current = state.value as? PaymentSceneState.Quotes ?: return
+        payment.value = payment.value?.copy(collecting = null)
+        state.value = current.copy(collectData = null)
+    }
+
+    fun onBackFromConfirm() {
+        val current = payment.value
+        val scene = quotesScene
+        if (current == null || scene == null) {
+            onRetry()
+            return
+        }
+        state.value = scene.copy(
+            quotes = scene.quotes.map { quote ->
+                if (quote.id in current.collected) quote.copy(requiresVerification = false) else quote
+            },
+        )
+        watchExpiry(current.quotes)
+    }
+
+    private fun prepare(scene: PaymentSceneState.Quotes, quote: PaymentQuote) {
+        quotesScene = scene.copy(collectData = null)
+        expiryJob?.cancel()
+        state.value = PaymentSceneState.Loading
+        viewModelScope.launch(Dispatchers.IO) { prepare(quote) }
     }
 
     fun onTransactionHash(hash: String) {

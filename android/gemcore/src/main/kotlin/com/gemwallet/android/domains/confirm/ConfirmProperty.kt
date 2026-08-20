@@ -28,6 +28,7 @@ sealed interface ConfirmProperty {
             val explorerLink: BlockExplorerLink? = null,
         ) : Destination(address)
         class Generic(val appName: String) : Destination(appName)
+        class Merchant(name: String, val iconUrl: String?) : Destination(name)
         class PerpetualOper(val providerName: String) : Destination(providerName)
 
         companion object {
@@ -63,7 +64,10 @@ sealed interface ConfirmProperty {
                         imageUrl = addressName?.imageUrl,
                     )
                 }
-                is ConfirmParams.TransferParams.Generic -> Generic(params.name)
+                is ConfirmParams.TransferParams.Generic -> when (val merchant = params.payment?.merchant) {
+                    null -> Generic(params.name)
+                    else -> Merchant(merchant.name, merchant.iconUrl)
+                }
             }
         }
     }

@@ -21,12 +21,11 @@ sealed interface PaymentSceneState {
         val selected: String?,
         val expiresAt: Long?,
         val expired: Boolean,
+        val collectData: String? = null,
     ) : PaymentSceneState {
         val selectedQuote: PaymentQuoteUIModel?
             get() = quotes.firstOrNull { it.id == selected }
     }
-
-    data class CollectData(val url: String) : PaymentSceneState
 
     data class Confirm(
         val params: ConfirmParams.TransferParams.Generic,
@@ -44,6 +43,5 @@ sealed interface PaymentLinkError {
     data object WatchWallet : PaymentLinkError
     data object QuoteUnavailable : PaymentLinkError
     data object NoAccount : PaymentLinkError
-    data object DataCollection : PaymentLinkError
     data class Gateway(val error: PaymentException?) : PaymentLinkError
 }

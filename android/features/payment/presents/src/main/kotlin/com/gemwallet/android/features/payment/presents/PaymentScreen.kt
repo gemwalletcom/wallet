@@ -2,6 +2,7 @@ package com.gemwallet.android.features.payment.presents
 
 import android.widget.Toast
 import android.widget.Toast.makeText
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -14,11 +15,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
@@ -29,8 +32,8 @@ import com.gemwallet.android.features.payment.viewmodels.PaymentViewModel
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentOutcomeUIModel
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentQuoteUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
@@ -48,9 +51,10 @@ import com.gemwallet.android.ui.components.list_item.walletItemIconModel
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.paddingLarge
+import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PaymentLink
@@ -73,13 +77,21 @@ fun PaymentScreen(
             PaymentSceneAction.ConfirmQuote -> viewModel.onConfirmQuote()
             PaymentSceneAction.DataCollected -> viewModel.onDataCollected()
             is PaymentSceneAction.DataCollectionFailed -> viewModel.onDataCollectionError(action.message)
+            PaymentSceneAction.DismissDataCollection -> viewModel.onDismissDataCollection()
+            PaymentSceneAction.BackFromConfirm -> viewModel.onBackFromConfirm()
             is PaymentSceneAction.TransactionHash -> viewModel.onTransactionHash(action.hash)
             PaymentSceneAction.Retry -> viewModel.onRetry()
             PaymentSceneAction.Cancel -> onCancel()
         }
     }
 
-    when (val sceneState = state) {
+    AnimatedContent(
+        targetState = state,
+        contentKey = { it is PaymentSceneState.Confirm },
+        transitionSpec = { navigationSlideTransition(forward = targetState is PaymentSceneState.Confirm) },
+        label = "payment",
+    ) { sceneState ->
+    when (sceneState) {
         PaymentSceneState.Loading -> LoadingScene(
             title = stringResource(R.string.transfer_payment_title),
             onCancel = { onAction(PaymentSceneAction.Cancel) },
@@ -88,19 +100,17 @@ fun PaymentScreen(
             state = sceneState,
             onAction = onAction,
         )
-        is PaymentSceneState.CollectData -> PaymentDataCollectionScene(
-            url = sceneState.url,
-            onAction = onAction,
-        )
         is PaymentSceneState.Confirm -> ConfirmScreen(
             params = sceneState.params,
             finishAction = { hash -> onAction(PaymentSceneAction.TransactionHash(hash)) },
-            cancelAction = { onAction(PaymentSceneAction.Cancel) },
+            cancelAction = { onAction(PaymentSceneAction.BackFromConfirm) },
             onAcquireAsset = onAcquireAsset,
+            handleSystemBack = true,
         )
         is PaymentSceneState.Outcome -> PaymentToastEffect(sceneState.outcome.message()) { onAction(PaymentSceneAction.Cancel) }
         PaymentSceneState.Done -> PaymentToastEffect(null) { onAction(PaymentSceneAction.Cancel) }
         is PaymentSceneState.Error -> PaymentToastEffect(sceneState.error.message()) { onAction(PaymentSceneAction.Cancel) }
+    }
     }
 }
 
@@ -123,10 +133,19 @@ private fun PaymentQuotesScene(
                 )
             } else {
                 MainActionButton(
-                    title = stringResource(R.string.common_continue),
                     state = if (state.selected == null) ButtonState.Disabled else ButtonState.Enabled,
                     onClick = { onAction(PaymentSceneAction.ConfirmQuote) },
-                )
+                ) {
+                    if (state.selectedQuote?.requiresVerification == true) {
+                        Icon(AppIcons.Person, contentDescription = null)
+                        Spacer8()
+                    }
+                    Text(
+                        text = stringResource(R.string.common_continue),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
             }
         },
     ) {
@@ -142,19 +161,7 @@ private fun PaymentQuotesScene(
             }
             item {
                 PropertyItem(
-                    title = {
-                        PropertyTitleText(
-                            text = R.string.wallet_connect_app,
-                            info = if (state.selectedQuote?.requiresVerification == true) {
-                                InfoSheetEntity.IdentityVerificationInfo(
-                                    merchantName = state.merchant.name,
-                                    merchantIconUrl = state.merchant.iconUrl,
-                                )
-                            } else {
-                                null
-                            },
-                        )
-                    },
+                    title = { PropertyTitleText(R.string.transfer_recipient_title) },
                     data = {
                         PropertyDataText(
                             text = state.merchant.name,
@@ -202,18 +209,13 @@ private fun PaymentQuotesScene(
                     listPosition = ListPosition.Single,
                 )
             }
-            if (state.selectedQuote?.requiresVerification == true) {
-                item {
-                    Text(
-                        modifier = Modifier.padding(horizontal = paddingLarge, vertical = paddingSmall),
-                        text = stringResource(R.string.info_identity_verification_description, state.merchant.name),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary,
-                    )
-                }
-            }
         }
     }
+
+    PaymentDataCollectionModal(
+        url = state.collectData,
+        onAction = onAction,
+    )
 
     PaymentQuotesSelectModal(
         isVisible = isSelectingQuote,
@@ -285,7 +287,6 @@ private fun PaymentLinkError.message(): String = when (this) {
     PaymentLinkError.QuoteUnavailable,
     PaymentLinkError.NoAccount -> stringResource(R.string.errors_not_supported)
     PaymentLinkError.WatchWallet -> stringResource(R.string.wallet_watch_tooltip_title)
-    PaymentLinkError.DataCollection -> stringResource(R.string.errors_error_occurred)
     is PaymentLinkError.Gateway -> error.message()
 }
 

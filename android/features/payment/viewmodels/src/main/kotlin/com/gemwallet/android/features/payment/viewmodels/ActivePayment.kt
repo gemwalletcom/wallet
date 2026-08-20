@@ -12,6 +12,7 @@ internal data class ActivePayment(
     val wallet: Wallet,
     val quote: PaymentQuote? = null,
     val collecting: PaymentQuote? = null,
+    val collected: Set<String> = emptySet(),
 ) {
     fun paymentData(quote: PaymentQuote) = PaymentData(
         quote = quote,
@@ -19,6 +20,8 @@ internal data class ActivePayment(
     )
 
     fun collecting(quote: PaymentQuote) = copy(collecting = quote)
+
+    fun collected(quote: PaymentQuote) = copy(collected = collected + quote.id, collecting = null)
 
     fun prepared(quote: PaymentQuote) = copy(quote = quote, collecting = null)
 }

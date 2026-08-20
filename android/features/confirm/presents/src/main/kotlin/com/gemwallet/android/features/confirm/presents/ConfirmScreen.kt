@@ -105,7 +105,11 @@ fun ConfirmScreen(
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val isPayment = (params as? ConfirmParams.TransferParams.Generic)?.payment != null
     val isWalletConnect = params is ConfirmParams.TransferParams.Generic && !isPayment
-    val displayTxProperties = if (isWalletConnect) txProperties.reorderWalletConnectProperties() else txProperties
+    val displayTxProperties = if (params is ConfirmParams.TransferParams.Generic) {
+        txProperties.reorderWalletConnectProperties()
+    } else {
+        txProperties
+    }
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showWalletConnectDetails by remember { mutableStateOf(false) }
