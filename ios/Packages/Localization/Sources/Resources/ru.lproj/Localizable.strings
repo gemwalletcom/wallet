@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "Добавить токен вручную";
 "assets.select_asset" = "Выберите актив";
 "assets.popular" = "Популярные";
-"assets.tags.trending" = "В тренде";
-"assets.tags.gainers" = "Гейнеры";
-"assets.tags.losers" = "Падающие";
 "assets.tags.new" = "Новый";
-"assets.tags.stablecoins" = "Стейблкоины";
 "assets.state.empty.search_description" = "Вы можете попробовать добавить его вручную.";
 "assets.title" = "Активы";
 "sign_message.message" = "Сообщение";

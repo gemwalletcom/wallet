@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "افزودن توکن دلخواه/سفارشی.";
 "assets.select_asset" = "یک دارایی را انتخاب کنید";
 "assets.popular" = "دارایی‌های محبوب";
-"assets.tags.trending" = "پرطرفدار";
-"assets.tags.gainers" = "سودآوران";
-"assets.tags.losers" = "بازنده ها";
 "assets.tags.new" = "جدید";
-"assets.tags.stablecoins" = "استیبل کوین ها";
 "assets.state.empty.search_description" = "می‌توانید سعی کنید آن را به صورت دستی اضافه کنید";
 "assets.title" = "دارایی‌ها";
 "sign_message.message" = "پیام";

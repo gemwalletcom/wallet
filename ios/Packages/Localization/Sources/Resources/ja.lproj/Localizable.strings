@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "カスタム・トークンの追加";
 "assets.select_asset" = "資産を選択";
 "assets.popular" = "人気のアセット";
-"assets.tags.trending" = "トレンド";
-"assets.tags.gainers" = "値上がりランキング";
-"assets.tags.losers" = "値下がりランキング";
 "assets.tags.new" = "新しい";
-"assets.tags.stablecoins" = "ステーブルコイン";
 "assets.state.empty.search_description" = "手動で追加してみてください";
 "assets.title" = "資産";
 "sign_message.message" = "メッセージ";

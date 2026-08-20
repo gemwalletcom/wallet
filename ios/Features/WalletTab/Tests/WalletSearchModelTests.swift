@@ -7,34 +7,31 @@ import Testing
 struct WalletSearchModelTests {
     @Test
     func searchMode() {
-        var model = WalletSearchModel(selectType: .manage)
-        #expect(model.searchMode(scope: .all) == .initial)
-        #expect(model.searchMode(scope: .filter(.stablecoins)) == .tagBrowsing)
+        var model = WalletSearchModel()
+        #expect(model.searchMode == .initial)
 
         model.searchableQuery = "bitcoin"
-        #expect(model.searchMode(scope: .all) == .searching)
+        #expect(model.searchMode == .searching)
     }
 
     @Test
     func assetsLimit() {
-        var model = WalletSearchModel(selectType: .manage)
+        var model = WalletSearchModel()
 
-        #expect(model.assetsLimit(scope: .all) == 12)
-        #expect(model.assetsLimit(scope: .filter(.stablecoins)) == 18)
+        #expect(model.assetsLimit == 12)
 
         model.searchableQuery = "bitcoin"
-        #expect(model.assetsLimit(scope: .all) == 25)
+        #expect(model.assetsLimit == 25)
     }
 
     @Test
     func fetchLimit() {
-        var model = WalletSearchModel(selectType: .manage)
+        var model = WalletSearchModel()
 
-        #expect(model.fetchLimit(scope: .all) == 13)
-        #expect(model.fetchLimit(scope: .filter(.stablecoins)) == 19)
+        #expect(model.fetchLimit == 13)
 
         model.searchableQuery = "bitcoin"
-        #expect(model.fetchLimit(scope: .all) == 100)
+        #expect(model.fetchLimit == 100)
     }
 
     @Test

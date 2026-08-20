@@ -6,7 +6,6 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAsset
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetInfo
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import io.mockk.every
 import io.mockk.mockk
@@ -48,7 +47,6 @@ class SendSelectSearchTest {
                 query = "",
                 chainFilter = emptyList(),
                 hasBalance = false,
-                tag = null,
             )
         )
 
@@ -57,27 +55,6 @@ class SendSelectSearchTest {
         assertEquals(walletAssetResults, result)
         verify(exactly = 1) { getSelectAssetsInfo.invoke() }
         verify(exactly = 0) { searchSelectAssets.invoke(any(), any()) }
-    }
-
-    @Test
-    fun `selected tag keeps using repository search`() = runTest {
-        val searchSelectAssets = searchCoordinator()
-        val getSelectAssetsInfo = assetsInfoCoordinator()
-        val search = SendSelectSearch(searchSelectAssets, getSelectAssetsInfo)
-        val filters = MutableStateFlow(
-            SelectAssetFilters(
-                session = null,
-                query = "",
-                chainFilter = emptyList(),
-                hasBalance = false,
-                tag = AssetTag.Stablecoins,
-            )
-        )
-
-        val result = search.items(filters).first()
-
-        assertEquals(searchResults, result)
-        verify(exactly = 1) { searchSelectAssets.invoke("", listOf(AssetTag.Stablecoins)) }
     }
 
     private fun searchCoordinator() = mockk<SearchSelectAssets> {

@@ -401,11 +401,7 @@ assets_no_assets_found = 자산을 찾을 수 없습니다.
 assets_add_custom_token = 커스텀 토큰 추가
 assets_select_asset = 자산 선택
 assets_popular = 인기 자산
-assets_tags_trending = 트렌드
-assets_tags_gainers = 승자
-assets_tags_losers = 패자
 assets_tags_new = 새로운
-assets_tags_stablecoins = 스테이블코인
 assets_state_empty_search_description = 수동으로 추가해보세요
 assets_title = 자산
 

@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "Aangepaste token toevoegen";
 "assets.select_asset" = "Selecteer Activa";
 "assets.popular" = "Populair";
-"assets.tags.trending" = "Trending";
-"assets.tags.gainers" = "Winnaars";
-"assets.tags.losers" = "Verliezers";
 "assets.tags.new" = "Nieuw";
-"assets.tags.stablecoins" = "Stabiele munten";
 "assets.state.empty.search_description" = "U kunt proberen het handmatig toe te voegen";
 "assets.title" = "Activa";
 "sign_message.message" = "Bericht";

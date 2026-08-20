@@ -401,11 +401,7 @@ assets_no_assets_found = Geen activa gevonden
 assets_add_custom_token = Aangepaste token toevoegen
 assets_select_asset = Selecteer Activa
 assets_popular = Populair
-assets_tags_trending = Trending
-assets_tags_gainers = Winnaars
-assets_tags_losers = Verliezers
 assets_tags_new = Nieuw
-assets_tags_stablecoins = Stabiele munten
 assets_state_empty_search_description = U kunt proberen het handmatig toe te voegen
 assets_title = Activa
 

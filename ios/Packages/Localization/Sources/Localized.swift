@@ -126,16 +126,8 @@ public enum Localized {
       }
     }
     public enum Tags {
-      /// Gainers
-      public static let gainers = Localized.tr("Localizable", "assets.tags.gainers", fallback: "Gainers")
-      /// Losers
-      public static let losers = Localized.tr("Localizable", "assets.tags.losers", fallback: "Losers")
       /// New
       public static let new = Localized.tr("Localizable", "assets.tags.new", fallback: "New")
-      /// Stablecoins
-      public static let stablecoins = Localized.tr("Localizable", "assets.tags.stablecoins", fallback: "Stablecoins")
-      /// Trending
-      public static let trending = Localized.tr("Localizable", "assets.tags.trending", fallback: "Trending")
     }
   }
   public enum Banner {

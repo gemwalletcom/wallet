@@ -187,7 +187,7 @@ class WalletNavigator(
     fun openAcceptTerms(destination: AcceptTermsDestination) = push(AcceptTermsRoute(destination))
     fun openAssetsManage(chain: Chain? = null) = push(AssetsManageRoute(chain))
     fun openAssetsSearch() = push(WalletSearchRoute)
-    fun openAssetsResults(query: String, scope: WalletSearchTag) = push(AssetsResultsRoute(query, scope))
+    fun openAssetsResults(query: String) = push(AssetsResultsRoute(query, WalletSearchTag.All))
     fun openAssetsResultsList(listId: String, title: String) = push(AssetsResultsRoute(query = "", scope = WalletSearchTag.List(listId), title = title))
     fun openCreateWalletRules() = push(CreateWalletAlertRoute)
     fun openCreateWallet() = push(CreateWalletRoute)

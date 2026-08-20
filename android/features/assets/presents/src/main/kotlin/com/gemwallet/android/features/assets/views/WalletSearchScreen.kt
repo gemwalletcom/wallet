@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.getListIconUrl
-import com.gemwallet.android.domains.search.toWalletSearchTag
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectAction
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScene
@@ -57,7 +56,6 @@ fun WalletSearchScreen(
     val previewAssets by viewModel.previewAssets.collectAsStateWithLifecycle()
     val hasMoreAssets by viewModel.hasMoreAssets.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
-    val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
     val previewPerpetuals by viewModel.previewPerpetuals.collectAsStateWithLifecycle()
     val hasMorePerpetuals by viewModel.hasMorePerpetuals.collectAsStateWithLifecycle()
     val pinnedPerpetuals by viewModel.pinnedPerpetuals.collectAsStateWithLifecycle()
@@ -75,7 +73,6 @@ fun WalletSearchScreen(
             is WalletSearchAction.PinAsset -> viewModel.onPinAsset(action.assetId)
             is WalletSearchAction.AddToWallet -> viewModel.onAddToWallet(action.assetId)
             is WalletSearchAction.TogglePerpetualPin -> viewModel.onTogglePerpetualPin(action.perpetualId)
-            is WalletSearchAction.SelectTag -> viewModel.onTagSelect(action.tag)
             WalletSearchAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
             is WalletSearchAction.OpenRecent -> onAction(
                 if (action.assetId.toIdentifier() in perpetualRecentIds) {
@@ -186,8 +183,6 @@ fun WalletSearchScreen(
         titleBadge = ::getAssetBadge,
         support = { assetPriceSupport(it.price) },
         query = viewModel.queryState,
-        selectedTag = selectedTag,
-        tags = viewModel.getTags(),
         pinned = pinned,
         popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
         unpinned = previewAssets.toImmutableList(),
@@ -201,11 +196,10 @@ fun WalletSearchScreen(
                 AssetSelectAction.AddAsset -> handleAction(WalletSearchAction.AddAsset)
                 AssetSelectAction.OpenRecentsSheet -> handleAction(WalletSearchAction.OpenRecentsSheet)
                 AssetSelectAction.ShowAllAssets -> handleAction(
-                    WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString(), selectedTag.toWalletSearchTag())
+                    WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString())
                 )
                 is AssetSelectAction.Select -> handleAction(WalletSearchAction.OpenAsset(action.assetId))
                 is AssetSelectAction.SelectRecent -> handleAction(WalletSearchAction.OpenRecent(action.assetId))
-                is AssetSelectAction.SelectTag -> handleAction(WalletSearchAction.SelectTag(action.tag))
                 is AssetSelectAction.ChainFilter,
                 is AssetSelectAction.BalanceFilter,
                 AssetSelectAction.ClearFilters -> Unit

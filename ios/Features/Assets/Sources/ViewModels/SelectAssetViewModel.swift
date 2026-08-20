@@ -30,7 +30,7 @@ public final class SelectAssetViewModel {
     public let wallet: Wallet
 
     var state: StateViewType<[AssetBasic]> = .noData
-    var searchModel: AssetSearchViewModel
+    var searchableQuery: String = .empty
 
     public let assetsQuery: ObservableQuery<AssetsRequest>
     public let recentModel: RecentAssetsModel
@@ -38,8 +38,6 @@ public final class SelectAssetViewModel {
         assetsQuery.value
     }
 
-    var isSearching: Bool = false
-    var isDismissSearch: Bool = false
     var isPresentingCopyToast: Bool = false
     var copyTypeViewModel: CopyTypeViewModel?
 
@@ -78,7 +76,6 @@ public final class SelectAssetViewModel {
             ),
         )
         filterModel = filter
-        searchModel = AssetSearchViewModel(selectType: selectType)
 
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: filter.filters), initialValue: [])
         recentModel = RecentAssetsModel(
@@ -141,10 +138,6 @@ public final class SelectAssetViewModel {
         flow.capabilities.contains(.networkSearch)
     }
 
-    var showTags: Bool {
-        !isSearching && searchModel.searchableQuery.isEmpty
-    }
-
     var showLoading: Bool {
         state.isLoading && showEmpty
     }
@@ -154,7 +147,7 @@ public final class SelectAssetViewModel {
     }
 
     var showRecents: Bool {
-        flow.capabilities.contains(.recents) && searchModel.searchableQuery.isEmpty && recentModel.hasAssets
+        flow.capabilities.contains(.recents) && searchableQuery.isEmpty && recentModel.hasAssets
     }
 
     var currencyCode: String {
@@ -193,11 +186,7 @@ extension SelectAssetViewModel {
         if query.isEmpty {
             return
         }
-        await searchAssets(
-            query: query,
-            priorityAssetsQuery: searchModel.priorityAssetsQuery,
-            tag: nil,
-        )
+        await searchAssets(query: query)
     }
 
     func handleAction(assetId: AssetId, enabled: Bool) async {
@@ -213,31 +202,9 @@ extension SelectAssetViewModel {
         }
     }
 
-    func setSelected(tag: AssetTagSelection) {
-        isDismissSearch.toggle()
-        searchModel.tagsViewModel.selectedTag = tag
-        searchModel.focus = .tags
-        updateRequest()
-        Task {
-            await searchAssets(
-                query: .empty,
-                priorityAssetsQuery: searchModel.priorityAssetsQuery,
-                tag: searchModel.tagsViewModel.selectedTag.tag,
-            )
-        }
-    }
-
     func updateRequest() {
-        assetsQuery.request.searchBy = searchModel.priorityAssetsQuery.or(.empty)
+        assetsQuery.request.searchBy = searchableQuery
         state = isNetworkSearchEnabled ? .loading : .noData
-    }
-
-    func onChangeFocus(_: Bool, isSearchable: Bool) {
-        if isSearchable {
-            searchModel.focus = .search
-            searchModel.tagsViewModel.selectedTag = .all
-            updateRequest()
-        }
     }
 
     func onChangeFilterModel(_: AssetsFilterViewModel, model: AssetsFilterViewModel) {
@@ -315,18 +282,9 @@ extension SelectAssetViewModel {
         return .with(asset: asset, account: account)
     }
 
-    private func searchAssets(
-        query: String,
-        priorityAssetsQuery: String?,
-        tag: AssetTag?,
-    ) async {
+    private func searchAssets(query: String) async {
         do {
-            let assets = try await searchService.searchAssets(
-                wallet: wallet,
-                query: query,
-                priorityAssetsQuery: priorityAssetsQuery,
-                tag: tag,
-            )
+            let assets = try await searchService.searchAssets(wallet: wallet, query: query)
             state = .data(assets)
         } catch {
             handle(error: error)

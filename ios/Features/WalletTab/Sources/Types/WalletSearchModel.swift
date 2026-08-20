@@ -3,35 +3,14 @@
 import Foundation
 import GemstonePrimitives
 import Primitives
-import PrimitivesComponents
 
 enum WalletSearchMode {
     case initial
-    case tagBrowsing
     case searching
 }
 
 struct WalletSearchModel {
-    var assetSearch: AssetSearchViewModel
-
-    var searchableQuery: String {
-        get { assetSearch.searchableQuery }
-        set { assetSearch.searchableQuery = newValue }
-    }
-
-    var tagsViewModel: AssetTagsViewModel {
-        get { assetSearch.tagsViewModel }
-        set { assetSearch.tagsViewModel = newValue }
-    }
-
-    var focus: AssetSearchViewModel.Focus {
-        get { assetSearch.focus }
-        set { assetSearch.focus = newValue }
-    }
-
-    init(selectType: SelectAssetType) {
-        assetSearch = AssetSearchViewModel(selectType: selectType)
-    }
+    var searchableQuery: String = .empty
 }
 
 // MARK: - Limits
@@ -57,23 +36,20 @@ extension WalletSearchModel {
         RecentActivityType.allCases
     }
 
-    func searchMode(scope: WalletSearchTag) -> WalletSearchMode {
-        if assetSearch.searchableQuery.isNotEmpty { return .searching }
-        if !scope.isAll { return .tagBrowsing }
-        return .initial
+    var searchMode: WalletSearchMode {
+        searchableQuery.isNotEmpty ? .searching : .initial
     }
 
-    func assetsLimit(scope: WalletSearchTag) -> Int {
-        switch searchMode(scope: scope) {
+    var assetsLimit: Int {
+        switch searchMode {
         case .initial: WalletSearchConfig.assetsInitialLimit
-        case .tagBrowsing: WalletSearchConfig.assetsTagLimit
         case .searching: WalletSearchConfig.assetsSearchLimit
         }
     }
 
-    func fetchLimit(scope: WalletSearchTag) -> Int {
-        switch searchMode(scope: scope) {
-        case .initial, .tagBrowsing: assetsLimit(scope: scope) + 1
+    var fetchLimit: Int {
+        switch searchMode {
+        case .initial: assetsLimit + 1
         case .searching: WalletSearchConfig.resultsLimit
         }
     }

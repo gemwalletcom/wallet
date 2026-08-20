@@ -37,13 +37,12 @@ public struct WalletSearchScene: View {
             action: model.onSearch(query:),
         )
         .onChange(of: model.searchModel.searchableQuery, model.onChangeSearchQuery)
-        .onChange(of: model.isSearching, model.onChangeFocus)
         .onChange(of: model.isSearchPresented, model.onChangeSearchPresented)
         .onAppear {
             model.onAppear()
         }
         .taskOnce {
-            model.onSelectTag(tag: .all)
+            model.fetch()
         }
         .toast(message: $model.isPresentingToastMessage)
         .recentAssetsSheet(model: model.recentModel, onSelect: model.onSelectRecent)
@@ -51,17 +50,6 @@ public struct WalletSearchScene: View {
 
     private var content: some View {
         List {
-            if model.showTags {
-                Section {} header: {
-                    TagsView(
-                        tags: model.searchModel.tagsViewModel.items,
-                        onSelect: { model.onSelectTag(tag: $0.tag) },
-                    )
-                }
-                .textCase(nil)
-                .listRowInsets(EdgeInsets())
-            }
-
             if model.showRecents {
                 RecentAssetsSectionView(
                     model: model.recentModel,

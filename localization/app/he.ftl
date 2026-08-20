@@ -401,11 +401,7 @@ assets_no_assets_found = לא נמצאו נכסים
 assets_add_custom_token = הוסף אסימון מותאם אישית
 assets_select_asset = בחר נכס
 assets_popular = נכסים פופולריים
-assets_tags_trending = פופולרי
-assets_tags_gainers = מרוויחים
-assets_tags_losers = מפסידים
 assets_tags_new = חָדָשׁ
-assets_tags_stablecoins = Stablecoins
 assets_state_empty_search_description = אתה יכול לנסות להוסיף את זה ידנית
 assets_title = נכסים
 

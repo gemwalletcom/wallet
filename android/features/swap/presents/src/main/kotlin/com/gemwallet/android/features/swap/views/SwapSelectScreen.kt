@@ -39,7 +39,6 @@ fun SwapSelectScreen(
     val select by viewModel.select.collectAsStateWithLifecycle()
     val payId by viewModel.payAssetId.collectAsStateWithLifecycle()
     val receiveId by viewModel.receiveAssetId.collectAsStateWithLifecycle()
-    val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
 
     val onSelectAsset: (AssetId) -> Unit = { assetId ->
         when (select) {
@@ -55,8 +54,6 @@ fun SwapSelectScreen(
         },
         titleBadge = { null },
         query = viewModel.queryState,
-        tags = viewModel.getTags(),
-        selectedTag = selectedTag,
         popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
         pinned = pinned,
         unpinned = unpinned,
@@ -77,7 +74,6 @@ fun SwapSelectScreen(
                 is AssetSelectAction.SelectRecent -> onSelectAsset(action.assetId)
                 AssetSelectAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters(), types = viewModel.recentTypes)
                 AssetSelectAction.Cancel -> onCancel()
-                is AssetSelectAction.SelectTag -> viewModel.onTagSelect(action.tag)
                 AssetSelectAction.AddAsset,
                 AssetSelectAction.ShowAllAssets -> Unit
             }

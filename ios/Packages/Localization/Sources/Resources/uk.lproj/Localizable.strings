@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "Додайте власний токен";
 "assets.select_asset" = "Виберіть актив";
 "assets.popular" = "Популярні";
-"assets.tags.trending" = "Тренди";
-"assets.tags.gainers" = "Гейнери";
-"assets.tags.losers" = "Аутсайдери";
 "assets.tags.new" = "Нові";
-"assets.tags.stablecoins" = "Стайблкойни";
 "assets.state.empty.search_description" = "Ви можете спробувати додати його вручну";
 "assets.title" = "Активи";
 "sign_message.message" = "Повідомлення";

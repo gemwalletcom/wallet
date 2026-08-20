@@ -341,11 +341,7 @@
   <string name="assets_add_custom_token">เพิ่มโทเค็นที่กำหนดเอง</string>
   <string name="assets_select_asset">เลือกสินทรัพย์</string>
   <string name="assets_popular">สินทรัพย์ยอดนิยม</string>
-  <string name="assets_tags_trending">กำลังเป็นที่นิยม</string>
-  <string name="assets_tags_gainers">กำไร</string>
-  <string name="assets_tags_losers">ราคาลง</string>
   <string name="assets_tags_new">ใหม่</string>
-  <string name="assets_tags_stablecoins">สเตเบิลคอยน์</string>
   <string name="assets_state_empty_search_description">คุณสามารถลองเพิ่มมันด้วยตนเองได้</string>
   <string name="assets_title">สินทรัพย์</string>
   <string name="sign_message_message">ข้อความ</string>

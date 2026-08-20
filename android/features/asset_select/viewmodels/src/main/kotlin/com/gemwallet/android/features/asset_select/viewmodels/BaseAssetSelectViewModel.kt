@@ -29,7 +29,6 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
@@ -66,7 +65,6 @@ open class BaseAssetSelectViewModel(
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 
     val queryState = TextFieldState()
-    val selectedTag = MutableStateFlow<AssetTag?>(null)
     val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
     val balanceFilter = MutableStateFlow(false)
 
@@ -82,18 +80,17 @@ open class BaseAssetSelectViewModel(
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    private val searchRequests = combine(currentQuery.debounce(SEARCH_DEBOUNCE_MS), selectedTag, session) { query, tag, session ->
-        SearchRequest(query, tag, session?.currency ?: Currency.USD, walletSearchChains(session?.wallet))
+    private val searchRequests = combine(currentQuery.debounce(SEARCH_DEBOUNCE_MS), session) { query, session ->
+        SearchRequest(query, session?.currency ?: Currency.USD, walletSearchChains(session?.wallet))
     }.distinctUntilChanged()
 
     private val filters = combine(
         session,
         currentQuery,
-        selectedTag,
         chainFilter,
         balanceFilter,
-    ) { session, query, tag, chainFilter, hasBalance ->
-        SelectAssetFilters(session = session, query = query, chainFilter = chainFilter, hasBalance = hasBalance, tag = tag, limit = assetsSearchLimit(query, tag))
+    ) { session, query, chainFilter, hasBalance ->
+        SelectAssetFilters(session = session, query = query, chainFilter = chainFilter, hasBalance = hasBalance, limit = assetsSearchLimit(query))
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -203,16 +200,6 @@ open class BaseAssetSelectViewModel(
         }
     }
 
-    fun onTagSelect(tag: AssetTag?) {
-        selectedTag.update { tag }
-    }
-
-    open fun getTags(): List<AssetTag?> = listOf(
-        null,
-        AssetTag.Trending,
-        AssetTag.Stablecoins,
-    )
-
     fun onBalanceFilter(onlyWithBalance: Boolean) {
         balanceFilter.update { onlyWithBalance }
     }
@@ -227,20 +214,13 @@ open class BaseAssetSelectViewModel(
     }
 
     init {
-        viewModelScope.launch {
-            currentQuery.collect { query ->
-                if (query.isNotEmpty() && selectedTag.value != null) {
-                    selectedTag.value = null
-                }
-            }
-        }
         if (remoteSearch) {
             viewModelScope.launch(Dispatchers.IO) {
-                searchRequests.collectLatest { (query, tag, currency, chains) ->
+                searchRequests.collectLatest { (query, currency, chains) ->
                     isSearching.value = query.isNotEmpty()
                     try {
                         runCatchingCancellable {
-                            searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
+                            searchTokensCase.search(query, currency, chains)
                         }
                     } finally {
                         isSearching.value = false
@@ -266,11 +246,10 @@ open class BaseAssetSelectViewModel(
 
     open fun assetFilters(): Set<AssetFilter> = emptySet()
 
-    open fun assetsSearchLimit(query: String, tag: AssetTag?): Int = NO_QUERY_LIMIT
+    open fun assetsSearchLimit(query: String): Int = NO_QUERY_LIMIT
 
     private data class SearchRequest(
         val query: String,
-        val tag: AssetTag?,
         val currency: Currency,
         val chains: List<Chain>,
     )

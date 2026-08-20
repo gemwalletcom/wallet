@@ -45,7 +45,6 @@ fun AssetsManageScreen(
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
     val chainsFilter by viewModel.chainFilter.collectAsStateWithLifecycle()
     val balanceFilter by viewModel.balanceFilter.collectAsStateWithLifecycle()
-    val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
 
     AssetSelectScene(
         title = {
@@ -62,8 +61,6 @@ fun AssetsManageScreen(
             }
         },
         query = viewModel.queryState,
-        selectedTag = selectedTag,
-        tags = viewModel.getTags(),
         pinned = pinned,
         popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
         unpinned = unpinned,
@@ -81,7 +78,6 @@ fun AssetsManageScreen(
                 AssetSelectAction.ClearFilters -> viewModel.onClearFilters()
                 AssetSelectAction.Cancel -> onCancel()
                 AssetSelectAction.AddAsset -> onAddAsset()
-                is AssetSelectAction.SelectTag -> viewModel.onTagSelect(action.tag)
                 is AssetSelectAction.Select,
                 is AssetSelectAction.SelectRecent,
                 AssetSelectAction.OpenRecentsSheet,

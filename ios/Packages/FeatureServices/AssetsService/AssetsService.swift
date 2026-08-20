@@ -142,8 +142,8 @@ public final class AssetsService: Sendable {
 
     // search
 
-    public func searchAssets(query: String, chains: [Chain], tags: [AssetTag]) async throws -> [AssetBasic] {
-        async let apiAssets = assetsProvider.getSearchAssets(query: query, chains: chains, tags: tags)
+    public func searchAssets(query: String, chains: [Chain]) async throws -> [AssetBasic] {
+        async let apiAssets = assetsProvider.getSearchAssets(query: query, chains: chains)
         async let networkAssets = searchNetworkAsset(tokenId: query, chains: chains.isEmpty ? Chain.allCases : chains)
         return try await apiAssets + networkAssets
     }

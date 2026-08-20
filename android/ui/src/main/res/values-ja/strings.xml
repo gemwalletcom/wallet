@@ -341,11 +341,7 @@
   <string name="assets_add_custom_token">カスタム・トークンの追加</string>
   <string name="assets_select_asset">資産を選択</string>
   <string name="assets_popular">人気のアセット</string>
-  <string name="assets_tags_trending">トレンド</string>
-  <string name="assets_tags_gainers">値上がりランキング</string>
-  <string name="assets_tags_losers">値下がりランキング</string>
   <string name="assets_tags_new">新しい</string>
-  <string name="assets_tags_stablecoins">ステーブルコイン</string>
   <string name="assets_state_empty_search_description">手動で追加してみてください</string>
   <string name="assets_title">資産</string>
   <string name="sign_message_message">メッセージ</string>

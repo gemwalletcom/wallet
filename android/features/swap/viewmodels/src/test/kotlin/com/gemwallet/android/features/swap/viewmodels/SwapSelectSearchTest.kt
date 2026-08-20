@@ -13,7 +13,6 @@ import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.flow.Flow
@@ -52,7 +51,6 @@ class SwapSelectSearchTest {
                 query = "",
                 chainFilter = emptyList(),
                 hasBalance = false,
-                tag = null,
             )
         )
 
@@ -77,7 +75,6 @@ class SwapSelectSearchTest {
                 query = "",
                 chainFilter = emptyList(),
                 hasBalance = false,
-                tag = null,
             )
         )
 
@@ -95,9 +92,8 @@ class SwapSelectSearchTest {
             query: String,
             swapItemType: SwapItemType,
             oppositeAssetId: AssetId?,
-            tag: AssetTag?,
         ): Flow<List<AssetInfo>> {
-            val call = SearchCall(wallet, query, swapItemType, oppositeAssetId, tag)
+            val call = SearchCall(wallet, query, swapItemType, oppositeAssetId)
             sink += call
             return result(call)
         }
@@ -108,6 +104,5 @@ class SwapSelectSearchTest {
         val query: String,
         val swapItemType: SwapItemType,
         val oppositeAssetId: AssetId?,
-        val tag: AssetTag?,
     )
 }

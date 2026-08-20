@@ -16,18 +16,14 @@ public struct SelectAssetScene: View {
     }
 
     public var body: some View {
-        SearchableWrapper(
-            content: { list },
-            isSearching: $model.isSearching,
-            dismissSearch: $model.isDismissSearch,
-        )
+        list
         .searchable(
-            text: $model.searchModel.searchableQuery,
+            text: $model.searchableQuery,
             placement: .navigationBarDrawer(displayMode: .always),
         )
         .if(model.isNetworkSearchEnabled) {
             $0.debounce(
-                value: $model.searchModel.searchableQuery.wrappedValue,
+                value: $model.searchableQuery.wrappedValue,
                 action: model.search(query:),
             )
         }
@@ -47,8 +43,7 @@ public struct SelectAssetScene: View {
         }
         .bindQuery(model.assetsQuery, model.recentModel.query)
         .onChange(of: model.filterModel, model.onChangeFilterModel)
-        .onChange(of: model.searchModel.searchableQuery, model.updateRequest)
-        .onChange(of: model.isSearching, model.onChangeFocus)
+        .onChange(of: model.searchableQuery, model.updateRequest)
         .ifLet(model.copyTypeViewModel) {
             $0.copyToast(
                 model: $1,
@@ -60,17 +55,6 @@ public struct SelectAssetScene: View {
 
     var list: some View {
         List {
-            if model.showTags {
-                Section {} header: {
-                    TagsView(
-                        tags: model.searchModel.tagsViewModel.items,
-                        onSelect: { model.setSelected(tag: $0.tag) },
-                    )
-                }
-                .textCase(nil)
-                .listRowInsets(EdgeInsets())
-            }
-
             if model.showRecents {
                 RecentAssetsSectionView(
                     model: model.recentModel,

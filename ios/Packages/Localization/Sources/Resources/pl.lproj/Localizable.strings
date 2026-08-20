@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "Dodaj token niestandardowy";
 "assets.select_asset" = "Wybierz zasób";
 "assets.popular" = "Popularne aktywa";
-"assets.tags.trending" = "Trendy";
-"assets.tags.gainers" = "Zdobywcy";
-"assets.tags.losers" = "Przegrani";
 "assets.tags.new" = "Nowy";
-"assets.tags.stablecoins" = "Stablecoiny";
 "assets.state.empty.search_description" = "Możesz spróbować dodać go ręcznie";
 "assets.title" = "Aktywa";
 "sign_message.message" = "Wiadomość";

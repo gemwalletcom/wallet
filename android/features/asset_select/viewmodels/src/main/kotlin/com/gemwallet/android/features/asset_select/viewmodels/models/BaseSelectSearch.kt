@@ -16,7 +16,6 @@ open class BaseSelectSearch(
         return filters.flatMapLatest { filters ->
             searchSelectAssets(
                 filters?.query.orEmpty(),
-                filters?.tag?.let { listOf(it) } ?: emptyList(),
                 filters?.limit ?: NO_QUERY_LIMIT,
             )
         }

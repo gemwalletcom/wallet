@@ -341,11 +341,7 @@
   <string name="assets_add_custom_token">添加自訂代幣</string>
   <string name="assets_select_asset">選擇資產</string>
   <string name="assets_popular">熱門資產</string>
-  <string name="assets_tags_trending">熱門</string>
-  <string name="assets_tags_gainers">漲幅榜</string>
-  <string name="assets_tags_losers">跌幅榜</string>
   <string name="assets_tags_new">新的</string>
-  <string name="assets_tags_stablecoins">穩定幣</string>
   <string name="assets_state_empty_search_description">請嘗試手動新增</string>
   <string name="assets_title">資產</string>
   <string name="sign_message_message">訊息</string>

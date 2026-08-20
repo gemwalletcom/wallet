@@ -401,11 +401,7 @@ assets_no_assets_found = لم يتم العثور على الأصول
 assets_add_custom_token = إضافة رمز مخصص
 assets_select_asset = حدد الأصول
 assets_popular = الأصول الشائعة
-assets_tags_trending = الأكثر رواجًا
-assets_tags_gainers = الرابحون
-assets_tags_losers = الخاسرون
 assets_tags_new = جديد
-assets_tags_stablecoins = العملات المستقرة
 assets_state_empty_search_description = يمكنك محاولة إضافته يدويًا
 assets_title = أصول
 

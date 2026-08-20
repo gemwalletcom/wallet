@@ -39,7 +39,6 @@ fun AssetSelectScreen(
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
     val chainsFilter by viewModel.chainFilter.collectAsStateWithLifecycle()
     val balanceFilter by viewModel.balanceFilter.collectAsStateWithLifecycle()
-    val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
 
     val selectAsset: ((AssetId) -> Unit)? = when {
         onSelect == null -> null
@@ -83,14 +82,11 @@ fun AssetSelectScreen(
                 AssetSelectAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
                 AssetSelectAction.Cancel -> onCancel()
                 AssetSelectAction.AddAsset -> onAddAsset?.invoke()
-                is AssetSelectAction.SelectTag -> viewModel.onTagSelect(action.tag)
                 AssetSelectAction.ShowAllAssets -> Unit
             }
         },
         recentsSheetEnabled = onSelectRecent != null,
         itemTrailing = itemTrailing,
-        selectedTag = selectedTag,
-        tags = viewModel.getTags(),
     )
 
     if (onSelectRecent != null) {

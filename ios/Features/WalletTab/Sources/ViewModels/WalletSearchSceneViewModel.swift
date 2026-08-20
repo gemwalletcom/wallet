@@ -70,7 +70,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
         self.onDismissSearch = onDismissSearch
         self.onSelectAssetAction = onSelectAssetAction
         self.onAddToken = onAddToken
-        searchModel = WalletSearchModel(selectType: .manage)
+        searchModel = WalletSearchModel()
 
         searchQuery = ObservableQuery(
             WalletSearchRequest(
@@ -120,10 +120,6 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
         preferences.preferences.currency
     }
 
-    var showTags: Bool {
-        searchModel.searchableQuery.isEmpty
-    }
-
     var showRecents: Bool {
         searchModel.searchableQuery.isEmpty && recentModel.hasAssets
     }
@@ -170,7 +166,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
     }
 
     var previewAssets: [AssetData] {
-        sections.assets.prefix(assetsPreviewLimit).asArray()
+        sections.assets.prefix(searchModel.assetsLimit).asArray()
     }
 
     var previewPerpetuals: [PerpetualData] {
@@ -182,7 +178,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
     }
 
     var hasMoreAssets: Bool {
-        searchResult.assets.count > assetsPreviewLimit
+        searchResult.assets.count > searchModel.assetsLimit
     }
 
     var hasMorePerpetuals: Bool {
@@ -239,14 +235,10 @@ extension WalletSearchSceneViewModel {
         await search(query: query)
     }
 
-    func onSelectTag(tag: AssetTagSelection) {
-        searchModel.tagsViewModel.selectedTag = tag
-        searchModel.focus = .tags
-        let scope: WalletSearchTag = if let assetTag = tag.tag { .filter(assetTag) } else { .all }
-        searchQuery.request.scope = scope
+    func fetch() {
         updateRequest()
         Task {
-            await search(query: .empty, scope: scope)
+            await search(query: .empty)
         }
     }
 
@@ -280,15 +272,6 @@ extension WalletSearchSceneViewModel {
         updateRequest()
     }
 
-    func onChangeFocus(_: Bool, isSearching: Bool) {
-        if isSearching {
-            searchModel.focus = .search
-            searchModel.tagsViewModel.selectedTag = AssetTagSelection.all
-            searchQuery.request.scope = .all
-            updateRequest()
-        }
-    }
-
     func onChangeSearchPresented(_: Bool, isPresented: Bool) {
         guard !isPresented else { return }
         dismissSearch = true
@@ -299,10 +282,6 @@ extension WalletSearchSceneViewModel {
 // MARK: - Private
 
 extension WalletSearchSceneViewModel {
-    private var assetsPreviewLimit: Int {
-        searchModel.assetsLimit(scope: searchQuery.request.scope)
-    }
-
     private func updateRecent(_ asset: Asset) {
         do {
             try activityService.updateRecent(data: .search(asset), walletId: wallet.id)
@@ -312,20 +291,15 @@ extension WalletSearchSceneViewModel {
     }
 
     private func updateRequest() {
-        if searchModel.searchableQuery.isNotEmpty && searchModel.focus == .tags {
-            searchModel.focus = .search
-            searchModel.tagsViewModel.selectedTag = AssetTagSelection.all
-            searchQuery.request.scope = .all
-        }
         searchQuery.request.searchBy = searchModel.searchableQuery
-        searchQuery.request.limit = searchModel.fetchLimit(scope: searchQuery.request.scope)
-        state = searchModel.searchableQuery.isNotEmpty || !searchQuery.request.scope.isAll ? .loading : .noData
+        searchQuery.request.limit = searchModel.fetchLimit
+        state = searchModel.searchableQuery.isNotEmpty ? .loading : .noData
     }
 
-    private func search(query: String, scope: WalletSearchTag = .all) async {
+    private func search(query: String) async {
         state = .loading
         do {
-            try await searchService.search(wallet: wallet, query: query, scope: scope)
+            try await searchService.search(wallet: wallet, query: query)
             state = .data(true)
         } catch {
             state.setError(error)

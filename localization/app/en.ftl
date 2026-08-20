@@ -752,16 +752,8 @@ assets_add_custom_token = Add Custom Token
 assets_select_asset = Select Asset
 # Asset selection section header for the list of popular assets.
 assets_popular = Popular
-# Used in asset list and discovery screens for the tags trending label.
-assets_tags_trending = Trending
-# Used in asset list and discovery screens for the tags gainers label.
-assets_tags_gainers = Gainers
-# Used in asset list and discovery screens for the tags losers label.
-assets_tags_losers = Losers
 # Used in asset list and discovery screens for the tags new label.
 assets_tags_new = New
-# Used in asset list and discovery screens for the tags stablecoins label.
-assets_tags_stablecoins = Stablecoins
 # Used in asset list and discovery screens for the state empty search description.
 assets_state_empty_search_description = You can try to add it manually
 # Used in asset list and discovery screens as a title.

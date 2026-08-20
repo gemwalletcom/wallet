@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "Add Custom Token";
 "assets.select_asset" = "Select Asset";
 "assets.popular" = "Popular";
-"assets.tags.trending" = "Trending";
-"assets.tags.gainers" = "Gainers";
-"assets.tags.losers" = "Losers";
 "assets.tags.new" = "New";
-"assets.tags.stablecoins" = "Stablecoins";
 "assets.state.empty.search_description" = "You can try to add it manually";
 "assets.title" = "Assets";
 "sign_message.message" = "Message";

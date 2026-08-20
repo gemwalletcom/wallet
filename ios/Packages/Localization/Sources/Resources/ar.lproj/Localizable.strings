@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "إضافة رمز مخصص";
 "assets.select_asset" = "حدد الأصول";
 "assets.popular" = "الأصول الشائعة";
-"assets.tags.trending" = "الأكثر رواجًا";
-"assets.tags.gainers" = "الرابحون";
-"assets.tags.losers" = "الخاسرون";
 "assets.tags.new" = "جديد";
-"assets.tags.stablecoins" = "العملات المستقرة";
 "assets.state.empty.search_description" = "يمكنك محاولة إضافته يدويًا";
 "assets.title" = "أصول";
 "sign_message.message" = "رسالة";

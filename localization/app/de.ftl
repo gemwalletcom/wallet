@@ -401,11 +401,7 @@ assets_no_assets_found = Keine Assets gefunden
 assets_add_custom_token = Benutzerdefinierten Token hinzufügen
 assets_select_asset = Anlage auswählen
 assets_popular = Beliebte Assets
-assets_tags_trending = Im Trend
-assets_tags_gainers = Gewinner
-assets_tags_losers = Verlierer
 assets_tags_new = Neu
-assets_tags_stablecoins = Stablecoins
 assets_state_empty_search_description = Sie können versuchen, es manuell hinzuzufügen
 assets_title = Vermögenswerte
 

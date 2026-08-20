@@ -401,11 +401,7 @@ assets_no_assets_found = Ba a sami kadarori ba
 assets_add_custom_token = Ƙara Alamar Custom
 assets_select_asset = Zaɓi Kadari
 assets_popular = Shahararrun kadarori
-assets_tags_trending = Trending
-assets_tags_gainers = Masu samun riba
-assets_tags_losers = Masu hasara
 assets_tags_new = Sabo
-assets_tags_stablecoins = Stablecoins
 assets_state_empty_search_description = Kuna iya ƙoƙarin ƙara shi da hannu
 assets_title = Kadari
 

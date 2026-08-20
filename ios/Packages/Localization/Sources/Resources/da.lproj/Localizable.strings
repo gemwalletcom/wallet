@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "Tilføj brugerdefineret token";
 "assets.select_asset" = "Vælg Aktiv";
 "assets.popular" = "Populære aktiver";
-"assets.tags.trending" = "Trending";
-"assets.tags.gainers" = "Vindere";
-"assets.tags.losers" = "Tabere";
 "assets.tags.new" = "Ny";
-"assets.tags.stablecoins" = "Stablecoins";
 "assets.state.empty.search_description" = "Du kan prøve at tilføje det manuelt";
 "assets.title" = "Aktiver";
 "sign_message.message" = "Besked";

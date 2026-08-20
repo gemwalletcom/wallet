@@ -52,7 +52,6 @@ class WalletSearchTokensTest {
             query = "btc",
             currency = Currency.USD,
             chains = emptyList(),
-            tags = emptyList(),
         )
 
         assertTrue(result)
@@ -69,7 +68,7 @@ class WalletSearchTokensTest {
             lists = listOf(AssetList(id = "stocks", name = "Stocks", count = 0u)),
         )
 
-        subject.search(query = "stocks", currency = Currency.USD, chains = emptyList(), tags = emptyList())
+        subject.search(query = "stocks", currency = Currency.USD, chains = emptyList())
 
         coVerify { assetListDao.upsert(match { records -> records.any { it.id == "stocks" } }) }
         coVerify { searchDao.put(match { records -> records.any { it.listId == "stocks" } }) }
@@ -82,7 +81,7 @@ class WalletSearchTokensTest {
         } returns mockSearchResponse(assets = emptyList())
         coEvery { tokenService.search("0xabc", any()) } returns listOf(mockAssetBasic())
 
-        val result = subject.search(query = "0xabc", currency = Currency.USD, chains = emptyList(), tags = emptyList())
+        val result = subject.search(query = "0xabc", currency = Currency.USD, chains = emptyList())
 
         assertTrue(result)
         coVerify { searchDao.put(match { records -> records.any { it.assetId != null } }) }
@@ -132,7 +131,7 @@ class WalletSearchTokensTest {
         coEvery { gemSearch.search(any(), any(), any()) } throws CancellationException("cancelled")
 
         val result = runCatching {
-            subject.search(query = "btc", currency = Currency.USD, chains = emptyList(), tags = emptyList())
+            subject.search(query = "btc", currency = Currency.USD, chains = emptyList())
         }
 
         assertTrue(result.exceptionOrNull() is CancellationException)

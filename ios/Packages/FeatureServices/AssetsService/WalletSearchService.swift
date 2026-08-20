@@ -43,9 +43,7 @@ public struct WalletSearchService: Sendable {
 
         let searchKey = scope.searchKey(query: query)
         try store(assets: assets, wallet: wallet, searchKey: searchKey)
-        if scope.includesPerpetuals {
-            try await store(perpetuals: searchResult.perpetuals, searchKey: searchKey)
-        }
+        try await store(perpetuals: searchResult.perpetuals, searchKey: searchKey)
         if scope.isAll {
             try await store(lists: searchResult.lists, searchKey: searchKey)
         }

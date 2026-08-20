@@ -94,9 +94,6 @@ struct WalletSearchRequestTests {
 
             let listWithoutPerp = try WalletSearchRequest(walletId: .mock(), searchBy: "", scope: .list("stocks_ai")).fetch(db)
             #expect(listWithoutPerp.perpetuals.isEmpty)
-
-            let assetTagFilter = try WalletSearchRequest(walletId: .mock(), searchBy: "ETH", scope: .filter(.stablecoins)).fetch(db)
-            #expect(assetTagFilter.perpetuals.isEmpty)
         }
     }
 
@@ -117,8 +114,8 @@ struct WalletSearchRequestTests {
             let result = try WalletSearchRequest(walletId: .mock(), searchBy: query, types: [.list]).fetch(db)
             #expect(result.lists == lists)
 
-            let withTag = try WalletSearchRequest(walletId: .mock(), searchBy: query, scope: .list("stocks"), types: [.list]).fetch(db)
-            #expect(withTag.lists.isEmpty)
+            let withList = try WalletSearchRequest(walletId: .mock(), searchBy: query, scope: .list("stocks"), types: [.list]).fetch(db)
+            #expect(withList.lists.isEmpty)
 
             let withoutListType = try WalletSearchRequest(walletId: .mock(), searchBy: query).fetch(db)
             #expect(withoutListType.lists.isEmpty)

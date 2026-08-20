@@ -401,11 +401,7 @@ assets_no_assets_found = Aucun élément trouvé
 assets_add_custom_token = Ajouter un jeton personnalisé
 assets_select_asset = Sélectionner un actif
 assets_popular = Actifs populaires
-assets_tags_trending = Tendance
-assets_tags_gainers = Gagnants
-assets_tags_losers = Perdants
 assets_tags_new = Nouveau
-assets_tags_stablecoins = Pièces stables
 assets_state_empty_search_description = Vous pouvez essayer de l'ajouter manuellement
 assets_title = Actifs
 

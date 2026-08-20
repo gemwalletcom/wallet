@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "커스텀 토큰 추가";
 "assets.select_asset" = "자산 선택";
 "assets.popular" = "인기 자산";
-"assets.tags.trending" = "트렌드";
-"assets.tags.gainers" = "승자";
-"assets.tags.losers" = "패자";
 "assets.tags.new" = "새로운";
-"assets.tags.stablecoins" = "스테이블코인";
 "assets.state.empty.search_description" = "수동으로 추가해보세요";
 "assets.title" = "자산";
 "sign_message.message" = "메시지";

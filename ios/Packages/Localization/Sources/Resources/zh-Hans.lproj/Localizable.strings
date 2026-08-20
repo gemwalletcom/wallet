@@ -326,11 +326,7 @@
 "assets.add_custom_token" = "添加自定义代币";
 "assets.select_asset" = "选择资产";
 "assets.popular" = "热门资产";
-"assets.tags.trending" = "热门";
-"assets.tags.gainers" = "涨幅榜";
-"assets.tags.losers" = "跌幅榜";
 "assets.tags.new" = "新的";
-"assets.tags.stablecoins" = "稳定币";
 "assets.state.empty.search_description" = "请尝试手动添加";
 "assets.title" = "资产";
 "sign_message.message" = "消息";

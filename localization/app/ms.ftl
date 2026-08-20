@@ -401,11 +401,7 @@ assets_no_assets_found = Tiada aset ditemui
 assets_add_custom_token = Tambah Token Tersuai
 assets_select_asset = Pilih Aset
 assets_popular = Aset popular
-assets_tags_trending = Trending
-assets_tags_gainers = Beroleh keuntungan
-assets_tags_losers = Penurun
 assets_tags_new = Baru
-assets_tags_stablecoins = Stablecoin
 assets_state_empty_search_description = Anda boleh cuba menambahnya secara manual
 assets_title = Aset
 
