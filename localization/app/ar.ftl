@@ -161,6 +161,9 @@ transfer_unfreeze_title = إزالة التجميد
 transfer_review_request = طلب مراجعة
 transfer_amount = كمية
 transfer_amount_title = كمية
+transfer_pay_with = ادفع بواسطة
+transfer_payment_expires_in = تنتهي صلاحية الدفعة خلال
+transfer_payment_title = الدفع
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = يبدو أن الاتصال بالإنترنت غير 
 errors_no_internet_connection = لا يوجد اتصال بالإنترنت
 errors_no_service_connection = لا يوجد اتصال بالخدمة
 errors_balances_activity_outdated = قد تكون الأرصدة والنشاط غير محدثة.
+errors_payment_expired = انتهت صلاحية الدفعة
+errors_payment_not_allowed = الدفع غير مسموح به
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = APR التمويل
 info_perpetual_funding_apr_description = المعدل السنوي الذي تدفع به صفقات الشراء صفقات البيع (إذا كانت سلبية، تدفع صفقات البيع صفقات شراء). لا توجد رسوم مرتبطة بالتمويل، وهو عبارة عن تحويل من نظير إلى نظير بين المستخدمين لدفع الأسعار نحو السعر الفوري.
 info_minimum_amount_title = الحد الأدنى للمبلغ
 info_minimum_amount_description = على شبكة %@، الحد الأدنى لمبلغ هذه المعاملة هو %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

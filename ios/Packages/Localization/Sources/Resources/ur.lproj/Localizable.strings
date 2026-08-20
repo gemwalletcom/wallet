@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "منجمد کریں۔";
 "transfer.unfreeze.title" = "غیر منجمد کریں۔";
 "transfer.review_request" = "درخواست کا جائزہ لیں";
+"transfer.pay_with" = "اس سے ادائیگی کریں";
+"transfer.payment_expires_in" = "ادائیگی ختم ہونے میں";
+"transfer.payment_title" = "ادائیگی";
 "settings.terms_of_services" = "سروس کی شرائط";
 "settings.privacy_policy" = "رازداری کی پالیسی";
 "settings.title" = "ترتیبات";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "انٹرنیٹ کنکشن نہیں ہے";
 "errors.no_service_connection" = "سروس کنکشن نہیں ہے";
 "errors.balances_activity_outdated" = "بیلنس اور سرگرمی پرانی ہو سکتی ہے۔";
+"errors.payment_expired" = "ادائیگی کی میعاد ختم ہو گئی";
+"errors.payment_not_allowed" = "ادائیگی کی اجازت نہیں";
 "activity.title" = "سرگرمی";
 "activity.state.empty.title" = "آپ کی سرگرمی یہاں ظاہر ہوگی۔";
 "activity.state.empty.description" = "اپنا پہلا لین دین کریں۔";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "سالانہ شرح جس پر لانگ شارٹس ادا کرتا ہے (اگر منفی، شارٹس لانگ ادا کرتے ہیں)۔ فنڈنگ ​​سے وابستہ کوئی فیس نہیں ہے، جو کہ قیمتوں کو اسپاٹ پرائس کی طرف دھکیلنے کے لیے صارفین کے درمیان پیئر ٹو پیئر ٹرانسفر ہے۔";
 "info.minimum_amount.title" = "کم از کم رقم";
 "info.minimum_amount.description" = "%@ نیٹ ورک پر، اس ٹرانزیکشن کی کم از کم رقم %@ ہے۔";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "براہ کرم %@ کرنے کے لیے رقم درج کریں";
 "nft.properties" = "پراپرٹیز";
 "nft.collections" = "مجموعے";

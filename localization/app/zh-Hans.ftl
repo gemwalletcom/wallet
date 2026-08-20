@@ -161,6 +161,9 @@ transfer_unfreeze_title = 解冻
 transfer_review_request = 审查请求
 transfer_amount = 金额
 transfer_amount_title = 数额
+transfer_pay_with = 支付方式
+transfer_payment_expires_in = 支付将于以下时间过期
+transfer_payment_title = 支付
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = 网络连接似乎已断开。
 errors_no_internet_connection = 无互联网连接
 errors_no_service_connection = 无服务连接
 errors_balances_activity_outdated = 余额和活动可能不是最新的。
+errors_payment_expired = 支付已过期
+errors_payment_not_allowed = 不允许支付
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = 资金费率年化
 info_perpetual_funding_apr_description = 多头支付空头的年化利率（如果为负，则空头支付多头）。融资不收取任何费用，融资是用户之间的点对点转账，旨在将价格推向现货价格。
 info_minimum_amount_title = 最低金额
 info_minimum_amount_description = 在 %@ 网络上，此交易的最低金额为 %@。
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

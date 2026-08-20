@@ -161,6 +161,9 @@ transfer_unfreeze_title = Dégeler
 transfer_review_request = Examiner la demande
 transfer_amount = Montant
 transfer_amount_title = Montant
+transfer_pay_with = Payer avec
+transfer_payment_expires_in = Le paiement expire dans
+transfer_payment_title = Paiement
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = La connexion Internet semble être hors ligne.
 errors_no_internet_connection = Pas de connexion Internet
 errors_no_service_connection = Pas de connexion au service
 errors_balances_activity_outdated = Les soldes et l'activité peuvent être obsolètes.
+errors_payment_expired = Paiement expiré
+errors_payment_not_allowed = Paiement non autorisé
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = APR de financement
 info_perpetual_funding_apr_description = Le taux annualisé auquel les positions longues paient les positions courtes (si négatif, les positions courtes paient les positions longues). Il n'y a aucun frais associé au financement, qui est un transfert peer-to-peer entre utilisateurs pour pousser les prix vers le prix spot.
 info_minimum_amount_title = Montant minimum
 info_minimum_amount_description = Sur le réseau %@, le montant minimum pour cette transaction est %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

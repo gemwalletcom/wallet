@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Prośba o przegląd</string>
   <string name="transfer_amount">Kwota</string>
   <string name="transfer_amount_title">Kwota</string>
+  <string name="transfer_pay_with">Zapłać za pomocą</string>
+  <string name="transfer_payment_expires_in">Płatność wygasa za</string>
+  <string name="transfer_payment_title">Płatność</string>
   <string name="settings_terms_of_services">Warunki świadczenia usług</string>
   <string name="settings_privacy_policy">Polityka prywatności</string>
   <string name="settings_title">Ustawienia</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">Brak połączenia z internetem</string>
   <string name="errors_no_service_connection">Brak połączenia z usługą</string>
   <string name="errors_balances_activity_outdated">Salda i aktywność mogą być nieaktualne.</string>
+  <string name="errors_payment_expired">Płatność wygasła</string>
+  <string name="errors_payment_not_allowed">Płatność niedozwolona</string>
   <string name="activity_title">Aktywność</string>
   <string name="activity_state_empty_title">Twoja aktywność będzie tutaj wyświetlana</string>
   <string name="activity_state_empty_description">Dokonaj pierwszej transakcji</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">Roczna stopa procentowa, według której pozycje długie opłacają pozycje krótkie (jeśli wartość ujemna, pozycje krótkie opłacają pozycje długie). Nie ma żadnych opłat związanych z finansowaniem, które stanowi transfer typu peer-to-peer pomiędzy użytkownikami w celu podniesienia cen w kierunku ceny spot.</string>
   <string name="info_minimum_amount_title">Minimalna kwota</string>
   <string name="info_minimum_amount_description">W sieci %1$s minimalna kwota tej transakcji to %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Proszę wpisać kwotę do %1$s</string>
   <string name="nft_properties">Właściwości</string>
   <string name="nft_collections">Kolekcje</string>

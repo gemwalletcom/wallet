@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "Daskare";
 "transfer.unfreeze.title" = "Cire daskarewa";
 "transfer.review_request" = "Buƙatar Bita";
+"transfer.pay_with" = "Biya da";
+"transfer.payment_expires_in" = "Biyan zai ƙare cikin";
+"transfer.payment_title" = "Biya";
 "settings.terms_of_services" = "Sharuɗɗan Sabis";
 "settings.privacy_policy" = "takardar kebantawa";
 "settings.title" = "Saituna";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "Babu haɗin intanet";
 "errors.no_service_connection" = "Babu haɗin sabis";
 "errors.balances_activity_outdated" = "Ma'aunai da ayyuka na iya zama tsofaffi.";
+"errors.payment_expired" = "Biyan ya ƙare";
+"errors.payment_not_allowed" = "Ba a yarda da biyan ba";
 "activity.title" = "Ayyuka";
 "activity.state.empty.title" = "Ayyukanku za su bayyana a nan";
 "activity.state.empty.description" = "Yi ciniki na farko";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "Matsakaicin adadin shekara-shekara wanda masu doguwa ke biyan masu gajere (idan mara kyau, masu gajere suna biyan masu doguwa). Babu wasu kudade da ke da alaƙa da kudade, wanda shine canja wuri tsakanin-tsara tsakanin masu amfani don tura farashin zuwa farashin tabo.";
 "info.minimum_amount.title" = "Mafi ƙarancin kuɗi";
 "info.minimum_amount.description" = "A kan hanyar sadarwar %@, mafi ƙarancin adadin wannan ma'amala shi ne %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Da fatan za a shigar da adadin zuwa %@";
 "nft.properties" = "Kayayyaki";
 "nft.collections" = "Tari";

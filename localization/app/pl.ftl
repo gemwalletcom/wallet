@@ -161,6 +161,9 @@ transfer_unfreeze_title = Odmroź
 transfer_review_request = Prośba o przegląd
 transfer_amount = Kwota
 transfer_amount_title = Kwota
+transfer_pay_with = Zapłać za pomocą
+transfer_payment_expires_in = Płatność wygasa za
+transfer_payment_title = Płatność
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Połączenie internetowe wydaje się być niedostępne.
 errors_no_internet_connection = Brak połączenia z internetem
 errors_no_service_connection = Brak połączenia z usługą
 errors_balances_activity_outdated = Salda i aktywność mogą być nieaktualne.
+errors_payment_expired = Płatność wygasła
+errors_payment_not_allowed = Płatność niedozwolona
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Finansowanie RRSO
 info_perpetual_funding_apr_description = Roczna stopa procentowa, według której pozycje długie opłacają pozycje krótkie (jeśli wartość ujemna, pozycje krótkie opłacają pozycje długie). Nie ma żadnych opłat związanych z finansowaniem, które stanowi transfer typu peer-to-peer pomiędzy użytkownikami w celu podniesienia cen w kierunku ceny spot.
 info_minimum_amount_title = Minimalna kwota
 info_minimum_amount_description = W sieci %@ minimalna kwota tej transakcji to %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

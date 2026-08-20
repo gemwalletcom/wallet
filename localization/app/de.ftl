@@ -161,6 +161,9 @@ transfer_unfreeze_title = Auftauen
 transfer_review_request = Überprüfungsanfrage
 transfer_amount = Betrag
 transfer_amount_title = Betrag
+transfer_pay_with = Bezahlen mit
+transfer_payment_expires_in = Zahlung läuft ab in
+transfer_payment_title = Zahlung
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Die Internetverbindung scheint unterbrochen zu sein.
 errors_no_internet_connection = Keine Internetverbindung
 errors_no_service_connection = Keine Serviceverbindung
 errors_balances_activity_outdated = Guthaben und Aktivität sind möglicherweise nicht aktuell.
+errors_payment_expired = Zahlung abgelaufen
+errors_payment_not_allowed = Zahlung nicht zulässig
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Finanzierung effektiver Jahreszins
 info_perpetual_funding_apr_description = Der auf das Jahr umgerechnete Zinssatz, zu dem Long-Positionen Short-Positionen zahlen (bei negativem Wert zahlen Short-Positionen Long-Positionen). Mit der Finanzierung sind keine Gebühren verbunden, es handelt sich um einen Peer-to-Peer-Transfer zwischen Nutzern, um die Preise in Richtung des Spotpreises zu drücken.
 info_minimum_amount_title = Mindestbetrag
 info_minimum_amount_description = Im %@-Netzwerk beträgt der Mindestbetrag für diese Transaktion %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

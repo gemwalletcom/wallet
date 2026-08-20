@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Suriin ang Kahilingan</string>
   <string name="transfer_amount">Halaga</string>
   <string name="transfer_amount_title">Halaga</string>
+  <string name="transfer_pay_with">Bayaran gamit ang</string>
+  <string name="transfer_payment_expires_in">Mag-e-expire ang bayad sa</string>
+  <string name="transfer_payment_title">Bayad</string>
   <string name="settings_terms_of_services">Mga Tuntunin ng Serbisyo</string>
   <string name="settings_privacy_policy">Patakaran sa Privacy</string>
   <string name="settings_title">Mga Setting</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">Walang koneksyon sa internet</string>
   <string name="errors_no_service_connection">Walang koneksyon sa serbisyo</string>
   <string name="errors_balances_activity_outdated">Maaaring luma na ang mga balanse at aktibidad.</string>
+  <string name="errors_payment_expired">Nag-expire ang bayad</string>
+  <string name="errors_payment_not_allowed">Hindi pinapayagan ang bayad</string>
   <string name="activity_title">Aktibidad</string>
   <string name="activity_state_empty_title">Lalabas dito ang iyong aktibidad</string>
   <string name="activity_state_empty_description">Gawin ang iyong unang transaksyon</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">Ang taunang rate kung saan nagbabayad ang longs ng shorts (kung negatibo, ang shorts ay nagbabayad ng longs). Walang mga bayarin na nauugnay sa pagpopondo, na isang peer-to-peer na paglipat sa pagitan ng mga user upang itulak ang mga presyo patungo sa presyo ng lugar.</string>
   <string name="info_minimum_amount_title">Pinakamababang Halaga</string>
   <string name="info_minimum_amount_description">Sa %1$s network, ang minimum na halaga para sa transaksyong ito ay %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Mangyaring magpasok ng halaga sa %1$s</string>
   <string name="nft_properties">Mga Katangian</string>
   <string name="nft_collections">Mga koleksyon</string>

@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Verzoek controleren</string>
   <string name="transfer_amount">Bedrag</string>
   <string name="transfer_amount_title">Bedrag</string>
+  <string name="transfer_pay_with">Betalen met</string>
+  <string name="transfer_payment_expires_in">Betaling verloopt over</string>
+  <string name="transfer_payment_title">Betaling</string>
   <string name="settings_terms_of_services">Servicevoorwaarden</string>
   <string name="settings_privacy_policy">Privacybeleid</string>
   <string name="settings_title">Instellingen</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">Geen internetverbinding</string>
   <string name="errors_no_service_connection">Geen serviceverbinding</string>
   <string name="errors_balances_activity_outdated">Saldi en activiteit zijn mogelijk verouderd.</string>
+  <string name="errors_payment_expired">Betaling verlopen</string>
+  <string name="errors_payment_not_allowed">Betaling niet toegestaan</string>
   <string name="activity_title">Activiteit</string>
   <string name="activity_state_empty_title">Uw activiteit zal hier verschijnen</string>
   <string name="activity_state_empty_description">Maak uw eerste transactie</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">Het op jaarbasis berekende percentage waarmee longs shorts betalen (indien negatief, shorts betalen longs). Er zijn geen kosten verbonden aan financiering, wat een peer-to-peer overdracht tussen gebruikers is om de prijzen richting de spotprijs te duwen.</string>
   <string name="info_minimum_amount_title">Minimumbedrag</string>
   <string name="info_minimum_amount_description">Op het %1$s-netwerk is het minimumbedrag voor deze transactie %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Voer het bedrag in om te %1$s</string>
   <string name="nft_properties">Eigenschappen</string>
   <string name="nft_collections">Collecties</string>

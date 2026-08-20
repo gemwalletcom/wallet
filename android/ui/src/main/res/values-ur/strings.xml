@@ -140,6 +140,9 @@
   <string name="transfer_review_request">درخواست کا جائزہ لیں</string>
   <string name="transfer_amount">رقم</string>
   <string name="transfer_amount_title">رقم</string>
+  <string name="transfer_pay_with">اس سے ادائیگی کریں</string>
+  <string name="transfer_payment_expires_in">ادائیگی ختم ہونے میں</string>
+  <string name="transfer_payment_title">ادائیگی</string>
   <string name="settings_terms_of_services">سروس کی شرائط</string>
   <string name="settings_privacy_policy">رازداری کی پالیسی</string>
   <string name="settings_title">ترتیبات</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">انٹرنیٹ کنکشن نہیں ہے</string>
   <string name="errors_no_service_connection">سروس کنکشن نہیں ہے</string>
   <string name="errors_balances_activity_outdated">بیلنس اور سرگرمی پرانی ہو سکتی ہے۔</string>
+  <string name="errors_payment_expired">ادائیگی کی میعاد ختم ہو گئی</string>
+  <string name="errors_payment_not_allowed">ادائیگی کی اجازت نہیں</string>
   <string name="activity_title">سرگرمی</string>
   <string name="activity_state_empty_title">آپ کی سرگرمی یہاں ظاہر ہوگی۔</string>
   <string name="activity_state_empty_description">اپنا پہلا لین دین کریں۔</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">سالانہ شرح جس پر لانگ شارٹس ادا کرتا ہے (اگر منفی، شارٹس لانگ ادا کرتے ہیں)۔ فنڈنگ ​​سے وابستہ کوئی فیس نہیں ہے، جو کہ قیمتوں کو اسپاٹ پرائس کی طرف دھکیلنے کے لیے صارفین کے درمیان پیئر ٹو پیئر ٹرانسفر ہے۔</string>
   <string name="info_minimum_amount_title">کم از کم رقم</string>
   <string name="info_minimum_amount_description">%1$s نیٹ ورک پر، اس ٹرانزیکشن کی کم از کم رقم %2$s ہے۔</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">براہ کرم %1$s کرنے کے لیے رقم درج کریں</string>
   <string name="nft_properties">پراپرٹیز</string>
   <string name="nft_collections">مجموعے</string>

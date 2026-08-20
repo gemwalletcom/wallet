@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "Geler";
 "transfer.unfreeze.title" = "Dégeler";
 "transfer.review_request" = "Examiner la demande";
+"transfer.pay_with" = "Payer avec";
+"transfer.payment_expires_in" = "Le paiement expire dans";
+"transfer.payment_title" = "Paiement";
 "settings.terms_of_services" = "Conditions d'utilisation";
 "settings.privacy_policy" = "Politique de confidentialité";
 "settings.title" = "Paramètres";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "Pas de connexion Internet";
 "errors.no_service_connection" = "Pas de connexion au service";
 "errors.balances_activity_outdated" = "Les soldes et l'activité peuvent être obsolètes.";
+"errors.payment_expired" = "Paiement expiré";
+"errors.payment_not_allowed" = "Paiement non autorisé";
 "activity.title" = "Activité";
 "activity.state.empty.title" = "Votre activité apparaîtra ici";
 "activity.state.empty.description" = "Effectuez votre première transaction";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "Le taux annualisé auquel les positions longues paient les positions courtes (si négatif, les positions courtes paient les positions longues). Il n'y a aucun frais associé au financement, qui est un transfert peer-to-peer entre utilisateurs pour pousser les prix vers le prix spot.";
 "info.minimum_amount.title" = "Montant minimum";
 "info.minimum_amount.description" = "Sur le réseau %@, le montant minimum pour cette transaction est %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Veuillez saisir le montant de %@";
 "nft.properties" = "Propriétés";
 "nft.collections" = "Collections";

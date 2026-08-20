@@ -161,6 +161,9 @@ transfer_unfreeze_title = Ondoa kuganda
 transfer_review_request = Ombi la Uhakiki
 transfer_amount = Kiasi
 transfer_amount_title = Kiasi
+transfer_pay_with = Lipa kwa
+transfer_payment_expires_in = Malipo yataisha baada ya
+transfer_payment_title = Malipo
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.
 errors_no_internet_connection = Hakuna muunganisho wa intaneti
 errors_no_service_connection = Hakuna muunganisho wa huduma
 errors_balances_activity_outdated = Salio na shughuli huenda si za sasa.
+errors_payment_expired = Malipo yamekwisha muda
+errors_payment_not_allowed = Malipo hayaruhusiwi
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Ufadhili wa APR
 info_perpetual_funding_apr_description = Kiwango cha kila mwaka ambacho nafasi ndefu hulipa nafasi fupi (ikiwa hasi, nafasi fupi hulipa nafasi ndefu). Hakuna ada zinazohusishwa na ufadhili, ambao ni uhamishaji kati ya watumiaji ili kusukuma bei kuelekea bei inayotarajiwa.
 info_minimum_amount_title = Kiasi cha Chini
 info_minimum_amount_description = Kwenye mtandao wa %@, kiasi cha chini kwa muamala huu ni %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

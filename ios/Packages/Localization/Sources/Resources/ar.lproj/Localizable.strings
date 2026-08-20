@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "تجميد";
 "transfer.unfreeze.title" = "إزالة التجميد";
 "transfer.review_request" = "طلب مراجعة";
+"transfer.pay_with" = "ادفع بواسطة";
+"transfer.payment_expires_in" = "تنتهي صلاحية الدفعة خلال";
+"transfer.payment_title" = "الدفع";
 "settings.terms_of_services" = "شروط الخدمات";
 "settings.privacy_policy" = "سياسة الخصوصية";
 "settings.title" = "إعدادات";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "لا يوجد اتصال بالإنترنت";
 "errors.no_service_connection" = "لا يوجد اتصال بالخدمة";
 "errors.balances_activity_outdated" = "قد تكون الأرصدة والنشاط غير محدثة.";
+"errors.payment_expired" = "انتهت صلاحية الدفعة";
+"errors.payment_not_allowed" = "الدفع غير مسموح به";
 "activity.title" = "نشاط";
 "activity.state.empty.title" = "سوف يظهر نشاطك هنا";
 "activity.state.empty.description" = "قم بإجراء معاملتك الأولى";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "المعدل السنوي الذي تدفع به صفقات الشراء صفقات البيع (إذا كانت سلبية، تدفع صفقات البيع صفقات شراء). لا توجد رسوم مرتبطة بالتمويل، وهو عبارة عن تحويل من نظير إلى نظير بين المستخدمين لدفع الأسعار نحو السعر الفوري.";
 "info.minimum_amount.title" = "الحد الأدنى للمبلغ";
 "info.minimum_amount.description" = "على شبكة %@، الحد الأدنى لمبلغ هذه المعاملة هو %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "الرجاء إدخال المبلغ إلى %@";
 "nft.properties" = "ملكيات";
 "nft.collections" = "المجموعات";

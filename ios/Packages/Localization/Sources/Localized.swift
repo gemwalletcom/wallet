@@ -441,6 +441,10 @@ public enum Localized {
     public static let notSupported = Localized.tr("Localizable", "errors.not_supported", fallback: "Not Supported")
     /// This device does not support QR code scanning. You can only select QR code image from library.
     public static let notSupportedQr = Localized.tr("Localizable", "errors.not_supported_qr", fallback: "This device does not support QR code scanning. You can only select QR code image from library.")
+    /// Payment Expired
+    public static let paymentExpired = Localized.tr("Localizable", "errors.payment_expired", fallback: "Payment Expired")
+    /// Payment not allowed
+    public static let paymentNotAllowed = Localized.tr("Localizable", "errors.payment_not_allowed", fallback: "Payment not allowed")
     /// Permissions Not Granted
     public static let permissionsNotGranted = Localized.tr("Localizable", "errors.permissions_not_granted", fallback: "Permissions Not Granted")
     /// %@ is required
@@ -577,6 +581,12 @@ public enum Localized {
     public static func estimatedConfirmationDescription(_ p1: Any) -> String {
       return Localized.tr("Localizable", "info.estimated_confirmation_description", String(describing: p1), fallback: "This estimate is based on the transaction fee and current %@ network activity. The actual confirmation time may change and is not guaranteed.")
     }
+    /// %@ requires identity verification to complete this payment.
+    public static func identityVerificationDescription(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "info.identity_verification_description", String(describing: p1), fallback: "%@ requires identity verification to complete this payment.")
+    }
+    /// Identity Verification
+    public static let identityVerificationTitle = Localized.tr("Localizable", "info.identity_verification_title", fallback: "Identity Verification")
     /// Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.
     public static let stakeFrozenRequiredDescription = Localized.tr("Localizable", "info.stake_frozen_required_description", fallback: "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.")
     /// Freeze TRX to Stake
@@ -1494,6 +1504,12 @@ public enum Localized {
     public static let network = Localized.tr("Localizable", "transfer.network", fallback: "Network")
     /// Network Fee
     public static let networkFee = Localized.tr("Localizable", "transfer.network_fee", fallback: "Network Fee")
+    /// Pay with
+    public static let payWith = Localized.tr("Localizable", "transfer.pay_with", fallback: "Pay with")
+    /// Payment expires in
+    public static let paymentExpiresIn = Localized.tr("Localizable", "transfer.payment_expires_in", fallback: "Payment expires in")
+    /// Payment
+    public static let paymentTitle = Localized.tr("Localizable", "transfer.payment_title", fallback: "Payment")
     /// We've left %@ in your balance to cover future network fees.
     public static func reservedFees(_ p1: Any) -> String {
       return Localized.tr("Localizable", "transfer.reserved_fees", String(describing: p1), fallback: "We've left %@ in your balance to cover future network fees.")

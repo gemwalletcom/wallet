@@ -161,6 +161,9 @@ transfer_unfreeze_title = Разморозить
 transfer_review_request = Просмотр запроса
 transfer_amount = Сумма
 transfer_amount_title = Сумма
+transfer_pay_with = Оплатить с помощью
+transfer_payment_expires_in = Платёж истекает через
+transfer_payment_title = Платёж
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = По всей видимости, интернет-со
 errors_no_internet_connection = Нет подключения к интернету
 errors_no_service_connection = Нет подключения к сервису
 errors_balances_activity_outdated = Балансы и активность могут быть устаревшими.
+errors_payment_expired = Срок платежа истёк
+errors_payment_not_allowed = Платёж не разрешён
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Финансирование годовых
 info_perpetual_funding_apr_description = Годовая ставка, по которой длинные позиции платят коротким позициям (если она отрицательная, короткие позиции платят длинным позициям). Никаких комиссий, связанных с финансированием, которое представляет собой одноранговую передачу между пользователями для подталкивания цен к спотовой цене.
 info_minimum_amount_title = Минимальная сумма
 info_minimum_amount_description = В сети %@ минимальная сумма для этой транзакции составляет %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

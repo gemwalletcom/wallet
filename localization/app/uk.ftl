@@ -161,6 +161,9 @@ transfer_unfreeze_title = Розморозити
 transfer_review_request = Переглянути запит
 transfer_amount = Сума
 transfer_amount_title = Сума
+transfer_pay_with = Оплатити за допомогою
+transfer_payment_expires_in = Платіж спливає через
+transfer_payment_title = Платіж
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Здається, підключення до Інте�
 errors_no_internet_connection = Немає підключення до інтернету
 errors_no_service_connection = Немає підключення до сервісу
 errors_balances_activity_outdated = Баланси та активність можуть бути застарілими.
+errors_payment_expired = Термін платежу минув
+errors_payment_not_allowed = Платіж не дозволено
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Фінансування річних
 info_perpetual_funding_apr_description = Річна ставка, за якою довгі позиції платять за короткі позиції (якщо від'ємна, короткі позиції платять за довгі позики). Немає жодної комісії, пов'язаної з фінансуванням, яке є одноранговою передачею між користувачами для підвищення цін до спотової ціни.
 info_minimum_amount_title = Мінімальна сума
 info_minimum_amount_description = У мережі %@ мінімальна сума для цієї транзакції становить %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

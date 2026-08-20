@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "Заморозить";
 "transfer.unfreeze.title" = "Разморозить";
 "transfer.review_request" = "Просмотр запроса";
+"transfer.pay_with" = "Оплатить с помощью";
+"transfer.payment_expires_in" = "Платёж истекает через";
+"transfer.payment_title" = "Платёж";
 "settings.terms_of_services" = "Условия предоставления услуг";
 "settings.privacy_policy" = "Политика конфиденциальности";
 "settings.title" = "Настройки";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "Нет подключения к интернету";
 "errors.no_service_connection" = "Нет подключения к сервису";
 "errors.balances_activity_outdated" = "Балансы и активность могут быть устаревшими.";
+"errors.payment_expired" = "Срок платежа истёк";
+"errors.payment_not_allowed" = "Платёж не разрешён";
 "activity.title" = "Активность";
 "activity.state.empty.title" = "Ваша активность будет отображаться здесь";
 "activity.state.empty.description" = "Совершите свою первую транзакцию";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "Годовая ставка, по которой длинные позиции платят коротким позициям (если она отрицательная, короткие позиции платят длинным позициям). Никаких комиссий, связанных с финансированием, которое представляет собой одноранговую передачу между пользователями для подталкивания цен к спотовой цене.";
 "info.minimum_amount.title" = "Минимальная сумма";
 "info.minimum_amount.description" = "В сети %@ минимальная сумма для этой транзакции составляет %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Пожалуйста, введите сумму для %@";
 "nft.properties" = "Характеристики";
 "nft.collections" = "Коллекции";

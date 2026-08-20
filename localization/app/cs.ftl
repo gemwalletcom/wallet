@@ -161,6 +161,9 @@ transfer_unfreeze_title = Uvolnit
 transfer_review_request = Žádost o kontrolu
 transfer_amount = Množství
 transfer_amount_title = Množství
+transfer_pay_with = Zaplatit pomocí
+transfer_payment_expires_in = Platba vyprší za
+transfer_payment_title = Platba
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Zdá se, že je internetové připojení offline.
 errors_no_internet_connection = Žádné připojení k internetu
 errors_no_service_connection = Žádné připojení ke službě
 errors_balances_activity_outdated = Zůstatky a aktivita mohou být zastaralé.
+errors_payment_expired = Platba vypršela
+errors_payment_not_allowed = Platba není povolena
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Financování RPSN
 info_perpetual_funding_apr_description = Anualizovaná sazba, jakou longs platí shorts (pokud jsou záporné, shorts platí longs). S financováním nejsou spojeny žádné poplatky, což je peer-to-peer převod mezi uživateli za účelem tlačení cen směrem k spotové ceně.
 info_minimum_amount_title = Minimální částka
 info_minimum_amount_description = V síti %@ je minimální částka pro tuto transakci %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

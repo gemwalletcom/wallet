@@ -161,6 +161,9 @@ transfer_unfreeze_title = 凍結解除
 transfer_review_request = レビューリクエスト
 transfer_amount = 金額
 transfer_amount_title = 金額
+transfer_pay_with = 支払い方法
+transfer_payment_expires_in = 支払い期限まで
+transfer_payment_title = 支払い
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = インターネット接続が切断されているよ�
 errors_no_internet_connection = インターネット接続がありません
 errors_no_service_connection = サービス接続がありません
 errors_balances_activity_outdated = 残高とアクティビティは最新でない場合があります。
+errors_payment_expired = 支払いの期限切れ
+errors_payment_not_allowed = 支払いは許可されていません
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = 資金調達APR
 info_perpetual_funding_apr_description = ロングがショートに支払う年率 (マイナスの場合、ショートがロングに支払う)。価格をスポット価格に近づけるためのユーザー間のピアツーピア転送である資金調達に関連する手数料はありません。
 info_minimum_amount_title = 最低金額
 info_minimum_amount_description = %@ ネットワークで、この取引の最低金額は %@ です。
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

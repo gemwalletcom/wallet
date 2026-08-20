@@ -140,6 +140,9 @@
   <string name="transfer_review_request">طلب مراجعة</string>
   <string name="transfer_amount">كمية</string>
   <string name="transfer_amount_title">كمية</string>
+  <string name="transfer_pay_with">ادفع بواسطة</string>
+  <string name="transfer_payment_expires_in">تنتهي صلاحية الدفعة خلال</string>
+  <string name="transfer_payment_title">الدفع</string>
   <string name="settings_terms_of_services">شروط الخدمات</string>
   <string name="settings_privacy_policy">سياسة الخصوصية</string>
   <string name="settings_title">إعدادات</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">لا يوجد اتصال بالإنترنت</string>
   <string name="errors_no_service_connection">لا يوجد اتصال بالخدمة</string>
   <string name="errors_balances_activity_outdated">قد تكون الأرصدة والنشاط غير محدثة.</string>
+  <string name="errors_payment_expired">انتهت صلاحية الدفعة</string>
+  <string name="errors_payment_not_allowed">الدفع غير مسموح به</string>
   <string name="activity_title">نشاط</string>
   <string name="activity_state_empty_title">سوف يظهر نشاطك هنا</string>
   <string name="activity_state_empty_description">قم بإجراء معاملتك الأولى</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">المعدل السنوي الذي تدفع به صفقات الشراء صفقات البيع (إذا كانت سلبية، تدفع صفقات البيع صفقات شراء). لا توجد رسوم مرتبطة بالتمويل، وهو عبارة عن تحويل من نظير إلى نظير بين المستخدمين لدفع الأسعار نحو السعر الفوري.</string>
   <string name="info_minimum_amount_title">الحد الأدنى للمبلغ</string>
   <string name="info_minimum_amount_description">على شبكة %1$s، الحد الأدنى لمبلغ هذه المعاملة هو %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">الرجاء إدخال المبلغ إلى %1$s</string>
   <string name="nft_properties">ملكيات</string>
   <string name="nft_collections">المجموعات</string>

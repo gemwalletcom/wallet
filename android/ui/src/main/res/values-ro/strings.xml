@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Cerere de revizuire</string>
   <string name="transfer_amount">Suma</string>
   <string name="transfer_amount_title">Suma</string>
+  <string name="transfer_pay_with">Plătește cu</string>
+  <string name="transfer_payment_expires_in">Plata expiră în</string>
+  <string name="transfer_payment_title">Plată</string>
   <string name="settings_terms_of_services">Termeni și condiții</string>
   <string name="settings_privacy_policy">Politica de confidențialitate</string>
   <string name="settings_title">Setări</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">Nicio conexiune la internet</string>
   <string name="errors_no_service_connection">Nicio conexiune la serviciu</string>
   <string name="errors_balances_activity_outdated">Soldurile și activitatea pot fi învechite.</string>
+  <string name="errors_payment_expired">Plată expirată</string>
+  <string name="errors_payment_not_allowed">Plată nepermisă</string>
   <string name="activity_title">Activitate</string>
   <string name="activity_state_empty_title">Activitatea ta va apărea aici</string>
   <string name="activity_state_empty_description">Efectuați prima tranzacție</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">Rata anualizată la care plățile lungi plătesc scurt-uri (dacă este negativ, scurt-urile plătesc lungi). Nu există taxe asociate cu finanțarea, care este un transfer peer-to-peer între utilizatori pentru a împinge prețurile către prețul spot.</string>
   <string name="info_minimum_amount_title">Suma minima</string>
   <string name="info_minimum_amount_description">În rețeaua %1$s, suma minimă pentru această tranzacție este %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Vă rugăm să introduceți suma până la %1$s</string>
   <string name="nft_properties">Proprietăți</string>
   <string name="nft_collections">Colecții</string>

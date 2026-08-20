@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "Zmrazit";
 "transfer.unfreeze.title" = "Uvolnit";
 "transfer.review_request" = "Žádost o kontrolu";
+"transfer.pay_with" = "Zaplatit pomocí";
+"transfer.payment_expires_in" = "Platba vyprší za";
+"transfer.payment_title" = "Platba";
 "settings.terms_of_services" = "Podmínky služeb";
 "settings.privacy_policy" = "Zásady ochrany osobních údajů";
 "settings.title" = "Nastavení";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "Žádné připojení k internetu";
 "errors.no_service_connection" = "Žádné připojení ke službě";
 "errors.balances_activity_outdated" = "Zůstatky a aktivita mohou být zastaralé.";
+"errors.payment_expired" = "Platba vypršela";
+"errors.payment_not_allowed" = "Platba není povolena";
 "activity.title" = "Aktivita";
 "activity.state.empty.title" = "Vaše aktivita se zde zobrazí";
 "activity.state.empty.description" = "Proveďte svou první transakci";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "Anualizovaná sazba, jakou longs platí shorts (pokud jsou záporné, shorts platí longs). S financováním nejsou spojeny žádné poplatky, což je peer-to-peer převod mezi uživateli za účelem tlačení cen směrem k spotové ceně.";
 "info.minimum_amount.title" = "Minimální částka";
 "info.minimum_amount.description" = "V síti %@ je minimální částka pro tuto transakci %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Zadejte částku do %@";
 "nft.properties" = "Vlastnosti";
 "nft.collections" = "Sbírky";

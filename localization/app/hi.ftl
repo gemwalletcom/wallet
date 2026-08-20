@@ -161,6 +161,9 @@ transfer_unfreeze_title = अनफ़्रीज़
 transfer_review_request = समीक्षा अनुरोध
 transfer_amount = रकम
 transfer_amount_title = रकम
+transfer_pay_with = इससे भुगतान करें
+transfer_payment_expires_in = भुगतान समाप्त होने में
+transfer_payment_title = भुगतान
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = इंटरनेट कनेक्शन ऑफ़�
 errors_no_internet_connection = इंटरनेट कनेक्शन नहीं है
 errors_no_service_connection = सेवा कनेक्शन नहीं है
 errors_balances_activity_outdated = बैलेंस और गतिविधि पुरानी हो सकती है।
+errors_payment_expired = भुगतान समाप्त
+errors_payment_not_allowed = भुगतान की अनुमति नहीं है
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = फंडिंग एपीआर
 info_perpetual_funding_apr_description = वार्षिक दर जिस पर लॉन्ग शॉर्ट्स को भुगतान करते हैं (यदि नकारात्मक, शॉर्ट्स लॉन्ग्स को भुगतान करते हैं)। फंडिंग से जुड़ी कोई फीस नहीं है, जो कीमतों को स्पॉट कीमत की ओर बढ़ाने के लिए उपयोगकर्ताओं के बीच एक पीयर-टू-पीयर ट्रांसफर है।
 info_minimum_amount_title = न्यूनतम राशि
 info_minimum_amount_description = %@ नेटवर्क पर, इस लेनदेन की न्यूनतम राशि %@ है।
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

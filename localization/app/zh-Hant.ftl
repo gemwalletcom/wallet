@@ -161,6 +161,9 @@ transfer_unfreeze_title = 解凍
 transfer_review_request = 審查請求
 transfer_amount = 數量
 transfer_amount_title = 金額
+transfer_pay_with = 付款方式
+transfer_payment_expires_in = 付款將於以下時間過期
+transfer_payment_title = 付款
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = 網路連線似乎已斷開。
 errors_no_internet_connection = 無網際網路連線
 errors_no_service_connection = 無服務連線
 errors_balances_activity_outdated = 餘額和活動可能不是最新的。
+errors_payment_expired = 付款已過期
+errors_payment_not_allowed = 不允許付款
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = 資金費率年化
 info_perpetual_funding_apr_description = 多頭支付空頭的年化利率（如果為負，則空頭支付多頭）。融資不收取任何費用，融資是用戶之間的點對點轉賬，旨在將價格推向現貨價格。
 info_minimum_amount_title = 最低金額
 info_minimum_amount_description = 在 %@ 網路上，此交易的最低金額為 %@。
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Yêu cầu xem xét</string>
   <string name="transfer_amount">Số lượng</string>
   <string name="transfer_amount_title">Số lượng</string>
+  <string name="transfer_pay_with">Thanh toán bằng</string>
+  <string name="transfer_payment_expires_in">Thanh toán hết hạn sau</string>
+  <string name="transfer_payment_title">Thanh toán</string>
   <string name="settings_terms_of_services">Điều khoản dịch vụ</string>
   <string name="settings_privacy_policy">Chính sách bảo mật</string>
   <string name="settings_title">Cài đặt</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">Không có kết nối internet</string>
   <string name="errors_no_service_connection">Không có kết nối dịch vụ</string>
   <string name="errors_balances_activity_outdated">Số dư và hoạt động có thể chưa được cập nhật.</string>
+  <string name="errors_payment_expired">Thanh toán đã hết hạn</string>
+  <string name="errors_payment_not_allowed">Thanh toán không được phép</string>
   <string name="activity_title">Hoạt động</string>
   <string name="activity_state_empty_title">Hoạt động của bạn sẽ xuất hiện ở đây</string>
   <string name="activity_state_empty_description">Thực hiện giao dịch đầu tiên của bạn</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">Tỷ lệ hàng năm mà người mua trả tiền cho người bán (nếu âm, người bán trả tiền cho người mua). Không có phí liên quan đến tài trợ, đó là chuyển khoản ngang hàng giữa những người dùng để đẩy giá về giá giao ngay.</string>
   <string name="info_minimum_amount_title">Số tiền tối thiểu</string>
   <string name="info_minimum_amount_description">Trên mạng %1$s, số tiền tối thiểu cho giao dịch này là %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Vui lòng nhập số tiền tới %1$s</string>
   <string name="nft_properties">Của cải</string>
   <string name="nft_collections">Bộ sưu tập</string>

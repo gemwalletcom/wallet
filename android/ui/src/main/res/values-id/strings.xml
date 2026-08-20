@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Tinjau Permintaan</string>
   <string name="transfer_amount">Jumlah</string>
   <string name="transfer_amount_title">Jumlah</string>
+  <string name="transfer_pay_with">Bayar dengan</string>
+  <string name="transfer_payment_expires_in">Pembayaran kedaluwarsa dalam</string>
+  <string name="transfer_payment_title">Pembayaran</string>
   <string name="settings_terms_of_services">Syarat dan Ketentuan</string>
   <string name="settings_privacy_policy">Kebijakan Privasi</string>
   <string name="settings_title">Pengaturan</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">Tidak ada koneksi internet</string>
   <string name="errors_no_service_connection">Tidak ada koneksi layanan</string>
   <string name="errors_balances_activity_outdated">Saldo dan aktivitas mungkin tidak terbaru.</string>
+  <string name="errors_payment_expired">Pembayaran kedaluwarsa</string>
+  <string name="errors_payment_not_allowed">Pembayaran tidak diizinkan</string>
   <string name="activity_title">Aktivitas</string>
   <string name="activity_state_empty_title">Aktivitas Anda akan muncul di sini</string>
   <string name="activity_state_empty_description">Lakukan transaksi pertama Anda</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">Tingkat tahunan di mana posisi long membayar posisi short (jika negatif, posisi short membayar posisi long). Tidak ada biaya yang terkait dengan pendanaan, yang merupakan transfer peer-to-peer antar pengguna untuk mendorong harga menuju harga spot.</string>
   <string name="info_minimum_amount_title">Jumlah Minimum</string>
   <string name="info_minimum_amount_description">Di jaringan %1$s, jumlah minimum untuk transaksi ini adalah %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Silakan masukkan jumlah ke %1$s</string>
   <string name="nft_properties">Properti</string>
   <string name="nft_collections">Koleksi</string>

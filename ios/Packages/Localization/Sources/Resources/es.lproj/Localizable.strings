@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "Congelar";
 "transfer.unfreeze.title" = "Descongelar";
 "transfer.review_request" = "Revisar solicitud";
+"transfer.pay_with" = "Pagar con";
+"transfer.payment_expires_in" = "El pago caduca en";
+"transfer.payment_title" = "Pago";
 "settings.terms_of_services" = "Términos de servicios";
 "settings.privacy_policy" = "Política de privacidad";
 "settings.title" = "Ajustes";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "Sin conexión a internet";
 "errors.no_service_connection" = "Sin conexión al servicio";
 "errors.balances_activity_outdated" = "Los saldos y la actividad pueden estar desactualizados.";
+"errors.payment_expired" = "Pago caducado";
+"errors.payment_not_allowed" = "Pago no permitido";
 "activity.title" = "Actividad";
 "activity.state.empty.title" = "Tu actividad aparecerá aquí";
 "activity.state.empty.description" = "Realiza tu primera transacción";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "La tasa anualizada a la que los largos pagan a los cortos (si es negativa, los cortos pagan a los largos). No hay tarifas asociadas con la financiación, que es una transferencia de igual a igual entre usuarios para impulsar los precios hacia el precio al contado.";
 "info.minimum_amount.title" = "Cantidad Mínima";
 "info.minimum_amount.description" = "En la red %@, el importe mínimo para esta transacción es %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Por favor ingrese la cantidad a %@";
 "nft.properties" = "Propiedades";
 "nft.collections" = "Colecciones";

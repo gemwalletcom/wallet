@@ -161,6 +161,9 @@ transfer_unfreeze_title = یخ‌زدایی
 transfer_review_request = درخواست بررسی
 transfer_amount = مبلغ
 transfer_amount_title = مبلغ
+transfer_pay_with = پرداخت با
+transfer_payment_expires_in = انقضای پرداخت تا
+transfer_payment_title = پرداخت
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = به نظر می‌رسد اتصال اینترنت آ�
 errors_no_internet_connection = اتصال اینترنت برقرار نیست
 errors_no_service_connection = اتصال سرویس برقرار نیست
 errors_balances_activity_outdated = موجودی‌ها و فعالیت ممکن است به‌روز نباشند.
+errors_payment_expired = پرداخت منقضی شد
+errors_payment_not_allowed = پرداخت مجاز نیست
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = نرخ سالانه تأمین مالی (APR)
 info_perpetual_funding_apr_description = نرخ سالانه ای که در آن لانگ ها به شورت پرداخت می کنند (اگر منفی باشد، شورت ها به لانگ پرداخت می کنند). هیچ کارمزدی در ارتباط با تامین مالی وجود ندارد، که انتقالی همتا به همتا بین کاربران است تا قیمت ها را به سمت قیمت لحظه ای سوق دهد.
 info_minimum_amount_title = حداقل مقدار
 info_minimum_amount_description = در شبکه %@، حداقل مبلغ برای این تراکنش %@ است.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

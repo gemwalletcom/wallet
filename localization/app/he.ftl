@@ -161,6 +161,9 @@ transfer_unfreeze_title = לְהַפְשִׁיר
 transfer_review_request = סקור בקשה
 transfer_amount = כמות
 transfer_amount_title = כמות
+transfer_pay_with = שלם באמצעות
+transfer_payment_expires_in = התשלום יפוג בעוד
+transfer_payment_title = תשלום
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = נראה שחיבור האינטרנט אינו מקו�
 errors_no_internet_connection = אין חיבור לאינטרנט
 errors_no_service_connection = אין חיבור לשירות
 errors_balances_activity_outdated = היתרות והפעילות עשויות להיות לא מעודכנות.
+errors_payment_expired = התשלום פג תוקף
+errors_payment_not_allowed = התשלום אינו מורשה
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = APR מימון
 info_perpetual_funding_apr_description = השיעור השנתי שבו לונג משלם שורט (אם שלילי, שורט משלם לונג). אין עמלות הקשורות למימון, שהוא העברה עמית לעמית בין משתמשים כדי לדחוף את המחירים לכיוון מחיר הספוט.
 info_minimum_amount_title = כמות מינימלית
 info_minimum_amount_description = ברשת %@, הסכום המינימלי לעסקה זו הוא %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

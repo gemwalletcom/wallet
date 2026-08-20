@@ -161,6 +161,9 @@ transfer_unfreeze_title = I-unfreeze
 transfer_review_request = Suriin ang Kahilingan
 transfer_amount = Halaga
 transfer_amount_title = Halaga
+transfer_pay_with = Bayaran gamit ang
+transfer_payment_expires_in = Mag-e-expire ang bayad sa
+transfer_payment_title = Bayad
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Mukhang offline ang koneksyon sa internet.
 errors_no_internet_connection = Walang koneksyon sa internet
 errors_no_service_connection = Walang koneksyon sa serbisyo
 errors_balances_activity_outdated = Maaaring luma na ang mga balanse at aktibidad.
+errors_payment_expired = Nag-expire ang bayad
+errors_payment_not_allowed = Hindi pinapayagan ang bayad
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Pagpopondo sa APR
 info_perpetual_funding_apr_description = Ang taunang rate kung saan nagbabayad ang longs ng shorts (kung negatibo, ang shorts ay nagbabayad ng longs). Walang mga bayarin na nauugnay sa pagpopondo, na isang peer-to-peer na paglipat sa pagitan ng mga user upang itulak ang mga presyo patungo sa presyo ng lugar.
 info_minimum_amount_title = Pinakamababang Halaga
 info_minimum_amount_description = Sa %@ network, ang minimum na halaga para sa transaksyong ito ay %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

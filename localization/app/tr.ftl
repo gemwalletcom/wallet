@@ -161,6 +161,9 @@ transfer_unfreeze_title = Çöz
 transfer_review_request = İnceleme Talebi
 transfer_amount = Miktar
 transfer_amount_title = Miktar
+transfer_pay_with = Şununla öde
+transfer_payment_expires_in = Ödemenin süresi doluyor
+transfer_payment_title = Ödeme
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = İnternet bağlantısı kesilmiş gibi görünüyor.
 errors_no_internet_connection = İnternet bağlantısı yok
 errors_no_service_connection = Servis bağlantısı yok
 errors_balances_activity_outdated = Bakiyeler ve etkinlik güncel olmayabilir.
+errors_payment_expired = Ödeme süresi doldu
+errors_payment_not_allowed = Ödemeye izin verilmiyor
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Finansman APR'si
 info_perpetual_funding_apr_description = Uzun pozisyonların kısa pozisyon ödediği yıllık oran (negatifse kısa pozisyonların uzun pozisyon ödediği). Fiyatları spot fiyata doğru itmek için kullanıcılar arasında eşler arası transfer olan finansmanla ilgili herhangi bir ücret yoktur.
 info_minimum_amount_title = Asgari Tutar
 info_minimum_amount_description = %@ ağında, bu işlem için minimum tutar %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

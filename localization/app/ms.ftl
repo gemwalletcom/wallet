@@ -161,6 +161,9 @@ transfer_unfreeze_title = Nyahbekukan
 transfer_review_request = Semak Permintaan
 transfer_amount = Jumlah
 transfer_amount_title = Jumlah
+transfer_pay_with = Bayar dengan
+transfer_payment_expires_in = Pembayaran tamat tempoh dalam
+transfer_payment_title = Pembayaran
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Sambungan Internet nampaknya di luar talian.
 errors_no_internet_connection = Tiada sambungan internet
 errors_no_service_connection = Tiada sambungan perkhidmatan
 errors_balances_activity_outdated = Baki dan aktiviti mungkin tidak terkini.
+errors_payment_expired = Pembayaran tamat tempoh
+errors_payment_not_allowed = Pembayaran tidak dibenarkan
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Pembiayaan APR
 info_perpetual_funding_apr_description = Kadar tahunan di mana long membayar short (jika negatif, short membayar long). Tiada yuran yang berkaitan dengan pembiayaan, yang merupakan pemindahan rakan ke rakan antara pengguna untuk menolak harga ke arah harga spot.
 info_minimum_amount_title = Jumlah Minimum
 info_minimum_amount_description = Pada rangkaian %@, jumlah minimum untuk transaksi ini ialah %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

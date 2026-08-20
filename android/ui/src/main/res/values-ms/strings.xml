@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Semak Permintaan</string>
   <string name="transfer_amount">Jumlah</string>
   <string name="transfer_amount_title">Jumlah</string>
+  <string name="transfer_pay_with">Bayar dengan</string>
+  <string name="transfer_payment_expires_in">Pembayaran tamat tempoh dalam</string>
+  <string name="transfer_payment_title">Pembayaran</string>
   <string name="settings_terms_of_services">Syarat Perkhidmatan</string>
   <string name="settings_privacy_policy">Dasar Privasi</string>
   <string name="settings_title">Tetapan</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">Tiada sambungan internet</string>
   <string name="errors_no_service_connection">Tiada sambungan perkhidmatan</string>
   <string name="errors_balances_activity_outdated">Baki dan aktiviti mungkin tidak terkini.</string>
+  <string name="errors_payment_expired">Pembayaran tamat tempoh</string>
+  <string name="errors_payment_not_allowed">Pembayaran tidak dibenarkan</string>
   <string name="activity_title">Aktiviti</string>
   <string name="activity_state_empty_title">Aktiviti anda akan dipaparkan di sini</string>
   <string name="activity_state_empty_description">Buat transaksi pertama anda</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">Kadar tahunan di mana long membayar short (jika negatif, short membayar long). Tiada yuran yang berkaitan dengan pembiayaan, yang merupakan pemindahan rakan ke rakan antara pengguna untuk menolak harga ke arah harga spot.</string>
   <string name="info_minimum_amount_title">Jumlah Minimum</string>
   <string name="info_minimum_amount_description">Pada rangkaian %1$s, jumlah minimum untuk transaksi ini ialah %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Sila masukkan amaun kepada %1$s</string>
   <string name="nft_properties">Hartanah</string>
   <string name="nft_collections">Koleksi</string>

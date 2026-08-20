@@ -161,6 +161,9 @@ transfer_unfreeze_title = 녹이다
 transfer_review_request = 검토 요청
 transfer_amount = 금액
 transfer_amount_title = 금액
+transfer_pay_with = 결제 수단
+transfer_payment_expires_in = 결제 만료까지
+transfer_payment_title = 결제
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = 인터넷 연결이 끊긴 것 같습니다.
 errors_no_internet_connection = 인터넷 연결 없음
 errors_no_service_connection = 서비스 연결 없음
 errors_balances_activity_outdated = 잔액 및 활동이 최신이 아닐 수 있습니다.
+errors_payment_expired = 결제 만료됨
+errors_payment_not_allowed = 결제가 허용되지 않음
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = 펀딩 APR
 info_perpetual_funding_apr_description = 매수자가 매도자에게 지급하는 연간 비율입니다(음수인 경우 매도자가 매수자에게 지급). 가격을 현물 가격으로 끌어올리기 위해 사용자 간에 P2P(Peer-to-Peer) 전송을 수행하는 자금 조달과 관련된 수수료는 없습니다.
 info_minimum_amount_title = 최소 금액
 info_minimum_amount_description = %@ 네트워크에서 이 거래의 최소 금액은 %@입니다.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

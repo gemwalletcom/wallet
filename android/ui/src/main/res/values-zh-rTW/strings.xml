@@ -140,6 +140,9 @@
   <string name="transfer_review_request">審查請求</string>
   <string name="transfer_amount">數量</string>
   <string name="transfer_amount_title">金額</string>
+  <string name="transfer_pay_with">付款方式</string>
+  <string name="transfer_payment_expires_in">付款將於以下時間過期</string>
+  <string name="transfer_payment_title">付款</string>
   <string name="settings_terms_of_services">服務條款</string>
   <string name="settings_privacy_policy">隱私政策</string>
   <string name="settings_title">設置</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">無網際網路連線</string>
   <string name="errors_no_service_connection">無服務連線</string>
   <string name="errors_balances_activity_outdated">餘額和活動可能不是最新的。</string>
+  <string name="errors_payment_expired">付款已過期</string>
+  <string name="errors_payment_not_allowed">不允許付款</string>
   <string name="activity_title">活動</string>
   <string name="activity_state_empty_title">您的交易將顯示在此處</string>
   <string name="activity_state_empty_description">發起您的第一筆交易</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">多頭支付空頭的年化利率（如果為負，則空頭支付多頭）。融資不收取任何費用，融資是用戶之間的點對點轉賬，旨在將價格推向現貨價格。</string>
   <string name="info_minimum_amount_title">最低金額</string>
   <string name="info_minimum_amount_description">在 %1$s 網路上，此交易的最低金額為 %2$s。</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">請輸入您要%1$s的數量</string>
   <string name="nft_properties">特性</string>
   <string name="nft_collections">藏品集合</string>

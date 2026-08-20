@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "Bekukan";
 "transfer.unfreeze.title" = "Cairkan";
 "transfer.review_request" = "Tinjau Permintaan";
+"transfer.pay_with" = "Bayar dengan";
+"transfer.payment_expires_in" = "Pembayaran kedaluwarsa dalam";
+"transfer.payment_title" = "Pembayaran";
 "settings.terms_of_services" = "Syarat dan Ketentuan";
 "settings.privacy_policy" = "Kebijakan Privasi";
 "settings.title" = "Pengaturan";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "Tidak ada koneksi internet";
 "errors.no_service_connection" = "Tidak ada koneksi layanan";
 "errors.balances_activity_outdated" = "Saldo dan aktivitas mungkin tidak terbaru.";
+"errors.payment_expired" = "Pembayaran kedaluwarsa";
+"errors.payment_not_allowed" = "Pembayaran tidak diizinkan";
 "activity.title" = "Aktivitas";
 "activity.state.empty.title" = "Aktivitas Anda akan muncul di sini";
 "activity.state.empty.description" = "Lakukan transaksi pertama Anda";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "Tingkat tahunan di mana posisi long membayar posisi short (jika negatif, posisi short membayar posisi long). Tidak ada biaya yang terkait dengan pendanaan, yang merupakan transfer peer-to-peer antar pengguna untuk mendorong harga menuju harga spot.";
 "info.minimum_amount.title" = "Jumlah Minimum";
 "info.minimum_amount.description" = "Di jaringan %@, jumlah minimum untuk transaksi ini adalah %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Silakan masukkan jumlah ke %@";
 "nft.properties" = "Properti";
 "nft.collections" = "Koleksi";

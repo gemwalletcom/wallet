@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "Zamroź";
 "transfer.unfreeze.title" = "Odmroź";
 "transfer.review_request" = "Prośba o przegląd";
+"transfer.pay_with" = "Zapłać za pomocą";
+"transfer.payment_expires_in" = "Płatność wygasa za";
+"transfer.payment_title" = "Płatność";
 "settings.terms_of_services" = "Warunki świadczenia usług";
 "settings.privacy_policy" = "Polityka prywatności";
 "settings.title" = "Ustawienia";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "Brak połączenia z internetem";
 "errors.no_service_connection" = "Brak połączenia z usługą";
 "errors.balances_activity_outdated" = "Salda i aktywność mogą być nieaktualne.";
+"errors.payment_expired" = "Płatność wygasła";
+"errors.payment_not_allowed" = "Płatność niedozwolona";
 "activity.title" = "Aktywność";
 "activity.state.empty.title" = "Twoja aktywność będzie tutaj wyświetlana";
 "activity.state.empty.description" = "Dokonaj pierwszej transakcji";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "Roczna stopa procentowa, według której pozycje długie opłacają pozycje krótkie (jeśli wartość ujemna, pozycje krótkie opłacają pozycje długie). Nie ma żadnych opłat związanych z finansowaniem, które stanowi transfer typu peer-to-peer pomiędzy użytkownikami w celu podniesienia cen w kierunku ceny spot.";
 "info.minimum_amount.title" = "Minimalna kwota";
 "info.minimum_amount.description" = "W sieci %@ minimalna kwota tej transakcji to %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Proszę wpisać kwotę do %@";
 "nft.properties" = "Właściwości";
 "nft.collections" = "Kolekcje";

@@ -161,6 +161,9 @@ transfer_unfreeze_title = Giải đông
 transfer_review_request = Yêu cầu xem xét
 transfer_amount = Số lượng
 transfer_amount_title = Số lượng
+transfer_pay_with = Thanh toán bằng
+transfer_payment_expires_in = Thanh toán hết hạn sau
+transfer_payment_title = Thanh toán
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Kết nối Internet dường như đang bị ngắt.
 errors_no_internet_connection = Không có kết nối internet
 errors_no_service_connection = Không có kết nối dịch vụ
 errors_balances_activity_outdated = Số dư và hoạt động có thể chưa được cập nhật.
+errors_payment_expired = Thanh toán đã hết hạn
+errors_payment_not_allowed = Thanh toán không được phép
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = APR tài trợ
 info_perpetual_funding_apr_description = Tỷ lệ hàng năm mà người mua trả tiền cho người bán (nếu âm, người bán trả tiền cho người mua). Không có phí liên quan đến tài trợ, đó là chuyển khoản ngang hàng giữa những người dùng để đẩy giá về giá giao ngay.
 info_minimum_amount_title = Số tiền tối thiểu
 info_minimum_amount_description = Trên mạng %@, số tiền tối thiểu cho giao dịch này là %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

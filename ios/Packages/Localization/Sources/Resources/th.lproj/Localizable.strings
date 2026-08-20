@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "ฟรีซ";
 "transfer.unfreeze.title" = "ยกเลิกการฟรีซ";
 "transfer.review_request" = "คำขอตรวจสอบ";
+"transfer.pay_with" = "ชำระด้วย";
+"transfer.payment_expires_in" = "การชำระเงินหมดอายุใน";
+"transfer.payment_title" = "การชำระเงิน";
 "settings.terms_of_services" = "ข้อกำหนดในการให้บริการ";
 "settings.privacy_policy" = "นโยบายความเป็นส่วนตัว";
 "settings.title" = "การตั้งค่า";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "ไม่มีการเชื่อมต่ออินเทอร์เน็ต";
 "errors.no_service_connection" = "ไม่มีการเชื่อมต่อบริการ";
 "errors.balances_activity_outdated" = "ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน";
+"errors.payment_expired" = "การชำระเงินหมดอายุ";
+"errors.payment_not_allowed" = "ไม่อนุญาตให้ชำระเงิน";
 "activity.title" = "กิจกรรม";
 "activity.state.empty.title" = "กิจกรรมของคุณจะปรากฏที่นี่";
 "activity.state.empty.description" = "ทำธุรกรรมครั้งแรกของคุณ";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "อัตรารายปีที่สัญญา Long จ่าย Short (หากติดลบ Short จะจ่าย Long) ไม่มีค่าธรรมเนียมที่เกี่ยวข้องกับการระดมทุน ซึ่งเป็นการโอนแบบเพียร์ทูเพียร์ระหว่างผู้ใช้เพื่อดันราคาไปสู่ราคาสปอต";
 "info.minimum_amount.title" = "จำนวนเงินขั้นต่ำ";
 "info.minimum_amount.description" = "บนเครือข่าย %@ จำนวนขั้นต่ำสำหรับธุรกรรมนี้คือ %@";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "กรุณากรอกจำนวนเงินเป็น %@";
 "nft.properties" = "คุณสมบัติ";
 "nft.collections" = "คอลเลคชั่น";

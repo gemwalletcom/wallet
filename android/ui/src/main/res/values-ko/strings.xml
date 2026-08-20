@@ -140,6 +140,9 @@
   <string name="transfer_review_request">검토 요청</string>
   <string name="transfer_amount">금액</string>
   <string name="transfer_amount_title">금액</string>
+  <string name="transfer_pay_with">결제 수단</string>
+  <string name="transfer_payment_expires_in">결제 만료까지</string>
+  <string name="transfer_payment_title">결제</string>
   <string name="settings_terms_of_services">서비스 약관</string>
   <string name="settings_privacy_policy">개인 정보 보호 정책</string>
   <string name="settings_title">설정</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">인터넷 연결 없음</string>
   <string name="errors_no_service_connection">서비스 연결 없음</string>
   <string name="errors_balances_activity_outdated">잔액 및 활동이 최신이 아닐 수 있습니다.</string>
+  <string name="errors_payment_expired">결제 만료됨</string>
+  <string name="errors_payment_not_allowed">결제가 허용되지 않음</string>
   <string name="activity_title">활동</string>
   <string name="activity_state_empty_title">귀하의 활동이 여기에 표시됩니다</string>
   <string name="activity_state_empty_description">첫 번째 거래를 하세요</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">매수자가 매도자에게 지급하는 연간 비율입니다(음수인 경우 매도자가 매수자에게 지급). 가격을 현물 가격으로 끌어올리기 위해 사용자 간에 P2P(Peer-to-Peer) 전송을 수행하는 자금 조달과 관련된 수수료는 없습니다.</string>
   <string name="info_minimum_amount_title">최소 금액</string>
   <string name="info_minimum_amount_description">%1$s 네트워크에서 이 거래의 최소 금액은 %2$s입니다.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">%1$s까지 금액을 입력하세요.</string>
   <string name="nft_properties">속성</string>
   <string name="nft_collections">컬렉션</string>

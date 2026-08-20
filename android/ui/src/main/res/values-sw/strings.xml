@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Ombi la Uhakiki</string>
   <string name="transfer_amount">Kiasi</string>
   <string name="transfer_amount_title">Kiasi</string>
+  <string name="transfer_pay_with">Lipa kwa</string>
+  <string name="transfer_payment_expires_in">Malipo yataisha baada ya</string>
+  <string name="transfer_payment_title">Malipo</string>
   <string name="settings_terms_of_services">Masharti ya Huduma</string>
   <string name="settings_privacy_policy">Sera ya Faragha</string>
   <string name="settings_title">Mipangilio</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">Hakuna muunganisho wa intaneti</string>
   <string name="errors_no_service_connection">Hakuna muunganisho wa huduma</string>
   <string name="errors_balances_activity_outdated">Salio na shughuli huenda si za sasa.</string>
+  <string name="errors_payment_expired">Malipo yamekwisha muda</string>
+  <string name="errors_payment_not_allowed">Malipo hayaruhusiwi</string>
   <string name="activity_title">Shughuli</string>
   <string name="activity_state_empty_title">Shughuli yako itaonekana hapa</string>
   <string name="activity_state_empty_description">Fanya muamala wako wa kwanza</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">Kiwango cha kila mwaka ambacho nafasi ndefu hulipa nafasi fupi (ikiwa hasi, nafasi fupi hulipa nafasi ndefu). Hakuna ada zinazohusishwa na ufadhili, ambao ni uhamishaji kati ya watumiaji ili kusukuma bei kuelekea bei inayotarajiwa.</string>
   <string name="info_minimum_amount_title">Kiasi cha Chini</string>
   <string name="info_minimum_amount_description">Kwenye mtandao wa %1$s, kiasi cha chini kwa muamala huu ni %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Tafadhali weka kiasi hadi %1$s</string>
   <string name="nft_properties">Mali</string>
   <string name="nft_collections">Mikusanyiko</string>

@@ -140,6 +140,9 @@
   <string name="transfer_review_request">İnceleme Talebi</string>
   <string name="transfer_amount">Miktar</string>
   <string name="transfer_amount_title">Miktar</string>
+  <string name="transfer_pay_with">Şununla öde</string>
+  <string name="transfer_payment_expires_in">Ödemenin süresi doluyor</string>
+  <string name="transfer_payment_title">Ödeme</string>
   <string name="settings_terms_of_services">Hizmet Şartları</string>
   <string name="settings_privacy_policy">Gizlilik Politikası</string>
   <string name="settings_title">Ayarlar</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">İnternet bağlantısı yok</string>
   <string name="errors_no_service_connection">Servis bağlantısı yok</string>
   <string name="errors_balances_activity_outdated">Bakiyeler ve etkinlik güncel olmayabilir.</string>
+  <string name="errors_payment_expired">Ödeme süresi doldu</string>
+  <string name="errors_payment_not_allowed">Ödemeye izin verilmiyor</string>
   <string name="activity_title">Aktivite</string>
   <string name="activity_state_empty_title">Etkinliğiniz burada görünecek</string>
   <string name="activity_state_empty_description">İlk işleminizi yapın</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">Uzun pozisyonların kısa pozisyon ödediği yıllık oran (negatifse kısa pozisyonların uzun pozisyon ödediği). Fiyatları spot fiyata doğru itmek için kullanıcılar arasında eşler arası transfer olan finansmanla ilgili herhangi bir ücret yoktur.</string>
   <string name="info_minimum_amount_title">Asgari Tutar</string>
   <string name="info_minimum_amount_description">%1$s ağında, bu işlem için minimum tutar %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Lütfen tutarı %1$s olarak girin</string>
   <string name="nft_properties">Özellikler</string>
   <string name="nft_collections">Koleksiyonlar</string>

@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "Fryse";
 "transfer.unfreeze.title" = "Optø";
 "transfer.review_request" = "Anmodning om gennemgang";
+"transfer.pay_with" = "Betal med";
+"transfer.payment_expires_in" = "Betaling udløber om";
+"transfer.payment_title" = "Betaling";
 "settings.terms_of_services" = "Servicevilkår";
 "settings.privacy_policy" = "Privatlivspolitik";
 "settings.title" = "Indstillinger";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "Ingen internetforbindelse";
 "errors.no_service_connection" = "Ingen serviceforbindelse";
 "errors.balances_activity_outdated" = "Saldi og aktivitet kan være forældede.";
+"errors.payment_expired" = "Betaling udløbet";
+"errors.payment_not_allowed" = "Betaling ikke tilladt";
 "activity.title" = "Aktivitet";
 "activity.state.empty.title" = "Din aktivitet vil blive vist her";
 "activity.state.empty.description" = "Foretag din første transaktion";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "Den årlige sats, hvormed longs betaler shorts (hvis negative, shorts pay longs). Der er ingen gebyrer forbundet med finansiering, som er en peer-to-peer-overførsel mellem brugere for at presse priserne mod spotprisen.";
 "info.minimum_amount.title" = "Minimumsbeløb";
 "info.minimum_amount.description" = "På %@-netværket er minimumsbeløbet for denne transaktion %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Indtast venligst beløb til %@";
 "nft.properties" = "Egenskaber";
 "nft.collections" = "Samlinger";

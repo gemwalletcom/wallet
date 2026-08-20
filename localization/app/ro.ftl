@@ -161,6 +161,9 @@ transfer_unfreeze_title = Dezghețare
 transfer_review_request = Cerere de revizuire
 transfer_amount = Suma
 transfer_amount_title = Suma
+transfer_pay_with = Plătește cu
+transfer_payment_expires_in = Plata expiră în
+transfer_payment_title = Plată
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Conexiunea la internet pare să fie offline.
 errors_no_internet_connection = Nicio conexiune la internet
 errors_no_service_connection = Nicio conexiune la serviciu
 errors_balances_activity_outdated = Soldurile și activitatea pot fi învechite.
+errors_payment_expired = Plată expirată
+errors_payment_not_allowed = Plată nepermisă
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = APR finanțare
 info_perpetual_funding_apr_description = Rata anualizată la care plățile lungi plătesc scurt-uri (dacă este negativ, scurt-urile plătesc lungi). Nu există taxe asociate cu finanțarea, care este un transfer peer-to-peer între utilizatori pentru a împinge prețurile către prețul spot.
 info_minimum_amount_title = Suma minima
 info_minimum_amount_description = În rețeaua %@, suma minimă pentru această tranzacție este %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

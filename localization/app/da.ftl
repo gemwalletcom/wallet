@@ -161,6 +161,9 @@ transfer_unfreeze_title = Optø
 transfer_review_request = Anmodning om gennemgang
 transfer_amount = Beløb
 transfer_amount_title = Beløb
+transfer_pay_with = Betal med
+transfer_payment_expires_in = Betaling udløber om
+transfer_payment_title = Betaling
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Internetforbindelsen ser ud til at være offline.
 errors_no_internet_connection = Ingen internetforbindelse
 errors_no_service_connection = Ingen serviceforbindelse
 errors_balances_activity_outdated = Saldi og aktivitet kan være forældede.
+errors_payment_expired = Betaling udløbet
+errors_payment_not_allowed = Betaling ikke tilladt
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Finansiering ÅOP
 info_perpetual_funding_apr_description = Den årlige sats, hvormed longs betaler shorts (hvis negative, shorts pay longs). Der er ingen gebyrer forbundet med finansiering, som er en peer-to-peer-overførsel mellem brugere for at presse priserne mod spotprisen.
 info_minimum_amount_title = Minimumsbeløb
 info_minimum_amount_description = På %@-netværket er minimumsbeløbet for denne transaktion %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "Îngheață";
 "transfer.unfreeze.title" = "Dezghețare";
 "transfer.review_request" = "Cerere de revizuire";
+"transfer.pay_with" = "Plătește cu";
+"transfer.payment_expires_in" = "Plata expiră în";
+"transfer.payment_title" = "Plată";
 "settings.terms_of_services" = "Termeni și condiții";
 "settings.privacy_policy" = "Politica de confidențialitate";
 "settings.title" = "Setări";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "Nicio conexiune la internet";
 "errors.no_service_connection" = "Nicio conexiune la serviciu";
 "errors.balances_activity_outdated" = "Soldurile și activitatea pot fi învechite.";
+"errors.payment_expired" = "Plată expirată";
+"errors.payment_not_allowed" = "Plată nepermisă";
 "activity.title" = "Activitate";
 "activity.state.empty.title" = "Activitatea ta va apărea aici";
 "activity.state.empty.description" = "Efectuați prima tranzacție";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "Rata anualizată la care plățile lungi plătesc scurt-uri (dacă este negativ, scurt-urile plătesc lungi). Nu există taxe asociate cu finanțarea, care este un transfer peer-to-peer între utilizatori pentru a împinge prețurile către prețul spot.";
 "info.minimum_amount.title" = "Suma minima";
 "info.minimum_amount.description" = "În rețeaua %@, suma minimă pentru această tranzacție este %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Vă rugăm să introduceți suma până la %@";
 "nft.properties" = "Proprietăți";
 "nft.collections" = "Colecții";

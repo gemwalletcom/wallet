@@ -161,6 +161,9 @@ transfer_unfreeze_title = Descongelar
 transfer_review_request = Revisar solicitud
 transfer_amount = Cantidad
 transfer_amount_title = Cantidad
+transfer_pay_with = Pagar con
+transfer_payment_expires_in = El pago caduca en
+transfer_payment_title = Pago
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = La conexión a Internet parece estar fuera de línea.
 errors_no_internet_connection = Sin conexión a internet
 errors_no_service_connection = Sin conexión al servicio
 errors_balances_activity_outdated = Los saldos y la actividad pueden estar desactualizados.
+errors_payment_expired = Pago caducado
+errors_payment_not_allowed = Pago no permitido
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = TAE de financiación
 info_perpetual_funding_apr_description = La tasa anualizada a la que los largos pagan a los cortos (si es negativa, los cortos pagan a los largos). No hay tarifas asociadas con la financiación, que es una transferencia de igual a igual entre usuarios para impulsar los precios hacia el precio al contado.
 info_minimum_amount_title = Cantidad Mínima
 info_minimum_amount_description = En la red %@, el importe mínimo para esta transacción es %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "ফ্রিজ করুন";
 "transfer.unfreeze.title" = "আনফ্রিজ করুন";
 "transfer.review_request" = "পর্যালোচনার অনুরোধ";
+"transfer.pay_with" = "যা দিয়ে পরিশোধ করবেন";
+"transfer.payment_expires_in" = "পেমেন্টের মেয়াদ শেষ হবে";
+"transfer.payment_title" = "পেমেন্ট";
 "settings.terms_of_services" = "পরিষেবার শর্তাবলী";
 "settings.privacy_policy" = "গোপনীয়তা নীতি";
 "settings.title" = "সেটিংস";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "ইন্টারনেট সংযোগ নেই";
 "errors.no_service_connection" = "পরিষেবা সংযোগ নেই";
 "errors.balances_activity_outdated" = "ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।";
+"errors.payment_expired" = "পেমেন্টের মেয়াদ শেষ";
+"errors.payment_not_allowed" = "পেমেন্ট অনুমোদিত নয়";
 "activity.title" = "কার্যকলাপ";
 "activity.state.empty.title" = "আপনার কার্যকলাপ এখানে প্রদর্শিত হবে";
 "activity.state.empty.description" = "আপনার প্রথম লেনদেন করুন";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "বার্ষিক হারে লংস শর্টস প্রদান করে (যদি নেতিবাচক, শর্টস লং পে করে)। তহবিলের সাথে সম্পর্কিত কোন ফি নেই, যা স্পট প্রাইসের দিকে দাম ঠেলে দেওয়ার জন্য ব্যবহারকারীদের মধ্যে পিয়ার-টু-পিয়ার স্থানান্তর।";
 "info.minimum_amount.title" = "ন্যূনতম পরিমাণ";
 "info.minimum_amount.description" = "%@ নেটওয়ার্কে, এই লেনদেনের ন্যূনতম পরিমাণ %@।";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "অনুগ্রহ করে %@ এ পরিমাণ লিখুন";
 "nft.properties" = "বৈশিষ্ট্য";
 "nft.collections" = "সংগ্রহ";

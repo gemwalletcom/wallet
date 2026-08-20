@@ -161,6 +161,9 @@ transfer_unfreeze_title = Scongela
 transfer_review_request = Richiesta di revisione
 transfer_amount = Importo
 transfer_amount_title = Importo
+transfer_pay_with = Paga con
+transfer_payment_expires_in = Il pagamento scade tra
+transfer_payment_title = Pagamento
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = La connessione Internet risulta offline.
 errors_no_internet_connection = Nessuna connessione a internet
 errors_no_service_connection = Nessuna connessione al servizio
 errors_balances_activity_outdated = Saldi e attività potrebbero non essere aggiornati.
+errors_payment_expired = Pagamento scaduto
+errors_payment_not_allowed = Pagamento non consentito
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Finanziamento APR
 info_perpetual_funding_apr_description = Il tasso annualizzato al quale le posizioni long pagano le posizioni short (se negativo, le posizioni short pagano le posizioni long). Non sono previste commissioni associate al finanziamento, che è un trasferimento peer-to-peer tra utenti per spingere i prezzi verso il prezzo spot.
 info_minimum_amount_title = Importo minimo
 info_minimum_amount_description = Sulla rete %@, l'importo minimo per questa transazione è %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

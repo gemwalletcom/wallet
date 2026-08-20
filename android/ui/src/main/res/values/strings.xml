@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Review Request</string>
   <string name="transfer_amount">Amount</string>
   <string name="transfer_amount_title">Amount</string>
+  <string name="transfer_pay_with">Pay with</string>
+  <string name="transfer_payment_expires_in">Payment expires in</string>
+  <string name="transfer_payment_title">Payment</string>
   <string name="settings_terms_of_services">Terms of Services</string>
   <string name="settings_privacy_policy">Privacy Policy</string>
   <string name="settings_title">Settings</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">No internet connection</string>
   <string name="errors_no_service_connection">No service connection</string>
   <string name="errors_balances_activity_outdated">Balances and activity may be outdated.</string>
+  <string name="errors_payment_expired">Payment Expired</string>
+  <string name="errors_payment_not_allowed">Payment not allowed</string>
   <string name="activity_title">Activity</string>
   <string name="activity_state_empty_title">Your activity will appear here</string>
   <string name="activity_state_empty_description">Make your first transaction</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.</string>
   <string name="info_minimum_amount_title">Minimum Amount</string>
   <string name="info_minimum_amount_description">On the %1$s network, the minimum amount for this transaction is %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Please enter amount to %1$s</string>
   <string name="nft_properties">Properties</string>
   <string name="nft_collections">Collections</string>

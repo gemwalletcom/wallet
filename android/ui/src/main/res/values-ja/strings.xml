@@ -140,6 +140,9 @@
   <string name="transfer_review_request">レビューリクエスト</string>
   <string name="transfer_amount">金額</string>
   <string name="transfer_amount_title">金額</string>
+  <string name="transfer_pay_with">支払い方法</string>
+  <string name="transfer_payment_expires_in">支払い期限まで</string>
+  <string name="transfer_payment_title">支払い</string>
   <string name="settings_terms_of_services">利用規約</string>
   <string name="settings_privacy_policy">プライバシーポリシー</string>
   <string name="settings_title">設定</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">インターネット接続がありません</string>
   <string name="errors_no_service_connection">サービス接続がありません</string>
   <string name="errors_balances_activity_outdated">残高とアクティビティは最新でない場合があります。</string>
+  <string name="errors_payment_expired">支払いの期限切れ</string>
+  <string name="errors_payment_not_allowed">支払いは許可されていません</string>
   <string name="activity_title">アクティビティ</string>
   <string name="activity_state_empty_title">アクティビティはここに表示されます</string>
   <string name="activity_state_empty_description">最初の取引を行う</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">ロングがショートに支払う年率 (マイナスの場合、ショートがロングに支払う)。価格をスポット価格に近づけるためのユーザー間のピアツーピア転送である資金調達に関連する手数料はありません。</string>
   <string name="info_minimum_amount_title">最低金額</string>
   <string name="info_minimum_amount_description">%1$s ネットワークで、この取引の最低金額は %2$s です。</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">%1$sの金額を入力してください</string>
   <string name="nft_properties">プロパティ</string>
   <string name="nft_collections">コレクション</string>

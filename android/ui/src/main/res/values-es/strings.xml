@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Revisar solicitud</string>
   <string name="transfer_amount">Cantidad</string>
   <string name="transfer_amount_title">Cantidad</string>
+  <string name="transfer_pay_with">Pagar con</string>
+  <string name="transfer_payment_expires_in">El pago caduca en</string>
+  <string name="transfer_payment_title">Pago</string>
   <string name="settings_terms_of_services">Términos de servicios</string>
   <string name="settings_privacy_policy">Política de privacidad</string>
   <string name="settings_title">Ajustes</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">Sin conexión a internet</string>
   <string name="errors_no_service_connection">Sin conexión al servicio</string>
   <string name="errors_balances_activity_outdated">Los saldos y la actividad pueden estar desactualizados.</string>
+  <string name="errors_payment_expired">Pago caducado</string>
+  <string name="errors_payment_not_allowed">Pago no permitido</string>
   <string name="activity_title">Actividad</string>
   <string name="activity_state_empty_title">Tu actividad aparecerá aquí</string>
   <string name="activity_state_empty_description">Realiza tu primera transacción</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">La tasa anualizada a la que los largos pagan a los cortos (si es negativa, los cortos pagan a los largos). No hay tarifas asociadas con la financiación, que es una transferencia de igual a igual entre usuarios para impulsar los precios hacia el precio al contado.</string>
   <string name="info_minimum_amount_title">Cantidad Mínima</string>
   <string name="info_minimum_amount_description">En la red %1$s, el importe mínimo para esta transacción es %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Por favor ingrese la cantidad a %1$s</string>
   <string name="nft_properties">Propiedades</string>
   <string name="nft_collections">Colecciones</string>

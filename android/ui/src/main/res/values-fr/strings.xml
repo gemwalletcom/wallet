@@ -140,6 +140,9 @@
   <string name="transfer_review_request">Examiner la demande</string>
   <string name="transfer_amount">Montant</string>
   <string name="transfer_amount_title">Montant</string>
+  <string name="transfer_pay_with">Payer avec</string>
+  <string name="transfer_payment_expires_in">Le paiement expire dans</string>
+  <string name="transfer_payment_title">Paiement</string>
   <string name="settings_terms_of_services">Conditions d\'utilisation</string>
   <string name="settings_privacy_policy">Politique de confidentialité</string>
   <string name="settings_title">Paramètres</string>
@@ -221,6 +224,8 @@
   <string name="errors_no_internet_connection">Pas de connexion Internet</string>
   <string name="errors_no_service_connection">Pas de connexion au service</string>
   <string name="errors_balances_activity_outdated">Les soldes et l\'activité peuvent être obsolètes.</string>
+  <string name="errors_payment_expired">Paiement expiré</string>
+  <string name="errors_payment_not_allowed">Paiement non autorisé</string>
   <string name="activity_title">Activité</string>
   <string name="activity_state_empty_title">Votre activité apparaîtra ici</string>
   <string name="activity_state_empty_description">Effectuez votre première transaction</string>
@@ -476,6 +481,8 @@
   <string name="info_perpetual_funding_apr_description">Le taux annualisé auquel les positions longues paient les positions courtes (si négatif, les positions courtes paient les positions longues). Il n\'y a aucun frais associé au financement, qui est un transfert peer-to-peer entre utilisateurs pour pousser les prix vers le prix spot.</string>
   <string name="info_minimum_amount_title">Montant minimum</string>
   <string name="info_minimum_amount_description">Sur le réseau %1$s, le montant minimum pour cette transaction est %2$s.</string>
+  <string name="info_identity_verification_title">Identity Verification</string>
+  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Veuillez saisir le montant de %1$s</string>
   <string name="nft_properties">Propriétés</string>
   <string name="nft_collections">Collections</string>

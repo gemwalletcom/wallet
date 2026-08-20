@@ -161,6 +161,9 @@ transfer_unfreeze_title = ยกเลิกการฟรีซ
 transfer_review_request = คำขอตรวจสอบ
 transfer_amount = จำนวน
 transfer_amount_title = จำนวน
+transfer_pay_with = ชำระด้วย
+transfer_payment_expires_in = การชำระเงินหมดอายุใน
+transfer_payment_title = การชำระเงิน
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = ดูเหมือนว่าการเชื่�
 errors_no_internet_connection = ไม่มีการเชื่อมต่ออินเทอร์เน็ต
 errors_no_service_connection = ไม่มีการเชื่อมต่อบริการ
 errors_balances_activity_outdated = ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน
+errors_payment_expired = การชำระเงินหมดอายุ
+errors_payment_not_allowed = ไม่อนุญาตให้ชำระเงิน
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Funding APR
 info_perpetual_funding_apr_description = อัตรารายปีที่สัญญา Long จ่าย Short (หากติดลบ Short จะจ่าย Long) ไม่มีค่าธรรมเนียมที่เกี่ยวข้องกับการระดมทุน ซึ่งเป็นการโอนแบบเพียร์ทูเพียร์ระหว่างผู้ใช้เพื่อดันราคาไปสู่ราคาสปอต
 info_minimum_amount_title = จำนวนเงินขั้นต่ำ
 info_minimum_amount_description = บนเครือข่าย %@ จำนวนขั้นต่ำสำหรับธุรกรรมนี้คือ %@
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

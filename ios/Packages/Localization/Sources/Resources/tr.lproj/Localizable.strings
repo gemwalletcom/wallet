@@ -133,6 +133,9 @@
 "transfer.freeze.title" = "Dondur";
 "transfer.unfreeze.title" = "Çöz";
 "transfer.review_request" = "İnceleme Talebi";
+"transfer.pay_with" = "Şununla öde";
+"transfer.payment_expires_in" = "Ödemenin süresi doluyor";
+"transfer.payment_title" = "Ödeme";
 "settings.terms_of_services" = "Hizmet Şartları";
 "settings.privacy_policy" = "Gizlilik Politikası";
 "settings.title" = "Ayarlar";
@@ -210,6 +213,8 @@
 "errors.no_internet_connection" = "İnternet bağlantısı yok";
 "errors.no_service_connection" = "Servis bağlantısı yok";
 "errors.balances_activity_outdated" = "Bakiyeler ve etkinlik güncel olmayabilir.";
+"errors.payment_expired" = "Ödeme süresi doldu";
+"errors.payment_not_allowed" = "Ödemeye izin verilmiyor";
 "activity.title" = "Aktivite";
 "activity.state.empty.title" = "Etkinliğiniz burada görünecek";
 "activity.state.empty.description" = "İlk işleminizi yapın";
@@ -461,6 +466,8 @@
 "info.perpetual.funding_apr.description" = "Uzun pozisyonların kısa pozisyon ödediği yıllık oran (negatifse kısa pozisyonların uzun pozisyon ödediği). Fiyatları spot fiyata doğru itmek için kullanıcılar arasında eşler arası transfer olan finansmanla ilgili herhangi bir ücret yoktur.";
 "info.minimum_amount.title" = "Asgari Tutar";
 "info.minimum_amount.description" = "%@ ağında, bu işlem için minimum tutar %@.";
+"info.identity_verification_title" = "Identity Verification";
+"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Lütfen tutarı %@ olarak girin";
 "nft.properties" = "Özellikler";
 "nft.collections" = "Koleksiyonlar";

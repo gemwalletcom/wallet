@@ -161,6 +161,9 @@ transfer_unfreeze_title = Cire daskarewa
 transfer_review_request = Buƙatar Bita
 transfer_amount = Adadin
 transfer_amount_title = Adadin
+transfer_pay_with = Biya da
+transfer_payment_expires_in = Biyan zai ƙare cikin
+transfer_payment_title = Biya
 
 # Settings
 
@@ -251,6 +254,8 @@ errors_network_offline = Da alama haɗin intanet ɗin ya katse.
 errors_no_internet_connection = Babu haɗin intanet
 errors_no_service_connection = Babu haɗin sabis
 errors_balances_activity_outdated = Ma'aunai da ayyuka na iya zama tsofaffi.
+errors_payment_expired = Biyan ya ƙare
+errors_payment_not_allowed = Ba a yarda da biyan ba
 
 # Activity
 
@@ -581,6 +586,8 @@ info_perpetual_funding_apr_title = Tallafin APR
 info_perpetual_funding_apr_description = Matsakaicin adadin shekara-shekara wanda masu doguwa ke biyan masu gajere (idan mara kyau, masu gajere suna biyan masu doguwa). Babu wasu kudade da ke da alaƙa da kudade, wanda shine canja wuri tsakanin-tsara tsakanin masu amfani don tura farashin zuwa farashin tabo.
 info_minimum_amount_title = Mafi ƙarancin kuɗi
 info_minimum_amount_description = A kan hanyar sadarwar %@, mafi ƙarancin adadin wannan ma'amala shi ne %@.
+info_identity_verification_title = Identity Verification
+info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 
