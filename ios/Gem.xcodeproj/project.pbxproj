@@ -70,6 +70,8 @@
 		B69C52F32DE72B1000BBD95D /* ManageWallets in Frameworks */ = {isa = PBXBuildFile; productRef = B69C52F22DE72B1000BBD95D /* ManageWallets */; };
 		B69D9C872ED85EA000A04F7F /* ImportWalletReceiveBitcoinUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B69D9C852ED85EA000A04F7F /* ImportWalletReceiveBitcoinUITests.swift */; };
 		B6B86A102D702E7C00D31D65 /* SwapNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B86A0F2D702E7C00D31D65 /* SwapNavigationView.swift */; };
+		8FCACD7E5A887621B9AE482E /* PaymentNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCBE9C2BD13CF627BFE1500C /* PaymentNavigationStack.swift */; };
+		2146DA93D7416FFB1AEB3148 /* PaymentNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B537C8E5081F5DC4B8395F /* PaymentNavigationView.swift */; };
 		B6C8F2AF2EDE2691005915E4 /* UITestKitConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C8F2AD2EDE2691005915E4 /* UITestKitConstants.swift */; };
 		B6CBBC552ED9A80B0043443B /* CreateWalletUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CBBC542ED9A80B0043443B /* CreateWalletUITests.swift */; };
 		B6D1A0012EE3000000UPGRADE /* UpgradeVerificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D1A0002EE3000000UPGRADE /* UpgradeVerificationTests.swift */; };
@@ -96,6 +98,7 @@
 		D829BF2D2CBDBC5300DEB2E8 /* Localization in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF2C2CBDBC5300DEB2E8 /* Localization */; };
 		D829BF422CBDD65A00DEB2E8 /* MarketInsight in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF412CBDD65A00DEB2E8 /* MarketInsight */; };
 		D829BF452CBDD9F700DEB2E8 /* FiatConnect in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF442CBDD9F700DEB2E8 /* FiatConnect */; };
+		81619D35137432E4AE89B10B /* Payments in Frameworks */ = {isa = PBXBuildFile; productRef = CDCF24BC4563E48E7227188B /* Payments */; };
 		D829BF4E2CBF02BA00DEB2E8 /* BannerService in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF4D2CBF02BA00DEB2E8 /* BannerService */; };
 		D829BF512CBF2C4900DEB2E8 /* NotificationService in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF502CBF2C4900DEB2E8 /* NotificationService */; };
 		D829BF542CBF314100DEB2E8 /* PriceAlertService in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF532CBF314100DEB2E8 /* PriceAlertService */; };
@@ -235,6 +238,8 @@
 		B680582F2ED9C6F7001273D6 /* XCUIApplication+GemUITestsAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XCUIApplication+GemUITestsAppTests.swift"; sourceTree = "<group>"; };
 		B69D9C852ED85EA000A04F7F /* ImportWalletReceiveBitcoinUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportWalletReceiveBitcoinUITests.swift; sourceTree = "<group>"; };
 		B6B86A0F2D702E7C00D31D65 /* SwapNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwapNavigationView.swift; sourceTree = "<group>"; };
+		FCBE9C2BD13CF627BFE1500C /* PaymentNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentNavigationStack.swift; sourceTree = "<group>"; };
+		D9B537C8E5081F5DC4B8395F /* PaymentNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentNavigationView.swift; sourceTree = "<group>"; };
 		B6C8F2AD2EDE2691005915E4 /* UITestKitConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestKitConstants.swift; sourceTree = "<group>"; };
 		B6CBBC542ED9A80B0043443B /* CreateWalletUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateWalletUITests.swift; sourceTree = "<group>"; };
 		B6D1A0002EE3000000UPGRADE /* UpgradeVerificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpgradeVerificationTests.swift; sourceTree = "<group>"; };
@@ -264,6 +269,7 @@
 		D829BF2B2CBDB82600DEB2E8 /* Localization */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Localization; sourceTree = "<group>"; };
 		D829BF402CBDD64D00DEB2E8 /* MarketInsight */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = MarketInsight; sourceTree = "<group>"; };
 		D829BF432CBDD9D200DEB2E8 /* FiatConnect */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = FiatConnect; sourceTree = "<group>"; };
+		A091E187F7D262E2A97041B1 /* Payments */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Payments; sourceTree = "<group>"; };
 		D83096AC2D5D4F1E00FFEE3E /* GemUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GemUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D832C80A2E246E6700871ED9 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D832C80C2E246E6700871ED9 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -378,6 +384,7 @@
 				D8CF19E32CC747370025D6B4 /* Transfer in Frameworks */,
 				83F645062D52C31D00C18881 /* DiscoverAssetsService in Frameworks */,
 				D829BF452CBDD9F700DEB2E8 /* FiatConnect in Frameworks */,
+				81619D35137432E4AE89B10B /* Payments in Frameworks */,
 				834B381A2D1D85E2009D58D4 /* LockManager in Frameworks */,
 				B66AFC6C2DDB260A0082C026 /* AppService in Frameworks */,
 				0FF1CEBA22E20000000000C2 /* ConnectionStatusService in Frameworks */,
@@ -488,6 +495,7 @@
 				83A35C612DF2054B00360060 /* Transfer */,
 				836281B22DEF423400CA5C75 /* Assets */,
 				83ACA9792DEE01F00085B133 /* Swap */,
+				3E2E98A42A5C0B879DD1DAB9 /* Payments */,
 				D873DA4F2D7933940003F5CE /* Markets */,
 				8336E4732D5D2A63007113F9 /* Wallet */,
 				8351CD292D552875002ACCAB /* Wallets */,
@@ -544,6 +552,15 @@
 				B6B86A0F2D702E7C00D31D65 /* SwapNavigationView.swift */,
 			);
 			path = Swap;
+			sourceTree = "<group>";
+		};
+		3E2E98A42A5C0B879DD1DAB9 /* Payments */ = {
+			isa = PBXGroup;
+			children = (
+				FCBE9C2BD13CF627BFE1500C /* PaymentNavigationStack.swift */,
+				D9B537C8E5081F5DC4B8395F /* PaymentNavigationView.swift */,
+			);
+			path = Payments;
 			sourceTree = "<group>";
 		};
 		83B08BD92D0B4AB700CA1B33 /* Services */ = {
@@ -716,6 +733,7 @@
 				E1B4C7082E85B00000EARN01 /* Stake */,
 				D8CF19E12CC745ED0025D6B4 /* Transfer */,
 				D829BF432CBDD9D200DEB2E8 /* FiatConnect */,
+				A091E187F7D262E2A97041B1 /* Payments */,
 				D829BF402CBDD64D00DEB2E8 /* MarketInsight */,
 				C366791B2A1860E500F1D74D /* QRScanner */,
 				834B38182D1D858D009D58D4 /* LockManager */,
@@ -831,6 +849,7 @@
 				D829BF2C2CBDBC5300DEB2E8 /* Localization */,
 				D829BF412CBDD65A00DEB2E8 /* MarketInsight */,
 				D829BF442CBDD9F700DEB2E8 /* FiatConnect */,
+				CDCF24BC4563E48E7227188B /* Payments */,
 				D829BF4D2CBF02BA00DEB2E8 /* BannerService */,
 				D829BF502CBF2C4900DEB2E8 /* NotificationService */,
 				D829BF532CBF314100DEB2E8 /* PriceAlertService */,
@@ -1146,6 +1165,8 @@
 				0FF1CEBA22E20000000000B2 /* View+ConnectionStatusBanner.swift in Sources */,
 				830FDA482C22EEC4003DA605 /* TabItem.swift in Sources */,
 				B6B86A102D702E7C00D31D65 /* SwapNavigationView.swift in Sources */,
+				8FCACD7E5A887621B9AE482E /* PaymentNavigationStack.swift in Sources */,
+				2146DA93D7416FFB1AEB3148 /* PaymentNavigationView.swift in Sources */,
 				D89CD7A92CC70C7C007A2BAC /* SelectedAssetNavigationStack.swift in Sources */,
 				D8C4A3B22EA6B00000C26819 /* RecipientNavigationView.swift in Sources */,
 				67AEE2D03EB6F99C6ECF9527 /* AmountNavigationView.swift in Sources */,
@@ -2117,6 +2138,10 @@
 		D829BF442CBDD9F700DEB2E8 /* FiatConnect */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FiatConnect;
+		};
+		CDCF24BC4563E48E7227188B /* Payments */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Payments;
 		};
 		D829BF4D2CBF02BA00DEB2E8 /* BannerService */ = {
 			isa = XCSwiftPackageProductDependency;

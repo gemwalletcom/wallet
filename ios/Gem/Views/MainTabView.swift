@@ -119,6 +119,8 @@ struct MainTabView: View {
                 SelectAssetSceneNavigationStack(
                     model: viewModelFactory.selectAssetScene(wallet: wallet, selectType: type, chains: chains),
                 )
+            case let .link(link, quotes):
+                PaymentNavigationStack(wallet: wallet, link: link, quotes: quotes, onComplete: onPaymentComplete)
             }
         }
         .sheet(item: presenter.isPresentingPriceAlert) { input in

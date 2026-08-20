@@ -22,12 +22,14 @@ import FiatService
 import Foundation
 import GemAPI
 import GemAPIDevice
+import struct Gemstone.GemWalletConnectPayAuth
 import GemstonePrimitives
 import Keystore
 import NativeProviderService
 import NFTService
 import NodeService
 import NotificationService
+import PaymentService
 import PerpetualService
 import Preferences
 import PriceAlertService
@@ -218,6 +220,11 @@ struct ServicesFactory {
         )
         let explorerService = ExplorerService.standard
         let swapService = SwapService(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
+        let paymentService = PaymentService(
+            nodeProvider: nodeProvider,
+            auth: GemWalletConnectPayAuth(appId: Constants.WalletConnect.projectId, clientId: UUID().uuidString),
+            requestInterceptor: nodeAuthProvider,
+        )
 
         let presenter = WalletConnectorPresenter()
         let walletConnectorManager = WalletConnectorManager(presenter: presenter)
@@ -295,6 +302,7 @@ struct ServicesFactory {
             transactionsService: transactionsService,
             walletConnectorPresenter: presenter,
             walletSessionService: walletSessionService,
+            paymentService: paymentService,
         )
         let walletSearchService = WalletSearchService(
             assetsService: assetsService,
@@ -336,6 +344,7 @@ struct ServicesFactory {
             chainServiceFactory: chainServiceFactory,
             scanService: scanService,
             swapService: swapService,
+            paymentService: paymentService,
             assetsEnabler: assetsEnabler,
             priceUpdater: streamSubscriptionService,
             walletSessionService: walletSessionService,

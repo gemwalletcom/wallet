@@ -7,6 +7,8 @@ import EventPresenterService
 import Foundation
 import GemstonePrimitives
 import Localization
+import PaymentService
+import Preferences
 import Primitives
 import PrimitivesComponents
 import SwiftUI
@@ -25,6 +27,7 @@ final class NavigationHandler: Sendable {
     private let transactionsService: TransactionsService
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
+    private let paymentService: PaymentService
 
     init(
         navigationState: NavigationStateManager,
@@ -35,6 +38,7 @@ final class NavigationHandler: Sendable {
         transactionsService: TransactionsService,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
+        paymentService: PaymentService,
     ) {
         self.navigationState = navigationState
         self.presenter = presenter
@@ -44,6 +48,7 @@ final class NavigationHandler: Sendable {
         self.transactionsService = transactionsService
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
+        self.paymentService = paymentService
     }
 
     @MainActor
@@ -93,7 +98,7 @@ extension NavigationHandler {
     private func handleURLAction(_ action: URLAction) async throws {
         switch action {
         case let .deeplink(deeplink): try await handleDeepLink(deeplink)
-        case let .payment(payment): try handlePayment(payment)
+        case let .payment(payment): try await handlePayment(payment)
         case let .walletConnect(action): await handleWalletConnect(action)
         }
     }
@@ -118,14 +123,28 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
-    private func handlePayment(_ payment: Payment) throws {
+    private func handlePayment(_ payment: Payment) async throws {
         guard let wallet = walletSessionService.currentWallet else { return }
-        guard case let .request(request) = payment else {
-            throw AnyError(Localized.Errors.notSupported)
+        switch payment {
+        case let .request(request):
+            let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [])
+            presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets)
+        case let .link(link):
+            guard Preferences.standard.isDeveloperEnabled else {
+                throw AnyError(Localized.Errors.notSupported)
+            }
+            guard !wallet.isViewOnly else {
+                throw AnyError(Localized.Wallet.Watch.Tooltip.title)
+            }
+            eventPresenterService.toastPresenter.toastMessage = .processing(Localized.Transfer.paymentTitle)
+            let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address) }
+            switch try await paymentService.getOptions(link: link, addresses: addresses) {
+            case let .quotes(quotes):
+                presenter.isPresentingPayment.wrappedValue = .link(link, quotes)
+            case let .outcome(outcome):
+                eventPresenterService.toastPresenter.toastMessage = .success(outcome.status.title)
+            }
         }
-        let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [])
-
-        presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets)
     }
 }
 
