@@ -1,8 +1,11 @@
 package com.gemwallet.android
 
 import android.content.Intent
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.model.PushNotificationField
+import com.gemwallet.android.ui.navigation.routes.PaymentRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
+import com.wallet.core.primitives.PaymentLink
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -16,6 +19,8 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.Deeplink
+import uniffi.gemstone.GemPayment
+import uniffi.gemstone.GemPaymentLink
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
 import uniffi.gemstone.urlAction
@@ -24,7 +29,8 @@ class PendingNavigationCoordinatorTest {
 
     private val notificationNavigation = mockk<NotificationNavigation>(relaxed = true)
     private val paymentNavigation = mockk<PaymentNavigation>(relaxed = true)
-    private val coordinator = PendingNavigationCoordinator(notificationNavigation, paymentNavigation)
+    private val userConfig = mockk<UserConfig>()
+    private val coordinator = PendingNavigationCoordinator(notificationNavigation, paymentNavigation, userConfig)
 
     @Before
     fun setUp() = mockkStatic("uniffi.gemstone.GemstoneKt")
@@ -75,6 +81,26 @@ class PendingNavigationCoordinatorTest {
 
         val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
         assertEquals(listOf(ReferralRoute(code = "gemcoder")), routes)
+    }
+
+    @Test
+    fun buildRoutes_paymentLink_storesRouteOnlyInDeveloperMode() = runTest {
+        val uri = "https://pay.walletconnect.com/pay_1"
+        every { urlAction(uri) } returns UrlAction.Payment(GemPayment.Link(GemPaymentLink.WalletConnectPay("pay_1")))
+        every { userConfig.developEnabled() } returns true
+        coordinator.handleScan(uri)
+
+        coordinator.buildRoutes(NoOpWalletConnect)
+
+        val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
+        assertEquals(listOf(PaymentRoute(PaymentLink.WalletConnectPay("pay_1"))), routes)
+
+        every { userConfig.developEnabled() } returns false
+        coordinator.handleScan(uri)
+
+        coordinator.buildRoutes(NoOpWalletConnect)
+
+        assertNull("payment links must not navigate outside developer mode", coordinator.pendingNavigation.value)
     }
 
     @Test
