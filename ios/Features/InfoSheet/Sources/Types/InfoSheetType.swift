@@ -21,7 +21,6 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case stakeApr(Image?)
     case dustThreshold(Chain, image: AssetImage)
     // swaps
-    case identityVerification(merchant: String)
     case priceImpact
     case slippage
     case noQuote
@@ -52,7 +51,6 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     public var id: String {
         switch self {
         case .networkFee: "networkFees"
-        case let .identityVerification(merchant): "identityVerification_\(merchant)"
         case let .insufficientNetworkFee(asset, _, _, _, _, _): "insufficientNetworkFee_\(asset.id.identifier)"
         case let .balanceRequired(asset, _, _, _): "balanceRequired_\(asset.id.identifier)"
         case let .transactionState(_, _, state): state.id

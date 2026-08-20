@@ -45,11 +45,10 @@ extension ConfirmAppViewModel {
              .stake,
              .account,
              .perpetual,
-             .earn: .none
+             .earn,
+             .payment: .none
         case let .generic(_, metadata, _):
             metadata.shortName
-        case let .payment(_, payment, _):
-            payment.merchant.name
         }
     }
 
@@ -64,12 +63,11 @@ extension ConfirmAppViewModel {
              .stake,
              .account,
              .perpetual,
-             .earn:
+             .earn,
+             .payment:
             .none
         case let .generic(_, session, _):
             AssetImage(imageURL: session.icon.asURL)
-        case let .payment(_, payment, _):
-            AssetImage(imageURL: payment.merchant.iconUrl?.asURL)
         }
     }
 }

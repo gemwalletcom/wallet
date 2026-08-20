@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
 import Primitives
 import PrimitivesComponents
 import Style
@@ -20,7 +19,7 @@ public struct PaymentScene: View {
 
             Section {
                 ListItemImageView(
-                    title: model.appTitle,
+                    title: model.recipientTitle,
                     subtitle: model.quotes.merchant.name,
                     assetImage: AssetImage(imageURL: model.quotes.merchant.iconUrl?.asURL),
                 )
@@ -44,10 +43,6 @@ public struct PaymentScene: View {
                     } else {
                         payWithItem(selected)
                     }
-                } footer: {
-                    if let text = model.verificationText {
-                        verificationFooter(text)
-                    }
                 }
             }
 
@@ -69,13 +64,6 @@ public struct PaymentScene: View {
 // MARK: - UI Components
 
 extension PaymentScene {
-    private func verificationFooter(_ text: String) -> some View {
-        HStack(alignment: .top, spacing: .space4) {
-            InfoButton(action: model.onSelectVerificationInfo)
-            Text(text)
-        }
-    }
-
     private func payWithItem(_ item: PaymentQuoteItem) -> ListItemImageView {
         ListItemImageView(
             title: model.payWithTitle,

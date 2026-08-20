@@ -42,7 +42,8 @@ struct TransferDataViewModel {
 
     var title: String {
         switch type {
-        case .transfer, .payment: Localized.Transfer.Send.title
+        case .transfer: Localized.Transfer.Send.title
+        case .payment: Localized.Transfer.paymentTitle
         case .deposit: Localized.Wallet.deposit
         case .withdrawal: Localized.Wallet.withdraw
         case .transferNft: Localized.Transfer.Send.title

@@ -84,12 +84,6 @@ public enum InfoSheetModelFactory {
                 image: placeholder.map { .image($0) },
                 button: .url(AppUrl.docs(.stakingApr)),
             )
-        case let .identityVerification(merchant):
-            return InfoSheetModel(
-                title: Localized.Info.identityVerificationTitle,
-                description: Localized.Info.identityVerificationDescription(merchant.boldMarkdown()),
-                image: .image(Images.System.person),
-            )
         case .priceImpact:
             return InfoSheetModel(
                 title: Localized.Swap.priceImpact,

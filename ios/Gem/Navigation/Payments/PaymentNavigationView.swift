@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import InfoSheet
 import Payments
 import SwiftUI
 
@@ -15,8 +14,6 @@ struct PaymentNavigationView: View {
         PaymentScene(model: model)
             .sheet(item: $model.isPresentingSheet) {
                 switch $0 {
-                case let .info(type):
-                    InfoSheetScene(type: type)
                 case let .dataCollection(url):
                     PaymentDataCollectionScene(url: url, onComplete: model.onCompleteDataCollection)
                 case .quotes:

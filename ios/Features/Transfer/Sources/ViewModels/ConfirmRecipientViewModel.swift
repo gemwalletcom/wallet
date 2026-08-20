@@ -38,7 +38,7 @@ extension ConfirmRecipientViewModel: ItemModelProvidable {
                     chain: model.chain,
                     address: model.recipient.address,
                     memo: model.recipient.memo,
-                    assetImage: addressNameImage,
+                    assetImage: merchantImage ?? addressNameImage,
                     addressType: addressName?.type,
                 ),
                 mode: .nameOrAddress,
@@ -52,6 +52,11 @@ extension ConfirmRecipientViewModel: ItemModelProvidable {
 // MARK: - Private
 
 extension ConfirmRecipientViewModel {
+    private var merchantImage: AssetImage? {
+        guard case let .payment(_, payment, _) = model.type else { return nil }
+        return AssetImage(imageURL: payment.merchant.iconUrl?.asURL)
+    }
+
     private var addressNameImage: AssetImage? {
         guard let addressName else { return nil }
         switch addressName.type {

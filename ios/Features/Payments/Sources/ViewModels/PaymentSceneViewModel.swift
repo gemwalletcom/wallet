@@ -6,12 +6,10 @@ import Components
 import Formatters
 import Foundation
 import GemstonePrimitives
-import InfoSheet
 import Localization
 import PaymentService
 import Primitives
 import PrimitivesComponents
-import SwiftUI
 
 @Observable
 @MainActor
@@ -49,7 +47,7 @@ public final class PaymentSceneViewModel {
 
     var title: String { Localized.Transfer.paymentTitle }
 
-    var appTitle: String { Localized.WalletConnect.app }
+    var recipientTitle: String { Localized.Transfer.Recipient.title }
 
     var walletTitle: String { Localized.Common.wallet }
 
@@ -87,11 +85,6 @@ public final class PaymentSceneViewModel {
 
     var quotes: PaymentQuotes {
         state.quotes
-    }
-
-    var verificationText: String? {
-        guard state.needsDataCollection else { return .none }
-        return Localized.Info.identityVerificationDescription(state.quotes.merchant.name)
     }
 
     var quotesModel: PaymentQuotesViewModel {
@@ -150,10 +143,6 @@ extension PaymentSceneViewModel {
         case .confirm:
             Task { await confirm() }
         }
-    }
-
-    func onSelectVerificationInfo() {
-        isPresentingSheet = .info(.identityVerification(merchant: state.quotes.merchant.name))
     }
 
     public func onCompleteDataCollection() {

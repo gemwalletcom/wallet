@@ -34,10 +34,6 @@ struct PaymentSceneViewModelTests {
         let model = model(quotes: .mock(quotes: [.mock(id: "eth", collectDataUrl: "https://data.walletconnect.com/ic/pay_1")]))
 
         #expect(model.buttonModel.buttonAction == .collectData)
-        #expect(model.verificationText != nil)
-
-        model.onSelectVerificationInfo()
-        #expect(model.isPresentingSheet == .info(.identityVerification(merchant: "Merchant")))
 
         model.onSelectButton()
         #expect(try model.isPresentingSheet == .dataCollection(#require(URL(string: "https://data.walletconnect.com/ic/pay_1"))))
@@ -45,7 +41,6 @@ struct PaymentSceneViewModelTests {
         model.onCompleteDataCollection()
         #expect(model.isPresentingSheet == nil)
         #expect(model.buttonModel.buttonAction == .confirm)
-        #expect(model.verificationText == nil)
     }
 
     @Test
