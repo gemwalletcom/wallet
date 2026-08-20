@@ -91,6 +91,8 @@ enum class RewardStatus(val string: String) {
 	Verified("verified"),
 	@SerialName("trusted")
 	Trusted("trusted"),
+	@SerialName("attribution")
+	Attribution("attribution"),
 	@SerialName("disabled")
 	Disabled("disabled"),
 }

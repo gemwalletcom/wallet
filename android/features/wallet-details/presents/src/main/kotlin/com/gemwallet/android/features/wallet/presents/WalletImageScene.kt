@@ -1,9 +1,7 @@
 package com.gemwallet.android.features.wallet.presents
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -28,11 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.domains.wallet.aggregates.WalletDetailsAggregate
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.EmojiPickerGrid
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.image.toImageSource
@@ -44,10 +41,9 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.secondaryFaded
 
-private const val EMOJI_COLUMNS = 4
 private const val NFT_COLUMNS = 2
-private const val EMOJI_SCALE = 0.45f
 
 private enum class WalletImageTab { EMOJI, COLLECTIONS }
 
@@ -61,8 +57,8 @@ internal fun WalletImageScene(
 ) {
     wallet ?: return
     var selectedTab by remember { mutableStateOf(WalletImageTab.EMOJI) }
-    val emojiBackground = MaterialTheme.colorScheme.surface.toArgb()
-    val onEmoji: (String) -> Unit = { onAction(WalletImageAction.SetEmoji(it, emojiBackground)) }
+    val emojiBackground = MaterialTheme.colorScheme.secondaryFaded
+    val onEmoji: (String) -> Unit = { onAction(WalletImageAction.SetEmoji(it, emojiBackground.toArgb())) }
 
     Scene(
         title = stringResource(id = R.string.common_avatar),
@@ -91,7 +87,7 @@ internal fun WalletImageScene(
                         .fillMaxWidth()
                         .weight(1f),
                 ) {
-                    EmojiGrid(emojis = emojis, onEmoji = onEmoji)
+                    EmojiPickerGrid(emojis = emojis, onSelect = onEmoji, background = emojiBackground)
                 }
 
                 WalletImageSource.Wallet -> {
@@ -116,7 +112,7 @@ internal fun WalletImageScene(
                             .weight(1f),
                     ) {
                         when (selectedTab) {
-                            WalletImageTab.EMOJI -> EmojiGrid(emojis = emojis, onEmoji = onEmoji)
+                            WalletImageTab.EMOJI -> EmojiPickerGrid(emojis = emojis, onSelect = onEmoji, background = emojiBackground)
                             WalletImageTab.COLLECTIONS -> if (nftImages.isEmpty()) {
                                 Text(
                                     text = stringResource(id = R.string.nft_state_empty_title),
@@ -141,62 +137,33 @@ internal fun WalletImageScene(
 }
 
 @Composable
-private fun EmojiGrid(
-    emojis: List<String>,
-    onEmoji: (String) -> Unit,
-) = PickerGrid(columns = EMOJI_COLUMNS, entries = emojis) { emoji ->
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surface)
-            .clickable { onEmoji(emoji) },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = emoji,
-            fontSize = with(LocalDensity.current) { (maxWidth * EMOJI_SCALE).toSp() },
-        )
-    }
-}
-
-@Composable
 private fun NftGrid(
     nftImages: List<NftItemUIModel>,
     onNftImage: (String) -> Unit,
-) = PickerGrid(columns = NFT_COLUMNS, entries = nftImages) { item ->
-    val source = item.toImageSource()
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .clip(RoundedCornerShape(paddingDefault))
-            .clickable { onNftImage(source.url) },
-    ) {
-        NftImage(
-            source = source,
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-}
-
-@Composable
-private fun <T> PickerGrid(
-    columns: Int,
-    entries: List<T>,
-    cell: @Composable (T) -> Unit,
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
+        columns = GridCells.Fixed(NFT_COLUMNS),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(paddingDefault),
     ) {
-        items(entries) { entry ->
+        items(nftImages) { item ->
+            val source = item.toImageSource()
             Box(
                 modifier = Modifier
                     .aspectRatio(1f)
                     .padding(paddingSmall),
             ) {
-                cell(entry)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(paddingDefault))
+                        .clickable { onNftImage(source.url) },
+                ) {
+                    NftImage(
+                        source = source,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
         }
     }

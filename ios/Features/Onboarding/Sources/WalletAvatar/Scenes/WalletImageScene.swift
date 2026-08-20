@@ -33,12 +33,17 @@ public struct WalletImageScene: View {
             .padding(.bottom, .extraLarge)
             switch model.source {
             case .onboarding:
-                listView
+                emojiSelector
             case .wallet:
                 pickerView
                     .padding(.bottom, .medium)
                     .padding(.horizontal, .medium)
-                listView
+                switch selectedTab {
+                case .emoji:
+                    emojiSelector
+                case .collections:
+                    collectionsView
+                }
             }
         }
         .bindQuery(model.walletQuery, model.nftQuery)
@@ -55,39 +60,28 @@ public struct WalletImageScene: View {
         .pickerStyle(.segmented)
     }
 
-    private var listView: some View {
+    private var emojiSelector: some View {
+        EmojiSelectorView(emojis: model.emojiList) { value in
+            model.setAvatarEmoji(value: value)
+            onDismiss()
+        }
+    }
+
+    private var collectionsView: some View {
         ScrollView {
             LazyVGrid(
-                columns: model.getColumns(for: selectedTab),
+                columns: model.nftColumns,
                 alignment: .center,
                 spacing: .medium,
             ) {
-                switch selectedTab {
-                case .emoji:
-                    emojiListView
-                case .collections:
-                    nftAssetListView
-                }
+                nftAssetListView
             }
             .padding(.horizontal, .medium)
         }
         .overlay {
-            if model.nftDataList.isEmpty, case .collections = selectedTab {
+            if model.nftDataList.isEmpty {
                 EmptyContentView(model: model.emptyContentModel)
             }
-        }
-    }
-
-    private var emojiListView: some View {
-        ForEach(model.emojiList) { value in
-            NavigationCustomLink(
-                with: EmojiView(color: value.color, emoji: value.emoji),
-            ) {
-                model.setAvatarEmoji(value: value)
-                onDismiss()
-            }
-            .frame(maxWidth: .infinity)
-            .transition(.opacity)
         }
     }
 

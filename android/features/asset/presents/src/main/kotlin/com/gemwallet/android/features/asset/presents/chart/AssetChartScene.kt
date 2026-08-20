@@ -94,7 +94,7 @@ fun AssetChartScene(
             onRefresh = {
                 chartViewModel.refresh()
             },
-            containerColor = PullToRefreshDefaults.containerColor,
+            containerColor = PullToRefreshDefaults.indicatorContainerColor,
         ) {
             LazyColumn {
                 item { Chart(chartViewModel) }

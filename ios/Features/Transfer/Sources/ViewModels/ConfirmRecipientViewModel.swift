@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
-import Style
 
 struct ConfirmRecipientViewModel {
     private let model: TransferDataViewModel
@@ -53,9 +53,15 @@ extension ConfirmRecipientViewModel: ItemModelProvidable {
 
 extension ConfirmRecipientViewModel {
     private var addressNameImage: AssetImage? {
-        switch addressName?.type {
-        case .contact: .image(Images.System.person)
-        case .address, .contract, .validator, .internalWallet, .none: nil
+        guard let addressName else { return nil }
+        switch addressName.type {
+        case .contact:
+            return AssetImage(
+                type: .text(String(addressName.name.prefix(2))),
+                imageURL: addressName.imageUrl.map { ImageSource($0).url },
+            )
+        case .address, .contract, .validator, .internalWallet:
+            return nil
         }
     }
 

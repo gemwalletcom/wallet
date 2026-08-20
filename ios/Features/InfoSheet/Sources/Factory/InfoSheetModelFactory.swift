@@ -14,10 +14,10 @@ import SwiftUI
 public enum InfoSheetModelFactory {
     public static func create(from type: InfoSheetType) -> InfoSheetModel {
         switch type {
-        case let .networkFee(chain):
+        case let .networkFee(asset):
             return InfoSheetModel(
                 title: Localized.Info.NetworkFee.title,
-                description: Localized.Info.NetworkFee.description(chain.networkName.boldMarkdown(), chain.asset.feeAsset.symbol.boldMarkdown()),
+                description: Localized.Info.NetworkFee.description(asset.chain.networkName.boldMarkdown(), asset.symbol.boldMarkdown()),
                 image: .image(Images.Info.networkFee),
                 button: .url(AppUrl.docs(.networkFees)),
             )
@@ -33,22 +33,21 @@ public enum InfoSheetModelFactory {
                 button: .action(title: Self.acquireTitle(asset), action: action),
             )
         case let .insufficientNetworkFee(asset, image, requirement, price, currency, action):
-            let feeAsset = asset.chain.asset
             let description: String = if let requirement {
                 Localized.Info.InsufficientNetworkFeeBalance.description(
-                    Self.requiredFeeText(requirement.required, feeAsset: feeAsset, price: price, currency: currency).boldMarkdown(),
-                    feeAsset.chain.networkName.boldMarkdown(),
-                    Self.formatted(requirement.available, asset: feeAsset),
-                    Self.formatted(requirement.shortfall, asset: feeAsset),
+                    Self.requiredFeeText(requirement.required, feeAsset: asset, price: price, currency: currency).boldMarkdown(),
+                    asset.chain.networkName.boldMarkdown(),
+                    Self.formatted(requirement.available, asset: asset),
+                    Self.formatted(requirement.shortfall, asset: asset),
                 )
             } else {
-                Localized.Transfer.insufficientNetworkFeeBalance(feeAsset.symbol.boldMarkdown())
+                Localized.Transfer.insufficientNetworkFeeBalance(asset.symbol.boldMarkdown())
             }
             return InfoSheetModel(
-                title: Localized.Info.balanceRequiredTitle(feeAsset.symbol),
+                title: Localized.Info.balanceRequiredTitle(asset.symbol),
                 description: description,
                 image: .assetImage(image),
-                button: .action(title: Self.acquireTitle(feeAsset), action: action),
+                button: .action(title: Self.acquireTitle(asset), action: action),
             )
         case let .transactionState(imageURL, placeholder, state):
             let model = TransactionStateViewModel(state: state)
@@ -137,7 +136,7 @@ public enum InfoSheetModelFactory {
                 title: Localized.Info.MinimumAmount.title,
                 description: Localized.Info.MinimumAmount.description(chain, amount),
                 image: .image(Images.Logo.logo),
-                button: .action(title: Localized.Asset.buyAsset(asset.feeAsset.symbol), action: action),
+                button: .action(title: Localized.Asset.buyAsset(asset.symbol), action: action),
             )
         case let .stakingReservedFees(image):
             return InfoSheetModel(

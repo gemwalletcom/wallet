@@ -3,12 +3,13 @@
 import BigInt
 import Foundation
 @testable import Primitives
+import PrimitivesTestKit
 import Testing
 
 final class FeeTests {
     @Test
     func testTotalFee() {
-        let fee = Fee(fee: BigInt(1), gasPriceType: .regular(gasPrice: BigInt(1)), gasLimit: .zero)
+        let fee = Fee(fee: BigInt(1), gasPriceType: .regular(gasPrice: BigInt(1)), gasLimit: .zero, feeAssetId: Asset.mock().id)
         #expect(fee.totalFee == BigInt(1))
     }
 
@@ -19,6 +20,7 @@ final class FeeTests {
             gasPriceType: .regular(gasPrice: BigInt(1)),
             gasLimit: .zero,
             options: [.tokenAccountCreation: BigInt(10)],
+            feeAssetId: Asset.mock().id,
         )
         #expect(fee.totalFee == BigInt(11))
     }

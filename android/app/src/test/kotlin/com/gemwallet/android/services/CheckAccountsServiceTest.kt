@@ -21,7 +21,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.assetDefaultRank
 
 class CheckAccountsServiceTest {
     private val walletsRepository = mockk<WalletsRepository>(relaxed = true)
@@ -35,6 +37,12 @@ class CheckAccountsServiceTest {
         addAccountsOperator = addAccountsOperator,
         passwordStore = passwordStore,
     )
+
+    @Before
+    fun setUp() {
+        mockkStatic("uniffi.gemstone.GemstoneKt")
+        every { assetDefaultRank(any()) } returns 1
+    }
 
     @After
     fun tearDown() {

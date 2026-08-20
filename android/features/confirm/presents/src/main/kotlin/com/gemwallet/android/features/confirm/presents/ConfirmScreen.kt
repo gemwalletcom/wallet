@@ -49,6 +49,7 @@ import com.gemwallet.android.ui.components.perpetual.title
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
@@ -206,7 +207,8 @@ fun ConfirmScreen(
                     is ConfirmProperty.Source -> PropertyItem(
                         title = { PropertyTitleText(R.string.common_wallet) },
                         data = {
-                            val walletIcon = walletItemIconModel(item.walletType, item.walletChain)
+                            val walletIcon = walletImageModel(context, item.walletImageUrl)
+                                ?: walletItemIconModel(item.walletType, item.walletChain)
                             PropertyDataText(
                                 text = item.data,
                                 badge = walletIcon?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },

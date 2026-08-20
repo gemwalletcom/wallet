@@ -2,6 +2,7 @@ mod asset;
 mod chain;
 pub mod client;
 mod constants;
+mod contracts;
 pub mod memo;
 pub mod model;
 mod provider;

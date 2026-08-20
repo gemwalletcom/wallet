@@ -64,14 +64,14 @@ public final class ContactsViewModel {
             titleExtra: contact.contact.description,
             titleStyleExtra: .calloutSecondary,
             titleExtraLineLimit: 1,
-            imageStyle: .asset(assetImage: AssetImage(type: String(contact.contact.name.prefix(2)))),
+            imageStyle: .asset(assetImage: contact.contact.avatarImage),
         )
     }
 
     func deleteContacts(at offsets: IndexSet) {
         do {
             for index in offsets {
-                try service.deleteContact(id: contacts[index].contact.id)
+                try service.deleteContact(contacts[index].contact)
             }
         } catch {
             debugLog("ContactsViewModel deleteContacts error: \(error)")

@@ -92,7 +92,8 @@ pub fn deployment_by_chain(chain: &EVMChain) -> &'static str {
         | EVMChain::XLayer
         | EVMChain::Robinhood
         | EVMChain::Plasma
-        | EVMChain::Stable => "0xcA11bde05977b3631167028862bE2a173976CA11",
+        | EVMChain::Stable
+        | EVMChain::Tempo => "0xcA11bde05977b3631167028862bE2a173976CA11",
         EVMChain::ZkSync | EVMChain::Abstract => "0xF9cda624FBC7e059355ce98a31693d299FACd963",
     }
 }

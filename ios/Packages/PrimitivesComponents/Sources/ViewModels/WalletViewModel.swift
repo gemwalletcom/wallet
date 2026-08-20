@@ -47,28 +47,16 @@ public struct WalletViewModel: Sendable {
     }
 
     public var hasAvatar: Bool {
-        imageUrl() != nil
+        wallet.imageUrl != nil
     }
 
     public var avatarImage: AssetImage {
         AssetImage(
-            type: wallet.name,
-            imageURL: imageUrl(),
+            type: .text(wallet.name),
+            imageURL: wallet.imageUrl.map { ImageSource($0).url },
             placeholder: image,
             chainPlaceholder: subImage,
         )
-    }
-
-    // MARK: - Private methods
-
-    private func imageUrl() -> URL? {
-        guard let imageUrl = wallet.imageUrl else {
-            return nil
-        }
-        if let url = URL(string: imageUrl), url.scheme != nil {
-            return url
-        }
-        return URL.documentsDirectory.appendingPathComponent(imageUrl)
     }
 }
 

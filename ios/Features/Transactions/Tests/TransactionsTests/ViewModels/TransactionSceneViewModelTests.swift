@@ -155,8 +155,12 @@ struct TransactionSceneViewModelTests {
         if case let .swapProgress(progress) = model.item(for: TransactionItem.swapProgress) {
             #expect(progress.transfer.status == .pending)
             #expect(progress.swap.status == .waiting)
+            #expect(progress.estimatedTime == "≈ 12 min")
         } else {
             Issue.record("Expected swap progress for pending cross-chain swap")
+        }
+        if case .empty = model.item(for: .estimatedConfirmation) {} else {
+            Issue.record("Expected cross-chain estimate to be hidden from transaction details")
         }
     }
 
@@ -177,8 +181,40 @@ struct TransactionSceneViewModelTests {
             #expect(progress.swap.title == Localized.Wallet.swap)
             #expect(progress.swap.subtitle == "NEAR Intents")
             #expect(progress.swap.status == .pending)
+            #expect(progress.estimatedTime == "≈ 12 min")
         } else {
             Issue.record("Expected swap progress for in-transit cross-chain swap")
+        }
+        if case .empty = model.item(for: .estimatedConfirmation) {} else {
+            Issue.record("Expected cross-chain estimate to be hidden from transaction details")
+        }
+    }
+
+    @Test
+    func swapProgressItemModel_hidesMissingAndZeroEstimates() {
+        let fromAsset = Asset.mockEthereum()
+        let toAsset = Asset.mockNear()
+        let models = [
+            TransactionSceneViewModel.swapProgressMock(
+                state: .inTransit,
+                fromAsset: fromAsset,
+                toAsset: toAsset,
+                confirmationEtaSeconds: nil,
+            ),
+            TransactionSceneViewModel.swapProgressMock(
+                state: .inTransit,
+                fromAsset: fromAsset,
+                toAsset: toAsset,
+                confirmationEtaSeconds: 0,
+            ),
+        ]
+
+        for model in models {
+            guard case let .swapProgress(progress) = model.item(for: .swapProgress) else {
+                Issue.record("Expected swap progress")
+                return
+            }
+            #expect(progress.estimatedTime == nil)
         }
     }
 
@@ -213,6 +249,7 @@ struct TransactionSceneViewModelTests {
             #expect(progress.swap.title == Localized.Wallet.swap)
             #expect(progress.swap.subtitle == "NEAR Intents")
             #expect(progress.swap.status == .failed)
+            #expect(progress.estimatedTime == nil)
         } else {
             Issue.record("Expected swap progress for failed cross-chain swap")
         }
@@ -234,6 +271,7 @@ struct TransactionSceneViewModelTests {
             #expect(progress.swap.title == Localized.Wallet.swap)
             #expect(progress.swap.subtitle == "NEAR Intents")
             #expect(progress.swap.status == .waiting)
+            #expect(progress.estimatedTime == nil)
             #expect(progress.swap.status.tagTitle == nil)
         } else {
             Issue.record("Expected swap progress for reverted cross-chain swap")
@@ -392,14 +430,26 @@ struct TransactionSceneViewModelTests {
     }
 
     @Test
-    func estimatedConfirmationIsOnlyVisibleWhilePending() {
+    func estimatedConfirmationOnlyAppearsForRegularPendingTransaction() {
         let pending = TransactionSceneViewModel.mock(
             state: .pending,
+            confirmationEtaSeconds: 720,
+        )
+        let inTransitTransfer = TransactionSceneViewModel.mock(
+            state: .inTransit,
             confirmationEtaSeconds: 720,
         )
         let confirmed = TransactionSceneViewModel.mock(
             state: .confirmed,
             confirmationEtaSeconds: 720,
+        )
+        let missing = TransactionSceneViewModel.mock(
+            state: .pending,
+            confirmationEtaSeconds: nil,
+        )
+        let zero = TransactionSceneViewModel.mock(
+            state: .pending,
+            confirmationEtaSeconds: 0,
         )
 
         guard case let .listItem(item) = pending.item(for: .estimatedConfirmation) else {
@@ -407,8 +457,17 @@ struct TransactionSceneViewModelTests {
             return
         }
         #expect(item.subtitle == "≈ 12 min")
+        if case .empty = inTransitTransfer.item(for: .estimatedConfirmation) {} else {
+            Issue.record("Expected in-transit transfer estimate to be hidden")
+        }
         if case .empty = confirmed.item(for: .estimatedConfirmation) {} else {
             Issue.record("Expected confirmed transaction estimate to be hidden")
+        }
+        if case .empty = missing.item(for: .estimatedConfirmation) {} else {
+            Issue.record("Expected missing estimate to be hidden")
+        }
+        if case .empty = zero.item(for: .estimatedConfirmation) {} else {
+            Issue.record("Expected zero estimate to be hidden")
         }
     }
 
@@ -460,6 +519,7 @@ extension TransactionSceneViewModel {
         provider: SwapProvider? = .nearIntents,
         providerId: String? = nil,
         includeMetadata: Bool = true,
+        confirmationEtaSeconds: UInt32? = 720,
     ) -> TransactionSceneViewModel {
         let metadata = includeMetadata
             ? AnyCodableValue.encode(
@@ -480,6 +540,7 @@ extension TransactionSceneViewModel {
             asset: fromAsset,
             assets: [fromAsset, toAsset],
             metadata: metadata,
+            confirmationEtaSeconds: confirmationEtaSeconds,
         )
     }
 }

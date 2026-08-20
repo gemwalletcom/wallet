@@ -38,7 +38,7 @@ public extension UpdateBalance {
     }
 
     static func mockPerpetual(
-        assetId: AssetId = Asset.hypercoreUSDC().id,
+        assetId: AssetId = Asset.mockHypercoreUSDC().id,
         available: Double = 0,
         reserved: Double = 0,
         withdrawable: Double = 0,

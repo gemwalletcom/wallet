@@ -38,7 +38,10 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
         let is_notify_devices = payload.should_notify_devices();
         let deposit_addresses = self.vault_client.get_deposit_address_map().await?;
         let send_addresses = self.vault_client.get_send_address_map().await?;
-        let transactions = Self::transactions_for_storage(payload.transactions, &deposit_addresses, &send_addresses);
+        let transactions = Self::transactions_for_storage(payload.transactions, &deposit_addresses, &send_addresses)
+            .into_iter()
+            .filter(|transaction| self.config.is_transaction_within_asset_transfer_limit(transaction))
+            .collect::<Vec<_>>();
 
         let min_amount = self.config.min_amount_usd;
 
@@ -232,13 +235,10 @@ impl StoreTransactionsConsumer {
             .database
             .assets()?
             .get_assets_with_prices(vec![AssetFilter::Ids(assets_ids.clone().ids())], self.config.primary_price_max_age)?;
-
-        let missing_assets_ids = assets_ids
-            .into_iter()
-            .filter(|asset_id| !assets_with_prices.iter().any(|a| &a.asset.asset.id == asset_id))
-            .collect::<Vec<_>>();
-
-        Ok((assets_with_prices, missing_assets_ids))
+        let existing_ids = assets_with_prices.iter().map(|asset| asset.asset.asset.id.clone()).collect::<HashSet<_>>();
+        let missing_assets = assets_ids.into_iter().filter(|asset_id| !existing_ids.contains(asset_id)).collect();
+        let enabled_assets = assets_with_prices.into_iter().filter(|asset| asset.asset.properties.is_enabled).collect();
+        Ok((enabled_assets, missing_assets))
     }
 
     fn get_missing_nft_assets(&self, nft_asset_ids: Vec<NFTAssetId>) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>> {

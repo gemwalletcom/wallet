@@ -16,7 +16,7 @@ public enum NFTGridPosterBuilder {
             id: data.id,
             destination: Scenes.Collection(id: data.collection.id.identifier, name: data.collection.name),
             model: GridPosterViewModel(
-                assetImage: AssetImage(type: data.collection.name, imageURL: data.collection.images.preview.url.asURL),
+                assetImage: AssetImage(type: .text(data.collection.name), imageURL: data.collection.images.preview.url.asURL),
                 title: data.collection.name,
                 count: data.assets.count,
                 isVerified: data.collection.status == .verified,
@@ -29,7 +29,7 @@ public enum NFTGridPosterBuilder {
             id: asset.id.identifier,
             destination: Scenes.Collectible(assetData: NFTAssetData(collection: collection, asset: asset)),
             model: GridPosterViewModel(
-                assetImage: AssetImage(type: collection.name, imageURL: asset.images.preview.url.asURL),
+                assetImage: AssetImage(type: .text(collection.name), imageURL: asset.images.preview.url.asURL),
                 title: asset.name,
                 isVerified: collection.status == .verified,
             ),

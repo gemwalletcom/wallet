@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::sync::LazyLock;
 
 use num_bigint::BigUint;
+use num_traits::ToPrimitive;
 use primitives::swap::SwapStatus;
 use primitives::{AssetId, Chain, TransactionSwapMetadata, known_assets::*};
 use serde::{Deserialize, Serialize};
@@ -126,6 +127,7 @@ pub struct SwapTxResponse {
     pub deposit: Option<SwapDeposit>,
     pub swap: Option<SwapDetail>,
     pub refund_egress: Option<serde_json::Value>,
+    estimated_durations_seconds: Option<EstimatedDurations>,
 }
 
 impl SwapTxResponse {
@@ -137,6 +139,39 @@ impl SwapTxResponse {
             _ => SwapStatus::Pending,
         }
     }
+
+    fn eta_in_seconds(&self) -> Option<u32> {
+        let durations = self.estimated_durations_seconds.as_ref()?;
+        let durations = [durations.deposit, durations.swap, durations.egress];
+        let remaining = match self.state.as_str() {
+            "WAITING" | "RECEIVING" => &durations[..],
+            "SWAPPING" => &durations[1..],
+            "SENDING" | "SENT" => &durations[2..],
+            _ => return None,
+        };
+
+        remaining
+            .iter()
+            .copied()
+            .try_fold(0.0, |total, duration| {
+                let duration = duration?;
+                if !duration.is_finite() || duration < 0.0 {
+                    return None;
+                }
+                Some(total + duration)
+            })?
+            .ceil()
+            .to_u32()
+            .filter(|seconds| *seconds > 0)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct EstimatedDurations {
+    deposit: Option<f64>,
+    swap: Option<f64>,
+    egress: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -198,6 +233,7 @@ fn chainflip_asset_to_asset_id(chain: Chain, asset: &str) -> Option<AssetId> {
 
 pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
     let status = response.swap_status();
+    let eta_in_seconds = response.eta_in_seconds();
 
     let metadata = if status != SwapStatus::Pending {
         let from_chain = chainflip_chain_to_chain(&response.src_chain);
@@ -220,7 +256,7 @@ pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
         None
     };
 
-    SwapResult { status, metadata }
+    SwapResult { status, metadata, eta_in_seconds }
 }
 
 #[cfg(test)]
@@ -279,6 +315,7 @@ pub mod test {
                     to_value: "405772".to_string(),
                     provider: Some("chainflip".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
@@ -296,6 +333,7 @@ pub mod test {
                     to_value: "1143469990".to_string(),
                     provider: Some("chainflip".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
@@ -313,15 +351,64 @@ pub mod test {
                     to_value: "17567".to_string(),
                     provider: Some("chainflip".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
 
     #[test]
-    fn test_map_swap_result_pending() {
-        let result = map_swap_result(&swap_response(include_str!("./test/swap_usdc_to_btc_pending.json")));
-        assert_eq!(result.status, SwapStatus::Pending);
-        assert!(result.metadata.is_none());
+    fn test_map_swap_result_pending_eta_by_phase() {
+        let sending = map_swap_result(&swap_response(include_str!("./test/swap_usdc_to_btc_pending.json")));
+        let receiving = map_swap_result(&swap_response(include_str!("./test/swap_usdc_to_btc_receiving_eta.json")));
+        let swapping = map_swap_result(&swap_response(include_str!("./test/swap_usdc_to_btc_swapping_eta.json")));
+
+        assert_eq!(sending.status, SwapStatus::Pending);
+        assert!(sending.metadata.is_none());
+        assert_eq!(sending.eta_in_seconds, Some(102));
+        assert_eq!(receiving.eta_in_seconds, Some(1920));
+        assert_eq!(swapping.eta_in_seconds, Some(114));
+    }
+
+    #[test]
+    fn test_eta_duration_validation() {
+        let mut fractional = swap_response(include_str!("./test/swap_usdc_to_btc_receiving_eta.json"));
+        fractional.estimated_durations_seconds = Some(EstimatedDurations {
+            deposit: Some(0.4),
+            swap: Some(0.4),
+            egress: Some(0.4),
+        });
+        assert_eq!(fractional.eta_in_seconds(), Some(2));
+
+        for invalid in [-1.0, f64::NAN, f64::INFINITY, u32::MAX as f64 + 1.0] {
+            let mut response = swap_response(include_str!("./test/swap_usdc_to_btc_receiving_eta.json"));
+            response.estimated_durations_seconds.as_mut().unwrap().deposit = Some(invalid);
+            assert_eq!(response.eta_in_seconds(), None);
+        }
+
+        let mut zero = swap_response(include_str!("./test/swap_usdc_to_btc_receiving_eta.json"));
+        zero.estimated_durations_seconds = Some(EstimatedDurations {
+            deposit: Some(0.0),
+            swap: Some(0.0),
+            egress: Some(0.0),
+        });
+        assert_eq!(zero.eta_in_seconds(), None);
+
+        let mut terminal = swap_response(include_str!("./test/swap_usdc_to_btc_pending.json"));
+        terminal.state = "COMPLETED".to_string();
+        assert_eq!(terminal.eta_in_seconds(), None);
+
+        let mut overflow = swap_response(include_str!("./test/swap_usdc_to_btc_receiving_eta.json"));
+        let durations = overflow.estimated_durations_seconds.as_mut().unwrap();
+        durations.deposit = Some(u32::MAX as f64);
+        durations.swap = Some(1.0);
+        durations.egress = Some(1.0);
+        assert_eq!(overflow.eta_in_seconds(), None);
+
+        let mut missing = swap_response(include_str!("./test/swap_usdc_to_btc_receiving_eta.json"));
+        missing.estimated_durations_seconds.as_mut().unwrap().deposit = None;
+        assert_eq!(missing.eta_in_seconds(), None);
+        missing.estimated_durations_seconds = None;
+        assert_eq!(missing.eta_in_seconds(), None);
     }
 
     #[test]
@@ -337,6 +424,7 @@ pub mod test {
                     to_value: "0".to_string(),
                     provider: Some("chainflip".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }

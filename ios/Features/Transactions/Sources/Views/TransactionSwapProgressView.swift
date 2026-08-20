@@ -45,10 +45,21 @@ struct TransactionSwapProgressView: View {
                 statusTag(for: step.status)
             }
 
-            Text(step.subtitle)
-                .font(.app.callout)
-                .foregroundStyle(Colors.gray)
-                .lineLimit(2)
+            HStack(alignment: .firstTextBaseline, spacing: .space8) {
+                Text(step.subtitle)
+                    .font(.app.callout)
+                    .foregroundStyle(Colors.gray)
+                    .lineLimit(2)
+
+                Spacer(minLength: .space8)
+
+                if step.status == .pending, let estimatedTime = model.estimatedTime {
+                    Text(estimatedTime)
+                        .font(.app.callout)
+                        .foregroundStyle(Colors.gray)
+                        .lineLimit(1)
+                }
+            }
         }
     }
 

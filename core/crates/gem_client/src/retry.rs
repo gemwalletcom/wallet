@@ -22,12 +22,11 @@ where
     })
 }
 
-pub async fn retry<T, E, F, Fut, P>(operation: F, max_retries: u32, should_retry_fn: Option<P>) -> Result<T, E>
+pub async fn retry<T, E, F, Fut>(operation: F, max_retries: u32) -> Result<T, E>
 where
     F: Fn() -> Fut,
     Fut: Future<Output = Result<T, E>>,
     E: std::fmt::Display,
-    P: Fn(&E) -> bool,
 {
     let mut attempt = 0;
 
@@ -35,12 +34,7 @@ where
         match operation().await {
             Ok(result) => return Ok(result),
             Err(err) => {
-                let should_retry_error = match &should_retry_fn {
-                    Some(predicate) => predicate(&err),
-                    None => default_should_retry(&err),
-                };
-
-                if should_retry_error && attempt < max_retries {
+                if default_should_retry(&err) && attempt < max_retries {
                     attempt += 1;
                     // Exponential backoff: 2^attempt seconds (2s, 4s, 8s, ...) with max cap
                     let delay = Duration::from_secs(2_u64.saturating_pow(attempt).min(1800)); // Cap at 30 minutes

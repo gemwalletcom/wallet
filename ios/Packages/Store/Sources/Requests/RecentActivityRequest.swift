@@ -32,6 +32,7 @@ public struct RecentActivityRequest: DatabaseQueryable {
         var request = AssetRecord
             .joining(required: recentActivitiesForWallet)
             .annotated(with: maxCreatedAt.forKey("maxCreatedAt"))
+            .filter(AssetRecord.Columns.rank >= 0)
 
         if filters.contains(where: { $0 == .hasBalance || $0 == .enabledBalance }) {
             request = request.joining(optional: AssetRecord.balance.filter(BalanceRecord.Columns.walletId == walletId.id))

@@ -60,20 +60,6 @@ public struct AddressListItemViewModel {
         account.assetImage
     }
 
-    public var assetImageStyle: AssetImageView.Style? {
-        switch account.addressType {
-        case .contact: AssetImageView.Style(foregroundColor: Colors.secondaryText, cornerRadius: 0)
-        case .address, .contract, .validator, .internalWallet, .none: nil
-        }
-    }
-
-    public var assetImageSize: CGFloat {
-        switch account.addressType {
-        case .contact: .list.accessory
-        case .address, .contract, .validator, .internalWallet, .none: .list.image
-        }
-    }
-
     public var addressExplorerText: String {
         Localized.Transaction.viewOn(addressLink.name)
     }

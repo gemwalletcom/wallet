@@ -7,13 +7,22 @@ use crate::SwapResult;
 
 pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) -> SwapResult {
     let status = response.swap_status();
+    let eta_in_seconds = response.eta_in_seconds();
 
     let Some(ref tx) = response.tx else {
-        return SwapResult { status, metadata: None };
+        return SwapResult {
+            status,
+            metadata: None,
+            eta_in_seconds,
+        };
     };
 
     let Some(chain) = ChainName::from_symbol(network, &tx.chain).map(|n| n.chain()) else {
-        return SwapResult { status, metadata: None };
+        return SwapResult {
+            status,
+            metadata: None,
+            eta_in_seconds,
+        };
     };
 
     let from_coin = tx.coins.first();
@@ -35,7 +44,7 @@ pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) 
         _ => None,
     };
 
-    SwapResult { status, metadata }
+    SwapResult { status, metadata, eta_in_seconds }
 }
 
 #[cfg(test)]
@@ -66,6 +75,7 @@ mod tests {
                     to_value: "79158429".to_string(),
                     provider: Some("thorchain".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
@@ -85,6 +95,7 @@ mod tests {
                     to_value: "1243680000000000".to_string(),
                     provider: Some("thorchain".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
@@ -97,7 +108,8 @@ mod tests {
             map_swap_result(&response, THORChainNetwork::Thorchain),
             SwapResult {
                 status: SwapStatus::Pending,
-                metadata: None
+                metadata: None,
+                eta_in_seconds: Some(600),
             }
         );
     }
@@ -117,6 +129,7 @@ mod tests {
                     to_value: "43070556".to_string(),
                     provider: Some("thorchain".to_string()),
                 }),
+                eta_in_seconds: Some(120),
             }
         );
     }
@@ -136,6 +149,7 @@ mod tests {
                     to_value: "12973781".to_string(),
                     provider: Some("thorchain".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
@@ -155,6 +169,7 @@ mod tests {
                     to_value: "43070556".to_string(),
                     provider: Some("thorchain".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
@@ -174,6 +189,7 @@ mod tests {
                     to_value: "2096315169517".to_string(),
                     provider: Some("thorchain".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
@@ -193,6 +209,7 @@ mod tests {
                     to_value: "3809626562".to_string(),
                     provider: Some("thorchain".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
@@ -206,6 +223,21 @@ mod tests {
             SwapResult {
                 status: SwapStatus::Failed,
                 metadata: None,
+                eta_in_seconds: None,
+            }
+        );
+    }
+
+    #[test]
+    fn test_map_swap_result_mayachain_pending_eta() {
+        let response = status(include_str!("testdata/transaction_status_mayachain_pending_eta.json"));
+
+        assert_eq!(
+            map_swap_result(&response, THORChainNetwork::Mayachain),
+            SwapResult {
+                status: SwapStatus::Pending,
+                metadata: None,
+                eta_in_seconds: Some(300),
             }
         );
     }

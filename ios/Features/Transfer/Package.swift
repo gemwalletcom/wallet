@@ -60,6 +60,7 @@ let package = Package(
                 "Blockchain",
                 "Signer",
                 "Preferences",
+                "Store",
                 "Validators",
 
                 "Stake",

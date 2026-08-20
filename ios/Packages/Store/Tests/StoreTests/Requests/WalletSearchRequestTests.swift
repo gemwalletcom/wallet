@@ -8,6 +8,18 @@ import Testing
 
 struct WalletSearchRequestTests {
     @Test
+    func excludesNegativeRank() throws {
+        let visible = AssetBasic.mock(asset: .mock(id: AssetId(chain: .ethereum)), score: .mock(rank: 0))
+        let hidden = AssetBasic.mock(asset: .mock(id: AssetId(chain: .tempo)), score: .mock(rank: -1))
+        let db = DB.mockAssets(assets: [visible, hidden])
+
+        try db.dbQueue.read { db in
+            let result = try WalletSearchRequest(walletId: .mock(), searchBy: "").fetch(db)
+            #expect(result.assets.map(\.asset.id) == [visible.asset.id])
+        }
+    }
+
+    @Test
     func searchAssets() throws {
         let db = DB.mockAssets()
         let searchStore = SearchStore(db: db)

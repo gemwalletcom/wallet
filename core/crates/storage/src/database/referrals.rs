@@ -181,7 +181,7 @@ impl RiskSignalsStore for DatabaseClient {
         use crate::schema::rewards_risk_signals::dsl;
 
         let mut query = dsl::rewards_risk_signals
-            .inner_join(rewards_referrals::table.on(rewards_referrals::risk_signal_id.eq(dsl::id)))
+            .inner_join(rewards_referrals::table.on(rewards_referrals::risk_signal_id.eq(dsl::id.nullable())))
             .filter(dsl::created_at.ge(since))
             .into_boxed();
 
@@ -241,6 +241,7 @@ impl RiskSignalsStore for DatabaseClient {
 
         rewards_referrals::table
             .inner_join(rewards::table.on(rewards_referrals::referrer_username.eq(rewards::username)))
+            .filter(rewards::status.ne(RewardStatus::Attribution))
             .filter(rewards::status.ne(RewardStatus::Disabled))
             .filter(rewards_referrals::created_at.ge(since))
             .group_by(rewards_referrals::referrer_username)

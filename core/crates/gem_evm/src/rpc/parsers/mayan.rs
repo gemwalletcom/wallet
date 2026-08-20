@@ -301,6 +301,7 @@ mod tests {
             input: hex::encode_with_0x(&input),
             to: None,
             value: BigUint::from(0u8),
+            calls: None,
         }
     }
 }

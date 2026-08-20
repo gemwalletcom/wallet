@@ -7,7 +7,7 @@ use std::error::Error;
 use gem_client::Client;
 use primitives::{
     FeePriority, FeeRate, GasPriceType, HyperliquidOrder, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
-    TransactionPreloadInput, perpetual::PerpetualType,
+    TransactionPreloadInput, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, perpetual::PerpetualType,
 };
 
 use crate::constants::TRANSACTION_FEE_UNITS;
@@ -56,7 +56,7 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
             TransactionInputType::Transfer(_) | TransactionInputType::TransferNft(_, _) | TransactionInputType::Account(_, _) | TransactionInputType::Stake(_, _) => {
                 // Only signature is required
                 Ok(TransactionLoadData {
-                    fee: TransactionFee::new_from_fee(BigInt::from(0)),
+                    fee: TransactionFee::new_from_fee(BigInt::from(0), HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
                     metadata: TransactionLoadMetadata::Hyperliquid { order: None },
                 })
             }
@@ -72,23 +72,21 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
                 };
 
                 Ok(TransactionLoadData {
-                    fee: TransactionFee::new_from_fee(fee_amount),
+                    fee: TransactionFee::new_from_fee(fee_amount, HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
                     metadata: TransactionLoadMetadata::Hyperliquid { order },
                 })
             }
             TransactionInputType::Perpetual(_, perpetual_type) => {
-                let fiat_value = match perpetual_type {
-                    PerpetualType::Open(data) => data.fiat_value,
-                    PerpetualType::Increase(data) => data.fiat_value,
-                    PerpetualType::Reduce(reduce_data) => reduce_data.data.fiat_value,
-                    PerpetualType::Close(data) => data.fiat_value,
-                    PerpetualType::Modify(_) => 0.0,
+                let (fiat_value, fee_asset) = match perpetual_type {
+                    PerpetualType::Open(data) | PerpetualType::Increase(data) | PerpetualType::Close(data) => (data.fiat_value, data.base_asset.id.clone()),
+                    PerpetualType::Reduce(reduce_data) => (reduce_data.data.fiat_value, reduce_data.data.base_asset.id.clone()),
+                    PerpetualType::Modify(data) => (0.0, data.base_asset.id.clone()),
                 };
                 let (order, fee_rates) = self.get_order(&input.sender_address).await?;
                 let fee_amount = calculate_perpetual_fee_amount(fiat_value, fee_rates.perpetual_cross);
 
                 Ok(TransactionLoadData {
-                    fee: TransactionFee::new_from_fee(fee_amount),
+                    fee: TransactionFee::new_from_fee(fee_amount, fee_asset),
                     metadata: TransactionLoadMetadata::Hyperliquid { order: Some(order) },
                 })
             }

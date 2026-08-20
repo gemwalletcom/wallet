@@ -66,7 +66,7 @@ mod tests {
             is_max_value: false,
             metadata: solana_metadata(None, None, None),
         };
-        SignerInput::new(input, TransactionFee::default())
+        SignerInput::new(input, TransactionFee::mock())
     }
 
     fn stake_data(instruction: u32) -> Vec<u8> {
@@ -93,7 +93,7 @@ mod tests {
             is_max_value: false,
             metadata: solana_metadata(None, None, None),
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
 
         let result = signer.sign_stake(&input, &TEST_PRIVATE_KEY).unwrap();
 
@@ -131,7 +131,7 @@ mod tests {
             is_max_value: false,
             metadata: solana_metadata(None, None, None),
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
         let result = signer.sign_stake(&input, &TEST_PRIVATE_KEY).unwrap();
         let transaction = crate::decode_transaction(&result[0]).unwrap();
         assert_eq!(program_id(&transaction, 0), crate::STAKE_PROGRAM_ID);
@@ -148,7 +148,7 @@ mod tests {
             is_max_value: false,
             metadata: solana_metadata(None, None, None),
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
         let result = signer.sign_stake(&input, &TEST_PRIVATE_KEY).unwrap();
         let transaction = crate::decode_transaction(&result[0]).unwrap();
         assert_eq!(program_id(&transaction, 0), crate::STAKE_PROGRAM_ID);

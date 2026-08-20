@@ -4,7 +4,9 @@ use crate::stake_type::StakeType;
 use crate::swap::{ApprovalData, SwapData, SwapQuoteDataType};
 use crate::transaction_fee::TransactionFee;
 use crate::transaction_load_metadata::TransactionLoadMetadata;
-use crate::{Asset, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, WalletConnectionSessionAppMetadata, nft::NFTAsset, perpetual::AccountDataType};
+use crate::{
+    Asset, AssetId, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, WalletConnectionSessionAppMetadata, nft::NFTAsset, perpetual::AccountDataType,
+};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 use serde::{Deserialize, Serialize};
@@ -165,6 +167,7 @@ impl TransactionLoadInput {
             gas_price_type: self.gas_price.clone(),
             gas_limit: 0.into(),
             options: HashMap::new(),
+            fee_asset: AssetId::from_chain(self.input_type.get_asset().chain),
         }
     }
 }
@@ -181,6 +184,10 @@ impl TransactionLoadInput {
     pub fn value_as_u64(&self) -> Result<u64, SignerError> {
         self.value.parse::<u64>().map_err(|_| SignerError::invalid_input("invalid transaction amount"))
     }
+
+    pub fn value_as_bigint(&self) -> Result<BigInt, SignerError> {
+        BigInt::from_str(&self.value).map_err(|_| SignerError::invalid_input("invalid transaction amount"))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -192,6 +199,18 @@ pub struct SignerInput {
 impl SignerInput {
     pub fn new(input: TransactionLoadInput, fee: TransactionFee) -> Self {
         Self { input, fee }
+    }
+
+    pub fn swap_gas_limit(&self) -> Result<u64, SignerError> {
+        let swap_data = &self.input_type.get_swap_data()?.data;
+        match &swap_data.approval {
+            Some(_) => swap_data
+                .gas_limit
+                .as_ref()
+                .and_then(|gas_limit| gas_limit.parse().ok())
+                .ok_or_else(|| SignerError::invalid_input("missing swap gas limit")),
+            None => self.fee.gas_limit(),
+        }
     }
 
     pub fn swap_value_u64(&self) -> Result<u64, SignerError> {

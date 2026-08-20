@@ -7,9 +7,11 @@ import Foundation
 public struct SwapResult: Codable, Equatable, Hashable, Sendable {
 	public let status: SwapStatus
 	public let metadata: TransactionSwapMetadata?
+	public let etaInSeconds: UInt32?
 
-	public init(status: SwapStatus, metadata: TransactionSwapMetadata?) {
+	public init(status: SwapStatus, metadata: TransactionSwapMetadata?, etaInSeconds: UInt32?) {
 		self.status = status
 		self.metadata = metadata
+		self.etaInSeconds = etaInSeconds
 	}
 }

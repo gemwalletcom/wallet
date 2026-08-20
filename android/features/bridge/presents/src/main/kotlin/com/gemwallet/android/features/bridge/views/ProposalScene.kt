@@ -26,6 +26,7 @@ import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionPropos
 import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneState
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneViewModel
+import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -55,7 +56,6 @@ import uniffi.gemstone.WalletConnectionVerificationStatus
 fun ProposalScene(
     proposal: WalletConnectSessionProposal,
     verifyContext: WalletConnectVerifyContext,
-    onCancel: () -> Unit,
     onError: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -65,50 +65,35 @@ fun ProposalScene(
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()
     val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
+    val unknownErrorMessage = stringResource(id = R.string.errors_unknown_try_again)
 
     LaunchedEffect(proposal) {
-        viewModel.onProposal(proposal, verifyContext)
-    }
-
-    val contentState = state as? ProposalSceneState.Content
-
-    when {
-        state is ProposalSceneState.Canceled -> LaunchedEffect(state) {
-            onCancel()
-        }
-        state is ProposalSceneState.ScamCanceled -> {
-            val message = stringResource(R.string.errors_connections_malicious_origin)
-            LaunchedEffect(state) {
-                Toast.makeText(
+        viewModel.onProposal(proposal, verifyContext) { error ->
+            when (error) {
+                BridgeRequestError.MaliciousSession -> Toast.makeText(
                     context,
-                    message,
+                    R.string.errors_connections_malicious_origin,
                     Toast.LENGTH_LONG
                 ).show()
-                onCancel()
+                else -> Unit
             }
         }
-        state is ProposalSceneState.Fail -> {
-            val message = (state as ProposalSceneState.Fail).message.ifBlank {
-                stringResource(id = R.string.errors_unknown_try_again)
-            }
-            LaunchedEffect(message) {
-                onError(message)
-                onCancel()
-            }
-        }
-        peer == null || contentState == null -> LoadingScene(
+    }
+
+    when (val currentPeer = peer) {
+        null -> LoadingScene(
             title = stringResource(id = R.string.wallet_connect_connect_title),
-            onCancel = onCancel,
+            onCancel = viewModel::onReject,
             closeIcon = true,
         )
         else -> Proposal(
-            peer = peer!!,
-            state = contentState,
+            peer = currentPeer,
+            state = state,
             selectedWallet = selectedWallet,
             availableWallets = availableWallets,
             buttonState = buttonState,
             onReject = viewModel::onReject,
-            onApprove = viewModel::onApprove,
+            onApprove = { viewModel.onApprove { message -> onError(message.ifBlank { unknownErrorMessage }) } },
             onWalletSelected = viewModel::onWalletSelected
         )
     }
@@ -117,7 +102,7 @@ fun ProposalScene(
 @Composable
 private fun Proposal(
     peer: SessionUI,
-    state: ProposalSceneState.Content,
+    state: ProposalSceneState,
     selectedWallet: com.wallet.core.primitives.Wallet?,
     availableWallets: List<com.wallet.core.primitives.Wallet>,
     buttonState: ButtonState,

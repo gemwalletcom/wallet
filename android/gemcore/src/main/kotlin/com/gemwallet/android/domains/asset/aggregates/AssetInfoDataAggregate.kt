@@ -23,7 +23,6 @@ data class AssetInfoDataAggregate(
     val balanceEquivalent: String,
     val isZeroBalance: Boolean,
     val price: AssetPriceDataAggregate?,
-    val position: Int,
     val pinned: Boolean,
     val balanceEnabled: Boolean,
     val accountAddress: String,
@@ -79,7 +78,6 @@ fun AssetInfo.toAssetInfoDataAggregate(
                 changePercentage = changePercentage,
             )
         },
-        position = position,
         pinned = metadata?.isPinned == true,
         balanceEnabled = metadata?.isBalanceEnabled == true,
         accountAddress = owner?.address.orEmpty(),

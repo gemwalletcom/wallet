@@ -62,7 +62,7 @@ pub struct RewardReferralRow {
     pub referrer_username: String,
     pub referred_username: String,
     pub referred_device_id: i32,
-    pub risk_signal_id: i32,
+    pub risk_signal_id: Option<i32>,
     pub verified_at: Option<NaiveDateTime>,
     pub updated_at: NaiveDateTime,
     pub created_at: NaiveDateTime,
@@ -74,7 +74,7 @@ pub struct NewRewardReferralRow {
     pub referrer_username: String,
     pub referred_username: String,
     pub referred_device_id: i32,
-    pub risk_signal_id: i32,
+    pub risk_signal_id: Option<i32>,
     pub verified_at: Option<NaiveDateTime>,
 }
 

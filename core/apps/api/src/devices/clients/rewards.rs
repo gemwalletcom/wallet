@@ -137,14 +137,25 @@ impl RewardsClient {
             RewardsError::Referral(error.localize(locale))
         })?;
 
+        let referrer_info = client.rewards().get_referrer_info(&referrer_username)?;
         if client.rewards().is_pending_referral(&referrer_username, wallet.id, device.id)? {
-            let referrer_info = client.rewards().get_referrer_info(&referrer_username)?;
-            if !referrer_info.status.is_verified() {
+            if !referrer_info.status.is_verified() && referrer_info.status != RewardStatus::Attribution {
                 return Err(RewardsError::Referral(ReferralError::from(ReferralValidationError::RewardsNotEnabled(referrer_username.clone())).localize(locale)).into());
             }
             let events = client
                 .rewards()
-                .use_or_verify_referral(&referrer_username, &referrer_info.status, wallet.id, device.id, 0)?;
+                .use_or_verify_referral(&referrer_username, &referrer_info.status, wallet.id, device.id, None)?;
+            return Ok(events);
+        }
+
+        if referrer_info.status == RewardStatus::Attribution {
+            client
+                .rewards()
+                .validate_referral_use(&referrer_username, referrer_info.wallet_id, wallet.id, device.id, device.created_at, None)
+                .map_err(|error| RewardsError::Referral(ReferralError::from(error).localize(locale)))?;
+            let events = client
+                .rewards()
+                .use_or_verify_referral(&referrer_username, &referrer_info.status, wallet.id, device.id, None)?;
             return Ok(events);
         }
         drop(client);
@@ -154,7 +165,7 @@ impl RewardsClient {
                 let events = self
                     .db
                     .rewards()?
-                    .use_or_verify_referral(&referrer_username, &referrer_status, wallet.id, device.id, risk_signal_id)?;
+                    .use_or_verify_referral(&referrer_username, &referrer_status, wallet.id, device.id, Some(risk_signal_id))?;
                 Ok(events)
             }
             ReferralProcessResult::Failed(error) => {
@@ -211,7 +222,7 @@ impl RewardsClient {
             let eligibility_days = (eligibility.as_secs() / 86400) as i64;
             client
                 .rewards()
-                .validate_referral_use(referrer_username, referrer_info.wallet_id, wallet_id, device.id, device.created_at, eligibility_days)?;
+                .validate_referral_use(referrer_username, referrer_info.wallet_id, wallet_id, device.id, device.created_at, Some(eligibility_days))?;
         }
 
         if *device.platform == Platform::Android {

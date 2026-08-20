@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,15 +13,19 @@ import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.request
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
+import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactPage
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
+import com.gemwallet.android.data.service.store.LocalStore
+import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.models.name.AddressInputModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Contact
 import com.wallet.core.primitives.ContactAddress
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,6 +42,8 @@ class ManageContactViewModel @Inject constructor(
     private val getContacts: GetContacts,
     private val addContactCase: AddContact,
     private val updateContactCase: UpdateContact,
+    @ApplicationContext private val context: Context,
+    private val localStore: LocalStore,
     resolveName: ResolveName,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -51,7 +58,7 @@ class ManageContactViewModel @Inject constructor(
         if (editContactId != null) Mode.Edit(editContactId) else Mode.Add
     }
     private val contactId: String = (mode as? Mode.Edit)?.contactId ?: UUID.randomUUID().toString()
-    private var createdAt: Long? = null
+    private var contact: Contact? = null
 
     private val addressInput = AddressInputModel(
         resolveName = resolveName,
@@ -71,8 +78,10 @@ class ManageContactViewModel @Inject constructor(
             isEdit = current.isEdit,
             name = current.name,
             description = current.description,
+            avatar = current.avatar,
             addresses = current.addresses,
             page = current.page,
+            isSaving = current.isSaving,
             saved = current.saved,
             addressInput = current.form?.let { form ->
                 ContactAddressInput(
@@ -92,12 +101,12 @@ class ManageContactViewModel @Inject constructor(
         when (val mode = mode) {
             is Mode.Edit -> viewModelScope.launch(Dispatchers.IO) {
                 val data = getContacts.getContact(mode.contactId) ?: return@launch
-                createdAt = data.contact.createdAt
+                contact = data.contact
                 state.update {
                     it.copy(
-                        isEdit = true,
                         name = data.contact.name,
                         description = data.contact.description ?: "",
+                        avatar = ContactAvatarState.from(data.contact.imageUrl),
                         addresses = data.addresses,
                     )
                 }
@@ -109,6 +118,16 @@ class ManageContactViewModel @Inject constructor(
     fun setName(value: String) = state.update { it.copy(name = value) }
 
     fun setDescription(value: String) = state.update { it.copy(description = value) }
+
+    fun selectAvatar() = state.update { it.copy(page = ManageContactPage.Avatar) }
+
+    fun cancelAvatar() = state.update { it.copy(page = ManageContactPage.Form) }
+
+    fun setAvatar(emoji: String, backgroundColor: Int) = state.update {
+        it.copy(avatar = ContactAvatarState.Emoji(emoji, backgroundColor), page = ManageContactPage.Form)
+    }
+
+    fun removeAvatar() = state.update { it.copy(avatar = ContactAvatarState.Empty) }
 
     fun deleteAddress(address: ContactAddress) = state.update {
         it.copy(addresses = it.addresses.filterNot { item -> item.id == address.id })
@@ -210,21 +229,28 @@ class ManageContactViewModel @Inject constructor(
     fun save() {
         val current = uiState.value
         if (!current.isSaveEnabled) return
-
-        val now = System.currentTimeMillis()
-        val contact = Contact(
-            id = contactId,
-            name = current.name.trim(),
-            description = current.description.ifBlank { null },
-            createdAt = createdAt ?: now,
-            updatedAt = now,
-        )
+        state.update { it.copy(isSaving = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            when (mode) {
-                is Mode.Add -> addContactCase.addContact(contact, current.addresses)
-                is Mode.Edit -> updateContactCase.updateContact(contact, current.addresses)
+            val imageUrl = when (val avatar = current.avatar) {
+                ContactAvatarState.Empty -> null
+                is ContactAvatarState.Image -> avatar.imageUrl
+                is ContactAvatarState.Emoji -> localStore.save(EmojiAvatarRenderer.render(context, avatar.emoji, avatar.backgroundColor), "png")
             }
+            val now = System.currentTimeMillis()
+            val updated = Contact(
+                id = contactId,
+                name = current.name.trim(),
+                description = current.description.ifBlank { null },
+                imageUrl = imageUrl,
+                createdAt = contact?.createdAt ?: now,
+                updatedAt = now,
+            )
+            when (mode) {
+                is Mode.Add -> addContactCase.addContact(updated, current.addresses)
+                is Mode.Edit -> updateContactCase.updateContact(updated, current.addresses)
+            }
+            if (contact?.imageUrl != imageUrl) localStore.remove(contact?.imageUrl)
             state.update { it.copy(saved = true) }
         }
     }

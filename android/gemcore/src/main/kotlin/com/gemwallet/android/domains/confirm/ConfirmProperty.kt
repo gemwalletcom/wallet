@@ -2,6 +2,7 @@ package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.ConfirmParams
 import com.wallet.core.primitives.AddressName
+import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
@@ -9,7 +10,7 @@ import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.WalletType
 
 sealed interface ConfirmProperty {
-    class Source(val data: String, val walletType: WalletType, val walletChain: Chain?) : ConfirmProperty
+    class Source(val data: String, val walletType: WalletType, val walletChain: Chain?, val walletImageUrl: String?) : ConfirmProperty
     class Network(val data: Asset) : ConfirmProperty
     class Memo(memo: String) : ConfirmProperty {
         val data: String = memo.ifEmpty { "-" }
@@ -22,6 +23,8 @@ sealed interface ConfirmProperty {
             val domain: String?,
             val address: String,
             val chain: Chain,
+            val addressType: AddressType? = null,
+            val imageUrl: String? = null,
             val explorerLink: BlockExplorerLink? = null,
         ) : Destination(address)
         class Generic(val appName: String) : Destination(appName)
@@ -50,9 +53,16 @@ sealed interface ConfirmProperty {
                 is ConfirmParams.TransferParams.Token,
                 is ConfirmParams.TransferParams.Deposit,
                 is ConfirmParams.TransferParams.Withdrawal,
-                is ConfirmParams.TransferParams.Native -> params.destination()?.let {
-                    Transfer(domain = it.name ?: addressName?.name, address = it.address, chain = params.assetId.chain)
-                } ?: throw ConfirmError.RecipientEmpty
+                is ConfirmParams.TransferParams.Native -> {
+                    val destination = params.destination() ?: throw ConfirmError.RecipientEmpty
+                    Transfer(
+                        domain = destination.name ?: addressName?.name,
+                        address = destination.address,
+                        chain = params.assetId.chain,
+                        addressType = addressName?.type,
+                        imageUrl = addressName?.imageUrl,
+                    )
+                }
                 is ConfirmParams.TransferParams.Generic -> Generic(params.name)
             }
         }

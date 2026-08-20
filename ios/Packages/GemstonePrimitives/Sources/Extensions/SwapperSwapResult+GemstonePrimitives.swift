@@ -9,6 +9,7 @@ public extension Gemstone.SwapperSwapResult {
         try Primitives.SwapResult(
             status: status.map(),
             metadata: metadata?.map(),
+            etaInSeconds: etaInSeconds,
         )
     }
 }

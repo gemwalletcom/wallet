@@ -2,6 +2,8 @@
 
 import BalanceService
 import Foundation
+import func Gemstone.walletAssetIsEnabled
+import GemstonePrimitives
 import Primitives
 
 public struct WalletSetupService: Sendable {
@@ -13,18 +15,18 @@ public struct WalletSetupService: Sendable {
 
     public func setup(wallet: Wallet) throws {
         let chains = wallet.chains
-        let defaultAssets = chains.map(\.defaultAssets.assetIds).flatMap(\.self)
-        let assetIds = chains.ids + defaultAssets
+        let defaultAssets = chains.flatMap(\.defaultAssets).assetIds
+        let assetIds = chains.filter { AssetScore.defaultRank(chain: $0) >= 0 }.ids + defaultAssets
 
-        let (enabledByDefault, disabledByDefault) = assetIds.reduce(into: ([AssetId](), [AssetId]())) { result, assetId in
-            if AssetConfiguration.enabledByDefault.contains(assetId) || (wallet.accounts.count == 1 && chains.count == 1) {
+        let (enabledAssets, disabledAssets) = assetIds.reduce(into: ([AssetId](), [AssetId]())) { result, assetId in
+            if walletAssetIsEnabled(assetId: assetId.identifier, walletType: wallet.type.map()) {
                 result.0.append(assetId)
             } else {
                 result.1.append(assetId)
             }
         }
 
-        try balanceService.addAssetsBalancesIfMissing(assetIds: enabledByDefault, wallet: wallet, isEnabled: true)
-        try balanceService.addAssetsBalancesIfMissing(assetIds: disabledByDefault, wallet: wallet, isEnabled: false)
+        try balanceService.addAssetsBalancesIfMissing(assetIds: enabledAssets, wallet: wallet, isEnabled: true)
+        try balanceService.addAssetsBalancesIfMissing(assetIds: disabledAssets, wallet: wallet, isEnabled: false)
     }
 }

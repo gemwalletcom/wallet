@@ -24,7 +24,7 @@ struct BannerViewModel {
     var image: AssetImage? {
         switch banner.event {
         case .stake:
-            return AssetImage(type: Emoji.WalletAvatar.moneyBag.rawValue)
+            return AssetImage(type: .emoji(Emoji.WalletAvatar.moneyBag.rawValue))
         case .accountActivation, .activateAsset:
             guard let asset else {
                 return .none

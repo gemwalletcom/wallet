@@ -10,6 +10,7 @@ import kotlinx.serialization.SerialName
 @Serializable
 data class SwapResult (
 	val status: SwapStatus,
-	val metadata: TransactionSwapMetadata? = null
+	val metadata: TransactionSwapMetadata? = null,
+	val etaInSeconds: UInt? = null
 )
 

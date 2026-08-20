@@ -3,9 +3,15 @@ use std::{error::Error, ops::Deref};
 use async_trait::async_trait;
 use chain_traits::{ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
-use primitives::AssetBalance;
+use num_bigint::BigInt;
+use primitives::{AssetBalance, TransactionFee, TransactionLoadInput};
 
 use super::EthereumClient;
+
+#[async_trait]
+pub trait EvmFeeCalculator: Send + Sync {
+    async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>>;
+}
 
 #[async_trait]
 pub trait AssetBalanceProvider: Send + Sync {
@@ -25,19 +31,38 @@ pub struct EthereumProvider<C: Client + Clone> {
     client: EthereumClient<C>,
     transactions_by_address_provider: Box<dyn ChainTransactions>,
     asset_balance_provider: Box<dyn AssetBalanceProvider>,
+    pub(crate) fee_calculator: Box<dyn EvmFeeCalculator>,
 }
 
 impl<C: Client + Clone> EthereumProvider<C> {
-    pub fn new(client: EthereumClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>, asset_balance_provider: Box<dyn AssetBalanceProvider>) -> Self {
+    pub fn new(client: EthereumClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>, asset_balance_provider: Box<dyn AssetBalanceProvider>) -> Self
+    where
+        C: 'static,
+    {
+        let fee_calculator = Box::new(client.clone());
         Self {
             client,
             transactions_by_address_provider,
             asset_balance_provider,
+            fee_calculator,
         }
     }
 
-    pub fn new_rpc_only(client: EthereumClient<C>) -> Self {
+    pub fn new_rpc_only(client: EthereumClient<C>) -> Self
+    where
+        C: 'static,
+    {
         Self::new(client, Box::new(EmptyTransactionsProvider), Box::new(EmptyAssetBalanceProvider))
+    }
+
+    pub fn new_rpc_only_with_fee_calculator(client: EthereumClient<C>, fee_calculator: Box<dyn EvmFeeCalculator>) -> Self
+    where
+        C: 'static,
+    {
+        Self {
+            fee_calculator,
+            ..Self::new_rpc_only(client)
+        }
     }
 
     pub(crate) async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {

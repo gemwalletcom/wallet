@@ -5,7 +5,7 @@ use chain_traits::{ChainAddressStatus, ChainPerpetual};
 use futures::{future::try_join_all, try_join};
 use gem_client::Client;
 use primitives::{
-    ChartPeriod,
+    ChartPeriod, PerpetualPosition,
     chart::ChartCandleStick,
     perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualPositionsSummary},
     portfolio::PerpetualPortfolio,
@@ -83,6 +83,16 @@ impl<C: Client> HyperCoreClient<C> {
         }
     }
 
+    async fn get_position_summary_for_dex(&self, address: String, dex: Option<String>) -> Result<PerpetualPositionsSummary, Box<dyn Error + Sync + Send>> {
+        let positions = self.get_positions_for_dex(address.clone(), dex.clone()).await?;
+        let orders = if positions.asset_positions.is_empty() {
+            Vec::new()
+        } else {
+            self.get_open_orders_for_dex(address.clone(), dex).await?
+        };
+        Ok(map_positions(positions, address, &orders))
+    }
+
     async fn get_portfolio_for_dex(&self, address: String, dex: Option<String>) -> Result<(PerpetualPortfolio, AssetPositions), Box<dyn Error + Sync + Send>> {
         let (response, positions) = match dex.as_deref() {
             Some(dex) => try_join!(self.get_perpetual_portfolio_with_dex(&address, dex), self.get_clearinghouse_state_with_dex(&address, dex))?,
@@ -99,15 +109,7 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
         let mode = mode?;
         let summaries = try_join_all(dex_entries.into_iter().map(|(_, dex)| {
             let address = address.clone();
-            async move {
-                let positions = self.get_positions_for_dex(address.clone(), dex.clone()).await?;
-                let orders = if positions.asset_positions.is_empty() {
-                    Vec::new()
-                } else {
-                    self.get_open_orders_for_dex(address.clone(), dex).await?
-                };
-                Ok::<_, Box<dyn Error + Sync + Send>>(map_positions(positions, address, &orders))
-            }
+            async move { self.get_position_summary_for_dex(address, dex).await }
         }))
         .await?;
 
@@ -135,6 +137,17 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
         };
 
         Ok(PerpetualPositionsSummary { positions, balance })
+    }
+
+    async fn get_positions_for_classification(&self, address: String) -> Result<Vec<PerpetualPosition>, Box<dyn Error + Sync + Send>> {
+        let dex_entries = self.get_active_dex_entries().await;
+        let summaries = try_join_all(dex_entries.into_iter().map(|(_, dex)| {
+            let address = address.clone();
+            async move { self.get_position_summary_for_dex(address, dex).await }
+        }))
+        .await?;
+
+        Ok(summaries.into_iter().flat_map(|summary| summary.positions).collect())
     }
 
     async fn get_perpetual_account_mode(&self, address: String) -> Result<PerpetualAccountMode, Box<dyn Error + Sync + Send>> {
@@ -401,6 +414,31 @@ mod tests {
         assert_eq!(summary.balance.available, 3.797316);
         assert_eq!(summary.balance.reserved, 4.331289 - 3.797316);
         assert_eq!(summary.positions.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn test_get_positions_for_classification_skips_account_and_balance_requests() {
+        let seen_request_types = Arc::new(Mutex::new(Vec::new()));
+        let seen_request_types_clone = Arc::clone(&seen_request_types);
+        let client = MockClient::new().with_post(move |path, body| {
+            assert_eq!(path, "/info");
+
+            let request: Value = serde_json::from_slice(body).unwrap();
+            let request_type = request["type"].as_str().unwrap().to_string();
+            seen_request_types_clone.lock().unwrap().push(request_type.clone());
+
+            match request_type.as_str() {
+                "clearinghouseState" => Ok(include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec()),
+                "frontendOpenOrders" => Ok(include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec()),
+                _ => Err(ClientError::Http { status: 404, body: body.to_vec() }),
+            }
+        });
+        let client = HyperCoreClient::new_with_preferences(client, Arc::new(InMemoryPreferences::new()), Arc::new(InMemoryPreferences::new()));
+
+        let positions = client.get_positions_for_classification("0x123".to_string()).await.unwrap();
+
+        assert_eq!(positions.len(), 1);
+        assert_eq!(seen_request_types.lock().unwrap().as_slice(), ["clearinghouseState", "frontendOpenOrders"]);
     }
 
     #[tokio::test]

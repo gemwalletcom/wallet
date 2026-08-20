@@ -3,30 +3,32 @@ use std::error::Error;
 use std::sync::Arc;
 
 use cacher::{CacheKey, CacherClient};
+use futures::{StreamExt, stream};
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{Chain, PerpetualPosition};
 use settings_chain::ChainProviders;
 
 #[derive(Clone, Copy)]
-pub struct PerpetualPriorityConfig {
+pub struct PerpetualPositionClassifierConfig {
     pub trigger_bps: i64,
     pub liquidation_bps: i64,
+    pub concurrency: usize,
 }
 
 pub struct PerpetualPositionClassifier {
     chain: Chain,
     providers: Arc<ChainProviders>,
     cacher: CacherClient,
-    priority_config: PerpetualPriorityConfig,
+    config: PerpetualPositionClassifierConfig,
 }
 
 impl PerpetualPositionClassifier {
-    pub fn new(chain: Chain, providers: Arc<ChainProviders>, cacher: CacherClient, priority_config: PerpetualPriorityConfig) -> Self {
+    pub fn new(chain: Chain, providers: Arc<ChainProviders>, cacher: CacherClient, config: PerpetualPositionClassifierConfig) -> Self {
         Self {
             chain,
             providers,
             cacher,
-            priority_config,
+            config,
         }
     }
 
@@ -38,12 +40,21 @@ impl PerpetualPositionClassifier {
         let mut active_addresses = Vec::new();
         let mut priority_addresses = Vec::new();
 
-        for address in &addresses {
-            match self.providers.get_perpetual_positions(self.chain, address.clone()).await {
-                Ok(summary) => {
-                    if !summary.positions.is_empty() {
+        let results = stream::iter(addresses.iter().cloned())
+            .map(|address| async move {
+                let result = self.providers.get_perpetual_positions_for_classification(self.chain, address.clone()).await;
+                (address, result)
+            })
+            .buffered(self.config.concurrency)
+            .collect::<Vec<_>>()
+            .await;
+
+        for (address, result) in results {
+            match result {
+                Ok(positions) => {
+                    if !positions.is_empty() {
                         active_addresses.push(address.clone());
-                        if summary.positions.iter().any(|p| is_priority_position(p, self.priority_config)) {
+                        if positions.iter().any(|p| is_priority_position(p, self.config)) {
                             priority_addresses.push(address.clone());
                         }
                     }
@@ -89,7 +100,7 @@ fn bps_to_ratio(bps: i64) -> f64 {
     bps as f64 / 10_000.0
 }
 
-fn is_priority_position(position: &PerpetualPosition, config: PerpetualPriorityConfig) -> bool {
+fn is_priority_position(position: &PerpetualPosition, config: PerpetualPositionClassifierConfig) -> bool {
     let Some(mark_price) = current_mark_price(position) else {
         return false;
     };
@@ -124,10 +135,11 @@ mod tests {
     use super::*;
     use primitives::{AssetId, Chain, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, PerpetualTriggerOrder};
 
-    fn config() -> PerpetualPriorityConfig {
-        PerpetualPriorityConfig {
+    fn config() -> PerpetualPositionClassifierConfig {
+        PerpetualPositionClassifierConfig {
             trigger_bps: 100,
             liquidation_bps: 600,
+            concurrency: 3,
         }
     }
 
@@ -165,9 +177,10 @@ mod tests {
             order_type: PerpetualOrderType::Limit,
             order_id: "1".to_string(),
         });
-        let config = PerpetualPriorityConfig {
+        let config = PerpetualPositionClassifierConfig {
             trigger_bps: 100,
             liquidation_bps: 100,
+            concurrency: 3,
         };
 
         assert!(is_priority_position(&position, config));
@@ -182,9 +195,10 @@ mod tests {
             order_type: PerpetualOrderType::Market,
             order_id: "2".to_string(),
         });
-        let config = PerpetualPriorityConfig {
+        let config = PerpetualPositionClassifierConfig {
             trigger_bps: 100,
             liquidation_bps: 100,
+            concurrency: 3,
         };
 
         assert!(!is_priority_position(&position, config));

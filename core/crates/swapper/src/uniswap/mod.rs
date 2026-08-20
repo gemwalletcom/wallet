@@ -9,4 +9,4 @@ pub mod universal_router;
 pub mod v3;
 pub mod v4;
 
-pub(crate) use crate::native_asset::{is_native_erc20, requires_native_wrapping};
+pub(crate) use crate::native_asset::requires_native_wrapping;

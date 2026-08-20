@@ -25,12 +25,14 @@ pub(super) async fn get_swap_result(rpc_provider: Arc<dyn RpcProvider>, chain: C
             return Ok(SwapResult {
                 status: SwapStatus::Pending,
                 metadata: None,
+                eta_in_seconds: None,
             });
         }
         SourceDeposit::Failed => {
             return Ok(SwapResult {
                 status: SwapStatus::Failed,
                 metadata: None,
+                eta_in_seconds: None,
             });
         }
     };
@@ -39,12 +41,14 @@ pub(super) async fn get_swap_result(rpc_provider: Arc<dyn RpcProvider>, chain: C
         return Ok(SwapResult {
             status: SwapStatus::Pending,
             metadata: None,
+            eta_in_seconds: None,
         });
     }
 
     Ok(SwapResult {
         status: SwapStatus::Completed,
         metadata: swap_metadata(&deposit),
+        eta_in_seconds: None,
     })
 }
 

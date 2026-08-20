@@ -101,8 +101,15 @@ impl TransactionCoin {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionStages {
+    inbound_confirmation_counted: Option<InboundConfirmationStage>,
     pub swap_status: Option<TransactionSwapStage>,
+    outbound_delay: Option<OutboundDelayStage>,
     pub outbound_signed: Option<TransactionCompletionStage>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct InboundConfirmationStage {
+    remaining_confirmation_seconds: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -113,6 +120,11 @@ pub struct TransactionSwapStage {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionCompletionStage {
     pub completed: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct OutboundDelayStage {
+    remaining_delay_seconds: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -155,6 +167,21 @@ impl TransactionStatus {
             return planned;
         }
         self.out_txs.as_ref().and_then(|txs| txs.first()).and_then(|tx| tx.coins.first())
+    }
+
+    pub(super) fn eta_in_seconds(&self) -> Option<u32> {
+        if self.swap_status() != SwapStatus::Pending {
+            return None;
+        }
+
+        let confirmation = self
+            .stages
+            .inbound_confirmation_counted
+            .as_ref()
+            .and_then(|stage| stage.remaining_confirmation_seconds)
+            .unwrap_or_default();
+        let outbound = self.stages.outbound_delay.as_ref().and_then(|stage| stage.remaining_delay_seconds).unwrap_or_default();
+        confirmation.checked_add(outbound).filter(|seconds| *seconds > 0)
     }
 
     fn is_refunded(&self) -> bool {
@@ -404,9 +431,26 @@ mod tests {
     }
 
     #[test]
-    fn test_tx_status_pending_outbound_not_signed() {
-        let status: TransactionStatus = serde_json::from_str(include_str!("testdata/tx_status_bnb_to_tron_pending.json")).unwrap();
+    fn test_transaction_status_eta() {
+        let mut status: TransactionStatus = serde_json::from_str(include_str!("testdata/tx_status_bnb_to_tron_pending.json")).unwrap();
         assert_eq!(status.swap_status(), SwapStatus::Pending);
+        assert_eq!(status.eta_in_seconds(), Some(120));
+
+        status.stages.inbound_confirmation_counted = None;
+        status.stages.outbound_delay = None;
+        assert_eq!(status.eta_in_seconds(), None);
+
+        status.stages.inbound_confirmation_counted = Some(InboundConfirmationStage {
+            remaining_confirmation_seconds: Some(0),
+        });
+        status.stages.outbound_delay = Some(OutboundDelayStage { remaining_delay_seconds: Some(0) });
+        assert_eq!(status.eta_in_seconds(), None);
+
+        status.stages.inbound_confirmation_counted = Some(InboundConfirmationStage {
+            remaining_confirmation_seconds: Some(u32::MAX),
+        });
+        status.stages.outbound_delay = Some(OutboundDelayStage { remaining_delay_seconds: Some(1) });
+        assert_eq!(status.eta_in_seconds(), None);
     }
 
     #[test]

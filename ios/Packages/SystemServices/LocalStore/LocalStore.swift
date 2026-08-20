@@ -2,26 +2,29 @@
 
 import Foundation
 
-struct LocalStore {
+public struct LocalStore: Sendable {
     private var fileManager: FileManager {
         FileManager.default
     }
 
     private let documentDirectory = URL.documentsDirectory
 
+    public init() {}
+
     // MARK: - Public methods
 
-    func store(_ data: Data, id: String, documentType: String) throws -> String {
+    public func store(_ data: Data, id: String, documentType: String) throws -> String {
         let documentPath = documentPath(for: id, documentType: documentType)
         try data.write(to: documentPath, options: .atomic)
         return documentPath.lastPathComponent
     }
 
-    func remove(_ imageUrl: String) throws {
-        guard fileManager.fileExists(atPath: documentPath(for: imageUrl, documentType: nil).path()) else {
+    public func remove(_ fileName: String) throws {
+        let url = documentDirectory.appendingPathComponent(fileName)
+        guard fileManager.fileExists(atPath: url.path()) else {
             return
         }
-        try fileManager.removeItem(at: documentPath(for: imageUrl, documentType: nil))
+        try fileManager.removeItem(at: url)
     }
 
     // MARK: - Private methods

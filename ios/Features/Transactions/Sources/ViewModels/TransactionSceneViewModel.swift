@@ -74,13 +74,13 @@ extension TransactionSceneViewModel: ListSectionProvideable {
     public func itemModel(for item: TransactionItem) -> any ItemModelProvidable<TransactionItemModel> {
         switch item {
         case .header: headerViewModel
-        case .swapProgress: TransactionSwapProgressViewModel(transaction: transactionExtended)
+        case .swapProgress: swapProgressViewModel
         case .swapButton: TransactionSwapButtonViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), state: model.transaction.transaction.state)
         case .date: TransactionDateViewModel(date: model.transaction.transaction.createdAt)
         case .status: TransactionStatusViewModel(state: model.transaction.transaction.state, onInfoAction: onSelectStatusInfo)
         case .estimatedConfirmation:
             TransactionEstimatedConfirmationViewModel(
-                seconds: model.transaction.transaction.state == .pending ? transactionExtended.confirmationEtaSeconds : nil,
+                seconds: transactionExtended.transaction.state == .pending && swapProgressViewModel.progress == nil ? transactionExtended.confirmationEtaSeconds : nil,
                 onInfoAction: onSelectEstimatedConfirmationInfo,
             )
         case .participant: TransactionParticipantViewModel(transactionViewModel: model, onAddContact: onAddContact)
@@ -132,8 +132,7 @@ extension TransactionSceneViewModel {
     }
 
     private func onSelectFee() {
-        let chain = model.transaction.transaction.assetId.chain
-        isPresentingTransactionSheet = .info(.networkFee(chain))
+        isPresentingTransactionSheet = .info(.networkFee(model.transaction.feeAsset))
     }
 
     private func onSelectStatusInfo() {
@@ -166,6 +165,10 @@ extension TransactionSceneViewModel {
             transaction: model.transaction,
             infoModel: model.infoModel,
         )
+    }
+
+    private var swapProgressViewModel: TransactionSwapProgressViewModel {
+        TransactionSwapProgressViewModel(transaction: transactionExtended)
     }
 
     private var explorerViewModel: TransactionExplorerViewModel {
@@ -209,7 +212,6 @@ extension TransactionSceneViewModel {
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
-            chain: model.transaction.transaction.assetId.chain,
             feeAsset: model.transaction.feeAsset,
             currency: Currency(rawValue: preferences.currency) ?? .usd,
             selection: .preset(.normal),

@@ -108,6 +108,7 @@ pub enum ConfigKey {
     FiatValidateSubscription,
 
     // Transactions
+    TransactionsMaxAssetTransferCount,
     TransactionsMinAmountUsd,
     TransactionsOutdatedBlockCount,
     TransactionsOutdatedMinTimeout,
@@ -147,10 +148,13 @@ pub enum ConfigKey {
     PriceMissingPublishInterval,
 
     // Assets
+    AssetsSpamMarkers,
+    AssetsFraudulentAssets,
     AssetsTimerUpdateSuspicious,
     AssetsTimerUpdateStakeApy,
     AssetsTimerUpdatePerpetuals,
     AssetsTimerUpdateUsageRank,
+    AssetsUsageRankBatchSize,
     AssetsTimerUpdateImages,
     AssetsTimerUpdateHasPrice,
 
@@ -200,6 +204,7 @@ pub enum ConfigKey {
 
     // Perpetuals
     PerpetualClassifierInterval,
+    PerpetualClassifierConcurrency,
     PerpetualObserverInterval,
     PerpetualAddressRefreshInterval,
     PerpetualPriorityObserverInterval,
@@ -323,6 +328,7 @@ impl ConfigKey {
             Self::ReferralAbuseVelocityPenaltyPerSignal => "100",
             Self::ReferralAbuseDisabledReferrerPenalty => "80",
             Self::FiatValidateSubscription => "false",
+            Self::TransactionsMaxAssetTransferCount => "10",
             Self::TransactionsMinAmountUsd => "0.05",
             Self::TransactionsOutdatedBlockCount => "12",
             Self::TransactionsOutdatedMinTimeout => "15m",
@@ -353,10 +359,13 @@ impl ConfigKey {
             Self::PriceOutdated => "7d",
             Self::PricePrimaryMaxAge => "24h",
             Self::PriceMissingPublishInterval => "1h",
+            Self::AssetsSpamMarkers => r#"["www."]"#,
+            Self::AssetsFraudulentAssets => r#"[{"name":"Tether","symbols":["USDT"]},{"name":"Tether USD","symbols":["USDT","$USD₮"]},{"name":"USD Coin","symbols":["USDC"]}]"#,
             Self::AssetsTimerUpdateSuspicious => "1h",
             Self::AssetsTimerUpdateStakeApy => "1d",
             Self::AssetsTimerUpdatePerpetuals => "1h",
             Self::AssetsTimerUpdateUsageRank => "1h",
+            Self::AssetsUsageRankBatchSize => "1000",
             Self::AssetsTimerUpdateImages => "8h",
             Self::AssetsTimerUpdateHasPrice => "1h",
             Self::ListsTimerUpdateLists => "1d",
@@ -393,6 +402,7 @@ impl ConfigKey {
             Self::TransactionCleanupAddressLimit => "200",
             Self::TransactionCleanupLookback => "90d",
             Self::PerpetualClassifierInterval => "15m",
+            Self::PerpetualClassifierConcurrency => "3",
             Self::PerpetualObserverInterval => "1m",
             Self::PerpetualAddressRefreshInterval => "1h",
             Self::PerpetualPriorityObserverInterval => "10s",

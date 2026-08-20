@@ -134,6 +134,7 @@ impl InTransitUpdater {
             None => SwapResult {
                 status: SwapStatus::Pending,
                 metadata: None,
+                eta_in_seconds: None,
             },
         };
         let Some((state, metadata)) = resolve_status(&result, row.created_at, cutoff) else {
@@ -212,7 +213,11 @@ mod tests {
     use primitives::{HOUR, MINUTE, TransactionState as PrimitiveTransactionState};
 
     fn swap_result(status: SwapStatus, metadata: Option<TransactionSwapMetadata>) -> SwapResult {
-        SwapResult { status, metadata }
+        SwapResult {
+            status,
+            metadata,
+            eta_in_seconds: None,
+        }
     }
 
     fn swap_metadata(provider: &str, from_value: &str, to_value: &str) -> TransactionSwapMetadata {

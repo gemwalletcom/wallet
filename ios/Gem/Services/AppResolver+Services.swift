@@ -52,9 +52,9 @@ extension AppResolver {
         let navigationHandler: NavigationHandler
         let navigationPresenter: NavigationPresenter
         let priceAlertService: PriceAlertService
-        let priceService: PriceService
         let streamObserverService: StreamObserverService
         let streamSubscriptionService: StreamSubscriptionService
+        let priceService: PriceService
         let stakeService: StakeService
         let transactionsService: TransactionsService
         let transactionStateScheduler: TransactionStateScheduler
@@ -68,10 +68,10 @@ extension AppResolver {
         let nftService: NFTService
         let avatarService: AvatarService
         let swapService: SwapService
-        let subscriptionsService: SubscriptionService
         let appReleaseService: AppReleaseService
         let releaseAlertService: ReleaseAlertService
         let rateService: RateService
+        let subscriptionsService: SubscriptionService
         let deviceObserverService: DeviceObserverService
         let onstartService: OnstartService
         let onstartAsyncService: OnstartAsyncService
@@ -93,116 +93,5 @@ extension AppResolver {
         let fiatService: FiatService
         let contactService: ContactService
         let supportChatService: SupportChatService
-
-        init(
-            assetsService: AssetsService,
-            balanceService: BalanceService,
-            bannerService: BannerService,
-            chainServiceFactory: ChainServiceFactory,
-            connectionsService: ConnectionsService,
-            connectionStatusObserver: ConnectionStatusObserver,
-            deviceService: DeviceService,
-            nodeService: NodeService,
-            serviceStatusService: any ServiceStatusServiceable,
-            navigationHandler: NavigationHandler,
-            navigationPresenter: NavigationPresenter,
-            priceAlertService: PriceAlertService,
-            streamObserverService: StreamObserverService,
-            streamSubscriptionService: StreamSubscriptionService,
-            priceService: PriceService,
-            stakeService: StakeService,
-            transactionsService: TransactionsService,
-            transactionStateScheduler: TransactionStateScheduler,
-            walletService: WalletService,
-            walletSessionService: any WalletSessionManageable,
-            assetsEnabler: any AssetsEnabler,
-            assetDiscoveryService: any AssetDiscoverable,
-            walletSetupService: WalletSetupService,
-            explorerService: ExplorerService,
-            scanService: ScanService,
-            nftService: NFTService,
-            avatarService: AvatarService,
-            swapService: SwapService,
-            appReleaseService: AppReleaseService,
-            releaseAlertService: ReleaseAlertService,
-            rateService: RateService,
-            subscriptionsService: SubscriptionService,
-            deviceObserverService: DeviceObserverService,
-            onstartService: OnstartService,
-            onstartAsyncService: OnstartAsyncService,
-            onstartWalletService: OnstartWalletService,
-            walletConnectorManager: WalletConnectorManager,
-            perpetualService: PerpetualService,
-            hyperliquidObserverService: any PerpetualObservable,
-            nameService: any NameServiceable,
-            addressNameService: AddressNameService,
-            activityService: ActivityService,
-            eventPresenterService: EventPresenterService,
-            viewModelFactory: ViewModelFactory,
-            rewardsService: RewardsService,
-            walletSearchService: WalletSearchService,
-            assetSearchService: AssetSearchService,
-            appLifecycleService: AppLifecycleService,
-            inAppNotificationService: InAppNotificationService,
-            portfolioService: PortfolioService,
-            fiatService: FiatService,
-            contactService: ContactService,
-            supportChatService: SupportChatService,
-        ) {
-            self.assetsService = assetsService
-            self.balanceService = balanceService
-            self.bannerService = bannerService
-            self.chainServiceFactory = chainServiceFactory
-            self.connectionsService = connectionsService
-            self.connectionStatusObserver = connectionStatusObserver
-            self.deviceService = deviceService
-            self.nodeService = nodeService
-            self.serviceStatusService = serviceStatusService
-            self.navigationHandler = navigationHandler
-            self.navigationPresenter = navigationPresenter
-            self.priceAlertService = priceAlertService
-            self.priceService = priceService
-            self.streamObserverService = streamObserverService
-            self.streamSubscriptionService = streamSubscriptionService
-            self.stakeService = stakeService
-            self.transactionsService = transactionsService
-            self.transactionStateScheduler = transactionStateScheduler
-            self.walletService = walletService
-            self.walletSessionService = walletSessionService
-            self.assetsEnabler = assetsEnabler
-            self.assetDiscoveryService = assetDiscoveryService
-
-            self.walletSetupService = walletSetupService
-            self.explorerService = explorerService
-            self.scanService = scanService
-            self.nftService = nftService
-            self.avatarService = avatarService
-            self.swapService = swapService
-            self.appReleaseService = appReleaseService
-            self.releaseAlertService = releaseAlertService
-            self.rateService = rateService
-            self.deviceObserverService = deviceObserverService
-            self.subscriptionsService = subscriptionsService
-            self.onstartService = onstartService
-            self.onstartAsyncService = onstartAsyncService
-            self.onstartWalletService = onstartWalletService
-            self.walletConnectorManager = walletConnectorManager
-            self.perpetualService = perpetualService
-            self.hyperliquidObserverService = hyperliquidObserverService
-            self.nameService = nameService
-            self.addressNameService = addressNameService
-            self.activityService = activityService
-            self.eventPresenterService = eventPresenterService
-            self.viewModelFactory = viewModelFactory
-            self.rewardsService = rewardsService
-            self.walletSearchService = walletSearchService
-            self.assetSearchService = assetSearchService
-            self.appLifecycleService = appLifecycleService
-            self.inAppNotificationService = inAppNotificationService
-            self.portfolioService = portfolioService
-            self.fiatService = fiatService
-            self.contactService = contactService
-            self.supportChatService = supportChatService
-        }
     }
 }

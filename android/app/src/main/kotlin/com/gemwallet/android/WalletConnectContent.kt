@@ -1,7 +1,5 @@
 package com.gemwallet.android
 
-import android.widget.Toast
-import android.widget.Toast.makeText
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.AlertDialog
@@ -9,11 +7,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
@@ -76,19 +72,16 @@ private fun WalletConnectOverlay(
             is WalletConnectUserRequest.AuthenticationRequest -> AuthRequestScene(
                 request = current.request,
                 verifyContext = current.verifyContext,
-                onCancel = activeRequest::finish,
             )
             is WalletConnectUserRequest.SessionProposal -> ProposalScene(
                 proposal = current.proposal,
                 verifyContext = current.verifyContext,
-                onCancel = activeRequest::finish,
                 onError = onError,
             )
             is WalletConnectUserRequest.SessionRequest -> RequestScene(
                 request = current.request,
                 verifyContext = current.verifyContext,
                 onAcquireAsset = onAcquireAsset,
-                onCancel = activeRequest::finish,
                 onError = onError,
             )
         }

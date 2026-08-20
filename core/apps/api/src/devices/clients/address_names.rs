@@ -66,6 +66,7 @@ fn asset_entry(asset: Asset) -> Option<(ChainAddress, AddressName)> {
             name: asset.name,
             address_type: AddressType::Contract,
             status: VerificationStatus::Verified,
+            image_url: None,
         },
     ))
 }

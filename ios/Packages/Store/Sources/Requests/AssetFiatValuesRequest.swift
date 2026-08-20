@@ -37,6 +37,7 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
         try AssetRecord
             .including(optional: AssetRecord.price)
             .including(optional: AssetRecord.balance)
+            .filter(AssetRecord.Columns.rank >= 0)
             .joining(required: AssetRecord.balance
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
                 .filter(BalanceRecord.Columns.isEnabled == true))

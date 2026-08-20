@@ -130,7 +130,6 @@ class AssetsViewModelTest {
             balanceEquivalent = "$1.00",
             isZeroBalance = false,
             price = null,
-            position = 0,
             pinned = pinned,
             balanceEnabled = true,
             accountAddress = "address-$symbol",

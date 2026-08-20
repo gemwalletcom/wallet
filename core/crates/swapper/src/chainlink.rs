@@ -1,15 +1,20 @@
+use alloy_sol_types::sol;
 use num_bigint::BigInt;
 use num_traits::FromBytes;
 
 use crate::SwapperError;
-use gem_evm::{
-    chainlink::contract::AggregatorInterface,
-    multicall3::{IMulticall3, create_call3, decode_call3_return},
-};
+use gem_evm::multicall3::{IMulticall3, create_call3, decode_call3_return};
 use primitives::{
     Chain,
     contract_constants::{ETHEREUM_CHAINLINK_ETH_USD_FEED_CONTRACT, MONAD_CHAINLINK_USD_FEED_CONTRACT},
 };
+
+// https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/shared/interfaces/AggregatorInterface.sol
+sol! {
+    interface AggregatorInterface {
+        function latestRoundData() external view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
+    }
+}
 
 pub(super) struct ChainlinkPriceFeed {
     contract: String,

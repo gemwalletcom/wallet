@@ -125,6 +125,12 @@ pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
             permit2,
             "0x8876789976dEcBfCbBbe364623C63652db8C0904",
         )),
+        Chain::Tempo => Some(V4Deployment::v2_1(
+            "0x20E6487C371a2086F841eF453F85378223DF4f4E",
+            "0x21B954fBa3F5ddEbe77Ef2D47A3100c066908B2A",
+            permit2,
+            "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91",
+        )),
         _ => None,
     }
 }

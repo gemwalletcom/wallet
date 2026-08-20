@@ -77,7 +77,12 @@ macro_rules! diesel_enum {
     };
 }
 
-diesel_enum!(RewardStatus, PrimitiveRewardStatus, RewardStatusSql, [Unverified, Pending, Verified, Trusted, Disabled]);
+diesel_enum!(
+    RewardStatus,
+    PrimitiveRewardStatus,
+    RewardStatusSql,
+    [Unverified, Pending, Verified, Trusted, Attribution, Disabled]
+);
 
 diesel_enum!(RewardRedemptionType, PrimitiveRewardRedemptionType, RewardRedemptionTypeSql, [Asset, GiftAsset]);
 

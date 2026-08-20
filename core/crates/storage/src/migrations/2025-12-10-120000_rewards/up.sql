@@ -1,4 +1,4 @@
-CREATE TYPE reward_status AS ENUM ('unverified', 'pending', 'verified', 'trusted', 'disabled');
+CREATE TYPE reward_status AS ENUM ('unverified', 'pending', 'verified', 'trusted', 'attribution', 'disabled');
 CREATE TYPE reward_event_type AS ENUM ('createUsername', 'invitePending', 'inviteNew', 'inviteExisting', 'joined', 'enabled', 'disabled', 'redeemed');
 CREATE TYPE username_status AS ENUM ('unverified', 'verified');
 CREATE TYPE ip_usage_type AS ENUM ('dataCenter', 'hosting', 'isp', 'mobile', 'business', 'education', 'government', 'unknown');
@@ -64,7 +64,7 @@ CREATE TABLE rewards_referrals (
     referrer_username VARCHAR(64) NOT NULL REFERENCES rewards(username) ON DELETE CASCADE ON UPDATE CASCADE,
     referred_username VARCHAR(64) NOT NULL REFERENCES rewards(username) ON DELETE CASCADE ON UPDATE CASCADE UNIQUE,
     referred_device_id INT NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
-    risk_signal_id INT NOT NULL REFERENCES rewards_risk_signals(id),
+    risk_signal_id INT REFERENCES rewards_risk_signals(id),
     verified_at TIMESTAMP,
     updated_at timestamp NOT NULL default current_timestamp,
     created_at timestamp NOT NULL default current_timestamp

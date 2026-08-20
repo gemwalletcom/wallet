@@ -383,13 +383,18 @@ where
             return Ok(SwapResult {
                 status: SwapStatus::Pending,
                 metadata: None,
+                eta_in_seconds: None,
             });
         };
 
         let status = Self::map_transaction_status(&tx.status);
         let metadata = Self::build_swap_metadata(&tx);
 
-        Ok(SwapResult { status, metadata })
+        Ok(SwapResult {
+            status,
+            metadata,
+            eta_in_seconds: None,
+        })
     }
 
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
@@ -412,7 +417,11 @@ mod tests {
         let tx = &transactions[0];
         let status = NearIntents::<RpcClient>::map_transaction_status(&tx.status);
         let metadata = NearIntents::<RpcClient>::build_swap_metadata(tx);
-        SwapResult { status, metadata }
+        SwapResult {
+            status,
+            metadata,
+            eta_in_seconds: None,
+        }
     }
 
     #[test]
@@ -442,6 +451,7 @@ mod tests {
                     to_value: "399605209991817".to_string(),
                     provider: Some("near_intents".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
@@ -461,6 +471,7 @@ mod tests {
                     to_value: "69086".to_string(),
                     provider: Some("near_intents".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }
@@ -480,6 +491,7 @@ mod tests {
                     to_value: "9690124016594003".to_string(),
                     provider: Some("near_intents".to_string()),
                 }),
+                eta_in_seconds: None,
             }
         );
     }

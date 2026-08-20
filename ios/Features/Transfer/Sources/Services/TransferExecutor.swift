@@ -81,6 +81,7 @@ extension TransferExecutor {
             amount: input.amount,
             hash: hash,
             transactionIndex: transactionIndex,
+            transactionsCount: totalTransactions,
             simulation: input.simulation,
         )
         let assetIds = assetIdsToEnable(for: transaction)

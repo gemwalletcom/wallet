@@ -37,7 +37,14 @@ data class DbAddress(
     val name: String,
     val type: AddressType,
     val status: VerificationStatus,
+    val imageUrl: String? = null,
 )
+
+val AddressType.isLocal: Boolean
+    get() = when (this) {
+        AddressType.Contact, AddressType.InternalWallet -> true
+        AddressType.Address, AddressType.Contract, AddressType.Validator -> false
+    }
 
 fun AddressName.toRecord(): DbAddress = DbAddress(
     chain = chain,
@@ -46,6 +53,7 @@ fun AddressName.toRecord(): DbAddress = DbAddress(
     name = name,
     type = type,
     status = status,
+    imageUrl = imageUrl,
 )
 
 fun DbAddress.toDTO(): AddressName = AddressName(
@@ -54,6 +62,7 @@ fun DbAddress.toDTO(): AddressName = AddressName(
     name = name,
     type = type,
     status = status,
+    imageUrl = imageUrl,
 )
 
 fun List<AddressName>.toRecord(): List<DbAddress> = map { it.toRecord() }

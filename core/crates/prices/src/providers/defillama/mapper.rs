@@ -33,10 +33,7 @@ const DEFILLAMA_CHAIN_SLUGS: &[(Chain, &str)] = &[
 
 pub fn defillama_id_for_asset_id(asset_id: &AssetId) -> Option<String> {
     if asset_id.is_native() {
-        let coingecko_id = get_coingecko_market_id_for_chain(asset_id.chain);
-        if coingecko_id.is_empty() {
-            return None;
-        }
+        let coingecko_id = get_coingecko_market_id_for_chain(asset_id.chain)?;
         return Some(format!("coingecko:{coingecko_id}"));
     }
     let slug = chain_to_defillama_slug(asset_id.chain)?;

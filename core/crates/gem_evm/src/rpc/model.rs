@@ -27,10 +27,22 @@ pub struct Transaction {
     #[serde(deserialize_with = "deserialize_u64_from_str_or_int")]
     pub gas: u64,
     pub hash: String,
+    #[serde(default)]
     pub input: String,
     pub to: Option<String>,
-    #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
+    #[serde(default, deserialize_with = "deserialize_biguint_from_hex_str")]
     pub value: BigUint,
+    #[serde(default)]
+    pub(crate) calls: Option<Vec<TransactionCall>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct TransactionCall {
+    pub(crate) to: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_biguint_from_hex_str")]
+    pub(crate) value: BigUint,
+    pub(crate) input: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -47,6 +59,8 @@ pub struct TransactionReceipt {
     pub block_hash: String,
     #[serde(default, deserialize_with = "deserialize_u64_from_str")]
     pub block_number: u64,
+    #[serde(default)]
+    pub fee_token: Option<String>,
 }
 
 impl TransactionReceipt {

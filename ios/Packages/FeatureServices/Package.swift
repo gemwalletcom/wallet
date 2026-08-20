@@ -86,6 +86,7 @@ let package = Package(
             name: "PerpetualService",
             dependencies: [
                 "Primitives",
+                "GemstonePrimitives",
                 "Store",
                 "Blockchain",
                 "Formatters",
@@ -176,9 +177,10 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
+                .product(name: "LocalStore", package: "SystemServices"),
             ],
             path: "AvatarService",
-            exclude: ["Tests", "TestKit"],
+            exclude: ["TestKit"],
         ),
         .target(
             name: "PriceService",
@@ -186,6 +188,7 @@ let package = Package(
                 "Primitives",
                 "Store",
                 "GemAPI",
+                "Gemstone",
             ],
             path: "PriceService",
             exclude: ["TestKit"],
@@ -442,6 +445,7 @@ let package = Package(
                 "Keystore",
                 "Store",
                 "Preferences",
+                "GemstonePrimitives",
                 "AvatarService",
                 "WalletSessionService",
                 "BalanceService",
@@ -620,6 +624,7 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
+                .product(name: "LocalStore", package: "SystemServices"),
             ],
             path: "ContactService",
         ),
@@ -819,6 +824,7 @@ let package = Package(
                 "StreamService",
                 "StreamServiceTestKit",
                 "PriceServiceTestKit",
+                "Gemstone",
                 "WalletSessionService",
                 "WalletSessionServiceTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
@@ -853,6 +859,7 @@ let package = Package(
             dependencies: [
                 "WalletService",
                 "WalletServiceTestKit",
+                "GemstonePrimitives",
                 "WalletSessionService",
                 "WalletSessionServiceTestKit",
                 "BalanceServiceTestKit",

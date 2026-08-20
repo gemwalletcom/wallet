@@ -12,6 +12,7 @@ let package = Package(
         .library(name: "ImageGalleryService", targets: ["ImageGalleryService"]),
         .library(name: "ConnectivityService", targets: ["ConnectivityService"]),
         .library(name: "ConnectivityServiceTestKit", targets: ["ConnectivityServiceTestKit"]),
+        .library(name: "LocalStore", targets: ["LocalStore"]),
     ],
     dependencies: [],
     targets: [
@@ -19,7 +20,12 @@ let package = Package(
             name: "ImageGalleryService",
             dependencies: [],
             path: "ImageGalleryService",
-            exclude: ["Tests", "TestKit"],
+            exclude: ["TestKit"],
+        ),
+        .target(
+            name: "LocalStore",
+            dependencies: [],
+            path: "LocalStore",
         ),
         .target(
             name: "ConnectivityService",

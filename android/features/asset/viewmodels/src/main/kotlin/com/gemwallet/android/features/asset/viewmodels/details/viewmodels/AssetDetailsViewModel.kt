@@ -31,6 +31,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -92,8 +93,9 @@ class AssetDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val uiModel = model.map { current ->
-        current?.let { AssetInfoUIModelFactory.create(it.chainAssetInfo, it.explorerName) }
+    val uiModel = combine(model, session) { current, session ->
+        val wallet = session?.wallet ?: return@combine null
+        current?.let { AssetInfoUIModelFactory.create(it.chainAssetInfo, it.explorerName, wallet.type) }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

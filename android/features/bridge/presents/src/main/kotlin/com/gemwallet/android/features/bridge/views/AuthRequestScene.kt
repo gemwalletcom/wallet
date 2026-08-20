@@ -15,6 +15,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.bridge.viewmodels.AuthSceneState
 import com.gemwallet.android.features.bridge.viewmodels.WCAuthViewModel
+import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
 import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.ui.R
@@ -31,7 +32,6 @@ import com.gemwallet.android.ui.models.ListPosition
 fun AuthRequestScene(
     request: WalletConnectAuthenticationRequest,
     verifyContext: WalletConnectVerifyContext,
-    onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
     val viewModel: WCAuthViewModel = hiltViewModel()
@@ -39,26 +39,19 @@ fun AuthRequestScene(
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     LaunchedEffect(request.id) {
-        viewModel.onRequest(request, verifyContext)
+        viewModel.onRequest(request, verifyContext) { error ->
+            when (error) {
+                BridgeRequestError.MaliciousSession -> Toast.makeText(
+                    context,
+                    R.string.errors_connections_malicious_origin,
+                    Toast.LENGTH_LONG
+                ).show()
+                else -> Unit
+            }
+        }
     }
 
     when (val currentState = state) {
-        AuthSceneState.Canceled -> {
-            LaunchedEffect(currentState) {
-                onCancel()
-            }
-        }
-        AuthSceneState.ScamCanceled -> {
-            val maliciousOriginMessage = stringResource(R.string.errors_connections_malicious_origin)
-            LaunchedEffect(currentState) {
-                Toast.makeText(
-                    context,
-                    maliciousOriginMessage,
-                    Toast.LENGTH_LONG
-                ).show()
-                onCancel()
-            }
-        }
         is AuthSceneState.Error -> FatalStateScene(
             title = stringResource(id = R.string.wallet_connect_connect_title),
             message = currentState.message,

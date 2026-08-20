@@ -1,7 +1,7 @@
 use alloy_primitives::hex;
 use num_bigint::{BigInt, Sign};
 use num_traits::Num;
-use primitives::{EVMChain, TransactionFee, TransactionInputType, TransactionLoadInput, contract_constants::OPTIMISM_GAS_PRICE_ORACLE_CONTRACT};
+use primitives::{AssetId, EVMChain, TransactionFee, TransactionInputType, TransactionLoadInput, contract_constants::OPTIMISM_GAS_PRICE_ORACLE_CONTRACT};
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -70,6 +70,7 @@ impl<C: Client + Clone> OptimismGasOracle<C> {
             fee,
             gas_limit.clone(),
             HashMap::new(),
+            AssetId::from_chain(input.input_type.get_asset().chain),
         ))
     }
 

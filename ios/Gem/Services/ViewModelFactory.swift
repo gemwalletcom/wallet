@@ -60,58 +60,6 @@ public struct ViewModelFactory: Sendable {
     let walletSearchService: WalletSearchService
     let perpetualService: PerpetualService
 
-    public init(
-        keystore: any Keystore,
-        chainServiceFactory: ChainServiceFactory,
-        scanService: ScanService,
-        swapService: SwapService,
-        paymentService: PaymentService,
-        assetsEnabler: any AssetsEnabler,
-        priceUpdater: any PriceUpdater,
-        walletSessionService: any WalletSessionManageable,
-        stakeService: StakeService,
-        earnService: EarnService,
-        amountService: AmountService,
-        nameService: any NameServiceable,
-        balanceService: BalanceService,
-        priceService: PriceService,
-        transactionStateScheduler: TransactionStateScheduler,
-        addressNameService: AddressNameService,
-        activityService: ActivityService,
-        eventPresenterService: EventPresenterService,
-        fiatService: FiatService,
-        assetsService: AssetsService,
-        assetSearchService: AssetSearchService,
-        priceAlertService: PriceAlertService,
-        walletSearchService: WalletSearchService,
-        perpetualService: PerpetualService,
-    ) {
-        self.keystore = keystore
-        self.chainServiceFactory = chainServiceFactory
-        self.scanService = scanService
-        self.swapService = swapService
-        self.paymentService = paymentService
-        self.assetsEnabler = assetsEnabler
-        self.priceUpdater = priceUpdater
-        self.walletSessionService = walletSessionService
-        self.stakeService = stakeService
-        self.earnService = earnService
-        self.amountService = amountService
-        self.nameService = nameService
-        self.balanceService = balanceService
-        self.priceService = priceService
-        self.transactionStateScheduler = transactionStateScheduler
-        self.addressNameService = addressNameService
-        self.activityService = activityService
-        self.eventPresenterService = eventPresenterService
-        self.fiatService = fiatService
-        self.assetsService = assetsService
-        self.assetSearchService = assetSearchService
-        self.priceAlertService = priceAlertService
-        self.walletSearchService = walletSearchService
-        self.perpetualService = perpetualService
-    }
-
     @MainActor
     public func selectAssetScene(
         wallet: Wallet,

@@ -32,7 +32,7 @@ public struct TransactionViewModel: Sendable {
         let asset = AssetIdViewModel(assetId: assetId).assetImage
         if let nftMetadata = transaction.transaction.metadata?.decode(TransactionNFTTransferMetadata.self) {
             return AssetImage(
-                type: "",
+                type: .text(""),
                 imageURL: assetImageFormatter.getNFTUrl(for: nftMetadata.assetId.identifier),
                 placeholder: asset.placeholder,
                 chainPlaceholder: overlayImage,
@@ -247,7 +247,7 @@ public struct TransactionViewModel: Sendable {
             return AmountDisplay.currency(value: metadata.pnl, currencyCode: Currency.usd.rawValue)
         case .perpetualOpenPosition:
             return AmountDisplay.numeric(
-                asset: .hypercoreUSDC(),
+                asset: Chain.hyperCore.defaultAsset(type: .perpetual),
                 price: Price(price: 1, priceChangePercentage24h: .zero, updatedAt: .now),
                 value: transaction.transaction.valueBigInt,
                 currency: Currency.usd.rawValue,

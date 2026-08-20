@@ -29,6 +29,7 @@ pub struct SwapperTransactionSwapMetadata {
 pub struct SwapperSwapResult {
     pub status: SwapperSwapStatus,
     pub metadata: Option<SwapperTransactionSwapMetadata>,
+    pub eta_in_seconds: Option<u32>,
 }
 
 #[uniffi::remote(Record)]

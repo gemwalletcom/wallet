@@ -213,7 +213,7 @@ mod tests {
             is_max_value: false,
             metadata,
         };
-        SignerInput::new(input, TransactionFee::default())
+        SignerInput::new(input, TransactionFee::mock())
     }
 
     #[test]

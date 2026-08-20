@@ -414,7 +414,7 @@ mod tests {
             destination_address: "".into(),
             ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake(asset.clone(), StakeType::Stake(validator)))
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
         let private_key = [2u8; 32];
 
         let responses = signer.sign_stake_action(&input, &private_key).expect("should sign");
@@ -460,7 +460,7 @@ mod tests {
             destination_address: "".into(),
             ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake(asset, StakeType::Unstake(delegation)))
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
         let private_key = [1u8; 32];
 
         let responses = signer.sign_stake_action(&input, &private_key).expect("should sign");
@@ -521,7 +521,7 @@ mod tests {
             destination_address: "0xabcdef1234567890abcdef1234567890abcdef12".into(),
             ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer(asset))
         };
-        let input = SignerInput::new(input, TransactionFee::default());
+        let input = SignerInput::new(input, TransactionFee::mock());
         let private_key = [1u8; 32];
 
         let response = signer.sign_token_transfer_action(&input, &private_key).unwrap();

@@ -13,6 +13,7 @@ struct AddressRecord: Codable, FetchableRecord, PersistableRecord {
         static let name = Column("name")
         static let type = Column("type")
         static let status = Column("status")
+        static let imageUrl = Column("imageUrl")
     }
 
     let chain: Chain
@@ -20,6 +21,7 @@ struct AddressRecord: Codable, FetchableRecord, PersistableRecord {
     let name: String
     let type: AddressType
     let status: VerificationStatus
+    var imageUrl: String?
 }
 
 extension AddressRecord: CreateTable {
@@ -37,7 +39,17 @@ extension AddressRecord: CreateTable {
             $0.column(Columns.status.name, .text)
                 .notNull()
                 .defaults(to: VerificationStatus.unverified.rawValue)
+            $0.column(Columns.imageUrl.name, .text)
             $0.primaryKey([Columns.chain.name, Columns.address.name])
+        }
+    }
+}
+
+extension AddressType {
+    var isLocal: Bool {
+        switch self {
+        case .contact, .internalWallet: true
+        case .address, .contract, .validator: false
         }
     }
 }
@@ -50,6 +62,20 @@ extension AddressRecord {
             name: name,
             type: type,
             status: status,
+            imageUrl: imageUrl,
+        )
+    }
+}
+
+extension AddressName {
+    var record: AddressRecord {
+        AddressRecord(
+            chain: chain,
+            address: address,
+            name: name,
+            type: type,
+            status: status,
+            imageUrl: imageUrl,
         )
     }
 }

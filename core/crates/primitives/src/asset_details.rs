@@ -103,12 +103,14 @@ pub struct AssetProperties {
 
 impl AssetProperties {
     pub fn default(asset_id: AssetId) -> Self {
-        let is_stakeable = asset_id.is_native() && asset_id.chain.is_stake_supported();
+        let is_enabled = asset_id.is_token() || asset_id.chain.rank() >= 0;
+        let is_stakeable = is_enabled && asset_id.is_native() && asset_id.chain.is_stake_supported();
+        let is_swapable = is_enabled && asset_id.chain.is_swap_supported();
         Self {
-            is_enabled: true,
+            is_enabled,
             is_buyable: false,
             is_sellable: false,
-            is_swapable: asset_id.chain.is_swap_supported(),
+            is_swapable,
             is_stakeable,
             staking_apr: None,
             is_earnable: false,
@@ -141,7 +143,16 @@ mod tests {
     use chrono::Utc;
 
     use super::*;
-    use crate::{Asset, PriceProvider};
+    use crate::{Asset, Chain, PriceProvider, asset_constants::TEMPO_PATHUSD_ASSET_ID};
+
+    #[test]
+    fn negative_rank_native_asset_is_disabled() {
+        let properties = AssetProperties::default(AssetId::from_chain(Chain::Tempo));
+
+        assert!(!properties.is_enabled);
+        assert!(!properties.is_swapable);
+        assert!(AssetProperties::default(TEMPO_PATHUSD_ASSET_ID.clone()).is_swapable);
+    }
 
     #[test]
     fn test_asset_basic_with_rate() {

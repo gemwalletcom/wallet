@@ -32,6 +32,8 @@ fun ManageContactNavScreen(
                 onDescriptionChange = viewModel::setDescription,
                 onAction = { action ->
                     when (action) {
+                        ManageContactAction.SelectAvatar -> viewModel.selectAvatar()
+                        ManageContactAction.RemoveAvatar -> viewModel.removeAvatar()
                         ManageContactAction.AddAddress -> viewModel.addAddress()
                         is ManageContactAction.EditAddress -> viewModel.editAddress(action.address)
                         is ManageContactAction.DeleteAddress -> viewModel.deleteAddress(action.address)
@@ -59,6 +61,11 @@ fun ManageContactNavScreen(
             ManageContactPage.SelectChain -> ContactChainSelectScene(
                 onSelect = viewModel::setChain,
                 onCancel = viewModel::cancelSelectChain,
+            )
+
+            ManageContactPage.Avatar -> ContactAvatarScene(
+                onSelect = viewModel::setAvatar,
+                onCancel = viewModel::cancelAvatar,
             )
         }
     }

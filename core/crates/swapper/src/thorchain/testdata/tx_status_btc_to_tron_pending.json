@@ -24,8 +24,8 @@
       "completed": true
     },
     "inbound_confirmation_counted": {
-      "remaining_confirmation_seconds": 0,
-      "completed": true
+      "remaining_confirmation_seconds": 600,
+      "completed": false
     },
     "inbound_finalised": {
       "completed": true

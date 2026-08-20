@@ -1,7 +1,9 @@
 package com.gemwallet.android.features.settings.contacts.presents
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
@@ -9,14 +11,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
@@ -30,6 +33,8 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.extraLargeIconSize
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.ContactAddress
 
 @Composable
@@ -51,6 +56,26 @@ fun ManageContactScene(
         },
     ) {
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = paddingDefault),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    ContactAvatar(
+                        name = state.name,
+                        avatar = state.avatar,
+                        size = extraLargeIconSize,
+                        modifier = Modifier.clickable { onAction(ManageContactAction.SelectAvatar) },
+                        onRemove = if (state.avatar is ContactAvatarState.Empty) {
+                            null
+                        } else {
+                            { onAction(ManageContactAction.RemoveAvatar) }
+                        },
+                    )
+                }
+            }
             item {
                 GemTextField(
                     value = state.name,

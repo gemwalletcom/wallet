@@ -54,6 +54,14 @@ struct AssetSceneViewModelTests {
     }
 
     @Test
+    func swapAssetTypeDoesNotSelectHiddenNativeAsset() {
+        let asset = Asset.mockTempoUSDC()
+        let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .zero))
+
+        #expect(model.swapAssetType == .swap(asset, nil))
+    }
+
+    @Test
     func showProviderBalance() {
         #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isStakeEnabled: true))).showProviderBalance(for: .stake) == true)
         #expect(AssetSceneViewModel.mock(.mock(balance: .mock(staked: BigInt(100)), metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == true)

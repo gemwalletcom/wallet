@@ -95,6 +95,15 @@ fun mockAssetHyperCoreUSDC() = mockAsset(
     type = AssetType.TOKEN,
 )
 
+fun mockAssetTempoUSDCe() = mockAsset(
+    chain = Chain.Tempo,
+    tokenId = "0x20C000000000000000000000b9537d11c60E8b50",
+    name = "Bridged USDC",
+    symbol = "USDC.e",
+    decimals = 6,
+    type = AssetType.TIP20,
+)
+
 fun mockAssetHyperCoreUBTC() = mockAsset(
     chain = Chain.HyperCore,
     tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197",

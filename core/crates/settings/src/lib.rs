@@ -304,6 +304,7 @@ pub struct Chains {
     pub xlayer: Chain,
     pub robinhood: Chain,
     pub stable: Chain,
+    pub tempo: Chain,
 }
 
 #[derive(Debug, Deserialize, Clone)]

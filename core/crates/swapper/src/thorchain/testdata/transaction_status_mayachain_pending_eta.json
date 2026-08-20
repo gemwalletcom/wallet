@@ -1,0 +1,41 @@
+{
+  "tx": {
+    "id": "09DCAEF3F7D76AB1D621E684824503DD7E36C48A2F35C5122569159DA884153F",
+    "chain": "BTC",
+    "from_address": "bc1qexamplefromaddress",
+    "to_address": "bc1qexamplevaultaddress",
+    "coins": [
+      {
+        "asset": "BTC.BTC",
+        "amount": "1500000"
+      }
+    ],
+    "gas": [
+      {
+        "asset": "BTC.BTC",
+        "amount": "1200"
+      }
+    ],
+    "memo": "=:ETH.ETH:0x1111111111111111111111111111111111111111:0/1/0:g1:50"
+  },
+  "stages": {
+    "inbound_observed": {
+      "pre_confirmation_count": 1,
+      "final_count": 2,
+      "completed": true
+    },
+    "inbound_confirmation_counted": {
+      "remaining_confirmation_seconds": 300,
+      "completed": false
+    },
+    "inbound_finalised": {
+      "completed": false
+    },
+    "swap_status": {
+      "pending": true
+    },
+    "swap_finalised": {
+      "completed": false
+    }
+  }
+}

@@ -43,6 +43,7 @@ pub enum RewardStatus {
     Pending,
     Verified,
     Trusted,
+    Attribution,
     Disabled,
 }
 
@@ -54,14 +55,14 @@ impl RewardStatus {
     pub fn is_verified(&self) -> bool {
         match self {
             Self::Verified | Self::Trusted => true,
-            Self::Unverified | Self::Pending | Self::Disabled => false,
+            Self::Unverified | Self::Pending | Self::Attribution | Self::Disabled => false,
         }
     }
 
     pub fn is_disabled(&self) -> bool {
         match self {
             Self::Disabled => true,
-            Self::Unverified | Self::Pending | Self::Verified | Self::Trusted => false,
+            Self::Unverified | Self::Pending | Self::Verified | Self::Trusted | Self::Attribution => false,
         }
     }
 }
@@ -252,12 +253,14 @@ mod tests {
         assert!(!RewardStatus::Pending.is_verified());
         assert!(RewardStatus::Verified.is_verified());
         assert!(RewardStatus::Trusted.is_verified());
+        assert!(!RewardStatus::Attribution.is_verified());
         assert!(!RewardStatus::Disabled.is_verified());
 
         assert!(!RewardStatus::Unverified.is_disabled());
         assert!(!RewardStatus::Pending.is_disabled());
         assert!(!RewardStatus::Verified.is_disabled());
         assert!(!RewardStatus::Trusted.is_disabled());
+        assert!(!RewardStatus::Attribution.is_disabled());
         assert!(RewardStatus::Disabled.is_disabled());
     }
 }

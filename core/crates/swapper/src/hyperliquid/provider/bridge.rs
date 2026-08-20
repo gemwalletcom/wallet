@@ -108,6 +108,7 @@ impl Swapper for HyperCoreBridge {
         Ok(SwapResult {
             status: SwapStatus::Completed,
             metadata: None,
+            eta_in_seconds: None,
         })
     }
 }

@@ -2,13 +2,15 @@ use std::time::Duration;
 
 use chrono::NaiveDateTime;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, Chain, Price, Transaction, TransactionState, TransactionType};
+use primitives::{Asset, Chain, Price, Transaction, TransactionState, TransactionType, transaction_metadata_types::TransactionAssetTransfersMetadata};
+use serde::Deserialize;
 use swapper::cross_chain::{self, SendAddressMap};
 
 pub struct StoreTransactionsConsumerConfig {
     pub swap_outdated_timeout: Duration,
     pub outdated_block_count: u64,
     pub outdated_min_timeout: Duration,
+    pub max_asset_transfer_count: usize,
     pub min_amount_usd: f64,
     pub primary_price_max_age: Duration,
 }
@@ -43,12 +45,21 @@ impl StoreTransactionsConsumerConfig {
         }
         false
     }
+
+    pub fn is_transaction_within_asset_transfer_limit(&self, transaction: &Transaction) -> bool {
+        transaction
+            .metadata
+            .as_ref()
+            .and_then(|metadata| TransactionAssetTransfersMetadata::deserialize(metadata).ok())
+            .is_none_or(|metadata| metadata.asset_transfers.len() <= self.max_asset_transfer_count)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Chain, DAY, HOUR, MINUTE, TransactionType};
+    use num_bigint::BigUint;
+    use primitives::{AssetId, Chain, DAY, HOUR, MINUTE, TransactionType, transaction_metadata_types::TransactionAssetTransfer};
 
     impl StoreTransactionsConsumerConfig {
         fn mock() -> Self {
@@ -56,6 +67,7 @@ mod tests {
                 swap_outdated_timeout: HOUR * 2,
                 outdated_block_count: 12,
                 outdated_min_timeout: MINUTE * 15,
+                max_asset_transfer_count: 10,
                 min_amount_usd: 0.01,
                 primary_price_max_age: DAY,
             }
@@ -131,6 +143,30 @@ mod tests {
         for (transaction, asset, price, min_amount, expected) in test_cases {
             assert_eq!(config.is_transaction_insufficient_amount(&transaction, asset, price, min_amount), expected);
         }
+    }
+
+    #[test]
+    fn test_is_transaction_within_asset_transfer_limit() {
+        let config = StoreTransactionsConsumerConfig::mock();
+        let transfer = TransactionAssetTransfer {
+            asset_id: AssetId::from_token(Chain::Ethereum, "0xtoken"),
+            from: "0xfrom".to_string(),
+            to: "0xto".to_string(),
+            value: BigUint::from(1u8),
+        };
+        let transaction = |count| Transaction {
+            metadata: Some(
+                serde_json::to_value(TransactionAssetTransfersMetadata {
+                    asset_transfers: vec![transfer.clone(); count],
+                })
+                .unwrap(),
+            ),
+            ..Transaction::mock()
+        };
+
+        assert!(config.is_transaction_within_asset_transfer_limit(&transaction(10)));
+        assert!(!config.is_transaction_within_asset_transfer_limit(&transaction(11)));
+        assert!(config.is_transaction_within_asset_transfer_limit(&Transaction::mock()));
     }
 
     #[test]

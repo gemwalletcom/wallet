@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GRDB
+import GemstonePrimitives
 import Primitives
 
 public struct PerpetualWalletBalanceRequest: DatabaseQueryable, Equatable {
@@ -22,5 +23,5 @@ public struct PerpetualWalletBalanceRequest: DatabaseQueryable, Equatable {
         )
     }
 
-    private static let collateralAssetId = Asset.hypercoreUSDC().id.identifier
+    private static let collateralAssetId = Chain.hyperCore.defaultAsset(type: .perpetual).id.identifier
 }

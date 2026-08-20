@@ -11,8 +11,8 @@ use primitives::perpetual::{PerpetualAccountMode, PerpetualData, PerpetualPositi
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
-    NodeCheckReport, NodeCheckRequest, NodeStatus, NodeSyncStatus, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType, TransactionLoadData,
-    TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
+    NodeCheckReport, NodeCheckRequest, NodeStatus, NodeSyncStatus, PerpetualPosition, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType,
+    TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
 };
 
 pub mod node_check;
@@ -76,6 +76,7 @@ pub trait ChainTraits:
             rates.iter().map(|rate| TransactionFeeEstimate::new(rate, units, chain.fee_unit_type())).collect()
         };
         Ok(TransactionFeeEstimates {
+            fee_asset: AssetId::from_chain(chain),
             transfer: estimate(TransactionFeeOperation::Transfer),
             token_transfer: chain.default_asset_type().is_some().then(|| estimate(TransactionFeeOperation::TokenTransfer)),
             swap: chain.is_swap_supported().then(|| estimate(TransactionFeeOperation::Swap)),
@@ -224,6 +225,10 @@ pub trait ChainAccount: Send + Sync {}
 pub trait ChainPerpetual: Send + Sync {
     async fn get_positions(&self, _address: String) -> Result<PerpetualPositionsSummary, Box<dyn Error + Sync + Send>> {
         Err("Chain does not support perpetual trading".into())
+    }
+
+    async fn get_positions_for_classification(&self, address: String) -> Result<Vec<PerpetualPosition>, Box<dyn Error + Sync + Send>> {
+        Ok(self.get_positions(address).await?.positions)
     }
 
     async fn get_perpetual_account_mode(&self, _address: String) -> Result<PerpetualAccountMode, Box<dyn Error + Sync + Send>> {

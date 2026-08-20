@@ -288,7 +288,7 @@ public final class AssetSceneViewModel: Sendable {
         switch assetData.asset.id.type {
         case .native: .swap(assetData.asset, nil)
         case .token:
-            if assetData.balance.available == .zero {
+            if assetData.balance.available == .zero, AssetScore.defaultRank(chain: assetData.asset.chain) >= 0 {
                 .swap(assetData.asset.chain.asset, assetData.asset)
             } else {
                 .swap(assetData.asset, nil)

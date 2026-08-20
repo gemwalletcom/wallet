@@ -37,7 +37,7 @@ impl Default for AssetScore {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, EnumIter)]
+#[derive(Debug, Clone, Serialize, Deserialize, EnumIter, PartialEq, Eq)]
 #[typeshare(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum AssetRank {

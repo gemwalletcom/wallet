@@ -28,6 +28,7 @@ pub trait Swapper: Send + Sync + Debug {
             Ok(SwapResult {
                 status: SwapStatus::Completed,
                 metadata: None,
+                eta_in_seconds: None,
             })
         } else {
             Err(SwapperError::NotSupportedAsset)

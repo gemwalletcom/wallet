@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use primitives::{Chain, TransactionChange, TransactionMetadata, TransactionState, TransactionUpdate, chain_transaction_timeout, swap_transaction_timeout};
 use std::sync::Arc;
-use swapper::{SwapperProvider, swapper::GemSwapper};
+use swapper::{SwapResult, SwapperProvider, swapper::GemSwapper};
 
 use crate::gateway::ChainClientFactory;
 use crate::models::{GemTransactionStateRequest, GemTransactionSwapStateRequest};
@@ -44,10 +44,7 @@ impl StatusProvider {
                 let source_chain_update = self.chain_status(chain, request.transaction).await?;
                 Ok(pending_cross_chain_swap_update(source_chain_update))
             }
-            TransactionState::InTransit => {
-                let swap_update = self.swap_provider_status(chain, request.swap_provider, &request.transaction.id).await?;
-                Ok(in_transit_swap_update(swap_update))
-            }
+            TransactionState::InTransit => self.swap_provider_status(chain, request.swap_provider, &request.transaction.id).await,
             state @ (TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted) => Ok(TransactionUpdate::new_state(state)),
         }
     }
@@ -66,29 +63,34 @@ impl StatusProvider {
             .get_swap_result(chain, provider, transaction_hash)
             .await
             .map_err(|e| TransactionStatusError::NetworkError(e.to_string()))?;
-
-        let state = result.status.transaction_state().unwrap_or(TransactionState::InTransit);
-        let changes = result.metadata.map(|m| vec![TransactionChange::Metadata(TransactionMetadata::Swap(m))]).unwrap_or_default();
-        Ok(TransactionUpdate::new(state, changes))
+        Ok(in_transit_swap_update(result))
     }
+}
+
+fn in_transit_swap_update(result: SwapResult) -> TransactionUpdate {
+    let state = result.status.transaction_state().unwrap_or(TransactionState::InTransit);
+    let eta_in_seconds = if state.is_completed() { 0 } else { result.eta_in_seconds.unwrap_or_default() };
+    let changes = result
+        .metadata
+        .map(|metadata| TransactionChange::Metadata(TransactionMetadata::Swap(metadata)))
+        .into_iter()
+        .chain([TransactionChange::ConfirmationEtaSeconds(eta_in_seconds)])
+        .collect();
+    TransactionUpdate::new(state, changes)
 }
 
 fn pending_cross_chain_swap_update(source_update: TransactionUpdate) -> TransactionUpdate {
     match source_update.state {
-        TransactionState::Confirmed => TransactionUpdate::new(TransactionState::InTransit, source_update.changes),
+        TransactionState::Confirmed => TransactionUpdate::new(
+            TransactionState::InTransit,
+            source_update
+                .changes
+                .into_iter()
+                .filter(|change| !matches!(change, TransactionChange::ConfirmationEtaSeconds(_)))
+                .chain([TransactionChange::ConfirmationEtaSeconds(0)])
+                .collect(),
+        ),
         _ => source_update,
-    }
-}
-
-fn in_transit_swap_update(swap_update: TransactionUpdate) -> TransactionUpdate {
-    let changes = swap_update.changes;
-    TransactionUpdate::new(cross_chain_swap_state(swap_update.state), changes)
-}
-
-fn cross_chain_swap_state(swap_state: TransactionState) -> TransactionState {
-    match swap_state {
-        TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted => swap_state,
-        TransactionState::Pending | TransactionState::InTransit => TransactionState::InTransit,
     }
 }
 
@@ -111,7 +113,12 @@ fn get_transaction_update(
 
     match result {
         Ok(update) => Ok(if transaction_timeout(chain, destination_chain, update.state).is_some_and(|timeout| elapsed > timeout) {
-            TransactionUpdate::new_state(TransactionState::Failed)
+            let changes = if update.state == TransactionState::InTransit {
+                vec![TransactionChange::ConfirmationEtaSeconds(0)]
+            } else {
+                Vec::new()
+            };
+            TransactionUpdate::new(TransactionState::Failed, changes)
         } else {
             update
         }),
@@ -125,7 +132,7 @@ fn get_transaction_update(
 mod tests {
     use super::*;
     use num_bigint::BigInt;
-    use primitives::TransactionSwapMetadata;
+    use primitives::{TransactionSwapMetadata, swap::SwapStatus};
 
     #[test]
     fn test_get_transaction_update() {
@@ -147,8 +154,8 @@ mod tests {
             TransactionState::InTransit
         );
         assert_eq!(
-            get_transaction_update(chain, Some(chain), now() - chrono::Duration::hours(3), in_transit()).unwrap().state,
-            TransactionState::Failed
+            get_transaction_update(chain, Some(chain), now() - chrono::Duration::hours(3), in_transit()).unwrap(),
+            TransactionUpdate::new(TransactionState::Failed, vec![TransactionChange::ConfirmationEtaSeconds(0)])
         );
         assert_eq!(
             get_transaction_update(chain, Some(Chain::Solana), DateTime::<Utc>::UNIX_EPOCH, confirmed()).unwrap().state,
@@ -157,7 +164,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pending_cross_chain_swap_update_moves_confirmed_source_to_in_transit() {
+    fn test_pending_cross_chain_swap_update() {
         let source_update = TransactionUpdate::new(
             TransactionState::Confirmed,
             vec![
@@ -166,28 +173,33 @@ mod tests {
                     new: "source_hash".into(),
                 },
                 TransactionChange::NetworkFee(BigInt::from(123_u32)),
+                TransactionChange::ConfirmationEtaSeconds(60),
             ],
         );
 
         let update = pending_cross_chain_swap_update(source_update);
 
         assert_eq!(update.state, TransactionState::InTransit);
-        assert!(matches!(update.changes.first(), Some(TransactionChange::HashChange { old, new }) if old == "broadcast_hash" && new == "source_hash"));
-        assert!(update.changes.iter().any(|change| matches!(change, TransactionChange::NetworkFee(_))));
+        assert_eq!(
+            update.changes,
+            vec![
+                TransactionChange::HashChange {
+                    old: "broadcast_hash".into(),
+                    new: "source_hash".into(),
+                },
+                TransactionChange::NetworkFee(BigInt::from(123_u32)),
+                TransactionChange::ConfirmationEtaSeconds(0),
+            ]
+        );
+
+        let pending = pending_cross_chain_swap_update(TransactionUpdate::new_state(TransactionState::Pending));
+
+        assert_eq!(pending.state, TransactionState::Pending);
+        assert!(pending.changes.is_empty());
     }
 
     #[test]
-    fn test_pending_cross_chain_swap_update_keeps_non_confirmed_source_state() {
-        let source_update = TransactionUpdate::new_state(TransactionState::Pending);
-
-        let update = pending_cross_chain_swap_update(source_update);
-
-        assert_eq!(update.state, TransactionState::Pending);
-        assert!(update.changes.is_empty());
-    }
-
-    #[test]
-    fn test_in_transit_swap_update_keeps_final_swap_metadata() {
+    fn test_in_transit_swap_update() {
         let metadata = TransactionSwapMetadata {
             from_asset: Chain::Ton.as_asset_id(),
             from_value: "1000000".into(),
@@ -195,35 +207,26 @@ mod tests {
             to_value: "966847".into(),
             provider: Some("near_intents".into()),
         };
-        let swap_update = TransactionUpdate::new(TransactionState::Confirmed, vec![TransactionChange::Metadata(TransactionMetadata::Swap(metadata.clone()))]);
-
-        let update = in_transit_swap_update(swap_update);
-
-        assert_eq!(update.state, TransactionState::Confirmed);
-        assert!(
-            update
-                .changes
-                .iter()
-                .any(|change| matches!(change, TransactionChange::Metadata(TransactionMetadata::Swap(value)) if value == &metadata))
-        );
-    }
-
-    #[test]
-    fn test_in_transit_swap_update_keeps_pending_swap_in_transit_without_metadata() {
-        let swap_update = TransactionUpdate::new_state(TransactionState::Pending);
-
-        let update = in_transit_swap_update(swap_update);
-
-        assert_eq!(update.state, TransactionState::InTransit);
-        assert!(update.changes.is_empty());
-    }
-
-    #[test]
-    fn test_cross_chain_swap_state_maps_non_terminal_to_in_transit() {
-        assert_eq!(cross_chain_swap_state(TransactionState::Pending), TransactionState::InTransit);
-        assert_eq!(cross_chain_swap_state(TransactionState::InTransit), TransactionState::InTransit);
-        assert_eq!(cross_chain_swap_state(TransactionState::Confirmed), TransactionState::Confirmed);
-        assert_eq!(cross_chain_swap_state(TransactionState::Failed), TransactionState::Failed);
-        assert_eq!(cross_chain_swap_state(TransactionState::Reverted), TransactionState::Reverted);
+        let completed = in_transit_swap_update(SwapResult {
+            status: SwapStatus::Completed,
+            metadata: Some(metadata.clone()),
+            eta_in_seconds: Some(120),
+        });
+        let pending = in_transit_swap_update(SwapResult {
+            status: SwapStatus::Pending,
+            metadata: None,
+            eta_in_seconds: Some(120),
+        });
+        let missing = in_transit_swap_update(SwapResult {
+            status: SwapStatus::Pending,
+            metadata: None,
+            eta_in_seconds: None,
+        });
+        assert_eq!(completed.state, TransactionState::Confirmed);
+        assert!(completed.changes.contains(&TransactionChange::Metadata(TransactionMetadata::Swap(metadata))));
+        assert_eq!(pending.state, TransactionState::InTransit);
+        assert_eq!(pending.changes, vec![TransactionChange::ConfirmationEtaSeconds(120)]);
+        assert_eq!(missing.changes, vec![TransactionChange::ConfirmationEtaSeconds(0)]);
+        assert_eq!(completed.changes.last(), Some(&TransactionChange::ConfirmationEtaSeconds(0)));
     }
 }

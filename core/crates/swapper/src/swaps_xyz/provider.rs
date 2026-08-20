@@ -218,6 +218,7 @@ where
             return Ok(SwapResult {
                 status: SwapStatus::Pending,
                 metadata: None,
+                eta_in_seconds: None,
             });
         };
         let metadata = response.action_response.and_then(|status| {
@@ -232,6 +233,7 @@ where
         Ok(SwapResult {
             status: Self::map_status(&response.status),
             metadata,
+            eta_in_seconds: None,
         })
     }
 }

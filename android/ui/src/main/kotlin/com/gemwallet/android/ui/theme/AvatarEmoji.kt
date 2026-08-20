@@ -1,6 +1,6 @@
-package com.gemwallet.android.features.wallet.viewmodels
+package com.gemwallet.android.ui.theme
 
-object WalletAvatarEmoji {
+object AvatarEmoji {
     val all: List<String> = listOf(
         "💎",
         "🦄",

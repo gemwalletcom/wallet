@@ -13,4 +13,6 @@ pub struct AddressName {
     #[serde(rename = "type")]
     pub address_type: AddressType,
     pub status: VerificationStatus,
+    #[serde(default)]
+    pub image_url: Option<String>,
 }

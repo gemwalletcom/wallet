@@ -15,14 +15,15 @@ use assets_has_price_updater::AssetsHasPriceUpdater;
 use assets_images_updater::AssetsImagesUpdater;
 use job_runner::{JobHandle, ShutdownReceiver};
 use perpetual_updater::PerpetualUpdater;
-use primitives::Chain;
+use primitives::{Chain, ConfigKey};
 use settings::service_user_agent;
 use settings_chain::ChainProviders;
 use staking_apy_updater::StakeApyUpdater;
 use storage::ConfigCacher;
-use usage_rank_updater::UsageRankUpdater;
+use usage_rank_updater::{UsageRankUpdater, UsageRankUpdaterConfig};
 use validator_scanner::ValidatorScanner;
 
+use crate::asset_spam::AssetClassificationRules;
 use crate::model::WorkerService;
 use crate::worker::context::WorkerContext;
 use crate::worker::jobs::WorkerJob;
@@ -31,11 +32,16 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
     let database = ctx.database();
     let settings = ctx.settings();
     let config = ConfigCacher::new(database.clone());
+    let classification_rules = AssetClassificationRules::from_config(&config)?;
+    let usage_rank_updater_config = UsageRankUpdaterConfig {
+        batch_size: config.get_usize(ConfigKey::AssetsUsageRankBatchSize)?,
+    };
     ctx.plan_builder(WorkerService::Assets, &config, shutdown_rx)
         .job(WorkerJob::UpdateSuspiciousAssetRanks, {
             let database = database.clone();
+            let classification_rules = classification_rules.clone();
             move |_| {
-                let suspicious_updater = AssetRankUpdater::new(database.clone());
+                let suspicious_updater = AssetRankUpdater::new(database.clone(), classification_rules.clone());
                 async move { suspicious_updater.update_suspicious_assets().await }
             }
         })
@@ -55,7 +61,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
         .job(WorkerJob::UpdateUsageRanks, {
             let database = database.clone();
             move |_| {
-                let updater = UsageRankUpdater::new(database.clone());
+                let updater = UsageRankUpdater::new(database.clone(), usage_rank_updater_config);
                 async move { updater.update_usage_ranks().await }
             }
         })

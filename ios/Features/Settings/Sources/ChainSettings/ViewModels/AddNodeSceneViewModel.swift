@@ -60,7 +60,7 @@ final class AddNodeSceneViewModel {
             titleExtra: Localized.Nodes.ImportNode.warningMessage,
             titleStyleExtra: .bodySecondary,
             imageStyle: ListItemImageStyle(
-                assetImage: AssetImage(type: Emoji.WalletAvatar.warning.rawValue),
+                assetImage: AssetImage(type: .emoji(Emoji.WalletAvatar.warning.rawValue)),
                 imageSize: .image.semiMedium,
                 alignment: .top,
                 cornerRadiusType: .none,
