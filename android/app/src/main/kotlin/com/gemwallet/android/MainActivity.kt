@@ -5,11 +5,13 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.cases.security.AuthRequester
@@ -20,6 +22,7 @@ import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionBannerState
 import com.gemwallet.android.ui.components.LocalConnectionBannerState
+import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ConnectionStatus
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -56,10 +59,18 @@ class MainActivity : FragmentActivity(), AuthRequester {
             LaunchedEffect(connectionStatus) {
                 connectionBannerState.update(connectionStatus.bannerTitleRes()?.let(::getString))
             }
+            val appearance by viewModel.appearance.collectAsStateWithLifecycle()
+            val darkTheme = when (appearance) {
+                Appearance.System -> isSystemInDarkTheme()
+                Appearance.Light -> false
+                Appearance.Dark -> true
+            }
+            LaunchedEffect(darkTheme) { applySystemBarsAppearance(darkTheme) }
 
             CompositionLocalProvider(LocalConnectionBannerState provides connectionBannerState) {
                 MainContent(
                     state = state,
+                    darkTheme = darkTheme,
                     pendingNavigation = pendingNavigation,
                     systemAuthEnrollmentMissing = systemAuthEnrollmentMissing,
                     activeWalletConnectRequest = activeWalletConnectRequest,
@@ -73,7 +84,14 @@ class MainActivity : FragmentActivity(), AuthRequester {
                     onWalletConnectErrorDismiss = viewModel::resetWalletConnectError,
                 )
             }
-            RootWarningHost(onCancel = ::finishAffinity)
+            RootWarningHost(darkTheme = darkTheme, onCancel = ::finishAffinity)
+        }
+    }
+
+    private fun applySystemBarsAppearance(darkTheme: Boolean) {
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !darkTheme
+            isAppearanceLightNavigationBars = !darkTheme
         }
     }
 

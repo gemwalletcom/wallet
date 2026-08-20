@@ -191,6 +191,10 @@ settings_preferences_title = Настройки
 settings_preferences_perpetual_default_leverage = Плечо по умолчанию
 settings_preferences_perpetual_default_take_profit = Тейк-профит по умолчанию
 settings_preferences_perpetual_default_stop_loss = Стоп-лосс по умолчанию
+settings_appearance_title = Оформление
+settings_appearance_system = Системное
+settings_appearance_light = Светлое
+settings_appearance_dark = Тёмное
 
 # Support
 

@@ -11,6 +11,7 @@ public protocol LockWindowManageable: Observable {
     var isPrivacyLockVisible: Bool { get }
 
     func setPhase(phase: ScenePhase)
+    func setColorScheme(_ colorScheme: ColorScheme)
     func toggleLock(show: Bool)
     func togglePrivacyLock(visible: Bool)
 }

@@ -191,6 +191,10 @@ settings_preferences_title = ترجیحات
 settings_preferences_perpetual_default_leverage = ڈیفالٹ لیوریج
 settings_preferences_perpetual_default_take_profit = ڈیفالٹ ٹیک پرافٹ
 settings_preferences_perpetual_default_stop_loss = ڈیفالٹ اسٹاپ لاس
+settings_appearance_title = ظاہری شکل
+settings_appearance_system = سسٹم
+settings_appearance_light = روشن
+settings_appearance_dark = گہرا
 
 # Support
 

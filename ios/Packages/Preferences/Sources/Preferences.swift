@@ -40,6 +40,7 @@ public final class Preferences: @unchecked Sendable {
         static let perpetualTakeProfit = "perpetual_take_profit"
         static let perpetualStopLoss = "perpetual_stop_loss"
         static let isDeviceRegistered = "is_device_registered"
+        static let appearance = "appearance"
     }
 
     @ConfigurableDefaults(key: Keys.currency, defaultValue: Currency.usd.rawValue)
@@ -135,6 +136,9 @@ public final class Preferences: @unchecked Sendable {
     @ConfigurableDefaults(key: Keys.isDeviceRegistered, defaultValue: false)
     public var isDeviceRegistered: Bool
 
+    @ConfigurableDefaults(key: Keys.appearance, defaultValue: Appearance.system.rawValue)
+    private var appearanceRawValue: String
+
     public static let standard = Preferences()
     private let defaults: UserDefaults
 
@@ -180,6 +184,7 @@ public final class Preferences: @unchecked Sendable {
         configure(\._perpetualTakeProfit, key: Keys.perpetualTakeProfit, defaultValue: 0)
         configure(\._perpetualStopLoss, key: Keys.perpetualStopLoss, defaultValue: 0)
         configure(\._isDeviceRegistered, key: Keys.isDeviceRegistered, defaultValue: false)
+        configure(\._appearanceRawValue, key: Keys.appearance, defaultValue: Appearance.system.rawValue)
     }
 
     public func incrementLaunchesCount() {
@@ -232,6 +237,11 @@ public final class Preferences: @unchecked Sendable {
     public var perpetualChartPeriod: ChartPeriod {
         get { ChartPeriod(rawValue: perpetualChartPeriodRawValue) ?? .day }
         set { perpetualChartPeriodRawValue = newValue.rawValue }
+    }
+
+    public var appearance: Appearance {
+        get { Appearance(rawValue: appearanceRawValue) ?? .system }
+        set { appearanceRawValue = newValue.rawValue }
     }
 
     public func showPerpetuals(for wallet: Wallet) -> Bool {

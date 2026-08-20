@@ -191,6 +191,10 @@ settings_preferences_title = تنظیمات برگزیده
 settings_preferences_perpetual_default_leverage = اهرم پیش‌فرض
 settings_preferences_perpetual_default_take_profit = حد سود پیشفرض
 settings_preferences_perpetual_default_stop_loss = حد ضرر پیشفرض
+settings_appearance_title = ظاهر
+settings_appearance_system = سیستم
+settings_appearance_light = روشن
+settings_appearance_dark = تیره
 
 # Support
 

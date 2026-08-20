@@ -191,6 +191,10 @@ settings_preferences_title = Předvolby
 settings_preferences_perpetual_default_leverage = Výchozí pákový efekt
 settings_preferences_perpetual_default_take_profit = Výchozí take profit
 settings_preferences_perpetual_default_stop_loss = Výchozí stop loss
+settings_appearance_title = Vzhled
+settings_appearance_system = Systém
+settings_appearance_light = Světlý
+settings_appearance_dark = Tmavý
 
 # Support
 

@@ -75,6 +75,18 @@ public final class PreferencesViewModel {
         AssetImage.image(Images.Settings.contacts)
     }
 
+    var appearanceTitle: String {
+        Localized.Settings.appearanceTitle
+    }
+
+    var appearanceImage: AssetImage {
+        AssetImage.image(Images.Settings.appearance)
+    }
+
+    var appearanceValue: String {
+        preferences.appearance.title
+    }
+
     var isPerpetualEnabled: Bool {
         get { preferences.isPerpetualEnabled }
         set { preferences.isPerpetualEnabled = newValue }

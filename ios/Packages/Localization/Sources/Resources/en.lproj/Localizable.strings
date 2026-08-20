@@ -160,6 +160,10 @@
 "settings.preferences.perpetual.default_leverage" = "Default Leverage";
 "settings.preferences.perpetual.default_take_profit" = "Default Take Profit";
 "settings.preferences.perpetual.default_stop_loss" = "Default Stop Loss";
+"settings.appearance_title" = "Appearance";
+"settings.appearance_system" = "System";
+"settings.appearance_light" = "Light";
+"settings.appearance_dark" = "Dark";
 "support.state_empty_title" = "How can we help?";
 "support.state_empty_description" = "Ask us anything. We are here to help.";
 "support.message_placeholder" = "Message";

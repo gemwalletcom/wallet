@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,6 +41,7 @@ import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.features.settings.currency.presents.components.emojiFlags
 import com.gemwallet.android.features.settings.settings.viewmodels.SettingsViewModel
+import com.wallet.core.primitives.Appearance
 import java.util.Locale
 
 @Composable
@@ -48,6 +51,7 @@ fun PreferencesScene(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isPerpetualEnabled by viewModel.isPerpetualEnabled.collectAsStateWithLifecycle()
+    val appearance by viewModel.appearance.collectAsStateWithLifecycle()
     val perpetualLeverage by viewModel.perpetualLeverage.collectAsStateWithLifecycle()
     val perpetualTakeProfit by viewModel.perpetualTakeProfit.collectAsStateWithLifecycle()
     val perpetualStopLoss by viewModel.perpetualStopLoss.collectAsStateWithLifecycle()
@@ -97,6 +101,19 @@ fun PreferencesScene(
                         }
                     )
                 }
+            }
+
+            item {
+                OptionPickerLinkItem(
+                    title = stringResource(R.string.settings_appearance_title),
+                    current = appearance,
+                    options = Appearance.entries,
+                    listPosition = ListPosition.Middle,
+                    icon = R.drawable.settings_appearance,
+                    indented = false,
+                    label = { appearanceLabel(it) },
+                    onSelect = { viewModel.setAppearance(it) },
+                )
             }
 
             item {
@@ -174,6 +191,15 @@ private fun autocloseLabel(percent: Int): String =
     if (percent == 0) stringResource(R.string.common_none) else "$percent%"
 
 @Composable
+private fun appearanceLabel(appearance: Appearance): String = stringResource(
+    when (appearance) {
+        Appearance.System -> R.string.settings_appearance_system
+        Appearance.Light -> R.string.settings_appearance_light
+        Appearance.Dark -> R.string.settings_appearance_dark
+    }
+)
+
+@Composable
 private fun <T> OptionPickerLinkItem(
     title: String,
     current: T,
@@ -181,12 +207,15 @@ private fun <T> OptionPickerLinkItem(
     listPosition: ListPosition,
     label: @Composable (T) -> String,
     onSelect: (T) -> Unit,
+    @DrawableRes icon: Int? = null,
+    indented: Boolean = true,
 ) {
     var expanded by remember { mutableStateOf(false) }
     LinkItem(
         title = title,
+        painter = icon?.let { painterResource(id = it) },
         listPosition = listPosition,
-        indented = true,
+        indented = indented,
         trailingContent = {
             PropertyDataText(text = label(current), badge = { DataBadgeChevron() })
             DropdownMenu(

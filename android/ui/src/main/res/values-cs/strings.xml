@@ -167,6 +167,10 @@
   <string name="settings_preferences_perpetual_default_leverage">Výchozí pákový efekt</string>
   <string name="settings_preferences_perpetual_default_take_profit">Výchozí take profit</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Výchozí stop loss</string>
+  <string name="settings_appearance_title">Vzhled</string>
+  <string name="settings_appearance_system">Systém</string>
+  <string name="settings_appearance_light">Světlý</string>
+  <string name="settings_appearance_dark">Tmavý</string>
   <string name="support_state_empty_title">Jak vám můžeme pomoci?</string>
   <string name="support_state_empty_description">Zeptejte se nás na cokoli. Jsme tu, abychom vám pomohli.</string>
   <string name="support_message_placeholder">Zpráva</string>

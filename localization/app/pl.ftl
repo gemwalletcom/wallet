@@ -191,6 +191,10 @@ settings_preferences_title = Preferencje
 settings_preferences_perpetual_default_leverage = Domyślna dźwignia
 settings_preferences_perpetual_default_take_profit = Domyślny take profit
 settings_preferences_perpetual_default_stop_loss = Domyślny stop loss
+settings_appearance_title = Wygląd
+settings_appearance_system = System
+settings_appearance_light = Jasny
+settings_appearance_dark = Ciemny
 
 # Support
 

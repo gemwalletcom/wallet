@@ -167,6 +167,10 @@
   <string name="settings_preferences_perpetual_default_leverage">מינוף ברירת מחדל</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit כברירת מחדל</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss כברירת מחדל</string>
+  <string name="settings_appearance_title">מראה</string>
+  <string name="settings_appearance_system">מערכת</string>
+  <string name="settings_appearance_light">בהיר</string>
+  <string name="settings_appearance_dark">כהה</string>
   <string name="support_state_empty_title">איך נוכל לעזור?</string>
   <string name="support_state_empty_description">שאלו אותנו כל דבר. אנחנו כאן כדי לעזור.</string>
   <string name="support_message_placeholder">הודעה</string>

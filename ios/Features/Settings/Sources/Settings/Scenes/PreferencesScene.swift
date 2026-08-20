@@ -36,6 +36,14 @@ public struct PreferencesScene: View {
                         action: onSelectLanguage,
                     )
 
+                    NavigationLink(value: Scenes.Appearance()) {
+                        ListItemView(
+                            title: model.appearanceTitle,
+                            subtitle: model.appearanceValue,
+                            imageStyle: .settings(assetImage: model.appearanceImage),
+                        )
+                    }
+
                     NavigationLink(value: Scenes.Chains()) {
                         ListItemView(
                             title: model.networksTitle,
