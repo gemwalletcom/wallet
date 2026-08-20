@@ -1,0 +1,43 @@
+{
+  "paymentId": "pay_b9a2ecc101KYJAYCGQZ9E0K6NY7SR7YVV4",
+  "info": {
+    "status": "requires_action",
+    "amount": {
+      "unit": "iso4217/USD",
+      "value": "5000",
+      "display": {
+        "assetSymbol": "USD",
+        "assetName": "US Dollar",
+        "decimals": 2
+      }
+    },
+    "expiresAt": 1785175272,
+    "merchant": {
+      "name": "Gem Wallet Test Merchant",
+      "iconUrl": "https://imagedelivery.net/example/md"
+    },
+    "buyer": null
+  },
+  "options": [
+    {
+      "id": "opt_1",
+      "account": "eip155:1:0x1085c5f70F7F7591D97da281A64688385455c2bD",
+      "amount": {
+        "unit": "caip19/eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "value": "50000000",
+        "display": {
+          "assetSymbol": "USDC",
+          "assetName": "USD Coin",
+          "decimals": 6,
+          "networkName": "Ethereum",
+          "iconUrl": "https://assets.walletconnect.com/usdc.png",
+          "networkIconUrl": "https://assets.walletconnect.com/ethereum.png"
+        }
+      },
+      "etaS": 5,
+      "collectData": null
+    }
+  ],
+  "collectData": null,
+  "resultInfo": null
+}

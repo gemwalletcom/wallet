@@ -1,0 +1,68 @@
+{
+  "info": {
+    "status": "requires_action",
+    "amount": {
+      "unit": "iso4217/USD",
+      "value": "3",
+      "display": {
+        "assetSymbol": "USD",
+        "assetName": "US Dollar",
+        "decimals": 2
+      }
+    },
+    "expiresAt": 1787170966,
+    "merchant": {
+      "name": "Gem Wallet Test Merchant",
+      "iconUrl": "https://imagedelivery.net/_aTEfDRm7z3tKgu9JhfeKA/28f1b431-9d2a-4083-1bf8-5958939a2300/md"
+    }
+  },
+  "options": [
+    {
+      "id": "81de5f04-5c3e-4ac1-bebc-6506aa45ad58",
+      "account": "eip155:1:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB",
+      "amount": {
+        "unit": "caip19/eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        "value": "30000",
+        "display": {
+          "assetSymbol": "USDT",
+          "decimals": 6
+        }
+      },
+      "expiresAt": null,
+      "actions": [
+        {
+          "type": "walletRpc",
+          "data": {
+            "chain_id": "eip155:1",
+            "method": "eth_signTypedData_v4",
+            "params": [
+              "0x92abce21234d71ec443e679f3a1feafd3fc830fb",
+              "{\"primaryType\":\"PermitTransferFrom\"}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "c320ed5c-2c34-460e-b650-b7faa56c6d5a",
+      "account": "eip155:1:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB",
+      "amount": {
+        "unit": "caip19/eip155:1/slip44:60",
+        "value": "14192816625800",
+        "display": {
+          "assetSymbol": "ETH",
+          "decimals": 18
+        }
+      },
+      "expiresAt": 1787170562,
+      "actions": [
+        {
+          "type": "build",
+          "data": {
+            "data": ""
+          }
+        }
+      ]
+    }
+  ]
+}

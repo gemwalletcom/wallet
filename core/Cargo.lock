@@ -5988,6 +5988,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
+name = "payment"
+version = "2.114.9"
+dependencies = [
+ "chrono",
+ "gem_client",
+ "gem_jsonrpc",
+ "num-bigint 0.5.1",
+ "num-traits",
+ "primitives",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "pbkdf2"
 version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
