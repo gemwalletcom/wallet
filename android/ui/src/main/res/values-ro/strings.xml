@@ -170,6 +170,10 @@
   <string name="settings_preferences_perpetual_default_leverage">Levier implicit</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit implicit</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss implicit</string>
+  <string name="settings_appearance_title">Aspect</string>
+  <string name="settings_appearance_system">Sistem</string>
+  <string name="settings_appearance_light">Luminos</string>
+  <string name="settings_appearance_dark">Întunecat</string>
   <string name="support_state_empty_title">Cum te putem ajuta?</string>
   <string name="support_state_empty_description">Întreabă-ne orice. Suntem aici să te ajutăm.</string>
   <string name="support_message_placeholder">Mesaj</string>

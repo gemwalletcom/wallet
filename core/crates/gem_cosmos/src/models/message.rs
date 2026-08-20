@@ -14,31 +14,31 @@ use primitives::SignerError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "@type")]
-pub enum Message {
+pub enum Message<CoinType = Coin> {
     #[serde(rename = "/cosmos.bank.v1beta1.MsgSend", alias = "/types.MsgSend")]
-    MsgSend(MsgSend),
+    MsgSend(MsgSend<CoinType>),
     #[serde(rename = "/cosmos.staking.v1beta1.MsgUndelegate")]
-    MsgUndelegate(MsgUndelegate),
+    MsgUndelegate(MsgUndelegate<CoinType>),
     #[serde(rename = "/cosmos.staking.v1beta1.MsgBeginRedelegate")]
-    MsgBeginRedelegate(MsgBeginRedelegate),
+    MsgBeginRedelegate(MsgBeginRedelegate<CoinType>),
     #[serde(rename = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward")]
     MsgWithdrawDelegatorReward(MsgWithdrawDelegatorReward),
     #[serde(rename = "/cosmos.staking.v1beta1.MsgDelegate")]
-    MsgDelegate(MsgDelegate),
+    MsgDelegate(MsgDelegate<CoinType>),
     #[serde(other)]
     Unknown,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MsgSend {
+pub struct MsgSend<CoinType = Coin> {
     pub from_address: String,
     pub to_address: String,
-    pub amount: Vec<Coin>,
+    pub amount: Vec<CoinType>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuthInfo {
-    pub fee: Fee,
+pub struct AuthInfo<CoinType = Coin> {
+    pub fee: Fee<CoinType>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -49,31 +49,31 @@ pub struct Coin {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Fee {
-    pub amount: Vec<Coin>,
+pub struct Fee<CoinType = Coin> {
+    pub amount: Vec<CoinType>,
     pub gas_limit: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MsgDelegate {
+pub struct MsgDelegate<CoinType = Coin> {
     pub delegator_address: String,
     pub validator_address: String,
-    pub amount: Option<Coin>,
+    pub amount: Option<CoinType>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MsgUndelegate {
+pub struct MsgUndelegate<CoinType = Coin> {
     pub delegator_address: String,
     pub validator_address: String,
-    pub amount: Option<Coin>,
+    pub amount: Option<CoinType>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MsgBeginRedelegate {
+pub struct MsgBeginRedelegate<CoinType = Coin> {
     pub delegator_address: String,
     pub validator_src_address: String,
     pub validator_dst_address: String,
-    pub amount: Option<Coin>,
+    pub amount: Option<CoinType>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

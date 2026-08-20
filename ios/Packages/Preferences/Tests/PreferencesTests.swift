@@ -34,6 +34,7 @@ struct PreferencesTests {
         #expect(preferences.chartPeriod == .day)
         #expect(preferences.perpetualChartPeriod == .day)
         #expect(preferences.perpetualLeverage == 0)
+        #expect(preferences.appearance == .system)
     }
 
     @Test
@@ -121,6 +122,9 @@ struct PreferencesTests {
 
         preferences.perpetualChartPeriod = .month
         #expect(preferences.perpetualChartPeriod == .month)
+
+        preferences.appearance = .dark
+        #expect(preferences.appearance == .dark)
 
         preferences.perpetualLeverage = 25
         #expect(preferences.perpetualLeverage == 25)

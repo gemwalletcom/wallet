@@ -163,6 +163,10 @@
 "settings.preferences.perpetual.default_leverage" = "Uwiano wa Mtaji Chaguomsingi";
 "settings.preferences.perpetual.default_take_profit" = "Take Profit chaguomsingi";
 "settings.preferences.perpetual.default_stop_loss" = "Stop Loss chaguomsingi";
+"settings.appearance_title" = "Muonekano";
+"settings.appearance_system" = "Mfumo";
+"settings.appearance_light" = "Nuru";
+"settings.appearance_dark" = "Giza";
 "support.state_empty_title" = "Tunawezaje kukusaidia?";
 "support.state_empty_description" = "Tuulize chochote. Tupo hapa kukusaidia.";
 "support.message_placeholder" = "Ujumbe";

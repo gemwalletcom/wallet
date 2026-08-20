@@ -4,6 +4,7 @@ import SwiftUI
 
 private struct LockWindowManagerViewModifier: ViewModifier {
     @Environment(\.scenePhase) var scenePhase
+    @Environment(\.colorScheme) var colorScheme
     private let lockManager: any LockWindowManageable
 
     init(lockManager: any LockWindowManageable) {
@@ -14,6 +15,9 @@ private struct LockWindowManagerViewModifier: ViewModifier {
         content
             .onChange(of: scenePhase, initial: true) { _, newPhase in
                 lockManager.setPhase(phase: newPhase)
+            }
+            .onChange(of: colorScheme, initial: true) { _, newColorScheme in
+                lockManager.setColorScheme(newColorScheme)
             }
             .onChange(of: lockManager.isPrivacyLockVisible) { _, visible in
                 lockManager.togglePrivacyLock(visible: visible)

@@ -163,6 +163,10 @@
 "settings.preferences.perpetual.default_leverage" = "預設槓桿";
 "settings.preferences.perpetual.default_take_profit" = "預設止盈";
 "settings.preferences.perpetual.default_stop_loss" = "預設止損";
+"settings.appearance_title" = "外觀";
+"settings.appearance_system" = "跟隨系統";
+"settings.appearance_light" = "淺色";
+"settings.appearance_dark" = "深色";
 "support.state_empty_title" = "有什麼可以幫您?";
 "support.state_empty_description" = "有任何問題都可以問我們。我們隨時為您提供協助。";
 "support.message_placeholder" = "訊息";

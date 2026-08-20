@@ -170,6 +170,10 @@
   <string name="settings_preferences_perpetual_default_leverage">Standardgearing</string>
   <string name="settings_preferences_perpetual_default_take_profit">Standard Take Profit</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Standard Stop Loss</string>
+  <string name="settings_appearance_title">Udseende</string>
+  <string name="settings_appearance_system">System</string>
+  <string name="settings_appearance_light">Lys</string>
+  <string name="settings_appearance_dark">Mørk</string>
   <string name="support_state_empty_title">Hvordan kan vi hjælpe?</string>
   <string name="support_state_empty_description">Spørg os om hvad som helst. Vi er her for at hjælpe.</string>
   <string name="support_message_placeholder">Besked</string>

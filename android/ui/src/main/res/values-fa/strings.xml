@@ -170,6 +170,10 @@
   <string name="settings_preferences_perpetual_default_leverage">اهرم پیش‌فرض</string>
   <string name="settings_preferences_perpetual_default_take_profit">حد سود پیشفرض</string>
   <string name="settings_preferences_perpetual_default_stop_loss">حد ضرر پیشفرض</string>
+  <string name="settings_appearance_title">ظاهر</string>
+  <string name="settings_appearance_system">سیستم</string>
+  <string name="settings_appearance_light">روشن</string>
+  <string name="settings_appearance_dark">تیره</string>
   <string name="support_state_empty_title">چطور می‌توانیم کمک کنیم؟</string>
   <string name="support_state_empty_description">هر سوالی دارید از ما بپرسید. ما اینجا هستیم تا کمک کنیم.</string>
   <string name="support_message_placeholder">پیام</string>

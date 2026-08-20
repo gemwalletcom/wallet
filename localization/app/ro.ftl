@@ -194,6 +194,10 @@ settings_preferences_title = Preferințe
 settings_preferences_perpetual_default_leverage = Levier implicit
 settings_preferences_perpetual_default_take_profit = Take Profit implicit
 settings_preferences_perpetual_default_stop_loss = Stop Loss implicit
+settings_appearance_title = Aspect
+settings_appearance_system = Sistem
+settings_appearance_light = Luminos
+settings_appearance_dark = Întunecat
 
 # Support
 

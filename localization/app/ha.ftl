@@ -194,6 +194,10 @@ settings_preferences_title = Abubuwan da ake so
 settings_preferences_perpetual_default_leverage = Tsohuwar Leverage
 settings_preferences_perpetual_default_take_profit = Take Profit na asali
 settings_preferences_perpetual_default_stop_loss = Stop Loss na asali
+settings_appearance_title = Kamanni
+settings_appearance_system = Tsarin
+settings_appearance_light = Haske
+settings_appearance_dark = Duhu
 
 # Support
 

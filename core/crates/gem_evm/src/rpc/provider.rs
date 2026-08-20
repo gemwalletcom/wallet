@@ -7,10 +7,11 @@ use num_bigint::BigInt;
 use primitives::{AssetBalance, TransactionFee, TransactionLoadInput};
 
 use super::EthereumClient;
+use crate::provider::preload_mapper::TransactionParams;
 
 #[async_trait]
 pub trait EvmFeeCalculator: Send + Sync {
-    async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>>;
+    async fn calculate_fee(&self, input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>>;
 }
 
 #[async_trait]

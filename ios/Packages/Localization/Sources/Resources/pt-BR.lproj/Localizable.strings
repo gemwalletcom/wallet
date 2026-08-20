@@ -163,6 +163,10 @@
 "settings.preferences.perpetual.default_leverage" = "Alavancagem padrão";
 "settings.preferences.perpetual.default_take_profit" = "Take Profit padrão";
 "settings.preferences.perpetual.default_stop_loss" = "Stop Loss padrão";
+"settings.appearance_title" = "Aparência";
+"settings.appearance_system" = "Sistema";
+"settings.appearance_light" = "Claro";
+"settings.appearance_dark" = "Escuro";
 "support.state_empty_title" = "Como podemos ajudar?";
 "support.state_empty_description" = "Pergunte o que quiser. Estamos aqui para ajudar.";
 "support.message_placeholder" = "Mensagem";

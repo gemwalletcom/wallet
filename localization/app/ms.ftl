@@ -194,6 +194,10 @@ settings_preferences_title = Keutamaan
 settings_preferences_perpetual_default_leverage = Leveraj Lalai
 settings_preferences_perpetual_default_take_profit = Take Profit lalai
 settings_preferences_perpetual_default_stop_loss = Stop Loss lalai
+settings_appearance_title = Penampilan
+settings_appearance_system = Sistem
+settings_appearance_light = Cerah
+settings_appearance_dark = Gelap
 
 # Support
 

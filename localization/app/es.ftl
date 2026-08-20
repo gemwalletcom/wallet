@@ -194,6 +194,10 @@ settings_preferences_title = Preferencias
 settings_preferences_perpetual_default_leverage = Apalancamiento por defecto
 settings_preferences_perpetual_default_take_profit = Take Profit predeterminado
 settings_preferences_perpetual_default_stop_loss = Stop Loss predeterminado
+settings_appearance_title = Apariencia
+settings_appearance_system = Sistema
+settings_appearance_light = Claro
+settings_appearance_dark = Oscuro
 
 # Support
 

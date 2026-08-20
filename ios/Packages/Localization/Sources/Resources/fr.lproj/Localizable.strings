@@ -163,6 +163,10 @@
 "settings.preferences.perpetual.default_leverage" = "effet de levier par défaut";
 "settings.preferences.perpetual.default_take_profit" = "Take Profit par défaut";
 "settings.preferences.perpetual.default_stop_loss" = "Stop Loss par défaut";
+"settings.appearance_title" = "Apparence";
+"settings.appearance_system" = "Système";
+"settings.appearance_light" = "Clair";
+"settings.appearance_dark" = "Sombre";
 "support.state_empty_title" = "Comment pouvons-nous vous aider ?";
 "support.state_empty_description" = "Posez-nous toutes vos questions. Nous sommes là pour vous aider.";
 "support.message_placeholder" = "Message";

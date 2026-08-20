@@ -1,9 +1,7 @@
-#[cfg(feature = "rpc")]
-use super::preload_optimism::OptimismGasOracle;
 use crate::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT, TRANSFER_GAS_LIMIT};
 use crate::fee_calculator::{get_fee_history_blocks, get_reward_percentiles};
 use crate::provider::preload_mapper::{
-    bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates,
+    TransactionParams, bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates,
     map_transaction_preload,
 };
 use crate::rpc::{EthereumClient, EthereumProvider, EvmFeeCalculator};
@@ -70,7 +68,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
             bigint_from_hex_str(&estimate)?
         };
         let gas_limit = calculate_gas_limit_with_increase(gas_estimate);
-        let fee = self.fee_calculator.calculate_fee(&input, &gas_limit).await?;
+        let fee = self.fee_calculator.calculate_fee(&input, &params, &gas_limit).await?;
 
         let metadata = if let TransactionInputType::Stake(_, _) = &input.input_type {
             match input.metadata {
@@ -95,21 +93,10 @@ impl<C: Client + Clone> EthereumProvider<C> {
 }
 
 #[cfg(feature = "rpc")]
-impl<C: Client + Clone> EthereumClient<C> {
-    pub async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
-        if self.chain.is_opstack() {
-            OptimismGasOracle::new(self.chain, self.clone()).calculate_fee(input, gas_limit).await
-        } else {
-            calculate_fee(input, gas_limit)
-        }
-    }
-}
-
-#[cfg(feature = "rpc")]
 #[async_trait]
 impl<C: Client + Clone> EvmFeeCalculator for EthereumClient<C> {
-    async fn calculate_fee(&self, input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
-        EthereumClient::calculate_fee(self, input, gas_limit).await
+    async fn calculate_fee(&self, input: &TransactionLoadInput, _params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
+        calculate_fee(input, gas_limit)
     }
 }
 

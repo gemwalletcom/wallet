@@ -98,5 +98,6 @@ struct RootScene: View {
         .toast(message: $model.isPresentingToastMessage, offsetY: -model.toastOffset)
         .onChange(of: scenePhase, model.onScenePhaseChanged)
         .onChange(of: model.observablePreferences.isPerpetualEnabled, model.onPerpetualEnabledChanged)
+        .preferredColorScheme(model.colorScheme)
     }
 }

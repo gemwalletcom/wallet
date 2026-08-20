@@ -170,6 +170,10 @@
   <string name="settings_preferences_perpetual_default_leverage">Uwiano wa Mtaji Chaguomsingi</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit chaguomsingi</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss chaguomsingi</string>
+  <string name="settings_appearance_title">Muonekano</string>
+  <string name="settings_appearance_system">Mfumo</string>
+  <string name="settings_appearance_light">Nuru</string>
+  <string name="settings_appearance_dark">Giza</string>
   <string name="support_state_empty_title">Tunawezaje kukusaidia?</string>
   <string name="support_state_empty_description">Tuulize chochote. Tupo hapa kukusaidia.</string>
   <string name="support_message_placeholder">Ujumbe</string>

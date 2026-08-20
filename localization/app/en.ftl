@@ -368,6 +368,14 @@ settings_preferences_perpetual_default_leverage = Default Leverage
 settings_preferences_perpetual_default_take_profit = Default Take Profit
 # Settings > Preferences > Perpetuals row for the default stop-loss percentage on new perpetual positions.
 settings_preferences_perpetual_default_stop_loss = Default Stop Loss
+# Settings > Preferences row that opens the app appearance (theme) picker.
+settings_appearance_title = Appearance
+# Settings > Preferences > Appearance option that follows the device theme.
+settings_appearance_system = System
+# Settings > Preferences > Appearance option that forces the light theme.
+settings_appearance_light = Light
+# Settings > Preferences > Appearance option that forces the dark theme.
+settings_appearance_dark = Dark
 
 # Support
 

@@ -139,6 +139,7 @@ public enum Images {
         public static let preferences = Image(.settingsPreferences)
         public static let perpetuals = Image(.settingsPerps)
         public static let contacts = Image(.settingsContact)
+        public static let appearance = Image(.settingsAppearance)
     }
 
     public enum Perpetuals {

@@ -6,8 +6,10 @@ import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.CheckAccountsService
 import com.gemwallet.android.services.MigrateV3KeystoreService
 import com.gemwallet.android.services.SyncService
+import com.wallet.core.primitives.Appearance
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -86,6 +88,7 @@ class MainViewModelAuthStateTest {
     private fun mainViewModel(authRequired: Boolean): MainViewModel {
         val userConfig = mockk<UserConfig>()
         every { userConfig.authRequired() } returns authRequired
+        every { userConfig.appearance() } returns flowOf(Appearance.System)
 
         return MainViewModel(
             userConfig = userConfig,

@@ -194,6 +194,10 @@ settings_preferences_title = Præferencer
 settings_preferences_perpetual_default_leverage = Standardgearing
 settings_preferences_perpetual_default_take_profit = Standard Take Profit
 settings_preferences_perpetual_default_stop_loss = Standard Stop Loss
+settings_appearance_title = Udseende
+settings_appearance_system = System
+settings_appearance_light = Lys
+settings_appearance_dark = Mørk
 
 # Support
 

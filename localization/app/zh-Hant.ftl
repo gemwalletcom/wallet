@@ -194,6 +194,10 @@ settings_preferences_title = 偏好設定
 settings_preferences_perpetual_default_leverage = 預設槓桿
 settings_preferences_perpetual_default_take_profit = 預設止盈
 settings_preferences_perpetual_default_stop_loss = 預設止損
+settings_appearance_title = 外觀
+settings_appearance_system = 跟隨系統
+settings_appearance_light = 淺色
+settings_appearance_dark = 深色
 
 # Support
 

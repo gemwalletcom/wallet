@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use primitives::Transaction;
+use primitives::{ChainType, Transaction};
 
 use crate::SwapperProvider;
 use crate::thorchain::memo::ThorchainMemo;
@@ -14,6 +14,8 @@ pub struct VaultAddresses {
 pub type DepositAddressMap = HashMap<String, SwapperProvider>;
 pub type SendAddressMap = HashMap<String, SwapperProvider>;
 
+const CHAINFLIP_SWAP_SELECTORS: [&str; 2] = ["0xdd687345", "0x04fc7da0"];
+
 pub fn swap_provider_with_vault_addresses(transaction: &Transaction, deposit_addresses: &DepositAddressMap) -> Option<SwapperProvider> {
     deposit_addresses
         .get(&transaction.to)
@@ -25,8 +27,21 @@ pub fn swap_provider_with_vault_addresses(transaction: &Transaction, deposit_add
 fn is_valid_swap_transaction(provider: &SwapperProvider, transaction: &Transaction) -> bool {
     match provider {
         SwapperProvider::Thorchain | SwapperProvider::Mayachain => transaction.memo.as_deref().is_some_and(ThorchainMemo::is_swap),
+        SwapperProvider::Chainflip => is_valid_chainflip_swap(transaction),
         _ => true,
     }
+}
+
+fn is_valid_chainflip_swap(transaction: &Transaction) -> bool {
+    if transaction.asset_id.chain.chain_type() != ChainType::Ethereum {
+        return true;
+    }
+
+    transaction
+        .data
+        .as_deref()
+        .and_then(|data| data.get(..10))
+        .is_some_and(|selector| CHAINFLIP_SWAP_SELECTORS.iter().any(|candidate| selector.eq_ignore_ascii_case(candidate)))
 }
 
 pub fn is_cross_chain_swap(transaction: &Transaction, deposit_addresses: &DepositAddressMap) -> bool {
@@ -40,7 +55,7 @@ pub fn is_from_vault_address(transaction: &Transaction, send_addresses: &SendAdd
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::TransactionUtxoInput;
+    use primitives::{AssetId, Chain, TransactionUtxoInput};
 
     #[test]
     fn test_vault_address_detected() {
@@ -54,6 +69,56 @@ mod tests {
     fn test_no_vault_address() {
         let empty = DepositAddressMap::new();
         assert!(!is_cross_chain_swap(&Transaction::mock(), &empty));
+    }
+
+    #[test]
+    fn test_chainflip_evm_swap_methods() {
+        let vault = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc".to_string();
+        let deposit_addresses = DepositAddressMap::from([(vault.clone(), SwapperProvider::Chainflip)]);
+
+        let native_swap = Transaction {
+            to: vault.clone(),
+            data: Some("0xdd68734500000000".to_string()),
+            ..Transaction::mock()
+        };
+        assert_eq!(swap_provider_with_vault_addresses(&native_swap, &deposit_addresses), Some(SwapperProvider::Chainflip));
+
+        let token_swap = Transaction {
+            to: vault.clone(),
+            data: Some("0x04fc7da000000000".to_string()),
+            ..Transaction::mock()
+        };
+        assert_eq!(swap_provider_with_vault_addresses(&token_swap, &deposit_addresses), Some(SwapperProvider::Chainflip));
+
+        let all_batch = Transaction {
+            to: vault.clone(),
+            data: Some("0x5f8c0f9a00000000".to_string()),
+            ..Transaction::mock()
+        };
+        assert_eq!(swap_provider_with_vault_addresses(&all_batch, &deposit_addresses), None);
+
+        let unknown_method = Transaction {
+            to: vault.clone(),
+            data: Some("0xdeadbeef00000000".to_string()),
+            ..Transaction::mock()
+        };
+        assert_eq!(swap_provider_with_vault_addresses(&unknown_method, &deposit_addresses), None);
+
+        let missing_data = Transaction { to: vault, ..Transaction::mock() };
+        assert_eq!(swap_provider_with_vault_addresses(&missing_data, &deposit_addresses), None);
+    }
+
+    #[test]
+    fn test_chainflip_non_evm_vault_swap() {
+        let vault = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT".to_string();
+        let deposit_addresses = DepositAddressMap::from([(vault.clone(), SwapperProvider::Chainflip)]);
+        let transaction = Transaction {
+            asset_id: AssetId::from_chain(Chain::Solana),
+            to: vault,
+            ..Transaction::mock()
+        };
+
+        assert_eq!(swap_provider_with_vault_addresses(&transaction, &deposit_addresses), Some(SwapperProvider::Chainflip));
     }
 
     #[test]

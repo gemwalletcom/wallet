@@ -1,6 +1,7 @@
 use gem_encoding::decode_base64;
-use num_bigint::BigUint;
+use num_bigint::{BigInt, BigUint};
 use serde::{Deserialize, Serialize};
+use serde_serializers::{deserialize_bigint_from_str, serialize_bigint};
 use std::str;
 
 use super::message::{AuthInfo, Message};
@@ -40,13 +41,20 @@ pub struct TransactionsResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionResponseTx {
     pub body: TransactionBody,
-    pub auth_info: Option<AuthInfo>,
+    pub auth_info: Option<AuthInfo<TransactionResponseCoin>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionBody {
     pub memo: String,
-    pub messages: Vec<Message>,
+    pub messages: Vec<Message<TransactionResponseCoin>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionResponseCoin {
+    pub denom: String,
+    #[serde(deserialize_with = "deserialize_bigint_from_str", serialize_with = "serialize_bigint")]
+    pub amount: BigInt,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -70,11 +78,10 @@ pub struct TransactionEventAttribute {
     pub value: Option<String>,
 }
 
-impl TransactionResponse {
+impl TransactionResponseData {
     pub fn get_rewards_value(&self, denom: &str) -> Option<BigUint> {
         //base64 decoding added for sei/celestia. This is a temporary solution until the issue is resolved in the cosmos-sdk
-        self.tx_response
-            .events
+        self.events
             .iter()
             .filter(|event| event.event_type == crate::constants::EVENTS_WITHDRAW_REWARDS_TYPE)
             .flat_map(|event| &event.attributes)

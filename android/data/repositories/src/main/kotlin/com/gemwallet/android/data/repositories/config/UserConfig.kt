@@ -13,6 +13,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.model.AppUpdateInfo
+import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.WalletId
@@ -55,6 +56,13 @@ class UserConfig(
     fun isPerpetualEnabled(): Flow<Boolean> = read(Key.IsPerpetualEnabled, false)
 
     suspend fun setPerpetualEnabled(enabled: Boolean) = write(Key.IsPerpetualEnabled, enabled)
+
+    fun appearance(): Flow<Appearance> =
+        read(Key.Appearance, "").map { value ->
+            Appearance.entries.firstOrNull { it.string == value } ?: Appearance.System
+        }
+
+    suspend fun setAppearance(appearance: Appearance) = write(Key.Appearance, appearance.string)
 
     fun perpetualAccountMode(walletId: WalletId): Flow<PerpetualAccountMode> =
         read(Key.perpetualAccountMode(walletId), "").map { value ->
@@ -157,5 +165,6 @@ class UserConfig(
         val PerpetualTakeProfit = intPreferencesKey("perpetual_take_profit")
         val PerpetualStopLoss = intPreferencesKey("perpetual_stop_loss")
         val SwapSlippageBps = intPreferencesKey("swap_slippage_bps")
+        val Appearance = stringPreferencesKey("appearance")
     }
 }

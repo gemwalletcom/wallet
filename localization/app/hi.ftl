@@ -194,6 +194,10 @@ settings_preferences_title = प्राथमिकताएँ
 settings_preferences_perpetual_default_leverage = डिफ़ॉल्ट उत्तोलन
 settings_preferences_perpetual_default_take_profit = डिफ़ॉल्ट टेक प्रॉफिट
 settings_preferences_perpetual_default_stop_loss = डिफ़ॉल्ट स्टॉप लॉस
+settings_appearance_title = दिखावट
+settings_appearance_system = सिस्टम
+settings_appearance_light = हल्का
+settings_appearance_dark = गहरा
 
 # Support
 

@@ -170,6 +170,10 @@
   <string name="settings_preferences_perpetual_default_leverage">기본 레버리지</string>
   <string name="settings_preferences_perpetual_default_take_profit">기본 익절</string>
   <string name="settings_preferences_perpetual_default_stop_loss">기본 손절</string>
+  <string name="settings_appearance_title">화면 모드</string>
+  <string name="settings_appearance_system">시스템</string>
+  <string name="settings_appearance_light">라이트</string>
+  <string name="settings_appearance_dark">다크</string>
   <string name="support_state_empty_title">무엇을 도와드릴까요?</string>
   <string name="support_state_empty_description">무엇이든 물어보세요. 저희가 도와드리겠습니다.</string>
   <string name="support_message_placeholder">메시지</string>
