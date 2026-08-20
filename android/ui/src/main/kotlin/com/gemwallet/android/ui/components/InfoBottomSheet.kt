@@ -65,6 +65,16 @@ sealed class InfoSheetEntity(
         descriptionArgs = listOf("**$networkTitle**", "**$networkSymbol**"),
     )
 
+    class IdentityVerificationInfo(
+        merchantName: String,
+        merchantIconUrl: String?,
+    ) : InfoSheetEntity(
+        icon = merchantIconUrl.orEmpty(),
+        title = R.string.info_identity_verification_title,
+        description = R.string.info_identity_verification_description,
+        descriptionArgs = listOf("**$merchantName**"),
+    )
+
     class NetworkBalanceRequiredInfo(
         chain: Chain,
         required: String,
