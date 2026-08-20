@@ -466,8 +466,6 @@
 "info.perpetual.funding_apr.description" = "Річна ставка, за якою довгі позиції платять за короткі позиції (якщо від'ємна, короткі позиції платять за довгі позики). Немає жодної комісії, пов'язаної з фінансуванням, яке є одноранговою передачею між користувачами для підвищення цін до спотової ціни.";
 "info.minimum_amount.title" = "Мінімальна сума";
 "info.minimum_amount.description" = "У мережі %@ мінімальна сума для цієї транзакції становить %@.";
-"info.identity_verification_title" = "Identity Verification";
-"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Будь ласка, введіть суму для %@";
 "nft.properties" = "Властивості";
 "nft.collections" = "Колекції";

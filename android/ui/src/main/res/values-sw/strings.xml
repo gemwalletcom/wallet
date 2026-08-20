@@ -481,8 +481,6 @@
   <string name="info_perpetual_funding_apr_description">Kiwango cha kila mwaka ambacho nafasi ndefu hulipa nafasi fupi (ikiwa hasi, nafasi fupi hulipa nafasi ndefu). Hakuna ada zinazohusishwa na ufadhili, ambao ni uhamishaji kati ya watumiaji ili kusukuma bei kuelekea bei inayotarajiwa.</string>
   <string name="info_minimum_amount_title">Kiasi cha Chini</string>
   <string name="info_minimum_amount_description">Kwenye mtandao wa %1$s, kiasi cha chini kwa muamala huu ni %2$s.</string>
-  <string name="info_identity_verification_title">Identity Verification</string>
-  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Tafadhali weka kiasi hadi %1$s</string>
   <string name="nft_properties">Mali</string>
   <string name="nft_collections">Mikusanyiko</string>

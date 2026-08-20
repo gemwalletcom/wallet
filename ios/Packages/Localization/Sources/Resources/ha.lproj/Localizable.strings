@@ -466,8 +466,6 @@
 "info.perpetual.funding_apr.description" = "Matsakaicin adadin shekara-shekara wanda masu doguwa ke biyan masu gajere (idan mara kyau, masu gajere suna biyan masu doguwa). Babu wasu kudade da ke da alaƙa da kudade, wanda shine canja wuri tsakanin-tsara tsakanin masu amfani don tura farashin zuwa farashin tabo.";
 "info.minimum_amount.title" = "Mafi ƙarancin kuɗi";
 "info.minimum_amount.description" = "A kan hanyar sadarwar %@, mafi ƙarancin adadin wannan ma'amala shi ne %@.";
-"info.identity_verification_title" = "Identity Verification";
-"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Da fatan za a shigar da adadin zuwa %@";
 "nft.properties" = "Kayayyaki";
 "nft.collections" = "Tari";

@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = APR Pendanaan
 info_perpetual_funding_apr_description = Tingkat tahunan di mana posisi long membayar posisi short (jika negatif, posisi short membayar posisi long). Tidak ada biaya yang terkait dengan pendanaan, yang merupakan transfer peer-to-peer antar pengguna untuk mendorong harga menuju harga spot.
 info_minimum_amount_title = Jumlah Minimum
 info_minimum_amount_description = Di jaringan %@, jumlah minimum untuk transaksi ini adalah %@.
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

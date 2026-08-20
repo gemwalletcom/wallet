@@ -466,8 +466,6 @@
 "info.perpetual.funding_apr.description" = "Anualizovaná sazba, jakou longs platí shorts (pokud jsou záporné, shorts platí longs). S financováním nejsou spojeny žádné poplatky, což je peer-to-peer převod mezi uživateli za účelem tlačení cen směrem k spotové ceně.";
 "info.minimum_amount.title" = "Minimální částka";
 "info.minimum_amount.description" = "V síti %@ je minimální částka pro tuto transakci %@.";
-"info.identity_verification_title" = "Identity Verification";
-"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Zadejte částku do %@";
 "nft.properties" = "Vlastnosti";
 "nft.collections" = "Sbírky";

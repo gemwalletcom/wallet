@@ -466,8 +466,6 @@
 "info.perpetual.funding_apr.description" = "La tasa anualizada a la que los largos pagan a los cortos (si es negativa, los cortos pagan a los largos). No hay tarifas asociadas con la financiación, que es una transferencia de igual a igual entre usuarios para impulsar los precios hacia el precio al contado.";
 "info.minimum_amount.title" = "Cantidad Mínima";
 "info.minimum_amount.description" = "En la red %@, el importe mínimo para esta transacción es %@.";
-"info.identity_verification_title" = "Identity Verification";
-"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Por favor ingrese la cantidad a %@";
 "nft.properties" = "Propiedades";
 "nft.collections" = "Colecciones";

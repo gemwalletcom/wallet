@@ -481,8 +481,6 @@
   <string name="info_perpetual_funding_apr_description">อัตรารายปีที่สัญญา Long จ่าย Short (หากติดลบ Short จะจ่าย Long) ไม่มีค่าธรรมเนียมที่เกี่ยวข้องกับการระดมทุน ซึ่งเป็นการโอนแบบเพียร์ทูเพียร์ระหว่างผู้ใช้เพื่อดันราคาไปสู่ราคาสปอต</string>
   <string name="info_minimum_amount_title">จำนวนเงินขั้นต่ำ</string>
   <string name="info_minimum_amount_description">บนเครือข่าย %1$s จำนวนขั้นต่ำสำหรับธุรกรรมนี้คือ %2$s</string>
-  <string name="info_identity_verification_title">Identity Verification</string>
-  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">กรุณากรอกจำนวนเงินเป็น %1$s</string>
   <string name="nft_properties">คุณสมบัติ</string>
   <string name="nft_collections">คอลเลคชั่น</string>

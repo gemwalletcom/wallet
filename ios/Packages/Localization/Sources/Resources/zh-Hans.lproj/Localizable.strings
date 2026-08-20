@@ -466,8 +466,6 @@
 "info.perpetual.funding_apr.description" = "多头支付空头的年化利率（如果为负，则空头支付多头）。融资不收取任何费用，融资是用户之间的点对点转账，旨在将价格推向现货价格。";
 "info.minimum_amount.title" = "最低金额";
 "info.minimum_amount.description" = "在 %@ 网络上，此交易的最低金额为 %@。";
-"info.identity_verification_title" = "Identity Verification";
-"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "输入%@的数量";
 "nft.properties" = "特性";
 "nft.collections" = "藏品集合";

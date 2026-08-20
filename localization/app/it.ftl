@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = Finanziamento APR
 info_perpetual_funding_apr_description = Il tasso annualizzato al quale le posizioni long pagano le posizioni short (se negativo, le posizioni short pagano le posizioni long). Non sono previste commissioni associate al finanziamento, che è un trasferimento peer-to-peer tra utenti per spingere i prezzi verso il prezzo spot.
 info_minimum_amount_title = Importo minimo
 info_minimum_amount_description = Sulla rete %@, l'importo minimo per questa transazione è %@.
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

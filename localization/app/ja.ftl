@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = 資金調達APR
 info_perpetual_funding_apr_description = ロングがショートに支払う年率 (マイナスの場合、ショートがロングに支払う)。価格をスポット価格に近づけるためのユーザー間のピアツーピア転送である資金調達に関連する手数料はありません。
 info_minimum_amount_title = 最低金額
 info_minimum_amount_description = %@ ネットワークで、この取引の最低金額は %@ です。
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

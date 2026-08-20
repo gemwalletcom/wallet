@@ -481,8 +481,6 @@
   <string name="info_perpetual_funding_apr_description">多頭支付空頭的年化利率（如果為負，則空頭支付多頭）。融資不收取任何費用，融資是用戶之間的點對點轉賬，旨在將價格推向現貨價格。</string>
   <string name="info_minimum_amount_title">最低金額</string>
   <string name="info_minimum_amount_description">在 %1$s 網路上，此交易的最低金額為 %2$s。</string>
-  <string name="info_identity_verification_title">Identity Verification</string>
-  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">請輸入您要%1$s的數量</string>
   <string name="nft_properties">特性</string>
   <string name="nft_collections">藏品集合</string>

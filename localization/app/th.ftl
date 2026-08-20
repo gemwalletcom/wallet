@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = Funding APR
 info_perpetual_funding_apr_description = อัตรารายปีที่สัญญา Long จ่าย Short (หากติดลบ Short จะจ่าย Long) ไม่มีค่าธรรมเนียมที่เกี่ยวข้องกับการระดมทุน ซึ่งเป็นการโอนแบบเพียร์ทูเพียร์ระหว่างผู้ใช้เพื่อดันราคาไปสู่ราคาสปอต
 info_minimum_amount_title = จำนวนเงินขั้นต่ำ
 info_minimum_amount_description = บนเครือข่าย %@ จำนวนขั้นต่ำสำหรับธุรกรรมนี้คือ %@
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

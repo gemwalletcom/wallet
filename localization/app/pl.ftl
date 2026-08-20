@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = Finansowanie RRSO
 info_perpetual_funding_apr_description = Roczna stopa procentowa, według której pozycje długie opłacają pozycje krótkie (jeśli wartość ujemna, pozycje krótkie opłacają pozycje długie). Nie ma żadnych opłat związanych z finansowaniem, które stanowi transfer typu peer-to-peer pomiędzy użytkownikami w celu podniesienia cen w kierunku ceny spot.
 info_minimum_amount_title = Minimalna kwota
 info_minimum_amount_description = W sieci %@ minimalna kwota tej transakcji to %@.
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

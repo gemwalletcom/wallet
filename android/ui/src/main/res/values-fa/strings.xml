@@ -481,8 +481,6 @@
   <string name="info_perpetual_funding_apr_description">نرخ سالانه ای که در آن لانگ ها به شورت پرداخت می کنند (اگر منفی باشد، شورت ها به لانگ پرداخت می کنند). هیچ کارمزدی در ارتباط با تامین مالی وجود ندارد، که انتقالی همتا به همتا بین کاربران است تا قیمت ها را به سمت قیمت لحظه ای سوق دهد.</string>
   <string name="info_minimum_amount_title">حداقل مقدار</string>
   <string name="info_minimum_amount_description">در شبکه %1$s، حداقل مبلغ برای این تراکنش %2$s است.</string>
-  <string name="info_identity_verification_title">Identity Verification</string>
-  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">لطفاً مبلغ را به %1$s وارد کنید</string>
   <string name="nft_properties">خواص</string>
   <string name="nft_collections">مجموعه ها</string>

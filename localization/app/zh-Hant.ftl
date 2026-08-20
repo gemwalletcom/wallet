@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = 資金費率年化
 info_perpetual_funding_apr_description = 多頭支付空頭的年化利率（如果為負，則空頭支付多頭）。融資不收取任何費用，融資是用戶之間的點對點轉賬，旨在將價格推向現貨價格。
 info_minimum_amount_title = 最低金額
 info_minimum_amount_description = 在 %@ 網路上，此交易的最低金額為 %@。
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

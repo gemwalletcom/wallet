@@ -481,8 +481,6 @@
   <string name="info_perpetual_funding_apr_description">Ang taunang rate kung saan nagbabayad ang longs ng shorts (kung negatibo, ang shorts ay nagbabayad ng longs). Walang mga bayarin na nauugnay sa pagpopondo, na isang peer-to-peer na paglipat sa pagitan ng mga user upang itulak ang mga presyo patungo sa presyo ng lugar.</string>
   <string name="info_minimum_amount_title">Pinakamababang Halaga</string>
   <string name="info_minimum_amount_description">Sa %1$s network, ang minimum na halaga para sa transaksyong ito ay %2$s.</string>
-  <string name="info_identity_verification_title">Identity Verification</string>
-  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Mangyaring magpasok ng halaga sa %1$s</string>
   <string name="nft_properties">Mga Katangian</string>
   <string name="nft_collections">Mga koleksyon</string>

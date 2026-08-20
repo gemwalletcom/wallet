@@ -466,8 +466,6 @@
 "info.perpetual.funding_apr.description" = "Der auf das Jahr umgerechnete Zinssatz, zu dem Long-Positionen Short-Positionen zahlen (bei negativem Wert zahlen Short-Positionen Long-Positionen). Mit der Finanzierung sind keine Gebühren verbunden, es handelt sich um einen Peer-to-Peer-Transfer zwischen Nutzern, um die Preise in Richtung des Spotpreises zu drücken.";
 "info.minimum_amount.title" = "Mindestbetrag";
 "info.minimum_amount.description" = "Im %@-Netzwerk beträgt der Mindestbetrag für diese Transaktion %@.";
-"info.identity_verification_title" = "Identity Verification";
-"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Bitte geben Sie den Betrag zum %@ ein";
 "nft.properties" = "Eigenschaften";
 "nft.collections" = "Sammlungen";

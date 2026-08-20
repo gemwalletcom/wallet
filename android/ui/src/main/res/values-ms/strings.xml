@@ -481,8 +481,6 @@
   <string name="info_perpetual_funding_apr_description">Kadar tahunan di mana long membayar short (jika negatif, short membayar long). Tiada yuran yang berkaitan dengan pembiayaan, yang merupakan pemindahan rakan ke rakan antara pengguna untuk menolak harga ke arah harga spot.</string>
   <string name="info_minimum_amount_title">Jumlah Minimum</string>
   <string name="info_minimum_amount_description">Pada rangkaian %1$s, jumlah minimum untuk transaksi ini ialah %2$s.</string>
-  <string name="info_identity_verification_title">Identity Verification</string>
-  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Sila masukkan amaun kepada %1$s</string>
   <string name="nft_properties">Hartanah</string>
   <string name="nft_collections">Koleksi</string>

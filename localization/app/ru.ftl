@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = Финансирование годовых
 info_perpetual_funding_apr_description = Годовая ставка, по которой длинные позиции платят коротким позициям (если она отрицательная, короткие позиции платят длинным позициям). Никаких комиссий, связанных с финансированием, которое представляет собой одноранговую передачу между пользователями для подталкивания цен к спотовой цене.
 info_minimum_amount_title = Минимальная сумма
 info_minimum_amount_description = В сети %@ минимальная сумма для этой транзакции составляет %@.
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = Pembiayaan APR
 info_perpetual_funding_apr_description = Kadar tahunan di mana long membayar short (jika negatif, short membayar long). Tiada yuran yang berkaitan dengan pembiayaan, yang merupakan pemindahan rakan ke rakan antara pengguna untuk menolak harga ke arah harga spot.
 info_minimum_amount_title = Jumlah Minimum
 info_minimum_amount_description = Pada rangkaian %@, jumlah minimum untuk transaksi ini ialah %@.
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

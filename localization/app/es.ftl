@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = TAE de financiación
 info_perpetual_funding_apr_description = La tasa anualizada a la que los largos pagan a los cortos (si es negativa, los cortos pagan a los largos). No hay tarifas asociadas con la financiación, que es una transferencia de igual a igual entre usuarios para impulsar los precios hacia el precio al contado.
 info_minimum_amount_title = Cantidad Mínima
 info_minimum_amount_description = En la red %@, el importe mínimo para esta transacción es %@.
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

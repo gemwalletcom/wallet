@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = Funding APR
 info_perpetual_funding_apr_description = Het op jaarbasis berekende percentage waarmee longs shorts betalen (indien negatief, shorts betalen longs). Er zijn geen kosten verbonden aan financiering, wat een peer-to-peer overdracht tussen gebruikers is om de prijzen richting de spotprijs te duwen.
 info_minimum_amount_title = Minimumbedrag
 info_minimum_amount_description = Op het %@-netwerk is het minimumbedrag voor deze transactie %@.
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = फंडिंग एपीआर
 info_perpetual_funding_apr_description = वार्षिक दर जिस पर लॉन्ग शॉर्ट्स को भुगतान करते हैं (यदि नकारात्मक, शॉर्ट्स लॉन्ग्स को भुगतान करते हैं)। फंडिंग से जुड़ी कोई फीस नहीं है, जो कीमतों को स्पॉट कीमत की ओर बढ़ाने के लिए उपयोगकर्ताओं के बीच एक पीयर-टू-पीयर ट्रांसफर है।
 info_minimum_amount_title = न्यूनतम राशि
 info_minimum_amount_description = %@ नेटवर्क पर, इस लेनदेन की न्यूनतम राशि %@ है।
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

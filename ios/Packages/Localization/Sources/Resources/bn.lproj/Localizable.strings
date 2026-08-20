@@ -466,8 +466,6 @@
 "info.perpetual.funding_apr.description" = "বার্ষিক হারে লংস শর্টস প্রদান করে (যদি নেতিবাচক, শর্টস লং পে করে)। তহবিলের সাথে সম্পর্কিত কোন ফি নেই, যা স্পট প্রাইসের দিকে দাম ঠেলে দেওয়ার জন্য ব্যবহারকারীদের মধ্যে পিয়ার-টু-পিয়ার স্থানান্তর।";
 "info.minimum_amount.title" = "ন্যূনতম পরিমাণ";
 "info.minimum_amount.description" = "%@ নেটওয়ার্কে, এই লেনদেনের ন্যূনতম পরিমাণ %@।";
-"info.identity_verification_title" = "Identity Verification";
-"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "অনুগ্রহ করে %@ এ পরিমাণ লিখুন";
 "nft.properties" = "বৈশিষ্ট্য";
 "nft.collections" = "সংগ্রহ";

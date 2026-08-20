@@ -466,8 +466,6 @@
 "info.perpetual.funding_apr.description" = "Kadar tahunan di mana long membayar short (jika negatif, short membayar long). Tiada yuran yang berkaitan dengan pembiayaan, yang merupakan pemindahan rakan ke rakan antara pengguna untuk menolak harga ke arah harga spot.";
 "info.minimum_amount.title" = "Jumlah Minimum";
 "info.minimum_amount.description" = "Pada rangkaian %@, jumlah minimum untuk transaksi ini ialah %@.";
-"info.identity_verification_title" = "Identity Verification";
-"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Sila masukkan amaun kepada %@";
 "nft.properties" = "Hartanah";
 "nft.collections" = "Koleksi";

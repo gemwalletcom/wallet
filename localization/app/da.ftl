@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = Finansiering ÅOP
 info_perpetual_funding_apr_description = Den årlige sats, hvormed longs betaler shorts (hvis negative, shorts pay longs). Der er ingen gebyrer forbundet med finansiering, som er en peer-to-peer-overførsel mellem brugere for at presse priserne mod spotprisen.
 info_minimum_amount_title = Minimumsbeløb
 info_minimum_amount_description = På %@-netværket er minimumsbeløbet for denne transaktion %@.
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

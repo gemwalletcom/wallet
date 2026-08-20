@@ -466,8 +466,6 @@
 "info.perpetual.funding_apr.description" = "Den årlige sats, hvormed longs betaler shorts (hvis negative, shorts pay longs). Der er ingen gebyrer forbundet med finansiering, som er en peer-to-peer-overførsel mellem brugere for at presse priserne mod spotprisen.";
 "info.minimum_amount.title" = "Minimumsbeløb";
 "info.minimum_amount.description" = "På %@-netværket er minimumsbeløbet for denne transaktion %@.";
-"info.identity_verification_title" = "Identity Verification";
-"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "Indtast venligst beløb til %@";
 "nft.properties" = "Egenskaber";
 "nft.collections" = "Samlinger";

@@ -466,8 +466,6 @@
 "info.perpetual.funding_apr.description" = "השיעור השנתי שבו לונג משלם שורט (אם שלילי, שורט משלם לונג). אין עמלות הקשורות למימון, שהוא העברה עמית לעמית בין משתמשים כדי לדחוף את המחירים לכיוון מחיר הספוט.";
 "info.minimum_amount.title" = "כמות מינימלית";
 "info.minimum_amount.description" = "ברשת %@, הסכום המינימלי לעסקה זו הוא %@.";
-"info.identity_verification_title" = "Identity Verification";
-"info.identity_verification_description" = "%@ requires identity verification to complete this payment.";
 "input.enter_amount_to" = "נא להזין סכום ל-%@";
 "nft.properties" = "מאפיינים";
 "nft.collections" = "אוספים";

@@ -581,12 +581,6 @@ public enum Localized {
     public static func estimatedConfirmationDescription(_ p1: Any) -> String {
       return Localized.tr("Localizable", "info.estimated_confirmation_description", String(describing: p1), fallback: "This estimate is based on the transaction fee and current %@ network activity. The actual confirmation time may change and is not guaranteed.")
     }
-    /// %@ requires identity verification to complete this payment.
-    public static func identityVerificationDescription(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "info.identity_verification_description", String(describing: p1), fallback: "%@ requires identity verification to complete this payment.")
-    }
-    /// Identity Verification
-    public static let identityVerificationTitle = Localized.tr("Localizable", "info.identity_verification_title", fallback: "Identity Verification")
     /// Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.
     public static let stakeFrozenRequiredDescription = Localized.tr("Localizable", "info.stake_frozen_required_description", fallback: "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.")
     /// Freeze TRX to Stake

@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = ফান্ডিং APR
 info_perpetual_funding_apr_description = বার্ষিক হারে লংস শর্টস প্রদান করে (যদি নেতিবাচক, শর্টস লং পে করে)। তহবিলের সাথে সম্পর্কিত কোন ফি নেই, যা স্পট প্রাইসের দিকে দাম ঠেলে দেওয়ার জন্য ব্যবহারকারীদের মধ্যে পিয়ার-টু-পিয়ার স্থানান্তর।
 info_minimum_amount_title = ন্যূনতম পরিমাণ
 info_minimum_amount_description = %@ নেটওয়ার্কে, এই লেনদেনের ন্যূনতম পরিমাণ %@।
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

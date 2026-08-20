@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = نرخ سالانه تأمین مالی (APR)
 info_perpetual_funding_apr_description = نرخ سالانه ای که در آن لانگ ها به شورت پرداخت می کنند (اگر منفی باشد، شورت ها به لانگ پرداخت می کنند). هیچ کارمزدی در ارتباط با تامین مالی وجود ندارد، که انتقالی همتا به همتا بین کاربران است تا قیمت ها را به سمت قیمت لحظه ای سوق دهد.
 info_minimum_amount_title = حداقل مقدار
 info_minimum_amount_description = در شبکه %@، حداقل مبلغ برای این تراکنش %@ است.
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

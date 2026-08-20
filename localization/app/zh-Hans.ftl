@@ -586,8 +586,6 @@ info_perpetual_funding_apr_title = 资金费率年化
 info_perpetual_funding_apr_description = 多头支付空头的年化利率（如果为负，则空头支付多头）。融资不收取任何费用，融资是用户之间的点对点转账，旨在将价格推向现货价格。
 info_minimum_amount_title = 最低金额
 info_minimum_amount_description = 在 %@ 网络上，此交易的最低金额为 %@。
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 

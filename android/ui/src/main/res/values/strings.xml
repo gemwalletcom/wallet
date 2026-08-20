@@ -481,8 +481,6 @@
   <string name="info_perpetual_funding_apr_description">The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.</string>
   <string name="info_minimum_amount_title">Minimum Amount</string>
   <string name="info_minimum_amount_description">On the %1$s network, the minimum amount for this transaction is %2$s.</string>
-  <string name="info_identity_verification_title">Identity Verification</string>
-  <string name="info_identity_verification_description">%1$s requires identity verification to complete this payment.</string>
   <string name="input_enter_amount_to">Please enter amount to %1$s</string>
   <string name="nft_properties">Properties</string>
   <string name="nft_collections">Collections</string>

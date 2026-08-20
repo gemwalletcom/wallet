@@ -1075,8 +1075,6 @@ info_perpetual_funding_apr_description = The annualized rate at which longs pay 
 info_minimum_amount_title = Minimum Amount
 # Transfer minimum amount info sheet. First %@ is the network name, second %@ is the minimum amount.
 info_minimum_amount_description = On the %@ network, the minimum amount for this transaction is %@.
-info_identity_verification_title = Identity Verification
-info_identity_verification_description = %@ requires identity verification to complete this payment.
 
 # Input
 
