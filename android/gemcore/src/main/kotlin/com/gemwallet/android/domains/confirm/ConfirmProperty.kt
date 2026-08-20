@@ -10,7 +10,7 @@ import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.WalletType
 
 sealed interface ConfirmProperty {
-    class Source(val data: String, val walletType: WalletType, val walletChain: Chain?) : ConfirmProperty
+    class Source(val data: String, val walletType: WalletType, val walletChain: Chain?, val walletImageUrl: String?) : ConfirmProperty
     class Network(val data: Asset) : ConfirmProperty
     class Memo(memo: String) : ConfirmProperty {
         val data: String = memo.ifEmpty { "-" }

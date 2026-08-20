@@ -34,7 +34,7 @@ class BuildConfirmPropertiesImpl(
         val explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chain)
         val chainExplorer = Explorer(chain.string)
         return mutableListOf<ConfirmProperty?>().apply {
-            add(ConfirmProperty.Source(wallet.name, wallet.type, assetInfo.owner?.chain))
+            add(ConfirmProperty.Source(wallet.name, wallet.type, assetInfo.owner?.chain, wallet.imageUrl))
             val destination = ConfirmProperty.Destination.map(request, getValidator(request), addressName)
             add(
                 when (destination) {
