@@ -5,7 +5,7 @@ use strum::AsRefStr;
 #[strum(serialize_all = "camelCase")]
 pub enum ConfigParamKey {
     TransactionsRequestLimit(Chain),
-    TransactionsPendingMaxAge(Chain),
+    TransactionsPendingErrorMaxAge(Chain),
     SwapperVaultAddresses(SwapProvider),
     PriceProviderAssetsLimit(PriceProvider),
     PriceProviderAssetsDuration(PriceProvider),
@@ -21,7 +21,7 @@ pub enum ConfigParamKey {
 impl ConfigParamKey {
     pub fn all() -> Vec<Self> {
         let transactions = Chain::all().into_iter().map(Self::TransactionsRequestLimit);
-        let pending_transactions = Chain::all().into_iter().map(Self::TransactionsPendingMaxAge);
+        let pending_transactions = Chain::all().into_iter().map(Self::TransactionsPendingErrorMaxAge);
         let swapper = SwapProvider::cross_chain_providers().into_iter().map(Self::SwapperVaultAddresses);
         let assets_limit = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsLimit);
         let assets = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsDuration);
@@ -50,7 +50,7 @@ impl ConfigParamKey {
     pub fn key(&self) -> String {
         match self {
             Self::TransactionsRequestLimit(chain) => format!("{}.{}", self.as_ref(), chain.as_ref()),
-            Self::TransactionsPendingMaxAge(chain) => format!("{}.{}", self.as_ref(), chain.as_ref()),
+            Self::TransactionsPendingErrorMaxAge(chain) => format!("{}.{}", self.as_ref(), chain.as_ref()),
             Self::SwapperVaultAddresses(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderAssetsLimit(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderAssetsDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
@@ -67,7 +67,7 @@ impl ConfigParamKey {
     pub fn default_value(&self) -> &str {
         match self {
             Self::TransactionsRequestLimit(_) => "100",
-            Self::TransactionsPendingMaxAge(_) => "3d",
+            Self::TransactionsPendingErrorMaxAge(_) => "3d",
             Self::SwapperVaultAddresses(_) => "5m",
             Self::PriceProviderAssetsLimit(PriceProvider::TonApi) => "1000",
             Self::PriceProviderAssetsLimit(_) => "5000",
@@ -98,10 +98,10 @@ mod tests {
     }
 
     #[test]
-    fn test_transactions_pending_max_age() {
-        let bitcoin = ConfigParamKey::TransactionsPendingMaxAge(Chain::Bitcoin);
+    fn test_transactions_pending_error_max_age() {
+        let bitcoin = ConfigParamKey::TransactionsPendingErrorMaxAge(Chain::Bitcoin);
 
-        assert_eq!(bitcoin.key(), "transactionsPendingMaxAge.bitcoin");
+        assert_eq!(bitcoin.key(), "transactionsPendingErrorMaxAge.bitcoin");
         assert_eq!(bitcoin.default_value(), "3d");
     }
 }

@@ -11,18 +11,18 @@ use storage::{ConfigCacher, Database, DatabaseError, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
 
 pub struct PendingTransactionsUpdaterConfig {
-    max_age_by_chain: HashMap<Chain, Duration>,
+    error_max_age_by_chain: HashMap<Chain, Duration>,
 }
 
 impl PendingTransactionsUpdaterConfig {
     pub fn from_config(config: &ConfigCacher) -> Result<Self, DatabaseError> {
         Ok(Self {
-            max_age_by_chain: config.get_param_durations(Chain::all(), ConfigParamKey::TransactionsPendingMaxAge)?,
+            error_max_age_by_chain: config.get_param_durations(Chain::all(), ConfigParamKey::TransactionsPendingErrorMaxAge)?,
         })
     }
 
-    fn max_age(&self, chain: Chain) -> Duration {
-        self.max_age_by_chain[&chain]
+    fn error_max_age(&self, chain: Chain) -> Duration {
+        self.error_max_age_by_chain[&chain]
     }
 
 }
@@ -89,7 +89,7 @@ impl PendingTransactionsUpdater {
         let elapsed = DurationMs(elapsed_duration);
         let transaction_id = TransactionId::new(chain, identifier.to_string());
 
-        if pending_transaction_expired(chain, expires_at, now, self.config.max_age(chain)) {
+        if pending_transaction_expired(chain, expires_at, now, self.config.error_max_age(chain)) {
             info_with_fields!("pending transaction expired", chain = chain.as_ref(), identifier = identifier, elapsed = elapsed);
             return Ok(true);
         }
@@ -131,10 +131,9 @@ impl PendingTransactionsUpdater {
                     chain = chain.as_ref(),
                     identifier = identifier,
                     elapsed = elapsed,
-                    latency = DurationMs(start.elapsed()),
-                    dropped = true
+                    latency = DurationMs(start.elapsed())
                 );
-                Ok(true)
+                Ok(pending_transaction_error_expired(elapsed_duration, self.config.error_max_age(chain)))
             }
         }
     }
@@ -158,13 +157,18 @@ fn pending_transaction_elapsed(chain: Chain, expires_at: f64, now: f64) -> Durat
     Duration::from_secs_f64((now - added_at).max(0.0))
 }
 
-fn pending_transaction_expired(chain: Chain, expires_at: f64, now: f64, max_age: Duration) -> bool {
-    expires_at <= now || pending_transaction_elapsed(chain, expires_at, now) >= max_age
+fn pending_transaction_expired(chain: Chain, expires_at: f64, now: f64, error_max_age: Duration) -> bool {
+    let chain_timeout = Duration::from_millis(u64::from(chain_transaction_timeout(chain)));
+    pending_transaction_elapsed(chain, expires_at, now) >= error_max_age.max(chain_timeout)
+}
+
+fn pending_transaction_error_expired(elapsed: Duration, error_max_age: Duration) -> bool {
+    elapsed >= error_max_age
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{pending_transaction_elapsed, pending_transaction_expired};
+    use super::{pending_transaction_elapsed, pending_transaction_error_expired, pending_transaction_expired};
     use std::time::Duration;
 
     use primitives::{Chain, chain_transaction_timeout};
@@ -188,8 +192,8 @@ mod tests {
     }
 
     #[test]
-    fn test_pending_transaction_expires_at_max_age() {
-        let chain = Chain::Bitcoin;
+    fn test_pending_transaction_uses_configured_max_age_when_longer() {
+        let chain = Chain::Ethereum;
         let max_age = Duration::from_secs(3 * 24 * 60 * 60);
         let timeout = f64::from(chain_transaction_timeout(chain)) / 1000.0;
         let added_at = 10_000.0;
@@ -197,5 +201,25 @@ mod tests {
 
         assert!(!pending_transaction_expired(chain, expires_at, added_at + max_age.as_secs_f64() - 1.0, max_age));
         assert!(pending_transaction_expired(chain, expires_at, added_at + max_age.as_secs_f64(), max_age));
+    }
+
+    #[test]
+    fn test_pending_transaction_uses_chain_timeout_when_longer() {
+        let chain = Chain::Bitcoin;
+        let max_age = Duration::from_secs(3 * 24 * 60 * 60);
+        let chain_timeout = Duration::from_millis(u64::from(chain_transaction_timeout(chain)));
+        let added_at = 10_000.0;
+        let expires_at = added_at + chain_timeout.as_secs_f64();
+
+        assert!(!pending_transaction_expired(chain, expires_at, expires_at - 1.0, max_age));
+        assert!(pending_transaction_expired(chain, expires_at, expires_at, max_age));
+    }
+
+    #[test]
+    fn test_pending_transaction_error_uses_configured_max_age() {
+        let max_age = Duration::from_secs(3 * 24 * 60 * 60);
+
+        assert!(!pending_transaction_error_expired(max_age - Duration::from_secs(1), max_age));
+        assert!(pending_transaction_error_expired(max_age, max_age));
     }
 }
