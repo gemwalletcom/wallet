@@ -4122,6 +4122,7 @@ dependencies = [
  "hex",
  "num-bigint 0.5.1",
  "number_formatter",
+ "payment",
  "primitives",
  "serde_json",
  "signer",
