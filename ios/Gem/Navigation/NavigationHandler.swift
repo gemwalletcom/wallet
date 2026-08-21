@@ -252,7 +252,10 @@ extension NavigationHandler {
     }
 
     private func preparedAssetForNavigation(assetId: AssetId, wallet: Wallet?) async throws -> Asset? {
-        guard let wallet, wallet.accounts.contains(where: { $0.chain == assetId.chain }) else {
+        guard AssetNavigationPolicy.canOpen(assetId),
+              let wallet,
+              wallet.accounts.contains(where: { $0.chain == assetId.chain })
+        else {
             return nil
         }
         let asset = try await assetsService.getOrFetchAsset(for: assetId)

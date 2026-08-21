@@ -19,7 +19,8 @@ public struct SwapPairSelectorViewModel: Equatable {
 
 public extension SwapPairSelectorViewModel {
     static func defaultSwapPair(for asset: Asset) -> SwapPairSelectorViewModel {
-        if asset.type == .native {
+        switch asset.id.type {
+        case .native:
             if ProcessInfo.processInfo.environment["SCREENSHOTS_PATH"] != nil {
                 return SwapPairSelectorViewModel(
                     fromAssetId: asset.chain.assetId,
@@ -30,10 +31,11 @@ public extension SwapPairSelectorViewModel {
                 fromAssetId: asset.chain.assetId,
                 toAssetId: nil,
             )
+        case .token:
+            return SwapPairSelectorViewModel(
+                fromAssetId: asset.id,
+                toAssetId: asset.chain.hasNativeAsset ? asset.chain.assetId : nil,
+            )
         }
-        return SwapPairSelectorViewModel(
-            fromAssetId: asset.id,
-            toAssetId: AssetScore.defaultRank(chain: asset.chain) >= 0 ? asset.chain.assetId : nil,
-        )
     }
 }

@@ -62,6 +62,22 @@ struct AssetSceneViewModelTests {
     }
 
     @Test
+    func networkDestinationUsesVisibleNativeAsset() {
+        let asset = Asset.mockEthereumUSDT()
+        let model = AssetSceneViewModel.mock(.mock(asset: asset))
+
+        #expect(model.networkDestination == .asset(asset.chain.asset))
+    }
+
+    @Test
+    func networkDestinationUsesAssetListWithoutNativeAsset() {
+        let asset = Asset.mockTempoUSDC()
+        let model = AssetSceneViewModel.mock(.mock(asset: asset))
+
+        #expect(model.networkDestination == .assets(.tempo))
+    }
+
+    @Test
     func showProviderBalance() {
         #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isStakeEnabled: true))).showProviderBalance(for: .stake) == true)
         #expect(AssetSceneViewModel.mock(.mock(balance: .mock(staked: BigInt(100)), metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == true)

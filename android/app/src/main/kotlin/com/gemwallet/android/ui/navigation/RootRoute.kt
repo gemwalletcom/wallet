@@ -128,11 +128,13 @@ class WalletNavigator(
     private val toastMessages = mutableStateMapOf<NavKey, String>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
 
-    private fun push(route: NavKey) {
-        if (backStack.lastOrNull() != route) {
-            backStack.add(route)
-        }
+    private fun push(route: NavKey): Boolean {
+        if (backStack.lastOrNull() == route) return true
+        return backStack.add(route)
     }
+
+    private fun openAssetRoute(route: AssetRoute): Boolean =
+        assetNavigationPolicy.canOpen(route.assetId) && push(route)
 
     private fun replaceTop(route: NavKey) {
         if (backStack.isNotEmpty()) {
@@ -203,9 +205,7 @@ class WalletNavigator(
     fun openSetupWallet(walletId: WalletId) = replaceTop(SetupWalletRoute(walletId))
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) {
-        if (assetNavigationPolicy.canOpen(assetId)) {
-            push(AssetRoute(assetId))
-        }
+        openAssetRoute(AssetRoute(assetId))
     }
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))
     fun openAssetChart(assetId: AssetId) = push(AssetChartRoute(assetId))
@@ -223,7 +223,10 @@ class WalletNavigator(
     fun openInAppNotifications() = push(InAppNotificationsRoute)
     fun openNotificationUrl(url: String): Boolean {
         val action = runCatching { urlAction(url) }.getOrNull() as? UrlAction.Deeplink ?: return false
-        return action.deeplink.toRoute()?.let(::push) != null
+        return when (val route = action.deeplink.toRoute() ?: return false) {
+            is AssetRoute -> openAssetRoute(route)
+            else -> push(route)
+        }
     }
     fun openAboutUs() = push(AboutusRoute)
     fun openNetworks() = push(NetworksRoute)
@@ -311,6 +314,7 @@ class WalletNavigator(
         if (routes.isEmpty()) return false
         if (!canOpenPendingNavigation()) return false
         if (!confirmed && needsPendingNavigationConfirmation()) return false
+        if (!routes.filterIsInstance<AssetRoute>().all { assetNavigationPolicy.canOpen(it.assetId) }) return false
         resetToWallet()
         routes.forEach(::push)
         return true

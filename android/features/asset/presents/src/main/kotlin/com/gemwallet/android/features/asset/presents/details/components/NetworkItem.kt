@@ -1,29 +1,39 @@
 package com.gemwallet.android.features.asset.presents.details.components
 
 import androidx.compose.foundation.lazy.LazyListScope
+import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.assetType
+import com.gemwallet.android.ext.hasNativeAsset
+import com.gemwallet.android.ext.type
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsAction
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.actions.AssetIdAction
-import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetSubtype
 
 internal fun LazyListScope.network(
     uiState: AssetInfoUIModel,
     onAction: (AssetDetailsAction) -> Unit,
 ) {
-    val chain = uiState.asset.id.chain
-    val onOpenNetwork: AssetIdAction? = when {
-        uiState.tokenType != AssetType.NATIVE -> AssetIdAction { onAction(AssetDetailsAction.OpenNetwork(it)) }
-        chain.assetType() != null -> AssetIdAction { onAction(AssetDetailsAction.OpenNetworkAssets(chain)) }
-        else -> null
-    }
+    val networkNavigationAction = uiState.asset.networkNavigationAction()
     item {
         PropertyNetworkItem(
             asset = uiState.asset,
-            onOpenNetwork = onOpenNetwork,
+            onOpenNetwork = networkNavigationAction?.let { { onAction(it) } },
             listPosition = ListPosition.Last,
         )
+    }
+}
+
+internal fun Asset.networkNavigationAction(
+    hasNativeAsset: Boolean = chain.hasNativeAsset(),
+): AssetDetailsAction.Navigation? {
+    val networkAssetId = AssetId(chain)
+    val networkAssetsAction = chain.assetType()?.let { AssetDetailsAction.OpenNetworkAssets(chain) }
+    return when (id.type()) {
+        AssetSubtype.NATIVE -> networkAssetsAction
+        AssetSubtype.TOKEN -> if (hasNativeAsset) AssetDetailsAction.OpenNetwork(networkAssetId) else networkAssetsAction
     }
 }

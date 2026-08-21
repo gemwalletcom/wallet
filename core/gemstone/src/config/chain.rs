@@ -20,6 +20,7 @@ pub struct ChainConfig {
     pub is_nft_supported: bool,
     pub is_defi_supported: bool,
     pub is_memo_supported: bool,
+    pub has_native_asset: bool,
 }
 
 pub fn get_chain_config(chain: Chain) -> ChainConfig {
@@ -42,6 +43,7 @@ pub fn get_chain_config(chain: Chain) -> ChainConfig {
         is_nft_supported: chain.is_nft_supported(),
         is_defi_supported: chain.is_defi_supported(),
         is_memo_supported: is_memo_supported(chain),
+        has_native_asset: chain.has_native_asset(),
     }
 }
 

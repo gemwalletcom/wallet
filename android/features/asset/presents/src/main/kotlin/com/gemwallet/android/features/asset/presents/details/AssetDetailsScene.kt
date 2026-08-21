@@ -16,9 +16,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
-import com.gemwallet.android.domains.asset.defaultAssetRank
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getReserveBalanceUrl
+import com.gemwallet.android.ext.hasNativeAsset
+import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
@@ -39,7 +40,7 @@ import com.gemwallet.android.features.asset.presents.details.components.network
 import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.presents.details.components.status
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
-import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.WalletType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,10 +67,10 @@ internal fun AssetDetailsScene(
     val addToastMessage = stringResource(R.string.asset_added_to_wallet)
     val swapAction: (() -> Unit)? = if (uiState.isSwapEnabled && uiState.accountInfoUIModel.walletType != WalletType.View) {
         {
-            val toAssetId = if (uiState.asset.type != AssetType.NATIVE && uiState.asset.id.chain.defaultAssetRank >= 0) {
-                uiState.asset.id.chain.asset().id
-            } else {
-                null
+            val chain = uiState.asset.id.chain
+            val toAssetId = when (uiState.asset.id.type()) {
+                AssetSubtype.NATIVE -> null
+                AssetSubtype.TOKEN -> if (chain.hasNativeAsset()) chain.asset().id else null
             }
             onAction(AssetDetailsAction.Swap(uiState.asset.id, toAssetId))
         }
