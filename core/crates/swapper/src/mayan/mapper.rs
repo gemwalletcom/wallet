@@ -1,44 +1,48 @@
+use num_bigint::BigUint;
+use number_formatter::BigNumberFormatter;
+use primitives::{Asset, TransactionSwapMetadata};
+
+use crate::{SwapResult, SwapperProvider};
+
 use super::{
     asset::asset_id_for_token,
     model::{MayanClientStatus, MayanTransactionResult},
     wormhole_chain,
 };
-use crate::{SwapResult, SwapperProvider};
-use primitives::TransactionSwapMetadata;
 
 pub fn map_swap_result(result: &MayanTransactionResult) -> SwapResult {
-    let status = result.client_status.swap_status();
-
-    let from_chain = result.from_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id);
-    let to_chain = result.to_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id);
-
-    let metadata = if result.client_status != MayanClientStatus::InProgress {
-        from_chain.zip(to_chain).and_then(|(from_chain, to_chain)| {
-            let from_value = result
-                .from_amount64
-                .clone()
-                .filter(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()))?;
-            let to_value = result
-                .to_amount64
-                .clone()
-                .filter(|value| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()))?;
-
-            Some(TransactionSwapMetadata {
-                from_asset: asset_id_for_token(from_chain, &result.from_token_address)?,
-                from_value,
-                to_asset: asset_id_for_token(to_chain, &result.to_token_address)?,
-                to_value,
-                provider: Some(SwapperProvider::Mayan.as_ref().to_string()),
-            })
-        })
-    } else {
-        None
-    };
-
     SwapResult {
-        status,
-        metadata,
+        status: result.client_status.swap_status(),
+        metadata: result.swap_metadata(),
         eta_in_seconds: None,
+    }
+}
+
+impl MayanTransactionResult {
+    fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
+        if self.client_status == MayanClientStatus::InProgress {
+            return None;
+        }
+
+        let from_chain = self.from_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
+        let to_chain = self.to_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
+        let from_asset = asset_id_for_token(from_chain, &self.from_token_address)?;
+        let from_value = if from_asset.is_native() {
+            let decimals = u32::try_from(Asset::from_chain(from_chain).decimals).ok()?;
+            BigNumberFormatter::value_from_amount(self.from_amount.as_deref()?, decimals).ok()?
+        } else {
+            self.from_amount64.as_deref()?.parse::<BigUint>().ok()?.to_string()
+        };
+        let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
+        let to_value = self.to_amount64.as_deref()?.parse::<BigUint>().ok()?.to_string();
+
+        Some(TransactionSwapMetadata {
+            from_asset,
+            from_value,
+            to_asset,
+            to_value,
+            provider: Some(SwapperProvider::Mayan.as_ref().to_string()),
+        })
     }
 }
 
@@ -57,12 +61,12 @@ mod tests {
         assert_eq!(missing_to_amount64.status, SwapStatus::Completed);
         assert!(missing_to_amount64.metadata.is_none());
 
-        let decimal_from_amount64 = MayanTransactionResult {
-            from_amount64: Some("0.006671888".to_string()),
+        let invalid_from_amount = MayanTransactionResult {
+            from_amount: Some("invalid".to_string()),
             ..result(include_str!("test/pol_to_bnb_swift.json"))
         };
         assert_eq!(
-            map_swap_result(&decimal_from_amount64),
+            map_swap_result(&invalid_from_amount),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: None,
@@ -76,9 +80,23 @@ mod tests {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: AssetId::from_chain(Chain::Polygon),
-                    from_value: "21782666".to_string(),
+                    from_value: "212000000000000000000".to_string(),
                     to_asset: AssetId::from_chain(Chain::SmartChain),
                     to_value: "33060513057817862".to_string(),
+                    provider: Some("mayan".to_string()),
+                }),
+                eta_in_seconds: None,
+            }
+        );
+        assert_eq!(
+            map_swap_result(&result(include_str!("test/bnb_to_mon_swift.json"))),
+            SwapResult {
+                status: SwapStatus::Completed,
+                metadata: Some(TransactionSwapMetadata {
+                    from_asset: AssetId::from_chain(Chain::SmartChain),
+                    from_value: "120000000000000000".to_string(),
+                    to_asset: AssetId::from_chain(Chain::Monad),
+                    to_value: "3306576785321161654272".to_string(),
                     provider: Some("mayan".to_string()),
                 }),
                 eta_in_seconds: None,

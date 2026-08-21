@@ -540,6 +540,7 @@ pub struct MayanTransactionResult {
     pub to_token_address: String,
     pub from_token_chain: String,
     pub to_token_chain: String,
+    pub from_amount: Option<String>,
     pub from_amount64: Option<String>,
     pub to_amount64: Option<String>,
     pub client_status: MayanClientStatus,

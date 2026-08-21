@@ -1,0 +1,19 @@
+{
+  "sourceTxHash": "0x8867073b70abb2d5700e6ff4bea1e4e196786ca99f72737d080ae13f40bf59f1",
+  "service": "SWIFT_V2",
+  "swapChain": "1",
+  "fromTokenAddress": "0x0000000000000000000000000000000000000000",
+  "fromTokenChain": "4",
+  "fromTokenSymbol": "BNB",
+  "fromAmount": "0.12",
+  "fromAmount64": "75146562745210477787",
+  "forwardedTokenAddress": "0x0000000000000000000000000000000000000000",
+  "forwardedTokenSymbol": "BNB",
+  "forwardedFromAmount": "0.12",
+  "toTokenAddress": "0x0000000000000000000000000000000000000000",
+  "toTokenChain": "48",
+  "toTokenSymbol": "MON",
+  "toAmount": "3306.576785321161654272",
+  "toAmount64": "3306576785321161654272",
+  "clientStatus": "COMPLETED"
+}
