@@ -266,6 +266,34 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
+    func refreshedQuotesKeepSelectedProvider() async {
+        let swapper = GemSwapperMock(
+            quotes: [
+                .mock(toValue: "260000000000", provider: .uniswapV3),
+                .mock(toValue: "250000000000", provider: .thorchain),
+            ],
+        )
+        let model = SwapSceneViewModel.mock(swapper: swapper)
+
+        model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
+        await model.fetch()
+
+        #expect(model.selectedSwapQuote?.data.provider.id == .thorchain)
+        #expect(model.selectedSwapQuote?.toValue == "250000000000")
+    }
+
+    @Test
+    func refreshedQuotesFallBackWhenSelectedProviderDisappears() async {
+        let swapper = GemSwapperMock(quotes: [.mock(toValue: "260000000000", provider: .uniswapV3)])
+        let model = SwapSceneViewModel.mock(swapper: swapper)
+
+        model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
+        await model.fetch()
+
+        #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
+    }
+
+    @Test
     func slippagePersistsAcrossSessions() {
         let preferences = Preferences.mock()
         let model = SwapSceneViewModel.mock(preferences: preferences)
