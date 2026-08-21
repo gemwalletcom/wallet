@@ -3,12 +3,10 @@ package com.gemwallet.android.ext
 import com.gemwallet.android.domains.asset.toDTO
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
-import com.wallet.core.primitives.BitcoinChain
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAsset
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.EVMChain
-import com.wallet.core.primitives.EncodingType
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.supportsPrivateKeyImport
@@ -97,31 +95,17 @@ fun Chain.assetType(): AssetType? {
     }
 }
 
-fun Chain.toBitcoinChain() = when (this) {
-    Chain.Bitcoin -> BitcoinChain.Bitcoin
-    Chain.Doge -> BitcoinChain.Doge
-    Chain.Litecoin -> BitcoinChain.Litecoin
-    Chain.BitcoinCash -> BitcoinChain.BitcoinCash
-    else -> throw IllegalArgumentException("Not bitcoin chain")
-}
-
 fun Chain.toEVM(): EVMChain? {
     return EVMChain.entries.firstOrNull { it.string == string }
 }
 
 fun Chain.getReserveBalance(): BigInteger = Config().getChainConfig(this.string).accountActivationFee?.toBigInteger() ?: BigInteger.ZERO
 
-fun Chain.getTokenActivationFee(): BigInteger = Config().getChainConfig(this.string).tokenActivationFee?.toBigInteger() ?: BigInteger.ZERO
-
 fun Chain.getReserveBalanceUrl(): String? = Config().getChainConfig(this.string).accountActivationFeeUrl
-
-fun Chain.getMinimumAccountBalance(): Long = Config().getChainConfig(this.string).minimumAccountBalance?.toLong() ?: 0L
 
 fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isStakeSupported
 
 fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
-
-fun Chain.isDefiSupported(): Boolean = Config().getChainConfig(this.string).isDefiSupported
 
 fun Chain.asset(): Asset {
     return chainAsset().asset
@@ -129,10 +113,6 @@ fun Chain.asset(): Asset {
 
 fun Chain.networkName(): String {
     return chainAsset().networkName
-}
-
-fun Chain.Companion.findByString(value: String): Chain? {
-    return Chain.entries.firstOrNull { it.string == value }
 }
 
 fun Chain.Companion.available() = Chain.entries.toSet()
@@ -219,8 +199,6 @@ fun Chain.isSwapSupport(): Boolean {
         false
     }
 }
-
-fun Chain.Companion.swapSupport() = Chain.entries.filter { it.isSwapSupport() }
 
 fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
     it.string == Config().getChainConfig(string).feeUnitType

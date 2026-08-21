@@ -19,7 +19,6 @@ public enum GemDeviceAPI: TargetType {
     case deletePriceAlerts(priceAlerts: [PriceAlert])
 
     case getTransactions(walletId: WalletId, assetId: String?, fromTimestamp: Int)
-    case getTransaction(walletId: WalletId, transactionId: TransactionId)
     case getAssetsList(walletId: WalletId, fromTimestamp: Int)
     case getDeviceNFTAssets(walletId: WalletId)
     case getDeviceNFTAsset(assetId: NFTAssetId)
@@ -32,13 +31,11 @@ public enum GemDeviceAPI: TargetType {
     case getSupportMessages(fromTimestamp: Int)
     case sendSupportMessage(input: SupportMessageInput)
     case sendSupportImage(image: Data, fileName: String, mimeType: String)
-    case sendSupportAction(action: SupportAction)
 
     case getAuthNonce
     case getDeviceToken
 
     case getDeviceRewards(walletId: WalletId)
-    case getDeviceRewardsEvents(walletId: WalletId)
     case createDeviceReferral(walletId: WalletId, request: AuthenticatedRequest<ReferralCode>)
     case useDeviceReferralCode(walletId: WalletId, request: AuthenticatedRequest<ReferralCode>)
     case redeemDeviceRewards(walletId: WalletId, request: AuthenticatedRequest<RedemptionRequest>)
@@ -64,7 +61,6 @@ public enum GemDeviceAPI: TargetType {
         case .getDevice,
              .getSubscriptions,
              .getTransactions,
-             .getTransaction,
              .getAssetsList,
              .getPriceAlerts,
              .getDeviceNFTAssets,
@@ -72,7 +68,6 @@ public enum GemDeviceAPI: TargetType {
              .getAuthNonce,
              .getDeviceToken,
              .getDeviceRewards,
-             .getDeviceRewardsEvents,
              .getNotifications,
              .isDeviceRegistered,
              .getFiatQuotes,
@@ -95,8 +90,7 @@ public enum GemDeviceAPI: TargetType {
              .getPortfolioAssets,
              .getAddressNames,
              .sendSupportMessage,
-             .sendSupportImage,
-             .sendSupportAction:
+             .sendSupportImage:
             .POST
         case .updateDevice:
             .PUT
@@ -128,8 +122,6 @@ public enum GemDeviceAPI: TargetType {
                 path += "&asset_id=\(assetId)"
             }
             return path
-        case let .getTransaction(_, transactionId):
-            return "/v2/devices/transactions/\(transactionId.identifier)"
         case let .getAssetsList(_, fromTimestamp):
             return "/v2/devices/assets?from_timestamp=\(fromTimestamp)"
         case .getDeviceNFTAssets:
@@ -151,16 +143,12 @@ public enum GemDeviceAPI: TargetType {
         case let .sendSupportImage(_, fileName, _):
             let encodedFileName = fileName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? fileName
             return "/v2/devices/support/messages/images?file_name=\(encodedFileName)"
-        case .sendSupportAction:
-            return "/v2/devices/support/action"
         case .getAuthNonce:
             return "/v2/devices/auth/nonce"
         case .getDeviceToken:
             return "/v2/devices/token"
         case .getDeviceRewards:
             return "/v2/devices/rewards"
-        case .getDeviceRewardsEvents:
-            return "/v2/devices/rewards/events"
         case .createDeviceReferral:
             return "/v2/devices/rewards/referrals/create"
         case .useDeviceReferralCode:
@@ -189,12 +177,10 @@ public enum GemDeviceAPI: TargetType {
     public var walletId: String? {
         switch self {
         case let .getTransactions(walletId, _, _),
-             let .getTransaction(walletId, _),
              let .getAssetsList(walletId, _),
              let .getDeviceNFTAssets(walletId),
              let .refreshNftAsset(walletId, _),
              let .getDeviceRewards(walletId),
-             let .getDeviceRewardsEvents(walletId),
              let .createDeviceReferral(walletId, _),
              let .useDeviceReferralCode(walletId, _),
              let .redeemDeviceRewards(walletId, _),
@@ -219,11 +205,9 @@ public enum GemDeviceAPI: TargetType {
              .getAuthNonce,
              .getDeviceToken,
              .getDeviceRewards,
-             .getDeviceRewardsEvents,
              .getNotifications,
              .markNotificationsRead,
              .getTransactions,
-             .getTransaction,
              .getWalletConfiguration,
              .isDeviceRegistered,
              .getFiatQuoteUrl,
@@ -270,8 +254,6 @@ public enum GemDeviceAPI: TargetType {
             return .encodable(input)
         case let .sendSupportImage(image, _, _):
             return .data(image)
-        case let .sendSupportAction(action):
-            return .encodable(action)
         }
     }
 

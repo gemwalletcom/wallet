@@ -62,7 +62,6 @@ public protocol GemAPISubscriptionService: Sendable {
 public protocol GemAPITransactionService: Sendable {
     func getDeviceTransactions(walletId: WalletId, fromTimestamp: Int) async throws -> TransactionsResponse
     func getDeviceTransactionsForAsset(walletId: WalletId, asset: AssetId, fromTimestamp: Int) async throws -> TransactionsResponse
-    func getDeviceTransaction(walletId: WalletId, transactionId: TransactionId) async throws -> Transaction
 }
 
 public protocol GemAPIPriceAlertService: Sendable {
@@ -86,7 +85,6 @@ public protocol GemAPISupportService: Sendable {
     func getSupportMessages(fromTimestamp: Int) async throws -> [SupportMessage]
     func sendSupportMessage(input: SupportMessageInput) async throws -> SupportMessage
     func sendSupportImage(image: Data, fileName: String, mimeType: String) async throws -> SupportMessage
-    func sendSupportAction(action: SupportAction) async throws
 }
 
 public protocol GemAPIWalletConfigurationService: Sendable {
@@ -207,10 +205,6 @@ extension GemAPIService: GemAPITransactionService {
             .mapResponse(as: TransactionsResponse.self)
     }
 
-    public func getDeviceTransaction(walletId: WalletId, transactionId: TransactionId) async throws -> Transaction {
-        try await requestDevice(.getTransaction(walletId: walletId, transactionId: transactionId))
-            .mapResponse(as: Transaction.self)
-    }
 }
 
 extension GemAPIService: GemAPIAssetsListService {
@@ -320,10 +314,6 @@ extension GemAPIService: GemAPISupportService {
             .mapResponse(as: SupportMessage.self)
     }
 
-    public func sendSupportAction(action: SupportAction) async throws {
-        _ = try await requestDevice(.sendSupportAction(action: action))
-            .mapResponse(as: Bool.self)
-    }
 }
 
 extension GemAPIService: GemAPIWalletConfigurationService {
