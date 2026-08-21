@@ -9,7 +9,6 @@ public actor GemAPISupportServiceMock: GemAPISupportService {
 
     public private(set) var sentMessages: [SupportMessageInput] = []
     public private(set) var sentImages: [(image: Data, fileName: String, mimeType: String)] = []
-    public private(set) var sentActions: [SupportAction] = []
 
     public init(
         messages: [SupportMessage] = [],
@@ -43,9 +42,5 @@ public actor GemAPISupportServiceMock: GemAPISupportService {
             createdAt: Date(),
             images: [],
         )
-    }
-
-    public func sendSupportAction(action: SupportAction) async throws {
-        sentActions.append(action)
     }
 }
