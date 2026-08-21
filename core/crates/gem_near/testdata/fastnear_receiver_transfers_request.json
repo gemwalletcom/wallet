@@ -1,6 +1,5 @@
 {
   "account_id": "address.near",
-  "asset_id": "native:near",
   "direction": "receiver",
   "desc": true,
   "limit": 3,

@@ -32,6 +32,7 @@ impl BroadcastResult {
 pub enum ExecutionStatus {
     NotStarted,
     Started,
+    SuccessReceiptId(String),
     SuccessValue(String),
     Failure(Value),
 }
@@ -48,11 +49,32 @@ pub struct BroadcastTransaction {
 pub struct TransactionAction {
     #[serde(rename = "Transfer")]
     pub transfer: Option<TransferAction>,
+    #[serde(rename = "FunctionCall")]
+    pub function_call: Option<FunctionCallAction>,
+    #[serde(rename = "Delegate")]
+    pub delegate: Option<SignedDelegateAction>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransferAction {
     pub deposit: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionCallAction {
+    pub deposit: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignedDelegateAction {
+    pub delegate_action: DelegateAction,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DelegateAction {
+    pub sender_id: String,
+    pub receiver_id: String,
+    pub actions: Vec<TransactionAction>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,6 +84,8 @@ pub struct TransactionOutcome {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Outcome {
+    pub logs: Vec<String>,
+    pub status: ExecutionStatus,
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub tokens_burnt: BigUint,
 }

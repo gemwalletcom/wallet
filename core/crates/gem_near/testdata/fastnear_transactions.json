@@ -2,40 +2,88 @@
   "transactions": [
     {
       "execution_outcome": {
+        "block_height": 200,
+        "block_timestamp": 1800000200000000000,
         "outcome": {
+          "logs": [],
+          "status": {
+            "SuccessReceiptId": "outgoing-receipt"
+          },
           "tokens_burnt": "30"
         }
       },
       "receipts": [
         {
           "execution_outcome": {
+            "block_height": 201,
+            "block_timestamp": 1800000201000000000,
             "outcome": {
+              "logs": [],
+              "status": {
+                "SuccessValue": ""
+              },
               "tokens_burnt": "40"
             }
+          },
+          "receipt": {
+            "receiver_id": "recipient.near"
           }
         }
       ],
       "transaction": {
-        "hash": "outgoing-transaction"
+        "actions": [
+          {
+            "Transfer": {
+              "deposit": "1000000000000000000000000"
+            }
+          }
+        ],
+        "hash": "outgoing-transaction",
+        "receiver_id": "recipient.near",
+        "signer_id": "address.near"
       }
     },
     {
       "execution_outcome": {
+        "block_height": 100,
+        "block_timestamp": 1800000100000000000,
         "outcome": {
+          "logs": [],
+          "status": {
+            "SuccessReceiptId": "attached-deposit-receipt"
+          },
           "tokens_burnt": "50"
         }
       },
       "receipts": [
         {
           "execution_outcome": {
+            "block_height": 101,
+            "block_timestamp": 1800000101000000000,
             "outcome": {
+              "logs": [],
+              "status": {
+                "SuccessValue": ""
+              },
               "tokens_burnt": "60"
             }
+          },
+          "receipt": {
+            "receiver_id": "contract.near"
           }
         }
       ],
       "transaction": {
-        "hash": "attached-deposit-transaction"
+        "actions": [
+          {
+            "FunctionCall": {
+              "deposit": "500000000000000000000000"
+            }
+          }
+        ],
+        "hash": "attached-deposit-transaction",
+        "receiver_id": "contract.near",
+        "signer_id": "address.near"
       }
     }
   ]

@@ -29,6 +29,8 @@ mod tests {
     fn create_test_outcome(tokens_burnt: &str) -> TransactionOutcome {
         TransactionOutcome {
             outcome: Outcome {
+                logs: Vec::new(),
+                status: ExecutionStatus::SuccessValue(String::new()),
                 tokens_burnt: tokens_burnt.parse().unwrap(),
             },
         }
