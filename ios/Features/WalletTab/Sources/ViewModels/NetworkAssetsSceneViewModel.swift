@@ -13,7 +13,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class NetworkAssetsSceneViewModel: AssetBalanceActions, AssetEnableActions {
+public final class NetworkAssetsSceneViewModel: AssetActions {
     let balanceService: BalanceService
     let assetsEnabler: any AssetsEnabler
     private let preferences: Preferences

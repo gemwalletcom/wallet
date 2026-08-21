@@ -21,7 +21,6 @@ public extension WalletSearchSceneViewModel {
         searchService: WalletSearchService = .mock(),
         activityService: ActivityService = .mock(),
         assetsEnabler: any AssetsEnabler = .mock(),
-        balanceService: BalanceService = .mock(),
         perpetualService: PerpetualService = .mock(),
         preferences: ObservablePreferences = .mock(),
     ) -> WalletSearchSceneViewModel {
@@ -30,7 +29,6 @@ public extension WalletSearchSceneViewModel {
             searchService: searchService,
             activityService: activityService,
             assetsEnabler: assetsEnabler,
-            balanceService: balanceService,
             perpetualService: perpetualService,
             preferences: preferences,
             onDismissSearch: {},

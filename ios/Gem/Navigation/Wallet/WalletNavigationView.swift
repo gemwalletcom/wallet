@@ -60,7 +60,6 @@ struct WalletNavigationView: View {
                         searchService: walletSearchService,
                         activityService: activityService,
                         assetsEnabler: assetsEnabler,
-                        balanceService: balanceService,
                         perpetualService: perpetualService,
                         onDismissSearch: model.onToggleSearch,
                         onSelectAssetAction: navigationState.openAsset,

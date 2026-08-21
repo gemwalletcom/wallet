@@ -106,6 +106,10 @@ public final class AssetsService: Sendable {
         try balanceStore.setIsEnabled(walletId: walletId, assetIds: assetIds, value: enabled)
     }
 
+    public func updatePinned(walletId: WalletId, assetId: AssetId, pinned: Bool) throws {
+        try balanceStore.pinAsset(walletId: walletId, assetId: assetId, value: pinned)
+    }
+
     @discardableResult
     public func updateAsset(assetId: AssetId, currency: String) async throws -> AssetFull {
         let asset = try await getAsset(assetId: assetId)

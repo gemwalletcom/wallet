@@ -451,15 +451,14 @@ public extension AssetSceneViewModel {
     }
 
     func onSelectPin() {
-        do {
-            let pinned = !assetData.metadata.isPinned
-            try balanceService.setPinned(pinned, walletId: wallet.id, assetId: asset.id)
-            isPresentingToastMessage = .pin(asset.name, pinned: pinned)
-            if !assetData.metadata.isBalanceEnabled {
-                onSelectEnable()
+        let pinned = !assetData.metadata.isPinned
+        Task {
+            do {
+                try await assetsEnabler.pinAsset(wallet: wallet, assetId: asset.id, pinned: pinned)
+                isPresentingToastMessage = .pin(asset.name, pinned: pinned)
+            } catch {
+                debugLog("onSelectPin error: \(error)")
             }
-        } catch {
-            debugLog("onSelectPin error: \(error)")
         }
     }
 
