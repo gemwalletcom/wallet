@@ -2,7 +2,7 @@ use crate::{
     constants::{EMPTY_TRANSACTION_ROOT, RPC_CONCURRENCY},
     jsonrpc::NearRpc,
     models::{Account, AccountAccessKey, Block, BroadcastResult, Chunk, GasPrice, NodeStatus, ProtocolConfig},
-    rpc::mapper::{ReceiptOutcome, map_transaction},
+    rpc::mapper::map_transaction,
 };
 use futures::{StreamExt, TryStreamExt, stream};
 use gem_client::Client;
@@ -82,17 +82,7 @@ impl<C: Client + Clone> NearClient<C> {
             .map(|transaction| {
                 let state = transaction.state();
                 let fee = transaction.fee();
-                let receipts = transaction
-                    .receipts_outcome
-                    .into_iter()
-                    .map(|receipt| {
-                        let mut outcome = receipt.outcome;
-                        Ok(ReceiptOutcome {
-                            receiver_id: outcome.executor_id.take().ok_or("missing NEAR receipt executor id")?,
-                            outcome,
-                        })
-                    })
-                    .collect::<Result<_, Box<dyn Error + Send + Sync>>>()?;
+                let receipts = transaction.receipts_outcome.into_iter().map(|receipt| receipt.outcome).collect();
                 map_transaction(transaction.transaction, receipts, block_number, block.header.timestamp, state, fee)
             })
             .collect()

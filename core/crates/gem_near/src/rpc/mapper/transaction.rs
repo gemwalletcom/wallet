@@ -9,14 +9,9 @@ use crate::models::{BroadcastTransaction, Outcome};
 
 use super::fungible_token::map_fungible_token_transfers;
 
-pub(in crate::rpc) struct ReceiptOutcome {
-    pub receiver_id: String,
-    pub outcome: Outcome,
-}
-
 pub(in crate::rpc) fn map_transaction(
     transaction: BroadcastTransaction,
-    receipts: Vec<ReceiptOutcome>,
+    receipts: Vec<Outcome>,
     block_height: u64,
     block_timestamp: u64,
     state: TransactionState,

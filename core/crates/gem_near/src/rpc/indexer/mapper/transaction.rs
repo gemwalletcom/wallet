@@ -3,7 +3,7 @@ use std::error::Error;
 use primitives::Transaction;
 
 use super::super::model::FastNearTransaction;
-use crate::rpc::mapper::{ReceiptOutcome, map_transaction};
+use crate::rpc::mapper::map_transaction;
 
 pub(in crate::rpc::indexer) fn map_raw_transaction(transaction: FastNearTransaction) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
     let state = transaction.state();
@@ -13,9 +13,10 @@ pub(in crate::rpc::indexer) fn map_raw_transaction(transaction: FastNearTransact
     let receipts = transaction
         .receipts
         .into_iter()
-        .map(|receipt| ReceiptOutcome {
-            receiver_id: receipt.receipt.receiver_id,
-            outcome: receipt.execution_outcome.outcome,
+        .map(|receipt| {
+            let mut outcome = receipt.execution_outcome.outcome;
+            outcome.executor_id = Some(receipt.receipt.receiver_id);
+            outcome
         })
         .collect();
     map_transaction(transaction.transaction, receipts, block_height, block_timestamp, state, fee)

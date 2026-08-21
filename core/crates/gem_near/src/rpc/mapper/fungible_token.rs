@@ -7,9 +7,10 @@ use serde::Deserialize;
 use serde_json::Value;
 use serde_serializers::deserialize_biguint_from_str;
 
-use crate::constants::{EVENT_JSON_PREFIX, FUNGIBLE_TOKEN_TRANSFER_EVENT, NEP_141_STANDARD};
-
-use super::transaction::ReceiptOutcome;
+use crate::{
+    constants::{EVENT_JSON_PREFIX, FUNGIBLE_TOKEN_TRANSFER_EVENT, NEP_141_STANDARD},
+    models::Outcome,
+};
 
 #[derive(Debug, Deserialize)]
 struct NearEvent {
@@ -26,17 +27,18 @@ struct FungibleTokenTransfer {
     amount: BigUint,
 }
 
-pub(super) fn map_fungible_token_transfers(receipts: &[ReceiptOutcome]) -> Result<Vec<TransactionAssetTransfer>, Box<dyn Error + Send + Sync>> {
+pub(super) fn map_fungible_token_transfers(receipts: &[Outcome]) -> Result<Vec<TransactionAssetTransfer>, Box<dyn Error + Send + Sync>> {
     let mut asset_transfers = Vec::<TransactionAssetTransfer>::new();
     for receipt in receipts {
-        for log in &receipt.outcome.logs {
+        for log in &receipt.logs {
             let Some(transfers) = parse_fungible_token_transfer_event(log)? else {
                 continue;
             };
-            if !crate::address::is_valid_account_id(&receipt.receiver_id) {
-                return Err(format!("invalid NEP-141 contract id: {}", receipt.receiver_id).into());
+            let contract = receipt.executor_id.as_deref().ok_or("missing NEAR receipt executor id")?;
+            if !crate::address::is_valid_account_id(contract) {
+                return Err(format!("invalid NEP-141 contract id: {contract}").into());
             }
-            let asset_id = AssetId::from_token(Chain::Near, &receipt.receiver_id);
+            let asset_id = AssetId::from_token(Chain::Near, contract);
             for transfer in transfers {
                 let transfer = TransactionAssetTransfer {
                     asset_id: asset_id.clone(),
