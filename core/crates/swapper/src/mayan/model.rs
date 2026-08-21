@@ -540,8 +540,9 @@ pub struct MayanTransactionResult {
     pub to_token_address: String,
     pub from_token_chain: String,
     pub to_token_chain: String,
-    pub from_amount: Option<String>,
     pub from_amount64: Option<String>,
+    pub forwarded_from_amount: Option<String>,
+    pub forwarded_token_address: Option<String>,
     pub to_amount64: Option<String>,
     pub client_status: MayanClientStatus,
 }
@@ -681,8 +682,10 @@ mod tests {
         let result: MayanTransactionResult = serde_json::from_str(include_str!("test/eth_to_sui_swift.json")).unwrap();
         assert_eq!(result.from_token_chain, "2");
         assert_eq!(result.to_token_chain, "21");
-        assert_eq!(result.from_token_address, "0x0000000000000000000000000000000000000000");
+        assert_eq!(result.from_token_address, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
         assert_eq!(result.to_token_address, "0x2::sui::SUI");
+        assert_eq!(result.forwarded_token_address, Some("0x0000000000000000000000000000000000000000".to_string()));
+        assert_eq!(result.forwarded_from_amount, Some("0.01".to_string()));
 
         let result: MayanTransactionResult = serde_json::from_str(include_str!("test/mctp_pending.json")).unwrap();
         assert_eq!(result.from_token_chain, "30");

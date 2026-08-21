@@ -24,9 +24,11 @@
   "toTokenAddress": "0x0000000000000000000000000000000000000000",
   "toTokenChain": "1",
   "toTokenSymbol": "SOL",
+  "sourceStateAddr": null,
   "stateAddr": "JAaWGcS4Kqbwyv1fCduMmBd2ab45Ja2twYbFHQgFeQrk",
   "stateNonce": "255",
   "toAmount": "0.00334223",
+  "toAmount64": null,
   "estimateMarketToAmount": null,
   "transferSignedVaa": null,
   "swapSignedVaa": null,
@@ -36,6 +38,7 @@
   "savedAt": "2025-03-31T13:38:12.519Z",
   "initiatedAt": "2025-03-31T13:37:59.000Z",
   "completedAt": "2025-03-31T15:47:12.516Z",
+  "attestedAt": null,
   "insufficientFees": false,
   "retries": 0,
   "swapRelayerFee": null,
@@ -48,8 +51,9 @@
   "redeemTxHash": null,
   "refundTxHash": "0xfb70313c44c1ce1e476e83c11b6948fc2d970a2c6147a0d3e27afb0e25c250c1",
   "fulfillTxHash": null,
-  "createTxHash": null,
+  "createTxHash": "0xcb10f22a381a463e748e10013575a502b7b61489435bb8581b16eb9eed3bbc9a",
   "unlockTxHash": null,
+  "postedBatchUnlockIndex": null,
   "auctionAddress": "9w1D9okTM8xNE7Ntb7LpaAaoLc6LfU9nHFs2h2KTpX1H",
   "unwrapRedeem": null,
   "unwrapRefund": null,
@@ -86,6 +90,7 @@
   "gasDrop64": "0",
   "payloadId": null,
   "orderHash": "0xa2142d256b229f8583dbc7d93fdd167038da67b4fa6586bd446b0ee7425c431d",
+  "linkedSwiftOrderHash": null,
   "randomKey": "0x8f778bb5467a8ba917b8927a419ddb4dae9a2278323923c7e03008df725eede5",
   "auctionStateAddr": "Dkr4MQtfyJaM8c5ApNM3Lh2BkaCQDWNK24CJ3JfqXx5N",
   "auctionStateNonce": "252",
@@ -99,6 +104,9 @@
   "fromChainNativeTokenPrice": 1810.73022616,
   "toChainNativeTokenPrice": 124.7854625,
   "customPayload": null,
+  "customPayloadSettleTxHash": null,
+  "customPayloadSettledAt": null,
+  "meta": null,
   "refundAmount": "0.00334223",
   "refundTokenLogoUri": "https://statics.mayan.finance/eth.png",
   "refundTokenScannerUrl": "https://etherscan.io/token/0x0000000000000000000000000000000000000000",
@@ -116,18 +124,11 @@
       "scannerUrl": "https://etherscan.io/tx/0xcb10f22a381a463e748e10013575a502b7b61489435bb8581b16eb9eed3bbc9a"
     },
     {
-      "txHash": "3GG6eTGy41EFd7mLbYGjtSQzwySbcM3UyzpA2MSLBrhTQycA65MAcpuGNcTzHZLnEBqoGCESdxv2MhtBcgrr6AY6",
+      "txHash": "oZSHVjoUS56rpcm2iNsLaNLtFfk3dq8q4rueZsb5WcVztopqiurtaxFLSC8fDBN3F2o8HndhFp2BVa34NsuXqZY",
       "goals": [
-        "CLOSE"
+        "REGISTER_ORDER"
       ],
-      "scannerUrl": "https://solscan.io/tx/3GG6eTGy41EFd7mLbYGjtSQzwySbcM3UyzpA2MSLBrhTQycA65MAcpuGNcTzHZLnEBqoGCESdxv2MhtBcgrr6AY6"
-    },
-    {
-      "txHash": "2bQ1n8xzay9wowERzfa8ErN7wXA3neTcaB54TP5NVPosA7YvZyi477XGSnsE7qzbN4uYJBGcPPv7eiouBDnPGk1a",
-      "goals": [
-        "CANCEL"
-      ],
-      "scannerUrl": "https://solscan.io/tx/2bQ1n8xzay9wowERzfa8ErN7wXA3neTcaB54TP5NVPosA7YvZyi477XGSnsE7qzbN4uYJBGcPPv7eiouBDnPGk1a"
+      "scannerUrl": "https://solscan.io/tx/oZSHVjoUS56rpcm2iNsLaNLtFfk3dq8q4rueZsb5WcVztopqiurtaxFLSC8fDBN3F2o8HndhFp2BVa34NsuXqZY"
     },
     {
       "txHash": "4rVNdcPF8a6t4TDog5pZHwWRUzM3sbja68eXCy5CZXZ8XSTapcz3jgJ7PuMHhXaqnVs9nzJgpeEP1mh9rDzBTEV6",
@@ -137,11 +138,18 @@
       "scannerUrl": "https://solscan.io/tx/4rVNdcPF8a6t4TDog5pZHwWRUzM3sbja68eXCy5CZXZ8XSTapcz3jgJ7PuMHhXaqnVs9nzJgpeEP1mh9rDzBTEV6"
     },
     {
-      "txHash": "oZSHVjoUS56rpcm2iNsLaNLtFfk3dq8q4rueZsb5WcVztopqiurtaxFLSC8fDBN3F2o8HndhFp2BVa34NsuXqZY",
+      "txHash": "2bQ1n8xzay9wowERzfa8ErN7wXA3neTcaB54TP5NVPosA7YvZyi477XGSnsE7qzbN4uYJBGcPPv7eiouBDnPGk1a",
       "goals": [
-        "REGISTER_ORDER"
+        "CANCEL"
       ],
-      "scannerUrl": "https://solscan.io/tx/oZSHVjoUS56rpcm2iNsLaNLtFfk3dq8q4rueZsb5WcVztopqiurtaxFLSC8fDBN3F2o8HndhFp2BVa34NsuXqZY"
+      "scannerUrl": "https://solscan.io/tx/2bQ1n8xzay9wowERzfa8ErN7wXA3neTcaB54TP5NVPosA7YvZyi477XGSnsE7qzbN4uYJBGcPPv7eiouBDnPGk1a"
+    },
+    {
+      "txHash": "3GG6eTGy41EFd7mLbYGjtSQzwySbcM3UyzpA2MSLBrhTQycA65MAcpuGNcTzHZLnEBqoGCESdxv2MhtBcgrr6AY6",
+      "goals": [
+        "CLOSE"
+      ],
+      "scannerUrl": "https://solscan.io/tx/3GG6eTGy41EFd7mLbYGjtSQzwySbcM3UyzpA2MSLBrhTQycA65MAcpuGNcTzHZLnEBqoGCESdxv2MhtBcgrr6AY6"
     },
     {
       "txHash": "0xfb70313c44c1ce1e476e83c11b6948fc2d970a2c6147a0d3e27afb0e25c250c1",
@@ -153,12 +161,12 @@
   ],
   "steps": [
     {
-      "title": "Order created with 0.004 ETH on ethereum",
+      "title": "Order created with 0.004 ETH on Ethereum",
       "status": "COMPLETED",
       "type": "INFO"
     },
     {
-      "title": "Fullfill SOL on solana",
+      "title": "Fullfill SOL on Solana",
       "status": "FAILED",
       "type": "INFO"
     },
@@ -168,7 +176,7 @@
       "type": "INFO"
     },
     {
-      "title": "Order refunded on ethereum",
+      "title": "Order refunded on Ethereum",
       "status": "COMPLETED",
       "type": "INFO"
     }
@@ -177,5 +185,7 @@
   "refundChain": "2",
   "refundTokenAddress": "0x0000000000000000000000000000000000000000",
   "clientRelayerFeeSuccess": null,
-  "clientRelayerFeeRefund": "0.00065777"
+  "clientRelayerFeeRefund": "0.00065777",
+  "protocolFeeUsd": 0.0362146045232,
+  "referrerFeeUsd": 0.0362146045232
 }

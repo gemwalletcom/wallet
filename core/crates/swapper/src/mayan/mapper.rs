@@ -1,6 +1,6 @@
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, TransactionSwapMetadata};
+use primitives::{Asset, AssetId, Chain, TransactionSwapMetadata};
 
 use crate::{SwapResult, SwapperProvider};
 
@@ -26,13 +26,7 @@ impl MayanTransactionResult {
 
         let from_chain = self.from_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
         let to_chain = self.to_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
-        let from_asset = asset_id_for_token(from_chain, &self.from_token_address)?;
-        let from_value = if from_asset.is_native() {
-            let decimals = u32::try_from(Asset::from_chain(from_chain).decimals).ok()?;
-            BigNumberFormatter::value_from_amount(self.from_amount.as_deref()?, decimals).ok()?
-        } else {
-            self.from_amount64.as_deref()?.parse::<BigUint>().ok()?.to_string()
-        };
+        let (from_asset, from_value) = self.source_asset_and_value(from_chain)?;
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
         let to_value = self.to_amount64.as_deref()?.parse::<BigUint>().ok()?.to_string();
 
@@ -44,100 +38,123 @@ impl MayanTransactionResult {
             provider: Some(SwapperProvider::Mayan.as_ref().to_string()),
         })
     }
+
+    fn source_asset_and_value(&self, from_chain: Chain) -> Option<(AssetId, String)> {
+        match (&self.forwarded_token_address, &self.forwarded_from_amount) {
+            (Some(address), Some(amount)) => {
+                let asset = asset_id_for_token(from_chain, address)?;
+                if !asset.is_native() {
+                    return None;
+                }
+                let decimals = u32::try_from(Asset::from_chain(from_chain).decimals).ok()?;
+                let value = BigNumberFormatter::value_from_amount_biguint(amount, decimals).ok()?.to_string();
+                Some((asset, value))
+            }
+            (None, None) => {
+                let asset = asset_id_for_token(from_chain, &self.from_token_address)?;
+                let value = self.from_amount64.as_deref()?.parse::<BigUint>().ok()?.to_string();
+                Some((asset, value))
+            }
+            _ => None,
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain, asset_constants::POLYGON_USDT_ASSET_ID, swap::SwapStatus};
+    use primitives::{asset_constants::BASE_USDC_ASSET_ID, swap::SwapStatus};
 
     fn result(json: &str) -> MayanTransactionResult {
         serde_json::from_str(json).unwrap()
     }
 
     #[test]
-    fn test_map_swap_result() {
-        let missing_to_amount64 = map_swap_result(&result(include_str!("test/eth_to_sui_swift.json")));
-        assert_eq!(missing_to_amount64.status, SwapStatus::Completed);
-        assert!(missing_to_amount64.metadata.is_none());
+    fn test_map_completed_swap_metadata() {
+        for (json, from_asset, from_value, to_asset, to_value) in [
+            (
+                include_str!("test/pol_to_bnb_swift.json"),
+                AssetId::from_chain(Chain::Polygon),
+                "212000000000000000000",
+                AssetId::from_chain(Chain::SmartChain),
+                "33060513057817862",
+            ),
+            (
+                include_str!("test/bnb_to_mon_swift.json"),
+                AssetId::from_chain(Chain::SmartChain),
+                "120000000000000000",
+                AssetId::from_chain(Chain::Monad),
+                "3306576785321161654272",
+            ),
+            (
+                include_str!("test/sol_to_eth_swift.json"),
+                AssetId::from_chain(Chain::Solana),
+                "16195149",
+                AssetId::from_chain(Chain::Base),
+                "599671067569648",
+            ),
+            (
+                include_str!("test/usdc_to_brla_fast_mctp.json"),
+                BASE_USDC_ASSET_ID.clone(),
+                "21667710",
+                AssetId::from_token(Chain::Polygon, "0xE6A537a407488807F0bbeb0038B79004f19DDDFb"),
+                "111502625917703364196",
+            ),
+        ] {
+            assert_eq!(
+                map_swap_result(&result(json)),
+                SwapResult {
+                    status: SwapStatus::Completed,
+                    metadata: Some(TransactionSwapMetadata {
+                        from_asset,
+                        from_value: from_value.to_string(),
+                        to_asset,
+                        to_value: to_value.to_string(),
+                        provider: Some("mayan".to_string()),
+                    }),
+                    eta_in_seconds: None,
+                }
+            );
+        }
+    }
 
-        let invalid_from_amount = MayanTransactionResult {
-            from_amount: Some("invalid".to_string()),
-            ..result(include_str!("test/pol_to_bnb_swift.json"))
-        };
-        assert_eq!(
-            map_swap_result(&invalid_from_amount),
-            SwapResult {
-                status: SwapStatus::Completed,
-                metadata: None,
-                eta_in_seconds: None,
-            }
-        );
+    #[test]
+    fn test_map_swap_result_without_metadata() {
+        for (json, status) in [
+            (include_str!("test/eth_to_sui_swift.json"), SwapStatus::Completed),
+            (include_str!("test/usdt_to_owb_swift.json"), SwapStatus::Completed),
+            (include_str!("test/mctp_pending.json"), SwapStatus::Pending),
+            (include_str!("test/swift_refunded.json"), SwapStatus::Failed),
+        ] {
+            assert_eq!(
+                map_swap_result(&result(json)),
+                SwapResult {
+                    status,
+                    metadata: None,
+                    eta_in_seconds: None,
+                }
+            );
+        }
 
-        assert_eq!(
-            map_swap_result(&result(include_str!("test/pol_to_bnb_swift.json"))),
-            SwapResult {
-                status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(Chain::Polygon),
-                    from_value: "212000000000000000000".to_string(),
-                    to_asset: AssetId::from_chain(Chain::SmartChain),
-                    to_value: "33060513057817862".to_string(),
-                    provider: Some("mayan".to_string()),
-                }),
-                eta_in_seconds: None,
-            }
-        );
-        assert_eq!(
-            map_swap_result(&result(include_str!("test/bnb_to_mon_swift.json"))),
-            SwapResult {
-                status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(Chain::SmartChain),
-                    from_value: "120000000000000000".to_string(),
-                    to_asset: AssetId::from_chain(Chain::Monad),
-                    to_value: "3306576785321161654272".to_string(),
-                    provider: Some("mayan".to_string()),
-                }),
-                eta_in_seconds: None,
-            }
-        );
-        assert_eq!(
-            map_swap_result(&result(include_str!("test/usdt_to_owb_swift.json"))),
-            SwapResult {
-                status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: POLYGON_USDT_ASSET_ID.clone(),
-                    from_value: "35245466".to_string(),
-                    to_asset: AssetId::from_token(Chain::Base, "0xEF5997c2cf2f6c138196f8A6203afc335206b3c1"),
-                    to_value: "398724622644505839482".to_string(),
-                    provider: Some("mayan".to_string()),
-                }),
-                eta_in_seconds: None,
-            }
-        );
-        assert_eq!(
-            map_swap_result(&result(include_str!("test/btcbr_to_radr_swift.json"))),
-            SwapResult {
-                status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: AssetId::from_token(Chain::SmartChain, "0x0cF8e180350253271f4b917CcFb0aCCc4862F262"),
-                    from_value: "10686571736749000000".to_string(),
-                    to_asset: AssetId::from_token(Chain::Solana, "CzFvsLdUazabdiu9TYXujj4EY495fG7VgJJ3vQs6bonk"),
-                    to_value: "278080608518046".to_string(),
-                    provider: Some("mayan".to_string()),
-                }),
-                eta_in_seconds: None,
-            }
-        );
-
-        let pending = map_swap_result(&result(include_str!("test/mctp_pending.json")));
-        assert_eq!(pending.status, SwapStatus::Pending);
-        assert!(pending.metadata.is_none());
-
-        let refunded = map_swap_result(&result(include_str!("test/swift_refunded.json")));
-        assert_eq!(refunded.status, SwapStatus::Failed);
-        assert!(refunded.metadata.is_none());
+        let raw = result(include_str!("test/pol_to_bnb_swift.json"));
+        for invalid in [
+            MayanTransactionResult {
+                from_amount64: Some("invalid".to_string()),
+                forwarded_from_amount: None,
+                forwarded_token_address: None,
+                ..raw.clone()
+            },
+            MayanTransactionResult {
+                forwarded_from_amount: None,
+                ..raw.clone()
+            },
+            MayanTransactionResult {
+                forwarded_from_amount: Some("-212".to_string()),
+                ..raw
+            },
+        ] {
+            assert!(map_swap_result(&invalid).metadata.is_none());
+        }
     }
 
     #[test]
