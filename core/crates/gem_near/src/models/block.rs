@@ -19,6 +19,7 @@ pub struct BlockHeader {
 pub struct ChunkHeader {
     pub chunk_hash: String,
     pub height_included: u64,
+    pub tx_root: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

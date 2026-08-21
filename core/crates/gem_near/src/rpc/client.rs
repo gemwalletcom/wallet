@@ -1,5 +1,5 @@
 use crate::{
-    constants::RPC_CONCURRENCY,
+    constants::{EMPTY_TRANSACTION_ROOT, RPC_CONCURRENCY},
     jsonrpc::NearRpc,
     models::{Account, AccountAccessKey, Block, BroadcastResult, Chunk, GasPrice, NodeStatus, ProtocolConfig},
     rpc::mapper::{ReceiptOutcome, map_transaction},
@@ -63,7 +63,7 @@ impl<C: Client + Clone> NearClient<C> {
         let chunk_requests = block
             .chunks
             .into_iter()
-            .filter(|chunk| chunk.height_included == block_number)
+            .filter(|chunk| chunk.height_included == block_number && chunk.tx_root != EMPTY_TRANSACTION_ROOT)
             .map(|chunk| NearRpc::GetChunk(chunk.chunk_hash))
             .collect();
         let chunks: Vec<Chunk> = self.request_all(chunk_requests).await?;
@@ -158,9 +158,9 @@ mod tests {
                         "timestamp": 1786557652797431689_u64
                     },
                     "chunks": [
-                        {"chunk_hash": "current-with-transaction", "height_included": 211048907},
-                        {"chunk_hash": "current-empty", "height_included": 211048907},
-                        {"chunk_hash": "stale", "height_included": 211048906}
+                        {"chunk_hash": "current-with-transaction", "height_included": 211048907, "tx_root": "transactions"},
+                        {"chunk_hash": "current-empty", "height_included": 211048907, "tx_root": "11111111111111111111111111111111"},
+                        {"chunk_hash": "stale", "height_included": 211048906, "tx_root": "transactions"}
                     ]
                 }),
                 "chunk" if request["params"]["chunk_id"] == "current-with-transaction" => json!({
@@ -189,12 +189,11 @@ mod tests {
         assert_eq!(transaction.fee, "411253844391900000000");
 
         let requests = requests.lock().unwrap();
-        assert_eq!(requests.len(), 4);
+        assert_eq!(requests.len(), 3);
         assert_eq!(requests[0]["params"], json!({"block_id": 211048907}));
         assert_eq!(requests[1]["params"], json!({"chunk_id": "current-with-transaction"}));
-        assert_eq!(requests[2]["params"], json!({"chunk_id": "current-empty"}));
         assert_eq!(
-            requests[3]["params"],
+            requests[2]["params"],
             json!({
                 "tx_hash": "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E",
                 "sender_account_id": "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3",
