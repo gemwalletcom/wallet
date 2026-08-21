@@ -29,6 +29,7 @@ mod tests {
     fn create_test_outcome(tokens_burnt: &str) -> TransactionOutcome {
         TransactionOutcome {
             outcome: Outcome {
+                executor_id: None,
                 logs: Vec::new(),
                 status: ExecutionStatus::SuccessValue(String::new()),
                 tokens_burnt: tokens_burnt.parse().unwrap(),
@@ -44,6 +45,7 @@ mod tests {
                 status: ExecutionStatus::SuccessValue(String::new()),
                 transaction: create_test_transaction(),
                 transaction_outcome: create_test_outcome("417494768750000000000"),
+                receipts_outcome: vec![],
             };
 
             let result = map_transaction_broadcast(&response).unwrap();
@@ -58,6 +60,7 @@ mod tests {
             status: ExecutionStatus::Failure(Value::Null),
             transaction: create_test_transaction(),
             transaction_outcome: create_test_outcome("0"),
+            receipts_outcome: vec![],
         };
 
         let error = map_transaction_broadcast(&response).unwrap_err();

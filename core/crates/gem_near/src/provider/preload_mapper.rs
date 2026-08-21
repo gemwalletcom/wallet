@@ -88,7 +88,9 @@ mod tests {
             header: BlockHeader {
                 hash: "F45xbjXiyHn5noj1692RVqeuNC6X232qhKpvvPrv92iz".to_string(),
                 height: 12345,
+                timestamp: 0,
             },
+            chunks: vec![],
         };
 
         let result = map_transaction_preload(&access_key, &block);

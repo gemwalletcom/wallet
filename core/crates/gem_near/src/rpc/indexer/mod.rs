@@ -14,9 +14,7 @@ use num_bigint::BigUint;
 use primitives::{Transaction, TransactionIdRequest};
 
 use self::mapper::{map_address_transfer, map_raw_transaction};
-use self::model::{
-    BlockRequest, BlockResponse, FastNearTransaction, FastNearTransfer, TransactionsRequest, TransactionsResponse, TransferDirection, TransfersRequest, TransfersResponse,
-};
+use self::model::{FastNearTransaction, FastNearTransfer, TransactionsRequest, TransactionsResponse, TransferDirection, TransfersRequest, TransfersResponse};
 
 const MAX_TRANSFERS_LIMIT: usize = 100;
 const TRANSACTIONS_BATCH_SIZE: usize = 20;
@@ -117,40 +115,13 @@ impl<C: Client> NearIndexer<C> {
         }
         Ok(Some(map_raw_transaction(transaction)?))
     }
-
-    pub(crate) async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        let response: BlockResponse = self
-            .transactions_client
-            .post(
-                "/v0/block",
-                &BlockRequest {
-                    block_id: block,
-                    with_transactions: true,
-                },
-            )
-            .await?;
-        let transaction_ids = response.block_txs.into_iter().map(|transaction| transaction.transaction_hash).collect::<Vec<_>>();
-        let mut transactions = self
-            .get_transactions_by_hashes(&transaction_ids)
-            .await?
-            .into_iter()
-            .map(|transaction| (transaction.transaction.hash.clone(), transaction))
-            .collect::<HashMap<_, _>>();
-        transaction_ids
-            .into_iter()
-            .map(|transaction_id| {
-                let transaction = transactions.remove(&transaction_id).ok_or("missing FastNear block transaction details")?;
-                map_raw_transaction(transaction)
-            })
-            .collect()
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use std::sync::{Arc, Mutex};
 
-    use chain_traits::{ChainBlockTransactions, ChainTransaction};
+    use chain_traits::ChainTransaction;
     use gem_client::testkit::MockClient;
     use primitives::{Chain, Transaction, TransactionIdRequest, TransactionType, asset_constants::NEAR_USDT_ASSET_ID};
     use serde_json::Value;
@@ -161,7 +132,6 @@ mod tests {
     struct MockRequests {
         transfers: Arc<Mutex<Vec<Value>>>,
         transactions: Arc<Mutex<Vec<Value>>>,
-        blocks: Arc<Mutex<Vec<Value>>>,
     }
 
     #[derive(Default)]
@@ -169,7 +139,6 @@ mod tests {
         sender_transfers: Option<&'static str>,
         receiver_transfers: Option<&'static str>,
         transactions: Option<&'static str>,
-        block: Option<&'static str>,
     }
 
     fn mock_client(requests: MockRequests, responses: MockResponses) -> MockClient {
@@ -188,10 +157,6 @@ mod tests {
                 "/v0/transactions" => {
                     requests.transactions.lock().unwrap().push(request);
                     Ok(responses.transactions.unwrap().as_bytes().to_vec())
-                }
-                "/v0/block" => {
-                    requests.blocks.lock().unwrap().push(request);
-                    Ok(responses.block.unwrap().as_bytes().to_vec())
                 }
                 path => panic!("unexpected path: {path}"),
             }
@@ -218,7 +183,6 @@ mod tests {
                 sender_transfers: Some(include_str!("../../../testdata/fastnear_sender_transfers.json")),
                 receiver_transfers: Some(include_str!("../../../testdata/fastnear_receiver_transfers.json")),
                 transactions: Some(include_str!("../../../testdata/fastnear_transactions.json")),
-                ..Default::default()
             },
         );
         let indexer = NearIndexer::new(client.clone(), client);
@@ -270,7 +234,6 @@ mod tests {
                 sender_transfers: Some(include_str!("../../../testdata/fastnear_sender_transfers.json")),
                 receiver_transfers: Some(include_str!("../../../testdata/fastnear_receiver_transfers.json")),
                 transactions: Some(include_str!("../../../testdata/fastnear_empty_transactions.json")),
-                ..Default::default()
             },
         );
         let error = NearIndexer::new(client.clone(), client)
@@ -306,41 +269,5 @@ mod tests {
             .await
             .unwrap_err();
         assert_eq!(error.to_string(), "NEAR transaction block mismatch: expected 211048906, got 211048907");
-    }
-
-    #[tokio::test]
-    async fn test_get_transactions_by_block() {
-        let requests = MockRequests::default();
-        let client = mock_client(
-            requests.clone(),
-            MockResponses {
-                transactions: Some(include_str!("../../../testdata/fastnear_usdt_transaction.json")),
-                block: Some(include_str!("../../../testdata/fastnear_usdt_block.json")),
-                ..Default::default()
-            },
-        );
-        let indexer = NearIndexer::new(client.clone(), client);
-
-        let transactions = ChainBlockTransactions::get_transactions_by_block(&indexer, 211048907).await.unwrap();
-        let expected_block_request: Value = serde_json::from_str(include_str!("../../../testdata/fastnear_usdt_block_request.json")).unwrap();
-        let expected_transaction_request: Value = serde_json::from_str(include_str!("../../../testdata/fastnear_usdt_transaction_request.json")).unwrap();
-
-        assert_eq!(transactions.len(), 1);
-        assert_usdt_transaction(&transactions[0]);
-        assert_eq!(*requests.blocks.lock().unwrap(), vec![expected_block_request]);
-        assert_eq!(*requests.transactions.lock().unwrap(), vec![expected_transaction_request]);
-
-        let client = mock_client(
-            MockRequests::default(),
-            MockResponses {
-                transactions: Some(include_str!("../../../testdata/fastnear_empty_transactions.json")),
-                block: Some(include_str!("../../../testdata/fastnear_usdt_block.json")),
-                ..Default::default()
-            },
-        );
-        let error = ChainBlockTransactions::get_transactions_by_block(&NearIndexer::new(client.clone(), client), 211048907)
-            .await
-            .unwrap_err();
-        assert_eq!(error.to_string(), "missing FastNear block transaction details");
     }
 }

@@ -9,35 +9,34 @@ use serde_serializers::deserialize_biguint_from_str;
 
 use crate::constants::{EVENT_JSON_PREFIX, FUNGIBLE_TOKEN_TRANSFER_EVENT, NEP_141_STANDARD};
 
-use super::super::model::FastNearReceipt;
+use super::transaction::ReceiptOutcome;
 
 #[derive(Debug, Deserialize)]
-struct FastNearEvent {
+struct NearEvent {
     standard: Option<String>,
     event: Option<String>,
     data: Option<Value>,
 }
 
 #[derive(Debug, Deserialize)]
-struct FastNearFungibleTokenTransfer {
+struct FungibleTokenTransfer {
     old_owner_id: String,
     new_owner_id: String,
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     amount: BigUint,
 }
 
-pub(super) fn map_fungible_token_transfers(receipts: &[FastNearReceipt]) -> Result<Vec<TransactionAssetTransfer>, Box<dyn Error + Send + Sync>> {
+pub(super) fn map_fungible_token_transfers(receipts: &[ReceiptOutcome]) -> Result<Vec<TransactionAssetTransfer>, Box<dyn Error + Send + Sync>> {
     let mut asset_transfers = Vec::<TransactionAssetTransfer>::new();
     for receipt in receipts {
-        for log in &receipt.execution_outcome.outcome.logs {
+        for log in &receipt.outcome.logs {
             let Some(transfers) = parse_fungible_token_transfer_event(log)? else {
                 continue;
             };
-            let contract = &receipt.receipt.receiver_id;
-            if !crate::address::is_valid_account_id(contract) {
-                return Err(format!("invalid NEP-141 contract id: {contract}").into());
+            if !crate::address::is_valid_account_id(&receipt.receiver_id) {
+                return Err(format!("invalid NEP-141 contract id: {}", receipt.receiver_id).into());
             }
-            let asset_id = AssetId::from_token(Chain::Near, contract);
+            let asset_id = AssetId::from_token(Chain::Near, &receipt.receiver_id);
             for transfer in transfers {
                 let transfer = TransactionAssetTransfer {
                     asset_id: asset_id.clone(),
@@ -58,11 +57,11 @@ pub(super) fn map_fungible_token_transfers(receipts: &[FastNearReceipt]) -> Resu
     Ok(asset_transfers)
 }
 
-fn parse_fungible_token_transfer_event(log: &str) -> Result<Option<Vec<FastNearFungibleTokenTransfer>>, Box<dyn Error + Send + Sync>> {
+fn parse_fungible_token_transfer_event(log: &str) -> Result<Option<Vec<FungibleTokenTransfer>>, Box<dyn Error + Send + Sync>> {
     let Some(event_json) = log.strip_prefix(EVENT_JSON_PREFIX) else {
         return Ok(None);
     };
-    let event: FastNearEvent = serde_json::from_str(event_json)?;
+    let event: NearEvent = serde_json::from_str(event_json)?;
     if event.standard.as_deref() != Some(NEP_141_STANDARD) || event.event.as_deref() != Some(FUNGIBLE_TOKEN_TRANSFER_EVENT) {
         return Ok(None);
     }

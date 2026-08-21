@@ -1,5 +1,4 @@
 mod address;
-mod fungible_token;
 mod transaction;
 
 pub(super) use address::map_address_transfer;

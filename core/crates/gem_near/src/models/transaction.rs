@@ -12,6 +12,8 @@ pub struct BroadcastResult {
     pub status: ExecutionStatus,
     pub transaction: BroadcastTransaction,
     pub transaction_outcome: TransactionOutcome,
+    #[serde(default)]
+    pub receipts_outcome: Vec<TransactionOutcome>,
 }
 
 impl BroadcastResult {
@@ -25,6 +27,12 @@ impl BroadcastResult {
 
     pub fn is_executed(&self) -> bool {
         TRANSACTION_STATUSES_EXECUTED.contains(&self.final_execution_status.as_str())
+    }
+
+    pub fn fee(&self) -> BigUint {
+        self.receipts_outcome
+            .iter()
+            .fold(self.transaction_outcome.outcome.tokens_burnt.clone(), |fee, receipt| fee + &receipt.outcome.tokens_burnt)
     }
 }
 
@@ -84,6 +92,7 @@ pub struct TransactionOutcome {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Outcome {
+    pub executor_id: Option<String>,
     pub logs: Vec<String>,
     pub status: ExecutionStatus,
     #[serde(deserialize_with = "deserialize_biguint_from_str")]

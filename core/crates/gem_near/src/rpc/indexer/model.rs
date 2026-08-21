@@ -55,22 +55,6 @@ pub(super) struct TransactionsResponse {
     pub transactions: Vec<FastNearTransaction>,
 }
 
-#[derive(Debug, Serialize)]
-pub(super) struct BlockRequest {
-    pub block_id: u64,
-    pub with_transactions: bool,
-}
-
-#[derive(Debug, Deserialize)]
-pub(super) struct BlockResponse {
-    pub block_txs: Vec<FastNearBlockTransaction>,
-}
-
-#[derive(Debug, Deserialize)]
-pub(super) struct FastNearBlockTransaction {
-    pub transaction_hash: String,
-}
-
 #[derive(Debug, Deserialize)]
 pub(super) struct FastNearTransaction {
     pub execution_outcome: FastNearExecutionOutcome,

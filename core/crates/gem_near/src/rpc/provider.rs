@@ -10,9 +10,9 @@ use primitives::{Chain, Transaction, TransactionIdRequest};
 
 use super::NearClient;
 
-pub trait NearTransactionProvider: ChainTransactions + ChainBlockTransactions + ChainTransaction {}
+pub trait NearTransactionProvider: ChainTransactions + ChainTransaction {}
 
-impl<T: ChainTransactions + ChainBlockTransactions + ChainTransaction> NearTransactionProvider for T {}
+impl<T: ChainTransactions + ChainTransaction> NearTransactionProvider for T {}
 
 pub struct NearProvider<C: Client + Clone> {
     client: NearClient<C>,
@@ -54,7 +54,7 @@ impl<C: Client + Clone> ChainTransaction for NearProvider<C> {
 #[async_trait]
 impl<C: Client + Clone> ChainBlockTransactions for NearProvider<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        self.transaction_provider.get_transactions_by_block(block).await
+        self.client.get_transactions_by_block(block).await
     }
 }
 
