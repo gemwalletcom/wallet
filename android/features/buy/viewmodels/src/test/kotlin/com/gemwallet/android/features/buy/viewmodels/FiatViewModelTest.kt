@@ -164,7 +164,7 @@ class FiatViewModelTest {
 
     @Test
     fun `initial route amount overrides buy default`() = runTest(testDispatcher) {
-        val viewModel = createViewModel(initialAmount = 10.0)
+        val viewModel = createViewModel(initialAmount = 10)
 
         try {
             runCurrent()
@@ -239,6 +239,26 @@ class FiatViewModelTest {
     }
 
     @Test
+    fun `sell route arguments open sell with the requested amount`() = runTest(testDispatcher) {
+        assetDataFlow.value = null
+        val viewModel = createViewModel(initialAmount = 25, initialType = FiatQuoteType.Sell)
+
+        try {
+            runCurrent()
+            assertEquals(FiatQuoteType.Sell, viewModel.type.value)
+            assertEquals("25", viewModel.amount.value)
+
+            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = OneBitcoin)
+            runCurrent()
+            assertEquals(FiatQuoteType.Sell, viewModel.type.value)
+            assertEquals("25", viewModel.amount.value)
+            assertEquals(FiatConfig.defaultBuyAmount.toString(), viewModel.buyOperation.amount.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
     fun `random amount remains valid when current amount is at maximum`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
@@ -270,11 +290,12 @@ class FiatViewModelTest {
         }
     }
 
-    private fun createViewModel(initialAmount: Double? = null): FiatViewModel {
+    private fun createViewModel(initialAmount: Int? = null, initialType: FiatQuoteType? = null): FiatViewModel {
         val arguments = mutableMapOf<String, Any>(
             RouteArgument.AssetId.key to asset.id.toIdentifier(),
         )
         initialAmount?.let { arguments[RouteArgument.FiatAmount.key] = it }
+        initialType?.let { arguments[RouteArgument.Type.key] = it }
         return FiatViewModel(
             getBuyQuotes = getBuyQuotes,
             getBuyQuoteUrl = getBuyQuoteUrl,

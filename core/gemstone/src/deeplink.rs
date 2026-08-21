@@ -5,6 +5,10 @@ pub enum Deeplink {
     Asset { asset_id: AssetId },
     Perpetuals,
     Rewards { code: Option<String> },
+    Receive { asset_id: AssetId },
+    Buy { asset_id: AssetId, amount: Option<i32> },
+    Sell { asset_id: AssetId, amount: Option<i32> },
+    Swap { asset_id: AssetId },
 }
 
 #[uniffi::export]
@@ -20,6 +24,7 @@ pub fn deeplink_build_gem_url(deeplink: Deeplink) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Chain;
 
     #[test]
     fn test_deeplink() {
@@ -28,5 +33,12 @@ mod tests {
         };
         assert_eq!(deeplink_build_url(rewards), "https://gemwallet.com/rewards?code=gemcoder");
         assert_eq!(deeplink_build_gem_url(Deeplink::Perpetuals), "gem://perpetuals");
+        assert_eq!(
+            deeplink_build_gem_url(Deeplink::Buy {
+                asset_id: AssetId::from_chain(Chain::Bitcoin),
+                amount: Some(100),
+            }),
+            "gem://tokens/bitcoin/buy?amount=100"
+        );
     }
 }

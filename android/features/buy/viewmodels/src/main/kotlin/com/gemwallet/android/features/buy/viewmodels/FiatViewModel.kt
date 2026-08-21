@@ -72,18 +72,18 @@ class FiatViewModel @Inject constructor(
     private val currency = Currency.USD
     private val currencySymbol = java.util.Currency.getInstance(currency.name).symbol
 
-    val type = MutableStateFlow(FiatQuoteType.Buy)
+    private val initialType = savedStateHandle.get<FiatQuoteType>(RouteArgument.Type.key) ?: FiatQuoteType.Buy
+    private val initialAmount = savedStateHandle.get<Int>(RouteArgument.FiatAmount.key)?.toString()
+
+    val type = MutableStateFlow(initialType)
     val assetId = MutableStateFlow(savedStateHandle.requireAssetId(RouteArgument.AssetId))
-    private val initialBuyAmount = savedStateHandle.get<Double>(RouteArgument.FiatAmount.key)
-        ?.toAmountText()
-        ?: FiatConfig.defaultBuyAmount.toString()
 
     val buyOperation = FiatOperationState(
-        defaultAmount = initialBuyAmount,
+        defaultAmount = defaultAmount(FiatQuoteType.Buy, FiatConfig.defaultBuyAmount),
         minFiatAmount = FiatConfig.minimumAmount.toDouble(),
     )
     val sellOperation = FiatOperationState(
-        defaultAmount = FiatConfig.defaultSellAmount.toString(),
+        defaultAmount = defaultAmount(FiatQuoteType.Sell, FiatConfig.defaultSellAmount),
         minFiatAmount = FiatConfig.minimumAmount.toDouble(),
     )
 
@@ -92,12 +92,15 @@ class FiatViewModel @Inject constructor(
         FiatQuoteType.Sell -> sellOperation
     }
 
+    private fun defaultAmount(type: FiatQuoteType, fallback: Int): String =
+        initialAmount?.takeIf { type == initialType } ?: fallback.toString()
+
     val amount: StateFlow<String> = type.flatMapLatest {
         when (it) {
             FiatQuoteType.Buy -> buyOperation.amount
             FiatQuoteType.Sell -> sellOperation.amount
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, initialBuyAmount)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, currentOperation().defaultAmount)
 
     private val assetData: StateFlow<AssetData?> = assetId
         .flatMapLatest { getBuyAssetInfo(it) }
@@ -119,7 +122,8 @@ class FiatViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val showFiatTypePicker = assetData
-        .map { it?.showFiatTypePicker() == true }
+        .filterNotNull()
+        .map { it.showFiatTypePicker() }
         .distinctUntilChanged()
         .onEach { showFiatTypePicker ->
             if (!showFiatTypePicker && type.value == FiatQuoteType.Sell) {
@@ -275,9 +279,6 @@ class FiatViewModel @Inject constructor(
     )
 
 }
-
-private fun Double.toAmountText(): String =
-    BigDecimal.valueOf(this).stripTrailingZeros().toPlainString()
 
 private fun AssetData.showFiatTypePicker() =
     metadata?.isSellEnabled == true
