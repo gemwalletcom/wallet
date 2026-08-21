@@ -10,7 +10,6 @@ import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.hasAvailable
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +31,6 @@ class SearchSwapAssetsImpl(
         query: String,
         swapItemType: SwapItemType,
         oppositeAssetId: AssetId?,
-        tag: AssetTag?,
     ): Flow<List<AssetInfo>> {
         if (wallet == null) {
             return emptyFlow()
@@ -54,7 +52,6 @@ class SearchSwapAssetsImpl(
                 query,
                 supported.chains.mapNotNull { it.toChain() },
                 supported.assetIds.mapNotNull { it.toAssetId() },
-                tag?.let { listOf(it) } ?: emptyList(),
             )
         }
         .catch { emit(emptyList()) }

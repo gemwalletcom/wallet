@@ -345,11 +345,7 @@
   <string name="assets_add_custom_token">Agregar token personalizado</string>
   <string name="assets_select_asset">Seleccionar activo</string>
   <string name="assets_popular">Populares</string>
-  <string name="assets_tags_trending">Tendencias</string>
-  <string name="assets_tags_gainers">Ganadores</string>
-  <string name="assets_tags_losers">Perdedores</string>
   <string name="assets_tags_new">Nuevo</string>
-  <string name="assets_tags_stablecoins">Monedas estables</string>
   <string name="assets_state_empty_search_description">Puedes intentar agregarlo manualmente</string>
   <string name="assets_title">Activos</string>
   <string name="sign_message_message">Mensaje</string>

@@ -109,7 +109,6 @@ class SwapSelectSearch(
                 query = inputs.filter?.query ?: "",
                 swapItemType = inputs.type ?: SwapItemType.Receive,
                 oppositeAssetId = inputs.oppositeAssetId,
-                tag = inputs.filter?.tag,
             )
         }
     }

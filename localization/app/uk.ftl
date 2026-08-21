@@ -405,11 +405,7 @@ assets_no_assets_found = Активи не знайдено
 assets_add_custom_token = Додайте власний токен
 assets_select_asset = Виберіть актив
 assets_popular = Популярні
-assets_tags_trending = Тренди
-assets_tags_gainers = Гейнери
-assets_tags_losers = Аутсайдери
 assets_tags_new = Нові
-assets_tags_stablecoins = Стайблкойни
 assets_state_empty_search_description = Ви можете спробувати додати його вручну
 assets_title = Активи
 

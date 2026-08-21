@@ -16,23 +16,15 @@ public struct AssetSearchService: Sendable {
         self.searchStore = searchStore
     }
 
-    public func searchAssets(
-        wallet: Wallet,
-        query: String,
-        priorityAssetsQuery: String?,
-        tag: AssetTag?,
-    ) async throws -> [AssetBasic] {
+    public func searchAssets(wallet: Wallet, query: String) async throws -> [AssetBasic] {
         let assets = try await assetsService.searchAssets(
             query: query,
             chains: WalletSearchScope.chains(for: wallet),
-            tags: [tag].compactMap(\.self),
         )
 
         try assetsService.addAssets(assets: assets)
 
-        if let priorityAssetsQuery {
-            try searchStore.add(type: .asset, query: priorityAssetsQuery, ids: assets.map(\.asset.id.identifier))
-        }
+        try searchStore.add(type: .asset, query: query, ids: assets.map(\.asset.id.identifier))
 
         try assetsService.addBalancesIfMissing(
             walletId: wallet.id,

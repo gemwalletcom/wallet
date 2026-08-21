@@ -405,11 +405,7 @@ assets_no_assets_found = कोई संपत्ति नहीं मिल�
 assets_add_custom_token = कस्टम टोकन जोड़ें
 assets_select_asset = संपत्ति का चयन करें
 assets_popular = लोकप्रिय एसेट
-assets_tags_trending = रुझान
-assets_tags_gainers = लाभ प्राप्त करने वाले
-assets_tags_losers = हारने वाले
 assets_tags_new = नया
-assets_tags_stablecoins = स्थिर सिक्के
 assets_state_empty_search_description = आप इसे मैन्युअल रूप से जोड़ने का प्रयास कर सकते हैं
 assets_title = संपत्ति
 

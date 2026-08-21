@@ -345,11 +345,7 @@
   <string name="assets_add_custom_token">Aangepaste token toevoegen</string>
   <string name="assets_select_asset">Selecteer Activa</string>
   <string name="assets_popular">Populair</string>
-  <string name="assets_tags_trending">Trending</string>
-  <string name="assets_tags_gainers">Winnaars</string>
-  <string name="assets_tags_losers">Verliezers</string>
   <string name="assets_tags_new">Nieuw</string>
-  <string name="assets_tags_stablecoins">Stabiele munten</string>
   <string name="assets_state_empty_search_description">U kunt proberen het handmatig toe te voegen</string>
   <string name="assets_title">Activa</string>
   <string name="sign_message_message">Bericht</string>

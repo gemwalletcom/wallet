@@ -1,8 +1,6 @@
 package com.gemwallet.android.features.assets.views
 
-import com.gemwallet.android.domains.search.WalletSearchTag
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.PerpetualId
 
@@ -17,9 +15,8 @@ sealed interface WalletSearchAction {
     data class OpenNftCollection(val collectionId: String) : WalletSearchAction
     data class OpenNftAsset(val assetId: NFTAssetId) : WalletSearchAction
     data class OpenRecent(val assetId: AssetId) : WalletSearchAction
-    data class ShowAllAssets(val query: String, val scope: WalletSearchTag) : WalletSearchAction
+    data class ShowAllAssets(val query: String) : WalletSearchAction
     data class OpenList(val listId: String, val title: String) : WalletSearchAction
-    data class SelectTag(val tag: AssetTag?) : WalletSearchAction
     data class PinAsset(val assetId: AssetId) : WalletSearchAction
     data class AddToWallet(val assetId: AssetId) : WalletSearchAction
     data class TogglePerpetualPin(val perpetualId: PerpetualId) : WalletSearchAction

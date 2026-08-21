@@ -13,7 +13,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBasic
 import com.gemwallet.android.testkit.mockAssetEthereum
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
@@ -50,7 +49,6 @@ class TokensRepositoryTest {
             searchAssets.searchAssets(
                 query = "btc",
                 chains = listOf(Chain.Bitcoin),
-                tags = listOf(AssetTag.Trending),
             )
         } returns listOf(asset)
 
@@ -58,7 +56,6 @@ class TokensRepositoryTest {
             query = "btc",
             currency = Currency.USD,
             chains = listOf(Chain.Bitcoin),
-            tags = listOf(AssetTag.Trending),
         )
         val priorities = slot<List<DbSearch>>()
 
@@ -67,11 +64,10 @@ class TokensRepositoryTest {
             searchAssets.searchAssets(
                 query = "btc",
                 chains = listOf(Chain.Bitcoin),
-                tags = listOf(AssetTag.Trending),
             )
         }
         coVerify { searchDao.put(capture(priorities)) }
-        assertEquals("btc::trending", priorities.captured.single().query)
+        assertEquals("btc", priorities.captured.single().query)
     }
 
     @Test
@@ -82,7 +78,6 @@ class TokensRepositoryTest {
             searchAssets.searchAssets(
                 query = "usdt arbitrum",
                 chains = emptyList(),
-                tags = emptyList(),
             )
         } returns listOf(firstResult, secondResult)
 
@@ -90,7 +85,6 @@ class TokensRepositoryTest {
             query = "usdt arbitrum",
             currency = Currency.USD,
             chains = emptyList(),
-            tags = emptyList(),
         )
 
         val priorities = slot<List<DbSearch>>()

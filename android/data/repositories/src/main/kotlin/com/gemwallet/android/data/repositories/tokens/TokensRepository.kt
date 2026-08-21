@@ -16,7 +16,6 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.Dispatchers
@@ -32,8 +31,8 @@ class TokensRepository (
     private val tokenService: TokenService,
 ) : SearchTokensCase, SyncAssetPrices {
 
-    override suspend fun search(query: String, currency: Currency, chains: List<Chain>, tags: List<AssetTag>): Boolean = withContext(Dispatchers.IO) {
-        if (query.isEmpty() && tags.isEmpty()) {
+    override suspend fun search(query: String, currency: Currency, chains: List<Chain>): Boolean = withContext(Dispatchers.IO) {
+        if (query.isEmpty()) {
             return@withContext false
         }
         val networkAssets = async { tokenService.search(query, chains.ifEmpty { Chain.entries.toList() }) }
@@ -41,13 +40,12 @@ class TokensRepository (
             searchAssets.searchAssets(
                 query = query,
                 chains = chains,
-                tags = tags,
             )
         }.getOrElse {
             networkAssets.cancel()
             return@withContext false
         }
-        val priorityQuery = tags.toPriorityQuery(query)
+        val priorityQuery = query.trim()
         val assets = (tokens + networkAssets.await()).distinctBy { it.asset.id }
         if (assets.isEmpty()) {
             searchDao.deleteAssets(priorityQuery)
@@ -99,13 +97,5 @@ class TokensRepository (
         }
     }
 }
-
-private fun List<AssetTag>.toGemQuery() = if (isEmpty()) {
-    ""
-} else {
-    joinToString(",") { it.string }
-}
-
-fun List<AssetTag>.toPriorityQuery(query: String) = if (isEmpty()) query.trim() else "${query.trim()}::${toGemQuery()}"
 
 fun listPriorityQuery(listId: String) = "::list:$listId"

@@ -405,11 +405,7 @@ assets_no_assets_found = কোন সম্পদ পাওয়া যায�
 assets_add_custom_token = কাস্টম টোকেন যোগ করুন
 assets_select_asset = সম্পদ নির্বাচন করুন
 assets_popular = জনপ্রিয় অ্যাসেট
-assets_tags_trending = চলমান
-assets_tags_gainers = লাভকারীদের
-assets_tags_losers = পরাজিত
 assets_tags_new = নতুন
-assets_tags_stablecoins = স্টেবলকয়েন
 assets_state_empty_search_description = আপনি এটি ম্যানুয়ালি যোগ করার চেষ্টা করতে পারেন।
 assets_title = সম্পদ
 

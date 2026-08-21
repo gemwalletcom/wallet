@@ -52,7 +52,6 @@ class SearchSwapAssetsImplTest {
                     query = "",
                     byChains = listOf(Chain.HyperCore),
                     byAssets = listOf(hypeAsset.id, usdcAsset.id),
-                    tags = emptyList(),
                 )
             } returns flowOf(listOf(stakedOnlyAsset, fundedAsset))
         }
@@ -70,7 +69,6 @@ class SearchSwapAssetsImplTest {
             query = "",
             swapItemType = SwapItemType.Pay,
             oppositeAssetId = oppositeAsset.id,
-            tag = null,
         ).first()
 
         assertEquals(listOf(fundedAsset), result)

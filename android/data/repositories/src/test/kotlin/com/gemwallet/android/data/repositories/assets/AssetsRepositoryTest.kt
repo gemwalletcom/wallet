@@ -605,7 +605,6 @@ class AssetsRepositoryTest {
             query = "",
             byChains = listOf(Chain.Solana),
             byAssets = emptyList(),
-            tags = emptyList(),
         ).first()
 
         assertEquals(listOf(enabledAsset.id, hiddenAsset.id, unlinkedAsset.id), result.map { it.asset.id })
@@ -642,7 +641,6 @@ class AssetsRepositoryTest {
             query = "usd",
             byChains = listOf(Chain.Solana),
             byAssets = emptyList(),
-            tags = emptyList(),
         ).first()
 
         assertEquals(listOf(highPriorityAsset.id, lowPriorityAsset.id), result.map { it.asset.id })

@@ -405,11 +405,7 @@ assets_no_assets_found = کوئی اثاثہ نہیں ملا
 assets_add_custom_token = حسب ضرورت ٹوکن شامل کریں۔
 assets_select_asset = اثاثہ منتخب کریں۔
 assets_popular = مقبول اثاثے
-assets_tags_trending = ٹرینڈنگ
-assets_tags_gainers = فائدہ اٹھانے والے
-assets_tags_losers = ہارنے والے
 assets_tags_new = نیا
-assets_tags_stablecoins = سٹیبل کوائنز
 assets_state_empty_search_description = آپ اسے دستی طور پر شامل کرنے کی کوشش کر سکتے ہیں۔
 assets_title = اثاثے
 

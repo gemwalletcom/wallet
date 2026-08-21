@@ -330,11 +330,7 @@
 "assets.add_custom_token" = "Thêm mã thông báo tùy chỉnh";
 "assets.select_asset" = "Chọn Tài sản";
 "assets.popular" = "Tài sản phổ biến";
-"assets.tags.trending" = "Xu hướng";
-"assets.tags.gainers" = "Người tăng giá";
-"assets.tags.losers" = "Người thua cuộc";
 "assets.tags.new" = "Mới";
-"assets.tags.stablecoins" = "Đồng tiền ổn định";
 "assets.state.empty.search_description" = "Bạn có thể thử thêm nó theo cách thủ công";
 "assets.title" = "Tài sản";
 "sign_message.message" = "Tin nhắn";

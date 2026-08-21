@@ -345,11 +345,7 @@
   <string name="assets_add_custom_token">حسب ضرورت ٹوکن شامل کریں۔</string>
   <string name="assets_select_asset">اثاثہ منتخب کریں۔</string>
   <string name="assets_popular">مقبول اثاثے</string>
-  <string name="assets_tags_trending">ٹرینڈنگ</string>
-  <string name="assets_tags_gainers">فائدہ اٹھانے والے</string>
-  <string name="assets_tags_losers">ہارنے والے</string>
   <string name="assets_tags_new">نیا</string>
-  <string name="assets_tags_stablecoins">سٹیبل کوائنز</string>
   <string name="assets_state_empty_search_description">آپ اسے دستی طور پر شامل کرنے کی کوشش کر سکتے ہیں۔</string>
   <string name="assets_title">اثاثے</string>
   <string name="sign_message_message">پیغام</string>

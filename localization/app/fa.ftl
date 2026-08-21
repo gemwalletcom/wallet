@@ -405,11 +405,7 @@ assets_no_assets_found = دارایی یافت نشد.
 assets_add_custom_token = افزودن توکن دلخواه/سفارشی.
 assets_select_asset = یک دارایی را انتخاب کنید
 assets_popular = دارایی‌های محبوب
-assets_tags_trending = پرطرفدار
-assets_tags_gainers = سودآوران
-assets_tags_losers = بازنده ها
 assets_tags_new = جدید
-assets_tags_stablecoins = استیبل کوین ها
 assets_state_empty_search_description = می‌توانید سعی کنید آن را به صورت دستی اضافه کنید
 assets_title = دارایی‌ها
 

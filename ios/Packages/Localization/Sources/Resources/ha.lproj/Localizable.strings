@@ -330,11 +330,7 @@
 "assets.add_custom_token" = "Ƙara Alamar Custom";
 "assets.select_asset" = "Zaɓi Kadari";
 "assets.popular" = "Shahararrun kadarori";
-"assets.tags.trending" = "Trending";
-"assets.tags.gainers" = "Masu samun riba";
-"assets.tags.losers" = "Masu hasara";
 "assets.tags.new" = "Sabo";
-"assets.tags.stablecoins" = "Stablecoins";
 "assets.state.empty.search_description" = "Kuna iya ƙoƙarin ƙara shi da hannu";
 "assets.title" = "Kadari";
 "sign_message.message" = "Sako";

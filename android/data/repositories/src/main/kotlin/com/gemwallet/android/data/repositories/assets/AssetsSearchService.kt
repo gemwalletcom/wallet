@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.tokens.listPriorityQuery
-import com.gemwallet.android.data.repositories.tokens.toPriorityQuery
 import com.gemwallet.android.data.service.store.database.AssetListDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.SearchDao
@@ -13,7 +12,6 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetList
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,8 +32,8 @@ class AssetsSearchService @Inject constructor(
     private val sessionRepository: SessionRepository,
 ) {
 
-    fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> {
-        val query = tags.toPriorityQuery(query)
+    fun search(query: String, byAllWallets: Boolean, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> {
+        val query = query.trim()
         return sessionRepository.currentWalletId().flatMapLatest { walletId ->
             searchDao.hasAssetPriorities(query).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 when {
@@ -50,7 +48,7 @@ class AssetsSearchService @Inject constructor(
     }
 
     fun searchLists(query: String): Flow<List<AssetList>> {
-        val key = emptyList<AssetTag>().toPriorityQuery(query)
+        val key = query.trim()
         return assetListDao.searchWithPriority(key).map { lists -> lists.map { it.toDTO() } }
     }
 
@@ -67,8 +65,8 @@ class AssetsSearchService @Inject constructor(
         }
     }
 
-    fun swapSearch(wallet: Wallet, query: String, byChains: List<Chain>, byAssets: List<AssetId>, tags: List<AssetTag>): Flow<List<AssetInfo>> {
-        val query = tags.toPriorityQuery(query)
+    fun swapSearch(wallet: Wallet, query: String, byChains: List<Chain>, byAssets: List<AssetId>): Flow<List<AssetInfo>> {
+        val query = query.trim()
         val walletChains = wallet.accounts.map { it.chain }
         val includeChains = byChains.filter { walletChains.contains(it) }
         val includeAssetIds = byAssets.filter { walletChains.contains(it.chain) }

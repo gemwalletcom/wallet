@@ -405,11 +405,7 @@ assets_no_assets_found = ไม่พบเนื้อหา
 assets_add_custom_token = เพิ่มโทเค็นที่กำหนดเอง
 assets_select_asset = เลือกสินทรัพย์
 assets_popular = สินทรัพย์ยอดนิยม
-assets_tags_trending = กำลังเป็นที่นิยม
-assets_tags_gainers = กำไร
-assets_tags_losers = ราคาลง
 assets_tags_new = ใหม่
-assets_tags_stablecoins = สเตเบิลคอยน์
 assets_state_empty_search_description = คุณสามารถลองเพิ่มมันด้วยตนเองได้
 assets_title = สินทรัพย์
 

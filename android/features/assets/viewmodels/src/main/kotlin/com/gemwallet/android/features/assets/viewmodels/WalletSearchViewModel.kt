@@ -28,7 +28,6 @@ import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetList
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -74,9 +73,8 @@ class WalletSearchViewModel @Inject constructor(
     private val visiblePerpetuals = combine(
         getPerpetuals.getPerpetuals(currentQuery.map { it.takeIf(String::isNotEmpty) }),
         showPerpetuals,
-        selectedTag,
-    ) { items, show, tag ->
-        if (show && tag == null) items else emptyList()
+    ) { items, show ->
+        if (show) items else emptyList()
     }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -108,9 +106,9 @@ class WalletSearchViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
 
     private val nfts: StateFlow<List<NftItemUIModel>> = combine(
-        nftData, currentQuery, selectedTag,
-    ) { data, query, tag ->
-        if (tag != null || query.isEmpty()) emptyList() else searchNfts(data, query)
+        nftData, currentQuery,
+    ) { data, query ->
+        if (query.isEmpty()) emptyList() else searchNfts(data, query)
     }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -129,16 +127,16 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val previewAssets: StateFlow<List<AssetInfoDataAggregate>> = combine(
-        unpinned, currentQuery, selectedTag,
-    ) { items, query, tag ->
-        items.take(assetsLimit(query, tag))
+        unpinned, currentQuery,
+    ) { items, query ->
+        items.take(assetsLimit(query))
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val hasMoreAssets: StateFlow<Boolean> = combine(
-        pinned, unpinned, currentQuery, selectedTag,
-    ) { pinned, unpinned, query, tag ->
-        (pinned.size + unpinned.size) > assetsLimit(query, tag)
+        pinned, unpinned, currentQuery,
+    ) { pinned, unpinned, query ->
+        (pinned.size + unpinned.size) > assetsLimit(query)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -149,10 +147,10 @@ class WalletSearchViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
-    private fun assetsLimit(query: String, tag: AssetTag?): Int = when {
-        query.isNotEmpty() -> WalletSearchConfig.assetsSearchLimit
-        tag != null -> WalletSearchConfig.assetsTagLimit
-        else -> WalletSearchConfig.assetsInitialLimit
+    private fun assetsLimit(query: String): Int = if (query.isNotEmpty()) {
+        WalletSearchConfig.assetsSearchLimit
+    } else {
+        WalletSearchConfig.assetsInitialLimit
     }
 
     private fun searchNfts(data: List<NFTData>, query: String): List<NftItemUIModel> = data
@@ -171,7 +169,7 @@ class WalletSearchViewModel @Inject constructor(
     private fun NFTData.toNftItem(): NftItemUIModel =
         if (assets.size == 1) NftItemUIModel(collection, assets.first()) else NftItemUIModel(collection, null, assets.size)
 
-    override fun assetsSearchLimit(query: String, tag: AssetTag?): Int = assetsLimit(query, tag) + 1
+    override fun assetsSearchLimit(query: String): Int = assetsLimit(query) + 1
 
     fun onPinAsset(assetId: AssetId) {
         val willPin = (pinned.value + unpinned.value).firstOrNull { it.asset.id == assetId }?.pinned != true

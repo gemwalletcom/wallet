@@ -330,11 +330,7 @@
 "assets.add_custom_token" = "حسب ضرورت ٹوکن شامل کریں۔";
 "assets.select_asset" = "اثاثہ منتخب کریں۔";
 "assets.popular" = "مقبول اثاثے";
-"assets.tags.trending" = "ٹرینڈنگ";
-"assets.tags.gainers" = "فائدہ اٹھانے والے";
-"assets.tags.losers" = "ہارنے والے";
 "assets.tags.new" = "نیا";
-"assets.tags.stablecoins" = "سٹیبل کوائنز";
 "assets.state.empty.search_description" = "آپ اسے دستی طور پر شامل کرنے کی کوشش کر سکتے ہیں۔";
 "assets.title" = "اثاثے";
 "sign_message.message" = "پیغام";

@@ -345,11 +345,7 @@
   <string name="assets_add_custom_token">Ongeza Tokeni Maalum</string>
   <string name="assets_select_asset">Chagua Kipengee</string>
   <string name="assets_popular">Rasilimali maarufu</string>
-  <string name="assets_tags_trending">Zinazovuma</string>
-  <string name="assets_tags_gainers">Washindi</string>
-  <string name="assets_tags_losers">Walioshindwa</string>
   <string name="assets_tags_new">Mpya</string>
-  <string name="assets_tags_stablecoins">Stablecoins</string>
   <string name="assets_state_empty_search_description">Unaweza kujaribu kuiongeza wewe mwenyewe</string>
   <string name="assets_title">Mali</string>
   <string name="sign_message_message">Ujumbe</string>

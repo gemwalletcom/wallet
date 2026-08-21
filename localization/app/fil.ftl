@@ -405,11 +405,7 @@ assets_no_assets_found = Walang nakitang asset
 assets_add_custom_token = Magdagdag ng Custom Token
 assets_select_asset = Piliin ang Asset
 assets_popular = Mga sikat na asset
-assets_tags_trending = Trending
-assets_tags_gainers = Mga nakakuha
-assets_tags_losers = Mga talunan
 assets_tags_new = Bago
-assets_tags_stablecoins = Mga Stablecoin
 assets_state_empty_search_description = Maaari mong subukang idagdag ito nang manu-mano
 assets_title = Mga asset
 

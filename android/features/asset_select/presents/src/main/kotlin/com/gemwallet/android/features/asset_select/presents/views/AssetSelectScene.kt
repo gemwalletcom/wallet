@@ -36,16 +36,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
-import com.gemwallet.android.ui.components.TabsBar
-import com.gemwallet.android.ui.components.labelRes
 import com.gemwallet.android.ui.components.filters.AssetsFilter
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
@@ -70,7 +66,6 @@ import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -87,8 +82,6 @@ fun AssetSelectScene(
     titleBadge: (AssetInfoDataAggregate) -> String?,
     support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
     query: TextFieldState,
-    tags: List<AssetTag?>,
-    selectedTag: AssetTag?,
     isAddAvailable: Boolean = false,
     availableChains: List<Chain> = emptyList(),
     chainsFilter: List<Chain> = emptyList(),
@@ -118,8 +111,6 @@ fun AssetSelectScene(
         titleBadge = titleBadge,
         support = support,
         query = query,
-        tags = tags,
-        selectedTag = selectedTag,
         isAddAvailable = isAddAvailable,
         availableChains = availableChains,
         chainsFilter = chainsFilter,
@@ -145,8 +136,6 @@ fun AssetSelectScene(
     titleBadge: (AssetInfoDataAggregate) -> String?,
     support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
     query: TextFieldState,
-    tags: List<AssetTag?>,
-    selectedTag: AssetTag?,
     isAddAvailable: Boolean = false,
     availableChains: List<Chain> = emptyList(),
     chainsFilter: List<Chain> = emptyList(),
@@ -174,8 +163,6 @@ fun AssetSelectScene(
 
     var showSelectNetworks by remember { mutableStateOf(false) }
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
-    val showTags = query.text.isEmpty()
-    var tagsHeightPx by remember { mutableStateOf(0) }
 
     val commonAssets = remember(popular, unpinned) {
         if (popular.isEmpty()) {
@@ -228,26 +215,6 @@ fun AssetSelectScene(
             modifier = Modifier.fillMaxWidth(),
             state = listState,
         ) {
-            if (showTags) {
-                item {
-                    Box(modifier = Modifier.onSizeChanged { tagsHeightPx = it.height }) {
-                        TabsBar(
-                            tabs = tags,
-                            selected = selectedTag,
-                            onSelect = { onAction(AssetSelectAction.SelectTag(it)) },
-                            scrollable = true,
-                            equalWidth = false,
-                        ) { item ->
-                            Text(
-                                stringResource(item.labelRes()),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                softWrap = false,
-                            )
-                        }
-                    }
-                }
-            }
             recent(recent, onSelectRecent, onOpenRecentsSheet)
             assets(popular, AssetsGroupType.Popular, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             if (pinned.isNotEmpty() || pinnedPerpetualRows.isNotEmpty()) {
@@ -280,7 +247,7 @@ fun AssetSelectScene(
             searchState(
                 state = state,
                 isAddAvailable = isAddAvailable,
-                topOffset = if (showTags) tagsHeightPx else 0,
+                topOffset = 0,
                 onAddAsset = { onAction(AssetSelectAction.AddAsset) },
             )
         }
@@ -453,8 +420,6 @@ fun PreviewAssetScreenUI() {
             title = "Send",
             titleBadge = { it.asset.symbol },
             support = null,
-            tags = AssetTag.entries,
-            selectedTag = null,
             query = rememberTextFieldState(),
             onAction = {},
         )

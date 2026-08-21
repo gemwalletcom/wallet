@@ -38,6 +38,6 @@ struct AssetsServiceTests {
             chainServiceFactory: ChainServiceFactoryMock(chainService: chainService),
             assetsProvider: GemAPIAssetsServiceMock(searchAssetsResult: apiAssets),
         )
-        return try await service.searchAssets(query: tokenId, chains: chains, tags: [])
+        return try await service.searchAssets(query: tokenId, chains: chains)
     }
 }

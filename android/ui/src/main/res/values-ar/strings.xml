@@ -345,11 +345,7 @@
   <string name="assets_add_custom_token">إضافة رمز مخصص</string>
   <string name="assets_select_asset">حدد الأصول</string>
   <string name="assets_popular">الأصول الشائعة</string>
-  <string name="assets_tags_trending">الأكثر رواجًا</string>
-  <string name="assets_tags_gainers">الرابحون</string>
-  <string name="assets_tags_losers">الخاسرون</string>
   <string name="assets_tags_new">جديد</string>
-  <string name="assets_tags_stablecoins">العملات المستقرة</string>
   <string name="assets_state_empty_search_description">يمكنك محاولة إضافته يدويًا</string>
   <string name="assets_title">أصول</string>
   <string name="sign_message_message">رسالة</string>

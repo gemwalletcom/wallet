@@ -38,7 +38,6 @@ interface GemApiClient {
     suspend fun searchAssets(
         @Query("query") query: String,
         @Query("chains") chains: String,
-        @Query("tags") tags: String,
     ): List<AssetBasic>
 
     @GET("/v1/search")

@@ -10,10 +10,6 @@ public struct WalletSearchConfig {
         Int(Config.shared.getWalletSearchConfig().assetsInitialLimit)
     }
 
-    public static var assetsTagLimit: Int {
-        Int(Config.shared.getWalletSearchConfig().assetsTagLimit)
-    }
-
     public static var assetsSearchLimit: Int {
         Int(Config.shared.getWalletSearchConfig().assetsSearchLimit)
     }

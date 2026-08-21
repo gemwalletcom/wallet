@@ -330,11 +330,7 @@
 "assets.add_custom_token" = "Tambahkan Token Kustom";
 "assets.select_asset" = "Pilih Aset";
 "assets.popular" = "Aset populer";
-"assets.tags.trending" = "Sedang tren";
-"assets.tags.gainers" = "Yang Naik";
-"assets.tags.losers" = "Yang Turun";
 "assets.tags.new" = "Baru";
-"assets.tags.stablecoins" = "Koin stabil";
 "assets.state.empty.search_description" = "Anda dapat mencoba menambahkannya secara manual";
 "assets.title" = "Aset";
 "sign_message.message" = "Pesan";

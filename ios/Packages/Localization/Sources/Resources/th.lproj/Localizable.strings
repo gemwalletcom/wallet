@@ -330,11 +330,7 @@
 "assets.add_custom_token" = "เพิ่มโทเค็นที่กำหนดเอง";
 "assets.select_asset" = "เลือกสินทรัพย์";
 "assets.popular" = "สินทรัพย์ยอดนิยม";
-"assets.tags.trending" = "กำลังเป็นที่นิยม";
-"assets.tags.gainers" = "กำไร";
-"assets.tags.losers" = "ราคาลง";
 "assets.tags.new" = "ใหม่";
-"assets.tags.stablecoins" = "สเตเบิลคอยน์";
 "assets.state.empty.search_description" = "คุณสามารถลองเพิ่มมันด้วยตนเองได้";
 "assets.title" = "สินทรัพย์";
 "sign_message.message" = "ข้อความ";

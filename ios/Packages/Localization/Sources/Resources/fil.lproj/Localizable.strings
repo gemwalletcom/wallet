@@ -330,11 +330,7 @@
 "assets.add_custom_token" = "Magdagdag ng Custom Token";
 "assets.select_asset" = "Piliin ang Asset";
 "assets.popular" = "Mga sikat na asset";
-"assets.tags.trending" = "Trending";
-"assets.tags.gainers" = "Mga nakakuha";
-"assets.tags.losers" = "Mga talunan";
 "assets.tags.new" = "Bago";
-"assets.tags.stablecoins" = "Mga Stablecoin";
 "assets.state.empty.search_description" = "Maaari mong subukang idagdag ito nang manu-mano";
 "assets.title" = "Mga asset";
 "sign_message.message" = "Mensahe";

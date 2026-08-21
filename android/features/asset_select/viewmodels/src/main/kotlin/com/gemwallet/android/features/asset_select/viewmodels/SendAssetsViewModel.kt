@@ -12,7 +12,6 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
-import com.wallet.core.primitives.AssetTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -42,11 +41,6 @@ open class SendSelectViewModel @Inject constructor(
     remoteSearch = false,
 ) {
     override fun assetFilters() = setOf(AssetFilter.HasBalance)
-
-    override fun getTags(): List<AssetTag?> = listOf(
-        null,
-        AssetTag.Stablecoins,
-    )
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -56,12 +50,12 @@ class SendSelectSearch(
 ) : BaseSelectSearch(searchSelectAssets) {
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return filters
-            .map { filters -> filters?.query.orEmpty() to filters?.tag }
-            .flatMapLatest { (query, tag) ->
-                val source = if (query.isEmpty() && tag == null) {
+            .map { filters -> filters?.query.orEmpty() }
+            .flatMapLatest { query ->
+                val source = if (query.isEmpty()) {
                     getSelectAssetsInfo()
                 } else {
-                    searchSelectAssets(query, tag?.let(::listOf) ?: emptyList())
+                    searchSelectAssets(query)
                 }
 
                 source.map(::filter)
