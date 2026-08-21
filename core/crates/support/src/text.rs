@@ -243,10 +243,10 @@ mod tests {
             }
         );
         assert_eq!(
-            parse_support_message_display_content("You can top up here: [Buy Bitcoin](gem://buy/bitcoin?amount=100)"),
+            parse_support_message_display_content("You can top up here: [Buy Bitcoin](gem://tokens/bitcoin/buy?amount=100)"),
             SupportMessageDisplayContent {
                 text: "You can top up here:".to_string(),
-                links: vec![link("Buy Bitcoin", "gem://buy/bitcoin?amount=100", None)],
+                links: vec![link("Buy Bitcoin", "gem://tokens/bitcoin/buy?amount=100", None)],
             }
         );
         assert_eq!(

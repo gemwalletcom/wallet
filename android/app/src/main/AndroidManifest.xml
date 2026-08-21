@@ -64,10 +64,6 @@
                 <data android:scheme="https" android:host="gemwallet.com" android:path="/join" />
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/join/" />
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/tokens/" />
-                <data android:scheme="https" android:host="gemwallet.com" android:path="/receive" />
-                <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/receive/" />
-                <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/buy/" />
-                <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/sell/" />
             </intent-filter>
         </activity>
         <provider

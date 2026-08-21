@@ -117,6 +117,9 @@ extension NavigationHandler {
 
         case let .sell(assetId, amount):
             try await presentFiat(type: .sell, assetId: assetId, amount: amount)
+
+        case let .swap(assetId):
+            try await presentSwap(from: assetId, to: .none)
         }
 
         selectTab(for: deeplink.selectTab)
@@ -284,11 +287,7 @@ extension NavigationHandler {
         try presentAssetInput(type: selectedType, for: asset)
     }
 
-    private func presentReceive(assetId: AssetId?) async throws {
-        guard let assetId else {
-            presenter.isPresentingPayment.wrappedValue = .selectAsset(.receive(.asset), chains: [])
-            return
-        }
+    private func presentReceive(assetId: AssetId) async throws {
         let asset = try await assetsService.getOrFetchAsset(for: assetId)
         try presentAssetInput(type: .receive(.asset), for: asset)
     }
@@ -311,7 +310,7 @@ private extension DeepLink {
         switch self {
         case .asset, .perpetuals: .wallet
         case .rewards: .settings
-        case .receive, .buy, .sell: nil
+        case .receive, .buy, .sell, .swap: nil
         }
     }
 }
