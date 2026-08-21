@@ -13,6 +13,7 @@ import WalletTab
 
 struct MainTabView: View {
     @Environment(\.assetDiscoveryService) private var assetDiscoveryService
+    @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.balanceService) private var balanceService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.deviceService) private var deviceService
@@ -49,6 +50,7 @@ struct MainTabView: View {
                     model: WalletSceneViewModel(
                         assetDiscoveryService: assetDiscoveryService,
                         balanceService: balanceService,
+                        assetsEnabler: assetsEnabler,
                         bannerService: bannerService,
                         nftService: nftService,
                         observablePreferences: observablePreferences,

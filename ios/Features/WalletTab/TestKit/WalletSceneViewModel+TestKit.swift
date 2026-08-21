@@ -17,6 +17,7 @@ public extension WalletSceneViewModel {
         WalletSceneViewModel(
             assetDiscoveryService: .mock(),
             balanceService: .mock(),
+            assetsEnabler: .mock(),
             bannerService: .mock(),
             nftService: .mock(),
             observablePreferences: .mock(),

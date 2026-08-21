@@ -21,9 +21,10 @@ import WalletSessionService
 
 @Observable
 @MainActor
-public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
+public final class WalletSceneViewModel: Sendable, AssetActions {
     private let assetDiscoveryService: any AssetDiscoverable
     let balanceService: BalanceService
+    let assetsEnabler: any AssetsEnabler
     private let bannerService: BannerService
     private let balanceCalculator = BalanceCalculator()
 
@@ -54,6 +55,7 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
     public init(
         assetDiscoveryService: any AssetDiscoverable,
         balanceService: BalanceService,
+        assetsEnabler: any AssetsEnabler,
         bannerService: BannerService,
         nftService: NFTService,
         observablePreferences: ObservablePreferences,
@@ -63,6 +65,7 @@ public final class WalletSceneViewModel: Sendable, AssetBalanceActions {
     ) {
         self.assetDiscoveryService = assetDiscoveryService
         self.balanceService = balanceService
+        self.assetsEnabler = assetsEnabler
         self.bannerService = bannerService
         self.observablePreferences = observablePreferences
         collectionsModel = CollectionsViewModel(

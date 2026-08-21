@@ -18,11 +18,10 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, AssetEnableActions, PerpetualPinActions {
+public final class WalletSearchSceneViewModel: Sendable, AssetActions, PerpetualPinActions {
     private let searchService: WalletSearchService
     private let activityService: ActivityService
     let assetsEnabler: any AssetsEnabler
-    let balanceService: BalanceService
     let perpetualService: PerpetualService
     private let preferences: ObservablePreferences
 
@@ -53,7 +52,6 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
         searchService: WalletSearchService,
         activityService: ActivityService,
         assetsEnabler: any AssetsEnabler,
-        balanceService: BalanceService,
         perpetualService: PerpetualService,
         preferences: ObservablePreferences = .default,
         onDismissSearch: VoidAction,
@@ -64,7 +62,6 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
         self.searchService = searchService
         self.activityService = activityService
         self.assetsEnabler = assetsEnabler
-        self.balanceService = balanceService
         self.perpetualService = perpetualService
         self.preferences = preferences
         self.onDismissSearch = onDismissSearch
@@ -211,7 +208,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetBalanceActions, As
                 self?.onSelectCopyAddress(CopyTypeViewModel(type: .address(assetData.asset, address: $0), copyValue: $0).message)
             },
             onPin: { [weak self] in
-                self?.onSelectPinAsset(assetData, value: !assetData.metadata.isPinned)
+                self?.onPinAsset(assetData.asset, value: !assetData.metadata.isPinned)
             },
             onAddToWallet: { [weak self] in
                 self?.onAddToWallet(assetData.asset.id)
@@ -254,14 +251,6 @@ extension WalletSearchSceneViewModel {
 
     func onSelectAddCustomToken() {
         onAddToken?()
-    }
-
-    func onSelectPinAsset(_ assetData: AssetData, value: Bool) {
-        onPinAsset(assetData.asset, value: value)
-
-        if value, !assetData.metadata.isBalanceEnabled {
-            onAddToWallet(assetData.asset.id)
-        }
     }
 
     func onSelectCopyAddress(_ message: String) {
