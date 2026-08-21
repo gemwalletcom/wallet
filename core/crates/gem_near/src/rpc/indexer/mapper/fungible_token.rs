@@ -13,9 +13,9 @@ use super::super::model::FastNearReceipt;
 
 #[derive(Debug, Deserialize)]
 struct FastNearEvent {
-    standard: String,
-    event: String,
-    data: Value,
+    standard: Option<String>,
+    event: Option<String>,
+    data: Option<Value>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -63,10 +63,10 @@ fn parse_fungible_token_transfer_event(log: &str) -> Result<Option<Vec<FastNearF
         return Ok(None);
     };
     let event: FastNearEvent = serde_json::from_str(event_json)?;
-    if event.standard != NEP_141_STANDARD || event.event != FUNGIBLE_TOKEN_TRANSFER_EVENT {
+    if event.standard.as_deref() != Some(NEP_141_STANDARD) || event.event.as_deref() != Some(FUNGIBLE_TOKEN_TRANSFER_EVENT) {
         return Ok(None);
     }
-    Ok(Some(serde_json::from_value(event.data)?))
+    Ok(Some(serde_json::from_value(event.data.ok_or("missing NEP-141 event data")?)?))
 }
 
 #[cfg(test)]
@@ -74,9 +74,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn ignores_other_event_data_shapes() {
-        let log = format!(r#"{EVENT_JSON_PREFIX}{{"standard":"potlock","event":"donation","data":{{"amount":"1"}}}}"#);
-
-        assert!(parse_fungible_token_transfer_event(&log).unwrap().is_none());
+    fn ignores_non_fungible_token_events() {
+        for event in [
+            r#"{"event":"donation","data":{"amount":"1"}}"#,
+            r#"{"standard":"potlock","event":"donation","data":{"amount":"1"}}"#,
+        ] {
+            let log = format!("{EVENT_JSON_PREFIX}{event}");
+            assert!(parse_fungible_token_transfer_event(&log).unwrap().is_none());
+        }
     }
 }
