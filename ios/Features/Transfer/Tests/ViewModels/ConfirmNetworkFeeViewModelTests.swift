@@ -42,15 +42,57 @@ struct ConfirmNetworkFeeViewModelTests {
     }
 
     @Test
-    func error() {
+    func loadedWithSelectableFeeAssetShowsSymbolOnRight() {
+        let pathUSD = AssetData.mock(asset: .mockTempoPathUSD())
+        let usdc = AssetData.mock(asset: .mockTempoUSDC())
+        let feeModel = NetworkFeeSceneViewModel(
+            feeAsset: pathUSD.asset,
+            currency: .usd,
+            selection: .preset(.normal),
+            feeAssetPrice: .mock(price: 1),
+            feeAmount: 1,
+            feeAssets: [pathUSD, usdc],
+            onSelectFeeAsset: { _ in },
+        )
         let model = ConfirmNetworkFeeViewModel(
-            state: .error(AnyError("test")),
-            feeModel: feeModel(feeAmount: nil),
+            state: .data(.mock()),
+            feeModel: feeModel,
             infoAction: {},
         )
 
-        guard case let .networkFee(item, selectable) = model.itemModel else { return }
+        guard case let .networkFee(item, _) = model.itemModel else {
+            Issue.record("Expected network fee item")
+            return
+        }
+        #expect(item.titleExtra == nil)
+        #expect(item.subtitle == feeModel.fiatValue)
+        #expect(item.subtitleExtra == pathUSD.asset.symbol)
+    }
+
+    @Test
+    func error() {
+        let pathUSD = AssetData.mock(asset: .mockTempoPathUSD())
+        let usdc = AssetData.mock(asset: .mockTempoUSDC())
+        let model = ConfirmNetworkFeeViewModel(
+            state: .error(AnyError("test")),
+            feeModel: NetworkFeeSceneViewModel(
+                feeAsset: pathUSD.asset,
+                currency: .usd,
+                selection: .preset(.normal),
+                feeAssetPrice: .mock(price: 1),
+                feeAmount: 1,
+                feeAssets: [pathUSD, usdc],
+                onSelectFeeAsset: { _ in },
+            ),
+            infoAction: {},
+        )
+
+        guard case let .networkFee(item, selectable) = model.itemModel else {
+            Issue.record("Expected network fee item")
+            return
+        }
         #expect(item.subtitle == "-")
+        #expect(item.subtitleExtra == nil)
         #expect(selectable == false)
     }
 

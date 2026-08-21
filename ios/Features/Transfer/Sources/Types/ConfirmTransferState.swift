@@ -9,6 +9,7 @@ struct ConfirmTransferState {
     var metadata: TransferDataMetadata?
     var feeRates: [FeeRate] = []
     var feeAsset: Asset
+    var feeAssets: [AssetData] = []
     var transaction: StateViewType<ConfirmTransferInput>
     var confirmation: ConfirmationPhase = .idle
 }
@@ -20,6 +21,7 @@ extension ConfirmTransferState {
             metadata: data.preload.metadata,
             feeRates: data.preload.feeRates,
             feeAsset: data.preload.input.feeAsset,
+            feeAssets: data.feeAssets,
             transaction: .data(data.preload.input),
         )
     }

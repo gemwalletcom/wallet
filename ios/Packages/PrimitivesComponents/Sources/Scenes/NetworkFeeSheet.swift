@@ -21,7 +21,7 @@ public struct NetworkFeeSheet: View {
     }
 
     private var presentationDetent: Set<PresentationDetent> {
-        if model.showFeeRates {
+        if model.showFeeRates || model.showFeeAssets {
             return Set([.medium, .large])
         }
         return Set([.height(180)])

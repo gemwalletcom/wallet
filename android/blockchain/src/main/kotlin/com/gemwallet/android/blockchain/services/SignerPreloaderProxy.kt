@@ -6,8 +6,10 @@ import com.gemwallet.android.blockchain.gemstone.toScanTransactionPayload
 import com.gemwallet.android.blockchain.gemstone.validate
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.SignerParams
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ScanTransaction
 import com.wallet.core.primitives.ScanTransactionPayload
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +25,11 @@ class SignerPreloaderProxy(
     private val scanTransaction: suspend (ScanTransactionPayload) -> ScanTransaction? = { null },
 ) {
 
-    suspend fun preload(params: ConfirmParams, selection: FeeSelection): SignerParams = withContext(Dispatchers.IO) {
+    suspend fun preload(
+        params: ConfirmParams,
+        selection: FeeSelection,
+        feeAssetSelection: FeeAssetSelection,
+    ): SignerParams = withContext(Dispatchers.IO) {
         val assetId = params.assetId
         val chain = assetId.chain
         val gemChain = assetId.chain.string
@@ -76,7 +82,11 @@ class SignerPreloaderProxy(
             }
             scanDeferred.await()?.validate(params)
             val result = transactionLoadDeferred.await()
-            val fee = result.fee.toFee(selectedPriority)
+            val feeAssetId = when (feeAssetSelection) {
+                FeeAssetSelection.Automatic -> AssetId(result.fee.feeAsset)
+                is FeeAssetSelection.Selected -> feeAssetSelection.assetId
+            }
+            val fee = result.fee.toFee(selectedPriority, feeAssetId)
 
             SignerParams(
                 input = params,

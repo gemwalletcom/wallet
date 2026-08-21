@@ -22,6 +22,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 fun DialogBar(
     onDismissRequest: () -> Unit,
     title: String? = null,
+    dismissType: DialogBarDismissType = DialogBarDismissType.Close,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -35,7 +36,12 @@ fun DialogBar(
         ) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.CenterStart)
+                    .align(
+                        when (dismissType) {
+                            DialogBarDismissType.Close -> Alignment.CenterStart
+                            DialogBarDismissType.Confirm -> Alignment.CenterEnd
+                        }
+                    )
                     .padding(horizontal = paddingHalfSmall, vertical = paddingHalfSmall),
             ) {
                 IconButton(
@@ -44,7 +50,13 @@ fun DialogBar(
                         containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
                     ),
                 ) {
-                    Icon(imageVector = AppIcons.Close, contentDescription = null)
+                    Icon(
+                        imageVector = when (dismissType) {
+                            DialogBarDismissType.Close -> AppIcons.Close
+                            DialogBarDismissType.Confirm -> AppIcons.Check
+                        },
+                        contentDescription = null,
+                    )
                 }
             }
             if (title != null) {
@@ -55,4 +67,9 @@ fun DialogBar(
             }
         }
     }
+}
+
+enum class DialogBarDismissType {
+    Close,
+    Confirm,
 }

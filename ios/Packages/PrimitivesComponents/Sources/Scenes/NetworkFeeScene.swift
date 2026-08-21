@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Localization
 import Primitives
 import Style
 import SwiftUI
@@ -11,6 +12,7 @@ public struct NetworkFeeScene: View {
     private var model: NetworkFeeSceneViewModel
 
     @State private var isPresentingCustomFee = false
+    @State private var isPresentingFeeAssetSelection = false
 
     public init(model: NetworkFeeSceneViewModel) {
         self.model = model
@@ -18,6 +20,18 @@ public struct NetworkFeeScene: View {
 
     public var body: some View {
         List {
+            if model.showFeeAssets {
+                Section {
+                    NavigationCustomLink(
+                        with: SimpleListItemView(model: model.selectedFeeAssetItem),
+                        action: { isPresentingFeeAssetSelection = true },
+                    )
+                } header: {
+                    Text(Localized.Swap.youPay)
+                        .listRowInsets(.horizontalMediumInsets)
+                }
+            }
+
             if model.showFeeRates {
                 Section {
                     ForEach(model.feeRatesViewModels) { feeRate in
@@ -62,15 +76,23 @@ public struct NetworkFeeScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("", systemImage: SystemImage.xmark, action: { dismiss() })
-            }
-        }
+        .toolbarDismissItem(type: .confirm, placement: .topBarTrailing)
         .navigationDestination(isPresented: $isPresentingCustomFee) {
             NetworkFeeCustomScene(
                 model: model.customFeeModel(),
                 onConfirm: { dismiss() },
+            )
+        }
+        .sheet(isPresented: $isPresentingFeeAssetSelection) {
+            SelectableListNavigationStack(
+                model: model.feeAssetsViewModel,
+                onFinishSelection: {
+                    if let item = $0.first {
+                        model.selectFeeAsset(item)
+                    }
+                    isPresentingFeeAssetSelection = false
+                },
+                listContent: { SimpleListItemView(model: $0) },
             )
         }
     }

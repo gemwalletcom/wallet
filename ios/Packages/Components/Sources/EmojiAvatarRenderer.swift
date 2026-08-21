@@ -3,6 +3,7 @@
 import UIKit
 
 public enum EmojiAvatarRenderer {
+    @MainActor
     public static func image(emoji: String, size: CGFloat, color: UIColor) -> UIImage {
         let format = UIGraphicsImageRendererFormat()
         format.scale = UIScreen.main.scale

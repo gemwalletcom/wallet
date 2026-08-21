@@ -4,6 +4,7 @@ import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
+import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -50,7 +51,7 @@ class SignerPreloaderProxyTest {
         coEvery { gateway.getFeeRates(any(), any()) } returns feeRates
         coEvery { gateway.getTransactionLoad(any(), capture(loadInput)) } returns transactionData(feeRates[1].gasPriceType)
 
-        val result = subject.preload(params, FeeSelection.Preset(FeePriority.Normal))
+        val result = subject.preload(params, FeeSelection.Preset(FeePriority.Normal), FeeAssetSelection.Automatic)
 
         assertEquals(feeRates, result.feeRates)
         assertEquals(FeePriority.Normal, result.fee().priority)
@@ -75,7 +76,7 @@ class SignerPreloaderProxyTest {
         coEvery { gateway.getFeeRates(any(), any()) } returns feeRates
         coEvery { gateway.getTransactionLoad(any(), capture(loadInput)) } returns transactionData(feeRates[1].gasPriceType)
 
-        val result = subject.preload(params, FeeSelection.Preset(FeePriority.Normal))
+        val result = subject.preload(params, FeeSelection.Preset(FeePriority.Normal), FeeAssetSelection.Automatic)
 
         assertEquals(listOf(feeRates[1]), result.feeRates)
         assertEquals(FeePriority.Fast, result.fee().priority)
@@ -93,9 +94,25 @@ class SignerPreloaderProxyTest {
             feeAssetId = feeAsset.id,
         )
 
-        val result = subject.preload(params, FeeSelection.Preset(FeePriority.Normal))
+        val result = subject.preload(params, FeeSelection.Preset(FeePriority.Normal), FeeAssetSelection.Automatic)
 
         assertEquals(feeAsset.id, result.fee().feeAssetId)
+    }
+
+    @Test
+    fun preload_usesSelectedFeeAsset() = runBlocking {
+        val selectedAsset = mockAssetTempoUSDCe()
+        val params = transferParams(mockAsset(chain = Chain.Tempo, decimals = 6))
+        stubPreload()
+        stubTransactionLoad()
+
+        val result = subject.preload(
+            params,
+            FeeSelection.Preset(FeePriority.Normal),
+            FeeAssetSelection.Selected(selectedAsset.id),
+        )
+
+        assertEquals(selectedAsset.id, result.fee().feeAssetId)
     }
 
     @Test
@@ -109,7 +126,7 @@ class SignerPreloaderProxyTest {
         stubPreload()
         stubTransactionLoad()
 
-        val error = runCatching { subject.preload(params, FeeSelection.Preset(FeePriority.Normal)) }.exceptionOrNull()
+        val error = runCatching { subject.preload(params, FeeSelection.Preset(FeePriority.Normal), FeeAssetSelection.Automatic) }.exceptionOrNull()
 
         assertEquals(ConfirmError.ScanTransactionMalicious, error)
     }
@@ -125,7 +142,7 @@ class SignerPreloaderProxyTest {
         stubPreload()
         stubTransactionLoad()
 
-        val error = runCatching { subject.preload(params, FeeSelection.Preset(FeePriority.Normal)) }.exceptionOrNull()
+        val error = runCatching { subject.preload(params, FeeSelection.Preset(FeePriority.Normal), FeeAssetSelection.Automatic) }.exceptionOrNull()
 
         assertEquals(params.asset.symbol, (error as? ConfirmError.ScanTransactionMemoRequired)?.symbol)
     }

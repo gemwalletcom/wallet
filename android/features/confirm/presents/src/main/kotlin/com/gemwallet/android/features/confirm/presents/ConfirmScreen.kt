@@ -97,6 +97,7 @@ fun ConfirmScreen(
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val feeRates by viewModel.feeRates.collectAsStateWithLifecycle()
+    val feeAssets by viewModel.feeAssets.collectAsStateWithLifecycle()
     val feeAssetInfo by viewModel.feeAssetInfo.collectAsStateWithLifecycle()
     val feeSelection by viewModel.feeSelection.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
@@ -249,11 +250,12 @@ fun ConfirmScreen(
                         )
 
                         is FeeUIModel.FeeInfo -> PropertyNetworkFee(
-                            it.feeAsset.name,
-                            it.feeAsset.symbol,
-                            it.cryptoAmount,
-                            it.fiatAmount,
-                            true,
+                            networkTitle = it.feeAsset.name,
+                            networkSymbol = it.feeAsset.symbol,
+                            feeCrypto = it.cryptoAmount,
+                            feeFiat = it.fiatAmount,
+                            variantsAvailable = true,
+                            showFeeAssetSymbol = feeAssets.any { asset -> asset.asset.id != it.feeAsset.id },
                         ) { showSelectTxSpeed = true }
 
                         FeeUIModel.Error -> PropertyItem(
@@ -280,7 +282,9 @@ fun ConfirmScreen(
             selection = feeSelection,
             feeRates = feeRates,
             feeAssetInfo = feeAssetInfo,
+            feeAssets = feeAssets,
             onSelect = viewModel::changeFeeSelection,
+            onSelectFeeAsset = viewModel::changeFeeAsset,
             onCancel = { showSelectTxSpeed = false },
         )
 

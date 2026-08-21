@@ -14,7 +14,9 @@ public struct NetworkFeeSceneViewModel {
     private let rates: [FeeRate]
     private let feeAssetPrice: Price?
     private let feeAmount: BigInt?
+    private let feeAssets: [AssetData]
     private let onSelect: (@MainActor (FeeSelection) -> Void)?
+    private let onSelectFeeAsset: (@MainActor (AssetId) -> Void)?
 
     public init(
         feeAsset: Asset,
@@ -23,7 +25,9 @@ public struct NetworkFeeSceneViewModel {
         rates: [FeeRate] = [],
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
+        feeAssets: [AssetData] = [],
         onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
+        onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
     ) {
         self.feeAsset = feeAsset
         self.currency = currency
@@ -31,7 +35,9 @@ public struct NetworkFeeSceneViewModel {
         self.rates = rates
         self.feeAssetPrice = feeAssetPrice
         self.feeAmount = feeAmount
+        self.feeAssets = feeAssets
         self.onSelect = onSelect
+        self.onSelectFeeAsset = onSelectFeeAsset
     }
 
     // MARK: - Network Fee
@@ -41,7 +47,25 @@ public struct NetworkFeeSceneViewModel {
     public var value: String? { feeAmount.map { display(for: $0).amount.text } }
     public var fiatValue: String? { feeAmount.flatMap { display(for: $0).fiat?.text } }
     public var showFeeRates: Bool { rates.count > 1 }
-    public var showFeeDetails: Bool { showFeeRates || feeAmount != nil }
+    public var showFeeDetails: Bool { showFeeRates || showFeeAssets || feeAmount != nil }
+    public var feeAssetSymbol: String? { showFeeAssets && fiatValue != nil ? feeAsset.symbol : nil }
+
+    var showFeeAssets: Bool {
+        onSelectFeeAsset != nil && feeAssets.contains { $0.asset.id != feeAsset.id }
+    }
+
+    var selectedFeeAssetItem: FeeAssetItem {
+        feeAssetItem(
+            feeAssets.first(where: { $0.asset.id == feeAsset.id }) ?? .with(asset: feeAsset),
+            isSelected: false,
+        )
+    }
+
+    var feeAssetsViewModel: FeeAssetsViewModel {
+        FeeAssetsViewModel(
+            state: .data(.plain(feeAssets.map { feeAssetItem($0, isSelected: $0.asset.id == feeAsset.id) })),
+        )
+    }
 
     // MARK: - Fee Rates
 
@@ -110,6 +134,11 @@ public struct NetworkFeeSceneViewModel {
     public func select(_ selection: FeeSelection) {
         onSelect?(selection)
     }
+
+    @MainActor
+    func selectFeeAsset(_ item: FeeAssetItem) {
+        onSelectFeeAsset?(item.id)
+    }
 }
 
 // MARK: - Private
@@ -153,5 +182,9 @@ private extension NetworkFeeSceneViewModel {
             currency: currency.rawValue,
             formatter: .auto,
         )
+    }
+
+    func feeAssetItem(_ assetData: AssetData, isSelected: Bool) -> FeeAssetItem {
+        FeeAssetItem(assetData: assetData, currency: currency, isSelected: isSelected)
     }
 }

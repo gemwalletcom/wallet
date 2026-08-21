@@ -53,15 +53,21 @@ public struct ConfirmService: Sendable {
         try metadataProvider.metadata(wallet: request.wallet, data: request.data)
     }
 
-    func load(request: ConfirmTransferRequest, selection: FeeSelection) async throws -> ConfirmTransferData {
+    func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
         async let simulation = simulationService.updateState(data: request.data, simulation: request.simulation)
-        let preload = try await preload(request: request, selection: selection)
+        async let feeAssets = inputProvider.feeAssets(walletId: request.wallet.id, chain: request.data.chain)
+        let preload = try await preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
 
-        return ConfirmTransferData(preload: preload, simulation: await simulation)
+        return try await ConfirmTransferData(preload: preload, simulation: simulation, feeAssets: feeAssets)
     }
 
-    func preload(request: ConfirmTransferRequest, selection: FeeSelection) async throws -> ConfirmTransferPreload {
-        try await inputProvider.load(request: request, metadata: metadata(request: request), selection: selection)
+    func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
+        try await inputProvider.load(
+            request: request,
+            metadata: metadata(request: request),
+            selection: selection,
+            feeAssetSelection: feeAssetSelection,
+        )
     }
 
     func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount) async throws {

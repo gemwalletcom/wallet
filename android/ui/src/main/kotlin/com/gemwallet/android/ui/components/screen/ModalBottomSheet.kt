@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import com.gemwallet.android.ui.components.dialog.DialogBar
+import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.alpha20
 import com.gemwallet.android.ui.theme.sheetCornerSize
@@ -32,6 +33,7 @@ fun ModalBottomSheet(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     shape: Shape = RoundedCornerShape(topStart = sheetCornerSize, topEnd = sheetCornerSize),
     title: String? = null,
+    dismissType: DialogBarDismissType = DialogBarDismissType.Close,
     dragHandle: (@Composable () -> Unit)? = { Box { Spacer16() } },
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -43,7 +45,7 @@ fun ModalBottomSheet(
         shape = shape,
         containerColor = containerColor,
         dragHandle = if (title != null) null else dragHandle,
-        content = { SheetContent(onDismissRequest, title, content) },
+        content = { SheetContent(onDismissRequest, title, dismissType, content) },
     )
 }
 
@@ -57,6 +59,7 @@ fun ModalBottomSheet(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     shape: Shape = RoundedCornerShape(topStart = sheetCornerSize, topEnd = sheetCornerSize),
     title: String? = null,
+    dismissType: DialogBarDismissType = DialogBarDismissType.Close,
     dragHandle: (@Composable () -> Unit)? = { Box { Spacer16() } },
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -97,7 +100,7 @@ fun ModalBottomSheet(
             shape = shape,
             containerColor = containerColor,
             dragHandle = if (title != null) null else dragHandle,
-            content = { SheetContent(onDismissRequest, title, content) },
+            content = { SheetContent(onDismissRequest, title, dismissType, content) },
         )
     }
 }
@@ -106,10 +109,11 @@ fun ModalBottomSheet(
 private fun ColumnScope.SheetContent(
     onDismissRequest: () -> Unit,
     title: String?,
+    dismissType: DialogBarDismissType,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     if (title != null) {
-        DialogBar(onDismissRequest = onDismissRequest, title = title)
+        DialogBar(onDismissRequest = onDismissRequest, title = title, dismissType = dismissType)
     }
     content()
 }
