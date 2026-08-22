@@ -1,10 +1,10 @@
 use crate::{
-    constants::{EMPTY_TRANSACTION_ROOT, RPC_CONCURRENCY, UNKNOWN_BLOCK_ERROR},
+    constants::{EMPTY_TRANSACTION_ROOT, UNKNOWN_BLOCK_ERROR},
     jsonrpc::NearRpc,
     models::{Account, AccountAccessKey, Block, BroadcastResult, Chunk, GasPrice, NodeStatus, ProtocolConfig},
     rpc::mapper::map_transaction,
 };
-use futures::{StreamExt, TryStreamExt, stream};
+use futures::future::try_join_all;
 use gem_client::Client;
 use gem_encoding::encode_base64;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};
@@ -93,11 +93,7 @@ impl<C: Client + Clone> NearClient<C> {
     }
 
     async fn request_all<R: DeserializeOwned + Send>(&self, requests: Vec<NearRpc>) -> Result<Vec<R>, JsonRpcError> {
-        stream::iter(requests)
-            .map(|request| self.client.request(request))
-            .buffered(RPC_CONCURRENCY)
-            .try_collect()
-            .await
+        try_join_all(requests.into_iter().map(|request| self.client.request(request))).await
     }
 
     pub async fn get_gas_price(&self) -> Result<GasPrice, JsonRpcError> {
