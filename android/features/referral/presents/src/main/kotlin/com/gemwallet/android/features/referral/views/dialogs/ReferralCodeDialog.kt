@@ -23,6 +23,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.filters.FormDialog
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.theme.Spacer16
 
 @Composable
 fun ReferralCodeDialog(
@@ -84,6 +85,7 @@ fun ReferralCodeDialog(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             singleLine = true,
         )
+        Spacer16()
     }
     if (showError != null) {
         AlertDialog(

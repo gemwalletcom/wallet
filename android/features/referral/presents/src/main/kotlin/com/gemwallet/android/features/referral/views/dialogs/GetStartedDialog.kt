@@ -25,6 +25,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.filters.FormDialog
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
 
@@ -96,6 +97,7 @@ internal fun GetStartedDialog(
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Companion.Center
         )
+        Spacer16()
     }
 
     if (showError != null) {
