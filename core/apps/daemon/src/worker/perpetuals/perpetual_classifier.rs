@@ -24,12 +24,7 @@ pub struct PerpetualPositionClassifier {
 
 impl PerpetualPositionClassifier {
     pub fn new(chain: Chain, providers: Arc<ChainProviders>, cacher: CacherClient, config: PerpetualPositionClassifierConfig) -> Self {
-        Self {
-            chain,
-            providers,
-            cacher,
-            config,
-        }
+        Self { chain, providers, cacher, config }
     }
 
     pub async fn classify(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {

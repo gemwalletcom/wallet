@@ -41,12 +41,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
 
     ctx.plan_builder(WorkerService::Perpetuals, &config, shutdown_rx)
         .jobs(WorkerJob::ClassifyPerpetualAddresses, Chain::perpetual_chains(), |chain, _| {
-            let classifier = Arc::new(PerpetualPositionClassifier::new(
-                chain,
-                providers.clone(),
-                cacher.clone(),
-                classifier_config,
-            ));
+            let classifier = Arc::new(PerpetualPositionClassifier::new(chain, providers.clone(), cacher.clone(), classifier_config));
             move |_| {
                 let classifier = classifier.clone();
                 async move { classifier.classify().await }

@@ -153,6 +153,12 @@ impl<C: Client> ChainSimulation for CosmosClient<C> {}
 
 impl<C: Client> ChainTraits for CosmosClient<C> {}
 
+impl<C: Client> chain_traits::ChainProvider for CosmosClient<C> {
+    fn get_chain(&self) -> primitives::Chain {
+        self.chain.as_chain()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::sync::{
@@ -186,11 +192,5 @@ mod tests {
 
         assert_eq!(transactions.len(), 0);
         assert_eq!(request_count.load(Ordering::SeqCst), 2);
-    }
-}
-
-impl<C: Client> chain_traits::ChainProvider for CosmosClient<C> {
-    fn get_chain(&self) -> primitives::Chain {
-        self.chain.as_chain()
     }
 }
