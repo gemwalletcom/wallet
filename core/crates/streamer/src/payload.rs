@@ -116,6 +116,19 @@ impl FetchAssetsPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct FetchAssetAssociationsPayload {
+    pub id: String,
+    pub price_id: PriceId,
+}
+
+impl fmt::Display for FetchAssetAssociationsPayload {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "id={}, price_id={}", self.id, self.price_id)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum FetchPricesPayload {
     AssetId(AssetId),
     PriceId(PriceId),

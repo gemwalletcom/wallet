@@ -153,6 +153,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 admin::devices::get_device_transactions,
                 admin::devices::get_device_fiat_transactions,
                 admin::assets::add_asset,
+                admin::assets::add_asset_associations,
                 admin::transactions::get_transactions_by_hash,
                 admin::transactions::add_transaction,
                 admin::addresses::refresh_addresses,
