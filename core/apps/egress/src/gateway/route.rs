@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use gem_tracing::path;
 use reqwest::{Client, StatusCode};
 use url::Url;
 
@@ -43,6 +44,10 @@ impl Route {
 }
 
 impl RouteMatch<'_> {
+    pub(super) fn path(&self) -> String {
+        path::redact(self.remainder)
+    }
+
     pub(super) fn target_url(&self, endpoint: &Endpoint) -> Result<Url, url::ParseError> {
         let mut url = Url::parse(&gem_client::build_request_url(endpoint.url.as_str(), self.remainder))?;
         if let Some(query) = self.query {
@@ -103,7 +108,9 @@ mod tests {
     #[test]
     fn test_match_route() {
         let routes = vec![route("tonapi"), route("tonapi_rates")];
-        assert_eq!(match_route(&routes, "/tonapi_rates/v2").unwrap().route.name, "tonapi_rates");
+        let matched = match_route(&routes, "/tonapi_rates/v2").unwrap();
+        assert_eq!(matched.route.name, "tonapi_rates");
+        assert_eq!(matched.path(), "/v2");
         assert_eq!(match_route(&routes, "/tonapi-other").map(|matched| matched.route.name.as_str()), None);
     }
 

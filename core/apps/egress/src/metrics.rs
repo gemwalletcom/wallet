@@ -92,11 +92,21 @@ mod tests {
     #[test]
     fn records_path_for_requests_and_failovers() {
         let metrics = Metrics::new();
-        metrics.record_request("toncenter", "toncenter", "/toncenter/api/v3/wallet/:value", 200);
-        metrics.record_failover("toncenter", "toncenter", "/toncenter/api/v3/wallet/:value", "429");
+        metrics.record_request("toncenter", "toncenter", "/api/v3/wallet/:value", 200);
+        metrics.record_failover("toncenter", "toncenter", "/api/v3/wallet/:value", "429");
 
         let encoded = metrics.encode();
-        assert!(encoded.contains("egress_requests_total{route=\"toncenter\",endpoint=\"toncenter\",path=\"/toncenter/api/v3/wallet/:value\",status=\"200\"} 1"));
-        assert!(encoded.contains("egress_failovers_total{route=\"toncenter\",endpoint=\"toncenter\",path=\"/toncenter/api/v3/wallet/:value\",reason=\"429\"} 1"));
+        assert_eq!(
+            encoded,
+            concat!(
+                "# HELP egress_requests Upstream requests.\n",
+                "# TYPE egress_requests counter\n",
+                "egress_requests_total{route=\"toncenter\",endpoint=\"toncenter\",path=\"/api/v3/wallet/:value\",status=\"200\"} 1\n",
+                "# HELP egress_failovers Endpoint failovers.\n",
+                "# TYPE egress_failovers counter\n",
+                "egress_failovers_total{route=\"toncenter\",endpoint=\"toncenter\",path=\"/api/v3/wallet/:value\",reason=\"429\"} 1\n",
+                "# EOF\n",
+            )
+        );
     }
 }

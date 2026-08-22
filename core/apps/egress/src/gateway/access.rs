@@ -20,10 +20,6 @@ impl<'a> AccessLog<'a> {
         }
     }
 
-    pub(super) fn uri(&self) -> &str {
-        &self.uri
-    }
-
     pub(super) fn request(&self, route: &str) {
         info_with_fields!("Egress request", id = self.id.as_str(), route = route, method = self.method.as_str(), uri = self.uri,);
     }
