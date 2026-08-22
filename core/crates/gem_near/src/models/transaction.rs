@@ -54,13 +54,21 @@ pub struct BroadcastTransaction {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransactionAction {
-    #[serde(rename = "Transfer")]
-    pub transfer: Option<TransferAction>,
-    #[serde(rename = "FunctionCall")]
-    pub function_call: Option<FunctionCallAction>,
-    #[serde(rename = "Delegate")]
-    pub delegate: Option<SignedDelegateAction>,
+#[serde(untagged)]
+pub enum TransactionAction {
+    Transfer {
+        #[serde(rename = "Transfer")]
+        transfer: TransferAction,
+    },
+    FunctionCall {
+        #[serde(rename = "FunctionCall")]
+        function_call: FunctionCallAction,
+    },
+    Delegate {
+        #[serde(rename = "Delegate")]
+        delegate: SignedDelegateAction,
+    },
+    Other(Value),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

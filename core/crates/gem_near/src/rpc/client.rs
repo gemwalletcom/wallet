@@ -154,12 +154,21 @@ mod tests {
                     ]
                 }),
                 "chunk" if request["params"]["chunk_id"] == "current-with-transaction" => json!({
-                    "transactions": [{
-                        "hash": "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E",
-                        "signer_id": "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3"
-                    }]
+                    "transactions": [
+                        {
+                            "hash": "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E",
+                            "signer_id": "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3"
+                        },
+                        {
+                            "hash": "HmhQCa1cL9ab7bQNnv1fJxz25fD6WZ5L4UPgrrD9k4FK",
+                            "signer_id": "abound.near"
+                        }
+                    ]
                 }),
                 "chunk" => json!({"transactions": []}),
+                "tx" if request["params"]["tx_hash"] == "HmhQCa1cL9ab7bQNnv1fJxz25fD6WZ5L4UPgrrD9k4FK" => {
+                    serde_json::from_str(include_str!("../../testdata/rpc_create_account_transaction.json")).unwrap()
+                }
                 "tx" => serde_json::from_str(include_str!("../../testdata/rpc_usdt_transaction.json")).unwrap(),
                 method => panic!("unexpected RPC method: {method}"),
             };
@@ -169,8 +178,11 @@ mod tests {
 
         let transactions = near.get_transactions_by_block(211048907).await.unwrap();
 
-        assert_eq!(transactions.len(), 1);
-        let transaction = &transactions[0];
+        assert_eq!(transactions.len(), 2);
+        let transaction = transactions
+            .iter()
+            .find(|transaction| transaction.hash == "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E")
+            .unwrap();
         assert_eq!(transaction.hash, "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E");
         assert_eq!(transaction.block_number.as_deref(), Some("211048907"));
         assert_eq!(transaction.asset_id, NEAR_USDT_ASSET_ID.clone());
@@ -178,8 +190,18 @@ mod tests {
         assert_eq!(transaction.value, "99500026");
         assert_eq!(transaction.fee, "411253844391900000000");
 
+        let create_account = transactions
+            .iter()
+            .find(|transaction| transaction.hash == "HmhQCa1cL9ab7bQNnv1fJxz25fD6WZ5L4UPgrrD9k4FK")
+            .unwrap();
+        assert_eq!(create_account.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(create_account.from, "abound.near");
+        assert_eq!(create_account.to, "6968519963136087096.abound.near");
+        assert_eq!(create_account.value, "0");
+        assert_eq!(create_account.fee, "7091964925000000000000");
+
         let requests = requests.lock().unwrap();
-        assert_eq!(requests.len(), 3);
+        assert_eq!(requests.len(), 4);
         assert_eq!(requests[0]["params"], json!({"block_id": 211048907}));
         assert_eq!(requests[1]["params"], json!({"chunk_id": "current-with-transaction"}));
         assert_eq!(
@@ -187,6 +209,14 @@ mod tests {
             json!({
                 "tx_hash": "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E",
                 "sender_account_id": "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3",
+                "wait_until": "EXECUTED"
+            })
+        );
+        assert_eq!(
+            requests[3]["params"],
+            json!({
+                "tx_hash": "HmhQCa1cL9ab7bQNnv1fJxz25fD6WZ5L4UPgrrD9k4FK",
+                "sender_account_id": "abound.near",
                 "wait_until": "EXECUTED"
             })
         );

@@ -1,0 +1,55 @@
+{
+  "final_execution_status": "FINAL",
+  "status": {
+    "SuccessValue": ""
+  },
+  "transaction": {
+    "actions": [
+      "CreateAccount",
+      {
+        "AddKey": {
+          "access_key": {
+            "nonce": 0,
+            "permission": "FullAccess"
+          },
+          "public_key": "ed25519:2echE6KqoZyJBf4Ks6rY9SM8RH57G11RdYitvAXNK1uE"
+        }
+      }
+    ],
+    "hash": "HmhQCa1cL9ab7bQNnv1fJxz25fD6WZ5L4UPgrrD9k4FK",
+    "receiver_id": "6968519963136087096.abound.near",
+    "signer_id": "abound.near"
+  },
+  "transaction_outcome": {
+    "outcome": {
+      "executor_id": "abound.near",
+      "logs": [],
+      "status": {
+        "SuccessReceiptId": "86E16q75F7dqQbLLRXBGxwZGcWZvFGVxyyd4zgPkh1VJ"
+      },
+      "tokens_burnt": "70982462500000000000"
+    }
+  },
+  "receipts_outcome": [
+    {
+      "outcome": {
+        "executor_id": "6968519963136087096.abound.near",
+        "logs": [],
+        "status": {
+          "SuccessValue": ""
+        },
+        "tokens_burnt": "7020982462500000000000"
+      }
+    },
+    {
+      "outcome": {
+        "executor_id": "abound.near",
+        "logs": [],
+        "status": {
+          "SuccessValue": ""
+        },
+        "tokens_burnt": "0"
+      }
+    }
+  ]
+}

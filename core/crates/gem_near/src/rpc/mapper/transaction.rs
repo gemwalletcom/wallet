@@ -5,7 +5,7 @@ use num_bigint::BigUint;
 use primitives::transaction_metadata_types::{TransactionAssetTransfer, TransactionAssetTransfersMetadata};
 use primitives::{Chain, Transaction, TransactionState, TransactionType};
 
-use crate::models::{BroadcastTransaction, Outcome};
+use crate::models::{BroadcastTransaction, Outcome, TransactionAction};
 
 use super::fungible_token::map_fungible_token_transfers;
 
@@ -31,16 +31,24 @@ pub(in crate::rpc) fn map_transaction(
             .actions
             .iter()
             .find_map(|action| {
-                action.delegate.as_ref().map(|delegate| {
-                    (
+                if let TransactionAction::Delegate { delegate } = action {
+                    Some((
                         delegate.delegate_action.sender_id.as_str(),
                         delegate.delegate_action.receiver_id.as_str(),
                         delegate.delegate_action.actions.as_slice(),
-                    )
-                })
+                    ))
+                } else {
+                    None
+                }
             })
             .unwrap_or((&transaction.signer_id, &transaction.receiver_id, &transaction.actions));
-        let mut transfer_deposits = actions.iter().filter_map(|action| action.transfer.as_ref()).map(|transfer| &transfer.deposit).peekable();
+        let mut transfer_deposits = actions
+            .iter()
+            .filter_map(|action| match action {
+                TransactionAction::Transfer { transfer } => Some(&transfer.deposit),
+                _ => None,
+            })
+            .peekable();
         let (transaction_type, value) = if transfer_deposits.peek().is_some() {
             (
                 TransactionType::Transfer,
@@ -51,7 +59,10 @@ pub(in crate::rpc) fn map_transaction(
                 TransactionType::SmartContractCall,
                 actions
                     .iter()
-                    .filter_map(|action| action.function_call.as_ref())
+                    .filter_map(|action| match action {
+                        TransactionAction::FunctionCall { function_call } => Some(function_call),
+                        _ => None,
+                    })
                     .map(|function_call| function_call.deposit.parse::<BigUint>())
                     .sum::<Result<BigUint, _>>()?,
             )
