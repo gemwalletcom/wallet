@@ -33,7 +33,8 @@ public struct AbbreviatedFormatter {
             .number
                 .notation(.compactName)
                 .locale(locale)
-                .precision(.significantDigits(1 ... 2)),
+                .precision(.fractionLength(0 ... 2))
+                .rounded(rule: .towardZero),
         )
     }
 
@@ -46,7 +47,8 @@ public struct AbbreviatedFormatter {
             .currency(code: currency)
                 .notation(.compactName)
                 .locale(locale)
-                .precision(.significantDigits(1 ... 2)),
+                .precision(.fractionLength(0 ... 2))
+                .rounded(rule: .towardZero),
         )
     }
 }
