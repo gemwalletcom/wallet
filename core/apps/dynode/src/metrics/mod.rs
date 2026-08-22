@@ -3,7 +3,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use gem_tracing::normalize_path;
+use gem_tracing::path;
 use metrics::MetricsRegistry;
 use primitives::NodeStatusState;
 use prometheus_client::encoding::EncodeLabelSet;
@@ -193,7 +193,7 @@ impl Metrics {
     }
 
     pub fn add_proxy_response(&self, chain: &str, method: &str, path: &str, status: u16, latency: u128) {
-        let path = normalize_path(path);
+        let path = path::redact(path);
         self.proxy_response_latency
             .get_or_create(&ResponseLabels {
                 chain: chain.to_string(),
@@ -242,12 +242,12 @@ impl Metrics {
     }
 
     pub fn add_cache_hit(&self, chain: &str, path: &str) {
-        let path = normalize_path(path);
+        let path = path::redact(path);
         self.cache_hits.get_or_create(&CacheLabels { chain: chain.to_string(), path }).inc();
     }
 
     pub fn add_cache_miss(&self, chain: &str, path: &str) {
-        let path = normalize_path(path);
+        let path = path::redact(path);
         self.cache_misses.get_or_create(&CacheLabels { chain: chain.to_string(), path }).inc();
     }
 
@@ -275,7 +275,7 @@ impl Metrics {
     }
 
     fn truncate_method(&self, method: &str) -> String {
-        if method.contains('/') { normalize_path(method) } else { method.to_string() }
+        if method.contains('/') { path::redact(method) } else { method.to_string() }
     }
 }
 

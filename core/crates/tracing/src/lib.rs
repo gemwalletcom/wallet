@@ -4,6 +4,8 @@ use tracing_subscriber::FmtSubscriber;
 
 pub use tracing;
 
+pub mod path;
+
 static TRACING_SUBSCRIBER: OnceLock<Arc<FmtSubscriber>> = OnceLock::new();
 
 pub fn get_subscriber() -> Arc<FmtSubscriber> {
@@ -31,23 +33,6 @@ pub fn human_duration(duration: Duration) -> String {
     }
 
     if parts.is_empty() { format!("{}ms", duration.subsec_millis()) } else { parts.join(" ") }
-}
-
-pub fn normalize_path(path: &str) -> String {
-    path.split_once('?')
-        .map_or(path, |(path, _)| path)
-        .split('/')
-        .map(|segment| {
-            if !segment.is_empty() && segment.chars().all(|character| character.is_ascii_digit()) {
-                ":number"
-            } else if segment.len() > 20 {
-                ":value"
-            } else {
-                segment
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("/")
 }
 
 pub struct DurationMs(pub Duration);
@@ -160,26 +145,4 @@ macro_rules! error_with_fields {
 
 pub fn error<E: std::error::Error + ?Sized>(message: &str, error: &E) {
     error_with_fields_impl(message, error, &[]);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn normalizes_dynamic_path_segments() {
-        let cases = [
-            ("/api/v1/verylongsegmentthatisgreaterthan20characters/data", "/api/v1/:value/data"),
-            ("/block/12345/transactions", "/block/:number/transactions"),
-            ("/block/12345/tx/67890", "/block/:number/tx/:number"),
-            ("/api/v1/data", "/api/v1/data"),
-            ("/api//data", "/api//data"),
-            ("/api/v2/block/5897744?page=1", "/api/v2/block/:number"),
-            ("/thorchain/quote/swap?from=X&to=Y", "/thorchain/quote/swap"),
-        ];
-
-        for (input, expected) in cases {
-            assert_eq!(normalize_path(input), expected, "failed for {input}");
-        }
-    }
 }
