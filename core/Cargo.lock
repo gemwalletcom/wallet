@@ -3567,6 +3567,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_ankr"
+version = "2.114.10"
+dependencies = [
+ "gem_client",
+ "gem_jsonrpc",
+ "num-bigint 0.5.1",
+ "serde",
+ "serde_json",
+ "serde_serializers",
+ "tokio",
+]
+
+[[package]]
 name = "gem_aptos"
 version = "2.114.10"
 dependencies = [
@@ -3636,6 +3649,17 @@ dependencies = [
  "serde_serializers",
  "settings",
  "signer",
+ "tokio",
+]
+
+[[package]]
+name = "gem_blockscout"
+version = "2.114.10"
+dependencies = [
+ "gem_client",
+ "num-bigint 0.5.1",
+ "serde",
+ "serde_serializers",
  "tokio",
 ]
 
@@ -3777,6 +3801,8 @@ dependencies = [
  "chrono",
  "futures",
  "gem_alchemy",
+ "gem_ankr",
+ "gem_blockscout",
  "gem_bsc",
  "gem_client",
  "gem_hash",

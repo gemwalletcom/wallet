@@ -2,10 +2,10 @@ use num_bigint::BigUint;
 use serde::Deserialize;
 use serde_serializers::deserialize_biguint_from_str;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub(super) struct Transaction {
-    pub(super) hash: String,
+pub struct Transaction {
+    pub hash: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -14,10 +14,10 @@ pub(super) struct Transactions {
     pub(super) transactions: Vec<Transaction>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub(super) struct TokenTransfer {
-    pub(super) transaction_hash: String,
+pub struct TokenTransfer {
+    pub transaction_hash: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -32,10 +32,10 @@ pub(super) struct TokenBalances {
     pub(super) assets: Vec<TokenBalance>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub(super) struct TokenBalance {
-    pub(super) contract_address: Option<String>,
+pub struct TokenBalance {
+    pub contract_address: Option<String>,
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
-    pub(super) balance_raw_integer: BigUint,
+    pub balance_raw_integer: BigUint,
 }
