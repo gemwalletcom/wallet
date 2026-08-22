@@ -1,3 +1,4 @@
+mod access;
 mod endpoint;
 mod proxy;
 mod route;
@@ -12,7 +13,8 @@ use reqwest::header::{HeaderMap, HeaderName, RETRY_AFTER};
 use rocket::http::Status;
 use tokio::sync::RwLock;
 
-use endpoint::Endpoint;
+use access::AccessLog;
+use endpoint::{Endpoint, filter_headers};
 use proxy::{OutboundProxy, build_client};
 use route::{Route, match_route};
 
@@ -87,23 +89,35 @@ impl Gateway {
     }
 
     pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<GatewayResponse, GatewayError> {
-        let route_match = match_route(&self.routes, uri).ok_or_else(|| GatewayError::new(Status::NotFound, "route not found"))?;
+        let access = AccessLog::new(&method, uri);
+        let Some(route_match) = match_route(&self.routes, uri) else {
+            access.request("none");
+            access.response("none", "none", "none", Status::NotFound.code);
+            return Err(GatewayError::new(Status::NotFound, "route not found"));
+        };
         let route = route_match.route;
+        access.request(&route.name);
         let mut candidates = self.available_endpoints(route).await;
         match route.selection {
             Selection::Ordered => {}
             Selection::Random => candidates.shuffle(&mut rand::rng()),
         }
         if candidates.is_empty() {
+            access.response(&route.name, "none", "none", Status::ServiceUnavailable.code);
             return Err(GatewayError::new(Status::ServiceUnavailable, "no healthy endpoint is available"));
         }
 
         let mut last_response = None;
         for (position, endpoint_index) in candidates.iter().enumerate() {
             let endpoint = &route.endpoints[*endpoint_index];
-            let target = route_match
-                .target_url(&endpoint.url)
-                .map_err(|error| GatewayError::new(Status::BadRequest, error.to_string()))?;
+            let remote_host = endpoint.url.host_str().unwrap_or("none");
+            let target = match route_match.target_url(&endpoint.url) {
+                Ok(target) => target,
+                Err(error) => {
+                    access.response(&route.name, &endpoint.name, remote_host, Status::BadRequest.code);
+                    return Err(GatewayError::new(Status::BadRequest, error.to_string()));
+                }
+            };
             let request_headers = endpoint.request_headers(headers, &self.forward_headers);
             let result = endpoint.client.request(method.clone(), target).headers(request_headers).body(body.clone()).send().await;
             let has_next = position + 1 < candidates.len();
@@ -111,11 +125,12 @@ impl Gateway {
             match result {
                 Ok(response) => {
                     let status = response.status();
-                    let response_headers = response.headers().clone();
-                    let retry_after = retry_after(&response_headers);
+                    let retry_after = retry_after(response.headers());
+                    let response_headers = filter_headers(response.headers(), &self.forward_headers);
                     let response_body = match response.bytes().await {
                         Ok(bytes) => bytes.to_vec(),
                         Err(_) => {
+                            access.upstream_failed(&route.name, &endpoint.name, remote_host, "response_body");
                             self.record_failure(route, endpoint, "response_body", self.cooldown).await;
                             if has_next {
                                 continue;
@@ -133,15 +148,18 @@ impl Gateway {
                         self.record_failure(route, endpoint, &status.as_u16().to_string(), retry_after.unwrap_or(self.cooldown))
                             .await;
                         if has_next {
-                            last_response = Some(response);
+                            access.failover(&route.name, &endpoint.name, remote_host, status.as_u16());
+                            last_response = Some((response, endpoint));
                             continue;
                         }
                     } else {
                         self.clear_failure(route, endpoint).await;
                     }
+                    access.response(&route.name, &endpoint.name, remote_host, status.as_u16());
                     return Ok(response);
                 }
                 Err(_) => {
+                    access.upstream_failed(&route.name, &endpoint.name, remote_host, "transport");
                     self.record_failure(route, endpoint, "transport", self.cooldown).await;
                     if !has_next {
                         break;
@@ -150,9 +168,11 @@ impl Gateway {
             }
         }
 
-        if let Some(response) = last_response {
+        if let Some((response, endpoint)) = last_response {
+            access.response(&route.name, &endpoint.name, endpoint.url.host_str().unwrap_or("none"), response.status);
             return Ok(response);
         }
+        access.response(&route.name, "none", "none", Status::BadGateway.code);
         Err(GatewayError::new(Status::BadGateway, "all upstream requests failed"))
     }
 

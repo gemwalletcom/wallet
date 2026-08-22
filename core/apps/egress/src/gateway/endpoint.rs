@@ -48,11 +48,7 @@ impl Endpoint {
     }
 
     pub(super) fn request_headers(&self, inbound: &HeaderMap, allowed: &HashSet<HeaderName>) -> HeaderMap {
-        let mut headers = inbound
-            .iter()
-            .filter(|(name, _)| allowed.contains(*name))
-            .map(|(name, value)| (name.clone(), value.clone()))
-            .collect::<HeaderMap>();
+        let mut headers = filter_headers(inbound, allowed);
         for (name, value) in &self.headers {
             headers.insert(name.clone(), value.clone());
         }
@@ -62,6 +58,14 @@ impl Endpoint {
     pub(super) fn key(&self, route: &str) -> String {
         format!("{route}:{}", self.name)
     }
+}
+
+pub(super) fn filter_headers(headers: &HeaderMap, allowed: &HashSet<HeaderName>) -> HeaderMap {
+    headers
+        .iter()
+        .filter(|(name, _)| allowed.contains(*name))
+        .map(|(name, value)| (name.clone(), value.clone()))
+        .collect()
 }
 
 #[cfg(test)]
