@@ -1,7 +1,7 @@
 address: 0.0.0.0
 port: 80
 headers:
-  forward: [accept, content-type, content-encoding, content-length, te, x-actions-version]
+  forward: [accept, content-type, content-encoding, content-length, te]
 request:
   timeout: 20s
   limit: 32 MiB
@@ -32,10 +32,3 @@ routes:
         url: https://tonapi.io
         headers:
           Authorization: "Bearer ${TONAPI_KEY_2}"
-  - name: toncenter
-    selection: ordered
-    endpoints:
-      - name: key_1
-        url: https://toncenter.com
-        headers:
-          X-API-Key: "${TONCENTER_KEY_1}"
