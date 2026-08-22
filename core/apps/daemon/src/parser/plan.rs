@@ -41,6 +41,9 @@ pub fn should_reload_catchup(remaining: i64, interval: i64) -> bool {
 }
 
 pub fn plan_next_block(state: &ParserStateRow, current_block: i64, latest_block: i64) -> Option<BlockPlan> {
+    if !state.is_enabled {
+        return None;
+    }
     let start_block = current_block + 1;
     let end_block = cmp::min(start_block + state.parallel_blocks as i64 - 1, latest_block - state.await_blocks as i64);
     if end_block < start_block {
@@ -134,6 +137,14 @@ mod tests {
         let state = state(5, 3, 0, None);
         let plan = plan_next_block(&state, 10, 12);
         assert!(plan.is_none());
+    }
+
+    #[test]
+    fn test_plan_next_block_returns_none_when_disabled() {
+        let mut state = state(1, 3, 0, None);
+        state.is_enabled = false;
+
+        assert!(plan_next_block(&state, 5, 10).is_none());
     }
 
     #[test]
