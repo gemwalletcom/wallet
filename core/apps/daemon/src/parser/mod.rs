@@ -230,7 +230,16 @@ pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<Hea
             .collect()
     };
 
-    info_with_fields!("parser init", chains = format!("{:?}", chains));
+    let chain_names = chains.iter().map(Chain::as_ref).collect::<Vec<_>>().join(",");
+    let checks = format!("{}..{}", gem_tracing::human_duration(min_check), gem_tracing::human_duration(max_check));
+    info_with_fields!(
+        "parser start",
+        chains = chain_names,
+        checks = checks,
+        retry = DurationMs(settings.parser.timeout),
+        error_retry = DurationMs(error_interval),
+        catchup_reload = catchup_reload_interval
+    );
 
     let (shutdown_tx, shutdown_rx) = shutdown::channel();
     let shutdown_timeout = settings.parser.shutdown.timeout;

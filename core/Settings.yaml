@@ -324,9 +324,14 @@ indexer:
     key:
       secret: ""
   fastnear:
-    url: "https://{service}.main.fastnear.com"
-    key:
-      secret: ""
+    transfers:
+      url: "https://transfers.main.fastnear.com"
+      key:
+        secret: ""
+    tx:
+      url: "https://tx.main.fastnear.com"
+      key:
+        secret: ""
   jupiter:
     url: "https://api.jup.ag"
     key:

@@ -1,0 +1,213 @@
+mod endpoint;
+mod proxy;
+mod route;
+
+use std::collections::{HashMap, HashSet};
+use std::error::Error;
+use std::time::{Duration, Instant};
+
+use rand::seq::SliceRandom;
+use reqwest::Method;
+use reqwest::header::{HeaderMap, HeaderName, RETRY_AFTER};
+use rocket::http::Status;
+use tokio::sync::RwLock;
+
+use endpoint::Endpoint;
+use proxy::{OutboundProxy, build_client};
+use route::{Route, match_route};
+
+use crate::config::{EgressConfig, Selection};
+use crate::metrics::Metrics;
+
+type BoxError = Box<dyn Error + Send + Sync>;
+
+pub(crate) struct Gateway {
+    routes: Vec<Route>,
+    proxies: HashMap<String, OutboundProxy>,
+    cooldowns: RwLock<HashMap<String, Instant>>,
+    cooldown: Duration,
+    forward_headers: HashSet<HeaderName>,
+    metrics: Metrics,
+}
+
+pub(crate) struct GatewayResponse {
+    pub(super) status: u16,
+    pub(super) headers: HeaderMap,
+    pub(super) body: Vec<u8>,
+}
+
+pub(crate) struct GatewayError {
+    pub(super) status: Status,
+    pub(super) message: String,
+}
+
+impl Gateway {
+    pub(crate) fn new(config: EgressConfig, metrics: Metrics) -> Result<Self, BoxError> {
+        let EgressConfig {
+            headers,
+            request,
+            retry,
+            proxies,
+            routes,
+            ..
+        } = config;
+        let direct_client = build_client(request.timeout, None)?;
+        let proxies = proxies
+            .unwrap_or_default()
+            .into_iter()
+            .map(|(name, config)| Ok((name, OutboundProxy::new(config, request.timeout)?)))
+            .collect::<Result<HashMap<_, _>, reqwest::Error>>()?;
+        let routes = routes
+            .into_iter()
+            .map(|route| Route::new(route, &retry.statuses, &direct_client, &proxies))
+            .collect::<Result<Vec<_>, BoxError>>()?;
+        let forward_headers = headers
+            .forward
+            .iter()
+            .map(|header| HeaderName::from_bytes(header.as_bytes()))
+            .collect::<Result<HashSet<_>, _>>()?;
+        for name in proxies.keys() {
+            metrics.set_proxy_available(name, false);
+        }
+
+        Ok(Self {
+            routes,
+            proxies,
+            cooldowns: RwLock::new(HashMap::new()),
+            cooldown: retry.cooldown,
+            forward_headers,
+            metrics,
+        })
+    }
+
+    pub(crate) fn start_health_checks(&self) {
+        for (name, proxy) in &self.proxies {
+            proxy.start_health_check(name.clone(), self.metrics.clone());
+        }
+    }
+
+    pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<GatewayResponse, GatewayError> {
+        let route_match = match_route(&self.routes, uri).ok_or_else(|| GatewayError::new(Status::NotFound, "route not found"))?;
+        let route = route_match.route;
+        let mut candidates = self.available_endpoints(route).await;
+        match route.selection {
+            Selection::Ordered => {}
+            Selection::Random => candidates.shuffle(&mut rand::rng()),
+        }
+        if candidates.is_empty() {
+            return Err(GatewayError::new(Status::ServiceUnavailable, "no healthy endpoint is available"));
+        }
+
+        let mut last_response = None;
+        for (position, endpoint_index) in candidates.iter().enumerate() {
+            let endpoint = &route.endpoints[*endpoint_index];
+            let target = route_match
+                .target_url(&endpoint.url)
+                .map_err(|error| GatewayError::new(Status::BadRequest, error.to_string()))?;
+            let request_headers = endpoint.request_headers(headers, &self.forward_headers);
+            let result = endpoint.client.request(method.clone(), target).headers(request_headers).body(body.clone()).send().await;
+            let has_next = position + 1 < candidates.len();
+
+            match result {
+                Ok(response) => {
+                    let status = response.status();
+                    let response_headers = response.headers().clone();
+                    let retry_after = retry_after(&response_headers);
+                    let response_body = match response.bytes().await {
+                        Ok(bytes) => bytes.to_vec(),
+                        Err(_) => {
+                            self.record_failure(route, endpoint, "response_body", self.cooldown).await;
+                            if has_next {
+                                continue;
+                            }
+                            break;
+                        }
+                    };
+                    self.metrics.record_request(&route.name, &endpoint.name, status.as_u16());
+                    let response = GatewayResponse {
+                        status: status.as_u16(),
+                        headers: response_headers,
+                        body: response_body,
+                    };
+                    if route.should_retry(status) {
+                        self.record_failure(route, endpoint, &status.as_u16().to_string(), retry_after.unwrap_or(self.cooldown))
+                            .await;
+                        if has_next {
+                            last_response = Some(response);
+                            continue;
+                        }
+                    } else {
+                        self.clear_failure(route, endpoint).await;
+                    }
+                    return Ok(response);
+                }
+                Err(_) => {
+                    self.record_failure(route, endpoint, "transport", self.cooldown).await;
+                    if !has_next {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if let Some(response) = last_response {
+            return Ok(response);
+        }
+        Err(GatewayError::new(Status::BadGateway, "all upstream requests failed"))
+    }
+
+    async fn available_endpoints(&self, route: &Route) -> Vec<usize> {
+        let now = Instant::now();
+        let mut cooldowns = self.cooldowns.write().await;
+        cooldowns.retain(|_, until| *until > now);
+        route
+            .endpoints
+            .iter()
+            .enumerate()
+            .filter(|(_, endpoint)| endpoint.is_available())
+            .filter(|(_, endpoint)| !cooldowns.contains_key(&endpoint.key(&route.name)))
+            .map(|(index, _)| index)
+            .collect()
+    }
+
+    async fn record_failure(&self, route: &Route, endpoint: &Endpoint, reason: &str, cooldown: Duration) {
+        self.cooldowns.write().await.insert(endpoint.key(&route.name), Instant::now() + cooldown);
+        self.metrics.record_failover(&route.name, &endpoint.name, reason);
+    }
+
+    async fn clear_failure(&self, route: &Route, endpoint: &Endpoint) {
+        self.cooldowns.write().await.remove(&endpoint.key(&route.name));
+    }
+}
+
+impl GatewayError {
+    pub(crate) fn new(status: Status, message: impl Into<String>) -> Self {
+        Self { status, message: message.into() }
+    }
+}
+
+fn retry_after(headers: &HeaderMap) -> Option<Duration> {
+    let duration = Duration::from_secs(headers.get(RETRY_AFTER)?.to_str().ok()?.parse::<u64>().ok()?);
+    Instant::now().checked_add(duration)?;
+    Some(duration)
+}
+
+#[cfg(test)]
+mod tests {
+    use reqwest::header::HeaderValue;
+
+    use super::*;
+
+    #[test]
+    fn test_retry_after() {
+        let mut headers = HeaderMap::new();
+        headers.insert(RETRY_AFTER, HeaderValue::from_static("120"));
+        assert_eq!(retry_after(&headers), Some(Duration::from_secs(120)));
+
+        headers.insert(RETRY_AFTER, HeaderValue::from_static("invalid"));
+        assert_eq!(retry_after(&headers), None);
+
+        headers.insert(RETRY_AFTER, HeaderValue::from_static("18446744073709551615"));
+        assert_eq!(retry_after(&headers), None);
+    }
+}

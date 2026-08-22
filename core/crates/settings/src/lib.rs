@@ -52,7 +52,7 @@ pub struct Indexer {
     pub algorand: ProviderSettings,
     pub ankr: ProviderSettings,
     pub blockscout: ProviderSettings,
-    pub fastnear: ProviderSettings,
+    pub fastnear: FastNearIndexer,
     pub jupiter: ProviderSettings,
     pub magiceden: ProviderSettings,
     pub opensea: ProviderSettings,
@@ -61,6 +61,12 @@ pub struct Indexer {
     pub ton: ProviderSettings,
     pub trongrid: ProviderSettings,
     pub zerion: ProviderSettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct FastNearIndexer {
+    pub transfers: ProviderSettings,
+    pub tx: ProviderSettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]

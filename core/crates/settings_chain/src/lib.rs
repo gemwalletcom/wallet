@@ -116,16 +116,13 @@ impl ProviderFactory {
                 Box::new(AlgorandIndexer::new(config.indexers.algorand.configure_client(gem_client))),
             )),
             ChainType::Stellar => Box::new(StellarClient::new(gem_client)),
-            ChainType::Near => {
-                let fastnear_client = config.indexers.fastnear.configure_client(gem_client.clone());
-                Box::new(NearProvider::new(
-                    NearClient::new(JsonRpcClient::new(gem_client)),
-                    Box::new(NearIndexer::new(
-                        fastnear_client.clone().with_base_url(config.indexers.fastnear.url.replace("{service}", "transfers")),
-                        fastnear_client.with_base_url(config.indexers.fastnear.url.replace("{service}", "tx")),
-                    )),
-                ))
-            }
+            ChainType::Near => Box::new(NearProvider::new(
+                NearClient::new(JsonRpcClient::new(gem_client.clone())),
+                Box::new(NearIndexer::new(
+                    config.indexers.fastnear.transfers.configure_client(gem_client.clone()),
+                    config.indexers.fastnear.tx.configure_client(gem_client),
+                )),
+            )),
             ChainType::Polkadot => Box::new(PolkadotProvider::new(
                 PolkadotClient::new(gem_client.clone()),
                 Box::new(PolkadotIndexer::new(

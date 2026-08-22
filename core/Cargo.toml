@@ -13,6 +13,7 @@ members = [
     "apps/api",
     "apps/daemon",
     "apps/dynode",
+    "apps/egress",
 
     "bin/cli",
     "bin/img-downloader",

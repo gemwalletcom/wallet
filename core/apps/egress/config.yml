@@ -1,0 +1,34 @@
+address: 0.0.0.0
+port: 80
+headers:
+  forward: [accept, content-type, content-encoding, content-length, te]
+request:
+  timeout: 20s
+  limit: 32 MiB
+retry:
+  cooldown: 60s
+  statuses: [403, 429]
+routes:
+  - name: fastnear_transfers
+    selection: ordered
+    endpoints:
+      - name: direct
+        url: https://transfers.main.fastnear.com
+  - name: fastnear_tx
+    selection: ordered
+    endpoints:
+      - name: direct
+        url: https://tx.main.fastnear.com
+  - name: tonapi
+    selection: ordered
+    retry:
+      statuses: [401, 403, 429]
+    endpoints:
+      - name: key_1
+        url: https://tonapi.io
+        headers:
+          Authorization: "Bearer ${TONAPI_KEY_1}"
+      - name: key_2
+        url: https://tonapi.io
+        headers:
+          Authorization: "Bearer ${TONAPI_KEY_2}"
