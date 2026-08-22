@@ -31,6 +31,7 @@ pub struct Settings {
     pub swap: Swap,
 
     pub prices: Prices,
+    pub defi: Defi,
     pub coingecko: CoinGecko,
     pub coinmarketcap: CoinMarketCap,
     pub charter: Charter,
@@ -53,12 +54,10 @@ pub struct Indexer {
     pub ankr: ProviderSettings,
     pub blockscout: ProviderSettings,
     pub fastnear: FastNearIndexer,
-    pub jupiter: ProviderSettings,
     pub subscan: ProviderSettings,
     pub sui: ProviderSettings,
     pub ton: ProviderSettings,
     pub trongrid: ProviderSettings,
-    pub zerion: ProviderSettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -217,6 +216,12 @@ pub struct Prices {
     pub defillama: ProviderSettings,
     pub tonapi: ProviderSettings,
     pub stonfi: ProviderSettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Defi {
+    pub jupiter: ProviderSettings,
+    pub zerion: ProviderSettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]

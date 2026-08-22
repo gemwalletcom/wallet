@@ -104,14 +104,14 @@ mod tests {
     #[test]
     fn query_is_excluded_from_logs() {
         let method = Method::GET;
-        let access = AccessLog::new(&method, "/tonapi/v2/rates?token=secret");
-        assert_eq!(access.uri, "/tonapi/v2/rates");
+        let access = AccessLog::new(&method, "/prices_tonapi/v2/rates?token=secret");
+        assert_eq!(access.uri, "/prices_tonapi/v2/rates");
     }
 
     #[test]
     fn dynamic_segments_are_redacted() {
         let method = Method::GET;
-        let access = AccessLog::new(&method, "/toncenter/api/v3/wallet/0:123456789012345678901234567890/42");
-        assert_eq!(access.uri, "/toncenter/api/v3/wallet/:value/:number");
+        let access = AccessLog::new(&method, "/indexer_toncenter/api/v3/wallet/0:123456789012345678901234567890/42");
+        assert_eq!(access.uri, "/indexer_toncenter/api/v3/wallet/:value/:number");
     }
 }

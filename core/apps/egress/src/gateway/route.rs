@@ -58,10 +58,6 @@ impl Route {
             }
         }
     }
-
-    fn matches(&self, name: &str) -> bool {
-        name.strip_prefix(&self.group).and_then(|name| name.strip_prefix('_')) == Some(self.service.as_str())
-    }
 }
 
 impl RouteMatch<'_> {
@@ -94,7 +90,11 @@ pub(super) fn match_route<'a>(routes: &'a [Route], uri: &'a str) -> Option<Route
     let path = path.strip_prefix('/')?;
     let name_end = path.find('/').unwrap_or(path.len());
     let (name, remainder) = path.split_at(name_end);
-    routes.iter().find(|route| route.matches(name)).map(|route| RouteMatch { route, remainder, query })
+    let (group, service) = name.split_once('_')?;
+    routes
+        .iter()
+        .find(|route| route.group == group && route.service == service)
+        .map(|route| RouteMatch { route, remainder, query })
 }
 
 #[cfg(test)]

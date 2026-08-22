@@ -90,6 +90,15 @@ prices:
     url: "https://api.ston.fi"
     key:
       secret: ""
+defi:
+  jupiter:
+    url: "https://api.jup.ag"
+    key:
+      secret: ""
+  zerion:
+    url: "https://api.zerion.io"
+    key:
+      secret: ""
 charter:
   timer: 60
 name:
@@ -334,10 +343,6 @@ indexer:
       url: "https://tx.main.fastnear.com"
       key:
         secret: ""
-  jupiter:
-    url: "https://api.jup.ag"
-    key:
-      secret: ""
   subscan:
     url: "https://assethub-polkadot.api.subscan.io"
     key:
@@ -352,10 +357,6 @@ indexer:
       secret: ""
   trongrid:
     url: "https://api.trongrid.io"
-    key:
-      secret: ""
-  zerion:
-    url: "https://api.zerion.io"
     key:
       secret: ""
 
