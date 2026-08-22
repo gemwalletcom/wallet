@@ -205,8 +205,6 @@ pub struct UrlSecretKeySettings {
     pub url: String,
     pub key: KeySecret,
 }
-pub type UD = UrlSecretKeySettings;
-
 #[derive(Debug, Deserialize, Clone)]
 pub struct UrlKeySettings {
     pub url: String,
@@ -232,7 +230,7 @@ pub struct Charter {
 pub struct Name {
     pub max_name_length: usize,
     pub ens: URL,
-    pub ud: UD,
+    pub ud: URL,
     pub sns: URL,
     pub ton: URL,
     pub eths: URL,
@@ -246,6 +244,7 @@ pub struct Name {
     pub base: URL,
     pub hyperliquid: URL,
     pub alldomains: URL,
+    pub near: URL,
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -58,7 +58,8 @@ pub(crate) struct ProxyHealthConfig {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct RouteConfig {
-    pub name: String,
+    pub group: String,
+    pub service: String,
     pub selection: Selection,
     pub retry: Option<RetryOverride>,
     pub endpoints: Vec<EndpointConfig>,

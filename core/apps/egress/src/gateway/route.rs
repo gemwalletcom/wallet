@@ -12,7 +12,8 @@ use super::proxy::OutboundProxy;
 use crate::config::{RouteConfig, Selection};
 
 pub(super) struct Route {
-    pub(super) name: String,
+    pub(super) group: String,
+    pub(super) service: String,
     selection: Selection,
     cursor: AtomicUsize,
     statuses: Vec<u16>,
@@ -34,7 +35,8 @@ impl Route {
             .map(|endpoint| Endpoint::new(endpoint, direct_client, proxies))
             .collect::<Result<Vec<_>, BoxError>>()?;
         Ok(Self {
-            name: config.name,
+            group: config.group,
+            service: config.service,
             selection: config.selection,
             cursor: AtomicUsize::new(0),
             statuses,
@@ -55,6 +57,10 @@ impl Route {
                 endpoints.rotate_left(offset);
             }
         }
+    }
+
+    fn matches(&self, name: &str) -> bool {
+        name.strip_prefix(&self.group).and_then(|name| name.strip_prefix('_')) == Some(self.service.as_str())
     }
 }
 
@@ -88,7 +94,7 @@ pub(super) fn match_route<'a>(routes: &'a [Route], uri: &'a str) -> Option<Route
     let path = path.strip_prefix('/')?;
     let name_end = path.find('/').unwrap_or(path.len());
     let (name, remainder) = path.split_at(name_end);
-    routes.iter().find(|route| route.name == name).map(|route| RouteMatch { route, remainder, query })
+    routes.iter().find(|route| route.matches(name)).map(|route| RouteMatch { route, remainder, query })
 }
 
 #[cfg(test)]
@@ -96,9 +102,10 @@ mod tests {
     use super::*;
     use crate::config::EndpointConfig;
 
-    fn route(name: &str) -> Route {
+    fn route(group: &str, service: &str) -> Route {
         Route {
-            name: name.to_string(),
+            group: group.to_string(),
+            service: service.to_string(),
             selection: Selection::Ordered,
             cursor: AtomicUsize::new(0),
             statuses: vec![429, 503],
@@ -123,17 +130,18 @@ mod tests {
 
     #[test]
     fn test_match_route() {
-        let routes = vec![route("tonapi"), route("tonapi_rates")];
-        let matched = match_route(&routes, "/tonapi_rates/v2").unwrap();
-        assert_eq!(matched.route.name, "tonapi_rates");
+        let routes = vec![route("prices", "tonapi"), route("prices", "tonapi_rates")];
+        let matched = match_route(&routes, "/prices_tonapi_rates/v2").unwrap();
+        assert_eq!(matched.route.group, "prices");
+        assert_eq!(matched.route.service, "tonapi_rates");
         assert_eq!(matched.path(), "/v2");
-        assert_eq!(match_route(&routes, "/tonapi-other").map(|matched| matched.route.name.as_str()), None);
+        assert!(match_route(&routes, "/prices_tonapi-other").is_none());
     }
 
     #[test]
     fn test_target_url() {
-        let route = route("tonapi");
-        let matched = match_route(std::slice::from_ref(&route), "/tonapi/v2/rates/TON%2FUSD?currency=usd").unwrap();
+        let route = route("prices", "tonapi");
+        let matched = match_route(std::slice::from_ref(&route), "/prices_tonapi/v2/rates/TON%2FUSD?currency=usd").unwrap();
         assert_eq!(
             matched.target_url(&endpoint("https://tonapi.io/api/", HashMap::new())).unwrap().as_str(),
             "https://tonapi.io/api/v2/rates/TON%2FUSD?currency=usd"
@@ -142,15 +150,15 @@ mod tests {
 
     #[test]
     fn test_target_credentials() {
-        let route = route("blockscout");
-        let matched = match_route(std::slice::from_ref(&route), "/blockscout/api?apikey=client&chain=1").unwrap();
+        let route = route("indexer", "blockscout");
+        let matched = match_route(std::slice::from_ref(&route), "/indexer_blockscout/api?apikey=client&chain=1").unwrap();
         let endpoint = endpoint("https://api.blockscout.com", HashMap::from([("apikey".to_string(), "secret".to_string())]));
         assert_eq!(matched.target_url(&endpoint).unwrap().as_str(), "https://api.blockscout.com/api?chain=1&apikey=secret");
     }
 
     #[test]
     fn test_should_retry() {
-        let route = route("tonapi");
+        let route = route("prices", "tonapi");
         assert!(route.should_retry(StatusCode::TOO_MANY_REQUESTS));
         assert!(!route.should_retry(StatusCode::BAD_REQUEST));
     }
@@ -159,7 +167,7 @@ mod tests {
     fn test_prioritize_endpoints() {
         let route = Route {
             selection: Selection::RoundRobin,
-            ..route("blockscout")
+            ..route("indexer", "blockscout")
         };
         let orders = (0..4)
             .map(|_| {

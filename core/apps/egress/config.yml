@@ -9,17 +9,20 @@ retry:
   cooldown: 60s
   statuses: [403, 429]
 routes:
-  - name: fastnear_transfers
+  - group: indexer
+    service: fastnear_transfers
     selection: ordered
     endpoints:
       - name: direct
         url: https://transfers.main.fastnear.com
-  - name: fastnear_tx
+  - group: indexer
+    service: fastnear_tx
     selection: ordered
     endpoints:
       - name: direct
         url: https://tx.main.fastnear.com
-  - name: tonapi
+  - group: prices
+    service: tonapi
     selection: ordered
     retry:
       statuses: [401, 403, 429]

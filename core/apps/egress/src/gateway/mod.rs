@@ -90,16 +90,16 @@ impl Gateway {
     pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<GatewayResponse, GatewayError> {
         let access = AccessLog::new(&method, uri);
         let Some(route_match) = match_route(&self.routes, uri) else {
-            access.request("none");
-            access.unavailable("none", Status::NotFound.code, "route");
+            access.request(None);
+            access.unavailable(None, Status::NotFound.code, "route");
             return Err(GatewayError::new(Status::NotFound, "route not found"));
         };
         let route = route_match.route;
         let path = route_match.path();
-        access.request(&route.name);
+        access.request(Some(route));
         let mut candidates = self.available_endpoints(route).await;
         if candidates.is_empty() {
-            access.unavailable(&route.name, Status::ServiceUnavailable.code, "endpoints");
+            access.unavailable(Some(route), Status::ServiceUnavailable.code, "endpoints");
             return Err(GatewayError::new(Status::ServiceUnavailable, "no healthy endpoint is available"));
         }
         route.prioritize_endpoints(&mut candidates);
@@ -111,7 +111,7 @@ impl Gateway {
             let target = match route_match.target_url(endpoint) {
                 Ok(target) => target,
                 Err(error) => {
-                    access.response(&route.name, &endpoint.name, remote_host, Status::BadRequest.code);
+                    access.response(route, &endpoint.name, remote_host, Status::BadRequest.code);
                     return Err(GatewayError::new(Status::BadRequest, error.to_string()));
                 }
             };
@@ -127,7 +127,7 @@ impl Gateway {
                     let response_body = match response.bytes().await {
                         Ok(bytes) => bytes.to_vec(),
                         Err(_) => {
-                            access.upstream_failed(&route.name, &endpoint.name, remote_host, "response_body");
+                            access.upstream_failed(route, &endpoint.name, remote_host, "response_body");
                             self.record_failure(route, endpoint, &path, "response_body", self.cooldown).await;
                             if has_next {
                                 continue;
@@ -135,7 +135,7 @@ impl Gateway {
                             break;
                         }
                     };
-                    self.metrics.record_request(&route.name, &endpoint.name, &path, status.as_u16());
+                    self.metrics.record_request(&route.group, &route.service, &endpoint.name, &path, status.as_u16());
                     let response = GatewayResponse {
                         status: status.as_u16(),
                         headers: response_headers,
@@ -145,18 +145,18 @@ impl Gateway {
                         self.record_failure(route, endpoint, &path, &status.as_u16().to_string(), retry_after.unwrap_or(self.cooldown))
                             .await;
                         if has_next {
-                            access.failover(&route.name, &endpoint.name, remote_host, status.as_u16());
+                            access.failover(route, &endpoint.name, remote_host, status.as_u16());
                             last_response = Some((response, endpoint));
                             continue;
                         }
                     } else {
                         self.clear_failure(route, endpoint).await;
                     }
-                    access.response(&route.name, &endpoint.name, remote_host, status.as_u16());
+                    access.response(route, &endpoint.name, remote_host, status.as_u16());
                     return Ok(response);
                 }
                 Err(_) => {
-                    access.upstream_failed(&route.name, &endpoint.name, remote_host, "transport");
+                    access.upstream_failed(route, &endpoint.name, remote_host, "transport");
                     self.record_failure(route, endpoint, &path, "transport", self.cooldown).await;
                     if !has_next {
                         break;
@@ -166,10 +166,10 @@ impl Gateway {
         }
 
         if let Some((response, endpoint)) = last_response {
-            access.response(&route.name, &endpoint.name, endpoint.url.host_str().unwrap_or("none"), response.status);
+            access.response(route, &endpoint.name, endpoint.url.host_str().unwrap_or("none"), response.status);
             return Ok(response);
         }
-        access.unavailable(&route.name, Status::BadGateway.code, "upstreams");
+        access.unavailable(Some(route), Status::BadGateway.code, "upstreams");
         Err(GatewayError::new(Status::BadGateway, "all upstream requests failed"))
     }
 
@@ -182,18 +182,18 @@ impl Gateway {
             .iter()
             .enumerate()
             .filter(|(_, endpoint)| endpoint.is_available())
-            .filter(|(_, endpoint)| !cooldowns.contains_key(&endpoint.key(&route.name)))
+            .filter(|(_, endpoint)| !cooldowns.contains_key(&endpoint.key(&route.group, &route.service)))
             .map(|(index, _)| index)
             .collect()
     }
 
     async fn record_failure(&self, route: &Route, endpoint: &Endpoint, path: &str, reason: &str, cooldown: Duration) {
-        self.cooldowns.write().await.insert(endpoint.key(&route.name), Instant::now() + cooldown);
-        self.metrics.record_failover(&route.name, &endpoint.name, path, reason);
+        self.cooldowns.write().await.insert(endpoint.key(&route.group, &route.service), Instant::now() + cooldown);
+        self.metrics.record_failover(&route.group, &route.service, &endpoint.name, path, reason);
     }
 
     async fn clear_failure(&self, route: &Route, endpoint: &Endpoint) {
-        self.cooldowns.write().await.remove(&endpoint.key(&route.name));
+        self.cooldowns.write().await.remove(&endpoint.key(&route.group, &route.service));
     }
 }
 

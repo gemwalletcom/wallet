@@ -16,7 +16,8 @@ pub(crate) struct Metrics {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 struct RequestLabels {
-    route: String,
+    group: String,
+    service: String,
     endpoint: String,
     path: String,
     status: u16,
@@ -24,7 +25,8 @@ struct RequestLabels {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 struct FailoverLabels {
-    route: String,
+    group: String,
+    service: String,
     endpoint: String,
     path: String,
     reason: String,
@@ -54,10 +56,11 @@ impl Metrics {
         }
     }
 
-    pub(crate) fn record_request(&self, route: &str, endpoint: &str, path: &str, status: u16) {
+    pub(crate) fn record_request(&self, group: &str, service: &str, endpoint: &str, path: &str, status: u16) {
         self.requests
             .get_or_create(&RequestLabels {
-                route: route.to_string(),
+                group: group.to_string(),
+                service: service.to_string(),
                 endpoint: endpoint.to_string(),
                 path: path.to_string(),
                 status,
@@ -65,10 +68,11 @@ impl Metrics {
             .inc();
     }
 
-    pub(crate) fn record_failover(&self, route: &str, endpoint: &str, path: &str, reason: &str) {
+    pub(crate) fn record_failover(&self, group: &str, service: &str, endpoint: &str, path: &str, reason: &str) {
         self.failovers
             .get_or_create(&FailoverLabels {
-                route: route.to_string(),
+                group: group.to_string(),
+                service: service.to_string(),
                 endpoint: endpoint.to_string(),
                 path: path.to_string(),
                 reason: reason.to_string(),
@@ -92,8 +96,8 @@ mod tests {
     #[test]
     fn records_path_for_requests_and_failovers() {
         let metrics = Metrics::new();
-        metrics.record_request("toncenter", "toncenter", "/api/v3/wallet/:value", 200);
-        metrics.record_failover("toncenter", "toncenter", "/api/v3/wallet/:value", "429");
+        metrics.record_request("indexer", "toncenter", "key_1", "/api/v3/wallet/:value", 200);
+        metrics.record_failover("indexer", "toncenter", "key_1", "/api/v3/wallet/:value", "429");
 
         let encoded = metrics.encode();
         assert_eq!(
@@ -101,10 +105,10 @@ mod tests {
             concat!(
                 "# HELP egress_requests Upstream requests.\n",
                 "# TYPE egress_requests counter\n",
-                "egress_requests_total{route=\"toncenter\",endpoint=\"toncenter\",path=\"/api/v3/wallet/:value\",status=\"200\"} 1\n",
+                "egress_requests_total{group=\"indexer\",service=\"toncenter\",endpoint=\"key_1\",path=\"/api/v3/wallet/:value\",status=\"200\"} 1\n",
                 "# HELP egress_failovers Endpoint failovers.\n",
                 "# TYPE egress_failovers counter\n",
-                "egress_failovers_total{route=\"toncenter\",endpoint=\"toncenter\",path=\"/api/v3/wallet/:value\",reason=\"429\"} 1\n",
+                "egress_failovers_total{group=\"indexer\",service=\"toncenter\",endpoint=\"key_1\",path=\"/api/v3/wallet/:value\",reason=\"429\"} 1\n",
                 "# EOF\n",
             )
         );

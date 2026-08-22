@@ -57,8 +57,8 @@ impl Endpoint {
         headers
     }
 
-    pub(super) fn key(&self, route: &str) -> String {
-        format!("{route}:{}", self.name)
+    pub(super) fn key(&self, group: &str, service: &str) -> String {
+        format!("{group}:{service}:{}", self.name)
     }
 }
 

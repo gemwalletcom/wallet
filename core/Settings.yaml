@@ -98,8 +98,6 @@ name:
     url: https://ethereum.publicnode.com
   ud:
     url: https://api.unstoppabledomains.com
-    key:
-      secret: ""
   sns:
     url: https://sdk-proxy.sns.id
   ton:
@@ -126,6 +124,8 @@ name:
     url: https://rpc.hyperliquid.xyz/evm
   alldomains:
     url: https://solana-rpc.publicnode.com
+  near:
+    url: https://near-rpc.publicnode.com
 
 chains:
   solana:
