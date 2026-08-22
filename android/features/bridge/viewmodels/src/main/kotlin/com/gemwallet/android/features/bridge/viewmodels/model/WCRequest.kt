@@ -21,6 +21,9 @@ import com.gemwallet.android.blockchain.gemstone.toGem
 import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
+import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.swap.ApprovalData
+import uniffi.gemstone.EvmTransactionKind
 import uniffi.gemstone.TransferDataOutputType
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
@@ -205,23 +208,25 @@ private fun WalletConnectTransaction.map(
     isSendable: Boolean,
 ): Generic {
     return when (this) {
-        is WalletConnectTransaction.Ethereum -> Generic(
-            requestId = request.requestId.toString(),
-            asset = request.chain.asset(),
-            from = request.account,
-            memo = data.data,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = data.gasLimit,
-            inputType = request.inputType,
-            destination = DestinationAddress(data.to),
-            amount = data.value?.hexToBigInteger() ?: BigInteger.ZERO,
-            isSendable = isSendable,
-            decodedTransactionType = transactionType.toPrimitives(),
-            approval = approval?.toModel(),
-        )
+        is WalletConnectTransaction.Ethereum -> {
+            Generic(
+                requestId = request.requestId.toString(),
+                asset = request.chain.asset(),
+                from = request.account,
+                memo = data.data,
+                name = request.name,
+                description = request.description,
+                url = request.url,
+                icon = request.icon,
+                gasLimit = data.gasLimit,
+                inputType = request.inputType,
+                destination = DestinationAddress(data.to),
+                amount = data.value?.hexToBigInteger() ?: BigInteger.ZERO,
+                isSendable = isSendable,
+                decodedTransactionType = kind.transactionType,
+                approval = kind.approvalData,
+            )
+        }
         is WalletConnectTransaction.Solana ->
             buildEncodedTransactionParams(request, data.transaction, outputType, isSendable)
         is WalletConnectTransaction.Sui ->
@@ -232,6 +237,21 @@ private fun WalletConnectTransaction.map(
             buildEncodedTransactionParams(request, data, outputType, isSendable)
     }
 }
+
+private val EvmTransactionKind.transactionType: TransactionType
+    get() = when (this) {
+        EvmTransactionKind.Transfer -> TransactionType.Transfer
+        EvmTransactionKind.ContractCall -> TransactionType.SmartContractCall
+        is EvmTransactionKind.TokenApproval -> TransactionType.TokenApproval
+    }
+
+private val EvmTransactionKind.approvalData: ApprovalData?
+    get() = when (this) {
+        EvmTransactionKind.Transfer,
+        EvmTransactionKind.ContractCall,
+        -> null
+        is EvmTransactionKind.TokenApproval -> approval.toModel()
+    }
 
 private fun buildEncodedTransactionParams(
     request: WCRequest.Transaction,

@@ -1,5 +1,6 @@
 use crate::actions::{WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
+use gem_evm::{eip712::validate_eip712_chain_id, transaction::decode_transaction_kind};
 use primitives::{Chain, ValueAccess, WCEthereumTransaction, WalletConnectionMethods};
 use serde_json::Value;
 
@@ -35,7 +36,7 @@ impl EthereumRequestHandler {
         };
 
         let expected_chain_id = Self::expected_chain_id(chain)?;
-        gem_evm::eip712::validate_eip712_chain_id(&data, expected_chain_id)?;
+        validate_eip712_chain_id(&data, expected_chain_id)?;
 
         Ok(WalletConnectAction::SignMessage {
             chain,
@@ -66,13 +67,8 @@ impl EthereumRequestHandler {
 
     pub fn decode_send_transaction(data: String) -> Result<WalletConnectTransaction, String> {
         let transaction: WCEthereumTransaction = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-        let transaction_type = gem_evm::transaction::decode_transaction_type(transaction.data.as_deref());
-        let approval = gem_evm::transaction::decode_approval_data(&transaction.to, transaction.data.as_deref())?;
-        Ok(WalletConnectTransaction::Ethereum {
-            data: transaction.into(),
-            transaction_type,
-            approval,
-        })
+        let kind = decode_transaction_kind(&transaction.to, transaction.data.as_deref())?;
+        Ok(WalletConnectTransaction::Ethereum { data: transaction.into(), kind })
     }
 
     fn parse_transaction_data(chain: Chain, params: Value) -> Result<String, String> {
