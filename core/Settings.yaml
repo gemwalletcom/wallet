@@ -338,14 +338,6 @@ indexer:
     url: "https://api.jup.ag"
     key:
       secret: ""
-  magiceden:
-    url: "https://api-mainnet.magiceden.dev"
-    key:
-      secret: ""
-  opensea:
-    url: "https://api.opensea.io"
-    key:
-      secret: ""
   subscan:
     url: "https://assethub-polkadot.api.subscan.io"
     key:
@@ -372,6 +364,22 @@ assets:
 
 nft:
   url: "https://assets.gemwallet.com/nft"
+  alchemy:
+    url: "https://{network}.g.alchemy.com"
+    key:
+      secret: ""
+  magiceden:
+    url: "https://api-mainnet.magiceden.dev"
+    key:
+      secret: ""
+  opensea:
+    url: "https://api.opensea.io"
+    key:
+      secret: ""
+  ton:
+    url: "https://toncenter.com"
+    key:
+      secret: ""
   offchain:
     timeout: 5
     concurrency: 8

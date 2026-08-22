@@ -54,8 +54,6 @@ pub struct Indexer {
     pub blockscout: ProviderSettings,
     pub fastnear: FastNearIndexer,
     pub jupiter: ProviderSettings,
-    pub magiceden: ProviderSettings,
-    pub opensea: ProviderSettings,
     pub subscan: ProviderSettings,
     pub sui: ProviderSettings,
     pub ton: ProviderSettings,
@@ -436,6 +434,10 @@ impl Settings {
 #[derive(Debug, Deserialize, Clone)]
 pub struct NFT {
     pub url: String,
+    pub alchemy: ProviderSettings,
+    pub magiceden: ProviderSettings,
+    pub opensea: ProviderSettings,
+    pub ton: ProviderSettings,
     pub offchain: NFTOffchain,
 }
 
