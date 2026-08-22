@@ -30,6 +30,14 @@ impl EgressConfig {
                         *value = expand_value(value, |name| env::var(name).ok())?;
                     }
                 }
+                if let Some(query) = &mut endpoint.query {
+                    for value in query.values_mut() {
+                        *value = expand_value(value, |name| env::var(name).ok())?;
+                    }
+                }
+                if let Some(suffix) = &mut endpoint.suffix {
+                    *suffix = expand_value(suffix, |name| env::var(name).ok())?;
+                }
             }
         }
         Ok(())

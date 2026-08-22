@@ -111,7 +111,7 @@ impl Gateway {
         for (position, endpoint_index) in candidates.iter().enumerate() {
             let endpoint = &route.endpoints[*endpoint_index];
             let remote_host = endpoint.url.host_str().unwrap_or("none");
-            let target = match route_match.target_url(&endpoint.url) {
+            let target = match route_match.target_url(endpoint) {
                 Ok(target) => target,
                 Err(error) => {
                     access.response(&route.name, &endpoint.name, remote_host, Status::BadRequest.code);

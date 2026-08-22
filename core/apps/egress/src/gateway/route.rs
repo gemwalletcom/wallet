@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use reqwest::{Client, StatusCode};
 use url::Url;
@@ -43,13 +43,29 @@ impl Route {
 }
 
 impl RouteMatch<'_> {
-    pub(super) fn target_url(&self, base: &Url) -> Result<Url, url::ParseError> {
+    pub(super) fn target_url(&self, endpoint: &Endpoint) -> Result<Url, url::ParseError> {
         let mut path = self.remainder.to_string();
         if let Some(query) = self.query {
             path.push('?');
             path.push_str(query);
         }
-        Url::parse(&gem_client::build_request_url(base.as_str(), &path))
+        let mut url = Url::parse(&gem_client::build_request_url(endpoint.url.as_str(), &path))?;
+        if let Some(suffix) = &endpoint.suffix {
+            let path = format!("{}/{}", url.path().trim_end_matches('/'), suffix.trim_start_matches('/'));
+            url.set_path(&path);
+        }
+        if !endpoint.query.is_empty() {
+            let replaced = endpoint.query.keys().map(String::as_str).collect::<HashSet<_>>();
+            let mut query = url
+                .query_pairs()
+                .filter(|(name, _)| !replaced.contains(name.as_ref()))
+                .map(|(name, value)| (name.into_owned(), value.into_owned()))
+                .collect::<Vec<_>>();
+            query.extend(endpoint.query.iter().map(|(name, value)| (name.clone(), value.clone())));
+            url.set_query(None);
+            url.query_pairs_mut().extend_pairs(query);
+        }
+        Ok(url)
     }
 }
 
@@ -64,6 +80,7 @@ pub(super) fn match_route<'a>(routes: &'a [Route], uri: &'a str) -> Option<Route
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::EndpointConfig;
 
     fn route(name: &str) -> Route {
         Route {
@@ -72,6 +89,22 @@ mod tests {
             statuses: vec![429, 503],
             endpoints: Vec::new(),
         }
+    }
+
+    fn endpoint(url: &str, suffix: Option<&str>, query: HashMap<String, String>) -> Endpoint {
+        Endpoint::new(
+            EndpointConfig {
+                name: "key_1".to_string(),
+                url: url.to_string(),
+                headers: None,
+                query: Some(query),
+                suffix: suffix.map(String::from),
+                proxy: None,
+            },
+            &Client::new(),
+            &HashMap::new(),
+        )
+        .unwrap()
     }
 
     #[test]
@@ -86,8 +119,19 @@ mod tests {
         let route = route("tonapi");
         let matched = match_route(std::slice::from_ref(&route), "/tonapi/v2/rates/TON%2FUSD?currency=usd").unwrap();
         assert_eq!(
-            matched.target_url(&Url::parse("https://tonapi.io/api/").unwrap()).unwrap().as_str(),
+            matched.target_url(&endpoint("https://tonapi.io/api/", None, HashMap::new())).unwrap().as_str(),
             "https://tonapi.io/api/v2/rates/TON%2FUSD?currency=usd"
+        );
+    }
+
+    #[test]
+    fn test_target_credentials() {
+        let route = route("blockscout");
+        let matched = match_route(std::slice::from_ref(&route), "/blockscout/api?apikey=client&chain=1").unwrap();
+        let endpoint = endpoint("https://api.blockscout.com", Some("v2/key"), HashMap::from([("apikey".to_string(), "secret".to_string())]));
+        assert_eq!(
+            matched.target_url(&endpoint).unwrap().as_str(),
+            "https://api.blockscout.com/api/v2/key?chain=1&apikey=secret"
         );
     }
 

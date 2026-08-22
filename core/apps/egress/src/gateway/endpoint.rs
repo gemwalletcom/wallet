@@ -15,6 +15,8 @@ pub(super) struct Endpoint {
     pub(super) name: String,
     pub(super) url: Url,
     pub(super) client: Client,
+    pub(super) query: HashMap<String, String>,
+    pub(super) suffix: Option<String>,
     proxy_available: Option<Arc<AtomicBool>>,
     headers: HeaderMap,
 }
@@ -38,6 +40,8 @@ impl Endpoint {
             name: config.name,
             url: Url::parse(&config.url)?,
             client,
+            query: config.query.unwrap_or_default(),
+            suffix: config.suffix,
             proxy_available,
             headers,
         })
@@ -82,6 +86,8 @@ mod tests {
             name: "key_1".to_string(),
             url: Url::parse("https://tonapi.io").unwrap(),
             client: Client::new(),
+            query: HashMap::new(),
+            suffix: None,
             proxy_available: None,
             headers: HeaderMap::from_iter([(reqwest::header::AUTHORIZATION, HeaderValue::from_static("Bearer upstream"))]),
         };
