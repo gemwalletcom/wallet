@@ -9,7 +9,7 @@ rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures", "dep:gem_alchemy", 
 reqwest = ["rpc", "gem_jsonrpc/reqwest", "gem_client/reqwest"]
 signer = ["dep:alloy-signer-local", "dep:alloy-network", "dep:alloy-consensus"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
-testkit = []
+testkit = ["gem_client?/testkit"]
 
 [dependencies]
 primitives = { path = "../primitives" }

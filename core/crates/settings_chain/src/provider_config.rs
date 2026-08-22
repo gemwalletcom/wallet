@@ -25,6 +25,7 @@ pub(crate) struct FastNearProvidersConfig {
 pub struct ProviderConfig {
     pub(crate) chain: Chain,
     pub(crate) url: String,
+    pub(crate) everstake_url: String,
     pub(crate) indexers: IndexerProvidersConfig,
 }
 
@@ -33,6 +34,7 @@ impl ProviderConfig {
         Self {
             chain,
             url: url.to_string(),
+            everstake_url: String::new(),
             indexers: IndexerProvidersConfig::default(),
         }
     }
@@ -41,6 +43,7 @@ impl ProviderConfig {
         Self {
             chain,
             url: url.to_string(),
+            everstake_url: settings.everstake.url.clone(),
             indexers: IndexerProvidersConfig {
                 alchemy: settings.indexer.alchemy.remote_provider_config(),
                 algorand: settings.indexer.algorand.remote_provider_config(),

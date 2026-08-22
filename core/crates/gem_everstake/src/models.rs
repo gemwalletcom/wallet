@@ -1,17 +1,12 @@
 use num_bigint::BigUint;
+#[cfg(feature = "reqwest")]
 use serde::Deserialize;
+#[cfg(feature = "reqwest")]
 use serde_serializers::deserialize_f64_from_str;
 
 use super::contracts::WithdrawRequest;
 
-#[derive(Debug, Deserialize)]
-pub struct QueueStatsResponse {
-    pub validator_activation_time: u64,
-    pub validator_exit_time: u64,
-    pub validator_withdraw_time: u64,
-    pub validator_adding_delay: u64,
-}
-
+#[cfg(feature = "reqwest")]
 #[derive(Debug, Deserialize)]
 pub struct StatsResponse {
     #[serde(deserialize_with = "deserialize_f64_from_str")]

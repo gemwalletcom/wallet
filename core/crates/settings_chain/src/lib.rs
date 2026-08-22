@@ -13,6 +13,7 @@ use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_client::{ReqwestClient, retry_policy};
 use gem_cosmos::rpc::client::CosmosClient;
+use gem_everstake::EverstakeStakingClient;
 use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
@@ -88,17 +89,27 @@ impl ProviderFactory {
                         config.indexers.blockscout.key,
                         evm_chain,
                     );
-                    let provider = if let Some(indexer) = indexer {
+                    if let Some(indexer) = indexer {
                         let indexer = Arc::new(indexer);
-                        EthereumProvider::new(
-                            client,
-                            Box::new(EVMTransactionsByAddressProvider::new(indexer.clone())),
-                            Box::new(EVMAssetBalanceProvider::new(indexer)),
-                        )
+                        let transactions = Box::new(EVMTransactionsByAddressProvider::new(indexer.clone()));
+                        let asset_balances = Box::new(EVMAssetBalanceProvider::new(indexer));
+                        Box::new(match evm_chain {
+                            EVMChain::Ethereum => EthereumProvider::new_with_provider(
+                                client.clone(),
+                                transactions,
+                                asset_balances,
+                                Box::new(EverstakeStakingClient::new(client, config.everstake_url.clone())),
+                            ),
+                            _ => EthereumProvider::new(client, transactions, asset_balances),
+                        })
                     } else {
-                        EthereumProvider::new_rpc_only(client)
-                    };
-                    Box::new(provider)
+                        Box::new(match evm_chain {
+                            EVMChain::Ethereum => {
+                                EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, config.everstake_url.clone())))
+                            }
+                            _ => EthereumProvider::new_rpc_only(client),
+                        })
+                    }
                 })
             }
             ChainType::Cardano => Box::new(CardanoClient::new(gem_client)),
