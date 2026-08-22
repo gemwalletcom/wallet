@@ -13,7 +13,7 @@ use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
 use primitives::{Transaction, TransactionIdRequest};
 
-use self::mapper::{map_address_transfer, map_raw_transaction};
+use self::mapper::{map_address_transfer, map_asset_id, map_raw_transaction};
 use self::model::{FastNearTransaction, FastNearTransfer, TransactionsRequest, TransactionsResponse, TransferDirection, TransfersRequest, TransfersResponse};
 
 const MAX_TRANSFERS_LIMIT: usize = 100;
@@ -33,27 +33,25 @@ impl<C: Client> NearIndexer<C> {
         }
     }
 
-    async fn get_transfers(
-        &self,
-        address: &str,
-        direction: TransferDirection,
-        limit: usize,
-        from_timestamp_ms: Option<u64>,
-    ) -> Result<Vec<FastNearTransfer>, Box<dyn Error + Send + Sync>> {
+    async fn get_transfers(&self, address: &str, direction: TransferDirection, from_timestamp_ms: Option<u64>) -> Result<Vec<FastNearTransfer>, Box<dyn Error + Send + Sync>> {
         let request = TransfersRequest {
             account_id: address,
             direction,
             desc: true,
-            limit: limit.min(MAX_TRANSFERS_LIMIT),
+            limit: MAX_TRANSFERS_LIMIT,
             from_timestamp_ms,
         };
         let response: TransfersResponse = self.transfers_client.post("/v0/transfers", &request).await?;
         Ok(response.transfers)
     }
 
-    async fn get_transaction_fees(&self, transfers: &[FastNearTransfer], address: &str) -> Result<HashMap<String, BigUint>, Box<dyn Error + Send + Sync>> {
+    async fn get_transaction_fees<'a>(
+        &self,
+        transfers: impl IntoIterator<Item = &'a FastNearTransfer>,
+        address: &str,
+    ) -> Result<HashMap<String, BigUint>, Box<dyn Error + Send + Sync>> {
         let transaction_ids = transfers
-            .iter()
+            .into_iter()
             .filter(|transfer| transfer.signer_id == address && transfer.predecessor_id == address)
             .filter_map(|transfer| transfer.transaction_id.clone())
             .collect::<BTreeSet<_>>()
@@ -83,19 +81,23 @@ impl<C: Client> NearIndexer<C> {
         let from_timestamp_ms = from_timestamp
             .map(|timestamp| timestamp.checked_mul(1_000).ok_or("NEAR timestamp exceeds milliseconds range"))
             .transpose()?;
-        let sender_transfers = self.get_transfers(address, TransferDirection::Sender, limit, from_timestamp_ms).await?;
-        let receiver_transfers = self.get_transfers(address, TransferDirection::Receiver, limit, from_timestamp_ms).await?;
+        let sender_transfers = self.get_transfers(address, TransferDirection::Sender, from_timestamp_ms).await?;
+        let receiver_transfers = self.get_transfers(address, TransferDirection::Receiver, from_timestamp_ms).await?;
         let transfers = sender_transfers
             .into_iter()
             .chain(receiver_transfers)
             .map(|transfer| ((Reverse(transfer.block_timestamp), transfer.receipt_id.clone()), transfer))
             .collect::<BTreeMap<_, _>>()
             .into_values()
+            .filter_map(|transfer| map_asset_id(&transfer.asset_id).map(|asset_id| (transfer, asset_id)))
             .take(limit)
             .collect::<Vec<_>>();
 
-        let fees = self.get_transaction_fees(&transfers, address).await?;
-        transfers.into_iter().map(|transfer| map_address_transfer(transfer, &fees, address)).collect()
+        let fees = self.get_transaction_fees(transfers.iter().map(|(transfer, _)| transfer), address).await?;
+        transfers
+            .into_iter()
+            .map(|(transfer, asset_id)| map_address_transfer(transfer, asset_id, &fees, address))
+            .collect()
     }
 
     pub(crate) async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
@@ -224,6 +226,22 @@ mod tests {
         assert_eq!(token_transaction.asset_id, NEAR_USDT_ASSET_ID.clone());
         assert_eq!(token_transaction.from, "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3");
         assert_eq!(token_transaction.to, "bb90f7cd3f611466d4e8aaee55541d5da6881e01a4155bca49041c1d692b4ff8");
+
+        let client = mock_client(
+            MockRequests::default(),
+            MockResponses {
+                sender_transfers: Some(include_str!("../../../testdata/fastnear_intents_sender_transfers.json")),
+                receiver_transfers: Some(include_str!("../../../testdata/fastnear_usdt_receiver_transfers.json")),
+                ..Default::default()
+            },
+        );
+        let indexer = NearIndexer::new(client.clone(), client);
+        let transactions = indexer
+            .get_transactions_by_address("bb90f7cd3f611466d4e8aaee55541d5da6881e01a4155bca49041c1d692b4ff8", 1, None)
+            .await
+            .unwrap();
+        assert_eq!(transactions.len(), 1);
+        assert_eq!(transactions[0].asset_id, NEAR_USDT_ASSET_ID.clone());
     }
 
     #[tokio::test]

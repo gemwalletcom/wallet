@@ -1,0 +1,28 @@
+{
+  "resume_token": "7676677263183018047540599872",
+  "transfers": [
+    {
+      "account_id": "root.near",
+      "action_index": null,
+      "amount": "-6246520",
+      "asset_id": "nep245:intents.near:nep141:usdt.tether-token.near",
+      "asset_type": "Mt",
+      "block_height": "212369680",
+      "block_timestamp": "1787365708309928432",
+      "end_of_block_balance": "0",
+      "human_amount": -6.24652,
+      "log_index": 3,
+      "method_name": "execute_intents",
+      "other_account_id": "51e8f94d77b5e90dc9852ca6113771e11e8382ce69473a75e313e41665de7cbe",
+      "predecessor_id": "intents.near",
+      "receipt_account_id": "intents.near",
+      "receipt_id": "4eQfmHjCJRnq1PiGdDkseLqKuGznvZzfwCVxb6QBpzny",
+      "signer_id": "intents.near",
+      "start_of_block_balance": "6246520",
+      "transaction_id": "4qMXVHZwAoLwq32Y61avmaihC9zAMu4kSnuEn3PwC8rj",
+      "transfer_index": 40000,
+      "transfer_type": "MtTransfer",
+      "usd_amount": -6.24537688684
+    }
+  ]
+}
