@@ -631,7 +631,7 @@ mod swap_integration_tests {
         assert_eq!(result.status, SwapStatus::Completed);
         let metadata = result.metadata.unwrap();
         assert_eq!(metadata.from_asset, POLYGON_USDT_ASSET_ID.clone());
-        assert_eq!(metadata.from_value, "35245466");
+        assert_eq!(metadata.from_value, "35243141");
         assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Base, "0xEF5997c2cf2f6c138196f8A6203afc335206b3c1"));
         assert_eq!(metadata.to_value, "398724622644505839482");
         assert_eq!(metadata.provider, Some("mayan".to_string()));

@@ -1,6 +1,5 @@
 use num_bigint::BigUint;
-use number_formatter::BigNumberFormatter;
-use primitives::{Asset, AssetId, Chain, TransactionSwapMetadata};
+use primitives::TransactionSwapMetadata;
 
 use crate::{SwapResult, SwapperProvider};
 
@@ -26,7 +25,8 @@ impl MayanTransactionResult {
 
         let from_chain = self.from_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
         let to_chain = self.to_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
-        let (from_asset, from_value) = self.source_asset_and_value(from_chain)?;
+        let from_asset = asset_id_for_token(from_chain, &self.from_token_address)?;
+        let from_value = self.from_amount64.as_deref()?.parse::<BigUint>().ok()?.to_string();
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
         let to_value = self.to_amount64.as_deref()?.parse::<BigUint>().ok()?.to_string();
 
@@ -38,32 +38,16 @@ impl MayanTransactionResult {
             provider: Some(SwapperProvider::Mayan.as_ref().to_string()),
         })
     }
-
-    fn source_asset_and_value(&self, from_chain: Chain) -> Option<(AssetId, String)> {
-        match (&self.forwarded_token_address, &self.forwarded_from_amount) {
-            (Some(address), Some(amount)) => {
-                let asset = asset_id_for_token(from_chain, address)?;
-                if !asset.is_native() {
-                    return None;
-                }
-                let decimals = u32::try_from(Asset::from_chain(from_chain).decimals).ok()?;
-                let value = BigNumberFormatter::value_from_amount_biguint(amount, decimals).ok()?.to_string();
-                Some((asset, value))
-            }
-            (None, None) => {
-                let asset = asset_id_for_token(from_chain, &self.from_token_address)?;
-                let value = self.from_amount64.as_deref()?.parse::<BigUint>().ok()?.to_string();
-                Some((asset, value))
-            }
-            _ => None,
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{asset_constants::BASE_USDC_ASSET_ID, swap::SwapStatus};
+    use primitives::{
+        AssetId, Chain,
+        asset_constants::{BASE_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID},
+        swap::SwapStatus,
+    };
 
     fn result(json: &str) -> MayanTransactionResult {
         serde_json::from_str(json).unwrap()
@@ -100,6 +84,13 @@ mod tests {
                 AssetId::from_token(Chain::Polygon, "0xE6A537a407488807F0bbeb0038B79004f19DDDFb"),
                 "111502625917703364196",
             ),
+            (
+                include_str!("test/usdt_to_owb_swift.json"),
+                POLYGON_USDT_ASSET_ID.clone(),
+                "35243141",
+                AssetId::from_token(Chain::Base, "0xEF5997c2cf2f6c138196f8A6203afc335206b3c1"),
+                "398724622644505839482",
+            ),
         ] {
             assert_eq!(
                 map_swap_result(&result(json)),
@@ -122,7 +113,6 @@ mod tests {
     fn test_map_swap_result_without_metadata() {
         for (json, status) in [
             (include_str!("test/eth_to_sui_swift.json"), SwapStatus::Completed),
-            (include_str!("test/usdt_to_owb_swift.json"), SwapStatus::Completed),
             (include_str!("test/mctp_pending.json"), SwapStatus::Pending),
             (include_str!("test/swift_refunded.json"), SwapStatus::Failed),
         ] {
@@ -136,25 +126,11 @@ mod tests {
             );
         }
 
-        let raw = result(include_str!("test/pol_to_bnb_swift.json"));
-        for invalid in [
-            MayanTransactionResult {
-                from_amount64: Some("invalid".to_string()),
-                forwarded_from_amount: None,
-                forwarded_token_address: None,
-                ..raw.clone()
-            },
-            MayanTransactionResult {
-                forwarded_from_amount: None,
-                ..raw.clone()
-            },
-            MayanTransactionResult {
-                forwarded_from_amount: Some("-212".to_string()),
-                ..raw
-            },
-        ] {
-            assert!(map_swap_result(&invalid).metadata.is_none());
-        }
+        let invalid = MayanTransactionResult {
+            from_amount64: Some("invalid".to_string()),
+            ..result(include_str!("test/pol_to_bnb_swift.json"))
+        };
+        assert!(map_swap_result(&invalid).metadata.is_none());
     }
 
     #[test]

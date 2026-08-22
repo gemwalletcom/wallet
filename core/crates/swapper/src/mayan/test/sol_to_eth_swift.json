@@ -5,7 +5,7 @@
   "sourceTxHash": "3tnyDc4y7uC6W5KUZWNbo1a9hPsC2c6fmho5qbw54pjGz3DGBjzJTPuuYWNSCjehrfpWvjfkw6Qnz8JrD3YhprVM",
   "orderId": "SWIFT_V2_0x29a829fc6bb3dc12eb3eba07ab70424109346ce8bb5d81c76bfe3a3f1eb7e608",
   "sourceTxBlockNo": 440759545,
-  "status": "ORDER_SETTLED",
+  "status": "ORDER_UNLOCKED",
   "transferSequence": null,
   "swapSequence": null,
   "redeemSequence": "15288",
@@ -16,11 +16,11 @@
   "swapChain": "30",
   "destChain": "30",
   "destAddress": "0x0a5c25709ca4ffaa3fd53bef01a03f5e333b0e58",
-  "fromTokenAddress": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+  "fromTokenAddress": "So11111111111111111111111111111111111111112",
   "fromTokenChain": "1",
-  "fromTokenSymbol": "WETH",
-  "fromAmount": "0.00061031",
-  "fromAmount64": "61031",
+  "fromTokenSymbol": "SOL",
+  "fromAmount": "0.016195149",
+  "fromAmount64": "16195149",
   "toTokenAddress": "0x0000000000000000000000000000000000000000",
   "toTokenChain": "30",
   "toTokenSymbol": "ETH",
@@ -48,7 +48,7 @@
   "statusUpdatedAt": "2026-08-21T19:55:55.000Z",
   "syncRequestedAt": null,
   "bridgeFee": "0",
-  "redeemTxHash": null,
+  "redeemTxHash": "64G8JMiSMxHurmRdETRCHNRrb2XFAedD3BAmcUNDpmorBjcnVhXYE9uZJdegK3UQJ4cn9pSKsit9PJAbeADX7e4L",
   "refundTxHash": null,
   "fulfillTxHash": "0xd378f8a4f9d6d7b85a66364f8d4034b7369078e572a906ec19d4bb0882f289ca",
   "createTxHash": "3tnyDc4y7uC6W5KUZWNbo1a9hPsC2c6fmho5qbw54pjGz3DGBjzJTPuuYWNSCjehrfpWvjfkw6Qnz8JrD3YhprVM",
@@ -115,9 +115,9 @@
   "refundTokenLogoUri": "https://assets.coingecko.com/coins/images/2518/small/weth.png?1628852295",
   "refundTokenScannerUrl": "https://solscan.io/token/7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
   "refundTokenSymbol": "WETH",
-  "fromTokenLogoUri": "https://assets.coingecko.com/coins/images/2518/small/weth.png?1628852295",
+  "fromTokenLogoUri": "https://assets.coingecko.com/coins/images/21629/small/solana.jpg?1639626543",
   "toTokenLogoUri": "https://statics.mayan.finance/eth.png",
-  "fromTokenScannerUrl": "https://solscan.io/token/7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+  "fromTokenScannerUrl": "https://solscan.io/token/So11111111111111111111111111111111111111112",
   "toTokenScannerUrl": "https://basescan.org/token/0x0000000000000000000000000000000000000000",
   "txs": [
     {
@@ -126,6 +126,13 @@
         "REGISTER"
       ],
       "scannerUrl": "https://solscan.io/tx/3tnyDc4y7uC6W5KUZWNbo1a9hPsC2c6fmho5qbw54pjGz3DGBjzJTPuuYWNSCjehrfpWvjfkw6Qnz8JrD3YhprVM"
+    },
+    {
+      "txHash": "64G8JMiSMxHurmRdETRCHNRrb2XFAedD3BAmcUNDpmorBjcnVhXYE9uZJdegK3UQJ4cn9pSKsit9PJAbeADX7e4L",
+      "goals": [
+        "UNLOCK"
+      ],
+      "scannerUrl": "https://solscan.io/tx/64G8JMiSMxHurmRdETRCHNRrb2XFAedD3BAmcUNDpmorBjcnVhXYE9uZJdegK3UQJ4cn9pSKsit9PJAbeADX7e4L"
     },
     {
       "txHash": "0xd378f8a4f9d6d7b85a66364f8d4034b7369078e572a906ec19d4bb0882f289ca",
@@ -145,6 +152,11 @@
       "title": "Fullfill 0.000599671067569648 ETH on Base",
       "status": "COMPLETED",
       "type": "INFO"
+    },
+    {
+      "title": "Unlock 0.00061031 SOL on Solana",
+      "status": "COMPLETED",
+      "type": "INFO"
     }
   ],
   "clientStatus": "COMPLETED",
@@ -155,4 +167,3 @@
   "protocolFeeUsd": 0,
   "referrerFeeUsd": 0
 }
-
