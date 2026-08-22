@@ -46,7 +46,7 @@ mod tests {
     use num_bigint::BigInt;
     use primitives::{
         Asset, AssetId, AssetType, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, Resource, SignerInput, StakeType, SwapProvider, TransactionFee,
-        TransactionInputType, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote,
+        TransactionInputType, TransactionLoadMetadata, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote,
         WalletConnectionSessionAppMetadata, decode_hex,
         swap::{ApprovalData, SwapData, SwapQuote, SwapQuoteData},
     };
@@ -674,6 +674,7 @@ mod tests {
                     to: SENDER.to_string(),
                     gas_limit: None,
                     gas_price: None,
+                    transaction_type: TransactionType::SmartContractCall,
                 },
             ),
             SENDER,

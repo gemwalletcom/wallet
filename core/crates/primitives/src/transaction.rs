@@ -524,10 +524,7 @@ mod tests {
 
         let addresses = transaction.assets_addresses();
 
-        assert_eq!(addresses.len(), 1);
-        assert_eq!(addresses[0].asset_id, Asset::mock_ethereum_usdc().id);
-        assert_eq!(addresses[0].address, "0xowner");
-        assert!(!addresses.iter().any(|address| address.address == "0xspender"));
+        assert_eq!(addresses, vec![AssetAddress::new(Asset::mock_ethereum_usdc().id, "0xowner".to_string(), None)]);
     }
 
     fn utxo_input(address: &str, value: u64) -> TransactionUtxoInput {

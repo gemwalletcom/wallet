@@ -19,7 +19,6 @@ let package = Package(
         .package(name: "Primitives", path: "../Primitives"),
         .package(name: "Keystore", path: "../Keystore"),
         .package(name: "Gemstone", path: "../Gemstone"),
-        .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
     ],
     targets: [
         .target(
@@ -28,7 +27,6 @@ let package = Package(
                 "Primitives",
                 "Keystore",
                 "Gemstone",
-                "GemstonePrimitives",
             ],
             path: "Sources",
         ),
@@ -37,6 +35,7 @@ let package = Package(
             dependencies: [
                 "Signer",
                 "Primitives",
+                "Gemstone",
             ],
             path: "TestKit",
         ),

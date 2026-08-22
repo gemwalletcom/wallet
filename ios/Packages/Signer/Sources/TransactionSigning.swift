@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+public import struct Gemstone.GemSignedTransaction
 import Primitives
 
-public protocol TransactionSigneable: Sendable {
+public protocol TransactionSigning: Sendable {
     func sign(
         transfer: TransferData,
         transactionData: TransactionData,
         amount: TransferAmount,
         wallet: Wallet,
-    ) async throws -> [String]
+    ) async throws -> [GemSignedTransaction]
 }

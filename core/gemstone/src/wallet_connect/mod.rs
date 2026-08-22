@@ -14,6 +14,7 @@ use std::str::FromStr;
 use crate::{
     GemstoneError,
     message::sign_type::{SignDigestType, SignMessage},
+    models::swap::GemApprovalData,
 };
 
 mod simulation;
@@ -125,6 +126,7 @@ pub enum WalletConnectTransaction {
     Ethereum {
         data: WCEthereumTransactionData,
         transaction_type: TransactionType,
+        approval: Option<GemApprovalData>,
     },
     Solana {
         data: WCSolanaTransactionData,
@@ -289,9 +291,10 @@ impl From<WcEthereumTransactionData> for WCEthereumTransactionData {
 impl From<WcWalletConnectTransaction> for WalletConnectTransaction {
     fn from(t: WcWalletConnectTransaction) -> Self {
         match t {
-            WcWalletConnectTransaction::Ethereum { data, transaction_type } => Self::Ethereum {
+            WcWalletConnectTransaction::Ethereum { data, transaction_type, approval } => Self::Ethereum {
                 data: data.into(),
                 transaction_type,
+                approval,
             },
             WcWalletConnectTransaction::Solana { data, output_type } => Self::Solana {
                 data: WCSolanaTransactionData { transaction: data.transaction },

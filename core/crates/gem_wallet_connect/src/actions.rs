@@ -1,5 +1,5 @@
 use crate::sign_type::SignDigestType;
-use primitives::{Chain, TransactionType, TransferDataOutputType, WCEthereumTransaction};
+use primitives::{Chain, TransactionType, TransferDataOutputType, WCEthereumTransaction, swap::ApprovalData};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum WalletConnectAction {
@@ -91,6 +91,7 @@ pub enum WalletConnectTransaction {
     Ethereum {
         data: WCEthereumTransactionData,
         transaction_type: TransactionType,
+        approval: Option<ApprovalData>,
     },
     Solana {
         data: WCSolanaTransactionData,

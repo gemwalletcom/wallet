@@ -6,6 +6,29 @@ import Testing
 
 struct TransferDataTypeTests {
     @Test
+    func approvalDataMatchesTransactionType() throws {
+        let approval = ApprovalData.mock()
+        let swap = TransferDataType.swap(
+            .mock(),
+            .mock(),
+            .mock(data: .mock(approval: approval)),
+        )
+
+        #expect(try swap.approvalData(for: .tokenApproval) == approval)
+        #expect(try swap.approvalData(for: .swap) == nil)
+        #expect(throws: Error.self) {
+            try TransferDataType.swap(.mock(), .mock(), .mock()).approvalData(for: .tokenApproval)
+        }
+
+        let generic = TransferDataType.generic(
+            asset: .mock(),
+            metadata: .mock(),
+            extra: .mock(transactionType: .tokenApproval, approval: approval),
+        )
+        #expect(try generic.approvalData(for: .tokenApproval) == approval)
+    }
+
+    @Test
     func shouldIgnoreValueCheck() {
         #expect(TransferData.mock(type: .transferNft(.mock())).type.shouldIgnoreValueCheck == true)
         #expect(TransferData.mock(type: .stake(.mock(), .stake(.mock()))).type.shouldIgnoreValueCheck == true)
@@ -21,7 +44,6 @@ struct TransferDataTypeTests {
                 ).type.shouldIgnoreValueCheck == true,
         )
     }
-
 
     @Test
     func perpetualOpenTransactionType() {

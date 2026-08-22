@@ -8,6 +8,7 @@ import com.gemwallet.android.math.hexToBigInteger
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic
 import com.gemwallet.android.model.DestinationAddress
+import com.gemwallet.android.model.toModel
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
@@ -219,6 +220,7 @@ private fun WalletConnectTransaction.map(
             amount = data.value?.hexToBigInteger() ?: BigInteger.ZERO,
             isSendable = isSendable,
             decodedTransactionType = transactionType.toPrimitives(),
+            approval = approval?.toModel(),
         )
         is WalletConnectTransaction.Solana ->
             buildEncodedTransactionParams(request, data.transaction, outputType, isSendable)

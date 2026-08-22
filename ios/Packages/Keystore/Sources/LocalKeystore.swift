@@ -156,7 +156,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         }
     }
 
-    public func sign(wallet: Primitives.Wallet, input: SignerInput) async throws -> [String] {
+    public func sign(wallet: Primitives.Wallet, input: SignerInput) async throws -> [GemSignedTransaction] {
         let gemInput = try input.map()
         let password = try await getPassword()
         let keystoreId = wallet.keystoreId

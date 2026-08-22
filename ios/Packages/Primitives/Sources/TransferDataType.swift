@@ -131,6 +131,25 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
         }
     }
 
+    public func approvalData(for transactionType: TransactionType) throws -> ApprovalData? {
+        guard transactionType == .tokenApproval else { return nil }
+
+        switch self {
+        case let .swap(_, _, data):
+            guard let approval = data.approval else { throw AnyError("Missing swap approval data") }
+            return approval
+        case let .earn(_, _, data):
+            guard let approval = data.approval else { throw AnyError("Missing earn approval data") }
+            return approval
+        case let .tokenApprove(_, approval):
+            return approval
+        case let .generic(_, _, extra):
+            return extra.approval
+        case .transfer, .deposit, .withdrawal, .transferNft, .stake, .account, .perpetual:
+            throw AnyError("Token approval transaction type does not match transfer data")
+        }
+    }
+
     public func swap() throws -> (Asset, Asset, data: SwapData) {
         guard case let .swap(fromAsset, toAsset, data) = self else {
             throw AnyError("SwapQuoteData missed")

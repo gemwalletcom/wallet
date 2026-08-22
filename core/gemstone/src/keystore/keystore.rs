@@ -12,7 +12,7 @@ use zeroize::Zeroizing;
 
 use super::types::{GemImportType, GemKeystoreAccount, GemStoredSecretMigration, GemStoredWallet, GemWalletImport};
 use crate::GemstoneError;
-use crate::models::transaction::GemSignerInput;
+use crate::models::transaction::{GemSignedTransaction, GemSignerInput};
 use crate::signer::GemChainSigner;
 
 #[derive(uniffi::Object)]
@@ -127,7 +127,7 @@ impl GemKeystore {
         Ok(self.inner.delete(&keystore_id)?)
     }
 
-    pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<String>, GemstoneError> {
+    pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
         GemChainSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }
 

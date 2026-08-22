@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+public import struct Gemstone.GemSignedTransaction
 import Keystore
 import Primitives
 
-public struct TransactionSigner: TransactionSigneable {
+public struct TransactionSigner: TransactionSigning {
     private let keystore: any Keystore
 
     public init(keystore: any Keystore) {
@@ -16,8 +16,7 @@ public struct TransactionSigner: TransactionSigneable {
         transactionData: TransactionData,
         amount: TransferAmount,
         wallet: Wallet,
-    ) async throws -> [String] {
-        let signer = Signer(wallet: wallet, keystore: keystore)
+    ) async throws -> [GemSignedTransaction] {
         let fee = Fee(
             fee: amount.networkFee,
             gasPriceType: transactionData.fee.gasPriceType,
@@ -38,6 +37,6 @@ public struct TransactionSigner: TransactionSigneable {
             metadata: transactionData.metadata,
         )
 
-        return try await signer.sign(input: input)
+        return try await keystore.sign(wallet: wallet, input: input)
     }
 }

@@ -1,7 +1,7 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.ConfirmParams
-import uniffi.gemstone.GemApprovalData
+import com.gemwallet.android.model.toGem
 import uniffi.gemstone.GemSwapData
 import uniffi.gemstone.GemSwapProviderData
 import uniffi.gemstone.GemSwapQuote
@@ -27,14 +27,7 @@ fun ConfirmParams.SwapParams.toGem(): GemSwapData {
         data = GemSwapQuoteData(
             to = toAddress,
             data = swapData,
-            approval = approval?.let {
-                GemApprovalData(
-                    token = it.token,
-                    spender = it.spender,
-                    value = it.value,
-                    isUnlimited = it.isUnlimited,
-                )
-            },
+            approval = approval?.toGem(),
             value = value,
             gasLimit = gasLimit?.toString(),
             dataType = dataType,

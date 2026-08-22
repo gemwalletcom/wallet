@@ -28,3 +28,28 @@ public extension Gemstone.TransactionType {
         }
     }
 }
+
+public extension Primitives.TransactionType {
+    func map() -> Gemstone.TransactionType {
+        switch self {
+        case .transfer: .transfer
+        case .transferNFT: .transferNft
+        case .swap: .swap
+        case .tokenApproval: .tokenApproval
+        case .stakeDelegate: .stakeDelegate
+        case .stakeUndelegate: .stakeUndelegate
+        case .stakeRewards: .stakeRewards
+        case .stakeRedelegate: .stakeRedelegate
+        case .stakeWithdraw: .stakeWithdraw
+        case .stakeFreeze: .stakeFreeze
+        case .stakeUnfreeze: .stakeUnfreeze
+        case .assetActivation: .assetActivation
+        case .smartContractCall: .smartContractCall
+        case .perpetualOpenPosition: .perpetualOpenPosition
+        case .perpetualClosePosition: .perpetualClosePosition
+        case .perpetualModifyPosition: .perpetualModifyPosition
+        case .earnDeposit: .earnDeposit
+        case .earnWithdraw: .earnWithdraw
+        }
+    }
+}

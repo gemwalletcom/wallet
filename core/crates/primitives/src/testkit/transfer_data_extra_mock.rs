@@ -1,5 +1,5 @@
 use super::signer_mock::TEST_EVM_RECIPIENT;
-use crate::{TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
+use crate::{TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
 
 impl TransferDataExtra {
     pub fn mock() -> Self {
@@ -10,6 +10,7 @@ impl TransferDataExtra {
             data: None,
             output_type: TransferDataOutputType::EncodedTransaction,
             output_action: TransferDataOutputAction::Sign,
+            transaction_type: TransactionType::SmartContractCall,
         }
     }
 

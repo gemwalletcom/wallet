@@ -9,6 +9,13 @@ import Testing
 
 final class SignerInputTests {
     @Test
+    func transferDataExtraMapPreservesTransactionType() {
+        let extra = TransferDataExtra(to: "", transactionType: Primitives.TransactionType.tokenApproval)
+
+        #expect(extra.map().transactionType == Gemstone.TransactionType.tokenApproval)
+    }
+
+    @Test
     func mapPreservesSwapGasLimit() throws {
         let swapData = SwapData.mock(data: SwapQuoteData(
             to: "0x0000000000000000000000000000000000000001",

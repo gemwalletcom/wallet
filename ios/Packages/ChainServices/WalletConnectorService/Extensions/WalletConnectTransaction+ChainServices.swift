@@ -5,12 +5,13 @@ import enum Gemstone.WalletConnectTransaction
 import struct Gemstone.WcEthereumTransactionData
 import struct Gemstone.WcSolanaTransactionData
 import struct Gemstone.WcSuiTransactionData
+import GemstonePrimitives
 import Primitives
 
 extension WalletConnectTransaction {
     func map() -> WalletConnectorTransaction {
         switch self {
-        case let .ethereum(data, transactionType): .ethereum(data.map(), transactionType.map())
+        case let .ethereum(data, transactionType, approval): .ethereum(data.map(), transactionType.map(), approval?.map())
         case let .solana(data, outputType): .solana(data.transaction, outputType.map())
         case let .sui(data, outputType): .sui(data.transaction, outputType.map())
         case let .ton(data, outputType): .ton(data, outputType.map())

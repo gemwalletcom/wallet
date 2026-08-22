@@ -221,6 +221,7 @@ pub struct GemTransferDataExtra {
     pub data: Option<Vec<u8>>,
     pub output_type: GemTransferDataOutputType,
     pub output_action: GemTransferDataOutputAction,
+    pub transaction_type: TransactionType,
 }
 
 #[uniffi::remote(Record)]
@@ -399,6 +400,12 @@ pub struct GemTransactionLoadInput {
 pub struct GemSignerInput {
     pub input: GemTransactionLoadInput,
     pub fee: GemTransactionLoadFee,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSignedTransaction {
+    pub data: String,
+    pub transaction_type: TransactionType,
 }
 
 #[derive(Debug, Default, Clone, uniffi::Record)]
@@ -628,6 +635,7 @@ impl From<GemTransferDataExtra> for TransferDataExtra {
             data: value.data,
             output_type: value.output_type,
             output_action: value.output_action,
+            transaction_type: value.transaction_type,
         }
     }
 }
@@ -641,6 +649,7 @@ impl From<TransferDataExtra> for GemTransferDataExtra {
             data: value.data,
             output_type: value.output_type,
             output_action: value.output_action,
+            transaction_type: value.transaction_type,
         }
     }
 }

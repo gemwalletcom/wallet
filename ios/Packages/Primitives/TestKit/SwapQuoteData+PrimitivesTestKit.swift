@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Primitives
 
 public extension SwapQuoteData {
     static func mock(
-        quote _: SwapQuote = .mock(),
+        approval: ApprovalData? = nil,
     ) -> SwapQuoteData {
         SwapQuoteData(
             to: "",
@@ -13,7 +12,7 @@ public extension SwapQuoteData {
             value: "",
             data: "",
             memo: nil,
-            approval: nil,
+            approval: approval,
             gasLimit: "",
         )
     }
