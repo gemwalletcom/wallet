@@ -8,6 +8,8 @@ use num_bigint::BigUint;
 use super::model::{Items, TokenBalance, TokenTransfer, Transaction};
 use crate::rpc::{EVMIndexerClient, TransactionReference};
 
+const MAX_ITEMS: usize = 50;
+
 pub(crate) struct BlockscoutClient<C: Client + Clone> {
     client: C,
     chain_id: u64,
@@ -31,7 +33,7 @@ impl<C: Client + Clone> EVMIndexerClient for BlockscoutClient<C> {
         let query = [
             ("sort".to_string(), "block_number".to_string()),
             ("order".to_string(), "desc".to_string()),
-            ("items_count".to_string(), limit.to_string()),
+            ("items_count".to_string(), limit.min(MAX_ITEMS).to_string()),
             ("apikey".to_string(), self.api_key.clone()),
         ];
         let transactions: Items<Transaction> = self.client.get_with_query(&transactions_path, &query).await?;
