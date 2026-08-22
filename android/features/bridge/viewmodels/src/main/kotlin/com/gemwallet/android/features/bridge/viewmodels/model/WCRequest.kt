@@ -208,25 +208,23 @@ private fun WalletConnectTransaction.map(
     isSendable: Boolean,
 ): Generic {
     return when (this) {
-        is WalletConnectTransaction.Ethereum -> {
-            Generic(
-                requestId = request.requestId.toString(),
-                asset = request.chain.asset(),
-                from = request.account,
-                memo = data.data,
-                name = request.name,
-                description = request.description,
-                url = request.url,
-                icon = request.icon,
-                gasLimit = data.gasLimit,
-                inputType = request.inputType,
-                destination = DestinationAddress(data.to),
-                amount = data.value?.hexToBigInteger() ?: BigInteger.ZERO,
-                isSendable = isSendable,
-                decodedTransactionType = kind.transactionType,
-                approval = kind.approvalData,
-            )
-        }
+        is WalletConnectTransaction.Ethereum -> Generic(
+            requestId = request.requestId.toString(),
+            asset = request.chain.asset(),
+            from = request.account,
+            memo = data.data,
+            name = request.name,
+            description = request.description,
+            url = request.url,
+            icon = request.icon,
+            gasLimit = data.gasLimit,
+            inputType = request.inputType,
+            destination = DestinationAddress(data.to),
+            amount = data.value?.hexToBigInteger() ?: BigInteger.ZERO,
+            isSendable = isSendable,
+            decodedTransactionType = kind.transactionType,
+            approval = kind.approvalData,
+        )
         is WalletConnectTransaction.Solana ->
             buildEncodedTransactionParams(request, data.transaction, outputType, isSendable)
         is WalletConnectTransaction.Sui ->
