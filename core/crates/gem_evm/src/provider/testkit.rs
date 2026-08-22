@@ -34,11 +34,10 @@ fn build_test_indexer(chain: EVMChain, rpc_url: &str) -> Arc<EVMIndexer<ReqwestC
                 &settings.indexer.alchemy.url,
                 &settings.indexer.alchemy.key.secret,
             )),
-            client.clone().with_request_timeout(settings.indexer.ankr.request.timeout).with_base_url(format!(
-                "{}/{}",
-                settings.indexer.ankr.url.trim_end_matches('/'),
-                settings.indexer.ankr.key.secret
-            )),
+            client
+                .clone()
+                .with_request_timeout(settings.indexer.ankr.request.timeout)
+                .with_base_url(settings.indexer.ankr.url.replace("{key}", &settings.indexer.ankr.key.secret)),
             settings.indexer.blockscout.remote_provider_config().configure_client(client),
             settings.indexer.blockscout.key.secret,
             chain,

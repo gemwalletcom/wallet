@@ -77,6 +77,5 @@ pub(crate) struct EndpointConfig {
     pub url: String,
     pub headers: Option<HashMap<String, String>>,
     pub query: Option<HashMap<String, String>>,
-    pub suffix: Option<String>,
     pub proxy: Option<String>,
 }

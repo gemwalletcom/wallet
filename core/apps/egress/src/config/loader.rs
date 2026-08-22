@@ -25,6 +25,7 @@ impl EgressConfig {
     fn expand_environment(&mut self) -> Result<(), ConfigError> {
         for route in &mut self.routes {
             for endpoint in &mut route.endpoints {
+                endpoint.url = expand_value(&endpoint.url, |name| env::var(name).ok())?;
                 if let Some(headers) = &mut endpoint.headers {
                     for value in headers.values_mut() {
                         *value = expand_value(value, |name| env::var(name).ok())?;
@@ -34,9 +35,6 @@ impl EgressConfig {
                     for value in query.values_mut() {
                         *value = expand_value(value, |name| env::var(name).ok())?;
                     }
-                }
-                if let Some(suffix) = &mut endpoint.suffix {
-                    *suffix = expand_value(suffix, |name| env::var(name).ok())?;
                 }
             }
         }
