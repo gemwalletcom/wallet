@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use gem_tracing::{DurationMs, error_fields, info_with_fields, path};
+use gem_tracing::{DurationMs, error_fields, info_with_fields};
 use reqwest::Method;
 
 use super::route::Route;
@@ -8,7 +8,7 @@ use super::route::Route;
 pub(super) struct AccessLog<'a> {
     id: String,
     method: &'a Method,
-    uri: String,
+    uri: &'a str,
     start: Instant,
 }
 
@@ -17,7 +17,7 @@ impl<'a> AccessLog<'a> {
         Self {
             id: format!("{:016x}", rand::random::<u64>()),
             method,
-            uri: path::redact(uri),
+            uri,
             start: Instant::now(),
         }
     }
@@ -94,24 +94,5 @@ impl<'a> AccessLog<'a> {
             status = status,
             latency = DurationMs(self.start.elapsed()),
         );
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn query_is_excluded_from_logs() {
-        let method = Method::GET;
-        let access = AccessLog::new(&method, "/prices_tonapi/v2/rates?token=secret");
-        assert_eq!(access.uri, "/prices_tonapi/v2/rates");
-    }
-
-    #[test]
-    fn dynamic_segments_are_redacted() {
-        let method = Method::GET;
-        let access = AccessLog::new(&method, "/indexer_toncenter/api/v3/wallet/0:123456789012345678901234567890/42");
-        assert_eq!(access.uri, "/indexer_toncenter/api/v3/wallet/:value/:number");
     }
 }

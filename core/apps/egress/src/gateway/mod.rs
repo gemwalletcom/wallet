@@ -7,6 +7,7 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::time::{Duration, Instant};
 
+use gem_tracing::path;
 use reqwest::Method;
 use reqwest::header::{HeaderMap, HeaderName, RETRY_AFTER};
 use rocket::http::Status;
@@ -88,14 +89,16 @@ impl Gateway {
     }
 
     pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<GatewayResponse, GatewayError> {
-        let access = AccessLog::new(&method, uri);
         let Some(route_match) = match_route(&self.routes, uri) else {
+            let uri = path::redact(uri);
+            let access = AccessLog::new(&method, &uri);
             access.request(None);
             access.unavailable(None, Status::NotFound.code, "route");
             return Err(GatewayError::new(Status::NotFound, "route not found"));
         };
         let route = route_match.route;
         let path = route_match.path();
+        let access = AccessLog::new(&method, &path);
         access.request(Some(route));
         let mut candidates = self.available_endpoints(route).await;
         if candidates.is_empty() {
