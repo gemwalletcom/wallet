@@ -151,7 +151,7 @@ async fn run_fetch_lists(
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
     let config = reader_config(&settings.rabbitmq, name.clone());
     let stream_reader = StreamReader::from_connection(&connection, config).await?;
-    let coin_gecko_client = CoinGeckoClient::new(&settings.coingecko.key.secret);
+    let coin_gecko_client = CoinGeckoClient::new(settings.coingecko.remote_provider_config());
     let lists_client = ListsClient::new(database.clone(), vec![Arc::new(CoinGeckoListProvider::new(database, coin_gecko_client))]);
     let consumer = FetchListConsumer { lists_client };
     run_consumer::<FetchListPayload, FetchListConsumer, u32>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await

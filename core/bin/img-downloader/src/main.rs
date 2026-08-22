@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let downloader = Downloader::new(DownloaderConfig {
         args,
         img_config,
-        coingecko_api_key: settings.coingecko.key.secret,
+        coingecko: settings.coingecko.remote_provider_config(),
         coinmarketcap_api_key: settings.coinmarketcap.key.secret,
         jupiter_api_key: settings.indexer.jupiter.key.secret,
     })?;

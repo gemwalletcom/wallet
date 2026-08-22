@@ -197,7 +197,7 @@ pub struct MercuryoKey {
 pub struct SecretKeySettings {
     pub key: KeySecret,
 }
-pub type CoinGecko = SecretKeySettings;
+pub type CoinGecko = ProviderSettings;
 pub type CoinMarketCap = SecretKeySettings;
 
 #[derive(Debug, Deserialize, Clone)]

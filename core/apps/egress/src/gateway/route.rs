@@ -120,12 +120,9 @@ mod tests {
     #[test]
     fn test_target_credentials() {
         let route = route("blockscout");
-        let matched = match_route(std::slice::from_ref(&route), "/blockscout?apikey=client&chain=1").unwrap();
-        let endpoint = endpoint("https://api.blockscout.com/v2/key", HashMap::from([("apikey".to_string(), "secret".to_string())]));
-        assert_eq!(
-            matched.target_url(&endpoint).unwrap().as_str(),
-            "https://api.blockscout.com/v2/key?chain=1&apikey=secret"
-        );
+        let matched = match_route(std::slice::from_ref(&route), "/blockscout/api?apikey=client&chain=1").unwrap();
+        let endpoint = endpoint("https://api.blockscout.com", HashMap::from([("apikey".to_string(), "secret".to_string())]));
+        assert_eq!(matched.target_url(&endpoint).unwrap().as_str(), "https://api.blockscout.com/api?chain=1&apikey=secret");
     }
 
     #[test]

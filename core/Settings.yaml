@@ -16,6 +16,7 @@ rabbitmq:
     delay: 1s
     timeout: 30s
 coingecko:
+  url: "https://pro-api.coingecko.com"
   key:
     secret: ""
 coinmarketcap:
@@ -66,6 +67,7 @@ flashnet:
       secret: ""
 prices:
   coingecko:
+    url: "https://pro-api.coingecko.com"
     key:
       secret: ""
   pyth:
@@ -308,7 +310,7 @@ api:
 
 indexer:
   alchemy:
-    url: "https://{network}.g.alchemy.com/v2/{key}"
+    url: "https://{network}.g.alchemy.com"
     key:
       secret: ""
   algorand:
@@ -316,7 +318,7 @@ indexer:
     key:
       secret: ""
   ankr:
-    url: "https://rpc.ankr.com/multichain/{key}"
+    url: "https://rpc.ankr.com/multichain"
     key:
       secret: ""
   blockscout:

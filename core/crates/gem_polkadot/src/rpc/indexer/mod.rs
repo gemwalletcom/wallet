@@ -106,10 +106,7 @@ mod tests {
             Ok(include_str!("../../../testdata/subscan_asset_hub_transfers.json").as_bytes().to_vec())
         });
 
-        let transactions = PolkadotIndexer::new(client)
-            .get_transactions_by_address("address", 100, None)
-            .await
-            .unwrap();
+        let transactions = PolkadotIndexer::new(client).get_transactions_by_address("address", 100, None).await.unwrap();
 
         assert_eq!(
             transactions.iter().map(|transaction| transaction.hash.as_str()).collect::<Vec<_>>(),

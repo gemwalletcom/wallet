@@ -48,7 +48,7 @@ pub fn alchemy_url(chain: Chain, base_url: &str, key: &str) -> String {
         _ => panic!("Alchemy is not supported for {chain}"),
     };
 
-    base_url.replace("{chain}", chain.as_ref()).replace("{network}", network).replace("{key}", key)
+    format!("{}/v2/{key}", base_url.replace("{chain}", chain.as_ref()).replace("{network}", network))
 }
 
 pub(crate) struct AlchemyClient<C: Client + Clone> {
@@ -114,8 +114,11 @@ mod tests {
 
     #[test]
     fn test_alchemy_url() {
-        assert_eq!(alchemy_url(Chain::Solana, "http://egress/alchemy_{chain}", ""), "http://egress/alchemy_solana");
-        assert_eq!(alchemy_url(Chain::Solana, "https://{network}.g.alchemy.com/v2/{key}", "key"), "https://solana-mainnet.g.alchemy.com/v2/key");
+        assert_eq!(alchemy_url(Chain::Solana, "http://egress/alchemy_{chain}", ""), "http://egress/alchemy_solana/v2/");
+        assert_eq!(
+            alchemy_url(Chain::Solana, "https://{network}.g.alchemy.com", "key"),
+            "https://solana-mainnet.g.alchemy.com/v2/key"
+        );
     }
 
     #[tokio::test]

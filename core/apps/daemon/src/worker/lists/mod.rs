@@ -15,7 +15,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
     let database = ctx.database();
     let settings = ctx.settings();
     let config = ConfigCacher::new(database.clone());
-    let coin_gecko_client = CoinGeckoClient::new(&settings.coingecko.key.secret);
+    let coin_gecko_client = CoinGeckoClient::new(settings.coingecko.remote_provider_config());
     let lists_client = Arc::new(ListsClient::new(database.clone(), vec![Arc::new(CoinGeckoListProvider::new(database, coin_gecko_client))]));
 
     ctx.plan_builder(WorkerService::Lists, &config, shutdown_rx)

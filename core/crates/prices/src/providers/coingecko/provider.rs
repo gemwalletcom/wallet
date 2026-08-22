@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use coingecko::{CoinGeckoErrorResponse, CoinInfo, MAX_MARKETS_PER_PAGE, client::CoinGeckoClient, get_coingecko_market_id_for_chain, get_coingecko_platform_id_for_chain};
-use gem_client::{Client, ReqwestClient};
+use gem_client::{Client, RemoteProviderConfig, ReqwestClient};
 use gem_tracing::warn_with_fields;
 use primitives::{AssetId, Chain, ChartValue, DurationExt};
 
@@ -17,9 +17,9 @@ pub struct CoinGeckoPricesProvider<C: Client = ReqwestClient> {
 }
 
 impl CoinGeckoPricesProvider<ReqwestClient> {
-    pub fn new(api_key: &str) -> Self {
+    pub fn new(config: RemoteProviderConfig) -> Self {
         Self {
-            client: CoinGeckoClient::new(api_key),
+            client: CoinGeckoClient::new(config),
         }
     }
 }

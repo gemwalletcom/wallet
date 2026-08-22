@@ -81,7 +81,7 @@ impl ProviderFactory {
                         gem_client
                             .clone()
                             .with_request_timeout(config.indexers.ankr.timeout)
-                            .with_base_url(config.indexers.ankr.url.replace("{key}", &config.indexers.ankr.key)),
+                            .with_base_url(format!("{}/{}", config.indexers.ankr.url, config.indexers.ankr.key)),
                         config.indexers.blockscout.configure_client(gem_client),
                         config.indexers.blockscout.key,
                         evm_chain,

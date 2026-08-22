@@ -15,12 +15,11 @@ pub const TEST_TRANSACTION_ID: &str = "4dHnggcXjvmMJY2J6iGqse12PeCYQzuTySgwJa36K
 #[cfg(feature = "chain_integration_tests")]
 pub fn create_solana_test_client() -> SolanaProvider<ReqwestClient> {
     let settings = get_test_settings();
-    let alchemy_url = settings
-        .indexer
-        .alchemy
-        .url
-        .replace("{network}", "solana-mainnet")
-        .replace("{key}", &settings.indexer.alchemy.key.secret);
+    let alchemy_url = format!(
+        "{}/v2/{}",
+        settings.indexer.alchemy.url.replace("{network}", "solana-mainnet"),
+        settings.indexer.alchemy.key.secret
+    );
     SolanaProvider::new(
         SolanaClient::new(JsonRpcClient::new(ReqwestClient::new_test_client(settings.chains.solana.url))),
         Box::new(SolanaIndexer::new(JsonRpcClient::new(ReqwestClient::new_test_client(alchemy_url)))),
