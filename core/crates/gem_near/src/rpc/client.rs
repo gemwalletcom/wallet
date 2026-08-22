@@ -1,5 +1,5 @@
 use crate::{
-    constants::{EMPTY_TRANSACTION_ROOT, RPC_CONCURRENCY},
+    constants::{EMPTY_TRANSACTION_ROOT, RPC_CONCURRENCY, UNKNOWN_BLOCK_ERROR},
     jsonrpc::NearRpc,
     models::{Account, AccountAccessKey, Block, BroadcastResult, Chunk, GasPrice, NodeStatus, ProtocolConfig},
     rpc::mapper::map_transaction,
@@ -59,7 +59,11 @@ impl<C: Client + Clone> NearClient<C> {
     }
 
     pub async fn get_transactions_by_block(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let block: Block = self.client.request(NearRpc::GetBlock(block_number)).await?;
+        let block: Block = match self.client.request(NearRpc::GetBlock(block_number)).await {
+            Ok(block) => block,
+            Err(error) if error.cause.as_ref().and_then(|cause| cause.get("name")).and_then(|name| name.as_str()) == Some(UNKNOWN_BLOCK_ERROR) => return Ok(vec![]),
+            Err(error) => return Err(Box::new(error)),
+        };
         let chunk_requests = block
             .chunks
             .into_iter()
@@ -220,5 +224,13 @@ mod tests {
                 "wait_until": "EXECUTED"
             })
         );
+    }
+
+    #[tokio::test]
+    async fn skips_unknown_block() {
+        let client = MockClient::new().with_post(|_, _| Ok(include_bytes!("../../testdata/rpc_unknown_block.json").to_vec()));
+        let near = NearClient::new(JsonRpcClient::new(client));
+
+        assert!(near.get_transactions_by_block(212357397).await.unwrap().is_empty());
     }
 }

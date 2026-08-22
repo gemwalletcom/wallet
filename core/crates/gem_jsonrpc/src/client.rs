@@ -13,6 +13,7 @@ impl From<ClientError> for JsonRpcError {
         JsonRpcError {
             code: ERROR_CLIENT_ERROR,
             message: value.to_string(),
+            cause: None,
         }
     }
 }
@@ -45,6 +46,7 @@ impl<C: Client + Clone> JsonRpcClient<C> {
             return Err(JsonRpcError {
                 message: "Invalid batch response IDs".into(),
                 code: ERROR_INTERNAL_ERROR,
+                cause: None,
             });
         }
 

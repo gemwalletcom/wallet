@@ -117,6 +117,7 @@ mod tests {
         let error = JsonRpcError {
             code: ERROR_CLIENT_ERROR,
             message: "HTTP error: status 404".to_string(),
+            cause: None,
         };
         let mapped = map_network_error(Box::new(error));
 
