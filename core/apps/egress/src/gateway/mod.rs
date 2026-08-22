@@ -92,7 +92,7 @@ impl Gateway {
         let access = AccessLog::new(&method, uri);
         let Some(route_match) = match_route(&self.routes, uri) else {
             access.request("none");
-            access.response("none", "none", "none", Status::NotFound.code);
+            access.unavailable("none", Status::NotFound.code, "route");
             return Err(GatewayError::new(Status::NotFound, "route not found"));
         };
         let route = route_match.route;
@@ -103,7 +103,7 @@ impl Gateway {
             Selection::Random => candidates.shuffle(&mut rand::rng()),
         }
         if candidates.is_empty() {
-            access.response(&route.name, "none", "none", Status::ServiceUnavailable.code);
+            access.unavailable(&route.name, Status::ServiceUnavailable.code, "endpoints");
             return Err(GatewayError::new(Status::ServiceUnavailable, "no healthy endpoint is available"));
         }
 
@@ -172,7 +172,7 @@ impl Gateway {
             access.response(&route.name, &endpoint.name, endpoint.url.host_str().unwrap_or("none"), response.status);
             return Ok(response);
         }
-        access.response(&route.name, "none", "none", Status::BadGateway.code);
+        access.unavailable(&route.name, Status::BadGateway.code, "upstreams");
         Err(GatewayError::new(Status::BadGateway, "all upstream requests failed"))
     }
 

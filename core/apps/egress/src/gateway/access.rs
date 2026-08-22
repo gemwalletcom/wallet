@@ -57,6 +57,20 @@ impl<'a> AccessLog<'a> {
         );
     }
 
+    pub(super) fn unavailable(&self, route: &str, status: u16, reason: &str) {
+        error_fields!(
+            "Egress unavailable",
+            id = self.id.as_str(),
+            route = route,
+            endpoint = "none",
+            method = self.method.as_str(),
+            uri = self.uri,
+            status = status,
+            reason = reason,
+            latency = DurationMs(self.start.elapsed()),
+        );
+    }
+
     pub(super) fn response(&self, route: &str, endpoint: &str, remote_host: &str, status: u16) {
         info_with_fields!(
             "Egress response",
