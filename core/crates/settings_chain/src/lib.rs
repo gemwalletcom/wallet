@@ -6,13 +6,14 @@ mod provider_config;
 use std::{collections::HashMap, sync::Arc};
 
 use chain_traits::ChainTraits;
+use gem_alchemy::{AlchemyApi, alchemy_url};
 use gem_algorand::rpc::{AlgorandClient, AlgorandIndexer, AlgorandProvider};
 use gem_aptos::rpc::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_client::{ReqwestClient, retry_policy};
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider, alchemy_url};
+use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_near::rpc::{NearClient, NearIndexer, NearProvider};
@@ -76,6 +77,7 @@ impl ProviderFactory {
                         gem_client.clone().with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
                             chain,
                             &config.indexers.alchemy.url,
+                            AlchemyApi::JsonRpc,
                             &config.indexers.alchemy.key,
                         )),
                         gem_client
@@ -135,9 +137,12 @@ impl ProviderFactory {
             ChainType::Solana => Box::new(SolanaProvider::new(
                 SolanaClient::new(JsonRpcClient::new(gem_client.clone())),
                 Box::new(SolanaIndexer::new(JsonRpcClient::new(
-                    gem_client
-                        .with_request_timeout(config.indexers.alchemy.timeout)
-                        .with_base_url(alchemy_url(chain, &config.indexers.alchemy.url, &config.indexers.alchemy.key)),
+                    gem_client.with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
+                        chain,
+                        &config.indexers.alchemy.url,
+                        AlchemyApi::JsonRpc,
+                        &config.indexers.alchemy.key,
+                    )),
                 ))),
             )),
             ChainType::Ton => Box::new(TonClient::new(gem_client)),

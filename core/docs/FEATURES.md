@@ -318,10 +318,10 @@ The NFT registry selects providers by chain and falls through in registration or
 | --- | :---: | --- | :---: | :---: | :---: | --- |
 | [OpenSea](../crates/nft/src/providers/opensea/provider.rs) | ✅ | Ethereum, Polygon | ✅ | ✅ | ✅ | First registered provider |
 | [Magic Eden Solana](../crates/nft/src/providers/magiceden/solana/provider.rs) | ✅ | Solana | ✅ | ✅ | ✅ | Dedicated Solana API |
-| [Magic Eden EVM](../crates/nft/src/providers/magiceden/evm/provider.rs) | ✅ | BNB Smart Chain | ✅ | ✅ | ✅ | EVM adapter currently exposes BNB Smart Chain only |
+| [Alchemy NFT](../crates/nft/src/providers/alchemy/provider.rs) | ✅ | BNB Smart Chain | ✅ | ✅ | ✅ | Filters assets classified as spam |
 | [TON](../crates/nft/src/providers/ton/provider.rs) | ✅ | TON | ✅ | ✅ | ✅ | Uses indexed on-chain data with off-chain metadata fallback |
 
-<sub>Reviewed 2026-07-21. Sources: [active provider factory](../crates/nft/src/factory.rs), [provider contract and fallback behavior](../crates/nft/src/provider.rs), [supported NFT chains](../crates/primitives/src/chain_nft.rs), and [NFT settings](../crates/settings/src/lib.rs).</sub>
+<sub>Reviewed 2026-08-22. Sources: [active provider factory](../crates/nft/src/factory.rs), [provider contract and fallback behavior](../crates/nft/src/provider.rs), [supported NFT chains](../crates/primitives/src/chain_nft.rs), and [NFT settings](../crates/settings/src/lib.rs).</sub>
 
 ## Actionable TODOs
 

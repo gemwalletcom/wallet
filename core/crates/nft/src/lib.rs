@@ -14,4 +14,4 @@ pub use config::NFTProviderConfig;
 pub use factory::NFTProviderFactory;
 pub use provider::{NFTProvider, NFTProviders};
 pub use provider_client::NFTProviderClient;
-pub use providers::{MagicEdenEvmClient, MagicEdenSolanaClient, OpenSeaClient};
+pub use providers::{AlchemyClient, MagicEdenSolanaClient, OpenSeaClient};

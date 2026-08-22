@@ -3531,6 +3531,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_alchemy"
+version = "2.114.10"
+dependencies = [
+ "gem_client",
+ "gem_jsonrpc",
+ "num-bigint 0.5.1",
+ "primitives",
+ "serde",
+ "serde_json",
+ "serde_serializers",
+ "tokio",
+]
+
+[[package]]
 name = "gem_algorand"
 version = "2.114.10"
 dependencies = [
@@ -3762,6 +3776,7 @@ dependencies = [
  "chain_traits",
  "chrono",
  "futures",
+ "gem_alchemy",
  "gem_bsc",
  "gem_client",
  "gem_hash",
@@ -5724,6 +5739,7 @@ version = "2.114.10"
 dependencies = [
  "async-trait",
  "futures",
+ "gem_alchemy",
  "gem_client",
  "gem_evm",
  "gem_ton",
@@ -7948,6 +7964,7 @@ version = "2.114.10"
 dependencies = [
  "chain_traits",
  "futures",
+ "gem_alchemy",
  "gem_algorand",
  "gem_aptos",
  "gem_bitcoin",

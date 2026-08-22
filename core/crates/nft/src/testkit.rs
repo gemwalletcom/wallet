@@ -9,7 +9,7 @@ use gem_client::{RemoteProviderConfig, ReqwestClient};
 use settings::Settings;
 
 #[cfg(feature = "nft_integration_tests")]
-use crate::providers::magiceden::evm::client::MagicEdenEvmClient;
+use crate::AlchemyClient;
 #[cfg(feature = "nft_integration_tests")]
 use crate::providers::magiceden::solana::client::MagicEdenSolanaClient;
 #[cfg(feature = "nft_integration_tests")]
@@ -22,7 +22,7 @@ pub const TEST_SOLANA_COLLECTION: &str = "okay_bears";
 pub const TEST_SOLANA_COLLECTION_POOKS: &str = "pooks";
 pub const TEST_SOLANA_TOKEN_ID: &str = "HP82kPNXnQcozjDrV4dLYfV6wwABQDMVPJXezDbZXHEy";
 pub const TEST_BSC_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
-pub const TEST_BSC_COLLECTION: &str = "0x2e1ced4363f810c7b2f72de9fe675b12b2da1bfa";
+pub const TEST_BSC_COLLECTION: &str = "0x6dfbb01ecb7991366cd8acc4d18dcc67bbe345ba";
 
 #[cfg(feature = "nft_integration_tests")]
 fn get_test_settings() -> Settings {
@@ -31,7 +31,7 @@ fn get_test_settings() -> Settings {
 }
 
 #[cfg(feature = "nft_integration_tests")]
-fn provider_client(config: RemoteProviderConfig, header: (&str, String)) -> ReqwestClient {
+fn provider_client_with_header(config: RemoteProviderConfig, header: (&str, String)) -> ReqwestClient {
     config
         .configure_client(ReqwestClient::new(String::new(), gem_client::reqwest_client()))
         .with_default_headers(HashMap::from([(header.0.to_string(), header.1)]))
@@ -42,7 +42,7 @@ pub fn create_opensea_test_client() -> OpenSeaClient<ReqwestClient> {
     let settings = get_test_settings();
     let config = crate::NFTProviderConfig::from_settings(&settings);
     let key = config.opensea.key.clone();
-    let client = provider_client(config.opensea, ("x-api-key", key));
+    let client = provider_client_with_header(config.opensea, ("x-api-key", key));
     OpenSeaClient::new(client)
 }
 
@@ -51,15 +51,14 @@ pub fn create_magiceden_solana_test_client() -> MagicEdenSolanaClient<ReqwestCli
     let settings = get_test_settings();
     let config = crate::NFTProviderConfig::from_settings(&settings);
     let key = format!("Bearer {}", config.magiceden.key);
-    let client = provider_client(config.magiceden, ("Authorization", key));
+    let client = provider_client_with_header(config.magiceden, ("Authorization", key));
     MagicEdenSolanaClient::new(client)
 }
 
 #[cfg(feature = "nft_integration_tests")]
-pub fn create_magiceden_evm_test_client() -> MagicEdenEvmClient<ReqwestClient> {
+pub fn create_alchemy_test_client() -> AlchemyClient<ReqwestClient> {
     let settings = get_test_settings();
     let config = crate::NFTProviderConfig::from_settings(&settings);
-    let key = format!("Bearer {}", config.magiceden.key);
-    let client = provider_client(config.magiceden, ("Authorization", key));
-    MagicEdenEvmClient::new(client)
+    let client = config.alchemy.configure_client(ReqwestClient::new(String::new(), gem_client::reqwest_client()));
+    AlchemyClient::new(client)
 }

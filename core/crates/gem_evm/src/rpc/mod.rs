@@ -9,7 +9,6 @@ mod parsers;
 mod provider;
 mod transaction_payload;
 
-pub use alchemy::alchemy_url;
 pub use client::EthereumClient;
 pub(crate) use indexer::EVMIndexerClient;
 pub(crate) use indexer::TransactionReference;

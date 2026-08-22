@@ -14,6 +14,7 @@ settings = { path = "../settings" }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_tracing = { path = "../tracing" }
+gem_alchemy = { path = "../gem_alchemy" }
 
 gem_algorand = { path = "../gem_algorand", features = ["rpc", "reqwest"] }
 gem_aptos = { path = "../gem_aptos", features = ["rpc", "reqwest"] }

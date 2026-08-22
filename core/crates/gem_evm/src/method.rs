@@ -1,5 +1,3 @@
-pub const ALCHEMY_GET_ASSET_TRANSFERS: &str = "alchemy_getAssetTransfers";
-pub const ALCHEMY_GET_TOKEN_BALANCES: &str = "alchemy_getTokenBalances";
 pub const ANKR_GET_ACCOUNT_BALANCE: &str = "ankr_getAccountBalance";
 pub const ANKR_GET_TOKEN_TRANSFERS: &str = "ankr_getTokenTransfers";
 pub const ANKR_GET_TRANSACTIONS_BY_ADDRESS: &str = "ankr_getTransactionsByAddress";

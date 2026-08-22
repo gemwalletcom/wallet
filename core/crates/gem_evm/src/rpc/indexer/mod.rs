@@ -2,13 +2,16 @@ use std::{error::Error, fmt, sync::Arc};
 
 use async_trait::async_trait;
 use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use gem_alchemy::rpc::Client as AlchemyClient;
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use num_bigint::BigUint;
 use primitives::{AssetBalance, EVMChain, try_in_order};
 
-use super::{alchemy::AlchemyClient, ankr::AnkrClient, blockscout::BlockscoutClient, provider::AssetBalanceProvider};
+use super::{ankr::AnkrClient, blockscout::BlockscoutClient, provider::AssetBalanceProvider};
 use crate::provider::balances_mapper::map_assets_balances;
+
+const PAGE_SIZE: usize = 50;
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct TransactionReference {
@@ -146,11 +149,12 @@ impl<C: Client + Clone> EVMTransactionsByAddressProvider<C> {
 #[async_trait]
 impl<C: Client + Clone> ChainTransactions for EVMTransactionsByAddressProvider<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
+        let limit = request.limit.min(PAGE_SIZE);
         let operations = self
             .indexer
             .providers
             .iter()
-            .map(|provider| provider.get_transactions_by_address(&request.address, request.limit))
+            .map(|provider| provider.get_transactions_by_address(&request.address, limit))
             .collect::<Vec<_>>();
         let transactions = try_in_order(operations).await?.unwrap_or_default();
         Ok(TransactionsResult::TransactionRequests(
@@ -216,6 +220,27 @@ mod tests {
                 TransactionIdRequest::new(Chain::Ethereum, "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(), None,)
             ]
         );
+    }
+
+    #[tokio::test]
+    async fn test_transaction_page_size_is_capped() {
+        let client = MockClient::new().with_post(|_, body| {
+            let request: serde_json::Value = serde_json::from_slice(body).unwrap();
+            assert_eq!(request["params"]["pageSize"], PAGE_SIZE);
+            let result: serde_json::Value = match request["method"].as_str().unwrap() {
+                method::ANKR_GET_TRANSACTIONS_BY_ADDRESS => serde_json::from_str(include_str!("../../../testdata/ankr_get_transactions_by_address.json")).unwrap(),
+                method::ANKR_GET_TOKEN_TRANSFERS => serde_json::from_str(include_str!("../../../testdata/ankr_get_token_transfers.json")).unwrap(),
+                method => panic!("unexpected method: {method}"),
+            };
+            Ok(serde_json::to_vec(&serde_json::json!({ "jsonrpc": "2.0", "id": request["id"], "result": result })).unwrap())
+        });
+        let indexer = EVMIndexer::for_chain(client.clone(), client.clone(), client, String::new(), EVMChain::SmartChain).unwrap();
+        let provider = EVMTransactionsByAddressProvider::new(Arc::new(indexer));
+
+        provider
+            .get_transactions_by_address(TransactionsRequest::new("0x123".to_string(), PAGE_SIZE + 1))
+            .await
+            .unwrap();
     }
 
     #[tokio::test]

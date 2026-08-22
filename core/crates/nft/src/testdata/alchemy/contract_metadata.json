@@ -1,0 +1,24 @@
+{
+  "address": "0x6DFBB01ECB7991366Cd8acc4D18dCc67bbe345ba",
+  "name": "Reefers by CoralApp",
+  "symbol": "CRAPP",
+  "totalSupply": "13000",
+  "tokenType": "ERC721",
+  "contractDeployer": null,
+  "deployedBlockNumber": null,
+  "openSeaMetadata": {
+    "floorPrice": null,
+    "collectionName": null,
+    "collectionSlug": null,
+    "safelistRequestStatus": null,
+    "imageUrl": null,
+    "description": null,
+    "externalUrl": null,
+    "twitterUsername": null,
+    "discordUrl": null,
+    "bannerImageUrl": null,
+    "lastIngestedAt": "2026-07-13T18:08:53.681815555Z"
+  },
+  "isSpam": false,
+  "spamClassifications": []
+}
