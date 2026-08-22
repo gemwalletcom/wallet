@@ -3,6 +3,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
+use gem_tracing::normalize_path;
 use metrics::MetricsRegistry;
 use primitives::NodeStatusState;
 use prometheus_client::encoding::EncodeLabelSet;
@@ -192,7 +193,7 @@ impl Metrics {
     }
 
     pub fn add_proxy_response(&self, chain: &str, method: &str, path: &str, status: u16, latency: u128) {
-        let path = self.truncate_path(path);
+        let path = normalize_path(path);
         self.proxy_response_latency
             .get_or_create(&ResponseLabels {
                 chain: chain.to_string(),
@@ -241,12 +242,12 @@ impl Metrics {
     }
 
     pub fn add_cache_hit(&self, chain: &str, path: &str) {
-        let path = self.truncate_path(path);
+        let path = normalize_path(path);
         self.cache_hits.get_or_create(&CacheLabels { chain: chain.to_string(), path }).inc();
     }
 
     pub fn add_cache_miss(&self, chain: &str, path: &str) {
-        let path = self.truncate_path(path);
+        let path = normalize_path(path);
         self.cache_misses.get_or_create(&CacheLabels { chain: chain.to_string(), path }).inc();
     }
 
@@ -274,27 +275,7 @@ impl Metrics {
     }
 
     fn truncate_method(&self, method: &str) -> String {
-        if method.contains('/') { self.truncate_path(method) } else { method.to_string() }
-    }
-
-    fn truncate_path(&self, path: &str) -> String {
-        let path_part = path.split_once('?').map(|(p, _)| p).unwrap_or(path);
-
-        path_part
-            .split('/')
-            .map(|segment| {
-                if segment.is_empty() {
-                    segment.to_string()
-                } else if segment.chars().all(|c| c.is_ascii_digit()) {
-                    ":number".to_string()
-                } else if segment.len() > 20 {
-                    ":value".to_string()
-                } else {
-                    segment.to_string()
-                }
-            })
-            .collect::<Vec<String>>()
-            .join("/")
+        if method.contains('/') { normalize_path(method) } else { method.to_string() }
     }
 }
 
@@ -368,27 +349,6 @@ mod tests {
     fn create_test_metrics() -> Metrics {
         let config = MetricsConfig { prefix: "test".to_string() };
         Metrics::new(config)
-    }
-
-    #[test]
-    fn test_truncate_path() {
-        let metrics = create_test_metrics();
-
-        let test_cases = vec![
-            ("/api/v1/verylongsegmentthatisgreaterthan20characters/data", "/api/v1/:value/data"),
-            ("/block/12345/transactions", "/block/:number/transactions"),
-            ("/block/12345/tx/67890", "/block/:number/tx/:number"),
-            ("/api/v1/data", "/api/v1/data"),
-            ("/api//data", "/api//data"),
-            // Query params are stripped
-            ("/api/v2/block/5897744?page=1", "/api/v2/block/:number"),
-            ("/thorchain/quote/swap?from=X&to=Y", "/thorchain/quote/swap"),
-        ];
-
-        for (input, expected) in test_cases {
-            let result = metrics.truncate_path(input);
-            assert_eq!(result, expected, "Failed for input: {}", input);
-        }
     }
 
     #[test]

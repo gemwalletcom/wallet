@@ -1,12 +1,12 @@
 use std::time::Instant;
 
-use gem_tracing::{DurationMs, error_fields, info_with_fields};
+use gem_tracing::{DurationMs, error_fields, info_with_fields, normalize_path};
 use reqwest::Method;
 
 pub(super) struct AccessLog<'a> {
     id: String,
     method: &'a Method,
-    uri: &'a str,
+    uri: String,
     start: Instant,
 }
 
@@ -15,9 +15,13 @@ impl<'a> AccessLog<'a> {
         Self {
             id: format!("{:016x}", rand::random::<u64>()),
             method,
-            uri: uri.split_once('?').map_or(uri, |(path, _)| path),
+            uri: normalize_path(uri),
             start: Instant::now(),
         }
+    }
+
+    pub(super) fn uri(&self) -> &str {
+        &self.uri
     }
 
     pub(super) fn request(&self, route: &str) {
@@ -77,5 +81,12 @@ mod tests {
         let method = Method::GET;
         let access = AccessLog::new(&method, "/tonapi/v2/rates?token=secret");
         assert_eq!(access.uri, "/tonapi/v2/rates");
+    }
+
+    #[test]
+    fn dynamic_segments_are_normalized() {
+        let method = Method::GET;
+        let access = AccessLog::new(&method, "/toncenter/api/v3/wallet/0:123456789012345678901234567890/42");
+        assert_eq!(access.uri, "/toncenter/api/v3/wallet/:value/:number");
     }
 }

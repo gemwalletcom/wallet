@@ -18,6 +18,7 @@ pub(crate) struct Metrics {
 struct RequestLabels {
     route: String,
     endpoint: String,
+    path: String,
     status: u16,
 }
 
@@ -25,6 +26,7 @@ struct RequestLabels {
 struct FailoverLabels {
     route: String,
     endpoint: String,
+    path: String,
     reason: String,
 }
 
@@ -52,21 +54,23 @@ impl Metrics {
         }
     }
 
-    pub(crate) fn record_request(&self, route: &str, endpoint: &str, status: u16) {
+    pub(crate) fn record_request(&self, route: &str, endpoint: &str, path: &str, status: u16) {
         self.requests
             .get_or_create(&RequestLabels {
                 route: route.to_string(),
                 endpoint: endpoint.to_string(),
+                path: path.to_string(),
                 status,
             })
             .inc();
     }
 
-    pub(crate) fn record_failover(&self, route: &str, endpoint: &str, reason: &str) {
+    pub(crate) fn record_failover(&self, route: &str, endpoint: &str, path: &str, reason: &str) {
         self.failovers
             .get_or_create(&FailoverLabels {
                 route: route.to_string(),
                 endpoint: endpoint.to_string(),
+                path: path.to_string(),
                 reason: reason.to_string(),
             })
             .inc();
@@ -78,5 +82,21 @@ impl Metrics {
 
     pub(crate) fn encode(&self) -> String {
         self.registry.encode()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn records_path_for_requests_and_failovers() {
+        let metrics = Metrics::new();
+        metrics.record_request("toncenter", "toncenter", "/toncenter/api/v3/wallet/:value", 200);
+        metrics.record_failover("toncenter", "toncenter", "/toncenter/api/v3/wallet/:value", "429");
+
+        let encoded = metrics.encode();
+        assert!(encoded.contains("egress_requests_total{route=\"toncenter\",endpoint=\"toncenter\",path=\"/toncenter/api/v3/wallet/:value\",status=\"200\"} 1"));
+        assert!(encoded.contains("egress_failovers_total{route=\"toncenter\",endpoint=\"toncenter\",path=\"/toncenter/api/v3/wallet/:value\",reason=\"429\"} 1"));
     }
 }

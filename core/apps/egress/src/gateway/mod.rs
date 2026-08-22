@@ -131,21 +131,21 @@ impl Gateway {
                         Ok(bytes) => bytes.to_vec(),
                         Err(_) => {
                             access.upstream_failed(&route.name, &endpoint.name, remote_host, "response_body");
-                            self.record_failure(route, endpoint, "response_body", self.cooldown).await;
+                            self.record_failure(route, endpoint, access.uri(), "response_body", self.cooldown).await;
                             if has_next {
                                 continue;
                             }
                             break;
                         }
                     };
-                    self.metrics.record_request(&route.name, &endpoint.name, status.as_u16());
+                    self.metrics.record_request(&route.name, &endpoint.name, access.uri(), status.as_u16());
                     let response = GatewayResponse {
                         status: status.as_u16(),
                         headers: response_headers,
                         body: response_body,
                     };
                     if route.should_retry(status) {
-                        self.record_failure(route, endpoint, &status.as_u16().to_string(), retry_after.unwrap_or(self.cooldown))
+                        self.record_failure(route, endpoint, access.uri(), &status.as_u16().to_string(), retry_after.unwrap_or(self.cooldown))
                             .await;
                         if has_next {
                             access.failover(&route.name, &endpoint.name, remote_host, status.as_u16());
@@ -160,7 +160,7 @@ impl Gateway {
                 }
                 Err(_) => {
                     access.upstream_failed(&route.name, &endpoint.name, remote_host, "transport");
-                    self.record_failure(route, endpoint, "transport", self.cooldown).await;
+                    self.record_failure(route, endpoint, access.uri(), "transport", self.cooldown).await;
                     if !has_next {
                         break;
                     }
@@ -190,9 +190,9 @@ impl Gateway {
             .collect()
     }
 
-    async fn record_failure(&self, route: &Route, endpoint: &Endpoint, reason: &str, cooldown: Duration) {
+    async fn record_failure(&self, route: &Route, endpoint: &Endpoint, path: &str, reason: &str, cooldown: Duration) {
         self.cooldowns.write().await.insert(endpoint.key(&route.name), Instant::now() + cooldown);
-        self.metrics.record_failover(&route.name, &endpoint.name, reason);
+        self.metrics.record_failover(&route.name, &endpoint.name, path, reason);
     }
 
     async fn clear_failure(&self, route: &Route, endpoint: &Endpoint) {
