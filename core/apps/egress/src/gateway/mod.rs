@@ -7,7 +7,6 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::time::{Duration, Instant};
 
-use rand::seq::SliceRandom;
 use reqwest::Method;
 use reqwest::header::{HeaderMap, HeaderName, RETRY_AFTER};
 use rocket::http::Status;
@@ -18,7 +17,7 @@ use endpoint::{Endpoint, filter_headers};
 use proxy::{OutboundProxy, build_client};
 use route::{Route, match_route};
 
-use crate::config::{EgressConfig, Selection};
+use crate::config::EgressConfig;
 use crate::metrics::Metrics;
 
 type BoxError = Box<dyn Error + Send + Sync>;
@@ -99,14 +98,11 @@ impl Gateway {
         let path = route_match.path();
         access.request(&route.name);
         let mut candidates = self.available_endpoints(route).await;
-        match route.selection {
-            Selection::Ordered => {}
-            Selection::Random => candidates.shuffle(&mut rand::rng()),
-        }
         if candidates.is_empty() {
             access.unavailable(&route.name, Status::ServiceUnavailable.code, "endpoints");
             return Err(GatewayError::new(Status::ServiceUnavailable, "no healthy endpoint is available"));
         }
+        route.prioritize_endpoints(&mut candidates);
 
         let mut last_response = None;
         for (position, endpoint_index) in candidates.iter().enumerate() {

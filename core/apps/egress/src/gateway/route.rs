@@ -1,6 +1,8 @@
 use std::collections::{HashMap, HashSet};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use gem_tracing::path;
+use rand::seq::SliceRandom;
 use reqwest::{Client, StatusCode};
 use url::Url;
 
@@ -11,7 +13,8 @@ use crate::config::{RouteConfig, Selection};
 
 pub(super) struct Route {
     pub(super) name: String,
-    pub(super) selection: Selection,
+    selection: Selection,
+    cursor: AtomicUsize,
     statuses: Vec<u16>,
     pub(super) endpoints: Vec<Endpoint>,
 }
@@ -33,6 +36,7 @@ impl Route {
         Ok(Self {
             name: config.name,
             selection: config.selection,
+            cursor: AtomicUsize::new(0),
             statuses,
             endpoints,
         })
@@ -40,6 +44,17 @@ impl Route {
 
     pub(super) fn should_retry(&self, status: StatusCode) -> bool {
         self.statuses.contains(&status.as_u16())
+    }
+
+    pub(super) fn prioritize_endpoints(&self, endpoints: &mut [usize]) {
+        match self.selection {
+            Selection::Ordered => {}
+            Selection::Random => endpoints.shuffle(&mut rand::rng()),
+            Selection::RoundRobin => {
+                let offset = self.cursor.fetch_add(1, Ordering::Relaxed) % endpoints.len();
+                endpoints.rotate_left(offset);
+            }
+        }
     }
 }
 
@@ -85,6 +100,7 @@ mod tests {
         Route {
             name: name.to_string(),
             selection: Selection::Ordered,
+            cursor: AtomicUsize::new(0),
             statuses: vec![429, 503],
             endpoints: Vec::new(),
         }
@@ -137,5 +153,22 @@ mod tests {
         let route = route("tonapi");
         assert!(route.should_retry(StatusCode::TOO_MANY_REQUESTS));
         assert!(!route.should_retry(StatusCode::BAD_REQUEST));
+    }
+
+    #[test]
+    fn test_prioritize_endpoints() {
+        let route = Route {
+            selection: Selection::RoundRobin,
+            ..route("blockscout")
+        };
+        let orders = (0..4)
+            .map(|_| {
+                let mut endpoints = vec![0, 1];
+                route.prioritize_endpoints(&mut endpoints);
+                endpoints
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(orders, vec![vec![0, 1], vec![1, 0], vec![0, 1], vec![1, 0]]);
     }
 }

@@ -69,6 +69,7 @@ pub(crate) struct RouteConfig {
 pub(crate) enum Selection {
     Ordered,
     Random,
+    RoundRobin,
 }
 
 #[derive(Debug, Deserialize)]
