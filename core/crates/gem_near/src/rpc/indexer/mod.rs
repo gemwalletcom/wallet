@@ -155,7 +155,7 @@ impl<C: Client> NearIndexer<C> {
 mod tests {
     use std::sync::{Arc, Mutex};
 
-    use chain_traits::ChainTransaction;
+    use chain_traits::{ChainBlockTransactions, ChainTransaction};
     use gem_client::testkit::MockClient;
     use primitives::{Chain, Transaction, TransactionIdRequest, TransactionType, asset_constants::NEAR_USDT_ASSET_ID};
     use serde_json::Value;
@@ -355,6 +355,25 @@ mod tests {
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.state, primitives::TransactionState::Confirmed);
         assert_eq!(*requests.blocks.lock().unwrap(), vec!["/v0/block/211048907"]);
+    }
+
+    #[tokio::test]
+    async fn test_get_transactions_in_blocks() {
+        let requests = MockRequests::default();
+        let client = mock_client(
+            requests.clone(),
+            MockResponses {
+                block: Some(Ok(include_str!("../../../testdata/fastnear_block.json"))),
+                ..Default::default()
+            },
+        );
+        let transactions = NearIndexer::new(client.clone(), client.clone(), client)
+            .get_transactions_in_blocks(vec![211048907, 211048907])
+            .await
+            .unwrap();
+
+        assert_eq!(transactions.len(), 2);
+        assert_eq!(*requests.blocks.lock().unwrap(), vec!["/v0/block/211048907", "/v0/block/211048907"]);
     }
 
     #[tokio::test]

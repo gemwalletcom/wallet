@@ -13,6 +13,14 @@ impl<C: Client> ChainBlockTransactions for NearIndexer<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         NearIndexer::get_transactions_by_block(self, block).await
     }
+
+    async fn get_transactions_in_blocks(&self, blocks: Vec<u64>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
+        let mut transactions = Vec::new();
+        for block in blocks {
+            transactions.extend(NearIndexer::get_transactions_by_block(self, block).await?);
+        }
+        Ok(transactions)
+    }
 }
 
 #[async_trait]
@@ -81,6 +89,22 @@ mod chain_integration_tests {
                 .iter()
                 .all(|transaction| transaction.block_number.as_deref() == Some(expected_block_number.as_str()))
         );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_near_get_transactions_in_blocks() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let blocks = vec![212506690, 212506691, 212506692];
+        let transactions = create_near_test_client().get_transactions_in_blocks(blocks.clone()).await?;
+
+        assert!(!transactions.is_empty());
+        assert!(transactions.iter().all(|transaction| {
+            transaction
+                .block_number
+                .as_ref()
+                .and_then(|block| block.parse().ok())
+                .is_some_and(|block| blocks.contains(&block))
+        }));
         Ok(())
     }
 

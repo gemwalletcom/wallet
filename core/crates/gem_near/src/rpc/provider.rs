@@ -45,6 +45,10 @@ impl<C: Client + Clone> ChainBlockTransactions for NearProvider<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         self.transaction_provider.get_transactions_by_block(block).await
     }
+
+    async fn get_transactions_in_blocks(&self, blocks: Vec<u64>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
+        self.transaction_provider.get_transactions_in_blocks(blocks).await
+    }
 }
 
 #[async_trait]
