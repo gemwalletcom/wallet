@@ -17,6 +17,7 @@ pub(crate) struct Metrics {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 struct RequestLabels {
+    caller: String,
     group: String,
     service: String,
     endpoint: String,
@@ -26,6 +27,7 @@ struct RequestLabels {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 struct ResponseLabels {
+    caller: String,
     group: String,
     service: String,
     path: String,
@@ -34,6 +36,7 @@ struct ResponseLabels {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 struct FailoverLabels {
+    caller: String,
     group: String,
     service: String,
     endpoint: String,
@@ -68,9 +71,10 @@ impl Metrics {
         }
     }
 
-    pub(crate) fn record_request(&self, group: &str, service: &str, endpoint: &str, path: &str, status: u16) {
+    pub(crate) fn record_request(&self, caller: &str, group: &str, service: &str, endpoint: &str, path: &str, status: u16) {
         self.requests
             .get_or_create(&RequestLabels {
+                caller: caller.to_string(),
                 group: group.to_string(),
                 service: service.to_string(),
                 endpoint: endpoint.to_string(),
@@ -80,9 +84,10 @@ impl Metrics {
             .inc();
     }
 
-    pub(crate) fn record_response(&self, group: &str, service: &str, path: &str, status: u16) {
+    pub(crate) fn record_response(&self, caller: &str, group: &str, service: &str, path: &str, status: u16) {
         self.responses
             .get_or_create(&ResponseLabels {
+                caller: caller.to_string(),
                 group: group.to_string(),
                 service: service.to_string(),
                 path: path.to_string(),
@@ -91,9 +96,10 @@ impl Metrics {
             .inc();
     }
 
-    pub(crate) fn record_failover(&self, group: &str, service: &str, endpoint: &str, path: &str, reason: &str) {
+    pub(crate) fn record_failover(&self, caller: &str, group: &str, service: &str, endpoint: &str, path: &str, reason: &str) {
         self.failovers
             .get_or_create(&FailoverLabels {
+                caller: caller.to_string(),
                 group: group.to_string(),
                 service: service.to_string(),
                 endpoint: endpoint.to_string(),
@@ -119,9 +125,9 @@ mod tests {
     #[test]
     fn records_path_for_requests_and_failovers() {
         let metrics = Metrics::new();
-        metrics.record_request("indexer", "toncenter", "key_1", "/api/v3/wallet/:value", 200);
-        metrics.record_response("indexer", "toncenter", "/api/v3/wallet/:value", 200);
-        metrics.record_failover("indexer", "toncenter", "key_1", "/api/v3/wallet/:value", "429");
+        metrics.record_request("consumer", "indexer", "toncenter", "key_1", "/api/v3/wallet/:value", 200);
+        metrics.record_response("consumer", "indexer", "toncenter", "/api/v3/wallet/:value", 200);
+        metrics.record_failover("consumer", "indexer", "toncenter", "key_1", "/api/v3/wallet/:value", "429");
 
         let encoded = metrics.encode();
         assert_eq!(
@@ -129,13 +135,13 @@ mod tests {
             concat!(
                 "# HELP egress_requests Upstream requests.\n",
                 "# TYPE egress_requests counter\n",
-                "egress_requests_total{group=\"indexer\",service=\"toncenter\",endpoint=\"key_1\",path=\"/api/v3/wallet/:value\",status=\"200\"} 1\n",
+                "egress_requests_total{caller=\"consumer\",group=\"indexer\",service=\"toncenter\",endpoint=\"key_1\",path=\"/api/v3/wallet/:value\",status=\"200\"} 1\n",
                 "# HELP egress_responses Client responses.\n",
                 "# TYPE egress_responses counter\n",
-                "egress_responses_total{group=\"indexer\",service=\"toncenter\",path=\"/api/v3/wallet/:value\",status=\"200\"} 1\n",
+                "egress_responses_total{caller=\"consumer\",group=\"indexer\",service=\"toncenter\",path=\"/api/v3/wallet/:value\",status=\"200\"} 1\n",
                 "# HELP egress_failovers Endpoint failovers.\n",
                 "# TYPE egress_failovers counter\n",
-                "egress_failovers_total{group=\"indexer\",service=\"toncenter\",endpoint=\"key_1\",path=\"/api/v3/wallet/:value\",reason=\"429\"} 1\n",
+                "egress_failovers_total{caller=\"consumer\",group=\"indexer\",service=\"toncenter\",endpoint=\"key_1\",path=\"/api/v3/wallet/:value\",reason=\"429\"} 1\n",
                 "# EOF\n",
             )
         );

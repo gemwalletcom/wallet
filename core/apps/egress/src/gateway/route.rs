@@ -21,6 +21,7 @@ pub(super) struct Route {
 }
 
 pub(super) struct RouteMatch<'a> {
+    pub(super) caller: &'a str,
     pub(super) route: &'a Route,
     remainder: &'a str,
     query: Option<&'a str>,
@@ -88,13 +89,17 @@ impl RouteMatch<'_> {
 pub(super) fn match_route<'a>(routes: &'a [Route], uri: &'a str) -> Option<RouteMatch<'a>> {
     let (path, query) = uri.split_once('?').map_or((uri, None), |(path, query)| (path, Some(query)));
     let path = path.strip_prefix('/')?;
+    let (caller, path) = path.split_once('/')?;
+    if !["api", "parser", "consumer", "worker"].contains(&caller) {
+        return None;
+    }
     let name_end = path.find('/').unwrap_or(path.len());
     let (name, remainder) = path.split_at(name_end);
     let (group, service) = name.split_once('_')?;
     routes
         .iter()
         .find(|route| route.group == group && route.service == service)
-        .map(|route| RouteMatch { route, remainder, query })
+        .map(|route| RouteMatch { caller, route, remainder, query })
 }
 
 #[cfg(test)]
@@ -131,17 +136,20 @@ mod tests {
     #[test]
     fn test_match_route() {
         let routes = vec![route("prices", "tonapi"), route("prices", "tonapi_rates")];
-        let matched = match_route(&routes, "/prices_tonapi_rates/v2").unwrap();
+        let matched = match_route(&routes, "/worker/prices_tonapi_rates/v2").unwrap();
+        assert_eq!(matched.caller, "worker");
         assert_eq!(matched.route.group, "prices");
         assert_eq!(matched.route.service, "tonapi_rates");
         assert_eq!(matched.path(), "/v2");
-        assert!(match_route(&routes, "/prices_tonapi-other").is_none());
+        assert!(match_route(&routes, "/prices_tonapi_rates/v2").is_none());
+        assert!(match_route(&routes, "/unknown/prices_tonapi_rates/v2").is_none());
+        assert!(match_route(&routes, "/worker/prices_tonapi-other").is_none());
     }
 
     #[test]
     fn test_target_url() {
         let route = route("prices", "tonapi");
-        let matched = match_route(std::slice::from_ref(&route), "/prices_tonapi/v2/rates/TON%2FUSD?currency=usd").unwrap();
+        let matched = match_route(std::slice::from_ref(&route), "/worker/prices_tonapi/v2/rates/TON%2FUSD?currency=usd").unwrap();
         assert_eq!(
             matched.target_url(&endpoint("https://tonapi.io/api/", HashMap::new())).unwrap().as_str(),
             "https://tonapi.io/api/v2/rates/TON%2FUSD?currency=usd"
@@ -151,7 +159,7 @@ mod tests {
     #[test]
     fn test_target_credentials() {
         let route = route("indexer", "blockscout");
-        let matched = match_route(std::slice::from_ref(&route), "/indexer_blockscout/api?apikey=client&chain=1").unwrap();
+        let matched = match_route(std::slice::from_ref(&route), "/consumer/indexer_blockscout/api?apikey=client&chain=1").unwrap();
         let endpoint = endpoint("https://api.blockscout.com", HashMap::from([("apikey".to_string(), "secret".to_string())]));
         assert_eq!(matched.target_url(&endpoint).unwrap().as_str(), "https://api.blockscout.com/api?chain=1&apikey=secret");
     }

@@ -7,15 +7,17 @@ use super::route::Route;
 
 pub(super) struct AccessLog<'a> {
     id: String,
+    caller: &'a str,
     method: &'a Method,
     uri: &'a str,
     start: Instant,
 }
 
 impl<'a> AccessLog<'a> {
-    pub(super) fn new(method: &'a Method, uri: &'a str) -> Self {
+    pub(super) fn new(caller: &'a str, method: &'a Method, uri: &'a str) -> Self {
         Self {
             id: format!("{:016x}", rand::random::<u64>()),
+            caller,
             method,
             uri,
             start: Instant::now(),
@@ -27,6 +29,7 @@ impl<'a> AccessLog<'a> {
         info_with_fields!(
             "Egress request",
             id = self.id.as_str(),
+            caller = self.caller,
             group = group,
             service = service,
             method = self.method.as_str(),
@@ -38,6 +41,7 @@ impl<'a> AccessLog<'a> {
         info_with_fields!(
             "Egress failover",
             id = self.id.as_str(),
+            caller = self.caller,
             group = route.group.as_str(),
             service = route.service.as_str(),
             endpoint = endpoint,
@@ -53,6 +57,7 @@ impl<'a> AccessLog<'a> {
         error_fields!(
             "Egress upstream failed",
             id = self.id.as_str(),
+            caller = self.caller,
             group = route.group.as_str(),
             service = route.service.as_str(),
             endpoint = endpoint,
@@ -70,6 +75,7 @@ impl<'a> AccessLog<'a> {
         error_fields!(
             "Egress unavailable",
             id = self.id.as_str(),
+            caller = self.caller,
             group = group,
             service = service,
             endpoint = "none",
@@ -85,6 +91,7 @@ impl<'a> AccessLog<'a> {
         info_with_fields!(
             "Egress response",
             id = self.id.as_str(),
+            caller = self.caller,
             group = route.group.as_str(),
             service = route.service.as_str(),
             endpoint = endpoint,
