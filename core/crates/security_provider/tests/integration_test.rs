@@ -23,8 +23,8 @@ mod tests {
     #[tokio::test]
     async fn test_goplus_scan_address_eth() {
         let settings = load_settings();
-        let client = build_client(settings.scan.goplus.url.clone(), settings.scan.timeout);
-        let provider = GoPlusProvider::new(client, &settings.scan.goplus.key.secret);
+        let client = build_client(settings.security.goplus.url.clone(), settings.security.timeout);
+        let provider = GoPlusProvider::new(client);
 
         let target = AddressTarget {
             address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045".to_string(), // Vitalik.eth
@@ -40,8 +40,8 @@ mod tests {
     #[tokio::test]
     async fn test_goplus_scan_token_eth_usdc() {
         let settings = load_settings();
-        let client = build_client(settings.scan.goplus.url.clone(), settings.scan.timeout);
-        let provider = GoPlusProvider::new(client, &settings.scan.goplus.key.secret);
+        let client = build_client(settings.security.goplus.url.clone(), settings.security.timeout);
+        let provider = GoPlusProvider::new(client);
 
         let target = TokenTarget {
             token_id: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".to_string(), // USDT
@@ -57,9 +57,9 @@ mod tests {
     #[tokio::test]
     async fn test_hashdit_scan_address_eth() {
         let settings = load_settings();
-        let client = build_client(settings.scan.hashdit.url.clone(), settings.scan.timeout);
-        let app_id = &settings.scan.hashdit.key.public;
-        let app_secret = &settings.scan.hashdit.key.secret;
+        let client = build_client(settings.security.hashdit.url.clone(), settings.security.timeout);
+        let app_id = &settings.security.hashdit.key.public;
+        let app_secret = &settings.security.hashdit.key.secret;
         let provider = HashDitProvider::new(client, app_id, app_secret);
 
         let target = AddressTarget {
@@ -76,9 +76,9 @@ mod tests {
     #[tokio::test]
     async fn test_hashdit_scan_token_eth_usdc() {
         let settings = load_settings();
-        let client = build_client(settings.scan.hashdit.url.clone(), settings.scan.timeout);
-        let app_id = &settings.scan.hashdit.key.public;
-        let app_secret = &settings.scan.hashdit.key.secret;
+        let client = build_client(settings.security.hashdit.url.clone(), settings.security.timeout);
+        let app_id = &settings.security.hashdit.key.public;
+        let app_secret = &settings.security.hashdit.key.secret;
         let provider = HashDitProvider::new(client, app_id, app_secret);
 
         let target = TokenTarget {

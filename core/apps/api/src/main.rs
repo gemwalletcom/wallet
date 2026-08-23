@@ -258,8 +258,11 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let markets_client = MarketsClient::new(database.clone(), cacher_client.clone());
     let webhooks_client = WebhooksClient::new(stream_producer.clone(), settings.support.webhook.key.secret.clone());
     let ip_check_providers: Vec<Arc<dyn IpCheckProvider>> = vec![
-        Arc::new(AbuseIPDBClient::new(settings.ip.abuseipdb.url.clone(), settings.ip.abuseipdb.key.secret.clone())),
-        Arc::new(IpApiClient::new(settings.ip.ipapi.url.clone(), settings.ip.ipapi.key.secret.clone())),
+        Arc::new(AbuseIPDBClient::new(
+            settings.security.abuseipdb.url.clone(),
+            settings.security.abuseipdb.key.secret.clone(),
+        )),
+        Arc::new(IpApiClient::new(settings.security.ipapi.url.clone(), settings.security.ipapi.key.secret.clone())),
     ];
     let ip_security_client = IpSecurityClient::new(ip_check_providers, cacher_client.clone());
     let rewards_client = RewardsClient::new(database.clone(), stream_producer.clone(), ip_security_client, pusher_client.clone());
