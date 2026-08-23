@@ -110,7 +110,7 @@ mod chain_integration_tests {
 
     #[tokio::test]
     async fn test_near_get_transactions_by_missing_block() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let transactions = create_near_test_client().get_transactions_by_block(999999999).await?;
+        let transactions = create_near_test_client().get_transactions_in_blocks(vec![212520205, 999999999]).await?;
 
         assert!(transactions.is_empty());
         Ok(())

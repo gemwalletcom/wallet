@@ -84,7 +84,8 @@ impl<C: Client> NearIndexer<C> {
 
     pub(crate) async fn get_transactions_by_block(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
         let response: NearDataBlockResponse = match self.neardata_client.get(&format!("/v0/block/{block_number}")).await {
-            Ok(response) => response,
+            Ok(Some(response)) => response,
+            Ok(None) => return Ok(Vec::new()),
             Err(ClientError::Http { status: 404, .. }) => return Ok(Vec::new()),
             Err(error) => return Err(Box::new(error)),
         };
@@ -394,6 +395,20 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_transactions_by_missing_block() {
+        let client = mock_client(
+            MockRequests::default(),
+            MockResponses {
+                block: Some(Ok("null")),
+                ..Default::default()
+            },
+        );
+        let transactions = NearIndexer::new(client.clone(), client.clone(), client).get_transactions_by_block(212520205).await.unwrap();
+
+        assert!(transactions.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_get_transactions_by_future_block() {
         let client = mock_client(
             MockRequests::default(),
             MockResponses {
