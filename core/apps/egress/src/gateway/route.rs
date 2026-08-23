@@ -90,9 +90,6 @@ pub(super) fn match_route<'a>(routes: &'a [Route], uri: &'a str) -> Option<Route
     let (path, query) = uri.split_once('?').map_or((uri, None), |(path, query)| (path, Some(query)));
     let path = path.strip_prefix('/')?;
     let (caller, path) = path.split_once('/')?;
-    if !["api", "parser", "consumer", "worker"].contains(&caller) {
-        return None;
-    }
     let name_end = path.find('/').unwrap_or(path.len());
     let (name, remainder) = path.split_at(name_end);
     let (group, service) = name.split_once('_')?;
@@ -142,7 +139,7 @@ mod tests {
         assert_eq!(matched.route.service, "tonapi_rates");
         assert_eq!(matched.path(), "/v2");
         assert!(match_route(&routes, "/prices_tonapi_rates/v2").is_none());
-        assert!(match_route(&routes, "/unknown/prices_tonapi_rates/v2").is_none());
+        assert_eq!(match_route(&routes, "/scheduler/prices_tonapi_rates/v2").unwrap().caller, "scheduler");
         assert!(match_route(&routes, "/worker/prices_tonapi-other").is_none());
     }
 
