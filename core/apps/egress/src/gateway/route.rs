@@ -1,9 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use gem_tracing::path;
 use rand::seq::SliceRandom;
-use reqwest::{Client, StatusCode};
+use reqwest::Client;
 use url::Url;
 
 use super::BoxError;
@@ -45,8 +45,8 @@ impl Route {
         })
     }
 
-    pub(super) fn should_retry(&self, status: StatusCode) -> bool {
-        self.statuses.contains(&status.as_u16())
+    pub(super) fn should_retry(&self, status: u16) -> bool {
+        self.statuses.contains(&status)
     }
 
     pub(super) fn prioritize_endpoints(&self, endpoints: &mut [usize]) {
@@ -62,7 +62,7 @@ impl Route {
 }
 
 impl RouteMatch<'_> {
-    pub(super) fn path(&self) -> String {
+    pub(super) fn redacted_path(&self) -> String {
         path::redact(self.remainder)
     }
 
@@ -72,10 +72,9 @@ impl RouteMatch<'_> {
             url.set_query(Some(query));
         }
         if !endpoint.query.is_empty() {
-            let replaced = endpoint.query.keys().map(String::as_str).collect::<HashSet<_>>();
             let mut query = url
                 .query_pairs()
-                .filter(|(name, _)| !replaced.contains(name.as_ref()))
+                .filter(|(name, _)| !endpoint.query.contains_key(name.as_ref()))
                 .map(|(name, value)| (name.into_owned(), value.into_owned()))
                 .collect::<Vec<_>>();
             query.extend(endpoint.query.iter().map(|(name, value)| (name.clone(), value.clone())));
@@ -137,7 +136,7 @@ mod tests {
         assert_eq!(matched.caller, "worker");
         assert_eq!(matched.route.group, "prices");
         assert_eq!(matched.route.service, "tonapi_rates");
-        assert_eq!(matched.path(), "/v2");
+        assert_eq!(matched.redacted_path(), "/v2");
         assert!(match_route(&routes, "/prices_tonapi_rates/v2").is_none());
         assert_eq!(match_route(&routes, "/scheduler/prices_tonapi_rates/v2").unwrap().caller, "scheduler");
         assert!(match_route(&routes, "/worker/prices_tonapi-other").is_none());
@@ -164,8 +163,8 @@ mod tests {
     #[test]
     fn test_should_retry() {
         let route = route("prices", "tonapi");
-        assert!(route.should_retry(StatusCode::TOO_MANY_REQUESTS));
-        assert!(!route.should_retry(StatusCode::BAD_REQUEST));
+        assert!(route.should_retry(429));
+        assert!(!route.should_retry(400));
     }
 
     #[test]

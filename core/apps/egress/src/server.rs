@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::io::Cursor;
 use std::net::IpAddr;
 
@@ -31,7 +32,7 @@ impl Handler for EgressHandler {
             }
         };
         match forward_request(request, data, gateway.inner(), self.limit).await {
-            Ok(response) => Outcome::from(request, RocketGatewayResponse(response)),
+            Ok(response) => Outcome::from(request, response),
             Err(error) => Outcome::from(request, error),
         }
     }
@@ -93,19 +94,17 @@ fn metrics_endpoint(metrics: &State<Metrics>) -> RawText<String> {
     RawText(metrics.encode())
 }
 
-struct RocketGatewayResponse(GatewayResponse);
-
 #[rocket::async_trait]
-impl<'r> Responder<'r, 'static> for RocketGatewayResponse {
+impl<'r> Responder<'r, 'static> for GatewayResponse {
     fn respond_to(self, _: &'r Request<'_>) -> rocket::response::Result<'static> {
         let mut builder = Response::build();
-        builder.status(Status::from_code(self.0.status).unwrap_or(Status::BadGateway));
-        for (name, value) in &self.0.headers {
+        builder.status(Status::new(self.status));
+        for (name, value) in &self.headers {
             if let Ok(value) = value.to_str() {
                 builder.raw_header(name.as_str().to_string(), value.to_string());
             }
         }
-        builder.sized_body(self.0.body.len(), Cursor::new(self.0.body));
+        builder.sized_body(self.body.len(), Cursor::new(self.body));
         Ok(builder.finalize())
     }
 }
@@ -122,7 +121,7 @@ impl<'r> Responder<'r, 'static> for GatewayError {
     }
 }
 
-pub(crate) async fn launch(address: IpAddr, port: u16, limit: usize, gateway: Gateway, metrics: Metrics) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub(crate) async fn launch(address: IpAddr, port: u16, limit: usize, gateway: Gateway, metrics: Metrics) -> Result<(), Box<dyn Error + Send + Sync>> {
     let server = rocket::custom(Config::figment().merge(("address", address)).merge(("port", port)))
         .manage(gateway)
         .manage(metrics)

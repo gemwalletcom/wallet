@@ -10,7 +10,7 @@ impl EgressConfig {
         let path = if let Some(path) = env::var_os("EGRESS_CONFIG") {
             PathBuf::from(path)
         } else {
-            let current = env::current_dir().map_err(|error| message(format!("current directory is unavailable: {error}")))?;
+            let current = env::current_dir().map_err(|error| ConfigError::Message(format!("current directory is unavailable: {error}")))?;
             if current.join("config.yml").exists() {
                 current.join("config.yml")
             } else {
@@ -26,13 +26,8 @@ impl EgressConfig {
         for route in &mut self.routes {
             for endpoint in &mut route.endpoints {
                 endpoint.url = expand_value(&endpoint.url, |name| env::var(name).ok())?;
-                if let Some(headers) = &mut endpoint.headers {
-                    for value in headers.values_mut() {
-                        *value = expand_value(value, |name| env::var(name).ok())?;
-                    }
-                }
-                if let Some(query) = &mut endpoint.query {
-                    for value in query.values_mut() {
+                for values in [&mut endpoint.headers, &mut endpoint.query].into_iter().flatten() {
+                    for value in values.values_mut() {
                         *value = expand_value(value, |name| env::var(name).ok())?;
                     }
                 }
@@ -50,20 +45,13 @@ fn expand_value(value: &str, mut get: impl FnMut(&str) -> Option<String>) -> Res
         let end = expanded[name_start..]
             .find('}')
             .map(|end| name_start + end)
-            .ok_or_else(|| message("unterminated environment variable"))?;
+            .ok_or_else(|| ConfigError::Message("unterminated environment variable".into()))?;
         let name = &expanded[name_start..end];
-        if name.is_empty() {
-            return Err(message("empty environment variable"));
-        }
-        let replacement = get(name).ok_or_else(|| message(format!("missing environment variable: {name}")))?;
+        let replacement = get(name).ok_or_else(|| ConfigError::Message(format!("missing environment variable: {name}")))?;
         expanded.replace_range(start..=end, &replacement);
         offset = start + replacement.len();
     }
     Ok(expanded)
-}
-
-fn message(value: impl Into<String>) -> ConfigError {
-    ConfigError::Message(value.into())
 }
 
 #[cfg(test)]

@@ -123,7 +123,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn records_path_for_requests_and_failovers() {
+    fn test_records_path_for_requests_and_failovers() {
         let metrics = Metrics::new();
         metrics.record_request("consumer", "indexer", "toncenter", "key_1", "/api/v3/wallet/:value", 200);
         metrics.record_response("consumer", "indexer", "toncenter", "/api/v3/wallet/:value", 200);

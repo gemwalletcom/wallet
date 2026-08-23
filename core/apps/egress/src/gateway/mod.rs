@@ -9,12 +9,12 @@ use std::time::{Duration, Instant};
 
 use gem_tracing::path;
 use reqwest::Method;
-use reqwest::header::{HeaderMap, HeaderName, RETRY_AFTER};
+use reqwest::header::{HeaderMap, HeaderName};
 use rocket::http::Status;
 use tokio::sync::RwLock;
 
 use access::AccessLog;
-use endpoint::{Endpoint, filter_headers};
+use endpoint::Endpoint;
 use proxy::{OutboundProxy, build_client};
 use route::{Route, match_route};
 
@@ -76,7 +76,7 @@ impl Gateway {
             .collect::<Result<Vec<_>, BoxError>>()?;
         let forward_headers = headers
             .forward
-            .iter()
+            .into_iter()
             .map(|header| HeaderName::from_bytes(header.as_bytes()))
             .collect::<Result<HashSet<_>, _>>()?;
         for name in proxies.keys() {
@@ -102,20 +102,18 @@ impl Gateway {
     pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<GatewayResponse, GatewayError> {
         let Some(route_match) = match_route(&self.routes, uri) else {
             let uri = path::redact(uri);
-            let access = AccessLog::new("none", &method, &uri);
-            access.request(None);
-            access.unavailable(None, Status::NotFound.code, "route");
+            AccessLog::route_not_found(&method, &uri);
             return Err(GatewayError::new(Status::NotFound, "route not found"));
         };
         let route = route_match.route;
-        let path = route_match.path();
+        let path = route_match.redacted_path();
         let caller = route_match.caller;
-        let access = AccessLog::new(caller, &method, &path);
-        access.request(Some(route));
+        let access = AccessLog::new(caller, route, &method, &path);
+        access.request();
         let mut candidates = self.available_endpoints(route, &path).await.map_err(|failure| {
-            access.unavailable(Some(route), failure.status, failure.reason);
+            access.unavailable(failure.status, failure.reason);
             self.metrics.record_response(caller, &route.group, &route.service, &path, failure.status);
-            GatewayError::new(Status::from_code(failure.status).unwrap_or(Status::ServiceUnavailable), "no endpoint is available")
+            GatewayError::new(Status::new(failure.status), "no endpoint is available")
         })?;
         route.prioritize_endpoints(&mut candidates);
 
@@ -128,92 +126,63 @@ impl Gateway {
             }
             if let Some((failed_index, status, reason)) = pending_failover.take() {
                 let failed = &route.endpoints[failed_index];
-                access.failover(route, &failed.name, failed.url.host_str().unwrap_or("none"), status);
+                access.failover(&failed.name, &failed.remote_host, status);
                 self.metrics.record_failover(caller, &route.group, &route.service, &failed.name, &path, &reason);
             }
-            let remote_host = endpoint.url.host_str().unwrap_or("none");
+            let remote_host = &endpoint.remote_host;
             let target = match route_match.target_url(endpoint) {
                 Ok(target) => target,
                 Err(error) => {
-                    access.response(route, &endpoint.name, remote_host, Status::BadRequest.code);
+                    access.response(&endpoint.name, remote_host, Status::BadRequest.code);
                     self.metrics.record_response(caller, &route.group, &route.service, &path, Status::BadRequest.code);
                     return Err(GatewayError::new(Status::BadRequest, error.to_string()));
                 }
             };
-            let request_headers = endpoint.request_headers(headers, &self.forward_headers);
-            let result = endpoint.client.request(method.clone(), target).headers(request_headers).body(body.clone()).send().await;
-
-            match result {
-                Ok(response) => {
-                    let status = response.status();
-                    let retry_after = retry_after(response.headers());
-                    let response_headers = filter_headers(response.headers(), &self.forward_headers);
-                    let response_body = match response.bytes().await {
-                        Ok(bytes) => bytes.to_vec(),
-                        Err(_) => {
-                            access.upstream_failed(route, &endpoint.name, remote_host, "response_body");
-                            self.record_failure(
-                                route,
-                                endpoint,
-                                &path,
-                                Failure {
-                                    status: Status::ServiceUnavailable.code,
-                                    reason: "response_body",
-                                },
-                                self.cooldown,
-                            )
-                            .await;
-                            pending_failover = Some((endpoint_index, Status::BadGateway.code, "response_body".to_string()));
-                            continue;
-                        }
-                    };
-                    self.metrics.record_request(caller, &route.group, &route.service, &endpoint.name, &path, status.as_u16());
-                    let response = GatewayResponse {
-                        status: status.as_u16(),
-                        headers: response_headers,
-                        body: response_body,
-                    };
-                    if route.should_retry(status) {
-                        self.record_failure(
+            match endpoint.send(&method, target, headers, &self.forward_headers, body.clone()).await {
+                Ok((response, retry_after)) => {
+                    self.metrics.record_request(caller, &route.group, &route.service, &endpoint.name, &path, response.status);
+                    if route.should_retry(response.status) {
+                        self.start_cooldown(
                             route,
                             endpoint,
                             &path,
                             Failure {
-                                status: status.as_u16(),
+                                status: response.status,
                                 reason: "cooldown",
                             },
                             retry_after.unwrap_or(self.cooldown),
                         )
                         .await;
+                        let status = response.status;
                         last_response = Some((response, endpoint_index));
-                        pending_failover = Some((endpoint_index, status.as_u16(), status.as_u16().to_string()));
+                        pending_failover = Some((endpoint_index, status, status.to_string()));
                         continue;
                     }
-                    access.response(route, &endpoint.name, remote_host, status.as_u16());
-                    self.metrics.record_response(caller, &route.group, &route.service, &path, status.as_u16());
+                    access.response(&endpoint.name, remote_host, response.status);
+                    self.metrics.record_response(caller, &route.group, &route.service, &path, response.status);
                     return Ok(response);
                 }
-                Err(_) => {
-                    access.upstream_failed(route, &endpoint.name, remote_host, "transport");
-                    self.record_failure(
+                Err(reason) => {
+                    access.upstream_failed(&endpoint.name, remote_host, reason);
+                    self.start_cooldown(
                         route,
                         endpoint,
                         &path,
                         Failure {
                             status: Status::ServiceUnavailable.code,
-                            reason: "transport",
+                            reason,
                         },
                         self.cooldown,
                     )
                     .await;
-                    pending_failover = Some((endpoint_index, Status::BadGateway.code, "transport".to_string()));
+                    pending_failover = Some((endpoint_index, Status::BadGateway.code, reason.to_string()));
                 }
             }
         }
 
         if let Some((response, endpoint_index)) = last_response {
             let endpoint = &route.endpoints[endpoint_index];
-            access.response(route, &endpoint.name, endpoint.url.host_str().unwrap_or("none"), response.status);
+            access.response(&endpoint.name, &endpoint.remote_host, response.status);
             self.metrics.record_response(caller, &route.group, &route.service, &path, response.status);
             return Ok(response);
         }
@@ -221,12 +190,9 @@ impl Gateway {
             status: Status::ServiceUnavailable.code,
             reason: "upstream",
         });
-        access.unavailable(Some(route), failure.status, failure.reason);
+        access.unavailable(failure.status, failure.reason);
         self.metrics.record_response(caller, &route.group, &route.service, &path, failure.status);
-        Err(GatewayError::new(
-            Status::from_code(failure.status).unwrap_or(Status::ServiceUnavailable),
-            "all upstream requests failed",
-        ))
+        Err(GatewayError::new(Status::new(failure.status), "all upstream requests failed"))
     }
 
     async fn available_endpoints(&self, route: &Route, path: &str) -> Result<Vec<usize>, Failure> {
@@ -246,7 +212,7 @@ impl Gateway {
                     });
                     return None;
                 }
-                if let Some(cooldown) = cooldowns.get(&endpoint.key(&route.group, &route.service, path)) {
+                if let Some(cooldown) = cooldowns.get(&endpoint.cooldown_key(&route.group, &route.service, path)) {
                     failures.push(cooldown.failure);
                     return None;
                 }
@@ -256,10 +222,12 @@ impl Gateway {
         if !endpoints.is_empty() {
             return Ok(endpoints);
         }
-        let first = failures.first().copied().unwrap_or(Failure {
-            status: Status::ServiceUnavailable.code,
-            reason: "configuration",
-        });
+        let Some(first) = failures.first().copied() else {
+            return Err(Failure {
+                status: Status::ServiceUnavailable.code,
+                reason: "configuration",
+            });
+        };
         if failures.iter().all(|failure| *failure == first) {
             return Err(first);
         }
@@ -281,13 +249,13 @@ impl Gateway {
                 .cooldowns
                 .read()
                 .await
-                .get(&endpoint.key(&route.group, &route.service, path))
+                .get(&endpoint.cooldown_key(&route.group, &route.service, path))
                 .is_none_or(|cooldown| cooldown.until <= Instant::now())
     }
 
-    async fn record_failure(&self, route: &Route, endpoint: &Endpoint, path: &str, failure: Failure, duration: Duration) {
+    async fn start_cooldown(&self, route: &Route, endpoint: &Endpoint, path: &str, failure: Failure, duration: Duration) {
         self.cooldowns.write().await.insert(
-            endpoint.key(&route.group, &route.service, path),
+            endpoint.cooldown_key(&route.group, &route.service, path),
             Cooldown {
                 until: Instant::now() + duration,
                 failure,
@@ -302,17 +270,9 @@ impl GatewayError {
     }
 }
 
-fn retry_after(headers: &HeaderMap) -> Option<Duration> {
-    let duration = Duration::from_secs(headers.get(RETRY_AFTER)?.to_str().ok()?.parse::<u64>().ok()?);
-    Instant::now().checked_add(duration)?;
-    Some(duration)
-}
-
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr};
-
-    use reqwest::header::HeaderValue;
 
     use super::*;
     use crate::config::{EndpointConfig, HeadersConfig, RequestConfig, RetryConfig, RouteConfig, Selection};
@@ -328,7 +288,7 @@ mod tests {
                     limit: 1024,
                 },
                 retry: RetryConfig {
-                    cooldown: Duration::from_secs(60),
+                    cooldown: Duration::from_mins(1),
                     statuses: vec![429],
                 },
                 proxies: None,
@@ -353,21 +313,8 @@ mod tests {
         .unwrap()
     }
 
-    #[test]
-    fn test_retry_after() {
-        let mut headers = HeaderMap::new();
-        headers.insert(RETRY_AFTER, HeaderValue::from_static("120"));
-        assert_eq!(retry_after(&headers), Some(Duration::from_secs(120)));
-
-        headers.insert(RETRY_AFTER, HeaderValue::from_static("invalid"));
-        assert_eq!(retry_after(&headers), None);
-
-        headers.insert(RETRY_AFTER, HeaderValue::from_static("18446744073709551615"));
-        assert_eq!(retry_after(&headers), None);
-    }
-
     #[tokio::test]
-    async fn cooldowns_preserve_status_and_path() {
+    async fn test_cooldowns_preserve_status_and_path() {
         let gateway = gateway();
         let route = &gateway.routes[0];
         let failure = Failure {
@@ -376,7 +323,7 @@ mod tests {
         };
         for endpoint in &route.endpoints {
             gateway
-                .record_failure(route, endpoint, "/api/v2/addresses/:value/token-transfers", failure, gateway.cooldown)
+                .start_cooldown(route, endpoint, "/api/v2/addresses/:value/token-transfers", failure, gateway.cooldown)
                 .await;
         }
 
@@ -388,7 +335,7 @@ mod tests {
         assert_eq!(available, vec![0, 1]);
 
         gateway
-            .record_failure(
+            .start_cooldown(
                 route,
                 &route.endpoints[0],
                 "/mixed",
@@ -399,7 +346,7 @@ mod tests {
                 gateway.cooldown,
             )
             .await;
-        gateway.record_failure(route, &route.endpoints[1], "/mixed", failure, gateway.cooldown).await;
+        gateway.start_cooldown(route, &route.endpoints[1], "/mixed", failure, gateway.cooldown).await;
         let unavailable = gateway.available_endpoints(route, "/mixed").await.unwrap_err();
         assert_eq!(unavailable.status, Status::TooManyRequests.code);
         assert_eq!(unavailable.reason, "cooldown");
