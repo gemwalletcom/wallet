@@ -3,7 +3,7 @@ use std::{error::Error, ops::Deref};
 use async_trait::async_trait;
 use chain_traits::{
     ChainAccount, ChainAddressStatus, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainTraits, ChainTransaction, ChainTransactions,
-    TransactionsRequest, TransactionsResult,
+    EmptyTransactionsProvider, TransactionsRequest, TransactionsResult,
 };
 use gem_client::Client;
 use primitives::{Chain, Transaction, TransactionIdRequest};
@@ -22,6 +22,10 @@ pub struct NearProvider<C: Client + Clone> {
 impl<C: Client + Clone> NearProvider<C> {
     pub fn new(client: NearClient<C>, transaction_provider: Box<dyn NearTransactionProvider>) -> Self {
         Self { client, transaction_provider }
+    }
+
+    pub fn new_rpc_only(client: NearClient<C>) -> Self {
+        Self::new(client, Box::new(EmptyTransactionsProvider))
     }
 }
 
