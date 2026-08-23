@@ -28,7 +28,6 @@ pub struct Settings {
     pub defi: Defi,
     pub coingecko: CoinGecko,
     pub coinmarketcap: CoinMarketCap,
-    pub charter: Charter,
     pub name: Name,
     pub chains: Chains,
     pub pusher: Pusher,
@@ -233,11 +232,6 @@ pub struct Prices {
 pub struct Defi {
     pub jupiter: ProviderSettings,
     pub zerion: ProviderSettings,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Charter {
-    pub timer: u64,
 }
 
 #[derive(Debug, Deserialize, Clone)]

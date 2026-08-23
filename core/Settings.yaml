@@ -107,8 +107,6 @@ defi:
     url: "https://api.zerion.io"
     key:
       secret: ""
-charter:
-  timer: 60
 name:
   max_name_length: 20
   ens:
