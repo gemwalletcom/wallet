@@ -10,12 +10,21 @@ use prometheus_client::metrics::gauge::Gauge;
 pub(crate) struct Metrics {
     registry: Arc<MetricsRegistry>,
     requests: Family<RequestLabels, Counter>,
+    upstream_requests: Family<UpstreamRequestLabels, Counter>,
     failovers: Family<FailoverLabels, Counter>,
     proxy_available: Family<ProxyLabels, Gauge>,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 struct RequestLabels {
+    group: String,
+    service: String,
+    path: String,
+    status: u16,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+struct UpstreamRequestLabels {
     group: String,
     service: String,
     endpoint: String,
@@ -40,10 +49,14 @@ struct ProxyLabels {
 impl Metrics {
     pub(crate) fn new() -> Self {
         let requests = Family::<RequestLabels, Counter>::default();
+        let upstream_requests = Family::<UpstreamRequestLabels, Counter>::default();
         let failovers = Family::<FailoverLabels, Counter>::default();
         let proxy_available = Family::<ProxyLabels, Gauge>::default();
         let mut registry = MetricsRegistry::with_prefix("egress");
-        registry.registry_mut().register("requests", "Upstream requests", requests.clone());
+        registry.registry_mut().register("requests", "Completed client requests", requests.clone());
+        registry
+            .registry_mut()
+            .register("upstream_requests", "Upstream request attempts", upstream_requests.clone());
         registry.registry_mut().register("failovers", "Endpoint failovers", failovers.clone());
         registry
             .registry_mut()
@@ -51,14 +64,26 @@ impl Metrics {
         Self {
             registry: Arc::new(registry),
             requests,
+            upstream_requests,
             failovers,
             proxy_available,
         }
     }
 
-    pub(crate) fn record_request(&self, group: &str, service: &str, endpoint: &str, path: &str, status: u16) {
+    pub(crate) fn record_request(&self, group: &str, service: &str, path: &str, status: u16) {
         self.requests
             .get_or_create(&RequestLabels {
+                group: group.to_string(),
+                service: service.to_string(),
+                path: path.to_string(),
+                status,
+            })
+            .inc();
+    }
+
+    pub(crate) fn record_upstream_request(&self, group: &str, service: &str, endpoint: &str, path: &str, status: u16) {
+        self.upstream_requests
+            .get_or_create(&UpstreamRequestLabels {
                 group: group.to_string(),
                 service: service.to_string(),
                 endpoint: endpoint.to_string(),
@@ -96,16 +121,20 @@ mod tests {
     #[test]
     fn records_path_for_requests_and_failovers() {
         let metrics = Metrics::new();
-        metrics.record_request("indexer", "toncenter", "key_1", "/api/v3/wallet/:value", 200);
+        metrics.record_request("indexer", "toncenter", "/api/v3/wallet/:value", 200);
+        metrics.record_upstream_request("indexer", "toncenter", "key_1", "/api/v3/wallet/:value", 200);
         metrics.record_failover("indexer", "toncenter", "key_1", "/api/v3/wallet/:value", "429");
 
         let encoded = metrics.encode();
         assert_eq!(
             encoded,
             concat!(
-                "# HELP egress_requests Upstream requests.\n",
+                "# HELP egress_requests Completed client requests.\n",
                 "# TYPE egress_requests counter\n",
-                "egress_requests_total{group=\"indexer\",service=\"toncenter\",endpoint=\"key_1\",path=\"/api/v3/wallet/:value\",status=\"200\"} 1\n",
+                "egress_requests_total{group=\"indexer\",service=\"toncenter\",path=\"/api/v3/wallet/:value\",status=\"200\"} 1\n",
+                "# HELP egress_upstream_requests Upstream request attempts.\n",
+                "# TYPE egress_upstream_requests counter\n",
+                "egress_upstream_requests_total{group=\"indexer\",service=\"toncenter\",endpoint=\"key_1\",path=\"/api/v3/wallet/:value\",status=\"200\"} 1\n",
                 "# HELP egress_failovers Endpoint failovers.\n",
                 "# TYPE egress_failovers counter\n",
                 "egress_failovers_total{group=\"indexer\",service=\"toncenter\",endpoint=\"key_1\",path=\"/api/v3/wallet/:value\",reason=\"429\"} 1\n",
