@@ -1,12 +1,19 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use chain_traits::{ChainTransaction, ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionsRequest, TransactionsResult};
 
 use gem_client::Client;
 use primitives::{Transaction, TransactionIdRequest};
 
 use crate::rpc::NearIndexer;
+
+#[async_trait]
+impl<C: Client> ChainBlockTransactions for NearIndexer<C> {
+    async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        NearIndexer::get_transactions_by_block(self, block).await
+    }
+}
 
 #[async_trait]
 impl<C: Client> ChainTransaction for NearIndexer<C> {
@@ -64,12 +71,24 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_near_get_transactions_by_block() -> Result<(), Box<dyn Error + Send + Sync>> {
         let client = create_near_test_client();
-        let block = client.get_latest_block().await?.header.height.saturating_sub(5);
-        let transactions = client.get_transactions_by_block(block).await?;
-        let block = block.to_string();
+        let block_number = 212506690;
+        let transactions = client.get_transactions_by_block(block_number).await?;
+        let expected_block_number = block_number.to_string();
 
-        assert!(!transactions.is_empty());
-        assert!(transactions.iter().all(|transaction| transaction.block_number.as_deref() == Some(block.as_str())));
+        assert_eq!(transactions.len(), 7);
+        assert!(
+            transactions
+                .iter()
+                .all(|transaction| transaction.block_number.as_deref() == Some(expected_block_number.as_str()))
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_near_get_transactions_by_missing_block() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let transactions = create_near_test_client().get_transactions_by_block(999999999).await?;
+
+        assert!(transactions.is_empty());
         Ok(())
     }
 }

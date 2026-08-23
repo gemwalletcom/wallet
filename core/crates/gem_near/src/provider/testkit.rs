@@ -20,6 +20,7 @@ pub fn create_near_test_client() -> NearProvider<ReqwestClient> {
     NearProvider::new(
         NearClient::new(JsonRpcClient::new_reqwest(url)),
         Box::new(NearIndexer::new(
+            settings.indexer.fastnear.neardata.remote_provider_config().configure_client(client.clone()),
             settings.indexer.fastnear.transfers.remote_provider_config().configure_client(client.clone()),
             settings.indexer.fastnear.tx.remote_provider_config().configure_client(client),
         )),

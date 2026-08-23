@@ -120,6 +120,7 @@ impl ProviderFactory {
             ChainType::Near => Box::new(NearProvider::new(
                 NearClient::new(JsonRpcClient::new(gem_client.clone())),
                 Box::new(NearIndexer::new(
+                    config.indexers.fastnear.neardata.configure_client(gem_client.clone()),
                     config.indexers.fastnear.transfers.configure_client(gem_client.clone()),
                     config.indexers.fastnear.tx.configure_client(gem_client),
                 )),

@@ -5,6 +5,7 @@ const DEFAULT_EVM_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
 pub fn node_check_request(chain: Chain, profile: NodeCheckProfile) -> NodeCheckRequest {
     match profile {
         NodeCheckProfile::Basic => NodeCheckRequest::Basic,
+        NodeCheckProfile::Parser if chain == Chain::Near => NodeCheckRequest::Basic,
         NodeCheckProfile::Parser => NodeCheckRequest::Parser,
         NodeCheckProfile::Wallet => wallet_node_check_request(chain),
     }
@@ -119,5 +120,10 @@ mod tests {
                 assert!(transaction_id.is_some(), "wallet transaction missing for {chain}");
             }
         }
+    }
+
+    #[test]
+    fn test_near_parser_node_check_request() {
+        assert_eq!(node_check_request(Chain::Near, NodeCheckProfile::Parser), NodeCheckRequest::Basic);
     }
 }

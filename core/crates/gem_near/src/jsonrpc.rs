@@ -9,8 +9,6 @@ pub enum NearRpc {
     GetAccount(String),
     GetAccountAccessKey { address: String, public_key: String },
     GetGasPrice,
-    GetBlock(u64),
-    GetChunk(String),
     GetLatestBlock,
     GetProtocolConfig,
     GetStatus,
@@ -23,8 +21,7 @@ impl ToJsonRpcRequest for NearRpc {
         match self {
             Self::CallFunction { .. } | Self::GetAccount(_) | Self::GetAccountAccessKey { .. } => method::QUERY,
             Self::GetGasPrice => method::GAS_PRICE,
-            Self::GetBlock(_) | Self::GetLatestBlock => method::BLOCK,
-            Self::GetChunk(_) => method::CHUNK,
+            Self::GetLatestBlock => method::BLOCK,
             Self::GetProtocolConfig => method::PROTOCOL_CONFIG,
             Self::GetStatus => method::STATUS,
             Self::GetTransactionStatus { .. } => method::TRANSACTION,
@@ -57,8 +54,6 @@ impl ToJsonRpcRequest for NearRpc {
                 "public_key": public_key
             }),
             Self::GetGasPrice => json!([null]),
-            Self::GetBlock(block_id) => json!({"block_id": block_id}),
-            Self::GetChunk(chunk_id) => json!({"chunk_id": chunk_id}),
             Self::GetLatestBlock => json!({"finality": "final"}),
             Self::GetProtocolConfig => json!({"finality": "final"}),
             Self::GetStatus => json!([]),
@@ -135,9 +130,8 @@ mod tests {
     }
 
     #[test]
-    fn builds_block_and_chunk_requests() {
-        assert_request(NearRpc::GetBlock(211048907), method::BLOCK, json!({"block_id": 211048907}));
-        assert_request(NearRpc::GetChunk("chunk".into()), method::CHUNK, json!({"chunk_id": "chunk"}));
+    fn builds_latest_block_request() {
+        assert_request(NearRpc::GetLatestBlock, method::BLOCK, json!({"finality": "final"}));
     }
 
     #[test]

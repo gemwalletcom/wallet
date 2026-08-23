@@ -1,0 +1,42 @@
+{
+  "block": {
+    "header": {
+      "height": 211048907,
+      "timestamp": 1786557652797431689
+    }
+  },
+  "shards": [
+    {
+      "chunk": {
+        "transactions": [
+          {
+            "outcome": {
+              "execution_outcome": {
+                "outcome": {
+                  "executor_id": "sender.near",
+                  "logs": [],
+                  "status": {
+                    "SuccessValue": ""
+                  },
+                  "tokens_burnt": "411253844391900000000"
+                }
+              }
+            },
+            "transaction": {
+              "hash": "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E",
+              "signer_id": "sender.near",
+              "receiver_id": "receiver.near",
+              "actions": [
+                {
+                  "Transfer": {
+                    "deposit": "100"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -62,6 +62,7 @@ pub struct Indexer {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct FastNearIndexer {
+    pub neardata: ProviderSettings,
     pub transfers: ProviderSettings,
     pub tx: ProviderSettings,
 }

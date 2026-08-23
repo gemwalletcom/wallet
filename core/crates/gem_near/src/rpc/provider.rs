@@ -3,16 +3,16 @@ use std::{error::Error, ops::Deref};
 use async_trait::async_trait;
 use chain_traits::{
     ChainAccount, ChainAddressStatus, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainTraits, ChainTransaction, ChainTransactions,
-    EmptyTransactionsProvider, TransactionsRequest, TransactionsResult,
+    TransactionsRequest, TransactionsResult,
 };
 use gem_client::Client;
 use primitives::{Chain, Transaction, TransactionIdRequest};
 
 use super::NearClient;
 
-pub trait NearTransactionProvider: ChainTransactions + ChainTransaction {}
+pub trait NearTransactionProvider: ChainTransactions + ChainBlockTransactions + ChainTransaction {}
 
-impl<T: ChainTransactions + ChainTransaction> NearTransactionProvider for T {}
+impl<T: ChainTransactions + ChainBlockTransactions + ChainTransaction> NearTransactionProvider for T {}
 
 pub struct NearProvider<C: Client + Clone> {
     client: NearClient<C>,
@@ -22,10 +22,6 @@ pub struct NearProvider<C: Client + Clone> {
 impl<C: Client + Clone> NearProvider<C> {
     pub fn new(client: NearClient<C>, transaction_provider: Box<dyn NearTransactionProvider>) -> Self {
         Self { client, transaction_provider }
-    }
-
-    pub fn new_rpc_only(client: NearClient<C>) -> Self {
-        Self::new(client, Box::new(EmptyTransactionsProvider))
     }
 }
 
@@ -45,16 +41,16 @@ impl<C: Client + Clone> ChainTransactions for NearProvider<C> {
 }
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransaction for NearProvider<C> {
-    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        self.transaction_provider.get_transaction_by_hash(request).await
+impl<C: Client + Clone> ChainBlockTransactions for NearProvider<C> {
+    async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        self.transaction_provider.get_transactions_by_block(block).await
     }
 }
 
 #[async_trait]
-impl<C: Client + Clone> ChainBlockTransactions for NearProvider<C> {
-    async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        self.client.get_transactions_by_block(block).await
+impl<C: Client + Clone> ChainTransaction for NearProvider<C> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        self.transaction_provider.get_transaction_by_hash(request).await
     }
 }
 

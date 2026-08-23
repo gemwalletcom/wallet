@@ -47,9 +47,7 @@ mod tests {
             header: BlockHeader {
                 hash: String::new(),
                 height: 123456789,
-                timestamp: 0,
             },
-            chunks: vec![],
         };
         let mapped = map_node_status(&block).unwrap();
 
