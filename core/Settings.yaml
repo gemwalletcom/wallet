@@ -15,13 +15,34 @@ rabbitmq:
   retry:
     delay: 1s
     timeout: 30s
-coingecko:
-  url: "https://pro-api.coingecko.com"
-  key:
-    secret: ""
-coinmarketcap:
-  key:
-    secret: ""
+
+api:
+  service: ""
+  admin:
+    enabled: true
+  auth:
+    enabled: true
+    tolerance: 5m
+    jwt:
+      secret: ""
+      expiry: 1h
+parser:
+  timeout: 1s
+  shutdown:
+    timeout: 15s
+daemon:
+  service: ""
+  shutdown:
+    timeout: 15s
+consumer:
+  error:
+    timeout: 0s
+    skip: true
+    retries: 5
+  delay: 0s
+  shutdown:
+    timeout: 15s
+
 fiat:
   timeout: 3s
   moonpay:
@@ -73,6 +94,14 @@ fiat:
     webhook:
       key:
         secret: ""
+swap:
+  okx:
+    key:
+      public: ""
+      secret: ""
+    passphrase: ""
+    project: ""
+
 prices:
   coingecko:
     url: "https://pro-api.coingecko.com"
@@ -107,6 +136,14 @@ defi:
     url: "https://api.zerion.io"
     key:
       secret: ""
+coingecko:
+  url: "https://pro-api.coingecko.com"
+  key:
+    secret: ""
+coinmarketcap:
+  key:
+    secret: ""
+
 name:
   max_name_length: 20
   ens:
@@ -254,13 +291,10 @@ chains:
   tempo:
     url: https://rpc.tempo.xyz
 
-swap:
-  okx:
-    key:
-      public: ""
-      secret: ""
-    passphrase: ""
-    project: ""
+pusher:
+  url: "http://localhost:8088"
+  ios:
+    topic: ""
 scan:
   timeout: 1200ms
   goplus:
@@ -288,40 +322,28 @@ support:
       - jpg
       - png
 
-parser:
-  timeout: 1s
-  shutdown:
-    timeout: 15s
-
-pusher:
-  url: "http://localhost:8088"
-  ios:
-    topic: ""
-
-daemon:
-  service: ""
-  shutdown:
-    timeout: 15s
-
-consumer:
-  error:
-    timeout: 0s
-    skip: true
-    retries: 5
-  delay: 0s
-  shutdown:
-    timeout: 15s
-
-api:
-  service: ""
-  admin:
-    enabled: true
-  auth:
-    enabled: true
-    tolerance: 5m
-    jwt:
+nft:
+  url: "https://assets.gemwallet.com/nft"
+  alchemy:
+    url: "https://{network}.g.alchemy.com"
+    key:
       secret: ""
-      expiry: 1h
+  magiceden:
+    url: "https://api-mainnet.magiceden.dev"
+    key:
+      secret: ""
+  opensea:
+    url: "https://api.opensea.io"
+    key:
+      secret: ""
+  ton:
+    url: "https://toncenter.com"
+    key:
+      secret: ""
+  offchain:
+    timeout: 5
+    concurrency: 8
+    limit: 1048576
 
 indexer:
   alchemy:
@@ -372,29 +394,6 @@ indexer:
 
 assets:
   url: "https://raw.githubusercontent.com/gemwalletcom/assets/refs/heads/master"
-
-nft:
-  url: "https://assets.gemwallet.com/nft"
-  alchemy:
-    url: "https://{network}.g.alchemy.com"
-    key:
-      secret: ""
-  magiceden:
-    url: "https://api-mainnet.magiceden.dev"
-    key:
-      secret: ""
-  opensea:
-    url: "https://api.opensea.io"
-    key:
-      secret: ""
-  ton:
-    url: "https://toncenter.com"
-    key:
-      secret: ""
-  offchain:
-    timeout: 5
-    concurrency: 8
-    limit: 1048576
 
 rewards:
   wallets: {}
