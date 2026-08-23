@@ -3,24 +3,24 @@ use crate::model::{FiatProviderAsset, filter_token_id};
 use super::mapper::map_asset_chain;
 use super::models::{Asset, Country, MoonPayBuyQuote, MoonPayIpAddress, MoonPayResponse, MoonPaySellQuote};
 use super::widget::MoonPayWidget;
+use gem_client::ReqwestClient;
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{FiatProviderName, FiatQuoteType, PaymentType};
-use reqwest::Client;
+use reqwest::Method;
 
 #[derive(Clone)]
 pub struct MoonPayClient {
-    client: Client,
+    client: ReqwestClient,
     api_key: String,
     secret_key: String,
     pub(super) webhook_secret_key: String,
 }
 
-const MOONPAY_API_BASE_URL: &str = "https://api.moonpay.com";
 impl MoonPayClient {
     pub const NAME: FiatProviderName = FiatProviderName::MoonPay;
 
-    pub fn new(client: Client, api_key: String, secret_key: String, webhook_secret_key: String) -> Self {
+    pub fn new(client: ReqwestClient, api_key: String, secret_key: String, webhook_secret_key: String) -> Self {
         Self {
             client,
             api_key,
@@ -31,7 +31,7 @@ impl MoonPayClient {
 
     pub async fn get_ip_address(&self, ip_address: &str) -> Result<MoonPayIpAddress, reqwest::Error> {
         self.client
-            .get(format!("{MOONPAY_API_BASE_URL}/v4/ip_address/"))
+            .request(Method::GET, "/v4/ip_address/")
             .query(&[("ipAddress", ip_address), ("apiKey", &self.api_key)])
             .send()
             .await?
@@ -41,7 +41,7 @@ impl MoonPayClient {
 
     pub async fn get_buy_quote(&self, symbol: String, fiat_currency: String, fiat_amount: f64) -> Result<MoonPayBuyQuote, Box<dyn std::error::Error + Send + Sync>> {
         self.client
-            .get(format!("{MOONPAY_API_BASE_URL}/v3/currencies/{symbol}/buy_quote/"))
+            .request(Method::GET, &format!("/v3/currencies/{symbol}/buy_quote/"))
             .query(&[
                 ("baseCurrencyCode", fiat_currency),
                 ("baseCurrencyAmount", fiat_amount.to_string()),
@@ -57,7 +57,7 @@ impl MoonPayClient {
 
     pub async fn get_sell_quote(&self, symbol: String, fiat_currency: String, fiat_amount: f64) -> Result<MoonPaySellQuote, Box<dyn std::error::Error + Send + Sync>> {
         self.client
-            .get(format!("{MOONPAY_API_BASE_URL}/v3/currencies/{symbol}/sell_quote/"))
+            .request(Method::GET, &format!("/v3/currencies/{symbol}/sell_quote/"))
             .query(&[
                 ("quoteCurrencyCode", fiat_currency),
                 ("quoteCurrencyAmount", fiat_amount.to_string()),
@@ -72,11 +72,11 @@ impl MoonPayClient {
     }
 
     pub async fn get_assets(&self) -> Result<Vec<Asset>, reqwest::Error> {
-        self.client.get(format!("{MOONPAY_API_BASE_URL}/v3/currencies")).send().await?.json().await
+        self.client.request(Method::GET, "/v3/currencies").send().await?.json().await
     }
 
     pub async fn get_countries(&self) -> Result<Vec<Country>, reqwest::Error> {
-        self.client.get(format!("{MOONPAY_API_BASE_URL}/v3/countries")).send().await?.json().await
+        self.client.request(Method::GET, "/v3/countries").send().await?.json().await
     }
 
     pub fn map_asset(asset: Asset) -> Option<FiatProviderAsset> {

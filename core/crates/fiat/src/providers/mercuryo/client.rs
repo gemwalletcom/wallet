@@ -1,23 +1,22 @@
+use gem_client::ReqwestClient;
 use primitives::FiatProviderName;
-use reqwest::Client;
+use reqwest::Method;
 use std::collections::HashMap;
 
 use super::mapper::map_sell_quote;
 use super::models::{Currencies, CurrencyLimits, MercuryoResponse, Quote, QuoteQuery, QuoteSellQuery, Response};
 
-const MERCURYO_API_BASE_URL: &str = "https://api.mercuryo.io";
 pub struct MercuryoClient {
-    pub client: Client,
-    // widget
-    pub widget_id: String,
-    pub secret_key: String,
+    client: ReqwestClient,
+    pub(super) widget_id: String,
+    pub(super) secret_key: String,
     pub(super) webhook_secret_key: String,
 }
 
 impl MercuryoClient {
     pub const NAME: FiatProviderName = FiatProviderName::Mercuryo;
 
-    pub fn new(client: Client, widget_id: String, secret_key: String, webhook_secret_key: String) -> Self {
+    pub fn new(client: ReqwestClient, widget_id: String, secret_key: String, webhook_secret_key: String) -> Self {
         MercuryoClient {
             client,
             widget_id,
@@ -34,8 +33,14 @@ impl MercuryoClient {
             network: network.clone(),
             widget_id: self.widget_id.clone(),
         };
-        let url = format!("{MERCURYO_API_BASE_URL}/v1.6/widget/buy/rate");
-        self.client.get(url.as_str()).query(&query).send().await?.json::<MercuryoResponse<Quote>>().await?.into()
+        self.client
+            .request(Method::GET, "/v1.6/widget/buy/rate")
+            .query(&query)
+            .send()
+            .await?
+            .json::<MercuryoResponse<Quote>>()
+            .await?
+            .into()
     }
 
     pub async fn get_quote_sell(&self, fiat_currency: String, symbol: String, fiat_amount: f64, network: String) -> Result<Quote, Box<dyn std::error::Error + Send + Sync>> {
@@ -54,30 +59,34 @@ impl MercuryoClient {
             network,
             widget_id: self.widget_id.clone(),
         };
-        let url = format!("{MERCURYO_API_BASE_URL}/v1.6/public/convert");
-        self.client.get(url.as_str()).query(&query).send().await?.json::<MercuryoResponse<Quote>>().await?.into()
+        self.client
+            .request(Method::GET, "/v1.6/public/convert")
+            .query(&query)
+            .send()
+            .await?
+            .json::<MercuryoResponse<Quote>>()
+            .await?
+            .into()
     }
 
     pub async fn get_currencies(&self) -> Result<Currencies, reqwest::Error> {
-        let url = format!("{MERCURYO_API_BASE_URL}/v1.6/lib/currencies");
-        let response = self.client.get(&url).send().await?.json::<Response<Currencies>>().await?;
+        let response = self
+            .client
+            .request(Method::GET, "/v1.6/lib/currencies")
+            .send()
+            .await?
+            .json::<Response<Currencies>>()
+            .await?;
         Ok(response.data)
     }
 
     pub async fn get_countries(&self) -> Result<Response<Vec<String>>, reqwest::Error> {
         let query = [("type", "alpha2")];
-        self.client
-            .get(format!("{MERCURYO_API_BASE_URL}/v1.6/public/card-countries"))
-            .query(&query)
-            .send()
-            .await?
-            .json()
-            .await
+        self.client.request(Method::GET, "/v1.6/public/card-countries").query(&query).send().await?.json().await
     }
 
     pub async fn get_currency_limits(&self, from: String, to: String) -> Result<Response<HashMap<String, CurrencyLimits>>, reqwest::Error> {
         let query = [("from", from), ("to", to), ("widget_id", self.widget_id.clone())];
-        let url = format!("{MERCURYO_API_BASE_URL}/v1.6/public/currency-limits");
-        self.client.get(&url).query(&query).send().await?.json().await
+        self.client.request(Method::GET, "/v1.6/public/currency-limits").query(&query).send().await?.json().await
     }
 }

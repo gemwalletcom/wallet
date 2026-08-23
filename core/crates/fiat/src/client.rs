@@ -1,7 +1,6 @@
 use cacher::{CacheKey, CacherClient};
 use std::collections::HashSet;
 use std::error::Error;
-use std::time::Duration;
 
 use crate::ip_check_client::{IPAddressInfo, IPCheckClient};
 use crate::{
@@ -15,7 +14,6 @@ use primitives::{
     Asset, FiatAssetSymbol, FiatAssets, FiatProvider as PrimitiveFiatProvider, FiatProviderCountry, FiatQuote, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData,
     FiatQuotes, FiatTransaction, PaymentType,
 };
-use reqwest::Client as RequestClient;
 use storage::{AssetFilter, AssetsRepository, Database, FiatRepository, WalletsRepository};
 use streamer::{FiatWebhook, FiatWebhookPayload, StreamProducer};
 
@@ -52,10 +50,6 @@ impl FiatClient {
             .find(|provider| provider.name().id() == provider_name)
             .map(|provider| provider.as_ref())
             .ok_or_else(|| format!("Provider {} not found", provider_name).into())
-    }
-
-    pub fn request_client(timeout: Duration) -> RequestClient {
-        gem_client::builder().timeout(timeout).build().unwrap()
     }
 
     pub async fn get_on_ramp_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {

@@ -49,20 +49,16 @@ impl NFTClient {
         Ok(())
     }
 
-    pub async fn get_nft_assets_by_wallet_id(&self, device_id: i32, wallet_id: i32) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
+    pub fn get_nft_assets_by_wallet_id(&self, device_id: i32, wallet_id: i32) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
         let subscriptions = self.database.wallets()?.get_subscriptions_by_wallet_id(device_id, wallet_id)?;
 
         let mut asset_ids: HashSet<NFTAssetId> = HashSet::new();
         for (sub, addr) in subscriptions {
             let chain = sub.chain.0;
-            let ids = match self.get_provider_asset_ids(chain, &addr.address).await {
-                Ok(ids) => ids,
-                Err(_) => self.get_cached_asset_ids(addr.id, chain)?,
-            };
-            asset_ids.extend(ids);
+            asset_ids.extend(self.get_cached_asset_ids(addr.id, chain)?);
         }
 
-        self.preload(asset_ids.into_iter().collect()).await
+        self.get_nfts(asset_ids.into_iter().collect())
     }
 
     pub fn get_nft_asset_data(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, Box<dyn Error + Send + Sync>> {
@@ -70,16 +66,6 @@ impl NFTClient {
         let collection = self.with_urls_collection(self.load_nft_collection(&asset.collection_id.to_string())?);
 
         Ok(NFTAssetData { collection, asset })
-    }
-
-    async fn get_provider_asset_ids(&self, chain: Chain, address: &str) -> Result<HashSet<NFTAssetId>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .provider_client
-            .get_nft_data(chain, address)
-            .await?
-            .into_iter()
-            .flat_map(|d| d.assets.into_iter().map(|a| a.id))
-            .collect())
     }
 
     fn get_cached_asset_ids(&self, address_id: i32, chain: Chain) -> Result<HashSet<NFTAssetId>, Box<dyn Error + Send + Sync>> {
@@ -128,7 +114,7 @@ impl NFTClient {
         let collection_ids: HashSet<NFTCollectionId> = assets.iter().map(|x| x.get_collection_id()).collect();
         let collection_id_map = self.preload_collections(collection_ids.into_iter().collect()).await?;
         self.preload_assets(assets.clone(), &collection_id_map).await?;
-        self.get_nfts(assets).await
+        self.get_nfts(assets)
     }
 
     pub async fn preload_collections(&self, collection_ids: Vec<NFTCollectionId>) -> Result<HashMap<String, i32>, Box<dyn Error + Send + Sync>> {
@@ -137,9 +123,7 @@ impl NFTClient {
 
         let mut new_collections: Vec<NFTCollection> = Vec::new();
         for id in collection_ids.into_iter().filter(|id| !existing.contains_key(&id.to_string())) {
-            if let Ok(collection) = self.provider_client.get_nft_collection(id).await {
-                new_collections.push(collection);
-            }
+            new_collections.push(self.provider_client.get_nft_collection(id).await?);
         }
 
         if new_collections.is_empty() {
@@ -173,9 +157,7 @@ impl NFTClient {
 
         let mut new_assets: Vec<NFTAsset> = Vec::new();
         for id in asset_ids.into_iter().filter(|id| !existing.contains_key(&id.to_string())) {
-            if let Ok(asset) = self.provider_client.get_nft_asset(id).await {
-                new_assets.push(asset);
-            }
+            new_assets.push(self.provider_client.get_nft_asset(id).await?);
         }
 
         let rows: Vec<NewNftAssetRow> = new_assets
@@ -230,7 +212,7 @@ impl NFTClient {
             .collect())
     }
 
-    async fn get_nfts(&self, assets: Vec<NFTAssetId>) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
+    fn get_nfts(&self, assets: Vec<NFTAssetId>) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
         let mut by_collection: HashMap<NFTCollectionId, Vec<NFTAssetId>> = HashMap::new();
         for asset in assets {
             by_collection.entry(asset.get_collection_id()).or_default().push(asset);
@@ -272,7 +254,7 @@ impl NFTClient {
         let mut owned_by_address: HashMap<i32, HashSet<NFTAssetId>> = HashMap::new();
         let mut chains_by_address: HashMap<i32, HashSet<Chain>> = HashMap::new();
         for (chain, address) in addresses {
-            let Ok(ids) = self.get_provider_asset_ids(chain, &address).await else { continue };
+            let ids = self.provider_client.get_nft_asset_ids(chain, &address).await?;
             if let Some(&address_id) = address_id_map.get(&address) {
                 chains_by_address.entry(address_id).or_default().insert(chain);
                 owned_by_address.entry(address_id).or_default().extend(ids.iter().cloned());
@@ -291,7 +273,7 @@ impl NFTClient {
             self.database.nft()?.set_nft_asset_associations(address_id, chains, current_asset_ids)?;
         }
 
-        self.get_nfts(asset_ids).await
+        self.get_nfts(asset_ids)
     }
 
     pub fn report_nft(&self, device_id: &str, collection_id: String, asset_id: Option<AssetId>, reason: Option<String>) -> Result<bool, Box<dyn Error + Send + Sync>> {

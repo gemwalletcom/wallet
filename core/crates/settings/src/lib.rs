@@ -21,12 +21,6 @@ pub struct Settings {
     pub consumer: Consumer,
 
     pub fiat: Fiat,
-    pub moonpay: MoonPay,
-    pub transak: Transak,
-    pub mercuryo: Mercuryo,
-    pub banxa: Banxa,
-    pub paybis: Paybis,
-    pub flashnet: Flashnet,
 
     pub swap: Swap,
 
@@ -101,6 +95,12 @@ impl ProviderSettings {
 pub struct Fiat {
     #[serde(deserialize_with = "duration::deserialize")]
     pub timeout: Duration,
+    pub moonpay: MoonPay,
+    pub transak: Transak,
+    pub mercuryo: Mercuryo,
+    pub banxa: Banxa,
+    pub paybis: Paybis,
+    pub flashnet: Flashnet,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -147,25 +147,28 @@ pub struct Key {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct KeySettings {
-    pub key: Key,
-}
-pub type Paybis = KeySettings;
-
-#[derive(Debug, Deserialize, Clone)]
 pub struct MoonPay {
+    pub url: String,
     pub key: Key,
     pub webhook: SecretKeySettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Transak {
+    pub url: String,
+    pub gateway: URL,
     pub key: Key,
-    pub referrer_domain: String,
+    pub referrer: Referrer,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Referrer {
+    pub domain: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Mercuryo {
+    pub url: String,
     pub key: MercuryoKey,
     pub webhook: SecretKeySettings,
 }
@@ -179,10 +182,17 @@ pub struct Flashnet {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Banxa {
-    pub url: String,
+    pub api: URL,
+    pub redirect: URL,
     pub partner: String,
     pub key: KeySecret,
     pub webhook: SecretKeySettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Paybis {
+    pub url: String,
+    pub key: Key,
 }
 
 #[derive(Debug, Deserialize, Clone)]

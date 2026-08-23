@@ -24,47 +24,55 @@ coinmarketcap:
     secret: ""
 fiat:
   timeout: 3s
-moonpay:
-  key:
-    public: ""
-    secret: ""
-  webhook:
+  moonpay:
+    url: "https://api.moonpay.com"
+    key:
+      public: ""
+      secret: ""
+    webhook:
+      key:
+        secret: ""
+  transak:
+    url: "https://api.transak.com"
+    gateway:
+      url: "https://api-gateway.transak.com"
+    key:
+      public: ""
+      secret: ""
+    referrer:
+      domain: "gemwallet.com"
+  mercuryo:
+    url: "https://api.mercuryo.io"
+    key:
+      public: ""
+      secret: ""
+    webhook:
+      key:
+        secret: ""
+  banxa:
+    api:
+      url: "https://api.banxa.com"
+    redirect:
+      url: "https://gemwallet.banxa.com"
+    partner: ""
     key:
       secret: ""
-transak:
-  key:
-    public: ""
-    secret: ""
-  referrer_domain: "gemwallet.com"
-mercuryo:
-  key:
-    public: ""
-    secret: ""
-    token: ""
-  webhook:
+    webhook:
+      key:
+        secret: ""
+  paybis:
+    url: "https://widget-api.paybis.com"
     key:
+      public: ""
       secret: ""
-banxa:
-  url: "https://gemwallet.banxa.com"
-  partner: ""
-  key:
-    secret: ""
-  webhook:
+  flashnet:
+    url: "https://orchestration.flashnet.xyz"
     key:
+      public: "gemwallet"
       secret: ""
-paybis:
-  key:
-    public: ""
-    secret: ""
-    private: ""
-flashnet:
-  url: "https://orchestration.flashnet.xyz"
-  key:
-    public: "gemwallet"
-    secret: ""
-  webhook:
-    key:
-      secret: ""
+    webhook:
+      key:
+        secret: ""
 prices:
   coingecko:
     url: "https://pro-api.coingecko.com"

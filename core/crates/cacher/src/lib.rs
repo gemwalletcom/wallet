@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use redis::{AsyncCommands, Client, aio::ConnectionManager};
 
@@ -97,9 +96,15 @@ impl CacherClient {
     }
 
     pub async fn can_process_now(&self, key: &str, ttl_seconds: u64) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-        let last_processed: u64 = self.get_or_set_value(key, || async { Ok(now) }, Some(ttl_seconds)).await?;
-        Ok(last_processed == now)
+        let result: Option<String> = redis::cmd("SET")
+            .arg(key)
+            .arg(1)
+            .arg("NX")
+            .arg("EX")
+            .arg(ttl_seconds)
+            .query_async(&mut self.connection.clone())
+            .await?;
+        Ok(result.is_some())
     }
 
     pub async fn delete(&self, key: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {

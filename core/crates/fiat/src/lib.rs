@@ -14,9 +14,15 @@ pub use provider::FiatProvider;
 pub use webhook::FiatWebhookRequest;
 
 use crate::providers::{BanxaClient, FlashnetClient, MercuryoClient, MoonPayClient, PaybisClient, TransakClient};
+use gem_client::ReqwestClient;
 use settings::Settings;
+use std::time::Duration;
 
 pub use client::FiatClient;
+
+fn request_client(timeout: Duration) -> reqwest::Client {
+    gem_client::builder().timeout(timeout).build().expect("fiat HTTP client configuration is valid")
+}
 pub use fiat_cacher_client::{CachedFiatQuoteData, FiatCacherClient};
 pub use ip_check_client::{IPAddressInfo, IPCheckClient};
 pub use transaction_info_mapper::fiat_transaction_info;
@@ -27,40 +33,44 @@ pub mod testkit;
 pub struct FiatProviderFactory {}
 impl FiatProviderFactory {
     pub fn new_providers(settings: Settings) -> Vec<Box<dyn FiatProvider + Send + Sync>> {
-        let request_client = crate::client::FiatClient::request_client(settings.fiat.timeout);
+        let request_client = request_client(settings.fiat.timeout);
 
         let moonpay = MoonPayClient::new(
-            request_client.clone(),
-            settings.moonpay.key.public.clone(),
-            settings.moonpay.key.secret.clone(),
-            settings.moonpay.webhook.key.secret.clone(),
+            ReqwestClient::new(settings.fiat.moonpay.url.clone(), request_client.clone()),
+            settings.fiat.moonpay.key.public.clone(),
+            settings.fiat.moonpay.key.secret.clone(),
+            settings.fiat.moonpay.webhook.key.secret.clone(),
         );
         let mercuryo = MercuryoClient::new(
-            request_client.clone(),
-            settings.mercuryo.key.public.clone(),
-            settings.mercuryo.key.secret.clone(),
-            settings.mercuryo.webhook.key.secret.clone(),
+            ReqwestClient::new(settings.fiat.mercuryo.url.clone(), request_client.clone()),
+            settings.fiat.mercuryo.key.public.clone(),
+            settings.fiat.mercuryo.key.secret.clone(),
+            settings.fiat.mercuryo.webhook.key.secret.clone(),
         );
         let transak = TransakClient::new(
-            request_client.clone(),
-            settings.transak.key.public,
-            settings.transak.key.secret,
-            settings.transak.referrer_domain,
+            ReqwestClient::new(settings.fiat.transak.url, request_client.clone()),
+            ReqwestClient::new(settings.fiat.transak.gateway.url, request_client.clone()),
+            settings.fiat.transak.key.public,
+            settings.fiat.transak.key.secret,
+            settings.fiat.transak.referrer.domain,
         );
         let banxa = BanxaClient::new(
-            request_client.clone(),
-            settings.banxa.url,
-            settings.banxa.partner,
-            settings.banxa.key.secret,
-            settings.banxa.webhook.key.secret,
+            ReqwestClient::new(settings.fiat.banxa.api.url, request_client.clone()),
+            settings.fiat.banxa.redirect.url,
+            settings.fiat.banxa.partner,
+            settings.fiat.banxa.key.secret,
+            settings.fiat.banxa.webhook.key.secret,
         );
-        let paybis = PaybisClient::new(request_client.clone(), settings.paybis.key.public, settings.paybis.key.secret);
+        let paybis = PaybisClient::new(
+            ReqwestClient::new(settings.fiat.paybis.url, request_client.clone()),
+            settings.fiat.paybis.key.public,
+            settings.fiat.paybis.key.secret,
+        );
         let flashnet = FlashnetClient::new(
-            request_client.clone(),
-            settings.flashnet.url,
-            settings.flashnet.key.secret,
-            settings.flashnet.key.public,
-            settings.flashnet.webhook.key.secret,
+            ReqwestClient::new(settings.fiat.flashnet.url, request_client.clone()),
+            settings.fiat.flashnet.key.secret,
+            settings.fiat.flashnet.key.public,
+            settings.fiat.flashnet.webhook.key.secret,
         );
 
         vec![
@@ -74,12 +84,12 @@ impl FiatProviderFactory {
     }
 
     pub fn new_ip_check_client(settings: Settings) -> IPCheckClient {
-        let request_client = crate::client::FiatClient::request_client(settings.fiat.timeout);
+        let request_client = request_client(settings.fiat.timeout);
         let moonpay = MoonPayClient::new(
-            request_client.clone(),
-            settings.moonpay.key.public.clone(),
-            settings.moonpay.key.secret.clone(),
-            settings.moonpay.webhook.key.secret.clone(),
+            ReqwestClient::new(settings.fiat.moonpay.url.clone(), request_client),
+            settings.fiat.moonpay.key.public.clone(),
+            settings.fiat.moonpay.key.secret.clone(),
+            settings.fiat.moonpay.webhook.key.secret.clone(),
         );
         IPCheckClient::new(moonpay)
     }

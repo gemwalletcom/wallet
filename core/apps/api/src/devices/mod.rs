@@ -120,8 +120,8 @@ pub async fn get_device_address_names_v2(
 }
 
 #[get("/devices/nft_assets")]
-pub async fn get_device_nft_assets_v2(device: AuthenticatedDeviceWallet, client: &State<NFTClient>) -> Result<ApiResponse<Vec<NFTData>>, ApiError> {
-    Ok(client.get_nft_assets_by_wallet_id(device.device_row.id, device.wallet_id).await?.into())
+pub fn get_device_nft_assets_v2(device: AuthenticatedDeviceWallet, client: &State<NFTClient>) -> Result<ApiResponse<Vec<NFTData>>, ApiError> {
+    Ok(client.get_nft_assets_by_wallet_id(device.device_row.id, device.wallet_id)?.into())
 }
 
 #[get("/devices/nft_assets/<asset_id>")]

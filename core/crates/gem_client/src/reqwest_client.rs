@@ -1,8 +1,8 @@
 use std::{collections::HashMap, str::FromStr, time::Duration};
 
 use async_trait::async_trait;
-use reqwest::RequestBuilder;
 use reqwest::header::USER_AGENT;
+use reqwest::{Method, RequestBuilder};
 use serde::{Serialize, de::DeserializeOwned};
 
 use crate::{CONTENT_TYPE, Client, ClientError, ContentType, Response, build_request_url, deserialize_response, retry_policy};
@@ -65,6 +65,11 @@ impl ReqwestClient {
             request_timeout: Some(request_timeout),
             ..self
         }
+    }
+
+    pub fn request(&self, method: Method, path: &str) -> RequestBuilder {
+        let url = build_request_url(&self.base_url, path);
+        self.build_request(self.client.request(method, url), HashMap::new())
     }
 
     pub fn new_test_client(url: String) -> Self {
@@ -192,7 +197,8 @@ pub async fn json_response<T: DeserializeOwned>(response: reqwest::Response) -> 
 #[cfg(test)]
 mod tests {
     use super::ReqwestClient;
-    use std::{collections::HashMap, time::Duration};
+    use reqwest::Method;
+    use std::time::Duration;
 
     #[test]
     fn empty_user_agent_override_preserves_client_default() {
@@ -205,8 +211,9 @@ mod tests {
     fn request_timeout_is_applied() {
         let timeout = Duration::from_secs(5);
         let client = ReqwestClient::new("https://example.com".to_string(), crate::reqwest_client()).with_request_timeout(timeout);
-        let request = client.build_request(client.client.get("https://example.com"), HashMap::new()).build().unwrap();
+        let request = client.request(Method::GET, "/path").build().unwrap();
 
         assert_eq!(request.timeout(), Some(&timeout));
+        assert_eq!(request.url().as_str(), "https://example.com/path");
     }
 }

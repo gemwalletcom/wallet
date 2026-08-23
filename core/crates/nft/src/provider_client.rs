@@ -19,11 +19,15 @@ impl NFTProviderClient {
     }
 
     pub async fn get_nft_asset(&self, asset_id: NFTAssetId) -> Result<NFTAsset, Box<dyn Error + Send + Sync>> {
-        self.providers.get_asset(asset_id).await.ok_or_else(|| "Asset not found".into())
+        self.providers.get_asset(asset_id).await?.ok_or_else(|| "Asset not found".into())
     }
 
     pub async fn get_nft_collection(&self, collection_id: NFTCollectionId) -> Result<NFTCollection, Box<dyn Error + Send + Sync>> {
-        self.providers.get_collection(collection_id).await.ok_or_else(|| "Collection not found".into())
+        self.providers.get_collection(collection_id).await?.ok_or_else(|| "Collection not found".into())
+    }
+
+    pub async fn get_nft_asset_ids(&self, chain: Chain, address: &str) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>> {
+        self.providers.get_asset_ids(chain, address).await
     }
 
     pub async fn get_nft_data(&self, chain: Chain, address: &str) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
