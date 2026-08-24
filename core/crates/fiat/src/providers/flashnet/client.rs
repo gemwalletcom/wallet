@@ -1,6 +1,6 @@
-use std::error::Error;
+use std::{collections::HashMap, error::Error};
 
-use gem_client::{ReqwestClient, json_response};
+use gem_client::{CONTENT_TYPE, ClientError, ClientExt, ContentType, ReqwestClient, json_response};
 use primitives::FiatProviderName;
 use reqwest::Method;
 
@@ -30,16 +30,18 @@ impl FlashnetClient {
         Ok(json_response(response).await?)
     }
 
-    pub async fn create_onramp(&self, request: FlashnetOnrampRequest, idempotency_key: &str) -> Result<FlashnetOnrampResponse, Box<dyn Error + Send + Sync>> {
-        let response = self
-            .client
-            .request(Method::POST, "/v1/orchestration/onramp")
-            .bearer_auth(&self.api_key)
-            .header("X-Idempotency-Key", idempotency_key)
-            .json(&request)
-            .send()
-            .await?;
-        Ok(json_response(response).await?)
+    pub async fn create_onramp(&self, request: FlashnetOnrampRequest, idempotency_key: &str) -> Result<FlashnetOnrampResponse, ClientError> {
+        self.client
+            .post_with_headers(
+                "/v1/orchestration/onramp",
+                &request,
+                HashMap::from([
+                    ("authorization".to_string(), format!("Bearer {}", self.api_key)),
+                    ("x-idempotency-key".to_string(), idempotency_key.to_string()),
+                    (CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string()),
+                ]),
+            )
+            .await
     }
 
     pub async fn get_estimate(&self, destination_chain: &str, destination_asset: &str, amount: &str) -> Result<FlashnetEstimateResponse, Box<dyn Error + Send + Sync>> {

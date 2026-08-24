@@ -3,10 +3,9 @@ use gem_client::reqwest_client;
 use primitives::{Device, SupportMessage, SupportTypingStatus};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::multipart::{Form, Part};
-use reqwest::{Client, RequestBuilder, Response};
+use reqwest::{Client, RequestBuilder, Response, StatusCode};
 use serde::de::DeserializeOwned;
 use std::error::Error;
-use std::fmt;
 use std::io;
 
 use crate::{
@@ -22,26 +21,6 @@ pub struct ChatwootClient {
     widget_public_token: String,
 }
 
-#[derive(Debug)]
-pub struct ChatwootError {
-    status: u16,
-    message: String,
-}
-
-impl ChatwootError {
-    pub fn status(&self) -> u16 {
-        self.status
-    }
-}
-
-impl fmt::Display for ChatwootError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "Chatwoot HTTP error {}: {}", self.status, self.message)
-    }
-}
-
-impl Error for ChatwootError {}
-
 impl ChatwootClient {
     pub fn new(url: String, widget_public_token: String) -> Self {
         Self {
@@ -56,27 +35,30 @@ impl ChatwootClient {
             .json(self.with_widget_public_token(self.client.post(self.widget_url(PATH_CONFIG))).send().await?)
             .await?;
 
-        self.set_contact(device, &response.website_channel_config.auth_token).await
+        self.set_contact(device, &response.website_channel_config.auth_token)
+            .await?
+            .ok_or_else(|| io::Error::other("new Chatwoot contact is missing").into())
     }
 
-    pub async fn update_contact(&self, session: &ChatwootSession, device: &Device) -> Result<ChatwootSession, Box<dyn Error + Send + Sync>> {
+    pub async fn update_contact(&self, session: &ChatwootSession, device: &Device) -> Result<Option<ChatwootSession>, Box<dyn Error + Send + Sync>> {
         self.set_contact(device, &session.auth_token).await
     }
 
-    async fn set_contact(&self, device: &Device, auth_token: &str) -> Result<ChatwootSession, Box<dyn Error + Send + Sync>> {
+    async fn set_contact(&self, device: &Device, auth_token: &str) -> Result<Option<ChatwootSession>, Box<dyn Error + Send + Sync>> {
         let update = ChatwootContactUpdate::new(device);
-        let contact: ChatwootContactResponse = self
-            .json(
-                self.authenticated(self.client.patch(self.widget_url(PATH_CONTACT_SET_USER)), auth_token)?
-                    .json(&update)
-                    .send()
-                    .await?,
-            )
+        let response = self
+            .authenticated(self.client.patch(self.widget_url(PATH_CONTACT_SET_USER)), auth_token)?
+            .json(&update)
+            .send()
             .await?;
+        if response.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+        let contact: ChatwootContactResponse = self.json(response).await?;
 
-        Ok(ChatwootSession {
+        Ok(Some(ChatwootSession {
             auth_token: contact.widget_auth_token.unwrap_or_else(|| auth_token.to_string()),
-        })
+        }))
     }
 
     pub async fn messages(&self, session: &ChatwootSession, from_timestamp: Option<u64>) -> Result<Vec<SupportMessage>, Box<dyn Error + Send + Sync>> {
@@ -177,7 +159,7 @@ impl ChatwootClient {
         }
         let status = response.status().as_u16();
         let message = response.text().await?;
-        Err(ChatwootError { status, message }.into())
+        Err(io::Error::other(format!("Chatwoot HTTP error {status}: {message}")).into())
     }
 }
 

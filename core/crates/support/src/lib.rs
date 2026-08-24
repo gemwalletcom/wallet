@@ -11,7 +11,7 @@ mod text;
 mod webhook;
 
 #[cfg(feature = "backend")]
-pub use chatwoot::{ChatwootClient, ChatwootError};
+pub use chatwoot::ChatwootClient;
 #[cfg(feature = "backend")]
 pub use client::{SupportClient, SupportWebhookResult};
 #[cfg(feature = "backend")]
