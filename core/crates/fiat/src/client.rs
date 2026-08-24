@@ -273,7 +273,7 @@ fn is_provider_eligible(db_provider: &PrimitiveFiatProvider, countries: &HashSet
         FiatQuoteType::Sell => &mapping.sell_limits,
     };
     limits.iter().any(|limit| {
-        limit.currency.as_ref().eq_ignore_ascii_case(&request.currency)
+        limit.currency.as_ref() == request.currency
             && (db_provider.payment_methods.is_empty() || db_provider.payment_methods.contains(&limit.payment_type))
             && limit.min_amount.is_none_or(|minimum| request.amount >= minimum)
             && limit.max_amount.is_none_or(|maximum| request.amount <= maximum)
