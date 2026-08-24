@@ -10,7 +10,6 @@ import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
-import com.gemwallet.android.ui.components.list_item.property.MerchantPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -29,7 +28,7 @@ fun PropertyDestination(
         is ConfirmProperty.Destination.Transfer -> {
             val (icon, initials) = when (model.addressType) {
                 AddressType.Contact -> walletImageModel(LocalContext.current, model.imageUrl) to model.domain?.take(2)?.uppercase()
-                else -> null to null
+                else -> model.imageUrl to null
             }
             AddressPropertyItem(
                 title = R.string.transaction_recipient,
@@ -41,12 +40,6 @@ fun PropertyDestination(
                 listPosition = listPosition,
             )
         }
-        is ConfirmProperty.Destination.Merchant -> MerchantPropertyItem(
-            title = R.string.transfer_recipient_title,
-            name = model.displayData(),
-            iconUrl = model.iconUrl,
-            listPosition = listPosition,
-        )
         is ConfirmProperty.Destination.Stake -> {
             val address = model.address
             if (address != null && model.explorerLink != null) {
@@ -74,7 +67,6 @@ fun PropertyDestination(
                 is ConfirmProperty.Destination.Provider -> R.string.common_provider
                 is ConfirmProperty.Destination.Generic -> R.string.wallet_connect_app
                 is ConfirmProperty.Destination.PerpetualOper -> R.string.common_provider
-                is ConfirmProperty.Destination.Merchant,
                 is ConfirmProperty.Destination.Stake,
                 is ConfirmProperty.Destination.Transfer -> return
             }
@@ -93,7 +85,6 @@ fun PropertyDestination(
 
 internal fun ConfirmProperty.Destination.displayData(): String = when (this) {
     is ConfirmProperty.Destination.Provider,
-    is ConfirmProperty.Destination.Merchant,
     is ConfirmProperty.Destination.Stake -> data
     is ConfirmProperty.Destination.Transfer -> domain ?: address
     is ConfirmProperty.Destination.Generic -> appName

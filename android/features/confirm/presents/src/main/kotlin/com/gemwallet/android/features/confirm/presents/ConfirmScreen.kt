@@ -104,7 +104,6 @@ fun ConfirmScreen(
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val displayTxProperties = when (params) {
-        is ConfirmParams.TransferParams.Payment,
         is ConfirmParams.TransferParams.Generic -> txProperties.reorderWalletConnectProperties()
         else -> txProperties
     }

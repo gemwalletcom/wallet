@@ -6,7 +6,6 @@ use crate::wallet_connect_pay::config::WalletConnectPayAuth;
 use crate::wallet_connect_pay::model::{
     ConfirmPaymentRequest, FetchActionsRequest, FetchActionsResponse, PaymentOptionsRequest, PaymentOptionsResponse, PaymentStatusResponse, WalletConnectPayActionResult,
 };
-use primitives::is_payment_id;
 
 pub const WALLET_CONNECT_PAY_API_URL: &str = "https://api.pay.walletconnect.com";
 const WALLET_CONNECT_PAY_VERSION: &str = "2026-02-18";
@@ -36,7 +35,7 @@ impl<C: Client> WalletConnectPayClient<C> {
     }
 
     pub async fn get_actions(&self, payment_id: &str, option_id: &str, data: String) -> Result<FetchActionsResponse, PaymentError> {
-        let path = Self::path(payment_id, "/fetch")?;
+        let path = Self::path(payment_id, "/fetch");
         let request = FetchActionsRequest {
             option_id: option_id.to_string(),
             data,
@@ -53,15 +52,12 @@ impl<C: Client> WalletConnectPayClient<C> {
         Ok(self.client.post_with(&path, &request, self.headers()).await?)
     }
 
-    fn path(payment_id: &str, suffix: &str) -> Result<String, PaymentError> {
-        if !is_payment_id(payment_id) {
-            return Err(PaymentError::InvalidRequest(format!("Invalid payment id: {payment_id}")));
-        }
-        Ok(format!("/v1/gateway/payment/{payment_id}{suffix}"))
+    fn path(payment_id: &str, suffix: &str) -> String {
+        format!("/v1/gateway/payment/{payment_id}{suffix}")
     }
 
     fn path_with_query(payment_id: &str, suffix: &str, query: &[(&str, String)]) -> Result<String, PaymentError> {
-        build_path_with_query(&Self::path(payment_id, suffix)?, &query).map_err(|error| PaymentError::InvalidRequest(error.to_string()))
+        build_path_with_query(&Self::path(payment_id, suffix), &query).map_err(|error| PaymentError::InvalidRequest(error.to_string()))
     }
 
     fn headers(&self) -> HashMap<String, String> {
@@ -151,16 +147,5 @@ mod tests {
             client(failing).confirm(TEST_PAYMENT_ID, "opt_1", "0xhash".to_string()).await,
             Err(PaymentError::PaymentExpired)
         );
-    }
-
-    #[test]
-    fn test_path_rejects_unsafe_payment_id() {
-        let path = |payment_id: &str| WalletConnectPayClient::<MockClient>::path(payment_id, "/status");
-
-        assert!(path(TEST_PAYMENT_ID).is_ok());
-        assert!(path("pay_123/cancel").is_err());
-        assert!(path("pay_123?x=1").is_err());
-        assert!(path("pay 123").is_err());
-        assert!(path("").is_err());
     }
 }

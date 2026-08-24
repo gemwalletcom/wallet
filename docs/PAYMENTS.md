@@ -58,8 +58,6 @@ The raw gateway option rides inside `PaymentQuote.provider_data`, so Core stays 
 
 ## Failure and lifetime
 
-Expiry is enforced at every stage: the scene counts down and flips to Try Again when the payment expires, Core re-fetches an expired quote before building the action, and the confirm scene disables its button once the quote's own expiry passes. An expired or cancelled payment is never signed.
-
 The gateway confirm runs after broadcast and is fire-and-forget: a confirm failure is logged, never surfaced as a payment failure, and never rolls back the broadcast — the payment's final state is the gateway's to report against the on-chain transaction.
 
 The gateway never learns wallet identity: `App-Id` is the WalletConnect project id and `Client-Id` is a random UUID per process. Wallet addresses appear only in request bodies as the accounts offered for payment.
@@ -71,7 +69,6 @@ The gateway never learns wallet identity: `App-Id` is the WalletConnect project 
 | Entry point | `NavigationHandler` resolves the link before any scene opens | `PaymentRoute` opens the scene, which loads |
 | Settled or failed link | Toast, the scene never opens | Toast from the scene, which closes |
 | State model | `PaymentState` struct with `StateViewType` fields | sealed `PaymentSceneState` |
-| After data collection | Returns to the scene for an explicit Continue | Continues straight to prepare |
 | Refresh or prepare failure | Quotes stay on screen with Try Again | Toast closes the scene; reopening refetches the link |
 | Watch wallet | Refused before the scene | Refused by the scene |
 

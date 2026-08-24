@@ -13,9 +13,7 @@ import com.gemwallet.android.ui.components.web.WebViewMessageHandler
 
 private const val MESSAGE_HANDLER = "payDataCollectionComplete"
 private const val MESSAGE_TYPE_KEY = "type"
-private const val MESSAGE_ERROR_KEY = "error"
 private const val COMPLETE = "IC_COMPLETE"
-private const val ERROR = "IC_ERROR"
 
 @Composable
 internal fun PaymentDataCollectionModal(
@@ -38,14 +36,7 @@ internal fun PaymentDataCollectionModal(
                 name = MESSAGE_HANDLER,
                 script = BRIDGE_SHIM,
             ) { message ->
-                when (message.optString(MESSAGE_TYPE_KEY)) {
-                    COMPLETE -> onAction(PaymentSceneAction.DataCollected)
-                    ERROR -> onAction(
-                        PaymentSceneAction.DataCollectionFailed(
-                            message.optString(MESSAGE_ERROR_KEY).takeIf { it.isNotEmpty() }
-                        )
-                    )
-                }
+                if (message.optString(MESSAGE_TYPE_KEY) == COMPLETE) onAction(PaymentSceneAction.DataCollected)
             },
             onBack = { onAction(PaymentSceneAction.DismissDataCollection) },
         )

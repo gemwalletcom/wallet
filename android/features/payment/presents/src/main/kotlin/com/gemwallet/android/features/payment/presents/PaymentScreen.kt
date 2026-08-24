@@ -37,7 +37,6 @@ fun PaymentScreen(
             is PaymentSceneAction.SelectQuote -> viewModel.onSelectQuote(action.quoteId)
             PaymentSceneAction.ConfirmQuote -> viewModel.onConfirmQuote()
             PaymentSceneAction.DataCollected -> viewModel.onDataCollected()
-            is PaymentSceneAction.DataCollectionFailed -> viewModel.onDataCollectionError(action.message)
             PaymentSceneAction.DismissDataCollection -> viewModel.onDismissDataCollection()
             PaymentSceneAction.BackFromConfirm -> viewModel.onBackFromConfirm()
             is PaymentSceneAction.TransactionHash -> viewModel.onTransactionHash(action.hash)

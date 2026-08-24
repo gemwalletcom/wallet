@@ -3,6 +3,7 @@ package com.gemwallet.android.features.payment.viewmodels.model
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.getSupportIconUrl
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
@@ -31,7 +32,7 @@ fun PaymentQuote.toUIModel(assetInfo: AssetInfo? = null): PaymentQuoteUIModel {
     return PaymentQuoteUIModel(
         id = id,
         name = asset.name,
-        networkName = assetId.chain.asset().name,
+        networkName = assetId.chain.networkName(),
         symbol = asset.symbol,
         amount = amountFormatter.string(Crypto(value).value(asset.decimals)),
         balance = assetInfo?.balanceText().orEmpty(),

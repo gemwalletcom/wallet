@@ -21,7 +21,7 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.MerchantPropertyItem
+import com.gemwallet.android.ui.components.list_item.property.IconPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -71,23 +71,18 @@ internal fun PaymentQuotesScene(
                 )
             }
             item {
-                MerchantPropertyItem(
+                IconPropertyItem(
                     title = R.string.transfer_recipient_title,
-                    name = state.merchant.name,
-                    iconUrl = state.merchant.iconUrl,
+                    text = state.merchant.name,
+                    icon = state.merchant.iconUrl,
                     listPosition = ListPosition.First,
                 )
             }
             item {
-                PropertyItem(
-                    title = { PropertyTitleText(R.string.common_wallet) },
-                    data = {
-                        val walletIcon = walletItemIconModel(state.walletType, state.walletChain)
-                        PropertyDataText(
-                            text = state.walletName,
-                            badge = walletIcon?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },
-                        )
-                    },
+                IconPropertyItem(
+                    title = R.string.common_wallet,
+                    text = state.walletName,
+                    icon = walletItemIconModel(state.walletType, state.walletChain),
                     listPosition = ListPosition.Last,
                 )
             }

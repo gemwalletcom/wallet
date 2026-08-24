@@ -5,18 +5,18 @@ import androidx.compose.runtime.Composable
 import com.gemwallet.android.ui.models.ListPosition
 
 @Composable
-fun MerchantPropertyItem(
+fun IconPropertyItem(
     @StringRes title: Int,
-    name: String,
-    iconUrl: String? = null,
+    text: String,
+    icon: Any? = null,
     listPosition: ListPosition = ListPosition.Middle,
 ) {
     PropertyItem(
         title = { PropertyTitleText(title) },
         data = {
             PropertyDataText(
-                text = name,
-                badge = iconUrl?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },
+                text = text,
+                badge = icon?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },
             )
         },
         listPosition = listPosition,

@@ -1,5 +1,5 @@
 use gem_client::Client;
-use primitives::{AssetId, ChainAddress, PaymentOptions, PaymentOutcome, PaymentQuote, PaymentQuotes};
+use primitives::{AssetId, ChainAddress, PaymentAction, PaymentOptions, PaymentOutcome, PaymentQuote, PaymentQuoteData, PaymentQuotes};
 
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::account::{get_account_identifier, is_supported};
@@ -8,7 +8,6 @@ use crate::wallet_connect_pay::client::WalletConnectPayClient;
 use crate::wallet_connect_pay::config::WalletConnectPayAuth;
 use crate::wallet_connect_pay::model::{PaymentOption, WalletConnectPayAction, WalletRpcAction};
 use crate::wallet_connect_pay::payment_mapper;
-use primitives::{PaymentAction, PaymentQuoteData};
 
 #[derive(Debug)]
 pub struct WalletConnectPayService<C: Client> {
@@ -144,15 +143,8 @@ mod tests {
     #[tokio::test]
     async fn test_get_quote_data_signs_the_gateway_settlement_call() {
         let client = MockClient::new().with_post(|path: &str, _| {
-            let fixture = if path.contains("/fetch") {
-                FETCH_RESPONSE_NATIVE.to_string()
-            } else {
-                let mut response: serde_json::Value = serde_json::from_str(OPTIONS_RESPONSE_NATIVE).unwrap();
-                response["info"]["expiresAt"] = serde_json::json!(4102444800i64);
-                response["options"][1]["expiresAt"] = serde_json::json!(4102444800i64);
-                response.to_string()
-            };
-            Ok(fixture.into_bytes())
+            let fixture = if path.contains("/fetch") { FETCH_RESPONSE_NATIVE } else { OPTIONS_RESPONSE_NATIVE };
+            Ok(fixture.as_bytes().to_vec())
         });
         let service = service(client);
         let addresses = vec![ChainAddress::new(Chain::Ethereum, "0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB".to_string())];

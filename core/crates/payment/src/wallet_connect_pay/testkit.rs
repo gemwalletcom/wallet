@@ -5,7 +5,6 @@ use crate::wallet_connect_pay::config::WalletConnectPayAuth;
 use crate::wallet_connect_pay::model::{PaymentOption, PaymentOptionsResponse, PaymentStatusResponse};
 
 pub use primitives::testkit::payment_mock::TEST_PAYMENT_ID;
-
 pub use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
 
 pub const TEST_ADDRESS: &str = "0x1085c5f70F7F7591D97da281A64688385455c2bD";

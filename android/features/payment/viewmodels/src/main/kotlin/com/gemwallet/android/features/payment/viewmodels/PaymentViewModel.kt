@@ -106,10 +106,6 @@ class PaymentViewModel @Inject constructor(
         )
     }
 
-    fun onDataCollectionError(message: String?) {
-        Log.e(TAG, "Payment data collection failed: $message")
-    }
-
     fun onDismissDataCollection() {
         val current = state.value as? PaymentSceneState.Quotes ?: return
         payment.value = payment.value?.copy(collecting = null)
@@ -137,11 +133,14 @@ class PaymentViewModel @Inject constructor(
     }
 
     fun onTransactionHash(hash: String) {
-        val current = payment.value ?: return
-        val quote = current.quote ?: return
-        confirmScope.launch {
-            runCatchingCancellable { paymentService.confirm(quote, hash) }
-                .onFailure { Log.e(TAG, "Confirm payment failed", it) }
+        val quote = payment.value?.quote
+        if (quote == null) {
+            Log.e(TAG, "confirm: no prepared quote for the broadcast transaction")
+        } else {
+            confirmScope.launch {
+                runCatchingCancellable { paymentService.confirm(quote, hash) }
+                    .onFailure { Log.e(TAG, "Confirm payment failed", it) }
+            }
         }
         state.value = PaymentSceneState.Done
     }

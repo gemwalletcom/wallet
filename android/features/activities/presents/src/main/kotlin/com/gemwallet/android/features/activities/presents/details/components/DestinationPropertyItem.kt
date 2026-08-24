@@ -5,7 +5,6 @@ import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
-import com.gemwallet.android.ui.components.list_item.property.MerchantPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
@@ -28,13 +27,8 @@ fun DestinationPropertyItem(property: TransactionDetailsValue.Destination, listP
             },
             displayText = property.name ?: AddressFormatter(property.data, chain = property.chain).value(),
             copyValue = property.data,
+            icon = property.imageUrl,
             explorerLink = property.explorerLink,
-            listPosition = listPosition,
-        )
-        is TransactionDetailsValue.Destination.Merchant -> MerchantPropertyItem(
-            title = R.string.transaction_recipient,
-            name = property.data,
-            iconUrl = property.iconUrl,
             listPosition = listPosition,
         )
         is TransactionDetailsValue.Destination.Provider -> PropertyItem(
