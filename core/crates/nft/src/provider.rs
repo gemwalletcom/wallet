@@ -16,7 +16,9 @@ pub trait NFTProvider: Send + Sync {
         let ids = self.get_assets(chain, address).await?;
         let mut assets = Vec::with_capacity(ids.len());
         for id in ids {
-            assets.push(self.get_asset(id).await?);
+            if let Ok(asset) = self.get_asset(id).await {
+                assets.push(asset);
+            }
         }
         Ok(assets)
     }
@@ -28,8 +30,9 @@ pub trait NFTProvider: Send + Sync {
         }
         let mut result = Vec::with_capacity(by_collection.len());
         for (collection_id, assets) in by_collection {
-            let collection = self.get_collection(collection_id).await?;
-            result.push(NFTData { collection, assets });
+            if let Ok(collection) = self.get_collection(collection_id).await {
+                result.push(NFTData { collection, assets });
+            }
         }
         Ok(result)
     }
@@ -50,28 +53,20 @@ impl NFTProviders {
             .filter(move |provider| provider.chains().iter().any(|nft_chain| Chain::from(*nft_chain) == chain))
     }
 
-    pub async fn get_collection(&self, collection_id: NFTCollectionId) -> Result<Option<NFTCollection>, Box<dyn Error + Send + Sync>> {
+    pub async fn get_collection(&self, collection_id: NFTCollectionId) -> Option<NFTCollection> {
         let operations = self
             .providers_for_chain(collection_id.chain)
             .map(|provider| provider.get_collection(collection_id.clone()))
             .collect::<Vec<_>>();
-        try_in_order(operations).await
+        try_in_order(operations).await.ok().flatten()
     }
 
-    pub async fn get_asset(&self, asset_id: NFTAssetId) -> Result<Option<NFTAsset>, Box<dyn Error + Send + Sync>> {
+    pub async fn get_asset(&self, asset_id: NFTAssetId) -> Option<NFTAsset> {
         let operations = self
             .providers_for_chain(asset_id.chain)
             .map(|provider| provider.get_asset(asset_id.clone()))
             .collect::<Vec<_>>();
-        try_in_order(operations).await
-    }
-
-    pub async fn get_asset_ids(&self, chain: Chain, address: &str) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>> {
-        let provider = self
-            .providers_for_chain(chain)
-            .next()
-            .ok_or_else(|| format!("no NFT provider for chain {}", chain.as_ref()))?;
-        provider.get_assets(chain, address.to_string()).await
+        try_in_order(operations).await.ok().flatten()
     }
 
     pub async fn get_nft_data(&self, chain: Chain, address: &str) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
