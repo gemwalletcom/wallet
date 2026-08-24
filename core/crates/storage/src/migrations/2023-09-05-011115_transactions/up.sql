@@ -8,7 +8,7 @@ CREATE TABLE transactions
     hash         VARCHAR(128) NOT NULL,
     from_address VARCHAR(256),
     to_address   VARCHAR(256),
-    memo         VARCHAR(1024),
+    memo         VARCHAR(256),
     state        transaction_state NOT NULL,
     kind         transaction_type NOT NULL,
     value        VARCHAR(256),
