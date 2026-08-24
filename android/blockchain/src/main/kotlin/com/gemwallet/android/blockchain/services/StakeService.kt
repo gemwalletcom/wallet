@@ -66,33 +66,33 @@ class StakeService(
     suspend fun getStakeDelegations(
         chain: Chain,
         address: String,
-    ): List<DelegationBase> {
-        return try {
-            val result = gateway.getStakingDelegations(
+    ): List<DelegationBase>? {
+        val result = try {
+            gateway.getStakingDelegations(
                 chain = chain.string,
                 address,
             )
-            result.mapNotNull { item ->
-                DelegationBase(
-                    assetId = item.assetId.toAssetId() ?: return@mapNotNull null,
-                    state = when (item.state) {
-                        GemDelegationState.ACTIVE -> DelegationState.Active
-                        GemDelegationState.PENDING -> DelegationState.Pending
-                        GemDelegationState.INACTIVE -> DelegationState.Inactive
-                        GemDelegationState.ACTIVATING -> DelegationState.Activating
-                        GemDelegationState.DEACTIVATING -> DelegationState.Deactivating
-                        GemDelegationState.AWAITING_WITHDRAWAL -> DelegationState.AwaitingWithdrawal
-                    },
-                    balance = item.balance,
-                    rewards = item.rewards,
-                    completionDate = item.completionDate,
-                    delegationId = item.delegationId,
-                    validatorId = item.validatorId,
-                    shares = item.shares,
-                )
-            }
         } catch (_: Throwable) {
-            emptyList()
+            return null
+        }
+        return result.mapNotNull { item ->
+            DelegationBase(
+                assetId = item.assetId.toAssetId() ?: return@mapNotNull null,
+                state = when (item.state) {
+                    GemDelegationState.ACTIVE -> DelegationState.Active
+                    GemDelegationState.PENDING -> DelegationState.Pending
+                    GemDelegationState.INACTIVE -> DelegationState.Inactive
+                    GemDelegationState.ACTIVATING -> DelegationState.Activating
+                    GemDelegationState.DEACTIVATING -> DelegationState.Deactivating
+                    GemDelegationState.AWAITING_WITHDRAWAL -> DelegationState.AwaitingWithdrawal
+                },
+                balance = item.balance,
+                rewards = item.rewards,
+                completionDate = item.completionDate,
+                delegationId = item.delegationId,
+                validatorId = item.validatorId,
+                shares = item.shares,
+            )
         }
     }
 }

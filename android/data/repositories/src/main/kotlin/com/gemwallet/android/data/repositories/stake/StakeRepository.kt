@@ -95,8 +95,7 @@ class StakeRepository(
         address: String,
         validatorNamesById: Map<String, String>,
     ) {
-        val delegations = runCatching { stakeService.getStakeDelegations(assetId.chain, address) }
-            .getOrNull() ?: return
+        val delegations = stakeService.getStakeDelegations(assetId.chain, address) ?: return
         val existingValidators = stakeDao.getValidators(assetId, StakeProviderType.Stake)
             .first()
             .toDTO()
