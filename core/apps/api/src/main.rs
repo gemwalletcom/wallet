@@ -275,9 +275,10 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         database.clone(),
     );
     let support_image_upload_config = SupportImageUploadConfig::new(&settings.support.types.images)?;
-    let near_intents_client = swap::NearIntentsProxyClient::new(cacher_client.clone());
-    let swaps_xyz_client = swap::SwapsXyzProxyClient::new(cacher_client.clone());
+    let near_intents_client = swap::NearIntentsProxyClient::new(settings.swap.near_intents.url.clone(), cacher_client.clone());
+    let swaps_xyz_client = swap::SwapsXyzProxyClient::new(settings.swap.swaps_xyz.url.clone(), cacher_client.clone());
     let okx_provider = OkxProviderProxy::new(
+        settings.swap.okx.url.clone(),
         OkxClientConfig {
             api_key: settings.swap.okx.key.public.clone(),
             secret_key: settings.swap.okx.key.secret.clone(),

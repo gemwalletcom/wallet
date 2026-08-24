@@ -1,6 +1,5 @@
 use super::{
     client::OkxDexClient,
-    constants::BASE_URL,
     model::{OkxClientConfig, QuoteParams, SwapParams},
 };
 use crate::{
@@ -20,8 +19,8 @@ pub struct OkxProviderProxy<C> {
 }
 
 impl OkxProviderProxy<RpcClient> {
-    pub fn new(config: OkxClientConfig, rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        Self::new_with_client(RpcClient::new(BASE_URL.to_string(), rpc_provider), config)
+    pub fn new(url: String, config: OkxClientConfig, rpc_provider: Arc<dyn RpcProvider>) -> Self {
+        Self::new_with_client(RpcClient::new(url, rpc_provider), config)
     }
 }
 

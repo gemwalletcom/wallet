@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         args,
         img_config,
         coingecko: settings.coingecko.remote_provider_config(),
-        coinmarketcap_api_key: settings.coinmarketcap.key.secret,
+        coinmarketcap: settings.coinmarketcap.remote_provider_config(),
         jupiter_api_key: settings.defi.jupiter.key.secret,
     })?;
 

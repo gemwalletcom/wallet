@@ -95,12 +95,17 @@ fiat:
       key:
         secret: ""
 swap:
+  near_intents:
+    url: "https://1click.chaindefuser.com"
   okx:
+    url: "https://web3.okx.com"
     key:
       public: ""
       secret: ""
     passphrase: ""
     project: ""
+  swaps_xyz:
+    url: "https://api-v2.swaps.xyz/api"
 
 prices:
   coingecko:
@@ -141,6 +146,7 @@ coingecko:
   key:
     secret: ""
 coinmarketcap:
+  url: "https://pro-api.coinmarketcap.com"
   key:
     secret: ""
 

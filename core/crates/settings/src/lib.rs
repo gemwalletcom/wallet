@@ -204,7 +204,7 @@ pub struct SecretKeySettings {
     pub key: KeySecret,
 }
 pub type CoinGecko = ProviderSettings;
-pub type CoinMarketCap = SecretKeySettings;
+pub type CoinMarketCap = ProviderSettings;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct UrlSecretKeySettings {
@@ -475,11 +475,14 @@ pub struct RewardsWallet {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Swap {
+    pub near_intents: URL,
     pub okx: Okx,
+    pub swaps_xyz: URL,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Okx {
+    pub url: String,
     pub key: Key,
     pub passphrase: String,
     pub project: String,

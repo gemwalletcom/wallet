@@ -343,7 +343,7 @@ mod swap_integration_tests {
             project: settings.swap.okx.project,
         };
         let rpc_provider = Arc::new(NativeProvider::default());
-        let proxy = Arc::new(OkxProviderProxy::new(config, rpc_provider.clone()));
+        let proxy = Arc::new(OkxProviderProxy::new(settings.swap.okx.url, config, rpc_provider.clone()));
         OkxProvider::new_with_client(ProxyPassthroughClient { proxy }, rpc_provider)
     }
 
