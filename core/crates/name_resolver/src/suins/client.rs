@@ -9,8 +9,6 @@ use std::error::Error;
 
 use super::proto::{decode_lookup_name_response, encode_lookup_name_request};
 
-const PATH_LOOKUP_NAME: &str = "/sui.rpc.v2.NameService/LookupName";
-
 #[derive(Clone, Debug)]
 pub struct SuinsClient {
     api_url: String,
@@ -28,7 +26,7 @@ impl SuinsClient {
     async fn lookup_name(&self, name: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
         let body = self
             .transport
-            .unary(&self.api_url, PATH_LOOKUP_NAME, encode_grpc_frame(&encode_lookup_name_request(name)))
+            .unary(&self.api_url, "/sui.rpc.v2.NameService/LookupName", encode_grpc_frame(&encode_lookup_name_request(name)))
             .await
             .map_err(|error| format!("SuiNS gRPC request failed: {error}"))?;
 

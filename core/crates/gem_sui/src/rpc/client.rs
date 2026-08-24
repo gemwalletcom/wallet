@@ -39,17 +39,8 @@ const TRANSACTION_READ_MASK: &[&str] = &[
 ];
 
 pub(super) const PATH_GET_EPOCH: &str = "/sui.rpc.v2.LedgerService/GetEpoch";
-const PATH_GET_SERVICE_INFO: &str = "/sui.rpc.v2.LedgerService/GetServiceInfo";
 const PATH_GET_OBJECT: &str = "/sui.rpc.v2.LedgerService/GetObject";
-const PATH_GET_CHECKPOINT: &str = "/sui.rpc.v2.LedgerService/GetCheckpoint";
-const PATH_GET_TRANSACTION: &str = "/sui.rpc.v2.LedgerService/GetTransaction";
-const PATH_GET_FUNCTION: &str = "/sui.rpc.v2.MovePackageService/GetFunction";
 pub(super) const PATH_LIST_OWNED_OBJECTS: &str = "/sui.rpc.v2.StateService/ListOwnedObjects";
-const PATH_GET_BALANCE: &str = "/sui.rpc.v2.StateService/GetBalance";
-const PATH_LIST_BALANCES: &str = "/sui.rpc.v2.StateService/ListBalances";
-const PATH_GET_COIN_INFO: &str = "/sui.rpc.v2.StateService/GetCoinInfo";
-const PATH_BATCH_GET_OBJECTS: &str = "/sui.rpc.v2.LedgerService/BatchGetObjects";
-const PATH_BATCH_GET_TRANSACTIONS: &str = "/sui.rpc.v2.LedgerService/BatchGetTransactions";
 pub(super) const PATH_SIMULATE_TRANSACTION: &str = "/sui.rpc.v2.TransactionExecutionService/SimulateTransaction";
 pub(crate) const PATH_EXECUTE_TRANSACTION: &str = "/sui.rpc.v2.TransactionExecutionService/ExecuteTransaction";
 const BATCH_GET_TRANSACTIONS_LIMIT: usize = 50;
@@ -109,7 +100,7 @@ impl SuiClient {
             owner: Some(address.to_string()),
             coin_type: Some(coin_type.to_string()),
         };
-        let response: GetBalanceResponse = self.grpc_unary(PATH_GET_BALANCE, request).await?;
+        let response: GetBalanceResponse = self.grpc_unary("/sui.rpc.v2.StateService/GetBalance", request).await?;
         let balance = response.balance.unwrap_or_default();
         Ok(Balance {
             coin_type: balance.coin_type.unwrap_or_else(|| coin_type.to_string()),
@@ -127,7 +118,7 @@ impl SuiClient {
         let mut balances = Vec::new();
 
         loop {
-            let response: ListBalancesResponse = self.grpc_unary(PATH_LIST_BALANCES, request.clone()).await?;
+            let response: ListBalancesResponse = self.grpc_unary("/sui.rpc.v2.StateService/ListBalances", request.clone()).await?;
             let page = response
                 .balances
                 .into_iter()
@@ -151,7 +142,7 @@ impl SuiClient {
 
     pub async fn get_coin_metadata(&self, token_id: String) -> Result<SuiCoinMetadata, Box<dyn Error + Send + Sync>> {
         let request = GetCoinInfoRequest { coin_type: Some(token_id) };
-        let response: GetCoinInfoResponse = self.grpc_unary(PATH_GET_COIN_INFO, request).await?;
+        let response: GetCoinInfoResponse = self.grpc_unary("/sui.rpc.v2.StateService/GetCoinInfo", request).await?;
         let metadata = response.metadata.ok_or("missing Sui coin metadata")?;
         Ok(SuiCoinMetadata {
             decimals: metadata.decimals.unwrap_or_default() as i32,
@@ -269,7 +260,7 @@ impl SuiClient {
     pub(crate) async fn get_function(&self, package_id: &str, module: &str, function: &str) -> Result<proto::FunctionDescriptor, Box<dyn Error + Send + Sync>> {
         let package_id = Address::from_str(package_id)?;
         let request = GetFunctionRequest::new(&package_id, module, function);
-        let response: GetFunctionResponse = self.grpc_unary(PATH_GET_FUNCTION, request).await?;
+        let response: GetFunctionResponse = self.grpc_unary("/sui.rpc.v2.MovePackageService/GetFunction", request).await?;
         Ok(response.function.ok_or("missing Sui function descriptor")?)
     }
 
@@ -301,7 +292,7 @@ impl SuiClient {
             digest: Some(transaction_id),
             read_mask: Some(FieldMask::from_paths(TRANSACTION_READ_MASK.iter().copied())),
         };
-        let response: GetTransactionResponse = self.grpc_unary(PATH_GET_TRANSACTION, request).await?;
+        let response: GetTransactionResponse = self.grpc_unary("/sui.rpc.v2.LedgerService/GetTransaction", request).await?;
         map_executed_transaction(response.transaction.ok_or("missing Sui transaction")?)
     }
 
@@ -309,7 +300,7 @@ impl SuiClient {
         let request = GetCheckpointRequest::by_sequence_number(checkpoint).with(|request| {
             request.read_mask = Some(FieldMask::from_paths(["sequence_number", "digest", "summary", "contents.transactions.transaction"]));
         });
-        let response: GetCheckpointResponse = self.grpc_unary(PATH_GET_CHECKPOINT, request).await?;
+        let response: GetCheckpointResponse = self.grpc_unary("/sui.rpc.v2.LedgerService/GetCheckpoint", request).await?;
         let checkpoint = response.checkpoint.ok_or("missing Sui checkpoint")?;
         map_checkpoint(checkpoint)
     }
@@ -333,7 +324,7 @@ impl SuiClient {
             digests,
             read_mask: Some(FieldMask::from_paths(TRANSACTION_READ_MASK.iter().copied())),
         };
-        let response: BatchGetTransactionsResponse = self.grpc_unary(PATH_BATCH_GET_TRANSACTIONS, request).await?;
+        let response: BatchGetTransactionsResponse = self.grpc_unary("/sui.rpc.v2.LedgerService/BatchGetTransactions", request).await?;
         response
             .transactions
             .into_iter()
@@ -371,7 +362,7 @@ impl SuiClient {
             requests,
             read_mask: Some(FieldMask::from_paths(["object_id", "version", "digest", "owner"])),
         };
-        let response: BatchGetObjectsResponse = self.grpc_unary(PATH_BATCH_GET_OBJECTS, request).await?;
+        let response: BatchGetObjectsResponse = self.grpc_unary("/sui.rpc.v2.LedgerService/BatchGetObjects", request).await?;
         response
             .objects
             .into_iter()
@@ -384,7 +375,7 @@ impl SuiClient {
     }
 
     async fn service_info(&self) -> Result<GetServiceInfoResponse, Box<dyn Error + Send + Sync>> {
-        self.grpc_unary(PATH_GET_SERVICE_INFO, GetServiceInfoRequest).await
+        self.grpc_unary("/sui.rpc.v2.LedgerService/GetServiceInfo", GetServiceInfoRequest).await
     }
 
     pub(super) async fn get_epoch(&self, epoch: Option<u64>, read_mask: Option<FieldMask>) -> Result<proto::Epoch, Box<dyn Error + Send + Sync>> {
