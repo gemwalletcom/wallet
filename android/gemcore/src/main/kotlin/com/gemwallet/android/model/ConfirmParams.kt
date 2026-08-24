@@ -174,6 +174,68 @@ sealed class ConfirmParams() {
         }
 
         @Serializable
+        class Payment(
+            val requestId: String,
+            override val asset: Asset,
+            override val from: Account,
+            @Serializable(BigIntegerSerializer::class) override val amount: BigInteger = BigInteger.ZERO,
+            override val destination: DestinationAddress,
+            val payment: PaymentData,
+            val calldata: String,
+            val gasLimit: String? = null,
+        ) : TransferParams() {
+            override val useMaxAmount: Boolean = false
+
+            override val shouldIgnoreValueCheck: Boolean = false
+
+            override val memo: String? = null
+
+            override val inputType: InputType = InputType.EncodeTransaction
+
+            override fun memo(): String? = null
+
+            override fun toDto(): GemTransactionInputType = Generic(
+                asset = asset.toGem(),
+                metadata = GemWalletConnectionSessionAppMetadata(
+                    name = payment.merchant.name,
+                    description = "",
+                    url = "",
+                    icon = payment.merchant.iconUrl.orEmpty(),
+                ),
+                extra = GemTransferDataExtra(
+                    gasLimit = gasLimit,
+                    gasPrice = null,
+                    data = calldata.takeIf { it.isNotEmpty() }?.let { data ->
+                        if (data.has0xPrefix()) {
+                            try {
+                                return@let data.fromHex()
+                            } catch (_: Error) { }
+                        }
+                        data.toByteArray()
+                    },
+                    outputType = TransferDataOutputType.ENCODED_TRANSACTION,
+                    outputAction = TransferDataOutputAction.SEND,
+                    transactionType = TransactionType.Transfer.toGem(),
+                    to = destination().address,
+                ),
+            )
+
+            override fun hashCode(): Int {
+                var result = asset.hashCode()
+                result = 31 * result + requestId.hashCode()
+                result = 31 * result + from.hashCode()
+                result = 31 * result + amount.hashCode()
+                result = 31 * result + destination.hashCode()
+                result = 31 * result + payment.hashCode()
+                result = 31 * result + calldata.hashCode()
+                result = 31 * result + (gasLimit?.hashCode() ?: 0)
+                return result
+            }
+
+            override fun equals(other: Any?): Boolean = other is Payment && hashCode() == other.hashCode()
+        }
+
+        @Serializable
         class Generic(
             val requestId: String,
             override val asset: Asset,
@@ -191,9 +253,8 @@ sealed class ConfirmParams() {
             val gasLimit: String?,
             val decodedTransactionType: TransactionType = TransactionType.SmartContractCall,
             val approval: ApprovalData? = null,
-            val payment: PaymentData? = null,
         ) : TransferParams() {
-            override fun memo(): String? = if (payment == null) memo else null
+            override fun memo(): String? = memo
 
             override fun toDto(): GemTransactionInputType {
                 val type = requireNotNull(inputType) { "inputType is required for Generic transactions" }
@@ -245,7 +306,6 @@ sealed class ConfirmParams() {
                 result = 31 * result + (gasLimit?.hashCode() ?: 0)
                 result = 31 * result + decodedTransactionType.hashCode()
                 result = 31 * result + (approval?.hashCode() ?: 0)
-                result = 31 * result + (payment?.hashCode() ?: 0)
                 return result
             }
 

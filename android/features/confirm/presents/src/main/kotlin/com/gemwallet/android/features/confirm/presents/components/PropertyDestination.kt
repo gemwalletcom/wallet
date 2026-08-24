@@ -45,7 +45,7 @@ fun PropertyDestination(
             title = { PropertyTitleText(R.string.transfer_recipient_title) },
             data = {
                 PropertyDataText(
-                    text = model.data,
+                    text = model.displayData(),
                     badge = model.iconUrl?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },
                 )
             },

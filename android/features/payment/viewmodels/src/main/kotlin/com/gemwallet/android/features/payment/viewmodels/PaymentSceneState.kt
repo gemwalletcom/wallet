@@ -26,7 +26,7 @@ sealed interface PaymentSceneState {
     }
 
     data class Confirm(
-        val params: ConfirmParams.TransferParams.Generic,
+        val params: ConfirmParams.TransferParams.Payment,
     ) : PaymentSceneState
 
     data class Outcome(val outcome: PaymentOutcomeUIModel) : PaymentSceneState

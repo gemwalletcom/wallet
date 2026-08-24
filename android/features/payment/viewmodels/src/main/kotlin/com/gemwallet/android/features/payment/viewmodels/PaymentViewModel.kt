@@ -163,22 +163,14 @@ class PaymentViewModel @Inject constructor(
         val account = current.wallet.getAccount(action.chain)
             ?: return failure(PaymentLinkError.NoAccount, "confirm: no ${action.chain} account")
         return PaymentSceneState.Confirm(
-            ConfirmParams.TransferParams.Generic(
+            ConfirmParams.TransferParams.Payment(
                 requestId = quote.id,
                 asset = action.chain.asset(),
                 from = account,
                 amount = BigInteger(action.value),
                 destination = DestinationAddress(action.recipient),
-                memo = action.data,
-                isSendable = true,
-                inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
-                name = current.quotes.merchant.name,
-                description = "",
-                url = paymentWalletConnectUrl(),
-                icon = current.quotes.merchant.iconUrl.orEmpty(),
-                gasLimit = null,
-                decodedTransactionType = TransactionType.Transfer,
                 payment = current.paymentData(quote),
+                calldata = action.data,
             )
         )
     }

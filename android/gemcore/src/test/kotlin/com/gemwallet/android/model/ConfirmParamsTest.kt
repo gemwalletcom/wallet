@@ -1,6 +1,7 @@
 package com.gemwallet.android.model
 
 import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockPaymentData
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -38,37 +39,23 @@ import java.math.BigInteger
 class ConfirmParamsTest {
 
     @Test
-    fun paymentCalldataIsNotRecordedAsAMemo() {
-        fun generic(payment: PaymentData?) = ConfirmParams.TransferParams.Generic(
+    fun paymentKeepsCalldataOutOfTheMemoAndSurvivesRouting() {
+        val params = ConfirmParams.TransferParams.Payment(
             requestId = "pay_1",
             asset = mockAssetEthereum(),
             from = mockAccount(chain = Chain.Ethereum),
             amount = BigInteger.ONE,
             destination = DestinationAddress("0x57b2b4288220005234c0e88a04a7943193971d21"),
-            memo = "0xd3906488",
-            inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
-            isSendable = true,
-            name = "Merchant",
-            description = "",
-            url = "https://pay.walletconnect.com",
-            icon = "",
-            gasLimit = null,
-            decodedTransactionType = TransactionType.Transfer,
-            payment = payment,
-        )
-        val payment = PaymentData(
-            quote = PaymentQuote(
-                id = "option_1",
-                link = PaymentLink.WalletConnectPay("pay_1"),
-                assetId = AssetId(Chain.Ethereum),
-                value = "1",
-                providerData = "{}",
-            ),
-            merchant = PaymentMerchant(name = "Merchant", iconUrl = null),
+            payment = mockPaymentData(),
+            calldata = "0xd3906488",
         )
 
-        assertNull(generic(payment).memo())
-        assertEquals("0xd3906488", generic(payment = null).memo())
+        assertNull(params.memo())
+
+        val restored = ConfirmParams.unpack(requireNotNull(params.pack())) as ConfirmParams.TransferParams.Payment
+        assertEquals("0xd3906488", restored.calldata)
+        assertEquals("Merchant", restored.payment.merchant.name)
+        assertNull(restored.memo())
     }
 
     @Test

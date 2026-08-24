@@ -64,10 +64,8 @@ sealed interface ConfirmProperty {
                         imageUrl = addressName?.imageUrl,
                     )
                 }
-                is ConfirmParams.TransferParams.Generic -> when (val merchant = params.payment?.merchant) {
-                    null -> Generic(params.name)
-                    else -> Merchant(merchant.name, merchant.iconUrl)
-                }
+                is ConfirmParams.TransferParams.Payment -> Merchant(params.payment.merchant.name, params.payment.merchant.iconUrl)
+                is ConfirmParams.TransferParams.Generic -> Generic(params.name)
             }
         }
     }
