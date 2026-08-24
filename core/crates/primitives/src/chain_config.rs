@@ -2,6 +2,8 @@ use crate::chain_cosmos::CosmosChain;
 use crate::{AssetType, Chain, ChainType, asset_constants::*};
 use std::sync::LazyLock;
 
+pub(crate) const NO_NATIVE_ASSET_RANK: i32 = -1;
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum ChainStack {
     Native,
@@ -1352,8 +1354,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             token_activation_fee: None,
             minimum_account_balance: None,
             block_time: 500,
-            // Tempo has no native asset; retain only its database anchor.
-            rank: -1,
+            rank: NO_NATIVE_ASSET_RANK,
             is_swap_supported: true,
             is_nft_supported: false,
             is_defi_supported: false,

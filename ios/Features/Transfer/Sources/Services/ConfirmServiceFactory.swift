@@ -44,7 +44,7 @@ public enum ConfirmServiceFactory {
                     chainService: chainService,
                     scanService: scanService,
                 ),
-                feeAssetProvider: assetsService.assetStore,
+                feeAssetProvider: FeeAssetProvider(assetStore: assetsService.assetStore),
             ),
             simulationService: ConfirmSimulationService(
                 addressNameService: addressNameService,

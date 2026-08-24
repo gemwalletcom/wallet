@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "Özel Jeton Ekle";
 "assets.select_asset" = "Varlık Seç";
 "assets.popular" = "Popüler varlıklar";
-"assets.tags.trending" = "Trend olan";
-"assets.tags.gainers" = "Kazananlar";
-"assets.tags.losers" = "Kaybedenler";
 "assets.tags.new" = "Yeni";
-"assets.tags.stablecoins" = "Stabilcoinler";
 "assets.state.empty.search_description" = "Manuel olarak eklemeyi deneyebilirsiniz";
 "assets.title" = "Varlıklar";
 "sign_message.message" = "İleti";

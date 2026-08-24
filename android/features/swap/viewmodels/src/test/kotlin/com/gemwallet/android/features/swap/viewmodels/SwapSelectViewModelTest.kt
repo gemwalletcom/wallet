@@ -47,8 +47,8 @@ class SwapSelectViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { getSession() } returns MutableStateFlow(null)
         every { getRecentAssets(any()) } returns flowOf(emptyList())
-        every { searchSwapAssets(any(), any(), any(), any(), any()) } returns flowOf(emptyList())
-        coEvery { searchTokensCase.search(any<String>(), any(), any(), any()) } returns true
+        every { searchSwapAssets(any(), any(), any(), any()) } returns flowOf(emptyList())
+        coEvery { searchTokensCase.search(any<String>(), any(), any()) } returns true
     }
 
     @After
@@ -65,7 +65,7 @@ class SwapSelectViewModelTest {
         Snapshot.sendApplyNotifications()
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { searchTokensCase.search(any<String>(), any(), any(), any()) }
+        coVerify(exactly = 0) { searchTokensCase.search(any<String>(), any(), any()) }
     }
 
     private fun createViewModel(type: SwapItemType) = SwapSelectViewModel(

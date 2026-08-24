@@ -31,7 +31,7 @@ impl NameProviderFactory {
     pub fn create_providers(settings: Settings) -> Vec<Box<dyn NameClient + Send + Sync>> {
         vec![
             Box::new(ens::ENSClient::new(settings.name.ens.url)),
-            Box::new(ud::UDClient::new(settings.name.ud.url, settings.name.ud.key.secret)),
+            Box::new(ud::UDClient::new(settings.name.ud.url)),
             Box::new(sns::SNSClient::new(settings.name.sns.url)),
             Box::new(ton::TONClient::new(settings.name.ton.url)),
             Box::new(eths::EthsClient::new(settings.name.eths.url)),
@@ -45,7 +45,7 @@ impl NameProviderFactory {
             Box::new(base::Basenames::new(settings.name.base.url)),
             Box::new(hyperliquid::Hyperliquid::new(settings.name.hyperliquid.url)),
             Box::new(alldomains::AllDomainsClient::new(settings.name.alldomains.url)),
-            Box::new(near::NearNameClient::new(settings.chains.near.url)),
+            Box::new(near::NearNameClient::new(settings.name.near.url)),
         ]
     }
 }

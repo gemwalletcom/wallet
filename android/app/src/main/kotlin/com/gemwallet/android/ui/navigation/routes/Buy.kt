@@ -6,14 +6,20 @@ import com.gemwallet.android.features.asset_select.presents.views.SelectBuyScree
 import com.gemwallet.android.features.buy.views.FiatNavScreen
 import com.gemwallet.android.features.buy.views.FiatTransactionsNavScreen
 import com.gemwallet.android.ui.models.actions.CancelAction
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.fiatAmountArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.FiatQuoteType
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class FiatInputRoute(val assetId: AssetId, val amount: Double? = null) : NavKey
+data class FiatInputRoute(
+    val assetId: AssetId,
+    val amount: Int? = null,
+    val type: FiatQuoteType = FiatQuoteType.Buy,
+) : NavKey
 
 @Serializable
 data object FiatSelectRoute : NavKey
@@ -27,7 +33,13 @@ fun EntryProviderScope<NavKey>.fiatScreen(
     onFiatTransactions: () -> Unit,
 ) {
     entry<FiatInputRoute>(
-        metadata = { key -> routeArguments(assetIdArgument(key.assetId), fiatAmountArgument(key.amount)) },
+        metadata = { key ->
+            routeArguments(
+                assetIdArgument(key.assetId),
+                fiatAmountArgument(key.amount),
+                RouteArgument.Type to key.type,
+            )
+        },
     ) {
         FiatNavScreen(
             cancelAction = cancelAction,

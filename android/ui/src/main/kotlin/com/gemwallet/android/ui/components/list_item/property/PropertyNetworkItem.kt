@@ -10,9 +10,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 
 @Composable
@@ -20,12 +18,12 @@ fun PropertyNetworkItem(
     chain: Chain,
     value: String = chain.networkName(),
     listPosition: ListPosition = ListPosition.Single,
-    onOpenNetwork: AssetIdAction? = null
+    onOpenNetwork: (() -> Unit)? = null
 ) {
     val asset = chain.asset()
     PropertyItem(
         modifier = onOpenNetwork?.let {
-            Modifier.clickable { it(AssetId(chain)) }
+            Modifier.clickable(onClick = it)
         } ?: Modifier,
         title = { PropertyTitleText(R.string.transfer_network) },
         data = {
@@ -42,7 +40,7 @@ fun PropertyNetworkItem(
 fun PropertyNetworkItem(
     asset: Asset,
     listPosition: ListPosition = ListPosition.Single,
-    onOpenNetwork: AssetIdAction? = null
+    onOpenNetwork: (() -> Unit)? = null
 ) {
     PropertyNetworkItem(
         chain = asset.chain,

@@ -410,11 +410,7 @@ assets_no_assets_found = 未找到資產
 assets_add_custom_token = 添加自訂代幣
 assets_select_asset = 選擇資產
 assets_popular = 熱門資產
-assets_tags_trending = 熱門
-assets_tags_gainers = 漲幅榜
-assets_tags_losers = 跌幅榜
 assets_tags_new = 新的
-assets_tags_stablecoins = 穩定幣
 assets_state_empty_search_description = 請嘗試手動新增
 assets_title = 資產
 

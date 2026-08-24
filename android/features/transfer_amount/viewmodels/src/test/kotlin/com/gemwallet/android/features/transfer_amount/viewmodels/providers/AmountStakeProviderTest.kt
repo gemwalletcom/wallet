@@ -14,6 +14,7 @@ import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationValidator
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Resource
 import io.mockk.coEvery
 import io.mockk.every
@@ -48,7 +49,7 @@ class AmountStakeProviderTest {
         every { this@mockk.invoke(asset.id) } returns flowOf(assetInfo)
     }
     private val getDelegation = mockk<GetDelegation> {
-        every { this@mockk.invoke(any(), any()) } returns flowOf(delegation)
+        every { this@mockk.invoke(any(), any(), any()) } returns flowOf(delegation)
     }
     private val getDelegations = mockk<GetDelegations> {
         every { this@mockk.invoke(any(), any()) } returns flowOf(listOf(delegation))
@@ -86,7 +87,7 @@ class AmountStakeProviderTest {
     @Test
     fun `delegate without validator throws NoValidatorSelected`() = runBlocking {
         coEvery { getStakeValidator(any(), any()) } returns null
-        every { getDelegation(any(), any()) } returns flowOf(null)
+        every { getDelegation(any(), any(), any()) } returns flowOf(null)
         val provider = makeProvider(AmountParams.Stake.Delegate(asset.id, validatorId = null))
         provider.assetInfo.filterNotNull().first()
         assertThrows(AmountError.NoValidatorSelected::class.java) {
@@ -102,6 +103,38 @@ class AmountStakeProviderTest {
         provider.validatorState.filterNotNull().first()
         val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false)
         assertTrue(confirm is ConfirmParams.Stake.UndelegateParams)
+    }
+
+    @Test
+    fun `undelegate delegation lookup is scoped to the asset's owning wallet`() = runBlocking {
+        val ownWalletId = mockWalletId("wallet-own")
+        val otherWalletId = mockWalletId("wallet-other")
+        val ownDelegation = mockDelegation(
+            assetId = asset.id,
+            balance = "77",
+            validatorId = "v1",
+            delegationId = "d1",
+        )
+        val otherWalletDelegation = mockDelegation(
+            assetId = asset.id,
+            balance = "999999",
+            validatorId = "v1",
+            delegationId = "d1",
+        )
+        every { getAssetInfo(asset.id) } returns flowOf(mockAssetInfo(asset = asset, walletId = ownWalletId))
+        every { getDelegation(ownWalletId, "v1", "d1") } returns flowOf(ownDelegation)
+        every { getDelegation(otherWalletId, "v1", "d1") } returns flowOf(otherWalletDelegation)
+        coEvery {
+            balanceService.getBalance(any(), any<AmountParams>(), delegation = ownDelegation, resource = any())
+        } returns BigInteger("77")
+
+        val provider = makeProvider(AmountParams.Stake.Undelegate(asset.id, validatorId = "v1", delegationId = "d1"))
+        provider.assetInfo.filterNotNull().first()
+        provider.validatorState.filterNotNull().first()
+
+        assertEquals(BigInteger("77"), provider.availableBalance.first { it != BigInteger.ZERO })
+        val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false) as ConfirmParams.Stake.UndelegateParams
+        assertEquals("77", confirm.delegation.base.balance)
     }
 
     @Test

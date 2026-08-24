@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "Adăugați un simbol personalizat";
 "assets.select_asset" = "Selectați activul";
 "assets.popular" = "Active populare";
-"assets.tags.trending" = "În tendințe";
-"assets.tags.gainers" = "Câștigători";
-"assets.tags.losers" = "În scădere";
 "assets.tags.new" = "Nou";
-"assets.tags.stablecoins" = "Monede stabile";
 "assets.state.empty.search_description" = "Poți încerca să-l adaugi manual";
 "assets.title" = "Active";
 "sign_message.message" = "Mesaj";

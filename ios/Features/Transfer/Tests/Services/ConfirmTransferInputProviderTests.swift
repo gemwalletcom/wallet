@@ -18,7 +18,7 @@ struct ConfirmTransferInputProviderTests {
             ),
         ))
 
-        let result = try await provider.load(request: .mock(), metadata: .mock(), selection: .preset(.normal))
+        let result = try await provider.load()
 
         #expect(result.feeRates.count == 1)
         #expect(result.input.transactionData.fee.fee == 1)
@@ -39,12 +39,41 @@ struct ConfirmTransferInputProviderTests {
             feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance, price: feeAssetPrice),
         )
 
-        let result = try await provider.load(request: .mock(), metadata: .mock(), selection: .preset(.normal))
+        let result = try await provider.load()
 
         #expect(result.input.feeAsset == feeAsset)
         #expect(result.metadata.assetFeeBalance == feeAssetBalance)
         #expect(result.metadata.feeAssetId == feeAsset.id)
         #expect(result.metadata.feePrice == feeAssetPrice)
+    }
+
+    @Test
+    func loadUsesSelectedFeeAsset() async throws {
+        let selectedAsset = Asset.mockTempoUSDC()
+        let provider = ConfirmTransferInputProvider(
+            transferTransactionProvider: TransferTransactionProviderMock(result: .success(
+                TransferTransactionData(
+                    allRates: [],
+                    transactionData: .mock(feeAsset: .mockTempoPathUSD()),
+                ),
+            )),
+            feeAssetProvider: FeeAssetProviderMock(
+                asset: selectedAsset,
+                balance: .mock(available: 42),
+                price: .mock(price: 1),
+            ),
+        )
+
+        let result = try await provider.load(
+            request: .mock(data: .mock(type: .transfer(.mockTempoPathUSD()))),
+            metadata: .mock(),
+            selection: .preset(.normal),
+            feeAssetSelection: .selected(selectedAsset.id),
+        )
+
+        #expect(result.input.transactionData.fee.feeAssetId == selectedAsset.id)
+        #expect(result.input.feeAsset == selectedAsset)
+        #expect(result.metadata.feeAssetId == selectedAsset.id)
     }
 
     @Test
@@ -56,7 +85,7 @@ struct ConfirmTransferInputProviderTests {
         )
 
         await #expect(throws: TransferAmountCalculatorError.self) {
-            try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
+            try await provider.load(metadata: metadata)
         }
     }
 
@@ -69,7 +98,7 @@ struct ConfirmTransferInputProviderTests {
         )
 
         await #expect(throws: AnyError.self) {
-            try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
+            try await provider.load(metadata: metadata)
         }
     }
 
@@ -82,7 +111,7 @@ struct ConfirmTransferInputProviderTests {
         )
 
         await #expect(throws: AnyError.self) {
-            try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
+            try await provider.load(metadata: metadata)
         }
     }
 
@@ -100,12 +129,21 @@ struct ConfirmTransferInputProviderTests {
         )
 
         await #expect(throws: AnyError.self) {
-            try await provider.load(request: .mock(), metadata: metadata, selection: .preset(.normal))
+            try await provider.load(metadata: metadata)
         }
     }
 }
 
 private extension ConfirmTransferInputProvider {
+    func load(metadata: TransferDataMetadata = .mock()) async throws -> ConfirmTransferPreload {
+        try await load(
+            request: .mock(),
+            metadata: metadata,
+            selection: .preset(.normal),
+            feeAssetSelection: .automatic,
+        )
+    }
+
     static func mock(transaction: Result<TransferTransactionData, Error>) -> ConfirmTransferInputProvider {
         ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: transaction),

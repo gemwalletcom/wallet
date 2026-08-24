@@ -7,7 +7,6 @@ import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.search.apiTag
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.SearchResponse
 
@@ -30,12 +29,10 @@ class SearchAssetsImpl(
     override suspend fun searchAssets(
         query: String,
         chains: List<Chain>,
-        tags: List<AssetTag>,
     ): List<AssetBasic> {
         return gemApiClient.searchAssets(
             query = query,
             chains = chains.joinToString(",") { it.string },
-            tags = tags.joinToString(",") { it.string },
         )
     }
 

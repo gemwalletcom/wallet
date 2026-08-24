@@ -1,21 +1,21 @@
 use cacher::{CacheKey, CacherClient};
 use std::collections::HashSet;
 use std::error::Error;
-use std::time::Duration;
 
 use crate::ip_check_client::{IPAddressInfo, IPCheckClient};
 use crate::{
     CachedFiatQuoteData, FiatCacherClient, FiatProvider, FiatWebhookRequest,
+    error::FiatQuoteError,
     model::{FiatMapping, FiatMappingMap},
 };
 use futures::future::join_all;
+use gem_client::ClientError;
 use gem_tracing::{error_with_fields, info_with_fields};
 use number_formatter::BigNumberFormatter;
 use primitives::{
     Asset, FiatAssetSymbol, FiatAssets, FiatProvider as PrimitiveFiatProvider, FiatProviderCountry, FiatQuote, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData,
     FiatQuotes, FiatTransaction, PaymentType,
 };
-use reqwest::Client as RequestClient;
 use storage::{AssetFilter, AssetsRepository, Database, FiatRepository, WalletsRepository};
 use streamer::{FiatWebhook, FiatWebhookPayload, StreamProducer};
 
@@ -54,10 +54,6 @@ impl FiatClient {
             .ok_or_else(|| format!("Provider {} not found", provider_name).into())
     }
 
-    pub fn request_client(timeout: Duration) -> RequestClient {
-        gem_client::builder().timeout(timeout).build().unwrap()
-    }
-
     pub async fn get_on_ramp_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
         let assets = self
             .database
@@ -90,9 +86,10 @@ impl FiatClient {
         let webhook_data = request.data.clone();
         let webhook = match provider.process_webhook(request).await {
             Ok(webhook) => webhook,
-            Err(e) => {
-                error_with_fields!("failed to decode fiat webhook", &*e, provider = provider_id);
-                return Err(e);
+            Err(error) if error.downcast_ref::<FiatQuoteError>().is_some() => return Err(error),
+            Err(error) => {
+                error_with_fields!("failed to process fiat webhook", &*error, provider = provider_id);
+                return Err(error);
             }
         };
 
@@ -184,7 +181,7 @@ impl FiatClient {
             let countries: HashSet<String> = fiat_providers_countries.iter().filter(|x| x.provider == provider_name).map(|x| x.alpha2.clone()).collect();
 
             let mapping = fiat_mapping_map.get(&provider_id);
-            if !is_provider_eligible(db_provider, &countries, mapping, country_code, &request.quote_type) {
+            if !is_provider_eligible(db_provider, &countries, mapping, country_code, &request) {
                 return None;
             }
             let mapping = mapping?.clone();
@@ -240,7 +237,13 @@ impl FiatClient {
             locale: locale.to_string(),
         };
 
-        let url = provider.get_quote_url(data.clone()).await?;
+        let url = match provider.get_quote_url(data.clone()).await {
+            Ok(url) => url,
+            Err(error) if matches!(error.downcast_ref::<ClientError>(), Some(ClientError::Http { status: 400..=499, .. })) => {
+                return Err(crate::error::FiatQuoteError::InvalidRequest(format!("{} rejected quote", provider.name().id())).into());
+            }
+            Err(error) => return Err(error),
+        };
         let country = match country_code {
             Some(country_code) => Some(country_code),
             None => Some(self.get_ip_address(ip_address).await?.alpha2),
@@ -260,8 +263,8 @@ impl FiatClient {
     }
 }
 
-fn is_provider_eligible(db_provider: &PrimitiveFiatProvider, countries: &HashSet<String>, mapping: Option<&FiatMapping>, country_code: &str, quote_type: &FiatQuoteType) -> bool {
-    let is_enabled = match quote_type {
+fn is_provider_eligible(db_provider: &PrimitiveFiatProvider, countries: &HashSet<String>, mapping: Option<&FiatMapping>, country_code: &str, request: &FiatQuoteRequest) -> bool {
+    let is_enabled = match request.quote_type {
         FiatQuoteType::Buy => db_provider.is_buy_enabled(),
         FiatQuoteType::Sell => db_provider.is_sell_enabled(),
     };
@@ -271,7 +274,19 @@ fn is_provider_eligible(db_provider: &PrimitiveFiatProvider, countries: &HashSet
     let Some(mapping) = mapping else {
         return false;
     };
-    countries.contains(country_code) && !mapping.unsupported_countries.contains_key(country_code)
+    if !countries.contains(country_code) || mapping.unsupported_countries.contains_key(country_code) {
+        return false;
+    }
+    let limits = match request.quote_type {
+        FiatQuoteType::Buy => &mapping.buy_limits,
+        FiatQuoteType::Sell => &mapping.sell_limits,
+    };
+    limits.iter().any(|limit| {
+        limit.currency.as_ref() == request.currency
+            && (db_provider.payment_methods.is_empty() || db_provider.payment_methods.contains(&limit.payment_type))
+            && limit.min_amount.is_none_or(|minimum| request.amount >= minimum)
+            && limit.max_amount.is_none_or(|maximum| request.amount <= maximum)
+    })
 }
 
 async fn get_provider_quote(
@@ -337,8 +352,10 @@ fn quote_value(asset: &Asset, crypto_amount: f64) -> Result<String, Box<dyn Erro
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use super::*;
-    use primitives::FiatProviderName;
+    use primitives::{Chain, FiatAssetSymbol, FiatProviderName, PaymentType, currency::Currency, fiat_assets::FiatAssetLimits};
 
     fn mock_quote(provider: FiatProviderName, crypto_amount: f64) -> FiatQuote {
         let mut quote = FiatQuote::mock(provider);
@@ -349,8 +366,45 @@ mod tests {
 
     #[test]
     fn quote_value_uses_asset_precision_for_small_amounts() {
-        let asset = Asset::from_chain(primitives::Chain::Ethereum);
+        let asset = Asset::from_chain(Chain::Ethereum);
         assert_eq!(quote_value(&asset, 0.000000000000000001_f64).unwrap(), "1");
+    }
+
+    #[test]
+    fn provider_eligibility_applies_quote_limits() {
+        let countries = HashSet::from(["US".to_string()]);
+        let provider = PrimitiveFiatProvider {
+            payment_methods: vec![PaymentType::Card],
+            ..PrimitiveFiatProvider::mock(FiatProviderName::Banxa)
+        };
+        let mapping = FiatMapping {
+            asset: Asset::from_chain(Chain::Tron),
+            asset_symbol: FiatAssetSymbol {
+                symbol: "TRX".to_string(),
+                network: Some("TRON".to_string()),
+            },
+            unsupported_countries: HashMap::new(),
+            buy_limits: vec![FiatAssetLimits {
+                currency: Currency::USD,
+                payment_type: PaymentType::Card,
+                min_amount: Some(10.0),
+                max_amount: Some(15_000.0),
+            }],
+            sell_limits: vec![],
+        };
+        let mut request = FiatQuoteRequest::mock();
+
+        request.amount = 5.0;
+        assert!(!is_provider_eligible(&provider, &countries, Some(&mapping), "US", &request));
+        request.amount = 10.0;
+        assert!(is_provider_eligible(&provider, &countries, Some(&mapping), "US", &request));
+        request.amount = 15_000.0;
+        assert!(is_provider_eligible(&provider, &countries, Some(&mapping), "US", &request));
+        request.amount = 15_001.0;
+        assert!(!is_provider_eligible(&provider, &countries, Some(&mapping), "US", &request));
+        request.amount = 100.0;
+        request.currency = "EUR".to_string();
+        assert!(!is_provider_eligible(&provider, &countries, Some(&mapping), "US", &request));
     }
 
     #[test]

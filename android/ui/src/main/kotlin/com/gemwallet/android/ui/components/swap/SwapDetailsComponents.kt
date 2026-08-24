@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -98,6 +99,7 @@ fun SwapDetailsBottomSheet(
         modifier = modifier,
         skipPartiallyExpanded = skipPartiallyExpanded,
         title = stringResource(R.string.common_details),
+        dismissType = DialogBarDismissType.Confirm,
     ) {
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth()) {

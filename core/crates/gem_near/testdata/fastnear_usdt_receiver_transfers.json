@@ -1,0 +1,18 @@
+{
+  "resume_token": null,
+  "transfers": [
+    {
+      "account_id": "bb90f7cd3f611466d4e8aaee55541d5da6881e01a4155bca49041c1d692b4ff8",
+      "amount": "99500026",
+      "asset_id": "nep141:usdt.tether-token.near",
+      "block_height": "211048908",
+      "block_timestamp": "1786557653416767002",
+      "other_account_id": "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3",
+      "predecessor_id": "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3",
+      "receipt_account_id": "usdt.tether-token.near",
+      "receipt_id": "9E1WgnwhHJeHJMUmGYmLfpqZTi8MDpAiAs3Kygg9bsZC",
+      "signer_id": "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3",
+      "transaction_id": "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E"
+    }
+  ]
+}

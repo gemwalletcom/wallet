@@ -110,7 +110,7 @@ fn map_error_result(result: &Value) -> Option<JsonRpcError> {
         (None, None) => "XRP RPC error".to_string(),
     };
 
-    Some(JsonRpcError { code, message })
+    Some(JsonRpcError { code, message, cause: None })
 }
 
 impl<C: Client + Clone> ChainStaking for XrpClient<C> {}

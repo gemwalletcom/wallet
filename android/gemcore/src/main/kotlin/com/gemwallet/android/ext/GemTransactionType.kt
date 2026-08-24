@@ -23,3 +23,24 @@ fun GemTransactionType.toPrimitives(): TransactionType = when (this) {
     GemTransactionType.EARN_DEPOSIT -> TransactionType.EarnDeposit
     GemTransactionType.EARN_WITHDRAW -> TransactionType.EarnWithdraw
 }
+
+fun TransactionType.toGem(): GemTransactionType = when (this) {
+    TransactionType.Transfer -> GemTransactionType.TRANSFER
+    TransactionType.TransferNFT -> GemTransactionType.TRANSFER_NFT
+    TransactionType.Swap -> GemTransactionType.SWAP
+    TransactionType.TokenApproval -> GemTransactionType.TOKEN_APPROVAL
+    TransactionType.StakeDelegate -> GemTransactionType.STAKE_DELEGATE
+    TransactionType.StakeUndelegate -> GemTransactionType.STAKE_UNDELEGATE
+    TransactionType.StakeRewards -> GemTransactionType.STAKE_REWARDS
+    TransactionType.StakeRedelegate -> GemTransactionType.STAKE_REDELEGATE
+    TransactionType.StakeWithdraw -> GemTransactionType.STAKE_WITHDRAW
+    TransactionType.StakeFreeze -> GemTransactionType.STAKE_FREEZE
+    TransactionType.StakeUnfreeze -> GemTransactionType.STAKE_UNFREEZE
+    TransactionType.AssetActivation -> GemTransactionType.ASSET_ACTIVATION
+    TransactionType.SmartContractCall -> GemTransactionType.SMART_CONTRACT_CALL
+    TransactionType.PerpetualOpenPosition -> GemTransactionType.PERPETUAL_OPEN_POSITION
+    TransactionType.PerpetualClosePosition -> GemTransactionType.PERPETUAL_CLOSE_POSITION
+    TransactionType.PerpetualModifyPosition -> GemTransactionType.PERPETUAL_MODIFY_POSITION
+    TransactionType.EarnDeposit -> GemTransactionType.EARN_DEPOSIT
+    TransactionType.EarnWithdraw -> GemTransactionType.EARN_WITHDRAW
+}

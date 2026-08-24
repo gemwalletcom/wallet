@@ -123,16 +123,19 @@ public final class AssetSceneViewModel: Sendable {
         ListItemField(title: ResourceViewModel(resource: .bandwidth).title, value: feeAssetDataModel.bandwidthText)
     }
 
-    var canOpenNetwork: Bool {
-        assetDataModel.asset.type != .native
-    }
-
-    var showNetworkAssets: Bool {
-        asset.type == .native && AssetConfiguration.supportedChainsWithTokens.contains(asset.chain)
-    }
-
-    var networkAssetsDestination: Scenes.NetworkAssets {
-        Scenes.NetworkAssets(chain: asset.chain)
+    var networkDestination: AssetNetworkDestination? {
+        switch asset.id.type {
+        case .native:
+            break
+        case .token:
+            if asset.chain.hasNativeAsset {
+                return .asset(asset.chain.asset)
+            }
+        }
+        if AssetConfiguration.supportedChainsWithTokens.contains(asset.chain) {
+            return .assets(asset.chain)
+        }
+        return nil
     }
 
     var showBalances: Bool {
@@ -288,7 +291,7 @@ public final class AssetSceneViewModel: Sendable {
         switch assetData.asset.id.type {
         case .native: .swap(assetData.asset, nil)
         case .token:
-            if assetData.balance.available == .zero, AssetScore.defaultRank(chain: assetData.asset.chain) >= 0 {
+            if assetData.balance.available == .zero, assetData.asset.chain.hasNativeAsset {
                 .swap(assetData.asset.chain.asset, assetData.asset)
             } else {
                 .swap(assetData.asset, nil)
@@ -451,15 +454,14 @@ public extension AssetSceneViewModel {
     }
 
     func onSelectPin() {
-        do {
-            let pinned = !assetData.metadata.isPinned
-            try balanceService.setPinned(pinned, walletId: wallet.id, assetId: asset.id)
-            isPresentingToastMessage = .pin(asset.name, pinned: pinned)
-            if !assetData.metadata.isBalanceEnabled {
-                onSelectEnable()
+        let pinned = !assetData.metadata.isPinned
+        Task {
+            do {
+                try await assetsEnabler.pinAsset(wallet: wallet, assetId: asset.id, pinned: pinned)
+                isPresentingToastMessage = .pin(asset.name, pinned: pinned)
+            } catch {
+                debugLog("onSelectPin error: \(error)")
             }
-        } catch {
-            debugLog("onSelectPin error: \(error)")
         }
     }
 

@@ -1,11 +1,11 @@
 #[cfg(all(test, feature = "fiat_integration_tests"))]
-use crate::client::FiatClient;
-#[cfg(all(test, feature = "fiat_integration_tests"))]
 use crate::model::FiatMapping;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use crate::providers::{
     banxa::client::BanxaClient, mercuryo::client::MercuryoClient, moonpay::client::MoonPayClient, paybis::client::PaybisClient, transak::client::TransakClient,
 };
+#[cfg(all(test, feature = "fiat_integration_tests"))]
+use gem_client::ReqwestClient;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use settings::Settings;
 
@@ -18,42 +18,62 @@ fn get_test_settings() -> Settings {
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 pub fn create_transak_test_client() -> TransakClient {
     let settings = get_test_settings();
-    let client = FiatClient::request_client(settings.fiat.timeout);
-    TransakClient::new(client, settings.transak.key.public, settings.transak.key.secret, settings.transak.referrer_domain)
+    let client = crate::request_client(settings.fiat.timeout);
+    TransakClient::new(
+        ReqwestClient::new(settings.fiat.transak.url, client.clone()),
+        ReqwestClient::new(settings.fiat.transak.gateway.url, client),
+        settings.fiat.transak.key.public,
+        settings.fiat.transak.key.secret,
+        settings.fiat.transak.referrer.domain,
+    )
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 pub fn create_moonpay_test_client() -> MoonPayClient {
     let settings = get_test_settings();
-    let client = FiatClient::request_client(settings.fiat.timeout);
-    MoonPayClient::new(client, settings.moonpay.key.public, settings.moonpay.key.secret, settings.moonpay.webhook.key.secret)
+    let client = crate::request_client(settings.fiat.timeout);
+    MoonPayClient::new(
+        ReqwestClient::new(settings.fiat.moonpay.url, client),
+        settings.fiat.moonpay.key.public,
+        settings.fiat.moonpay.key.secret,
+        settings.fiat.moonpay.webhook.key.secret,
+    )
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 pub fn create_paybis_test_client() -> PaybisClient {
     let settings = get_test_settings();
-    let client = FiatClient::request_client(settings.fiat.timeout);
-    PaybisClient::new(client, settings.paybis.key.public, settings.paybis.key.secret)
+    let client = crate::request_client(settings.fiat.timeout);
+    PaybisClient::new(
+        ReqwestClient::new(settings.fiat.paybis.url, client),
+        settings.fiat.paybis.key.public,
+        settings.fiat.paybis.key.secret,
+    )
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 pub fn create_banxa_test_client() -> BanxaClient {
     let settings = get_test_settings();
-    let client = FiatClient::request_client(settings.fiat.timeout);
+    let client = crate::request_client(settings.fiat.timeout);
     BanxaClient::new(
-        client,
-        settings.banxa.url,
-        settings.banxa.partner,
-        settings.banxa.key.secret,
-        settings.banxa.webhook.key.secret,
+        ReqwestClient::new(settings.fiat.banxa.api.url, client),
+        settings.fiat.banxa.redirect.url,
+        settings.fiat.banxa.partner,
+        settings.fiat.banxa.key.secret,
+        settings.fiat.banxa.webhook.key.secret,
     )
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 pub fn create_mercuryo_test_client() -> MercuryoClient {
     let settings = get_test_settings();
-    let client = FiatClient::request_client(settings.fiat.timeout);
-    MercuryoClient::new(client, settings.mercuryo.key.public, settings.mercuryo.key.secret, settings.mercuryo.webhook.key.secret)
+    let client = crate::request_client(settings.fiat.timeout);
+    MercuryoClient::new(
+        ReqwestClient::new(settings.fiat.mercuryo.url, client),
+        settings.fiat.mercuryo.key.public,
+        settings.fiat.mercuryo.key.secret,
+        settings.fiat.mercuryo.webhook.key.secret,
+    )
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]

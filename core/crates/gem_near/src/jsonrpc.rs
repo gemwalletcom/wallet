@@ -130,6 +130,11 @@ mod tests {
     }
 
     #[test]
+    fn builds_latest_block_request() {
+        assert_request(NearRpc::GetLatestBlock, method::BLOCK, json!({"finality": "final"}));
+    }
+
+    #[test]
     fn builds_broadcast_request() {
         assert_request(
             NearRpc::SendTransaction("signed-transaction".into()),

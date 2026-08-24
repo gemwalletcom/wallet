@@ -350,11 +350,7 @@
   <string name="assets_add_custom_token">Benutzerdefinierten Token hinzufügen</string>
   <string name="assets_select_asset">Anlage auswählen</string>
   <string name="assets_popular">Beliebte Assets</string>
-  <string name="assets_tags_trending">Im Trend</string>
-  <string name="assets_tags_gainers">Gewinner</string>
-  <string name="assets_tags_losers">Verlierer</string>
   <string name="assets_tags_new">Neu</string>
-  <string name="assets_tags_stablecoins">Stablecoins</string>
   <string name="assets_state_empty_search_description">Sie können versuchen, es manuell hinzuzufügen</string>
   <string name="assets_title">Vermögenswerte</string>
   <string name="sign_message_message">Nachricht</string>

@@ -350,11 +350,7 @@
   <string name="assets_add_custom_token">Tilføj brugerdefineret token</string>
   <string name="assets_select_asset">Vælg Aktiv</string>
   <string name="assets_popular">Populære aktiver</string>
-  <string name="assets_tags_trending">Trending</string>
-  <string name="assets_tags_gainers">Vindere</string>
-  <string name="assets_tags_losers">Tabere</string>
   <string name="assets_tags_new">Ny</string>
-  <string name="assets_tags_stablecoins">Stablecoins</string>
   <string name="assets_state_empty_search_description">Du kan prøve at tilføje det manuelt</string>
   <string name="assets_title">Aktiver</string>
   <string name="sign_message_message">Besked</string>

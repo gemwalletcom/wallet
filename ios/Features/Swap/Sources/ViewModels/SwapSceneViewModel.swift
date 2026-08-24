@@ -424,7 +424,7 @@ extension SwapSceneViewModel {
 
             guard !isTransferDataLoading, currentInput == input else { return }
             swapState.quotes = .data(swapQuotes)
-            selectedSwapQuote = swapQuotes.first(where: { $0 == selectedSwapQuote }) ?? swapQuotes.first
+            selectedSwapQuote = swapQuotes.first(where: { $0.data.provider.id == selectedSwapQuote?.data.provider.id }) ?? swapQuotes.first
             if let selectedSwapQuote, let asset = toAsset?.asset {
                 applyQuote(selectedSwapQuote, asset: asset)
             }

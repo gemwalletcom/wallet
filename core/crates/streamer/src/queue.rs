@@ -19,6 +19,7 @@ pub enum QueueName {
     NotificationsFailed,
     // fetch new assets and store to db
     FetchAssets,
+    FetchAssetAssociations,
     // fetch prices for an asset or provider price id and store to db
     FetchPrices,
     // fetch provider list and store tag memberships
@@ -80,6 +81,7 @@ impl fmt::Display for QueueName {
             QueueName::NotificationsTransactions => write!(f, "notifications_transactions"),
             QueueName::NotificationsObservers => write!(f, "notifications_observers"),
             QueueName::FetchAssets => write!(f, "fetch_assets"),
+            QueueName::FetchAssetAssociations => write!(f, "fetch_asset_associations"),
             QueueName::FetchPrices => write!(f, "fetch_prices"),
             QueueName::FetchLists => write!(f, "fetch_lists"),
             QueueName::FetchBlocks => write!(f, "fetch_blocks"),

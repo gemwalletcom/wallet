@@ -42,6 +42,8 @@ impl JsonRpcRequest {
 pub struct JsonRpcError {
     pub code: i32,
     pub message: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cause: Option<Value>,
 }
 
 impl Display for JsonRpcError {
@@ -127,6 +129,7 @@ impl<T> JsonRpcResults<T> {
                 r.take().map_err(|e| JsonRpcError {
                     code: e.code,
                     message: format!("batch request [{}]: {}", i, e.message),
+                    cause: e.cause,
                 })
             })
             .collect()
@@ -163,6 +166,7 @@ mod tests {
         let error = JsonRpcError {
             code: ERROR_CLIENT_ERROR,
             message: "".into(),
+            cause: None,
         };
 
         assert_eq!(format!("{error}"), "Client error (-32900)");
@@ -173,6 +177,7 @@ mod tests {
         let error = JsonRpcError {
             code: ERROR_METHOD_NOT_FOUND,
             message: "Method not found".into(),
+            cause: None,
         };
 
         assert_eq!(format!("{error}"), "Method not found (-32601)");
@@ -257,6 +262,7 @@ mod tests {
                 error: JsonRpcError {
                     code: ERROR_INVALID_REQUEST,
                     message: "Invalid".into(),
+                    cause: None,
                 },
             }),
         ]

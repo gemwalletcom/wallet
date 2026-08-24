@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "הוסף אסימון מותאם אישית";
 "assets.select_asset" = "בחר נכס";
 "assets.popular" = "נכסים פופולריים";
-"assets.tags.trending" = "פופולרי";
-"assets.tags.gainers" = "מרוויחים";
-"assets.tags.losers" = "מפסידים";
 "assets.tags.new" = "חָדָשׁ";
-"assets.tags.stablecoins" = "Stablecoins";
 "assets.state.empty.search_description" = "אתה יכול לנסות להוסיף את זה ידנית";
 "assets.title" = "נכסים";
 "sign_message.message" = "הודעה";

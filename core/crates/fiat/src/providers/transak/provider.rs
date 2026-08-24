@@ -5,6 +5,7 @@ use super::{
 };
 use crate::{
     FiatProvider, FiatWebhookRequest,
+    error::FiatQuoteError,
     model::{FiatMapping, FiatProviderAsset},
     providers::transak::mapper::map_asset_with_limits,
 };
@@ -43,7 +44,7 @@ impl FiatProvider for TransakClient {
     }
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
-        let encrypted_data = serde_json::from_value::<Data<String>>(request.data)?;
+        let encrypted_data = serde_json::from_value::<Data<String>>(request.data).map_err(|_| FiatQuoteError::InvalidRequest("Invalid Transak webhook payload".to_string()))?;
         let Some(order) = self.decode_webhook_data(&encrypted_data.data).await? else {
             return Ok(FiatWebhook::None);
         };

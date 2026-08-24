@@ -5,5 +5,5 @@ import Primitives
 
 public protocol AssetsEnabler: Sendable {
     func enableAssets(wallet: Wallet, assetIds: [AssetId], enabled: Bool) async throws
-    func enableAssetId(wallet: Wallet, assetId: AssetId) async throws
+    func pinAsset(wallet: Wallet, assetId: AssetId, pinned: Bool) async throws
 }

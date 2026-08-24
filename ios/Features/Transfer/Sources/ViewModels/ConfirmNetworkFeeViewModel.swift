@@ -28,6 +28,7 @@ extension ConfirmNetworkFeeViewModel {
             .init(
                 title: feeModel.title,
                 subtitle: networkFeeValue,
+                subtitleExtra: state.isError ? nil : feeModel.feeAssetSymbol,
                 placeholders: [.subtitle],
                 infoAction: infoAction,
             ),

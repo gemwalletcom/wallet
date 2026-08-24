@@ -241,7 +241,7 @@ fn add_provider_jobs<'a>(
                 }),
             )
             .job(WorkerJob::UpdateMarkets, {
-                let coingecko = CoinGeckoClient::new(&settings.prices.coingecko.key.secret);
+                let coingecko = CoinGeckoClient::new(settings.prices.coingecko.remote_provider_config());
                 let markets_client = MarketsClient::new(database.clone(), cacher_client.clone());
                 move |_| {
                     let updater = MarketsUpdater::new(markets_client.clone(), coingecko.clone());
@@ -288,7 +288,7 @@ where
 pub fn price_providers(settings: &Settings, providers: impl IntoIterator<Item = PriceProvider>) -> PriceProviders {
     build_price_providers(
         &PriceProviderConfig {
-            coingecko_api_key: settings.prices.coingecko.key.secret.clone(),
+            coingecko: settings.prices.coingecko.remote_provider_config(),
             pyth: settings.prices.pyth.remote_provider_config(),
             jupiter: settings.prices.jupiter.remote_provider_config(),
             defillama: settings.prices.defillama.remote_provider_config(),

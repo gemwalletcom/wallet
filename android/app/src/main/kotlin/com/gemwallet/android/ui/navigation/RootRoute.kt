@@ -82,6 +82,7 @@ import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.PaymentRequest
 import com.wallet.core.primitives.PortfolioType
@@ -127,11 +128,13 @@ class WalletNavigator(
     private val toastMessages = mutableStateMapOf<NavKey, String>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
 
-    private fun push(route: NavKey) {
-        if (backStack.lastOrNull() != route) {
-            backStack.add(route)
-        }
+    private fun push(route: NavKey): Boolean {
+        if (backStack.lastOrNull() == route) return true
+        return backStack.add(route)
     }
+
+    private fun openAssetRoute(route: AssetRoute): Boolean =
+        assetNavigationPolicy.canOpen(route.assetId) && push(route)
 
     private fun replaceTop(route: NavKey) {
         if (backStack.isNotEmpty()) {
@@ -187,7 +190,7 @@ class WalletNavigator(
     fun openAcceptTerms(destination: AcceptTermsDestination) = push(AcceptTermsRoute(destination))
     fun openAssetsManage(chain: Chain? = null) = push(AssetsManageRoute(chain))
     fun openAssetsSearch() = push(WalletSearchRoute)
-    fun openAssetsResults(query: String, scope: WalletSearchTag) = push(AssetsResultsRoute(query, scope))
+    fun openAssetsResults(query: String) = push(AssetsResultsRoute(query, WalletSearchTag.All))
     fun openAssetsResultsList(listId: String, title: String) = push(AssetsResultsRoute(query = "", scope = WalletSearchTag.List(listId), title = title))
     fun openCreateWalletRules() = push(CreateWalletAlertRoute)
     fun openCreateWallet() = push(CreateWalletRoute)
@@ -202,9 +205,7 @@ class WalletNavigator(
     fun openSetupWallet(walletId: WalletId) = replaceTop(SetupWalletRoute(walletId))
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) {
-        if (assetNavigationPolicy.canOpen(assetId)) {
-            push(AssetRoute(assetId))
-        }
+        openAssetRoute(AssetRoute(assetId))
     }
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))
     fun openAssetChart(assetId: AssetId) = push(AssetChartRoute(assetId))
@@ -222,7 +223,10 @@ class WalletNavigator(
     fun openInAppNotifications() = push(InAppNotificationsRoute)
     fun openNotificationUrl(url: String): Boolean {
         val action = runCatching { urlAction(url) }.getOrNull() as? UrlAction.Deeplink ?: return false
-        return action.deeplink.toRoute()?.let(::push) != null
+        return when (val route = action.deeplink.toRoute() ?: return false) {
+            is AssetRoute -> openAssetRoute(route)
+            else -> push(route)
+        }
     }
     fun openAboutUs() = push(AboutusRoute)
     fun openNetworks() = push(NetworksRoute)
@@ -279,10 +283,10 @@ class WalletNavigator(
     private fun clearSwapSelections() = swapSelections.clear()
     fun openBuy() = push(FiatSelectRoute)
     fun openBuy(assetId: AssetId) = openBuy(assetId, amount = null)
-    fun openBuy(assetId: AssetId, amount: Double?) = push(FiatInputRoute(assetId, amount))
+    fun openBuy(assetId: AssetId, amount: Int?) = push(FiatInputRoute(assetId, amount, FiatQuoteType.Buy))
     fun openAcquireAsset(action: AcquireAssetAction, assetId: AssetId) {
         when (action) {
-            is AcquireAssetAction.Buy -> openBuy(assetId, amount = action.amount?.toDouble())
+            is AcquireAssetAction.Buy -> openBuy(assetId, amount = action.amount)
             AcquireAssetAction.Swap -> openSwapTo(assetId)
             AcquireAssetAction.Receive -> openReceive(assetId)
         }
@@ -310,6 +314,7 @@ class WalletNavigator(
         if (routes.isEmpty()) return false
         if (!canOpenPendingNavigation()) return false
         if (!confirmed && needsPendingNavigationConfirmation()) return false
+        if (!routes.filterIsInstance<AssetRoute>().all { assetNavigationPolicy.canOpen(it.assetId) }) return false
         resetToWallet()
         routes.forEach(::push)
         return true

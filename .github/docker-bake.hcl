@@ -7,7 +7,7 @@ variable "GITHUB_SHA" {
 }
 
 group "default" {
-  targets = ["core", "dynode"]
+  targets = ["core", "dynode", "egress"]
 }
 
 target "_common" {
@@ -39,4 +39,15 @@ target "dynode" {
   ]
   cache-from = ["type=gha,scope=dynode"]
   cache-to = ["type=gha,mode=max,scope=dynode"]
+}
+
+target "egress" {
+  inherits = ["_common"]
+  target = "egress"
+  tags = [
+    "ghcr.io/gemwalletcom/wallet/egress:latest",
+    "ghcr.io/gemwalletcom/wallet/egress:${GITHUB_SHA}",
+  ]
+  cache-from = ["type=gha,scope=egress"]
+  cache-to = ["type=gha,mode=max,scope=egress"]
 }

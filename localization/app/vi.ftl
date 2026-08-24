@@ -410,11 +410,7 @@ assets_no_assets_found = Không tìm thấy nội dung nào
 assets_add_custom_token = Thêm mã thông báo tùy chỉnh
 assets_select_asset = Chọn Tài sản
 assets_popular = Tài sản phổ biến
-assets_tags_trending = Xu hướng
-assets_tags_gainers = Người tăng giá
-assets_tags_losers = Người thua cuộc
 assets_tags_new = Mới
-assets_tags_stablecoins = Đồng tiền ổn định
 assets_state_empty_search_description = Bạn có thể thử thêm nó theo cách thủ công
 assets_title = Tài sản
 

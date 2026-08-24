@@ -29,7 +29,6 @@ class BaseSelectSearchTest {
             query = query,
             chainFilter = emptyList(),
             hasBalance = false,
-            tag = null,
             limit = limit,
         )
     )
@@ -37,7 +36,7 @@ class BaseSelectSearchTest {
     @Test
     fun `non-empty query with no matches emits empty list`() = runTest {
         val searchSelectAssets = mockk<SearchSelectAssets> {
-            every { this@mockk(any(), any(), any()) } returns flowOf(emptyList())
+            every { this@mockk(any(), any()) } returns flowOf(emptyList())
         }
         val search = BaseSelectSearch(searchSelectAssets)
 
@@ -47,15 +46,15 @@ class BaseSelectSearchTest {
     }
 
     @Test
-    fun `query, tags and limit are forwarded to repository search`() = runTest {
+    fun `query and limit are forwarded to repository search`() = runTest {
         val searchSelectAssets = mockk<SearchSelectAssets> {
-            every { this@mockk(any(), any(), any()) } returns flowOf(results)
+            every { this@mockk(any(), any()) } returns flowOf(results)
         }
         val search = BaseSelectSearch(searchSelectAssets)
 
         val result = search.items(filters(query = "eth", limit = 25)).first()
 
         assertEquals(results, result)
-        verify(exactly = 1) { searchSelectAssets("eth", emptyList(), 25) }
+        verify(exactly = 1) { searchSelectAssets("eth", 25) }
     }
 }

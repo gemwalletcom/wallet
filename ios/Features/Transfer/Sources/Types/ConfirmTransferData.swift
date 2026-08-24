@@ -6,4 +6,5 @@ import Primitives
 struct ConfirmTransferData {
     let preload: ConfirmTransferPreload
     let simulation: ConfirmSimulationState
+    let feeAssets: [AssetData]
 }

@@ -132,7 +132,7 @@ impl TransactionInputType {
                 StakeType::Unfreeze(_) => TransactionType::StakeUnfreeze,
             },
             TransactionInputType::TokenApprove(_, _) => TransactionType::TokenApproval,
-            TransactionInputType::Generic(_, _, _) => TransactionType::SmartContractCall,
+            TransactionInputType::Generic(_, _, extra) => extra.transaction_type.clone(),
             TransactionInputType::TransferNft(_, _) => TransactionType::TransferNFT,
             TransactionInputType::Account(_, _) => TransactionType::AssetActivation,
             TransactionInputType::Perpetual(_, perpetual_type) => match perpetual_type {

@@ -14,17 +14,14 @@ pub struct ScanProviderFactory {}
 
 impl ScanProviderFactory {
     pub fn create_providers(settings: &Settings) -> Vec<Box<dyn ScanProvider + Send + Sync>> {
-        let client = gem_client::builder().timeout(settings.scan.timeout).build().unwrap();
+        let client = gem_client::builder().timeout(settings.security.timeout).build().unwrap();
 
         vec![
-            Box::new(GoPlusProvider::new(
-                ReqwestClient::new(settings.scan.goplus.url.clone(), client.clone()),
-                &settings.scan.goplus.key.public,
-            )),
+            Box::new(GoPlusProvider::new(ReqwestClient::new(settings.security.goplus.url.clone(), client.clone()))),
             Box::new(HashDitProvider::new(
-                ReqwestClient::new(settings.scan.hashdit.url.clone(), client.clone()),
-                &settings.scan.hashdit.key.public,
-                &settings.scan.hashdit.key.secret,
+                ReqwestClient::new(settings.security.hashdit.url.clone(), client.clone()),
+                &settings.security.hashdit.key.public,
+                &settings.security.hashdit.key.secret,
             )),
         ]
     }

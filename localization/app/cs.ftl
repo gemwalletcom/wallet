@@ -410,11 +410,7 @@ assets_no_assets_found = Nebyla nalezena žádná aktiva
 assets_add_custom_token = Přidat vlastní token
 assets_select_asset = Vyberte aktivum
 assets_popular = Populární aktiva
-assets_tags_trending = Trendy
-assets_tags_gainers = Gainery
-assets_tags_losers = Poražení
 assets_tags_new = Nový
-assets_tags_stablecoins = Stablecoiny
 assets_state_empty_search_description = Můžete to zkusit přidat ručně
 assets_title = Aktiva
 

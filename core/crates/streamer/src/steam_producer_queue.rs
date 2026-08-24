@@ -3,14 +3,15 @@ use std::error::Error;
 use primitives::{AssetId, Chain, NFTAssetId, TransactionIdRequest};
 
 use crate::{
-    ChainAddressPayload, ExchangeName, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, InAppNotificationPayload,
-    NotificationsFailedPayload, NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducer, TransactionsPayload,
-    WalletStreamPayload,
+    ChainAddressPayload, ExchangeName, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload,
+    InAppNotificationPayload, NotificationsFailedPayload, NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducer,
+    TransactionsPayload, WalletStreamPayload,
 };
 
 #[async_trait::async_trait]
 pub trait StreamProducerQueue {
     async fn publish_fetch_assets(&self, asset_ids: Vec<AssetId>) -> Result<bool, Box<dyn Error + Send + Sync>>;
+    async fn publish_fetch_asset_associations(&self, payload: FetchAssetAssociationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_nft_asset(&self, asset_id: NFTAssetId) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_nft_assets(&self, asset_ids: Vec<NFTAssetId>) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_prices(&self, payload: FetchPricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
@@ -42,6 +43,10 @@ impl StreamProducerQueue for StreamProducer {
             self.publish(QueueName::FetchAssets, &payload).await?;
         }
         Ok(true)
+    }
+
+    async fn publish_fetch_asset_associations(&self, payload: FetchAssetAssociationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.publish(QueueName::FetchAssetAssociations, &payload).await
     }
 
     async fn publish_fetch_nft_asset(&self, asset_id: NFTAssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {

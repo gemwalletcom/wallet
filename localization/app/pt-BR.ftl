@@ -410,11 +410,7 @@ assets_no_assets_found = Nenhum ativo encontrado
 assets_add_custom_token = Adicionar token personalizado
 assets_select_asset = Selecionar Ativo
 assets_popular = Populares
-assets_tags_trending = Tendências
-assets_tags_gainers = Ganhadores
-assets_tags_losers = Perdedores
 assets_tags_new = Novo
-assets_tags_stablecoins = Moedas estáveis
 assets_state_empty_search_description = Você pode tentar adicioná-lo manualmente
 assets_title = Ativos
 

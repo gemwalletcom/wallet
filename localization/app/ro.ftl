@@ -410,11 +410,7 @@ assets_no_assets_found = Nu au fost găsite active
 assets_add_custom_token = Adăugați un simbol personalizat
 assets_select_asset = Selectați activul
 assets_popular = Active populare
-assets_tags_trending = În tendințe
-assets_tags_gainers = Câștigători
-assets_tags_losers = În scădere
 assets_tags_new = Nou
-assets_tags_stablecoins = Monede stabile
 assets_state_empty_search_description = Poți încerca să-l adaugi manual
 assets_title = Active
 

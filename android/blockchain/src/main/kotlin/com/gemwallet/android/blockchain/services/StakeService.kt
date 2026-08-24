@@ -1,13 +1,9 @@
 package com.gemwallet.android.blockchain.services
 
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.blockchain.gemstone.toDTO
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationBase
-import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.DelegationValidator
-import com.wallet.core.primitives.StakeProviderType
-import uniffi.gemstone.GemDelegationState
 import uniffi.gemstone.GemGateway
 
 class StakeService(
@@ -17,82 +13,44 @@ class StakeService(
         chain: Chain,
         apr: Double
     ): List<DelegationValidator> {
-        return try {
-            val result = gateway.getStakingValidators(
+        val result = try {
+            gateway.getStakingValidators(
                 chain = chain.string,
                 apr,
             )
-            result.mapNotNull { item ->
-                DelegationValidator(
-                    chain = item.chain.toChain() ?: return@mapNotNull null,
-                    id = item.id,
-                    name = item.name,
-                    isActive = item.isActive,
-                    commission = item.commission,
-                    apr = item.apr,
-                    providerType = StakeProviderType.Stake,
-                )
-            }
         } catch (_: Throwable) {
-            emptyList()
+            return emptyList()
         }
+        return result.mapNotNull { it.toDTO() }
     }
 
     suspend fun getDelegationValidators(
         chain: Chain,
         address: String,
     ): List<DelegationValidator> {
-        return try {
-            val result = gateway.getStakingDelegationValidators(
+        val result = try {
+            gateway.getStakingDelegationValidators(
                 chain = chain.string,
                 address = address,
             )
-            result.mapNotNull { item ->
-                DelegationValidator(
-                    chain = item.chain.toChain() ?: return@mapNotNull null,
-                    id = item.id,
-                    name = item.name,
-                    isActive = item.isActive,
-                    commission = item.commission,
-                    apr = item.apr,
-                    providerType = StakeProviderType.Stake,
-                )
-            }
         } catch (_: Throwable) {
-            emptyList()
+            return emptyList()
         }
+        return result.mapNotNull { it.toDTO() }
     }
 
     suspend fun getStakeDelegations(
         chain: Chain,
         address: String,
-    ): List<DelegationBase> {
-        return try {
-            val result = gateway.getStakingDelegations(
+    ): List<DelegationBase>? {
+        val result = try {
+            gateway.getStakingDelegations(
                 chain = chain.string,
                 address,
             )
-            result.mapNotNull { item ->
-                DelegationBase(
-                    assetId = item.assetId.toAssetId() ?: return@mapNotNull null,
-                    state = when (item.state) {
-                        GemDelegationState.ACTIVE -> DelegationState.Active
-                        GemDelegationState.PENDING -> DelegationState.Pending
-                        GemDelegationState.INACTIVE -> DelegationState.Inactive
-                        GemDelegationState.ACTIVATING -> DelegationState.Activating
-                        GemDelegationState.DEACTIVATING -> DelegationState.Deactivating
-                        GemDelegationState.AWAITING_WITHDRAWAL -> DelegationState.AwaitingWithdrawal
-                    },
-                    balance = item.balance,
-                    rewards = item.rewards,
-                    completionDate = item.completionDate,
-                    delegationId = item.delegationId,
-                    validatorId = item.validatorId,
-                    shares = item.shares,
-                )
-            }
         } catch (_: Throwable) {
-            emptyList()
+            return null
         }
+        return result.mapNotNull { it.toDTO() }
     }
 }

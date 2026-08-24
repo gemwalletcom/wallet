@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "添加自訂代幣";
 "assets.select_asset" = "選擇資產";
 "assets.popular" = "熱門資產";
-"assets.tags.trending" = "熱門";
-"assets.tags.gainers" = "漲幅榜";
-"assets.tags.losers" = "跌幅榜";
 "assets.tags.new" = "新的";
-"assets.tags.stablecoins" = "穩定幣";
 "assets.state.empty.search_description" = "請嘗試手動新增";
 "assets.title" = "資產";
 "sign_message.message" = "訊息";

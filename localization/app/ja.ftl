@@ -410,11 +410,7 @@ assets_no_assets_found = 資産なし
 assets_add_custom_token = カスタム・トークンの追加
 assets_select_asset = 資産を選択
 assets_popular = 人気のアセット
-assets_tags_trending = トレンド
-assets_tags_gainers = 値上がりランキング
-assets_tags_losers = 値下がりランキング
 assets_tags_new = 新しい
-assets_tags_stablecoins = ステーブルコイン
 assets_state_empty_search_description = 手動で追加してみてください
 assets_title = 資産
 

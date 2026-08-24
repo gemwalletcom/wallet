@@ -12,6 +12,8 @@ public extension TransferDataExtra {
         data: Data? = nil,
         outputType: TransferDataOutputType = .encodedTransaction,
         outputAction: TransferDataOutputAction = .send,
+        transactionType: TransactionType = .smartContractCall,
+        approval: ApprovalData? = nil,
     ) -> TransferDataExtra {
         TransferDataExtra(
             to: to,
@@ -20,6 +22,8 @@ public extension TransferDataExtra {
             data: data,
             outputType: outputType,
             outputAction: outputAction,
+            transactionType: transactionType,
+            approval: approval,
         )
     }
 }

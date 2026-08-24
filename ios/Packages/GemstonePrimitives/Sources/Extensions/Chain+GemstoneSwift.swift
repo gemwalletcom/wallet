@@ -71,6 +71,10 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).isNftSupported
     }
 
+    var hasNativeAsset: Bool {
+        ChainConfig.config(chain: self).hasNativeAsset
+    }
+
     var isDefiSupported: Bool {
         ChainConfig.config(chain: self).isDefiSupported
     }

@@ -1,0 +1,41 @@
+{
+  "contract": {
+    "address": "0x6DFBB01ECB7991366Cd8acc4D18dCc67bbe345ba",
+    "name": "Reefers by CoralApp",
+    "symbol": "CRAPP",
+    "totalSupply": "13000",
+    "tokenType": "ERC721",
+    "openSeaMetadata": null,
+    "isSpam": false
+  },
+  "tokenId": "410",
+  "tokenType": "ERC721",
+  "name": "Reefers by CoralApp #411",
+  "description": "Welcome to the Reefers collection.",
+  "tokenUri": "ipfs://QmU76FGTcUqtMmQbXHBeYVaCYAvGf8syVkbrfifrTB5xcv/410",
+  "image": {
+    "cachedUrl": "https://nft2-cdn.alchemy.com/bnb-mainnet/51bf02fcf51b82b1096e1f058ad90cc4",
+    "thumbnailUrl": "https://res.cloudinary.com/alchemyapi/image/upload/thumbnailv2/bnb-mainnet/51bf02fcf51b82b1096e1f058ad90cc4",
+    "pngUrl": "https://res.cloudinary.com/alchemyapi/image/upload/convert-png/bnb-mainnet/51bf02fcf51b82b1096e1f058ad90cc4",
+    "originalUrl": "https://ipfs.io/ipfs/QmRcRJFFnV7Vi4eq7F8kB4Br8axKxH4pN8pNBxpws4Ga94/411.png"
+  },
+  "raw": {
+    "metadata": {
+      "name": "Reefers by CoralApp #411",
+      "description": "Welcome to the Reefers collection.",
+      "image": "ipfs://QmRcRJFFnV7Vi4eq7F8kB4Br8axKxH4pN8pNBxpws4Ga94/411.png",
+      "attributes": [
+        { "value": "Tridents", "trait_type": "Accesories" },
+        { "value": "None", "trait_type": "Aura" },
+        { "value": "Blue", "trait_type": "Background" },
+        { "value": "Gear Fin", "trait_type": "Clothes" },
+        { "value": "Pixelated Glasses", "trait_type": "Eyes" },
+        { "value": "Cowboy Hat", "trait_type": "Head" },
+        { "value": "Surprised", "trait_type": "Mouth" },
+        { "value": "Octopus", "trait_type": "Sea Friends" },
+        { "value": "Gold", "trait_type": "Skin" }
+      ]
+    },
+    "error": null
+  }
+}

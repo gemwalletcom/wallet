@@ -16,11 +16,10 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class AssetsResultsSceneViewModel: AssetBalanceActions, AssetEnableActions, PerpetualPinActions {
+public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinActions {
     public static let defaultLimit = 100
 
     let assetsEnabler: any AssetsEnabler
-    let balanceService: BalanceService
     private let preferences: Preferences
     private let searchService: WalletSearchService
     let perpetualService: PerpetualService
@@ -41,7 +40,6 @@ public final class AssetsResultsSceneViewModel: AssetBalanceActions, AssetEnable
     public init(
         wallet: Wallet,
         assetsEnabler: any AssetsEnabler,
-        balanceService: BalanceService,
         preferences: Preferences,
         searchService: WalletSearchService,
         perpetualService: PerpetualService,
@@ -52,7 +50,6 @@ public final class AssetsResultsSceneViewModel: AssetBalanceActions, AssetEnable
     ) {
         self.wallet = wallet
         self.assetsEnabler = assetsEnabler
-        self.balanceService = balanceService
         self.preferences = preferences
         self.searchService = searchService
         self.perpetualService = perpetualService

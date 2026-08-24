@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "Benutzerdefinierten Token hinzufügen";
 "assets.select_asset" = "Anlage auswählen";
 "assets.popular" = "Beliebte Assets";
-"assets.tags.trending" = "Im Trend";
-"assets.tags.gainers" = "Gewinner";
-"assets.tags.losers" = "Verlierer";
 "assets.tags.new" = "Neu";
-"assets.tags.stablecoins" = "Stablecoins";
 "assets.state.empty.search_description" = "Sie können versuchen, es manuell hinzuzufügen";
 "assets.title" = "Vermögenswerte";
 "sign_message.message" = "Nachricht";

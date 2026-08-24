@@ -1,0 +1,2 @@
+ALTER TABLE transactions
+    ALTER COLUMN memo TYPE VARCHAR(1024);

@@ -20,6 +20,7 @@ import WalletConnector
 @MainActor
 public final class ConfirmTransferSceneViewModel {
     var feeSelection: FeeSelection
+    var feeAssetSelection: FeeAssetSelection
     var state: ConfirmTransferState {
         didSet { onStateChange(state: state) }
     }
@@ -59,6 +60,7 @@ public final class ConfirmTransferSceneViewModel {
         let currency = Currency(rawValue: Preferences.standard.currency) ?? .usd
         self.currency = currency
         feeSelection = .preset(confirmService.defaultPriority(for: request.data.type))
+        feeAssetSelection = .automatic
 
         let recipientAddress = request.data.recipientData.recipient.address
         recipientAddressNameQuery = ObservableQuery(
@@ -72,6 +74,10 @@ public final class ConfirmTransferSceneViewModel {
             feeAsset: request.data.type.feeAsset,
             transaction: .loading,
         )
+    }
+
+    var preloadSelection: ConfirmPreloadSelection {
+        ConfirmPreloadSelection(fee: feeSelection, feeAsset: feeAssetSelection)
     }
 
     var title: String {
@@ -141,7 +147,9 @@ public final class ConfirmTransferSceneViewModel {
             rates: state.feeRates,
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.transaction.value?.transactionData.fee.fee,
+            feeAssets: state.feeAssets,
             onSelect: { [weak self] in self?.feeSelection = $0 },
+            onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
         )
     }
 }
@@ -274,10 +282,18 @@ extension ConfirmTransferSceneViewModel {
         state.transaction = .loading
         do {
             if state.feeRates.isEmpty {
-                let data = try await confirmService.load(request: request, selection: feeSelection)
+                let data = try await confirmService.load(
+                    request: request,
+                    selection: feeSelection,
+                    feeAssetSelection: feeAssetSelection,
+                )
                 state = .loaded(data)
             } else {
-                let preload = try await confirmService.preload(request: request, selection: feeSelection)
+                let preload = try await confirmService.preload(
+                    request: request,
+                    selection: feeSelection,
+                    feeAssetSelection: feeAssetSelection,
+                )
                 state.update(preload)
             }
         } catch {
@@ -295,6 +311,11 @@ extension ConfirmTransferSceneViewModel {
         case .chain, .other:
             break
         }
+    }
+
+    private func selectFeeAsset(_ assetId: AssetId) {
+        guard state.feeAsset.id != assetId else { return }
+        feeAssetSelection = .selected(assetId)
     }
 }
 

@@ -15,57 +15,101 @@ rabbitmq:
   retry:
     delay: 1s
     timeout: 30s
-coingecko:
-  key:
-    secret: ""
-coinmarketcap:
-  key:
-    secret: ""
+
+api:
+  service: ""
+  admin:
+    enabled: true
+  auth:
+    enabled: true
+    tolerance: 5m
+    jwt:
+      secret: ""
+      expiry: 1h
+parser:
+  timeout: 1s
+  shutdown:
+    timeout: 15s
+daemon:
+  service: ""
+  shutdown:
+    timeout: 15s
+consumer:
+  error:
+    timeout: 0s
+    skip: true
+    retries: 5
+  delay: 0s
+  shutdown:
+    timeout: 15s
+
 fiat:
   timeout: 3s
-moonpay:
-  key:
-    public: ""
-    secret: ""
-  webhook:
+  moonpay:
+    url: "https://api.moonpay.com"
+    key:
+      public: ""
+      secret: ""
+    webhook:
+      key:
+        secret: ""
+  transak:
+    url: "https://api.transak.com"
+    gateway:
+      url: "https://api-gateway.transak.com"
+    key:
+      public: ""
+      secret: ""
+    referrer:
+      domain: "gemwallet.com"
+  mercuryo:
+    url: "https://api.mercuryo.io"
+    key:
+      public: ""
+      secret: ""
+    webhook:
+      key:
+        secret: ""
+  banxa:
+    api:
+      url: "https://api.banxa.com"
+    redirect:
+      url: "https://gemwallet.banxa.com"
+    partner: ""
     key:
       secret: ""
-transak:
-  key:
-    public: ""
-    secret: ""
-  referrer_domain: "gemwallet.com"
-mercuryo:
-  key:
-    public: ""
-    secret: ""
-    token: ""
-  webhook:
+    webhook:
+      key:
+        secret: ""
+  paybis:
+    url: "https://widget-api.paybis.com"
     key:
+      public: ""
       secret: ""
-banxa:
-  url: "https://gemwallet.banxa.com"
-  partner: ""
-  key:
-    secret: ""
-  webhook:
+  flashnet:
+    url: "https://orchestration.flashnet.xyz"
     key:
+      public: "gemwallet"
       secret: ""
-paybis:
-  key:
-    public: ""
-    secret: ""
-    private: ""
-flashnet:
-  url: "https://orchestration.flashnet.xyz"
-  key:
-    public: "gemwallet"
-    secret: ""
-  webhook:
+    webhook:
+      key:
+        secret: ""
+swap:
+  near_intents:
+    url: "https://1click.chaindefuser.com"
+  okx:
+    url: "https://web3.okx.com"
     key:
+      public: ""
       secret: ""
+    passphrase: ""
+    project: ""
+  swaps_xyz:
+    url: "https://api-v2.swaps.xyz/api"
+
 prices:
   coingecko:
+    url: "https://pro-api.coingecko.com"
     key:
       secret: ""
   pyth:
@@ -88,16 +132,30 @@ prices:
     url: "https://api.ston.fi"
     key:
       secret: ""
-charter:
-  timer: 60
+defi:
+  jupiter:
+    url: "https://api.jup.ag"
+    key:
+      secret: ""
+  zerion:
+    url: "https://api.zerion.io"
+    key:
+      secret: ""
+coingecko:
+  url: "https://pro-api.coingecko.com"
+  key:
+    secret: ""
+coinmarketcap:
+  url: "https://pro-api.coinmarketcap.com"
+  key:
+    secret: ""
+
 name:
   max_name_length: 20
   ens:
     url: https://ethereum.publicnode.com
   ud:
     url: https://api.unstoppabledomains.com
-    key:
-      secret: ""
   sns:
     url: https://sdk-proxy.sns.id
   ton:
@@ -124,6 +182,8 @@ name:
     url: https://rpc.hyperliquid.xyz/evm
   alldomains:
     url: https://solana-rpc.publicnode.com
+  near:
+    url: https://near-rpc.publicnode.com
 
 chains:
   solana:
@@ -237,24 +297,26 @@ chains:
   tempo:
     url: https://rpc.tempo.xyz
 
-swap:
-  okx:
-    key:
-      public: ""
-      secret: ""
-    passphrase: ""
-    project: ""
-scan:
+pusher:
+  url: "http://localhost:8088"
+  ios:
+    topic: ""
+security:
   timeout: 1200ms
+  abuseipdb:
+    url: https://api.abuseipdb.com
+    key:
+      secret: ""
   goplus:
     url: "https://api.gopluslabs.io"
-    key:
-      public: ""
-      secret: ""
   hashdit:
     url: "https://api.hashdit.io"
     key:
       public: ""
+      secret: ""
+  ipapi:
+    url: https://api.ipapi.is
+    key:
       secret: ""
 
 support:
@@ -271,40 +333,28 @@ support:
       - jpg
       - png
 
-parser:
-  timeout: 1s
-  shutdown:
-    timeout: 15s
-
-pusher:
-  url: "http://localhost:8088"
-  ios:
-    topic: ""
-
-daemon:
-  service: ""
-  shutdown:
-    timeout: 15s
-
-consumer:
-  error:
-    timeout: 0s
-    skip: true
-    retries: 5
-  delay: 0s
-  shutdown:
-    timeout: 15s
-
-api:
-  service: ""
-  admin:
-    enabled: true
-  auth:
-    enabled: true
-    tolerance: 5m
-    jwt:
+nft:
+  url: "https://assets.gemwallet.com/nft"
+  alchemy:
+    url: "https://{network}.g.alchemy.com"
+    key:
       secret: ""
-      expiry: 1h
+  magiceden:
+    url: "https://api-mainnet.magiceden.dev"
+    key:
+      secret: ""
+  opensea:
+    url: "https://api.opensea.io"
+    key:
+      secret: ""
+  ton:
+    url: "https://toncenter.com"
+    key:
+      secret: ""
+  offchain:
+    timeout: 5
+    concurrency: 8
+    limit: 1048576
 
 indexer:
   alchemy:
@@ -324,21 +374,18 @@ indexer:
     key:
       secret: ""
   fastnear:
-    url: "https://{service}.main.fastnear.com"
-    key:
-      secret: ""
-  jupiter:
-    url: "https://api.jup.ag"
-    key:
-      secret: ""
-  magiceden:
-    url: "https://api-mainnet.magiceden.dev"
-    key:
-      secret: ""
-  opensea:
-    url: "https://api.opensea.io"
-    key:
-      secret: ""
+    neardata:
+      url: "https://mainnet.neardata.xyz"
+      key:
+        secret: ""
+    transfers:
+      url: "https://transfers.main.fastnear.com"
+      key:
+        secret: ""
+    tx:
+      url: "https://tx.main.fastnear.com"
+      key:
+        secret: ""
   subscan:
     url: "https://assethub-polkadot.api.subscan.io"
     key:
@@ -355,30 +402,9 @@ indexer:
     url: "https://api.trongrid.io"
     key:
       secret: ""
-  zerion:
-    url: "https://api.zerion.io"
-    key:
-      secret: ""
 
 assets:
   url: "https://raw.githubusercontent.com/gemwalletcom/assets/refs/heads/master"
 
-nft:
-  url: "https://assets.gemwallet.com/nft"
-  offchain:
-    timeout: 5
-    concurrency: 8
-    limit: 1048576
-
 rewards:
   wallets: {}
-
-ip:
-  abuseipdb:
-    url: https://api.abuseipdb.com
-    key:
-      secret: ""
-  ipapi:
-    url: https://api.ipapi.is
-    key:
-      secret: ""

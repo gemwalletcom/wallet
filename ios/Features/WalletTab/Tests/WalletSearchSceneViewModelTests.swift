@@ -112,13 +112,11 @@ struct WalletSearchSceneViewModelTests {
 
     @Test
     func pinAssetEnablesAsset() async {
-        let db = DB.mockAssets()
         let enabledAssetIds: [AssetId] = await withCheckedContinuation { continuation in
             let model = WalletSearchSceneViewModel.mock(
                 assetsEnabler: .mock(onEnableAssets: { _, assetIds, _ in continuation.resume(returning: assetIds) }),
-                balanceService: .mock(balanceStore: .mock(db: db)),
             )
-            model.onSelectPinAsset(.mock(metadata: .mock(isBalanceEnabled: false, isPinned: false)), value: true)
+            model.onPinAsset(.mock(), value: true)
         }
 
         #expect(enabledAssetIds == [AssetId.mock()])

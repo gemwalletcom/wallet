@@ -106,6 +106,7 @@ mod tests {
     use super::*;
     use crate::sign_type::SignDigestType;
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
+    use gem_evm::transaction::EvmTransactionKind;
     use primitives::TransferDataOutputType;
 
     #[test]
@@ -277,10 +278,10 @@ mod tests {
             .unwrap();
 
             match decoded {
-                WalletConnectTransaction::Ethereum { data, transaction_type } => {
+                WalletConnectTransaction::Ethereum { data, kind } => {
                     assert_eq!(data.chain_id, Some(expected));
                     assert_eq!(data.data, Some("0x1234".to_string()));
-                    assert_eq!(transaction_type, primitives::TransactionType::SmartContractCall);
+                    assert_eq!(kind, EvmTransactionKind::ContractCall);
                 }
                 _ => panic!("Expected Ethereum transaction"),
             }
@@ -288,12 +289,11 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_ethereum_transaction_type_from_payload() {
+    fn test_decode_ethereum_transaction_kind_from_payload() {
         let cases = [
-            (r#""0x095ea7b3abcd""#, primitives::TransactionType::TokenApproval),
-            (r#""0x""#, primitives::TransactionType::Transfer),
-            (r#"null"#, primitives::TransactionType::Transfer),
-            (r#""0xdeadbeef""#, primitives::TransactionType::SmartContractCall),
+            (r#""0x""#, EvmTransactionKind::Transfer),
+            (r#"null"#, EvmTransactionKind::Transfer),
+            (r#""0xdeadbeef""#, EvmTransactionKind::ContractCall),
         ];
         for (data, expected) in cases {
             let decoded = WalletConnectRequestHandler::decode_send_transaction(
@@ -303,10 +303,38 @@ mod tests {
             .unwrap();
 
             match decoded {
-                WalletConnectTransaction::Ethereum { transaction_type, .. } => assert_eq!(transaction_type, expected),
+                WalletConnectTransaction::Ethereum { kind, .. } => assert_eq!(kind, expected),
                 _ => panic!("Expected Ethereum transaction"),
             }
         }
+    }
+
+    #[test]
+    fn test_decode_ethereum_approval_data() {
+        let decoded =
+            WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, include_str!("../../testdata/ethereum_approval.json").to_string())
+                .unwrap();
+
+        match decoded {
+            WalletConnectTransaction::Ethereum {
+                kind: EvmTransactionKind::TokenApproval(approval),
+                ..
+            } => {
+                assert_eq!(approval.token, "0x111122223333444455556666777788889999aaaa");
+                assert_eq!(approval.spender, "0x22223333444455556666777788889999aaAaBBbB");
+                assert_eq!(approval.value, "100");
+                assert!(!approval.is_unlimited);
+            }
+            _ => panic!("Expected Ethereum token approval"),
+        }
+
+        let malformed = include_str!("../../testdata/ethereum_approval.json").replace(
+            "0x095ea7b300000000000000000000000022223333444455556666777788889999aaaabbbb0000000000000000000000000000000000000000000000000000000000000064",
+            "0x095ea7b3abcd",
+        );
+        let result = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, malformed);
+
+        assert!(result.is_err());
     }
 
     #[test]

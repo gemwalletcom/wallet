@@ -350,11 +350,7 @@
   <string name="assets_add_custom_token">কাস্টম টোকেন যোগ করুন</string>
   <string name="assets_select_asset">সম্পদ নির্বাচন করুন</string>
   <string name="assets_popular">জনপ্রিয় অ্যাসেট</string>
-  <string name="assets_tags_trending">চলমান</string>
-  <string name="assets_tags_gainers">লাভকারীদের</string>
-  <string name="assets_tags_losers">পরাজিত</string>
   <string name="assets_tags_new">নতুন</string>
-  <string name="assets_tags_stablecoins">স্টেবলকয়েন</string>
   <string name="assets_state_empty_search_description">আপনি এটি ম্যানুয়ালি যোগ করার চেষ্টা করতে পারেন।</string>
   <string name="assets_title">সম্পদ</string>
   <string name="sign_message_message">বার্তা</string>

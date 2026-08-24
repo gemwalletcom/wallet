@@ -3,27 +3,17 @@ package com.gemwallet.android.features.asset_select.presents.views
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.icons.AppIcons
-import com.wallet.core.primitives.Asset
 import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Chain
-import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun AssetsManageScreen(
@@ -38,56 +28,12 @@ fun AssetsManageScreen(
     }
 
     val isAddAssetAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
-    val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
-    val pinned by viewModel.pinned.collectAsStateWithLifecycle()
-    val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
 
-    val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
-    val chainsFilter by viewModel.chainFilter.collectAsStateWithLifecycle()
-    val balanceFilter by viewModel.balanceFilter.collectAsStateWithLifecycle()
-    val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
-
-    AssetSelectScene(
-        title = {
-            Text(
-                text = stringResource(id = R.string.wallet_manage_token_list),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        },
+    AssetSelectScreen(
+        title = stringResource(id = R.string.wallet_manage_token_list),
         titleBadge = ::getAssetBadge,
-        support = {
-            if (it.asset.id.type() == AssetSubtype.NATIVE) null else {
-                { ListItemSupportText(it.asset.id.chain.networkName()) }
-            }
-        },
-        query = viewModel.queryState,
-        selectedTag = selectedTag,
-        tags = viewModel.getTags(),
-        pinned = pinned,
-        popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
-        unpinned = unpinned,
-        recent = emptyList<Asset>().toImmutableList(),
-        state = uiStates,
-        isAddAvailable = isAddAssetAvailable,
-        availableChains = availableChains,
-        chainsFilter = chainsFilter,
-        balanceFilter = balanceFilter,
-        searchable = true,
-        onAction = { action ->
-            when (action) {
-                is AssetSelectAction.ChainFilter -> viewModel.onChainFilter(action.chain)
-                is AssetSelectAction.BalanceFilter -> viewModel.onBalanceFilter(action.onlyWithBalance)
-                AssetSelectAction.ClearFilters -> viewModel.onClearFilters()
-                AssetSelectAction.Cancel -> onCancel()
-                AssetSelectAction.AddAsset -> onAddAsset()
-                is AssetSelectAction.SelectTag -> viewModel.onTagSelect(action.tag)
-                is AssetSelectAction.Select,
-                is AssetSelectAction.SelectRecent,
-                AssetSelectAction.OpenRecentsSheet,
-                AssetSelectAction.ShowAllAssets -> Unit
-            }
-        },
+        onCancel = onCancel,
+        onAddAsset = onAddAsset,
         actions = {
             if (isAddAssetAvailable) {
                 IconButton(onClick = onAddAsset) {
@@ -101,6 +47,6 @@ fun AssetsManageScreen(
                 onCheckedChange = { viewModel.onChangeVisibility(asset.asset.id, it) },
             )
         },
-        contextActions = AssetContextActions.Empty,
+        viewModel = viewModel,
     )
 }

@@ -1,30 +1,31 @@
 use super::models::{Asset, CachedToken, Country, CreateWidgetUrlRequest, CreateWidgetUrlResponse, Data, FiatCurrency, Response, TokenResponse, TransakQuote, TransakResponse};
+use gem_client::ReqwestClient;
 use primitives::{FiatProviderName, FiatQuoteType, FiatQuoteUrlData};
-use reqwest::Client;
+use reqwest::Method;
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-const TRANSAK_API_URL: &str = "https://api.transak.com";
-const TRANSAK_API_GATEWAY_URL: &str = "https://api-gateway.transak.com";
 const TOKEN_TTL_SECONDS: u64 = 3600;
 
 #[derive(Debug, Clone)]
 pub struct TransakClient {
-    pub client: Client,
-    pub api_key: String,
-    pub api_secret: String,
-    pub referrer_domain: String,
+    client: ReqwestClient,
+    gateway: ReqwestClient,
+    api_key: String,
+    api_secret: String,
+    referrer_domain: String,
     cached_token: Arc<Mutex<Option<CachedToken>>>,
 }
 
 impl TransakClient {
     pub const NAME: FiatProviderName = FiatProviderName::Transak;
 
-    pub fn new(client: Client, api_key: String, api_secret: String, referrer_domain: String) -> Self {
+    pub fn new(client: ReqwestClient, gateway: ReqwestClient, api_key: String, api_secret: String, referrer_domain: String) -> Self {
         TransakClient {
             client,
+            gateway,
             api_key,
             api_secret,
             referrer_domain,
@@ -35,7 +36,8 @@ impl TransakClient {
     #[cfg(test)]
     pub(super) fn new_with_access_token(access_token: &str) -> Self {
         Self {
-            client: gem_client::reqwest_client(),
+            client: ReqwestClient::new(String::new(), gem_client::reqwest_client()),
+            gateway: ReqwestClient::new(String::new(), gem_client::reqwest_client()),
             api_key: String::new(),
             api_secret: String::new(),
             referrer_domain: String::new(),
@@ -74,7 +76,6 @@ impl TransakClient {
         crypto_amount: Option<&str>,
         network: String,
     ) -> Result<TransakQuote, Box<dyn std::error::Error + Send + Sync>> {
-        let url = format!("{TRANSAK_API_URL}/api/v1/pricing/public/quotes");
         let mut query = vec![
             ("isBuyOrSell", quote_type.to_string()),
             ("fiatCurrency", fiat_currency.to_string()),
@@ -90,7 +91,7 @@ impl TransakClient {
         }
 
         self.client
-            .get(url)
+            .request(Method::GET, "/api/v1/pricing/public/quotes")
             .header("x-api-key", &self.api_key)
             .query(&query)
             .send()
@@ -102,13 +103,11 @@ impl TransakClient {
 
     pub async fn create_widget_url(&self, params: HashMap<String, Value>, ip_address: &str) -> Result<String, reqwest::Error> {
         let access_token = self.get_access_token().await?;
-        let url = format!("{TRANSAK_API_GATEWAY_URL}/api/v2/auth/session");
-
         let request_body = CreateWidgetUrlRequest { params };
 
         let response: Data<CreateWidgetUrlResponse> = self
-            .client
-            .post(&url)
+            .gateway
+            .request(Method::POST, "/api/v2/auth/session")
             .header("access-token", &access_token)
             .header("x-api-key", &self.api_key)
             .header("x-user-ip", ip_address)
@@ -153,18 +152,20 @@ impl TransakClient {
     }
 
     pub async fn get_supported_assets(&self) -> Result<Response<Vec<Asset>>, reqwest::Error> {
-        let url = format!("{TRANSAK_API_URL}/cryptocoverage/api/v1/public/crypto-currencies");
-        self.client.get(&url).send().await?.json().await
+        self.client
+            .request(Method::GET, "/cryptocoverage/api/v1/public/crypto-currencies")
+            .send()
+            .await?
+            .json()
+            .await
     }
 
     pub async fn get_countries(&self) -> Result<Response<Vec<Country>>, reqwest::Error> {
-        let url = format!("{TRANSAK_API_URL}/api/v2/countries");
-        self.client.get(&url).send().await?.json().await
+        self.client.request(Method::GET, "/api/v2/countries").send().await?.json().await
     }
 
     pub async fn get_fiat_currencies(&self) -> Result<Response<Vec<FiatCurrency>>, reqwest::Error> {
-        let url = format!("{TRANSAK_API_URL}/fiat/public/v1/currencies/fiat-currencies");
-        self.client.get(&url).send().await?.json().await
+        self.client.request(Method::GET, "/fiat/public/v1/currencies/fiat-currencies").send().await?.json().await
     }
 
     pub(super) async fn get_access_token(&self) -> Result<String, reqwest::Error> {
@@ -184,14 +185,14 @@ impl TransakClient {
     }
 
     async fn refresh_token_internal(&self) -> Result<String, reqwest::Error> {
-        let url = format!("{TRANSAK_API_URL}/partners/api/v2/refresh-token?apiKey={}", self.api_key);
+        let path = format!("/partners/api/v2/refresh-token?apiKey={}", self.api_key);
         let body = serde_json::json!({
             "apiKey": self.api_key
         });
 
         let response: Data<TokenResponse> = self
             .client
-            .post(&url)
+            .request(Method::POST, &path)
             .header("x-api-key", &self.api_key)
             .header("api-secret", &self.api_secret)
             .json(&body)

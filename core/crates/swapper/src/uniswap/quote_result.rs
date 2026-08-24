@@ -52,6 +52,7 @@ mod tests {
                 error: JsonRpcError {
                     code: -1,
                     message: "reverted".to_string(),
+                    cause: None,
                 },
             }),
             JsonRpcResult::Value(JsonRpcResponse {

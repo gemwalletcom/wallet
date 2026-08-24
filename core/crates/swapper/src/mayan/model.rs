@@ -661,7 +661,7 @@ mod tests {
     fn test_decode_mayan_transaction_result() {
         let result: MayanTransactionResult = serde_json::from_str(include_str!("test/eth_to_sui_swift.json")).unwrap();
         assert_eq!(result.client_status, MayanClientStatus::Completed);
-        assert_eq!(result.from_amount64, Some("18124254".to_string()));
+        assert_eq!(result.from_amount64, Some("10000000000000000".to_string()));
         assert!(result.to_amount64.is_none());
 
         let result: MayanTransactionResult = serde_json::from_str(include_str!("test/mctp_pending.json")).unwrap();

@@ -1,11 +1,11 @@
 use gem_wallet_connect::{
-    SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectAction as WcWalletConnectAction,
-    WalletConnectChainOperation as WcWalletConnectChainOperation, WalletConnectRequestHandler, WalletConnectResponseHandler,
+    EvmTransactionKind as WcEvmTransactionKind, SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData,
+    WalletConnectAction as WcWalletConnectAction, WalletConnectChainOperation as WcWalletConnectChainOperation, WalletConnectRequestHandler, WalletConnectResponseHandler,
     WalletConnectResponseType as WcWalletConnectResponseType, WalletConnectTransaction as WcWalletConnectTransaction,
     WalletConnectTransactionType as WcWalletConnectTransactionType, WalletConnectVerifier, config_session_properties,
 };
 use primitives::{
-    Account, Chain, ChainAddress, TransactionType, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest,
+    Account, Chain, ChainAddress, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest, WalletConnectionSessionAppMetadata,
     WalletConnectionVerificationStatus,
 };
 use std::collections::HashMap;
@@ -14,6 +14,7 @@ use std::str::FromStr;
 use crate::{
     GemstoneError,
     message::sign_type::{SignDigestType, SignMessage},
+    models::swap::GemApprovalData,
 };
 
 mod simulation;
@@ -124,7 +125,7 @@ pub enum WalletConnectChainOperation {
 pub enum WalletConnectTransaction {
     Ethereum {
         data: WCEthereumTransactionData,
-        transaction_type: TransactionType,
+        kind: EvmTransactionKind,
     },
     Solana {
         data: WCSolanaTransactionData,
@@ -142,6 +143,13 @@ pub enum WalletConnectTransaction {
         data: String,
         output_type: TransferDataOutputType,
     },
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum EvmTransactionKind {
+    Transfer,
+    ContractCall,
+    TokenApproval { approval: GemApprovalData },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -289,9 +297,9 @@ impl From<WcEthereumTransactionData> for WCEthereumTransactionData {
 impl From<WcWalletConnectTransaction> for WalletConnectTransaction {
     fn from(t: WcWalletConnectTransaction) -> Self {
         match t {
-            WcWalletConnectTransaction::Ethereum { data, transaction_type } => Self::Ethereum {
+            WcWalletConnectTransaction::Ethereum { data, kind } => Self::Ethereum {
                 data: data.into(),
-                transaction_type,
+                kind: kind.into(),
             },
             WcWalletConnectTransaction::Solana { data, output_type } => Self::Solana {
                 data: WCSolanaTransactionData { transaction: data.transaction },
@@ -306,6 +314,16 @@ impl From<WcWalletConnectTransaction> for WalletConnectTransaction {
             },
             WcWalletConnectTransaction::Ton { data, output_type } => Self::Ton { data, output_type },
             WcWalletConnectTransaction::Tron { data, output_type } => Self::Tron { data, output_type },
+        }
+    }
+}
+
+impl From<WcEvmTransactionKind> for EvmTransactionKind {
+    fn from(kind: WcEvmTransactionKind) -> Self {
+        match kind {
+            WcEvmTransactionKind::Transfer => Self::Transfer,
+            WcEvmTransactionKind::ContractCall => Self::ContractCall,
+            WcEvmTransactionKind::TokenApproval(approval) => Self::TokenApproval { approval },
         }
     }
 }
@@ -411,7 +429,7 @@ impl WalletConnect {
 }
 
 #[uniffi::export]
-pub fn wallet_connect_app_short_name(metadata: primitives::WalletConnectionSessionAppMetadata) -> String {
+pub fn wallet_connect_app_short_name(metadata: WalletConnectionSessionAppMetadata) -> String {
     metadata.short_name()
 }
 

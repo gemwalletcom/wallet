@@ -25,6 +25,10 @@ public struct AssetsEnablerService: AssetsEnabler {
         let requestedAssetIds = assetIds.unique()
         guard !requestedAssetIds.isEmpty else { return }
 
+        if enabled {
+            try await assetsService.prefetchAssets(assetIds: requestedAssetIds)
+        }
+
         let enabledAssetIds = try assetsService
             .getBalanceAssetIds(walletId: walletId, assetIds: requestedAssetIds, filters: [.enabled])
             .asSet()
@@ -46,8 +50,11 @@ public struct AssetsEnablerService: AssetsEnabler {
         _ = try await priceUpdate
     }
 
-    public func enableAssetId(wallet: Wallet, assetId: AssetId) async throws {
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
-        try await enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
+    public func pinAsset(wallet: Wallet, assetId: AssetId, pinned: Bool) async throws {
+        if pinned {
+            try await enableAssets(wallet: wallet, assetIds: [assetId], enabled: true)
+        }
+
+        try assetsService.updatePinned(walletId: wallet.id, assetId: assetId, pinned: pinned)
     }
 }

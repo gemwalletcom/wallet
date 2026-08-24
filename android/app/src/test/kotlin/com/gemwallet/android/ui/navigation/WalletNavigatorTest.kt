@@ -13,6 +13,7 @@ import com.gemwallet.android.features.onboarding.AcceptTermsRoute
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.ext.hasNativeAsset
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetId
@@ -46,6 +47,9 @@ import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.WalletType
+import io.mockk.every
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -56,20 +60,48 @@ class WalletNavigatorTest {
 
     @Test
     fun openAsset_requiresSupportedWalletChain() {
+        mockkStatic("com.gemwallet.android.ext.ChainKt")
+        every { Chain.Tron.hasNativeAsset() } returns true
+        every { Chain.Tempo.hasNativeAsset() } returns false
         val navigator = navigatorWith(
             WalletRootRoute,
             assetNavigationPolicy = WalletAssetNavigationPolicy(
-                mockWallet(accounts = listOf(mockAccount(chain = Chain.Tron))),
+                mockWallet(accounts = listOf(mockAccount(chain = Chain.Tron), mockAccount(chain = Chain.Tempo))),
             ),
         )
 
-        navigator.openAsset(mockAssetId(Chain.Ton))
-        navigator.openAsset(mockAssetId(Chain.Tron))
+        try {
+            navigator.openAsset(mockAssetId(Chain.Ton))
+            navigator.openAsset(mockAssetId(Chain.Tempo))
+            navigator.openAsset(mockAssetId(Chain.Tron))
+            navigator.openAsset(mockAssetId(Chain.Tempo, "0xtoken"))
 
-        assertEquals(
-            listOf(WalletRootRoute, AssetRoute(mockAssetId(Chain.Tron))),
-            navigator.backStack.toList(),
+            assertEquals(
+                listOf(
+                    WalletRootRoute,
+                    AssetRoute(mockAssetId(Chain.Tron)),
+                    AssetRoute(mockAssetId(Chain.Tempo, "0xtoken")),
+                ),
+                navigator.backStack.toList(),
+            )
+        } finally {
+            unmockkStatic("com.gemwallet.android.ext.ChainKt")
+        }
+    }
+
+    @Test
+    fun openAsset_appliesPolicyToPendingRoutes() {
+        val blockedAsset = mockAssetId(Chain.Tempo)
+        val navigator = navigatorWith(
+            WalletRootRoute,
+            WalletsRoute,
+            assetNavigationPolicy = AssetNavigationPolicy { it != blockedAsset },
         )
+
+        val opened = navigator.openPendingNavigation(listOf(AssetRoute(blockedAsset)))
+
+        assertFalse(opened)
+        assertEquals(listOf(WalletRootRoute, WalletsRoute), navigator.backStack.toList())
     }
 
     @Test

@@ -17,7 +17,7 @@ pub fn create_solana_test_client() -> SolanaProvider<ReqwestClient> {
     let settings = get_test_settings();
     let alchemy_url = format!(
         "{}/v2/{}",
-        settings.indexer.alchemy.url.replace("{network}", "solana-mainnet").trim_end_matches('/'),
+        settings.indexer.alchemy.url.replace("{network}", "solana-mainnet"),
         settings.indexer.alchemy.key.secret
     );
     SolanaProvider::new(

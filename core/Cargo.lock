@@ -2943,6 +2943,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "egress"
+version = "2.114.10"
+dependencies = [
+ "config",
+ "gem_client",
+ "gem_crypto",
+ "gem_tracing",
+ "metrics",
+ "prometheus-client",
+ "rand 0.10.2",
+ "reqwest 0.13.4",
+ "rocket",
+ "serde",
+ "serde_serializers",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "either"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3513,6 +3532,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_alchemy"
+version = "2.114.10"
+dependencies = [
+ "gem_client",
+ "gem_jsonrpc",
+ "num-bigint 0.5.1",
+ "primitives",
+ "serde",
+ "serde_json",
+ "serde_serializers",
+ "tokio",
+]
+
+[[package]]
 name = "gem_algorand"
 version = "2.114.10"
 dependencies = [
@@ -3531,6 +3564,19 @@ dependencies = [
  "serde_json",
  "settings",
  "signer",
+ "tokio",
+]
+
+[[package]]
+name = "gem_ankr"
+version = "2.114.10"
+dependencies = [
+ "gem_client",
+ "gem_jsonrpc",
+ "num-bigint 0.5.1",
+ "serde",
+ "serde_json",
+ "serde_serializers",
  "tokio",
 ]
 
@@ -3604,6 +3650,17 @@ dependencies = [
  "serde_serializers",
  "settings",
  "signer",
+ "tokio",
+]
+
+[[package]]
+name = "gem_blockscout"
+version = "2.114.10"
+dependencies = [
+ "gem_client",
+ "num-bigint 0.5.1",
+ "serde",
+ "serde_serializers",
  "tokio",
 ]
 
@@ -3744,6 +3801,9 @@ dependencies = [
  "chain_traits",
  "chrono",
  "futures",
+ "gem_alchemy",
+ "gem_ankr",
+ "gem_blockscout",
  "gem_bsc",
  "gem_client",
  "gem_hash",
@@ -5707,6 +5767,7 @@ version = "2.114.10"
 dependencies = [
  "async-trait",
  "futures",
+ "gem_alchemy",
  "gem_client",
  "gem_evm",
  "gem_ton",
@@ -7947,6 +8008,7 @@ version = "2.114.10"
 dependencies = [
  "chain_traits",
  "futures",
+ "gem_alchemy",
  "gem_algorand",
  "gem_aptos",
  "gem_bitcoin",

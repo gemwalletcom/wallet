@@ -27,7 +27,7 @@ public actor GemAPIAssetsServiceMock: GemAPIAssetsService {
         assetsResult!
     }
 
-    public func getSearchAssets(query _: String, chains _: [Chain], tags _: [AssetTag]) async throws -> [AssetBasic] {
+    public func getSearchAssets(query _: String, chains _: [Chain]) async throws -> [AssetBasic] {
         searchAssetsResult!
     }
 }

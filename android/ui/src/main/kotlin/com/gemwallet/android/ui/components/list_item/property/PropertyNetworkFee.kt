@@ -19,6 +19,7 @@ fun PropertyNetworkFee(
     feeFiat: String,
     variantsAvailable: Boolean = false,
     showedCryptoAmount: Boolean = false,
+    showFeeAssetSymbol: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
     PropertyItem(
@@ -33,10 +34,17 @@ fun PropertyNetworkFee(
         data = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(horizontalAlignment = Alignment.End) {
-                    if (showedCryptoAmount) {
-                        Row(horizontalArrangement = Arrangement.End) { PropertyDataText(feeCrypto) }
+                    val hasFiatAmount = feeFiat.isNotEmpty()
+                    val primary = if (showedCryptoAmount || !hasFiatAmount) feeCrypto else feeFiat
+                    Row(horizontalArrangement = Arrangement.End) { PropertyDataText(primary) }
+                    val secondary = when {
+                        showedCryptoAmount -> feeFiat
+                        showFeeAssetSymbol && hasFiatAmount -> networkSymbol
+                        else -> ""
                     }
-                    Row(horizontalArrangement = Arrangement.End) { PropertyDataText(feeFiat) }
+                    if (secondary.isNotEmpty()) {
+                        Row(horizontalArrangement = Arrangement.End) { PropertyDataText(secondary) }
+                    }
                 }
                 if (variantsAvailable) {
                     DataBadgeChevron()
@@ -46,4 +54,3 @@ fun PropertyNetworkFee(
         listPosition = ListPosition.Single,
     )
 }
-

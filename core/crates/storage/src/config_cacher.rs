@@ -88,11 +88,7 @@ impl ConfigCacher {
         parse_duration(&self.get_param_value(param))
     }
 
-    pub fn get_param_durations<T>(
-        &self,
-        values: impl IntoIterator<Item = T>,
-        key: impl Fn(T) -> ConfigParamKey,
-    ) -> Result<HashMap<T, Duration>, DatabaseError>
+    pub fn get_param_durations<T>(&self, values: impl IntoIterator<Item = T>, key: impl Fn(T) -> ConfigParamKey) -> Result<HashMap<T, Duration>, DatabaseError>
     where
         T: Copy + Eq + Hash,
     {

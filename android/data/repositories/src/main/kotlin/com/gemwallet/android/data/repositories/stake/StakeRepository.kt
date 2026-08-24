@@ -58,8 +58,8 @@ class StakeRepository(
             }
     }
 
-    fun getDelegation(validatorId: String, delegationId: String): Flow<Delegation?> {
-        return stakeDao.getDelegation(validatorId, delegationId).map { it?.toModel() }
+    fun getDelegation(walletId: WalletId, validatorId: String, delegationId: String): Flow<Delegation?> {
+        return stakeDao.getDelegation(walletId, validatorId, delegationId).map { it?.toModel() }
     }
 
     suspend fun getRewards(walletId: WalletId, assetId: AssetId): List<Delegation> {
@@ -95,8 +95,7 @@ class StakeRepository(
         address: String,
         validatorNamesById: Map<String, String>,
     ) {
-        val delegations = runCatching { stakeService.getStakeDelegations(assetId.chain, address) }
-            .getOrNull() ?: return
+        val delegations = stakeService.getStakeDelegations(assetId.chain, address) ?: return
         val existingValidators = stakeDao.getValidators(assetId, StakeProviderType.Stake)
             .first()
             .toDTO()

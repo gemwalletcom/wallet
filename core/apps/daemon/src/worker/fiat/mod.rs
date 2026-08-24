@@ -32,7 +32,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
                 let database = database.clone();
                 let cacher_client = cacher_client.clone();
                 async move {
-                    let client = CoinGeckoClient::new(&settings.coingecko.key.secret);
+                    let client = CoinGeckoClient::new(settings.coingecko.remote_provider_config());
                     let price_client = PriceClient::new(database, cacher_client);
                     FiatRatesUpdater::new(client, price_client).update().await
                 }

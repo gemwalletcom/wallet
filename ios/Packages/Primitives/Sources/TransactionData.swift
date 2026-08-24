@@ -3,7 +3,7 @@
 import Foundation
 
 public struct TransactionData: Sendable {
-    public var fee: Fee
+    public let fee: Fee
     public let metadata: TransactionLoadMetadata
 
     public init(

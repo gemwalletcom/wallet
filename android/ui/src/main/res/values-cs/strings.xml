@@ -350,11 +350,7 @@
   <string name="assets_add_custom_token">Přidat vlastní token</string>
   <string name="assets_select_asset">Vyberte aktivum</string>
   <string name="assets_popular">Populární aktiva</string>
-  <string name="assets_tags_trending">Trendy</string>
-  <string name="assets_tags_gainers">Gainery</string>
-  <string name="assets_tags_losers">Poražení</string>
   <string name="assets_tags_new">Nový</string>
-  <string name="assets_tags_stablecoins">Stablecoiny</string>
   <string name="assets_state_empty_search_description">Můžete to zkusit přidat ručně</string>
   <string name="assets_title">Aktiva</string>
   <string name="sign_message_message">Zpráva</string>

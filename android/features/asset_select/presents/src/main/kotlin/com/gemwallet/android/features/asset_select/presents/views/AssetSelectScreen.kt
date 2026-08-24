@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset_select.presents.views
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -11,6 +12,7 @@ import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import kotlinx.collections.immutable.toImmutableList
@@ -27,6 +29,7 @@ fun AssetSelectScreen(
     itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = null,
     itemSupport: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)? = null,
     onAddAsset: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {},
     viewModel: BaseAssetSelectViewModel,
     recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
 ) {
@@ -39,7 +42,6 @@ fun AssetSelectScreen(
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
     val chainsFilter by viewModel.chainFilter.collectAsStateWithLifecycle()
     val balanceFilter by viewModel.balanceFilter.collectAsStateWithLifecycle()
-    val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
 
     val selectAsset: ((AssetId) -> Unit)? = when {
         onSelect == null -> null
@@ -67,7 +69,11 @@ fun AssetSelectScreen(
             emptyList<AssetInfoDataAggregate>().toImmutableList()
         },
         unpinned = unpinned,
-        recent = recent,
+        recent = if (onSelectRecent == null) {
+            emptyList<Asset>().toImmutableList()
+        } else {
+            recent
+        },
         state = uiStates,
         isAddAvailable = isAddAvailable && onAddAsset != null,
         availableChains = availableChains,
@@ -80,17 +86,15 @@ fun AssetSelectScreen(
                 AssetSelectAction.ClearFilters -> viewModel.onClearFilters()
                 is AssetSelectAction.Select -> selectAsset?.invoke(action.assetId)
                 is AssetSelectAction.SelectRecent -> onSelectRecent?.invoke(action.assetId)
-                AssetSelectAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
+                AssetSelectAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters(), types = viewModel.recentTypes)
                 AssetSelectAction.Cancel -> onCancel()
                 AssetSelectAction.AddAsset -> onAddAsset?.invoke()
-                is AssetSelectAction.SelectTag -> viewModel.onTagSelect(action.tag)
                 AssetSelectAction.ShowAllAssets -> Unit
             }
         },
         recentsSheetEnabled = onSelectRecent != null,
         itemTrailing = itemTrailing,
-        selectedTag = selectedTag,
-        tags = viewModel.getTags(),
+        actions = actions,
     )
 
     if (onSelectRecent != null) {

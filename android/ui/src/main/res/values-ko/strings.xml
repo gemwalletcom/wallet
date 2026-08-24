@@ -350,11 +350,7 @@
   <string name="assets_add_custom_token">커스텀 토큰 추가</string>
   <string name="assets_select_asset">자산 선택</string>
   <string name="assets_popular">인기 자산</string>
-  <string name="assets_tags_trending">트렌드</string>
-  <string name="assets_tags_gainers">승자</string>
-  <string name="assets_tags_losers">패자</string>
   <string name="assets_tags_new">새로운</string>
-  <string name="assets_tags_stablecoins">스테이블코인</string>
   <string name="assets_state_empty_search_description">수동으로 추가해보세요</string>
   <string name="assets_title">자산</string>
   <string name="sign_message_message">메시지</string>

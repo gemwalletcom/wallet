@@ -17,6 +17,59 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
+    func showFeeAssetsOnlyWhenAlternativeAssetIsSelectable() {
+        let pathUSD = AssetData.mock(asset: .mockTempoPathUSD())
+        let usdc = AssetData.mock(asset: .mockTempoUSDC())
+        let onSelect: @MainActor (AssetId) -> Void = { _ in }
+        let selectable = NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD, usdc], onSelectFeeAsset: onSelect)
+
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD], onSelectFeeAsset: onSelect).showFeeAssets == false)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD, usdc]).showFeeAssets == false)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [usdc], onSelectFeeAsset: onSelect).showFeeAssets)
+        #expect(selectable.showFeeAssets)
+        #expect(selectable.showFeeDetails)
+    }
+
+    @Test
+    func feeAssetSymbolShownOnlyWhenSelectable() {
+        let pathUSD = AssetData.mock(asset: .mockTempoPathUSD())
+        let usdc = AssetData.mock(asset: .mockTempoUSDC())
+        let onSelect: @MainActor (AssetId) -> Void = { _ in }
+
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset).feeAssetSymbol == nil)
+        #expect(NetworkFeeSceneViewModel.mock(
+            feeAsset: pathUSD.asset,
+            feeAssets: [pathUSD, usdc],
+            onSelectFeeAsset: onSelect,
+        ).feeAssetSymbol == nil)
+        #expect(NetworkFeeSceneViewModel.mock(
+            feeAsset: pathUSD.asset,
+            feeAssetPrice: .mock(price: 1),
+            feeAmount: 1,
+            feeAssets: [pathUSD, usdc],
+            onSelectFeeAsset: onSelect,
+        ).feeAssetSymbol == pathUSD.asset.symbol)
+    }
+
+    @Test
+    func selectFeeAssetForwardsAssetIdToOwner() async {
+        let pathUSD = AssetData.mock(asset: .mockTempoPathUSD())
+        let usdc = AssetData.mock(asset: .mockTempoUSDC())
+
+        await confirmation { selected in
+            let model = NetworkFeeSceneViewModel.mock(
+                feeAsset: pathUSD.asset,
+                feeAssets: [pathUSD, usdc],
+                onSelectFeeAsset: {
+                    #expect($0 == usdc.asset.id)
+                    selected()
+                },
+            )
+            model.selectFeeAsset(FeeAssetItem(assetData: usdc, currency: .usd, isSelected: false))
+        }
+    }
+
+    @Test
     func showFeeDetailsForLoadedSingleRate() {
         let model = NetworkFeeSceneViewModel.mock(
             rates: [.defaultRate()],

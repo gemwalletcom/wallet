@@ -40,12 +40,7 @@ impl TonApiProvider {
             let response = match retry(|| self.client.get_rates(&tokens), MAX_RETRIES).await {
                 Ok(response) => response,
                 Err(error) => {
-                    warn_with_fields!(
-                        "skip failed TonAPI price chunk",
-                        chunk = index,
-                        token_count = tokens.len(),
-                        error = error.as_ref()
-                    );
+                    warn_with_fields!("skip failed TonAPI price chunk", chunk = index, token_count = tokens.len(), error = error.as_ref());
                     continue;
                 }
             };

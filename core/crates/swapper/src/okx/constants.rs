@@ -1,7 +1,5 @@
 use primitives::Chain;
 
-pub(super) const BASE_URL: &str = "https://web3.okx.com";
-
 pub(super) const PROXY_QUOTE_PATH: &str = "/v6/quote";
 pub(super) const PROXY_SWAP_PATH: &str = "/v6/swap";
 

@@ -8,6 +8,7 @@ import com.gemwallet.android.math.hexToBigInteger
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic
 import com.gemwallet.android.model.DestinationAddress
+import com.gemwallet.android.model.toModel
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
@@ -20,6 +21,9 @@ import com.gemwallet.android.blockchain.gemstone.toGem
 import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
+import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.swap.ApprovalData
+import uniffi.gemstone.EvmTransactionKind
 import uniffi.gemstone.TransferDataOutputType
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
@@ -218,7 +222,8 @@ private fun WalletConnectTransaction.map(
             destination = DestinationAddress(data.to),
             amount = data.value?.hexToBigInteger() ?: BigInteger.ZERO,
             isSendable = isSendable,
-            decodedTransactionType = transactionType.toPrimitives(),
+            decodedTransactionType = kind.transactionType,
+            approval = kind.approvalData,
         )
         is WalletConnectTransaction.Solana ->
             buildEncodedTransactionParams(request, data.transaction, outputType, isSendable)
@@ -230,6 +235,21 @@ private fun WalletConnectTransaction.map(
             buildEncodedTransactionParams(request, data, outputType, isSendable)
     }
 }
+
+private val EvmTransactionKind.transactionType: TransactionType
+    get() = when (this) {
+        EvmTransactionKind.Transfer -> TransactionType.Transfer
+        EvmTransactionKind.ContractCall -> TransactionType.SmartContractCall
+        is EvmTransactionKind.TokenApproval -> TransactionType.TokenApproval
+    }
+
+private val EvmTransactionKind.approvalData: ApprovalData?
+    get() = when (this) {
+        EvmTransactionKind.Transfer,
+        EvmTransactionKind.ContractCall,
+        -> null
+        is EvmTransactionKind.TokenApproval -> approval.toModel()
+    }
 
 private fun buildEncodedTransactionParams(
     request: WCRequest.Transaction,

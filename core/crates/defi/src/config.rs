@@ -10,8 +10,8 @@ pub struct DefiProviderConfig {
 impl DefiProviderConfig {
     pub fn from_settings(settings: &Settings) -> Self {
         Self {
-            zerion: settings.indexer.zerion.remote_provider_config(),
-            jupiter: settings.indexer.jupiter.remote_provider_config(),
+            zerion: settings.defi.zerion.remote_provider_config(),
+            jupiter: settings.defi.jupiter.remote_provider_config(),
         }
     }
 }

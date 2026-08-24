@@ -10,12 +10,9 @@ import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toSearchRecord
 import com.gemwallet.android.domains.search.WalletSearchTag
-import com.gemwallet.android.domains.search.includesPerpetuals
 import com.gemwallet.android.domains.search.isAll
-import com.gemwallet.android.domains.search.toWalletSearchTag
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.AssetList
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualData
@@ -34,8 +31,8 @@ class WalletSearchTokens(
     private val tokenService: TokenService,
 ) : SearchTokensCase by tokensRepository, WalletSearchScopeCase {
 
-    override suspend fun search(query: String, currency: Currency, chains: List<Chain>, tags: List<AssetTag>): Boolean =
-        searchScope(query, currency, chains, tags.firstOrNull().toWalletSearchTag())
+    override suspend fun search(query: String, currency: Currency, chains: List<Chain>): Boolean =
+        searchScope(query, currency, chains, WalletSearchTag.All)
 
     override suspend fun search(query: String, currency: Currency, chains: List<Chain>, scope: WalletSearchTag): Boolean =
         searchScope(query, currency, chains, scope)
@@ -60,12 +57,11 @@ class WalletSearchTokens(
         } else {
             searchDao.put(assets.toSearchRecord(key))
         }
-        val perpetuals = if (scope.includesPerpetuals) searchResult.perpetuals else emptyList()
-        storePerpetuals(perpetuals, key)
+        storePerpetuals(searchResult.perpetuals, key)
         if (scope.isAll) {
             storeLists(searchResult.lists, key)
         }
-        assets.isNotEmpty() || perpetuals.isNotEmpty()
+        assets.isNotEmpty() || searchResult.perpetuals.isNotEmpty()
     }
 
     private suspend fun storePerpetuals(perpetuals: List<PerpetualSearchData>, key: String) {
@@ -92,7 +88,6 @@ class WalletSearchTokens(
 }
 
 private fun WalletSearchTag.searchKey(query: String): String = when (this) {
-    WalletSearchTag.All -> emptyList<AssetTag>().toPriorityQuery(query)
-    is WalletSearchTag.Filter -> listOf(tag).toPriorityQuery(query)
+    WalletSearchTag.All -> query.trim()
     is WalletSearchTag.List -> listPriorityQuery(id)
 }

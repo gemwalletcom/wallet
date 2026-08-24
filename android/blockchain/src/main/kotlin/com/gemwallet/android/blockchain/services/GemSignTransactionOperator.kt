@@ -6,17 +6,18 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.keystoreId
 import com.gemwallet.android.model.SignerParams
 import com.wallet.core.primitives.Wallet
+import uniffi.gemstone.GemSignedTransaction
 
 class GemSignTransactionOperator(
     private val baseDir: String,
 ) {
-    suspend operator fun invoke(wallet: Wallet, params: SignerParams, password: String): List<ByteArray> {
+    suspend operator fun invoke(wallet: Wallet, params: SignerParams, password: String): List<GemSignedTransaction> {
         val keystoreId = wallet.keystoreId
         val chain = params.input.asset.chain.string
         val data = params.data()
         val gemInput = params.input.toGemSignerInput(data.metadata, params.finalAmount, data.fee)
         return withGemKeystore(baseDir, password) { keystore, passwordBytes ->
-            keystore.sign(keystoreId, chain, gemInput, passwordBytes).map { it.toByteArray() }
+            keystore.sign(keystoreId, chain, gemInput, passwordBytes)
         }
     }
 }

@@ -410,11 +410,7 @@ assets_no_assets_found = 未找到资产
 assets_add_custom_token = 添加自定义代币
 assets_select_asset = 选择资产
 assets_popular = 热门资产
-assets_tags_trending = 热门
-assets_tags_gainers = 涨幅榜
-assets_tags_losers = 跌幅榜
 assets_tags_new = 新的
-assets_tags_stablecoins = 稳定币
 assets_state_empty_search_description = 请尝试手动添加
 assets_title = 资产
 

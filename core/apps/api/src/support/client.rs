@@ -2,7 +2,7 @@ use primitives::{Device, Platform, SupportAction, SupportMessage, SupportMessage
 use std::{error::Error, future::Future};
 use storage::{Database, NewSupportSessionRow, SupportSessionsRepository, models::DeviceRow};
 
-use ::support::{ChatwootClient, ChatwootSession};
+use ::support::{ChatwootClient, ChatwootError, ChatwootSession};
 
 pub struct SupportApiClient {
     chatwoot_ios: ChatwootClient,
@@ -51,7 +51,12 @@ impl SupportApiClient {
         let Some(session) = self.get_session(device_id)? else {
             return Ok(());
         };
-        let session = self.chatwoot(device.platform).update_contact(&session, device).await?;
+        let chatwoot = self.chatwoot(device.platform);
+        let session = match chatwoot.update_contact(&session, device).await {
+            Ok(session) => session,
+            Err(error) if error.downcast_ref::<ChatwootError>().is_some_and(|error| error.status() == 404) => chatwoot.create_session(device).await?,
+            Err(error) => return Err(error),
+        };
         self.set_session(device_id, &session)?;
         Ok(())
     }

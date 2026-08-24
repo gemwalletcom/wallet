@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "কাস্টম টোকেন যোগ করুন";
 "assets.select_asset" = "সম্পদ নির্বাচন করুন";
 "assets.popular" = "জনপ্রিয় অ্যাসেট";
-"assets.tags.trending" = "চলমান";
-"assets.tags.gainers" = "লাভকারীদের";
-"assets.tags.losers" = "পরাজিত";
 "assets.tags.new" = "নতুন";
-"assets.tags.stablecoins" = "স্টেবলকয়েন";
 "assets.state.empty.search_description" = "আপনি এটি ম্যানুয়ালি যোগ করার চেষ্টা করতে পারেন।";
 "assets.title" = "সম্পদ";
 "sign_message.message" = "বার্তা";

@@ -20,6 +20,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "Localization", path: "../../Packages/Localization"),
         .package(name: "Style", path: "../../Packages/Style"),
@@ -102,6 +103,7 @@ let package = Package(
             dependencies: [
                 "Transfer",
                 "TransferTestKit",
+                "Gemstone",
                 "GemstonePrimitives",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "BlockchainTestKit", package: "Blockchain"),
@@ -124,6 +126,7 @@ let package = Package(
                 .product(name: "StakeServiceTestKit", package: "ChainServices"),
                 .product(name: "NFTServiceTestKit", package: "FeatureServices"),
                 .product(name: "SignerTestKit", package: "Signer"),
+                .product(name: "Signer", package: "Signer"),
                 .product(name: "EarnServiceTestKit", package: "FeatureServices"),
                 .product(name: "FiatServiceTestKit", package: "FeatureServices"),
                 .product(name: "EventPresenterServiceTestKit", package: "EventPresenterService"),

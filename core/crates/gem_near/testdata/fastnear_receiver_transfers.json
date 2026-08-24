@@ -4,7 +4,7 @@
     {
       "account_id": "address.near",
       "amount": "2000000000000000000000000",
-      "asset_id": "native:near",
+      "asset_id": "near",
       "block_height": "300",
       "block_timestamp": "1800000300000000000",
       "predecessor_id": "sender.near",

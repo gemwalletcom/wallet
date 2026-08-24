@@ -8,13 +8,14 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,7 +39,6 @@ import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import com.gemwallet.android.ui.theme.space0
 
 enum class MainActionWidth {
     Constrained,
@@ -66,7 +66,6 @@ fun Scene(
     },
     mainActionWidth: MainActionWidth = MainActionWidth.Constrained,
     snackbar: SnackbarHostState? = null,
-    navigationBarPadding: Boolean = true,
     content: @Composable ColumnScope.(PaddingValues) -> Unit,
 ) {
     Scene(
@@ -87,7 +86,6 @@ fun Scene(
         mainActionPadding = mainActionPadding,
         mainActionWidth = mainActionWidth,
         snackbar = snackbar,
-        navigationBarPadding = navigationBarPadding,
         content = content,
     )
 }
@@ -105,7 +103,6 @@ fun Scene(
     mainActionPadding: PaddingValues = PaddingValues(horizontal = sceneContentPadding(), vertical = paddingDefault),
     mainActionWidth: MainActionWidth = MainActionWidth.Constrained,
     snackbar: SnackbarHostState? = null,
-    navigationBarPadding: Boolean = true,
     progress: (() -> Float)? = null,
     content: @Composable ColumnScope.(PaddingValues) -> Unit,
 ) {
@@ -113,7 +110,6 @@ fun Scene(
         onClose?.invoke()
     }
     Scaffold(
-        modifier = Modifier.imePadding(),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Box(
@@ -143,20 +139,17 @@ fun Scene(
             }
         },
         bottomBar = {
-            Column {
-                ConnectionStatusBannerHost(
-                    windowInsets = if (mainAction == null) {
-                        WindowInsets.navigationBars
-                    } else {
-                        WindowInsets(space0)
-                    },
-                )
+            Column(
+                modifier = Modifier.windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
+                ),
+            ) {
+                ConnectionStatusBannerHost()
                 if (mainAction != null) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surface)
-                            .navigationBarsPadding(),
+                            .background(MaterialTheme.colorScheme.surface),
                         contentAlignment = Alignment.Center,
                     ) {
                         Box(
@@ -185,7 +178,7 @@ fun Scene(
             modifier = Modifier
                 .padding(
                     top = paddingValues.calculateTopPadding(),
-                    bottom = if (navigationBarPadding) paddingValues.calculateBottomPadding() else 0.dp,
+                    bottom = paddingValues.calculateBottomPadding(),
                 )
                 .fillMaxSize(),
         ) {

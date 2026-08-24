@@ -43,7 +43,12 @@ pub enum IndexerService {
 impl IndexerService {
     pub fn consumers(self) -> &'static [IndexerConsumer] {
         match self {
-            Self::Assets => &[IndexerConsumer::FetchAssets, IndexerConsumer::FetchLists, IndexerConsumer::FetchPrices],
+            Self::Assets => &[
+                IndexerConsumer::FetchAssets,
+                IndexerConsumer::FetchAssetAssociations,
+                IndexerConsumer::FetchLists,
+                IndexerConsumer::FetchPrices,
+            ],
             Self::Nfts => &[IndexerConsumer::FetchNftAssociations, IndexerConsumer::FetchNftAssets],
             Self::Balances => &[IndexerConsumer::FetchTokenAssociations, IndexerConsumer::FetchCoinAssociations],
             Self::Blocks => &[IndexerConsumer::FetchBlocks],
@@ -57,6 +62,7 @@ impl IndexerService {
 #[allow(clippy::enum_variant_names)]
 pub enum IndexerConsumer {
     FetchAssets,
+    FetchAssetAssociations,
     FetchLists,
     FetchPrices,
     FetchBlocks,
@@ -133,7 +139,12 @@ mod tests {
         assert_eq!(ConsumerService::Indexer(IndexerService::Assets).name(), "indexer assets");
         assert_eq!(
             IndexerService::Assets.consumers(),
-            &[IndexerConsumer::FetchAssets, IndexerConsumer::FetchLists, IndexerConsumer::FetchPrices]
+            &[
+                IndexerConsumer::FetchAssets,
+                IndexerConsumer::FetchAssetAssociations,
+                IndexerConsumer::FetchLists,
+                IndexerConsumer::FetchPrices,
+            ]
         );
         assert_eq!(IndexerService::Blocks.consumers(), &[IndexerConsumer::FetchBlocks]);
     }

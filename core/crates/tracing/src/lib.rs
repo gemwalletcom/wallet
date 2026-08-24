@@ -4,6 +4,8 @@ use tracing_subscriber::FmtSubscriber;
 
 pub use tracing;
 
+pub mod path;
+
 static TRACING_SUBSCRIBER: OnceLock<Arc<FmtSubscriber>> = OnceLock::new();
 
 pub fn get_subscriber() -> Arc<FmtSubscriber> {

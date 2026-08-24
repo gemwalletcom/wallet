@@ -350,11 +350,7 @@
   <string name="assets_add_custom_token">Dodaj token niestandardowy</string>
   <string name="assets_select_asset">Wybierz zasób</string>
   <string name="assets_popular">Popularne aktywa</string>
-  <string name="assets_tags_trending">Trendy</string>
-  <string name="assets_tags_gainers">Zdobywcy</string>
-  <string name="assets_tags_losers">Przegrani</string>
   <string name="assets_tags_new">Nowy</string>
-  <string name="assets_tags_stablecoins">Stablecoiny</string>
   <string name="assets_state_empty_search_description">Możesz spróbować dodać go ręcznie</string>
   <string name="assets_title">Aktywa</string>
   <string name="sign_message_message">Wiadomość</string>

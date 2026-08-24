@@ -17,14 +17,15 @@ public struct ConfirmTransferInputProvider: Sendable {
         self.feeAssetProvider = feeAssetProvider
     }
 
-    public func load(
+    func load(
         request: ConfirmTransferRequest,
         metadata: TransferDataMetadata,
         selection: FeeSelection,
+        feeAssetSelection: FeeAssetSelection,
     ) async throws -> ConfirmTransferPreload {
-        let transactionData: TransferTransactionData
+        let loadedTransactionData: TransferTransactionData
         do {
-            transactionData = try await transferTransactionProvider.loadTransferTransactionData(
+            loadedTransactionData = try await transferTransactionProvider.loadTransferTransactionData(
                 wallet: request.wallet,
                 data: request.data,
                 selection: selection,
@@ -34,6 +35,10 @@ public struct ConfirmTransferInputProvider: Sendable {
             throw preloadFailureError(metadata: metadata) ?? error
         }
 
+        let transactionData = switch feeAssetSelection {
+        case .automatic: loadedTransactionData
+        case let .selected(assetId): loadedTransactionData.withFeeAsset(assetId)
+        }
         let fee = transactionData.transactionData.fee
         let feeAssetId = fee.feeAssetId
         let feeAssetData = try feeAssetProvider.getAssetData(walletId: request.wallet.id, assetId: feeAssetId)
@@ -65,6 +70,10 @@ public struct ConfirmTransferInputProvider: Sendable {
             input: input,
             feeRates: transactionData.rates,
         )
+    }
+
+    func feeAssets(walletId: WalletId, chain: Chain) async throws -> [AssetData] {
+        try await feeAssetProvider.feeAssets(walletId: walletId, chain: chain)
     }
 
     private func preloadFailureError(metadata: TransferDataMetadata) -> TransferAmountCalculatorError? {

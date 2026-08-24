@@ -57,7 +57,7 @@ interface StakeDao {
     @Query(
         "SELECT base.* FROM stake_delegations as base " +
             "INNER JOIN stake_validators as validator ON base.validatorId=validator.id " +
-            "WHERE base.delegationId=:delegationId AND validator.validatorId=:validatorId LIMIT 1"
+            "WHERE base.walletId=:walletId AND base.delegationId=:delegationId AND validator.validatorId=:validatorId LIMIT 1"
     )
-    fun getDelegation(validatorId: String, delegationId: String): Flow<DbDelegationData?>
+    fun getDelegation(walletId: WalletId, validatorId: String, delegationId: String): Flow<DbDelegationData?>
 }

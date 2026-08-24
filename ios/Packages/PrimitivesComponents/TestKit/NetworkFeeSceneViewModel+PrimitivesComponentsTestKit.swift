@@ -13,7 +13,9 @@ public extension NetworkFeeSceneViewModel {
         rates: [FeeRate] = [],
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
+        feeAssets: [AssetData] = [],
         onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
+        onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
     ) -> NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
             feeAsset: feeAsset,
@@ -22,7 +24,9 @@ public extension NetworkFeeSceneViewModel {
             rates: rates,
             feeAssetPrice: feeAssetPrice,
             feeAmount: feeAmount,
+            feeAssets: feeAssets,
             onSelect: onSelect,
+            onSelectFeeAsset: onSelectFeeAsset,
         )
     }
 }

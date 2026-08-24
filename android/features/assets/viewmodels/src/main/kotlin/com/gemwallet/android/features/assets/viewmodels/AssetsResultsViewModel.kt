@@ -34,7 +34,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -103,7 +102,7 @@ class AssetsResultsViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-        WalletSearchTag.All, is WalletSearchTag.Filter ->
+        WalletSearchTag.All ->
             MutableStateFlow(emptyList<PerpetualDataAggregate>())
     }
 
@@ -119,15 +118,11 @@ class AssetsResultsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Loading)
 
     init {
-        when (scope) {
-            is WalletSearchTag.Filter -> selectedTag.value = scope.tag
-            WalletSearchTag.All, is WalletSearchTag.List -> Unit
-        }
         queryState.setTextAndPlaceCursorAtEnd(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty())
         fetch(pull = false)
     }
 
-    override fun assetsSearchLimit(query: String, tag: AssetTag?): Int = WalletSearchConfig.resultsLimit
+    override fun assetsSearchLimit(query: String): Int = WalletSearchConfig.resultsLimit
 
     fun refresh() = fetch(pull = true)
 
@@ -164,6 +159,6 @@ private fun resolveSearch(
 ): SelectSearch {
     return when (val scope = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
         is WalletSearchTag.List -> ListSelectSearch(searchListAssets, scope.id)
-        WalletSearchTag.All, is WalletSearchTag.Filter -> BaseSelectSearch(searchSelectAssets)
+        WalletSearchTag.All -> BaseSelectSearch(searchSelectAssets)
     }
 }

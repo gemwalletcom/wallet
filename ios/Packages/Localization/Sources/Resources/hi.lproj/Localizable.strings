@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "कस्टम टोकन जोड़ें";
 "assets.select_asset" = "संपत्ति का चयन करें";
 "assets.popular" = "लोकप्रिय एसेट";
-"assets.tags.trending" = "रुझान";
-"assets.tags.gainers" = "लाभ प्राप्त करने वाले";
-"assets.tags.losers" = "हारने वाले";
 "assets.tags.new" = "नया";
-"assets.tags.stablecoins" = "स्थिर सिक्के";
 "assets.state.empty.search_description" = "आप इसे मैन्युअल रूप से जोड़ने का प्रयास कर सकते हैं";
 "assets.title" = "संपत्ति";
 "sign_message.message" = "संदेश";

@@ -29,7 +29,7 @@ impl DaemonService {
             },
             DaemonService::Parser(chain) => match chain {
                 Some(chain) => format!("parser {}", chain.as_ref()),
-                None => "parser".to_owned(),
+                None => "parser all".to_owned(),
             },
             DaemonService::Consumer(opts) => format!("{} {}", self.as_ref(), opts.name()),
         }
@@ -75,5 +75,11 @@ mod tests {
         assert_eq!(service.name(), "consumer indexer assets fetch_prices");
         assert!("consumer indexer nfts fetch_prices".parse::<DaemonService>().is_err());
         assert!("consumer indexer".parse::<DaemonService>().is_err());
+    }
+
+    #[test]
+    fn test_parser_service_name() {
+        assert_eq!("parser".parse::<DaemonService>().unwrap().name(), "parser all");
+        assert_eq!("parser ethereum".parse::<DaemonService>().unwrap().name(), "parser ethereum");
     }
 }

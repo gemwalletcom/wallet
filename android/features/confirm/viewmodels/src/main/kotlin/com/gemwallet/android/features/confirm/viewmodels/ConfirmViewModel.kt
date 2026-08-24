@@ -7,6 +7,7 @@ import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
+import com.gemwallet.android.application.confirm.coordinators.GetFeeAssets
 import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.cases.addresses.GetAddressNames
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
@@ -21,6 +22,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.FeeSelection
+import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModelFactory
@@ -76,6 +78,7 @@ class ConfirmViewModel @Inject constructor(
     private val signerPreload: SignerPreloaderProxy,
     private val transactionBalanceService: TransactionBalanceService,
     private val calculateTransferAmount: CalculateTransferAmount,
+    private val getFeeAssets: GetFeeAssets,
     private val confirmTransaction: ConfirmTransaction,
     private val buildConfirmProperties: BuildConfirmProperties,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
@@ -87,6 +90,7 @@ class ConfirmViewModel @Inject constructor(
     private val restart = MutableStateFlow(false)
     val state = MutableStateFlow<ConfirmState>(ConfirmState.Prepare)
     val feeSelection = MutableStateFlow<FeeSelection>(FeeSelection.Preset(FeePriority.Normal))
+    private val feeAssetSelection = MutableStateFlow<FeeAssetSelection>(FeeAssetSelection.Automatic)
     private val simulationResult = MutableStateFlow<SimulationResult?>(null)
 
     private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
@@ -181,11 +185,19 @@ class ConfirmViewModel @Inject constructor(
     .flatMapLatest { assetsRepository.getAssetsInfo(it) }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val feeAssets = request
+        .filterNotNull()
+        .map { it.assetId.chain }
+        .distinctUntilChanged()
+        .flatMapLatest(getFeeAssets::invoke)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     private val preloadData = combine(
         session,
         request.filterNotNull(),
         feeSelection,
-    ) { session, request, feeSelection ->
+        feeAssetSelection,
+    ) { session, request, feeSelection, feeAssetSelection ->
         val owner = session?.wallet?.getAccount(request.assetId.chain)
         if (owner == null) {
             state.update { ConfirmState.FatalError("Session not found") }
@@ -193,7 +205,11 @@ class ConfirmViewModel @Inject constructor(
         }
 
         val preload = try {
-            signerPreload.preload(params = request, selection = feeSelection)
+            signerPreload.preload(
+                params = request,
+                selection = feeSelection,
+                feeAssetSelection = feeAssetSelection,
+            )
         } catch (err: Throwable) {
             state.update {
                 ConfirmState.Error(err.toPreloadConfirmError())
@@ -330,6 +346,14 @@ class ConfirmViewModel @Inject constructor(
         if (selection == feeSelection.value) return
         state.update { ConfirmState.Prepare }
         feeSelection.update { selection }
+    }
+
+    fun changeFeeAsset(assetId: AssetId) {
+        if (feeAssetInfo.value?.asset?.id == assetId) return
+        val selection = FeeAssetSelection.Selected(assetId)
+        if (selection == feeAssetSelection.value) return
+        state.update { ConfirmState.Prepare }
+        feeAssetSelection.update { selection }
     }
 
     fun send(finishAction: FinishConfirmAction) = viewModelScope.launch(Dispatchers.IO) {

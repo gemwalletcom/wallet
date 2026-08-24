@@ -14,6 +14,7 @@ public extension GemTransferDataExtra {
             data: data,
             outputType: outputType.map(),
             outputAction: outputAction.map(),
+            transactionType: transactionType.map(),
         )
     }
 }
@@ -27,6 +28,7 @@ public extension TransferDataExtra {
             data: data,
             outputType: outputType.map(),
             outputAction: outputAction.map(),
+            transactionType: transactionType.map(),
         )
     }
 }

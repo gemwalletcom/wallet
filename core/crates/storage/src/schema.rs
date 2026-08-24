@@ -897,7 +897,7 @@ diesel::table! {
         from_address -> Nullable<Varchar>,
         #[max_length = 256]
         to_address -> Nullable<Varchar>,
-        #[max_length = 256]
+        #[max_length = 1024]
         memo -> Nullable<Varchar>,
         state -> TransactionState,
         kind -> TransactionType,

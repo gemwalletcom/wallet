@@ -1,0 +1,22 @@
+[package]
+name = "egress"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+config = { workspace = true }
+serde = { workspace = true }
+tokio = { workspace = true, features = ["time"] }
+prometheus-client = { workspace = true }
+rand = { workspace = true }
+reqwest = { workspace = true }
+rocket = { workspace = true }
+url = { workspace = true }
+gem_tracing = { path = "../../crates/tracing" }
+gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
+gem_crypto = { path = "../../crates/gem_crypto" }
+metrics = { path = "../../crates/metrics" }
+serde_serializers = { path = "../../crates/serde_serializers" }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

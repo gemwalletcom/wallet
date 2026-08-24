@@ -7,6 +7,7 @@ import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.domains.confirm.ConfirmError
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.RecentType
@@ -23,12 +24,16 @@ import com.wallet.core.primitives.TransactionPaymentMetadata
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
+import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.swap.ApprovalData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemSignerError
+import uniffi.gemstone.GemSignedTransaction
 import uniffi.gemstone.GemstoneException
+import java.math.BigInteger
 
 class ConfirmTransactionImpl(
     private val passwordStore: PasswordStore,
@@ -37,7 +42,6 @@ class ConfirmTransactionImpl(
     private val createTransactionsCase: CreateTransaction,
     private val recentAssetsService: RecentAssetsService,
 ) : ConfirmTransaction {
-
     override suspend fun invoke(
         signerParams: SignerParams,
         session: Session,
@@ -47,25 +51,42 @@ class ConfirmTransactionImpl(
     ): String {
         val account = assetInfo.owner ?: throw ConfirmError.TransactionIncorrect
 
-        val signs = sign(signerParams, session)
-        if (signs.isEmpty()) {
-            throw IllegalStateException("Not implemented")
-        }
+        val signedTransactions = sign(signerParams, session)
+        if (signedTransactions.isEmpty()) throw ConfirmError.SignFail
 
-        if (signerParams.input is ConfirmParams.TransferParams.Generic) {
-            if (!(signerParams.input as ConfirmParams.TransferParams.Generic).isSendable) {
-                return String(signs.firstOrNull() ?: byteArrayOf())
-            }
+        if ((signerParams.input as? ConfirmParams.TransferParams.Generic)?.isSendable == false) {
+            return signedTransactions.first().data
         }
 
         var lastHash = ""
-        for ((index, sign) in signs.withIndex()) {
-            val transactionHash = broadcastService.send(account, sign, signerParams.input.getTransactionType())
-            if (index < signs.lastIndex) {
+        for ((index, signedTransaction) in signedTransactions.withIndex()) {
+            val isFinalTransaction = index == signedTransactions.lastIndex
+            val transactionType = signedTransaction.transactionType.toPrimitives()
+            val approval = signerParams.input.approvalData(transactionType)
+            val approvalAmount = approval?.let {
+                it.value.toBigIntegerOrNull() ?: throw ConfirmError.TransactionIncorrect
+            }
+            val transactionHash = broadcastService.send(
+                account = account,
+                signedMessage = signedTransaction.data.toByteArray(),
+                type = transactionType,
+            )
+            addTransaction(
+                transactionHash = transactionHash,
+                signerParams = signerParams,
+                assetInfo = assetInfo,
+                account = account,
+                session = session,
+                transactionAssetId = transactionAssetId,
+                transactionType = transactionType,
+                approval = approval,
+                approvalAmount = approvalAmount,
+                isFinalTransaction = isFinalTransaction,
+            )
+            if (!isFinalTransaction) {
                 delay(500)
             } else {
                 lastHash = transactionHash
-                addTransaction(transactionHash, signerParams, assetInfo, account, session, transactionAssetId)
                 scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
             }
         }
@@ -76,7 +97,7 @@ class ConfirmTransactionImpl(
     private suspend fun sign(
         signerParams: SignerParams,
         session: Session,
-    ): List<ByteArray> {
+    ): List<GemSignedTransaction> {
         return try {
             signTransactionOperator(
                 session.wallet,
@@ -97,21 +118,43 @@ class ConfirmTransactionImpl(
         account: Account,
         session: Session,
         transactionAssetId: AssetId?,
+        transactionType: TransactionType,
+        approval: ApprovalData?,
+        approvalAmount: BigInteger?,
+        isFinalTransaction: Boolean,
     ) {
-        val destinationAddress = signerParams.input.destination()?.address ?: ""
+        val assetId: AssetId
+        val destinationAddress: String
+        val amount: BigInteger
+        val memo: String?
+        val metadata: String?
+        if (approval != null) {
+            assetId = transactionAssetId ?: AssetId(signerParams.input.asset.id.chain, approval.token)
+            destinationAddress = approval.spender
+            amount = requireNotNull(approvalAmount)
+            memo = null
+            metadata = null
+        } else {
+            if (!isFinalTransaction) return
+            assetId = transactionAssetId ?: assetInfo.id()
+            destinationAddress = signerParams.input.destination()?.address.orEmpty()
+            amount = signerParams.finalAmount
+            memo = signerParams.input.memo().orEmpty()
+            metadata = signerParams.input.toTransactionMetadataJson()
+        }
 
         createTransactionsCase.createTransaction(
             hash = transactionHash,
             walletId = session.wallet.id,
-            assetId = transactionAssetId ?: assetInfo.id(),
+            assetId = assetId,
             owner = account,
             to = destinationAddress,
             state = TransactionState.Pending,
             fee = signerParams.fee(),
-            amount = signerParams.finalAmount,
-            memo = signerParams.input.memo() ?: "",
-            type = signerParams.input.getTransactionType(),
-            metadata = assembleMetadata(signerParams),
+            amount = amount,
+            memo = memo,
+            type = transactionType,
+            metadata = metadata,
             direction = if (destinationAddress == account.address) {
                 TransactionDirection.SelfTransfer
             } else {
@@ -137,10 +180,6 @@ class ConfirmTransactionImpl(
             recentAssetsService.addRecentActivity(assetInfo.id(), walletId, type, toAssetId)
         } catch (_: Throwable) {}
     }
-
-    private fun assembleMetadata(signerParams: SignerParams) =
-        signerParams.input.toTransactionMetadataJson()
-
 }
 
 internal fun GemSignerError.toConfirmError(chain: Chain): ConfirmError = when (this) {

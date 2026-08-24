@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize, de};
 use self::mapper::map_transaction;
 
 const NATIVE_ASSET_SYMBOL: &str = "DOT";
-const MAX_TRANSFERS_LIMIT: usize = 100;
+const MAX_TRANSFERS_LIMIT: usize = 25;
 const POLKADOT_DECIMALS: u32 = 10;
 
 fn deserialize_dot_amount<'de, D>(deserializer: D) -> Result<BigUint, D::Error>
@@ -106,7 +106,7 @@ mod tests {
             Ok(include_str!("../../../testdata/subscan_asset_hub_transfers.json").as_bytes().to_vec())
         });
 
-        let transactions = PolkadotIndexer::new(client).get_transactions_by_address("address", 3, None).await.unwrap();
+        let transactions = PolkadotIndexer::new(client).get_transactions_by_address("address", 100, None).await.unwrap();
 
         assert_eq!(
             transactions.iter().map(|transaction| transaction.hash.as_str()).collect::<Vec<_>>(),

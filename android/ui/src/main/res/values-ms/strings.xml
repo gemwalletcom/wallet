@@ -350,11 +350,7 @@
   <string name="assets_add_custom_token">Tambah Token Tersuai</string>
   <string name="assets_select_asset">Pilih Aset</string>
   <string name="assets_popular">Aset popular</string>
-  <string name="assets_tags_trending">Trending</string>
-  <string name="assets_tags_gainers">Beroleh keuntungan</string>
-  <string name="assets_tags_losers">Penurun</string>
   <string name="assets_tags_new">Baru</string>
-  <string name="assets_tags_stablecoins">Stablecoin</string>
   <string name="assets_state_empty_search_description">Anda boleh cuba menambahnya secara manual</string>
   <string name="assets_title">Aset</string>
   <string name="sign_message_message">Mesej</string>

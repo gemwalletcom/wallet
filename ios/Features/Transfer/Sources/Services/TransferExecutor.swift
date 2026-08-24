@@ -3,6 +3,7 @@
 import BalanceService
 import Blockchain
 import Foundation
+import GemstonePrimitives
 import PaymentService
 import Primitives
 import Signer
@@ -17,14 +18,14 @@ public struct TransferExecutor: TransferExecutable {
     private static let ignoredAssetChains: Set<Chain> = [.hyperCore]
     private static let hyperCoreOrderIdPrefix = "order:"
 
-    private let signer: any TransactionSigneable
+    private let signer: any TransactionSigning
     private let chainService: any ChainServiceable
     private let assetsEnabler: any AssetsEnabler
     private let transactionStateScheduler: TransactionStateScheduler
     private let paymentService: any PaymentServiceable
 
     public init(
-        signer: any TransactionSigneable,
+        signer: any TransactionSigning,
         chainService: any ChainServiceable,
         assetsEnabler: any AssetsEnabler,
         transactionStateScheduler: TransactionStateScheduler,
@@ -38,20 +39,24 @@ public struct TransferExecutor: TransferExecutable {
     }
 
     public func execute(input: TransferConfirmationInput) async throws {
-        let signedData = try await sign(input: input)
+        let signedTransactions = try await signer.sign(
+            transfer: input.data,
+            transactionData: input.transactionData,
+            amount: input.amount,
+            wallet: input.wallet,
+        )
 
-        for (index, transactionData) in signedData.enumerated() {
-            debugLog("TransferExecutor data \(transactionData)")
-
+        for (index, signedTransaction) in signedTransactions.enumerated() {
             switch input.data.type.outputAction {
             case .sign:
-                input.delegate?(.success(transactionData))
+                input.delegate?(.success(signedTransaction.data))
             case .send:
                 try await send(
                     input: input,
-                    transactionData: transactionData,
+                    data: signedTransaction.data,
+                    transactionType: signedTransaction.transactionType.map(),
                     transactionIndex: index,
-                    totalTransactions: signedData.count,
+                    totalTransactions: signedTransactions.count,
                 )
             }
         }
@@ -63,11 +68,12 @@ public struct TransferExecutor: TransferExecutable {
 extension TransferExecutor {
     private func send(
         input: TransferConfirmationInput,
-        transactionData: String,
+        data: String,
+        transactionType: TransactionType,
         transactionIndex: Int,
         totalTransactions: Int,
     ) async throws {
-        let hash = try await chainService.broadcast(data: transactionData, options: broadcastOptions(data: input.data))
+        let hash = try await chainService.broadcast(data: data, options: broadcastOptions(data: input.data))
 
         debugLog("TransferExecutor broadcast response hash \(hash)")
 
@@ -80,8 +86,7 @@ extension TransferExecutor {
             transactionData: input.transactionData,
             amount: input.amount,
             hash: hash,
-            transactionIndex: transactionIndex,
-            transactionsCount: totalTransactions,
+            transactionType: transactionType,
             simulation: input.simulation,
         )
         let assetIds = assetIdsToEnable(for: transaction)
@@ -101,8 +106,13 @@ extension TransferExecutor {
             }
         }
 
-        if totalTransactions > 1, transactionIndex < totalTransactions - 1 {
-            try await Task.sleep(for: transactionDelay(for: input.data.chain.type))
+        if transactionIndex < totalTransactions - 1 {
+            switch input.data.chain.type {
+            case .ethereum, .hyperCore:
+                break
+            default:
+                try await Task.sleep(for: .milliseconds(500))
+            }
         }
     }
 
@@ -115,15 +125,6 @@ extension TransferExecutor {
                 debugLog("TransferExecutor payment confirm error: \(error)")
             }
         }
-    }
-
-    private func sign(input: TransferConfirmationInput) async throws -> [String] {
-        try await signer.sign(
-            transfer: input.data,
-            transactionData: input.transactionData,
-            amount: input.amount,
-            wallet: input.wallet,
-        )
     }
 
     private func pendingTransactions(
@@ -172,14 +173,6 @@ extension TransferExecutor {
             case .swap, .generic: BroadcastOptions(skipPreflight: true)
             }
         default: BroadcastOptions(skipPreflight: false)
-        }
-    }
-
-    private func transactionDelay(for type: ChainType) -> Duration {
-        switch type {
-        case .ethereum, .hyperCore: .milliseconds(0)
-        case .tron: .milliseconds(500)
-        default: .milliseconds(500)
         }
     }
 }

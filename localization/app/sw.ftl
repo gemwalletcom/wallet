@@ -410,11 +410,7 @@ assets_no_assets_found = Hakuna mali iliyopatikana
 assets_add_custom_token = Ongeza Tokeni Maalum
 assets_select_asset = Chagua Kipengee
 assets_popular = Rasilimali maarufu
-assets_tags_trending = Zinazovuma
-assets_tags_gainers = Washindi
-assets_tags_losers = Walioshindwa
 assets_tags_new = Mpya
-assets_tags_stablecoins = Stablecoins
 assets_state_empty_search_description = Unaweza kujaribu kuiongeza wewe mwenyewe
 assets_title = Mali
 

@@ -48,7 +48,6 @@ import com.gemwallet.android.ui.components.list_item.ChevronIcon
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -149,7 +148,7 @@ internal fun SupportMessageBubble(
                                     linkColor = linkColor,
                                     metaColor = metaColor,
                                     showTopDivider = hasText,
-                                    onClick = { uriHandler.open(context, it) },
+                                    onClick = uriHandler::openUri,
                                 )
                                 if (!hasText) {
                                     Box(

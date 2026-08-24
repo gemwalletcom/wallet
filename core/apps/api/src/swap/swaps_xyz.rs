@@ -1,18 +1,21 @@
 use std::{error::Error, slice};
 
 use cacher::{CacheKey, CacherClient};
+use gem_client::build_request_url;
 use primitives::SwapProvider;
-use swapper::swaps_xyz::{ActionRequest, ActionResponse, base_url};
+use swapper::swaps_xyz::{ActionRequest, ActionResponse};
 
 pub struct SwapsXyzProxyClient {
     client: reqwest::Client,
+    url: String,
     cacher: CacherClient,
 }
 
 impl SwapsXyzProxyClient {
-    pub fn new(cacher: CacherClient) -> Self {
+    pub fn new(url: String, cacher: CacherClient) -> Self {
         Self {
             client: gem_client::reqwest_client(),
+            url,
             cacher,
         }
     }
@@ -20,7 +23,7 @@ impl SwapsXyzProxyClient {
     pub async fn action(&self, request: &ActionRequest) -> Result<ActionResponse, Box<dyn Error + Send + Sync>> {
         let response = self
             .client
-            .get(format!("{}/getAction", base_url()))
+            .get(build_request_url(&self.url, "/getAction"))
             .query(request)
             .send()
             .await?

@@ -6,6 +6,7 @@ use crate::{
 };
 use ::coinmarketcap::CoinMarketCapClient;
 use ::jupiter::JupiterClient;
+use gem_client::RemoteProviderConfig;
 use gem_tracing::{error_with_fields, info_with_fields, warn_with_fields};
 use primitives::ImageType;
 use reqwest::{
@@ -40,8 +41,8 @@ const USER_AGENT_VALUE: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleW
 pub struct DownloaderConfig {
     pub args: Args,
     pub img_config: ImgDownloaderConfig,
-    pub coingecko_api_key: String,
-    pub coinmarketcap_api_key: String,
+    pub coingecko: RemoteProviderConfig,
+    pub coinmarketcap: RemoteProviderConfig,
     pub jupiter_api_key: String,
 }
 
@@ -55,8 +56,8 @@ impl Downloader {
         let DownloaderConfig {
             args,
             img_config,
-            coingecko_api_key,
-            coinmarketcap_api_key,
+            coingecko,
+            coinmarketcap,
             jupiter_api_key,
         } = config;
         let folder = args.folder.clone().unwrap_or(img_config.folder);
@@ -64,9 +65,9 @@ impl Downloader {
         Ok(Self {
             args,
             folder,
-            coingecko_provider: CoingeckoProvider::new(coingecko_api_key, CoingeckoProviderConfig::new(img_config.coingecko)),
+            coingecko_provider: CoingeckoProvider::new(coingecko, CoingeckoProviderConfig::new(img_config.coingecko)),
             coinmarketcap_provider: CoinMarketCapProvider::new(
-                CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), &coinmarketcap_api_key),
+                CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), coinmarketcap),
                 CoinMarketCapProviderConfig::new(img_config.coinmarketcap),
             ),
             jupiter_provider: JupiterProvider::new(

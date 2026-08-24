@@ -1,5 +1,6 @@
 use super::{config::CoingeckoProviderConfig, mapper::is_native_token, model::AssetImage};
 use coingecko::{Coin, CoinGeckoClient, CoinMarket, MAX_MARKETS_PER_PAGE, get_chain_for_coingecko_platform_id, model::SearchTrending};
+use gem_client::RemoteProviderConfig;
 use std::{collections::HashMap, error::Error};
 
 pub struct CoingeckoProvider {
@@ -8,9 +9,9 @@ pub struct CoingeckoProvider {
 }
 
 impl CoingeckoProvider {
-    pub fn new(api_key: String, config: CoingeckoProviderConfig) -> Self {
+    pub fn new(provider: RemoteProviderConfig, config: CoingeckoProviderConfig) -> Self {
         Self {
-            client: CoinGeckoClient::new(api_key.as_str()),
+            client: CoinGeckoClient::new(provider),
             config,
         }
     }

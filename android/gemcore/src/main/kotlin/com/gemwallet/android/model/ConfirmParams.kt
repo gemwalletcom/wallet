@@ -2,9 +2,11 @@ package com.gemwallet.android.model
 
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.toGem
+import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.toGem
 import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.domains.stake.toGem
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.math.fromHex
@@ -188,6 +190,7 @@ sealed class ConfirmParams() {
             val icon: String,
             val gasLimit: String?,
             val decodedTransactionType: TransactionType = TransactionType.SmartContractCall,
+            val approval: ApprovalData? = null,
             val payment: PaymentData? = null,
         ) : TransferParams() {
             override fun memo(): String? = if (payment == null) memo else null
@@ -221,6 +224,7 @@ sealed class ConfirmParams() {
                         InputType.Signature -> TransferDataOutputAction.SIGN
                         InputType.EncodeTransaction -> TransferDataOutputAction.SEND
                     },
+                    transactionType = decodedTransactionType.toGem(),
                     to = destination().address
                 ),
             )
@@ -240,6 +244,7 @@ sealed class ConfirmParams() {
                 result = 31 * result + icon.hashCode()
                 result = 31 * result + (gasLimit?.hashCode() ?: 0)
                 result = 31 * result + decodedTransactionType.hashCode()
+                result = 31 * result + (approval?.hashCode() ?: 0)
                 result = 31 * result + (payment?.hashCode() ?: 0)
                 return result
             }
@@ -320,15 +325,15 @@ sealed class ConfirmParams() {
         override val shouldIgnoreValueCheck: Boolean
             get() = false
 
-        override fun toDto(): GemTransactionInputType = TokenApprove(
-            asset.toGem(),
-            GemApprovalData(
-                assetId.tokenId!!,
+        val approval: ApprovalData
+            get() = ApprovalData(
+                token = requireNotNull(asset.id.tokenId),
                 spender = contract,
                 value = amount.toString(),
                 isUnlimited = true,
             )
-        )
+
+        override fun toDto(): GemTransactionInputType = TokenApprove(asset.toGem(), approval.toGem())
 
         override val amount: BigInteger
             get() = BigInteger.ZERO
@@ -634,6 +639,17 @@ sealed class ConfirmParams() {
         )
     }
 
+    fun approvalData(transactionType: TransactionType): ApprovalData? {
+        if (transactionType != TransactionType.TokenApproval) return null
+
+        return when (this) {
+            is SwapParams -> approval ?: throw ConfirmError.TransactionIncorrect
+            is TokenApprovalParams -> approval
+            is TransferParams.Generic -> approval
+            else -> throw ConfirmError.TransactionIncorrect
+        }
+    }
+
     fun pack(): String? = packRoutePayload()
 
     fun getTransactionType() : TransactionType {
@@ -685,5 +701,14 @@ fun GemApprovalData.toModel(): ApprovalData {
         spender = this.spender,
         value = this.value,
         isUnlimited = this.isUnlimited,
+    )
+}
+
+fun ApprovalData.toGem(): GemApprovalData {
+    return GemApprovalData(
+        token = token,
+        spender = spender,
+        value = value,
+        isUnlimited = isUnlimited,
     )
 }

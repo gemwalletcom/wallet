@@ -7,8 +7,6 @@ object WalletSearchConfig {
 
     val assetsInitialLimit: Int get() = config.assetsInitialLimit.toInt()
 
-    val assetsTagLimit: Int get() = config.assetsTagLimit.toInt()
-
     val assetsSearchLimit: Int get() = config.assetsSearchLimit.toInt()
 
     val perpetualsPreviewLimit: Int get() = config.perpetualsPreviewLimit.toInt()

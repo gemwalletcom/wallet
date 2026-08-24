@@ -350,11 +350,7 @@
   <string name="assets_add_custom_token">Ajouter un jeton personnalisé</string>
   <string name="assets_select_asset">Sélectionner un actif</string>
   <string name="assets_popular">Actifs populaires</string>
-  <string name="assets_tags_trending">Tendance</string>
-  <string name="assets_tags_gainers">Gagnants</string>
-  <string name="assets_tags_losers">Perdants</string>
   <string name="assets_tags_new">Nouveau</string>
-  <string name="assets_tags_stablecoins">Pièces stables</string>
   <string name="assets_state_empty_search_description">Vous pouvez essayer de l\'ajouter manuellement</string>
   <string name="assets_title">Actifs</string>
   <string name="sign_message_message">Message</string>

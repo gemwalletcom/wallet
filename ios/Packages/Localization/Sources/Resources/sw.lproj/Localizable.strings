@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "Ongeza Tokeni Maalum";
 "assets.select_asset" = "Chagua Kipengee";
 "assets.popular" = "Rasilimali maarufu";
-"assets.tags.trending" = "Zinazovuma";
-"assets.tags.gainers" = "Washindi";
-"assets.tags.losers" = "Walioshindwa";
 "assets.tags.new" = "Mpya";
-"assets.tags.stablecoins" = "Stablecoins";
 "assets.state.empty.search_description" = "Unaweza kujaribu kuiongeza wewe mwenyewe";
 "assets.title" = "Mali";
 "sign_message.message" = "Ujumbe";

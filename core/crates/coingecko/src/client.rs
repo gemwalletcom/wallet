@@ -2,13 +2,11 @@ use crate::model::{
     Coin, CoinCategory, CoinGeckoResponse, CoinIds, CoinInfo, CoinMarket, CoinMarketsQuery, CoinQuery, CointListQuery, Data, ExchangeRates, Global, MarketChart, SearchTrending,
     TopGainersLosers,
 };
-use gem_client::{Client, ClientExt, ReqwestClient, build_path_with_query, retry};
+use gem_client::{Client, ClientExt, RemoteProviderConfig, ReqwestClient, build_path_with_query, retry};
 use primitives::{FiatRate, currency::Currency};
 use reqwest::header::{HeaderMap, HeaderValue};
 use std::error::Error;
 
-pub const COINGECKO_API_HOST: &str = "api.coingecko.com";
-pub const COINGECKO_API_PRO_HOST: &str = "pro-api.coingecko.com";
 pub const MAX_MARKETS_PER_PAGE: usize = 250;
 const COINGECKO_API_HEADER_KEY: &str = "x-cg-pro-api-key";
 const USER_AGENT_VALUE: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
@@ -19,22 +17,16 @@ pub struct CoinGeckoClient<C: Client> {
 }
 
 impl CoinGeckoClient<ReqwestClient> {
-    pub fn new(api_key: &str) -> Self {
-        let url = Self::url_for_api_key(api_key.to_string());
+    pub fn new(config: RemoteProviderConfig) -> Self {
         let mut headers = HeaderMap::new();
         headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT_VALUE));
-        if !api_key.is_empty() {
-            headers.insert(COINGECKO_API_HEADER_KEY, HeaderValue::from_str(api_key).unwrap());
+        if !config.key.is_empty() {
+            headers.insert(COINGECKO_API_HEADER_KEY, HeaderValue::from_str(&config.key).unwrap());
         }
         let reqwest_client = gem_client::builder().default_headers(headers).build().unwrap();
 
-        let client = ReqwestClient::new(url, reqwest_client);
+        let client = ReqwestClient::new(config.url, reqwest_client).with_request_timeout(config.timeout);
         Self { client }
-    }
-
-    fn url_for_api_key(api_key: String) -> String {
-        let host = if !api_key.is_empty() { COINGECKO_API_PRO_HOST } else { COINGECKO_API_HOST };
-        format!("https://{}", host)
     }
 }
 

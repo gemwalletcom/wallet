@@ -60,7 +60,6 @@ fun SettingsScene(
     Scene(
         title = stringResource(id = R.string.settings_title),
         mainActionPadding = PaddingValues(0.dp),
-        navigationBarPadding = false,
     ) {
         Column(
             modifier = Modifier

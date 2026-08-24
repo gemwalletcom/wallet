@@ -6,13 +6,14 @@ use gem_ton::rpc::client::TonClient;
 use crate::config::NFTProviderConfig;
 use crate::provider::NFTProvider;
 use crate::providers::ton::provider::TonNftProvider;
-use crate::providers::{MagicEdenEvmClient, MagicEdenSolanaClient, OpenSeaClient};
+use crate::providers::{AlchemyClient, MagicEdenSolanaClient, OpenSeaClient};
 
 pub struct NFTProviderFactory;
 
 impl NFTProviderFactory {
     pub fn new_providers(config: NFTProviderConfig) -> Vec<Arc<dyn NFTProvider>> {
         let client = ReqwestClient::new(String::new(), gem_client::reqwest_client());
+        let alchemy_client = config.alchemy.configure_client(client.clone());
         let opensea_client = config
             .opensea
             .configure_client(client.clone())
@@ -25,8 +26,8 @@ impl NFTProviderFactory {
 
         vec![
             Arc::new(OpenSeaClient::new(opensea_client)),
-            Arc::new(MagicEdenSolanaClient::new(magiceden_client.clone())),
-            Arc::new(MagicEdenEvmClient::new(magiceden_client)),
+            Arc::new(MagicEdenSolanaClient::new(magiceden_client)),
+            Arc::new(AlchemyClient::new(alchemy_client)),
             Arc::new(TonNftProvider::new(TonClient::new(ton_client), config.offchain)),
         ]
     }

@@ -32,9 +32,9 @@ class TransactionBalanceService @Inject constructor(
     suspend fun getContext(assetInfo: AssetInfo, params: ConfirmParams): TransactionBalanceContext {
         return when (params) {
             is ConfirmParams.Stake.Unfreeze -> TransactionBalanceContext(resource = params.resource)
-            is ConfirmParams.Stake.RedelegateParams -> delegationContext(params.delegation)
-            is ConfirmParams.Stake.UndelegateParams -> delegationContext(params.delegation)
-            is ConfirmParams.Stake.WithdrawParams -> delegationContext(params.delegation)
+            is ConfirmParams.Stake.RedelegateParams -> delegationContext(assetInfo, params.delegation)
+            is ConfirmParams.Stake.UndelegateParams -> delegationContext(assetInfo, params.delegation)
+            is ConfirmParams.Stake.WithdrawParams -> delegationContext(assetInfo, params.delegation)
             is ConfirmParams.Stake.RewardsParams -> TransactionBalanceContext(
                 rewardsBalance = getRewardsBalance(assetInfo),
             )
@@ -45,11 +45,17 @@ class TransactionBalanceService @Inject constructor(
         }
     }
 
-    private suspend fun delegationContext(delegation: Delegation): TransactionBalanceContext {
-        val currentDelegation = stakeRepository.getDelegation(
-            validatorId = delegation.base.validatorId,
-            delegationId = delegation.base.delegationId,
-        ).firstOrNull() ?: delegation
+    private suspend fun delegationContext(assetInfo: AssetInfo, delegation: Delegation): TransactionBalanceContext {
+        val walletId = assetInfo.walletId
+        val currentDelegation = if (walletId == null) {
+            delegation
+        } else {
+            stakeRepository.getDelegation(
+                walletId = walletId,
+                validatorId = delegation.base.validatorId,
+                delegationId = delegation.base.delegationId,
+            ).firstOrNull() ?: delegation
+        }
         return TransactionBalanceContext(
             delegationBalance = currentDelegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO,
         )

@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "Přidat vlastní token";
 "assets.select_asset" = "Vyberte aktivum";
 "assets.popular" = "Populární aktiva";
-"assets.tags.trending" = "Trendy";
-"assets.tags.gainers" = "Gainery";
-"assets.tags.losers" = "Poražení";
 "assets.tags.new" = "Nový";
-"assets.tags.stablecoins" = "Stablecoiny";
 "assets.state.empty.search_description" = "Můžete to zkusit přidat ručně";
 "assets.title" = "Aktiva";
 "sign_message.message" = "Zpráva";

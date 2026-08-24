@@ -16,14 +16,13 @@ pub struct ResolveDomain {
 
 pub struct UDClient {
     api_url: String,
-    api_key: String,
     client: Client,
 }
 
 impl UDClient {
-    pub fn new(api_url: String, api_key: String) -> Self {
+    pub fn new(api_url: String) -> Self {
         let client = reqwest_client();
-        Self { api_url, api_key, client }
+        Self { api_url, client }
     }
 
     fn map(&self, chain: Chain, records: HashMap<String, String>) -> Option<String> {
@@ -54,7 +53,7 @@ impl NameClient for UDClient {
 
     async fn resolve(&self, query: &NameQuery, chain: Chain) -> Result<String, Box<dyn Error + Send + Sync>> {
         let url = format!("{}/resolve/domains/{}", self.api_url, query.domain);
-        let response = self.client.get(&url).bearer_auth(self.api_key.clone()).send().await?.json::<ResolveDomain>().await?;
+        let response = self.client.get(&url).send().await?.json::<ResolveDomain>().await?;
         let records = response.records;
 
         let address = self.map(chain, records);

@@ -6,13 +6,14 @@ mod provider_config;
 use std::{collections::HashMap, sync::Arc};
 
 use chain_traits::ChainTraits;
+use gem_alchemy::{AlchemyApi, alchemy_url};
 use gem_algorand::rpc::{AlgorandClient, AlgorandIndexer, AlgorandProvider};
 use gem_aptos::rpc::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_client::{ReqwestClient, retry_policy};
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider, alchemy_url};
+use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_near::rpc::{NearClient, NearIndexer, NearProvider};
@@ -76,13 +77,13 @@ impl ProviderFactory {
                         gem_client.clone().with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
                             chain,
                             &config.indexers.alchemy.url,
+                            AlchemyApi::JsonRpc,
                             &config.indexers.alchemy.key,
                         )),
-                        gem_client.clone().with_request_timeout(config.indexers.ankr.timeout).with_base_url(format!(
-                            "{}/{}",
-                            config.indexers.ankr.url.trim_end_matches('/'),
-                            config.indexers.ankr.key
-                        )),
+                        gem_client
+                            .clone()
+                            .with_request_timeout(config.indexers.ankr.timeout)
+                            .with_base_url(format!("{}/{}", config.indexers.ankr.url, config.indexers.ankr.key)),
                         config.indexers.blockscout.configure_client(gem_client),
                         config.indexers.blockscout.key,
                         evm_chain,
@@ -116,16 +117,14 @@ impl ProviderFactory {
                 Box::new(AlgorandIndexer::new(config.indexers.algorand.configure_client(gem_client))),
             )),
             ChainType::Stellar => Box::new(StellarClient::new(gem_client)),
-            ChainType::Near => {
-                let fastnear_client = config.indexers.fastnear.configure_client(gem_client.clone());
-                Box::new(NearProvider::new(
-                    NearClient::new(JsonRpcClient::new(gem_client)),
-                    Box::new(NearIndexer::new(
-                        fastnear_client.clone().with_base_url(config.indexers.fastnear.url.replace("{service}", "transfers")),
-                        fastnear_client.with_base_url(config.indexers.fastnear.url.replace("{service}", "tx")),
-                    )),
-                ))
-            }
+            ChainType::Near => Box::new(NearProvider::new(
+                NearClient::new(JsonRpcClient::new(gem_client.clone())),
+                Box::new(NearIndexer::new(
+                    config.indexers.fastnear.neardata.configure_client(gem_client.clone()),
+                    config.indexers.fastnear.transfers.configure_client(gem_client.clone()),
+                    config.indexers.fastnear.tx.configure_client(gem_client),
+                )),
+            )),
             ChainType::Polkadot => Box::new(PolkadotProvider::new(
                 PolkadotClient::new(gem_client.clone()),
                 Box::new(PolkadotIndexer::new(
@@ -139,9 +138,12 @@ impl ProviderFactory {
             ChainType::Solana => Box::new(SolanaProvider::new(
                 SolanaClient::new(JsonRpcClient::new(gem_client.clone())),
                 Box::new(SolanaIndexer::new(JsonRpcClient::new(
-                    gem_client
-                        .with_request_timeout(config.indexers.alchemy.timeout)
-                        .with_base_url(alchemy_url(chain, &config.indexers.alchemy.url, &config.indexers.alchemy.key)),
+                    gem_client.with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
+                        chain,
+                        &config.indexers.alchemy.url,
+                        AlchemyApi::JsonRpc,
+                        &config.indexers.alchemy.key,
+                    )),
                 ))),
             )),
             ChainType::Ton => Box::new(TonClient::new(gem_client)),

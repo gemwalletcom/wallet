@@ -12,7 +12,7 @@ pub struct GoPlusProvider {
 }
 
 impl GoPlusProvider {
-    pub fn new(client: ReqwestClient, _api_key: &str) -> Self {
+    pub fn new(client: ReqwestClient) -> Self {
         GoPlusProvider { client }
     }
 }
@@ -27,12 +27,13 @@ impl ScanProvider for GoPlusProvider {
         let path = format!("/api/v1/address_security/{}", target.address);
         let query = vec![("chain_id", mapper::chain_to_provider_id(target.chain))];
         let url = build_path_with_query(&path, &query)?;
-        let response = self.client.get::<Response<SecurityAddress>>(&url).await?;
+        let response = self.client.get::<Response<Option<SecurityAddress>>>(&url).await?;
+        let security = response.result;
 
         Ok(ScanResult {
             target: target.clone(),
-            is_malicious: response.result.is_malicious(),
-            reason: None,
+            is_malicious: security.as_ref().is_some_and(SecurityAddress::is_malicious),
+            reason: security.is_none().then(|| "No address data found".to_string()),
             provider: self.name().into(),
         })
     }

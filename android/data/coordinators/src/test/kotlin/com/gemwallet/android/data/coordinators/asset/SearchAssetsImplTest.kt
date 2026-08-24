@@ -4,8 +4,6 @@ import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.testkit.mockAssetBasic
 import com.gemwallet.android.testkit.mockSearchResponse
-import com.wallet.core.primitives.AssetTag
-import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -20,22 +18,6 @@ class SearchAssetsImplTest {
     private val subject = SearchAssetsImpl(
         gemApiClient = gemApiClient,
     )
-
-    @Test
-    fun search_mapsFilterScopeToWireTag() = runTest {
-        val response = mockSearchResponse(assets = listOf(mockAssetBasic()))
-        coEvery {
-            gemApiClient.search(query = "usd", chains = "bitcoin,ethereum", tags = "trending")
-        } returns response
-
-        val result = subject.search(
-            query = "usd",
-            chains = listOf(Chain.Bitcoin, Chain.Ethereum),
-            scope = WalletSearchTag.Filter(AssetTag.Trending),
-        )
-
-        assertEquals(response, result)
-    }
 
     @Test
     fun search_mapsListScopeToWireTag() = runTest {

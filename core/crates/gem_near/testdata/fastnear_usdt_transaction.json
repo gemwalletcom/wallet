@@ -1,0 +1,70 @@
+{
+  "transactions": [
+    {
+      "execution_outcome": {
+        "block_height": 211048907,
+        "block_timestamp": 1786557652797431689,
+        "outcome": {
+          "logs": [],
+          "status": {
+            "SuccessReceiptId": "9E1WgnwhHJeHJMUmGYmLfpqZTi8MDpAiAs3Kygg9bsZC"
+          },
+          "tokens_burnt": "51921748931000000000"
+        }
+      },
+      "receipts": [
+        {
+          "execution_outcome": {
+            "block_height": 211048908,
+            "block_timestamp": 1786557653416767002,
+            "outcome": {
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3\",\"new_owner_id\":\"bb90f7cd3f611466d4e8aaee55541d5da6881e01a4155bca49041c1d692b4ff8\",\"amount\":\"99500026\"}]}"
+              ],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "359332095460900000000"
+            }
+          },
+          "receipt": {
+            "receiver_id": "usdt.tether-token.near"
+          }
+        },
+        {
+          "execution_outcome": {
+            "block_height": 211048909,
+            "block_timestamp": 1786557654004586103,
+            "outcome": {
+              "logs": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            }
+          },
+          "receipt": {
+            "receiver_id": "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3"
+          }
+        }
+      ],
+      "transaction": {
+        "actions": [
+          {
+            "FunctionCall": {
+              "deposit": "1250000000000000000000"
+            }
+          },
+          {
+            "FunctionCall": {
+              "deposit": "1"
+            }
+          }
+        ],
+        "hash": "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E",
+        "receiver_id": "usdt.tether-token.near",
+        "signer_id": "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3"
+      }
+    }
+  ]
+}

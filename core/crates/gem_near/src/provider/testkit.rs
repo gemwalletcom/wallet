@@ -16,13 +16,13 @@ pub const TEST_HISTORY_ADDRESS: &str = "root.near";
 pub fn create_near_test_client() -> NearProvider<ReqwestClient> {
     let settings = get_test_settings();
     let url = settings.chains.near.url;
-    let fastnear = settings.indexer.fastnear.remote_provider_config();
-    let fastnear_client = fastnear.configure_client(ReqwestClient::new(String::new(), gem_client::reqwest_client()));
+    let client = ReqwestClient::new(String::new(), gem_client::reqwest_client());
     NearProvider::new(
         NearClient::new(JsonRpcClient::new_reqwest(url)),
         Box::new(NearIndexer::new(
-            fastnear_client.clone().with_base_url(fastnear.url.replace("{service}", "transfers")),
-            fastnear_client.with_base_url(fastnear.url.replace("{service}", "tx")),
+            settings.indexer.fastnear.neardata.remote_provider_config().configure_client(client.clone()),
+            settings.indexer.fastnear.transfers.remote_provider_config().configure_client(client.clone()),
+            settings.indexer.fastnear.tx.remote_provider_config().configure_client(client),
         )),
     )
 }

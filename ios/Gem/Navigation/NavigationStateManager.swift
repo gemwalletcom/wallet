@@ -1,8 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Primitives
 import SwiftUI
+
+enum AssetNavigationPolicy {
+    static func canOpen(_ assetId: AssetId) -> Bool {
+        switch assetId.type {
+        case .native: assetId.chain.hasNativeAsset
+        case .token: true
+        }
+    }
+}
 
 @Observable
 final class NavigationStateManager: Sendable {
@@ -60,6 +70,7 @@ extension NavigationStateManager {
     }
 
     func openAsset(_ asset: Asset) {
+        guard AssetNavigationPolicy.canOpen(asset.id) else { return }
         if asset.type == .perpetual {
             wallet.append(Scenes.Perpetual(asset))
         } else {

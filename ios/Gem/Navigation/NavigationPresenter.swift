@@ -46,7 +46,7 @@ extension NavigationPresenter {
         let account = try wallet.account(for: asset.chain)
         isPresentingAssetInput.wrappedValue = SelectedAssetInput(
             type: type,
-            assetData: .with(asset: account.chain.asset, account: account),
+            assetData: .with(asset: asset, account: account),
         )
     }
 

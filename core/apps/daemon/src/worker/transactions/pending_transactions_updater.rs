@@ -24,7 +24,6 @@ impl PendingTransactionsUpdaterConfig {
     fn error_max_age(&self, chain: Chain) -> Duration {
         self.error_max_age_by_chain[&chain]
     }
-
 }
 
 pub struct PendingTransactionsUpdater {
@@ -36,13 +35,7 @@ pub struct PendingTransactionsUpdater {
 }
 
 impl PendingTransactionsUpdater {
-    pub fn new(
-        providers: Arc<ChainProviders>,
-        cacher: CacherClient,
-        stream_producer: StreamProducer,
-        database: Database,
-        config: PendingTransactionsUpdaterConfig,
-    ) -> Self {
+    pub fn new(providers: Arc<ChainProviders>, cacher: CacherClient, stream_producer: StreamProducer, database: Database, config: PendingTransactionsUpdaterConfig) -> Self {
         Self {
             providers,
             cacher,

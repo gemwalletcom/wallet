@@ -1,8 +1,3 @@
-pub const ALCHEMY_GET_ASSET_TRANSFERS: &str = "alchemy_getAssetTransfers";
-pub const ALCHEMY_GET_TOKEN_BALANCES: &str = "alchemy_getTokenBalances";
-pub const ANKR_GET_ACCOUNT_BALANCE: &str = "ankr_getAccountBalance";
-pub const ANKR_GET_TOKEN_TRANSFERS: &str = "ankr_getTokenTransfers";
-pub const ANKR_GET_TRANSACTIONS_BY_ADDRESS: &str = "ankr_getTransactionsByAddress";
 pub const ETH_BLOCK_NUMBER: &str = "eth_blockNumber";
 pub const ETH_CALL: &str = "eth_call";
 pub const ETH_CHAIN_ID: &str = "eth_chainId";

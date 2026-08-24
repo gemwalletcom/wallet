@@ -113,6 +113,18 @@ extension NavigationHandler {
 
         case let .rewards(code):
             navigationState.settings.append(Scenes.Referral(code: code))
+
+        case let .receive(assetId):
+            try await presentReceive(assetId: assetId)
+
+        case let .buy(assetId, amount):
+            try await presentFiat(type: .buy, assetId: assetId, amount: amount)
+
+        case let .sell(assetId, amount):
+            try await presentFiat(type: .sell, assetId: assetId, amount: amount)
+
+        case let .swap(assetId):
+            try await presentSwap(from: assetId, to: .none)
         }
 
         selectTab(for: deeplink.selectTab)
@@ -186,7 +198,7 @@ extension NavigationHandler {
         case let .priceAlert(assetId):
             try await navigateToAsset(assetId)
         case let .buyAsset(assetId, amount):
-            try await presentBuy(assetId: assetId, amount: amount)
+            try await presentFiat(type: .buy, assetId: assetId, amount: amount)
         case let .swapAsset(fromId, toId):
             try await presentSwap(from: fromId, to: toId)
         case .support:
@@ -259,7 +271,10 @@ extension NavigationHandler {
     }
 
     private func preparedAssetForNavigation(assetId: AssetId, wallet: Wallet?) async throws -> Asset? {
-        guard let wallet, wallet.accounts.contains(where: { $0.chain == assetId.chain }) else {
+        guard AssetNavigationPolicy.canOpen(assetId),
+              let wallet,
+              wallet.accounts.contains(where: { $0.chain == assetId.chain })
+        else {
             return nil
         }
         let asset = try await assetsService.getOrFetchAsset(for: assetId)
@@ -285,9 +300,18 @@ extension NavigationHandler {
         try await presenter.presentSwap(from: fromId, to: toId, wallet: wallet, assetsService: assetsService)
     }
 
-    private func presentBuy(assetId: AssetId, amount: Int?) async throws {
+    private func presentFiat(type: FiatQuoteType, assetId: AssetId, amount: Int?) async throws {
         let asset = try await assetsService.getOrFetchAsset(for: assetId)
-        try presentAssetInput(type: .buy(asset, amount: amount), for: asset)
+        let selectedType: SelectedAssetType = switch type {
+        case .buy: .buy(asset, amount: amount)
+        case .sell: .sell(asset, amount: amount)
+        }
+        try presentAssetInput(type: selectedType, for: asset)
+    }
+
+    private func presentReceive(assetId: AssetId) async throws {
+        let asset = try await assetsService.getOrFetchAsset(for: assetId)
+        try presentAssetInput(type: .receive(.asset), for: asset)
     }
 
     private func presentAssetInput(type: SelectedAssetType, for asset: Asset) throws {
@@ -308,6 +332,7 @@ private extension DeepLink {
         switch self {
         case .asset, .perpetuals: .wallet
         case .rewards: .settings
+        case .receive, .buy, .sell, .swap: nil
         }
     }
 }

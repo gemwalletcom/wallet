@@ -7,7 +7,7 @@ use primitives::PriceProvider;
 use crate::{CoinGeckoPricesProvider, DefiLlamaProvider, JupiterProvider, PriceAssetsProvider, PythProvider, TonApiProvider};
 
 pub struct PriceProviderConfig {
-    pub coingecko_api_key: String,
+    pub coingecko: RemoteProviderConfig,
     pub pyth: RemoteProviderConfig,
     pub jupiter: RemoteProviderConfig,
     pub defillama: RemoteProviderConfig,
@@ -23,7 +23,7 @@ pub fn build_price_providers(config: &PriceProviderConfig, providers: impl IntoI
         .into_iter()
         .map(|provider| {
             let price_provider: Arc<dyn PriceAssetsProvider> = match provider {
-                PriceProvider::Coingecko => Arc::new(CoinGeckoPricesProvider::new(&config.coingecko_api_key)),
+                PriceProvider::Coingecko => Arc::new(CoinGeckoPricesProvider::new(config.coingecko.clone())),
                 PriceProvider::Pyth => Arc::new(PythProvider::new(config.pyth.configure_client(client.clone()))),
                 PriceProvider::Jupiter => Arc::new(JupiterProvider::new(config.jupiter.configure_client(client.clone()))),
                 PriceProvider::DefiLlama => Arc::new(DefiLlamaProvider::new(config.defillama.configure_client(client.clone()))),

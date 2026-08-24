@@ -5,10 +5,10 @@
   "sourceTxHash": "0xd854dc62d4602bc82e360e8825fd1f8f97635974d27278252b418a05a6a4b83d",
   "orderId": "SWIFT_V2_0xb7b477ca7152e86ae6efd45e1530e0c7e629a0a707e6a63310a5c194b832c15c",
   "sourceTxBlockNo": 83787645,
-  "status": "ORDER_SETTLED",
+  "status": "ORDER_UNLOCKED",
   "transferSequence": null,
   "swapSequence": null,
-  "redeemSequence": null,
+  "redeemSequence": "26",
   "refundSequence": null,
   "fulfillSequence": null,
   "deadline": "2026-03-05T07:42:14.000Z",
@@ -20,7 +20,7 @@
   "fromTokenChain": "5",
   "fromTokenSymbol": "POL",
   "fromAmount": "212",
-  "fromAmount64": "21782666",
+  "fromAmount64": "212000000000000000000",
   "toTokenAddress": "0x0000000000000000000000000000000000000000",
   "toTokenChain": "4",
   "toTokenSymbol": "BNB",
@@ -45,15 +45,15 @@
   "redeemRelayerFee": "0.016195",
   "refundRelayerFee": "0.002451",
   "submissionRelayerFee": null,
-  "statusUpdatedAt": "2026-03-05T07:22:35.357Z",
+  "statusUpdatedAt": "2026-03-08T06:40:35.866Z",
   "syncRequestedAt": null,
   "bridgeFee": "0",
-  "redeemTxHash": null,
+  "redeemTxHash": "0x8fc15fbebe0893ebd37d8cafe3e21ab1f6e5e3c57d0b53cf1ec9c7f0c0614e1f",
   "refundTxHash": null,
   "fulfillTxHash": "0x51df554e8abf0d366dbb321fd9834dcd723cc21aa2d701a656d66342b80969fc",
   "createTxHash": "0xd854dc62d4602bc82e360e8825fd1f8f97635974d27278252b418a05a6a4b83d",
   "unlockTxHash": null,
-  "postedBatchUnlockIndex": null,
+  "postedBatchUnlockIndex": 0,
   "auctionAddress": "9bh7SPjkNPgmq7HHWQxgCFJEnMPvAPdLcBEQL1FSG1YR",
   "unwrapRedeem": null,
   "unwrapRefund": null,
@@ -90,6 +90,7 @@
   "gasDrop64": "0",
   "payloadId": 1,
   "orderHash": "0xb7b477ca7152e86ae6efd45e1530e0c7e629a0a707e6a63310a5c194b832c15c",
+  "linkedSwiftOrderHash": null,
   "randomKey": "0x67e2fa3ac0a06325ffd7966bea87043e4442eb6527c3f9bb060bb7260622acb0",
   "auctionStateAddr": "45ww3z7Kxcnwp43JfPsFNzrZ2J3qpnCAbp1njckG57a3",
   "auctionStateNonce": "254",
@@ -103,24 +104,37 @@
   "fromChainNativeTokenPrice": 0.10285495,
   "toChainNativeTokenPrice": 654.35871732,
   "customPayload": null,
+  "customPayloadSettleTxHash": null,
+  "customPayloadSettledAt": null,
   "meta": null,
   "refundAmount": "0.033060513057817862",
   "refundTokenLogoUri": "https://assets.coingecko.com/coins/images/53705/standard/usdt0.jpg?1737086183",
   "refundTokenScannerUrl": "https://polygonscan.com/token/0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
   "refundTokenSymbol": "USD₮0",
   "fromTokenLogoUri": "https://statics.mayan.finance/polygon.png",
-  "toTokenLogoUri": "https://statics.mayan.finance/bsc.png",
+  "toTokenLogoUri": "https://cdn.mayan.finance/BSC_N.png",
   "fromTokenScannerUrl": "https://polygonscan.com/token/0x0000000000000000000000000000000000000000",
   "toTokenScannerUrl": "https://bscscan.com/token/0x0000000000000000000000000000000000000000",
   "txs": [
     {
       "txHash": "0xd854dc62d4602bc82e360e8825fd1f8f97635974d27278252b418a05a6a4b83d",
-      "goals": ["SEND"],
+      "goals": [
+        "SEND"
+      ],
       "scannerUrl": "https://polygonscan.com/tx/0xd854dc62d4602bc82e360e8825fd1f8f97635974d27278252b418a05a6a4b83d"
     },
     {
+      "txHash": "0x8fc15fbebe0893ebd37d8cafe3e21ab1f6e5e3c57d0b53cf1ec9c7f0c0614e1f",
+      "goals": [
+        "UNLOCK"
+      ],
+      "scannerUrl": "https://polygonscan.com/tx/0x8fc15fbebe0893ebd37d8cafe3e21ab1f6e5e3c57d0b53cf1ec9c7f0c0614e1f"
+    },
+    {
       "txHash": "0x51df554e8abf0d366dbb321fd9834dcd723cc21aa2d701a656d66342b80969fc",
-      "goals": ["FULFILL"],
+      "goals": [
+        "FULFILL"
+      ],
       "scannerUrl": "https://bscscan.com/tx/0x51df554e8abf0d366dbb321fd9834dcd723cc21aa2d701a656d66342b80969fc"
     }
   ],
@@ -132,6 +146,11 @@
     },
     {
       "title": "Fullfill 0.033060513057817862 BNB on Bsc",
+      "status": "COMPLETED",
+      "type": "INFO"
+    },
+    {
+      "title": "Unlock 21.782666 USD₮0 on Polygon",
       "status": "COMPLETED",
       "type": "INFO"
     }

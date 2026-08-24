@@ -40,7 +40,7 @@ public struct WalletSearchRequest: DatabaseQueryable, Hashable {
         let searchKey = scope.searchKey(query: query)
 
         let assets = types.contains(.asset) ? try fetchAssets(db, query: query, searchKey: searchKey, scope: scope) : []
-        let perpetuals = types.contains(.perpetual) && scope.includesPerpetuals ? try fetchPerpetuals(db, query: query, searchKey: searchKey, scope: scope) : []
+        let perpetuals = types.contains(.perpetual) ? try fetchPerpetuals(db, query: query, searchKey: searchKey, scope: scope) : []
         let nfts = types.contains(.nft) && scope.isAll && query.isNotEmpty ? try fetchNFTs(db, query: query) : []
         let lists = types.contains(.list) && scope.isAll ? try fetchLists(db, searchKey: searchKey) : []
 

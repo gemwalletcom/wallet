@@ -53,7 +53,10 @@ class ValueFormatter(
 
     private fun abbreviated(decimal: BigDecimal): String {
         val formatter = CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT)
-        formatter.maximumSignificantDigits = 2
+        formatter.setSignificantDigitsUsed(false)
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        formatter.roundingMode = android.icu.math.BigDecimal.ROUND_DOWN
         return formatter.format(decimal)
     }
 

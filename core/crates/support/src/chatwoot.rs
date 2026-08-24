@@ -6,6 +6,7 @@ use reqwest::multipart::{Form, Part};
 use reqwest::{Client, RequestBuilder, Response};
 use serde::de::DeserializeOwned;
 use std::error::Error;
+use std::fmt;
 use std::io;
 
 use crate::{
@@ -20,6 +21,26 @@ pub struct ChatwootClient {
     url: String,
     widget_public_token: String,
 }
+
+#[derive(Debug)]
+pub struct ChatwootError {
+    status: u16,
+    message: String,
+}
+
+impl ChatwootError {
+    pub fn status(&self) -> u16 {
+        self.status
+    }
+}
+
+impl fmt::Display for ChatwootError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "Chatwoot HTTP error {}: {}", self.status, self.message)
+    }
+}
+
+impl Error for ChatwootError {}
 
 impl ChatwootClient {
     pub fn new(url: String, widget_public_token: String) -> Self {
@@ -156,7 +177,7 @@ impl ChatwootClient {
         }
         let status = response.status().as_u16();
         let message = response.text().await?;
-        Err(io::Error::other(format!("Chatwoot HTTP error {status}: {message}")).into())
+        Err(ChatwootError { status, message }.into())
     }
 }
 

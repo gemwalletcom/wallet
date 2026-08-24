@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "Ajouter un jeton personnalisé";
 "assets.select_asset" = "Sélectionner un actif";
 "assets.popular" = "Actifs populaires";
-"assets.tags.trending" = "Tendance";
-"assets.tags.gainers" = "Gagnants";
-"assets.tags.losers" = "Perdants";
 "assets.tags.new" = "Nouveau";
-"assets.tags.stablecoins" = "Pièces stables";
 "assets.state.empty.search_description" = "Vous pouvez essayer de l'ajouter manuellement";
 "assets.title" = "Actifs";
 "sign_message.message" = "Message";

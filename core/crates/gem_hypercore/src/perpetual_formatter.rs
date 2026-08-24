@@ -73,7 +73,7 @@ mod tests {
 
     #[test]
     fn test_usdc_value_is_nonnegative_integer() {
-        assert_eq!(usdc_value(31_379.53517), BigUint::from(31_379_535_170u64));
+        assert_eq!(usdc_value(31_379.535_17), BigUint::from(31_379_535_170u64));
         assert_eq!(usdc_value(-1.0), BigUint::ZERO);
         assert_eq!(usdc_value(f64::NAN), BigUint::ZERO);
     }

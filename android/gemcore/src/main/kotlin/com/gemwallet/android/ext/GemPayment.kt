@@ -117,7 +117,7 @@ fun GemPaymentOutcome.toPrimitives(): PaymentOutcome = PaymentOutcome(
 fun GemPaymentAction.toPrimitives(): PaymentAction? = when (this) {
     is GemPaymentAction.Send -> PaymentAction.Send(
         PaymentActionSendInner(
-            chain = Chain.findByString(chain) ?: return null,
+            chain = chain.toChain() ?: return null,
             recipient = recipient,
             value = value,
             data = data,

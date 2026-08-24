@@ -1,0 +1,24 @@
+[package]
+name = "gem_alchemy"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+nft = ["dep:gem_client", "dep:serde", "dep:serde_json"]
+rpc = ["dep:gem_client", "dep:gem_jsonrpc", "dep:num-bigint", "dep:serde", "dep:serde_json", "dep:serde_serializers"]
+
+[dependencies]
+primitives = { path = "../primitives" }
+gem_client = { path = "../gem_client", optional = true }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"], optional = true }
+serde_serializers = { path = "../serde_serializers", features = ["bigint"], optional = true }
+
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+num-bigint = { workspace = true, optional = true }
+
+[dev-dependencies]
+gem_client = { path = "../gem_client", features = ["testkit"] }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
+tokio = { workspace = true }

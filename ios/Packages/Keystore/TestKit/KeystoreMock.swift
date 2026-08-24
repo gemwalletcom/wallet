@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import struct Gemstone.GemSignedTransaction
 public import class Gemstone.MessageSigner
 import Foundation
 import Keystore
@@ -30,7 +31,7 @@ public struct KeystoreMock: Keystore {
 
     public func deleteKey(for _: Primitives.Wallet) throws {}
 
-    public func sign(wallet _: Primitives.Wallet, input _: SignerInput) throws -> [String] {
+    public func sign(wallet _: Primitives.Wallet, input _: SignerInput) throws -> [GemSignedTransaction] {
         []
     }
 

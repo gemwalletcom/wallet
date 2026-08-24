@@ -335,11 +335,7 @@
 "assets.add_custom_token" = "Adicionar token personalizado";
 "assets.select_asset" = "Selecionar Ativo";
 "assets.popular" = "Populares";
-"assets.tags.trending" = "Tendências";
-"assets.tags.gainers" = "Ganhadores";
-"assets.tags.losers" = "Perdedores";
 "assets.tags.new" = "Novo";
-"assets.tags.stablecoins" = "Moedas estáveis";
 "assets.state.empty.search_description" = "Você pode tentar adicioná-lo manualmente";
 "assets.title" = "Ativos";
 "sign_message.message" = "Mensagem";

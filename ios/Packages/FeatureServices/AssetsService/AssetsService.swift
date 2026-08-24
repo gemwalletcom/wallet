@@ -106,6 +106,10 @@ public final class AssetsService: Sendable {
         try balanceStore.setIsEnabled(walletId: walletId, assetIds: assetIds, value: enabled)
     }
 
+    public func updatePinned(walletId: WalletId, assetId: AssetId, pinned: Bool) throws {
+        try balanceStore.pinAsset(walletId: walletId, assetId: assetId, value: pinned)
+    }
+
     @discardableResult
     public func updateAsset(assetId: AssetId, currency: String) async throws -> AssetFull {
         let asset = try await getAsset(assetId: assetId)
@@ -142,8 +146,8 @@ public final class AssetsService: Sendable {
 
     // search
 
-    public func searchAssets(query: String, chains: [Chain], tags: [AssetTag]) async throws -> [AssetBasic] {
-        async let apiAssets = assetsProvider.getSearchAssets(query: query, chains: chains, tags: tags)
+    public func searchAssets(query: String, chains: [Chain]) async throws -> [AssetBasic] {
+        async let apiAssets = assetsProvider.getSearchAssets(query: query, chains: chains)
         async let networkAssets = searchNetworkAsset(tokenId: query, chains: chains.isEmpty ? Chain.allCases : chains)
         return try await apiAssets + networkAssets
     }

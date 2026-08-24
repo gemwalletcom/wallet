@@ -21,29 +21,22 @@ pub struct Settings {
     pub consumer: Consumer,
 
     pub fiat: Fiat,
-    pub moonpay: MoonPay,
-    pub transak: Transak,
-    pub mercuryo: Mercuryo,
-    pub banxa: Banxa,
-    pub paybis: Paybis,
-    pub flashnet: Flashnet,
 
     pub swap: Swap,
 
     pub prices: Prices,
+    pub defi: Defi,
     pub coingecko: CoinGecko,
     pub coinmarketcap: CoinMarketCap,
-    pub charter: Charter,
     pub name: Name,
     pub chains: Chains,
     pub pusher: Pusher,
-    pub scan: Scan,
+    pub security: Security,
     pub support: Support,
     pub nft: NFT,
     pub indexer: Indexer,
     pub assets: Assets,
     pub rewards: Rewards,
-    pub ip: Ip,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -52,15 +45,18 @@ pub struct Indexer {
     pub algorand: ProviderSettings,
     pub ankr: ProviderSettings,
     pub blockscout: ProviderSettings,
-    pub fastnear: ProviderSettings,
-    pub jupiter: ProviderSettings,
-    pub magiceden: ProviderSettings,
-    pub opensea: ProviderSettings,
+    pub fastnear: FastNearIndexer,
     pub subscan: ProviderSettings,
     pub sui: ProviderSettings,
     pub ton: ProviderSettings,
     pub trongrid: ProviderSettings,
-    pub zerion: ProviderSettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct FastNearIndexer {
+    pub neardata: ProviderSettings,
+    pub transfers: ProviderSettings,
+    pub tx: ProviderSettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -97,6 +93,12 @@ impl ProviderSettings {
 pub struct Fiat {
     #[serde(deserialize_with = "duration::deserialize")]
     pub timeout: Duration,
+    pub moonpay: MoonPay,
+    pub transak: Transak,
+    pub mercuryo: Mercuryo,
+    pub banxa: Banxa,
+    pub paybis: Paybis,
+    pub flashnet: Flashnet,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -143,25 +145,28 @@ pub struct Key {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct KeySettings {
-    pub key: Key,
-}
-pub type Paybis = KeySettings;
-
-#[derive(Debug, Deserialize, Clone)]
 pub struct MoonPay {
+    pub url: String,
     pub key: Key,
     pub webhook: SecretKeySettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Transak {
+    pub url: String,
+    pub gateway: URL,
     pub key: Key,
-    pub referrer_domain: String,
+    pub referrer: Referrer,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Referrer {
+    pub domain: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Mercuryo {
+    pub url: String,
     pub key: MercuryoKey,
     pub webhook: SecretKeySettings,
 }
@@ -175,10 +180,17 @@ pub struct Flashnet {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Banxa {
-    pub url: String,
+    pub api: URL,
+    pub redirect: URL,
     pub partner: String,
     pub key: KeySecret,
     pub webhook: SecretKeySettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Paybis {
+    pub url: String,
+    pub key: Key,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -191,16 +203,14 @@ pub struct MercuryoKey {
 pub struct SecretKeySettings {
     pub key: KeySecret,
 }
-pub type CoinGecko = SecretKeySettings;
-pub type CoinMarketCap = SecretKeySettings;
+pub type CoinGecko = ProviderSettings;
+pub type CoinMarketCap = ProviderSettings;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct UrlSecretKeySettings {
     pub url: String,
     pub key: KeySecret,
 }
-pub type UD = UrlSecretKeySettings;
-
 #[derive(Debug, Deserialize, Clone)]
 pub struct UrlKeySettings {
     pub url: String,
@@ -218,15 +228,16 @@ pub struct Prices {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Charter {
-    pub timer: u64,
+pub struct Defi {
+    pub jupiter: ProviderSettings,
+    pub zerion: ProviderSettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Name {
     pub max_name_length: usize,
     pub ens: URL,
-    pub ud: UD,
+    pub ud: URL,
     pub sns: URL,
     pub ton: URL,
     pub eths: URL,
@@ -240,6 +251,7 @@ pub struct Name {
     pub base: URL,
     pub hyperliquid: URL,
     pub alldomains: URL,
+    pub near: URL,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -386,11 +398,13 @@ pub struct PusherIOS {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Scan {
+pub struct Security {
     #[serde(deserialize_with = "duration::deserialize")]
     pub timeout: Duration,
+    pub abuseipdb: UrlSecretKeySettings,
+    pub goplus: URL,
     pub hashdit: UrlKeySettings,
-    pub goplus: UrlKeySettings,
+    pub ipapi: UrlSecretKeySettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -431,6 +445,10 @@ impl Settings {
 #[derive(Debug, Deserialize, Clone)]
 pub struct NFT {
     pub url: String,
+    pub alchemy: ProviderSettings,
+    pub magiceden: ProviderSettings,
+    pub opensea: ProviderSettings,
+    pub ton: ProviderSettings,
     pub offchain: NFTOffchain,
 }
 
@@ -456,20 +474,15 @@ pub struct RewardsWallet {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Ip {
-    pub abuseipdb: AbuseIPDB,
-    pub ipapi: IpApi,
-}
-pub type AbuseIPDB = UrlSecretKeySettings;
-pub type IpApi = UrlSecretKeySettings;
-
-#[derive(Debug, Deserialize, Clone)]
 pub struct Swap {
+    pub near_intents: URL,
     pub okx: Okx,
+    pub swaps_xyz: URL,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Okx {
+    pub url: String,
     pub key: Key,
     pub passphrase: String,
     pub project: String,

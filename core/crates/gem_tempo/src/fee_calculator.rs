@@ -86,7 +86,7 @@ mod tests {
     use gem_evm::provider::preload_mapper::get_transaction_params;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::{
-        Asset, AssetType, Chain, EVMChain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadInput,
+        Asset, EVMChain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadInput,
         asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDT0_TOKEN_ID},
         known_assets::TEMPO_BRIDGED_USDC,
         swap::SwapData,
@@ -201,14 +201,6 @@ mod tests {
         assert_eq!(usd_calculator.fee_asset(&swap_input(usdc.clone())).await.unwrap(), usdc.id);
 
         let btc_calculator = new_calculator(|_, _| Ok(encode_currency("BTC")));
-        let cbbtc = Asset::mock_with_params(
-            Chain::Tempo,
-            Some("0x20C000000000000000000000c412Ec89D0c08be5".to_string()),
-            "Coinbase Wrapped BTC".to_string(),
-            "cbBTC".to_string(),
-            6,
-            AssetType::TIP20,
-        );
-        assert_eq!(btc_calculator.fee_asset(&swap_input(cbbtc)).await.unwrap(), TEMPO_PATHUSD_ASSET_ID.clone());
+        assert_eq!(btc_calculator.fee_asset(&swap_input(usdc)).await.unwrap(), TEMPO_PATHUSD_ASSET_ID.clone());
     }
 }

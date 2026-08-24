@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{FiatWebhookRequest, hmac_signature::generate_hmac_signature_hex};
+use gem_client::ReqwestClient;
 
 use super::client::BanxaClient;
 
@@ -12,7 +13,7 @@ const TEST_WEBHOOK_PATH: &str = "/v1/webhooks/fiat/banxa/test";
 impl BanxaClient {
     pub fn mock() -> Self {
         Self::new(
-            gem_client::reqwest_client(),
+            ReqwestClient::new(String::new(), gem_client::reqwest_client()),
             String::new(),
             TEST_PARTNER.to_string(),
             TEST_API_KEY.to_string(),

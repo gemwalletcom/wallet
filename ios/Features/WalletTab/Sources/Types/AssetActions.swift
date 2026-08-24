@@ -8,39 +8,34 @@ import Primitives
 import PrimitivesComponents
 
 @MainActor
-protocol AssetBalanceActions: AnyObject {
-    var balanceService: BalanceService { get }
-    var wallet: Wallet { get }
-    var isPresentingToastMessage: ToastMessage? { get set }
-}
-
-extension AssetBalanceActions {
-    func onPinAsset(_ asset: Asset, value: Bool) {
-        do {
-            try balanceService.setPinned(value, walletId: wallet.id, assetId: asset.id)
-            isPresentingToastMessage = .pin(asset.name, pinned: value)
-        } catch {
-            debugLog("\(Self.self) pin asset error: \(error)")
-        }
-    }
-
-    func onHideAsset(_ assetId: AssetId) {
-        do {
-            try balanceService.hideAsset(walletId: wallet.id, assetId: assetId)
-        } catch {
-            debugLog("\(Self.self) hide asset error: \(error)")
-        }
-    }
-}
-
-@MainActor
-protocol AssetEnableActions: AnyObject {
+protocol AssetActions: AnyObject {
     var assetsEnabler: any AssetsEnabler { get }
     var wallet: Wallet { get }
     var isPresentingToastMessage: ToastMessage? { get set }
 }
 
-extension AssetEnableActions {
+extension AssetActions {
+    func onPinAsset(_ asset: Asset, value: Bool) {
+        Task {
+            do {
+                try await assetsEnabler.pinAsset(wallet: wallet, assetId: asset.id, pinned: value)
+                isPresentingToastMessage = .pin(asset.name, pinned: value)
+            } catch {
+                debugLog("\(Self.self) pin asset error: \(error)")
+            }
+        }
+    }
+
+    func onHideAsset(_ assetId: AssetId) {
+        Task {
+            do {
+                try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [assetId], enabled: false)
+            } catch {
+                debugLog("\(Self.self) hide asset error: \(error)")
+            }
+        }
+    }
+
     func onAddToWallet(_ assetId: AssetId) {
         Task {
             do {

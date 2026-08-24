@@ -350,11 +350,7 @@
   <string name="assets_add_custom_token">افزودن توکن دلخواه/سفارشی.</string>
   <string name="assets_select_asset">یک دارایی را انتخاب کنید</string>
   <string name="assets_popular">دارایی‌های محبوب</string>
-  <string name="assets_tags_trending">پرطرفدار</string>
-  <string name="assets_tags_gainers">سودآوران</string>
-  <string name="assets_tags_losers">بازنده ها</string>
   <string name="assets_tags_new">جدید</string>
-  <string name="assets_tags_stablecoins">استیبل کوین ها</string>
   <string name="assets_state_empty_search_description">می‌توانید سعی کنید آن را به صورت دستی اضافه کنید</string>
   <string name="assets_title">دارایی‌ها</string>
   <string name="sign_message_message">پیام</string>

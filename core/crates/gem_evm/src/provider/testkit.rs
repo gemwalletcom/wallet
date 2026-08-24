@@ -4,8 +4,10 @@ use std::sync::Arc;
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 use crate::{
     ether_conv,
-    rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider, alchemy_url},
+    rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider},
 };
+#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+use gem_alchemy::{AlchemyApi, alchemy_url};
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 use gem_client::ReqwestClient;
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
@@ -32,13 +34,13 @@ fn build_test_indexer(chain: EVMChain, rpc_url: &str) -> Arc<EVMIndexer<ReqwestC
             client.clone().with_request_timeout(settings.indexer.alchemy.request.timeout).with_base_url(alchemy_url(
                 chain.to_chain(),
                 &settings.indexer.alchemy.url,
+                AlchemyApi::JsonRpc,
                 &settings.indexer.alchemy.key.secret,
             )),
-            client.clone().with_request_timeout(settings.indexer.ankr.request.timeout).with_base_url(format!(
-                "{}/{}",
-                settings.indexer.ankr.url.trim_end_matches('/'),
-                settings.indexer.ankr.key.secret
-            )),
+            client
+                .clone()
+                .with_request_timeout(settings.indexer.ankr.request.timeout)
+                .with_base_url(format!("{}/{}", settings.indexer.ankr.url, settings.indexer.ankr.key.secret)),
             settings.indexer.blockscout.remote_provider_config().configure_client(client),
             settings.indexer.blockscout.key.secret,
             chain,

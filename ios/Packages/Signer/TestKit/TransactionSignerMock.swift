@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+public import struct Gemstone.GemSignedTransaction
 import Primitives
 import Signer
 
-public struct TransactionSignerMock: TransactionSigneable {
-    public let signedData: [String]
+public struct TransactionSignerMock: TransactionSigning {
+    public let signedTransactions: [GemSignedTransaction]
 
-    public init(signedData: [String] = ["signed_data"]) {
-        self.signedData = signedData
+    public init(signedTransactions: [GemSignedTransaction] = [GemSignedTransaction(data: "signed_data", transactionType: .transfer)]) {
+        self.signedTransactions = signedTransactions
     }
 
     public func sign(
@@ -16,7 +16,7 @@ public struct TransactionSignerMock: TransactionSigneable {
         transactionData _: TransactionData,
         amount _: TransferAmount,
         wallet _: Wallet,
-    ) throws -> [String] {
-        signedData
+    ) throws -> [GemSignedTransaction] {
+        signedTransactions
     }
 }

@@ -333,8 +333,8 @@ impl Transaction {
                 .collect::<HashSet<_>>()
                 .into_iter()
                 .collect(),
-            TransactionType::TokenApproval
-            | TransactionType::StakeDelegate
+            TransactionType::TokenApproval => vec![AssetAddress::new(self.asset_id.clone(), self.from.clone(), None)],
+            TransactionType::StakeDelegate
             | TransactionType::StakeUndelegate
             | TransactionType::StakeRewards
             | TransactionType::StakeRedelegate
@@ -510,6 +510,21 @@ mod tests {
         assert_eq!(transaction.assets_addresses().len(), 2);
         // With fee: 2 swap assets + 1 fee
         assert_eq!(transaction.assets_addresses_with_fee().len(), 3);
+    }
+
+    #[test]
+    fn test_assets_addresses_token_approval_uses_owner() {
+        let transaction = Transaction {
+            asset_id: Asset::mock_ethereum_usdc().id,
+            from: "0xowner".to_string(),
+            to: "0xspender".to_string(),
+            transaction_type: TransactionType::TokenApproval,
+            ..Transaction::mock()
+        };
+
+        let addresses = transaction.assets_addresses();
+
+        assert_eq!(addresses, vec![AssetAddress::new(Asset::mock_ethereum_usdc().id, "0xowner".to_string(), None)]);
     }
 
     fn utxo_input(address: &str, value: u64) -> TransactionUtxoInput {

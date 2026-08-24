@@ -1,7 +1,7 @@
 use cacher::{CacheKey, CacherClient};
 use primitives::AssetId;
 use rocket::{State, post, serde::json::Json};
-use streamer::{StreamProducer, StreamProducerQueue};
+use streamer::{FetchAssetAssociationsPayload, StreamProducer, StreamProducerQueue};
 
 use crate::api_clients::PermissionAdminWrite;
 use crate::responders::{ApiError, ApiResponse};
@@ -17,4 +17,15 @@ pub async fn add_asset(
     cacher.delete(&CacheKey::FetchAssets(&asset_id.to_string()).key()).await?;
     stream_producer.publish_fetch_assets(vec![asset_id.clone()]).await?;
     Ok(asset_id.into())
+}
+
+#[post("/assets/associations/add", format = "json", data = "<payload>")]
+pub async fn add_asset_associations(
+    _permission: PermissionAdminWrite,
+    payload: Json<FetchAssetAssociationsPayload>,
+    stream_producer: &State<StreamProducer>,
+) -> Result<ApiResponse<FetchAssetAssociationsPayload>, ApiError> {
+    let payload = payload.into_inner();
+    stream_producer.publish_fetch_asset_associations(payload.clone()).await?;
+    Ok(payload.into())
 }

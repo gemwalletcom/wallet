@@ -50,7 +50,6 @@ open class PriceAlertSelectSearch(
             .flatMapLatest { filters ->
                 searchService.search(
                     filters?.query ?: "",
-                    filters?.tag?.let { listOf(it) } ?: emptyList(),
                     true
                 )
             }

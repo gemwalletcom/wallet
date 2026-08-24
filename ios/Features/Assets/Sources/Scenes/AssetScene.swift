@@ -83,17 +83,18 @@ public struct AssetScene: View {
                     )
                 }
 
-                if model.canOpenNetwork {
+                switch model.networkDestination {
+                case let .asset(asset):
                     NavigationLink(
-                        value: Scenes.Asset(asset: model.assetModel.asset.chain.asset),
+                        value: Scenes.Asset(asset: asset),
                         label: { networkView },
                     )
-                } else if model.showNetworkAssets {
+                case let .assets(chain):
                     NavigationLink(
-                        value: model.networkAssetsDestination,
+                        value: Scenes.NetworkAssets(chain: chain),
                         label: { networkView },
                     )
-                } else {
+                case nil:
                     networkView
                 }
             }

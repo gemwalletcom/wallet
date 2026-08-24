@@ -410,11 +410,7 @@ assets_no_assets_found = Sonuç bulunamadı
 assets_add_custom_token = Özel Jeton Ekle
 assets_select_asset = Varlık Seç
 assets_popular = Popüler varlıklar
-assets_tags_trending = Trend olan
-assets_tags_gainers = Kazananlar
-assets_tags_losers = Kaybedenler
 assets_tags_new = Yeni
-assets_tags_stablecoins = Stabilcoinler
 assets_state_empty_search_description = Manuel olarak eklemeyi deneyebilirsiniz
 assets_title = Varlıklar
 

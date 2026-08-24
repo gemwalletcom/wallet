@@ -106,7 +106,7 @@ fun WalletNavGraph(
                         is WalletSearchAction.OpenPerpetual -> navigator.openPerpetualDetails(action.assetId)
                         is WalletSearchAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)
                         is WalletSearchAction.OpenNftAsset -> navigator.openNftAsset(action.assetId)
-                        is WalletSearchAction.ShowAllAssets -> navigator.openAssetsResults(action.query, action.scope)
+                        is WalletSearchAction.ShowAllAssets -> navigator.openAssetsResults(action.query)
                         is WalletSearchAction.OpenList -> navigator.openAssetsResultsList(action.listId, action.title)
                         else -> Unit
                     }

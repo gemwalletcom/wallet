@@ -153,6 +153,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 admin::devices::get_device_transactions,
                 admin::devices::get_device_fiat_transactions,
                 admin::assets::add_asset,
+                admin::assets::add_asset_associations,
                 admin::transactions::get_transactions_by_hash,
                 admin::transactions::add_transaction,
                 admin::addresses::refresh_addresses,
@@ -257,8 +258,11 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let markets_client = MarketsClient::new(database.clone(), cacher_client.clone());
     let webhooks_client = WebhooksClient::new(stream_producer.clone(), settings.support.webhook.key.secret.clone());
     let ip_check_providers: Vec<Arc<dyn IpCheckProvider>> = vec![
-        Arc::new(AbuseIPDBClient::new(settings.ip.abuseipdb.url.clone(), settings.ip.abuseipdb.key.secret.clone())),
-        Arc::new(IpApiClient::new(settings.ip.ipapi.url.clone(), settings.ip.ipapi.key.secret.clone())),
+        Arc::new(AbuseIPDBClient::new(
+            settings.security.abuseipdb.url.clone(),
+            settings.security.abuseipdb.key.secret.clone(),
+        )),
+        Arc::new(IpApiClient::new(settings.security.ipapi.url.clone(), settings.security.ipapi.key.secret.clone())),
     ];
     let ip_security_client = IpSecurityClient::new(ip_check_providers, cacher_client.clone());
     let rewards_client = RewardsClient::new(database.clone(), stream_producer.clone(), ip_security_client, pusher_client.clone());
@@ -271,9 +275,10 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         database.clone(),
     );
     let support_image_upload_config = SupportImageUploadConfig::new(&settings.support.types.images)?;
-    let near_intents_client = swap::NearIntentsProxyClient::new(cacher_client.clone());
-    let swaps_xyz_client = swap::SwapsXyzProxyClient::new(cacher_client.clone());
+    let near_intents_client = swap::NearIntentsProxyClient::new(settings.swap.near_intents.url.clone(), cacher_client.clone());
+    let swaps_xyz_client = swap::SwapsXyzProxyClient::new(settings.swap.swaps_xyz.url.clone(), cacher_client.clone());
     let okx_provider = OkxProviderProxy::new(
+        settings.swap.okx.url.clone(),
         OkxClientConfig {
             api_key: settings.swap.okx.key.public.clone(),
             secret_key: settings.swap.okx.key.secret.clone(),

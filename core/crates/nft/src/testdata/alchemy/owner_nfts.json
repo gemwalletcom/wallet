@@ -1,0 +1,27 @@
+{
+  "ownedNfts": [
+    {
+      "contractAddress": "0x0d28F87b14f8A973d75983CcD4c63Cd21a80b9F5",
+      "tokenId": "1",
+      "balance": "1",
+      "isSpam": true,
+      "spamClassifications": ["SpammyMetadata"]
+    },
+    {
+      "contractAddress": "0x6DFBB01ECB7991366Cd8acc4D18dCc67bbe345ba",
+      "tokenId": "410",
+      "balance": "1",
+      "isSpam": null,
+      "spamClassifications": []
+    },
+    {
+      "contractAddress": "invalid",
+      "tokenId": "1",
+      "balance": "1",
+      "isSpam": false,
+      "spamClassifications": []
+    }
+  ],
+  "totalCount": 3,
+  "pageKey": null
+}

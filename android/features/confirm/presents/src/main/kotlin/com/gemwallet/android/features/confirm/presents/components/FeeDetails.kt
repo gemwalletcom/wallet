@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,11 +28,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.domains.confirm.CustomFee
 import com.gemwallet.android.domains.confirm.FeeRateUIModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
@@ -44,10 +45,13 @@ import com.gemwallet.android.ui.components.SuffixTextField
 import com.gemwallet.android.ui.components.title
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkFee
@@ -61,6 +65,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemFeeRate
@@ -73,7 +78,9 @@ fun FeeDetails(
     selection: FeeSelection,
     feeRates: List<GemFeeRate>,
     feeAssetInfo: AssetInfo?,
+    feeAssets: List<AssetInfo>,
     onSelect: (FeeSelection) -> Unit,
+    onSelectFeeAsset: (AssetId) -> Unit,
     onCancel: () -> Unit,
 ) {
     currentFee ?: return
@@ -89,9 +96,27 @@ fun FeeDetails(
     val minimumCustomFeeRate = feeConfig.minimumCustomFeeRate?.toLong()?.toBigInteger()
 
     val selectedCustomRate = (selection as? FeeSelection.Custom)?.gasPrice
-    var showCustom by remember(isVisible) { mutableStateOf(false) }
-    val customModel = remember(showCustom) {
+    val showFeeAssets = feeAssets.any { it.asset.id != currentFee.feeAsset.id }
+    var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
+    val customModel = remember(page, currentFee, feeRates, selection) {
         NetworkFeeCustomViewModel(currentFee, feeRates, selection, decimals, maxMultiplier, minimumCustomFeeRate, selectedCustomRate)
+    }
+    val navigateToDetails: () -> Unit = { page = FeeDetailsPage.Details }
+    val confirmCustomFee: () -> Unit = {
+        customModel.rate?.let {
+            onSelect(FeeSelection.Custom(it))
+            onCancel()
+        }
+    }
+    val onBack: (() -> Unit)? = when (page) {
+        FeeDetailsPage.Details -> null
+        FeeDetailsPage.CustomFee,
+        FeeDetailsPage.FeeAssets -> navigateToDetails
+    }
+    val onConfirm: (() -> Unit)? = when (page) {
+        FeeDetailsPage.Details -> onCancel
+        FeeDetailsPage.CustomFee -> confirmCustomFee
+        FeeDetailsPage.FeeAssets -> null
     }
 
     ModalBottomSheet(
@@ -102,26 +127,19 @@ fun FeeDetails(
         dragHandle = {},
     ) {
         FeeSheetHeader(
-            title = stringResource(if (showCustom) R.string.fee_rate_custom else R.string.transfer_network_fee),
-            navIcon = if (showCustom) AppIcons.ArrowBack else AppIcons.Close,
-            onNavigate = { if (showCustom) showCustom = false else onCancel() },
-            actionIcon = if (showCustom) AppIcons.Check else null,
-            actionEnabled = showCustom && customModel.isConfirmEnabled,
-            onAction = {
-                customModel.rate?.let {
-                    onSelect(FeeSelection.Custom(it))
-                    onCancel()
+            title = stringResource(
+                when (page) {
+                    FeeDetailsPage.Details -> R.string.transfer_network_fee
+                    FeeDetailsPage.CustomFee -> R.string.fee_rate_custom
+                    FeeDetailsPage.FeeAssets -> R.string.assets_select_asset
                 }
-            },
+            ),
+            onBack = onBack,
+            onConfirm = onConfirm,
+            isConfirmEnabled = page != FeeDetailsPage.CustomFee || customModel.isConfirmEnabled,
         )
-        if (showCustom) {
-            CustomFeeInput(
-                model = customModel,
-                unitSuffix = unitSuffix,
-                unitSymbol = unitSymbol,
-            )
-        } else {
-            FeeRates(
+        when (page) {
+            FeeDetailsPage.Details -> FeeRates(
                 currentFee = currentFee,
                 selection = selection,
                 feeRates = feeRates,
@@ -132,8 +150,23 @@ fun FeeDetails(
                 supportsCustomFee = supportsCustomFee,
                 customRateText = selectedCustomRate?.let { CustomFee.formatRate(it, decimals, unitSymbol) },
                 customFiat = selectedCustomRate?.let { currentFee.fiatAmount },
+                showFeeAssets = showFeeAssets,
                 onSelect = { onSelect(it); onCancel() },
-                onCustom = { showCustom = true },
+                onCustom = { page = FeeDetailsPage.CustomFee },
+                onFeeAssets = { page = FeeDetailsPage.FeeAssets },
+            )
+            FeeDetailsPage.CustomFee -> CustomFeeInput(
+                model = customModel,
+                unitSuffix = unitSuffix,
+                unitSymbol = unitSymbol,
+            )
+            FeeDetailsPage.FeeAssets -> FeeAssets(
+                assets = feeAssets,
+                selectedAssetId = currentFee.feeAsset.id,
+                onSelect = {
+                    onSelectFeeAsset(it)
+                    page = FeeDetailsPage.Details
+                },
             )
         }
     }
@@ -151,11 +184,25 @@ private fun FeeRates(
     supportsCustomFee: Boolean,
     customRateText: String?,
     customFiat: String?,
+    showFeeAssets: Boolean,
     onSelect: (FeeSelection) -> Unit,
     onCustom: () -> Unit,
+    onFeeAssets: () -> Unit,
 ) {
     val selectedRate = feeRates.firstOrNull { it.priority == currentFee.priority.string }
     LazyColumn {
+        if (showFeeAssets) {
+            item { SubheaderItem(R.string.swap_you_pay) }
+            item {
+                FeeAssetRow(
+                    assetInfo = feeAssetInfo,
+                    isSelected = false,
+                    showChevron = true,
+                    listPosition = ListPosition.Single,
+                    onClick = onFeeAssets,
+                )
+            }
+        }
         if (feeRates.size > 1) {
             val totalCount = feeRates.size + if (supportsCustomFee) 1 else 0
             itemsPositioned(feeRates, totalCount = totalCount) { position, item ->
@@ -205,6 +252,53 @@ private fun FeeRates(
 }
 
 @Composable
+private fun FeeAssets(
+    assets: List<AssetInfo>,
+    selectedAssetId: AssetId,
+    onSelect: (AssetId) -> Unit,
+) {
+    LazyColumn {
+        itemsIndexed(assets) { index, assetInfo ->
+            FeeAssetRow(
+                assetInfo = assetInfo,
+                isSelected = assetInfo.asset.id == selectedAssetId,
+                showChevron = false,
+                listPosition = ListPosition.getPosition(index, assets.size),
+                onClick = { onSelect(assetInfo.asset.id) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun FeeAssetRow(
+    assetInfo: AssetInfo,
+    isSelected: Boolean,
+    showChevron: Boolean,
+    listPosition: ListPosition,
+    onClick: () -> Unit,
+) {
+    val model = remember(assetInfo) {
+        assetInfo.toAssetInfoDataAggregate(displayedAmount = assetInfo.balance.balanceAmount.available)
+    }
+    AssetListItem(
+        asset = model,
+        modifier = Modifier.clickable(onClick = onClick),
+        listPosition = listPosition,
+        badge = assetInfo.asset.symbol.takeUnless { it == model.title },
+        trailing = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                getBalanceInfo(model).invoke()
+                when {
+                    isSelected -> SelectionCheckmark(modifier = Modifier.padding(start = paddingSmall))
+                    showChevron -> DataBadgeChevron()
+                }
+            }
+        },
+    )
+}
+
+@Composable
 private fun ColumnScope.CustomFeeInput(
     model: NetworkFeeCustomViewModel,
     unitSuffix: String,
@@ -249,36 +343,36 @@ private fun ColumnScope.CustomFeeInput(
 @Composable
 private fun FeeSheetHeader(
     title: String,
-    navIcon: ImageVector,
-    onNavigate: () -> Unit,
-    actionIcon: ImageVector?,
-    actionEnabled: Boolean,
-    onAction: () -> Unit,
+    onBack: (() -> Unit)?,
+    onConfirm: (() -> Unit)?,
+    isConfirmEnabled: Boolean,
 ) {
     Box(
         modifier = Modifier.fillMaxWidth().padding(paddingSmall),
         contentAlignment = Alignment.Center,
     ) {
-        IconButton(
-            modifier = Modifier.align(Alignment.CenterStart),
-            onClick = onNavigate,
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
-            ),
-        ) {
-            Icon(imageVector = navIcon, contentDescription = null)
-        }
-        Text(text = title, style = MaterialTheme.typography.titleMedium)
-        actionIcon?.let { icon ->
+        onBack?.let {
             IconButton(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                onClick = onAction,
-                enabled = actionEnabled,
+                modifier = Modifier.align(Alignment.CenterStart),
+                onClick = it,
                 colors = IconButtonDefaults.iconButtonColors(
                     containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
                 ),
             ) {
-                Icon(imageVector = icon, contentDescription = null)
+                Icon(imageVector = AppIcons.ArrowBack, contentDescription = null)
+            }
+        }
+        Text(text = title, style = MaterialTheme.typography.titleMedium)
+        onConfirm?.let {
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                onClick = it,
+                enabled = isConfirmEnabled,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
+                ),
+            ) {
+                Icon(imageVector = AppIcons.Check, contentDescription = null)
             }
         }
     }
@@ -340,4 +434,10 @@ private fun feeUnitSuffix(feeUnitType: FeeUnitType?, assetSymbol: String): Strin
     FeeUnitType.SatVb -> stringResource(R.string.fee_rate_satvB, "")
     FeeUnitType.Gwei -> stringResource(R.string.fee_rate_gwei, "")
     else -> " $assetSymbol"
+}
+
+private enum class FeeDetailsPage {
+    Details,
+    CustomFee,
+    FeeAssets,
 }

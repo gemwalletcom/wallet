@@ -129,11 +129,7 @@ impl ChainProviders {
         self.get_provider(chain)?.get_positions(address).await
     }
 
-    pub async fn get_perpetual_positions_for_classification(
-        &self,
-        chain: Chain,
-        address: String,
-    ) -> Result<Vec<PerpetualPosition>, Box<dyn Error + Send + Sync>> {
+    pub async fn get_perpetual_positions_for_classification(&self, chain: Chain, address: String) -> Result<Vec<PerpetualPosition>, Box<dyn Error + Send + Sync>> {
         self.get_provider(chain)?.get_positions_for_classification(address).await
     }
 

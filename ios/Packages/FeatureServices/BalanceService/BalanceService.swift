@@ -25,18 +25,6 @@ public struct BalanceService: Sendable {
     }
 }
 
-// MARK: - Asset Manage
-
-public extension BalanceService {
-    func hideAsset(walletId: WalletId, assetId: AssetId) throws {
-        try balanceStore.setIsEnabled(walletId: walletId, assetIds: [assetId], value: false)
-    }
-
-    func setPinned(_ isPinned: Bool, walletId: WalletId, assetId: AssetId) throws {
-        try balanceStore.pinAsset(walletId: walletId, assetId: assetId, value: isPinned)
-    }
-}
-
 // MARK: - BalanceUpdater
 
 extension BalanceService: BalanceUpdater {

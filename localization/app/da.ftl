@@ -410,11 +410,7 @@ assets_no_assets_found = Ingen aktiver fundet
 assets_add_custom_token = Tilføj brugerdefineret token
 assets_select_asset = Vælg Aktiv
 assets_popular = Populære aktiver
-assets_tags_trending = Trending
-assets_tags_gainers = Vindere
-assets_tags_losers = Tabere
 assets_tags_new = Ny
-assets_tags_stablecoins = Stablecoins
 assets_state_empty_search_description = Du kan prøve at tilføje det manuelt
 assets_title = Aktiver
 

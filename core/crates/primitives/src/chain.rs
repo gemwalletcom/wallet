@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 use typeshare::typeshare;
 
-use crate::chain_config::{ChainConfig, get_chain_config};
+use crate::chain_config::{ChainConfig, NO_NATIVE_ASSET_RANK, get_chain_config};
 use crate::{AssetId, AssetType, ChainType, FeeUnitType};
 
 #[derive(Copy, Clone, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Ord, PartialOrd, Eq, Hash)]
@@ -169,6 +169,10 @@ impl Chain {
 
     pub fn rank(&self) -> i32 {
         self.config().rank
+    }
+
+    pub fn has_native_asset(&self) -> bool {
+        self.rank() != NO_NATIVE_ASSET_RANK
     }
 
     pub fn all() -> Vec<Self> {

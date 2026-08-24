@@ -28,7 +28,7 @@ public protocol GemAPIAssetsListService: Sendable {
 public protocol GemAPIAssetsService: Sendable {
     func getAsset(assetId: AssetId) async throws -> AssetFull
     func getAssets(currency: String?, assetIds: [AssetId]) async throws -> [AssetBasic]
-    func getSearchAssets(query: String, chains: [Chain], tags: [AssetTag]) async throws -> [AssetBasic]
+    func getSearchAssets(query: String, chains: [Chain]) async throws -> [AssetBasic]
 }
 
 public extension GemAPIAssetsService {
@@ -62,7 +62,6 @@ public protocol GemAPISubscriptionService: Sendable {
 public protocol GemAPITransactionService: Sendable {
     func getDeviceTransactions(walletId: WalletId, fromTimestamp: Int) async throws -> TransactionsResponse
     func getDeviceTransactionsForAsset(walletId: WalletId, asset: AssetId, fromTimestamp: Int) async throws -> TransactionsResponse
-    func getDeviceTransaction(walletId: WalletId, transactionId: TransactionId) async throws -> Transaction
 }
 
 public protocol GemAPIPriceAlertService: Sendable {
@@ -86,7 +85,6 @@ public protocol GemAPISupportService: Sendable {
     func getSupportMessages(fromTimestamp: Int) async throws -> [SupportMessage]
     func sendSupportMessage(input: SupportMessageInput) async throws -> SupportMessage
     func sendSupportImage(image: Data, fileName: String, mimeType: String) async throws -> SupportMessage
-    func sendSupportAction(action: SupportAction) async throws
 }
 
 public protocol GemAPIWalletConfigurationService: Sendable {
@@ -207,10 +205,6 @@ extension GemAPIService: GemAPITransactionService {
             .mapResponse(as: TransactionsResponse.self)
     }
 
-    public func getDeviceTransaction(walletId: WalletId, transactionId: TransactionId) async throws -> Transaction {
-        try await requestDevice(.getTransaction(walletId: walletId, transactionId: transactionId))
-            .mapResponse(as: Transaction.self)
-    }
 }
 
 extension GemAPIService: GemAPIAssetsListService {
@@ -252,9 +246,9 @@ extension GemAPIService: GemAPIAssetsService {
             .mapResponse(as: [AssetBasic].self)
     }
 
-    public func getSearchAssets(query: String, chains: [Chain], tags: [AssetTag]) async throws -> [AssetBasic] {
+    public func getSearchAssets(query: String, chains: [Chain]) async throws -> [AssetBasic] {
         try await provider
-            .request(.getSearchAssets(query: query, chains: chains, tags: tags))
+            .request(.getSearchAssets(query: query, chains: chains))
             .mapResponse(as: [AssetBasic].self)
     }
 }
@@ -320,10 +314,6 @@ extension GemAPIService: GemAPISupportService {
             .mapResponse(as: SupportMessage.self)
     }
 
-    public func sendSupportAction(action: SupportAction) async throws {
-        _ = try await requestDevice(.sendSupportAction(action: action))
-            .mapResponse(as: Bool.self)
-    }
 }
 
 extension GemAPIService: GemAPIWalletConfigurationService {

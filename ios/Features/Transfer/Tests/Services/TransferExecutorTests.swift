@@ -3,9 +3,11 @@
 import Blockchain
 import BlockchainTestKit
 import ChainServiceTestKit
+import struct Gemstone.GemSignedTransaction
 import PaymentServiceTestKit
 import Primitives
 import PrimitivesTestKit
+import Signer
 import SignerTestKit
 import Store
 import StoreTestKit
@@ -20,10 +22,10 @@ struct TransferExecutorTests {
         let db = DB.mockAssets(assets: [.mock(asset: Asset.mockHypercoreUSDC())])
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedData: [
-                "update_leverage",
-                "primary_order",
-                "position_tpsl",
+            signer: TransactionSignerMock(signedTransactions: [
+                GemSignedTransaction(data: "update_leverage", transactionType: .perpetualOpenPosition),
+                GemSignedTransaction(data: "primary_order", transactionType: .perpetualOpenPosition),
+                GemSignedTransaction(data: "position_tpsl", transactionType: .perpetualOpenPosition),
             ]),
             chainService: ChainServiceMock.mock(broadcastResponses: ["action:1", "order:413978262893", "action:2"]),
             assetsEnabler: .mock(),
@@ -47,10 +49,25 @@ struct TransferExecutorTests {
 
     @Test
     func swapTransactions() async throws {
+        let spender = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+        let approvalValue = "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        let fromAsset = Asset.mockEthereumUSDT()
+        let swapData = SwapData.mock(data: SwapQuoteData(
+            to: "0x111111125421cA6dc452d289314280a0f8842A65",
+            dataType: .contract,
+            value: "0",
+            data: "swap-data",
+            memo: nil,
+            approval: ApprovalData(token: fromAsset.id.tokenId ?? "", spender: spender, value: approvalValue, isUnlimited: true),
+            gasLimit: nil,
+        ))
         let db = DB.mockAssets()
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedData: ["approval_tx", "swap_tx"]),
+            signer: TransactionSignerMock(signedTransactions: [
+                GemSignedTransaction(data: "approval_tx", transactionType: .tokenApproval),
+                GemSignedTransaction(data: "swap_tx", transactionType: .swap),
+            ]),
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash0", "hash1"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
@@ -58,7 +75,7 @@ struct TransferExecutorTests {
         )
 
         let input = TransferConfirmationInput(
-            data: .mock(type: .swap(.mockEthereum(), .mock(), .mock())),
+            data: .mock(type: .swap(fromAsset, .mock(), swapData)),
             wallet: .mock(accounts: [.mock(chain: .ethereum), .mock(chain: .bitcoin)]),
             transactionData: .mock(),
             amount: .mock(),
@@ -69,6 +86,62 @@ struct TransferExecutorTests {
         let transactions = try transactionStore.getTransactions(states: [.pending])
         #expect(transactions.count == 2)
         #expect(transactions.map(\.id.hash).sorted() == ["hash0", "hash1"])
+        let approvalTransaction = try #require(transactions.first { $0.id.hash == "hash0" })
+        #expect(approvalTransaction.assetId == fromAsset.id)
+        #expect(approvalTransaction.to == spender)
+        #expect(approvalTransaction.value == approvalValue)
+        #expect(approvalTransaction.type == .tokenApproval)
+        let swapTransaction = try #require(transactions.first { $0.id.hash == "hash1" })
+        #expect(swapTransaction.to == swapData.data.to)
+        #expect(swapTransaction.type == .swap)
+    }
+
+    @Test
+    func genericApprovalTransaction() async throws {
+        let token = Asset.mockEthereumUSDT()
+        let spender = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+        let approval = try ApprovalData(
+            token: #require(token.id.tokenId),
+            spender: spender,
+            value: "100",
+            isUnlimited: false,
+        )
+        let db = DB.mockAssets()
+        let transactionStore = TransactionStore(db: db)
+        let executor = TransferExecutor(
+            signer: TransactionSignerMock(signedTransactions: [
+                GemSignedTransaction(data: "approval_tx", transactionType: .tokenApproval),
+            ]),
+            chainService: ChainServiceMock.mock(broadcastResponses: ["approval-hash"]),
+            assetsEnabler: .mock(),
+            transactionStateScheduler: .mock(transactionStore: transactionStore),
+            paymentService: PaymentServiceableMock(),
+        )
+        let transferData = TransferData.mock(
+            type: .generic(
+                asset: .mockEthereum(),
+                metadata: .mock(),
+                extra: .mock(
+                    to: approval.token,
+                    transactionType: .tokenApproval,
+                    approval: approval,
+                ),
+            ),
+        )
+
+        try await executor.execute(input: TransferConfirmationInput(
+            data: transferData,
+            wallet: .mock(accounts: [.mock(chain: .ethereum)]),
+            transactionData: .mock(),
+            amount: .mock(),
+            delegate: nil,
+        ))
+
+        let transaction = try #require(transactionStore.getTransactions(states: [.pending]).first)
+        #expect(transaction.assetId == token.id)
+        #expect(transaction.to == spender)
+        #expect(transaction.value == approval.value)
+        #expect(transaction.type == .tokenApproval)
     }
 
     @Test
@@ -78,10 +151,10 @@ struct TransferExecutorTests {
         let db = DB.mockAssets(assets: [.mock(asset: hype), .mock(asset: usdc)])
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedData: [
-                "approve_referral",
-                "approve_agent",
-                "place_order",
+            signer: TransactionSignerMock(signedTransactions: [
+                GemSignedTransaction(data: "approve_referral", transactionType: .swap),
+                GemSignedTransaction(data: "approve_agent", transactionType: .swap),
+                GemSignedTransaction(data: "place_order", transactionType: .swap),
             ]),
             chainService: ChainServiceMock.mock(broadcastResponses: [
                 "action:1",
@@ -125,9 +198,9 @@ struct TransferExecutorTests {
         ])
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedData: [
-                "undelegate",
-                "withdraw",
+            signer: TransactionSignerMock(signedTransactions: [
+                GemSignedTransaction(data: "undelegate", transactionType: .stakeUndelegate),
+                GemSignedTransaction(data: "withdraw", transactionType: .stakeUndelegate),
             ]),
             chainService: ChainServiceMock.mock(broadcastResponses: [
                 "action:tokenDelegate:3001423:unstake:1780078264488",
@@ -157,7 +230,7 @@ struct TransferExecutorTests {
         let db = DB.mockAssets()
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedData: ["tx"]),
+            signer: TransactionSignerMock(signedTransactions: [GemSignedTransaction(data: "tx", transactionType: .transfer)]),
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
@@ -184,7 +257,7 @@ struct TransferExecutorTests {
         let db = DB.mockAssets(assets: [.mock(asset: Asset.mockHypercoreUSDC())])
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedData: ["modify_tx"]),
+            signer: TransactionSignerMock(signedTransactions: [GemSignedTransaction(data: "modify_tx", transactionType: .perpetualModifyPosition)]),
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),

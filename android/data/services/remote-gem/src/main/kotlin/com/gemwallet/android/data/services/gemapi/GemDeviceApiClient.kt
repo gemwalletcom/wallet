@@ -19,15 +19,11 @@ import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.RedemptionRequest
 import com.wallet.core.primitives.RedemptionResult
 import com.wallet.core.primitives.ReferralCode
-import com.wallet.core.primitives.RewardEvent
-import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.ScanTransaction
 import com.wallet.core.primitives.ScanTransactionPayload
-import com.wallet.core.primitives.SupportAction
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageInput
-import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSubscription
 import com.wallet.core.primitives.WalletSubscriptionChains
@@ -91,12 +87,6 @@ interface GemDeviceApiClient {
     @GET("/v2/devices/rewards")
     suspend fun getRewards(@Tag walletId: WalletId): Rewards?
 
-    @GET("/v2/devices/rewards/events")
-    suspend fun getRewardsEvents(@Tag walletId: WalletId): List<RewardEvent>
-
-    @GET("/v2/devices/rewards/redemptions/{code}")
-    suspend fun getRedemptionOption(@Path("code") code: String): RewardRedemptionOption
-
     @POST("/v2/devices/rewards/referrals/create")
     suspend fun createReferral(@Tag walletId: WalletId, @Body body: AuthenticatedRequest<ReferralCode>): Rewards?
 
@@ -120,9 +110,6 @@ interface GemDeviceApiClient {
         @Query("from_timestamp") from: Long,
     ): TransactionsResponse?
 
-    @GET("/v2/devices/transactions/{transaction_id}")
-    suspend fun getTransaction(@Tag walletId: WalletId, @Path("transaction_id") transactionId: String): Transaction
-
     @POST("/v2/devices/scan/transaction")
     suspend fun getScanTransaction(@Body payload: ScanTransactionPayload): ScanTransaction
 
@@ -139,9 +126,6 @@ interface GemDeviceApiClient {
         @Query("file_name") fileName: String,
         @Body image: RequestBody,
     ): SupportMessage
-
-    @POST("/v2/devices/support/action")
-    suspend fun sendSupportAction(@Body action: SupportAction): Boolean
 
     @GET("/v2/devices/wallet_configuration")
     suspend fun getWalletConfiguration(@Tag walletId: WalletId): WalletConfigurationResult

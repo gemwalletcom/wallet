@@ -67,8 +67,8 @@ internal fun List<GemFeeRate>.selectFeeRate(selection: FeeSelection): GemFeeRate
 
 internal fun GemTransactionLoadFee.toFee(
     priority: FeePriority,
+    feeAssetId: AssetId,
 ): Fee {
-    val feeAssetId = AssetId(feeAsset)
     return when (feeAssetId.chain.toChainType()) {
         ChainType.Solana -> toSolanaFee(feeAssetId, priority)
         ChainType.Bitcoin,
