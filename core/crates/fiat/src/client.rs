@@ -84,14 +84,14 @@ impl FiatClient {
         let provider = self.provider(provider_name)?;
         let provider_id = provider.name().id().to_string();
         let webhook_data = request.data.clone();
-        let webhook = match provider.process_webhook(request).await {
-            Ok(webhook) => webhook,
-            Err(error) if error.downcast_ref::<FiatQuoteError>().is_some() => return Err(error),
-            Err(error) => {
-                error_with_fields!("failed to process fiat webhook", &*error, provider = provider_id);
-                return Err(error);
+        let webhook = provider.process_webhook(request).await.map_err(|error| {
+            if matches!(error.downcast_ref(), Some(FiatQuoteError::InvalidWebhook)) {
+                error_with_fields!("invalid fiat webhook payload", &*error, provider = provider_id, payload = format!("{webhook_data:#}"));
+            } else {
+                error_with_fields!("rejected fiat webhook", &*error, provider = provider_id);
             }
-        };
+            error
+        })?;
 
         let (kind, transaction_id) = match &webhook {
             FiatWebhook::OrderId(order_id) => ("order_id", Some(order_id.clone())),

@@ -46,7 +46,7 @@ impl FiatProvider for BanxaClient {
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
-        let order_id = map_webhook_data(request.data).map_err(|_| FiatQuoteError::InvalidRequest("Invalid Banxa webhook payload".to_string()))?;
+        let order_id = map_webhook_data(request.data).map_err(|_| FiatQuoteError::InvalidWebhook)?;
         Ok(FiatWebhook::OrderId(order_id))
     }
 

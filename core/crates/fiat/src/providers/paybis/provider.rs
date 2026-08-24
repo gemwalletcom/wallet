@@ -47,7 +47,7 @@ impl FiatProvider for PaybisClient {
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
-        map_process_webhook(request.data).map_err(|_| FiatQuoteError::InvalidRequest("Invalid Paybis webhook payload".to_string()).into())
+        map_process_webhook(request.data).map_err(|_| FiatQuoteError::InvalidWebhook.into())
     }
 
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {

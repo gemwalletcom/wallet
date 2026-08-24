@@ -5,9 +5,9 @@ use reqwest::Method;
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::Arc;
+#[cfg(test)]
+use std::time::{Duration, SystemTime};
 use tokio::sync::Mutex;
-
-const TOKEN_TTL_SECONDS: u64 = 3600;
 
 #[derive(Debug, Clone)]
 pub struct TransakClient {
@@ -41,7 +41,10 @@ impl TransakClient {
             api_key: String::new(),
             api_secret: String::new(),
             referrer_domain: String::new(),
-            cached_token: Arc::new(Mutex::new(Some(CachedToken::new(access_token.to_string(), TOKEN_TTL_SECONDS)))),
+            cached_token: Arc::new(Mutex::new(Some(CachedToken {
+                access_token: access_token.to_string(),
+                expires_at: SystemTime::now() + Duration::from_secs(3600),
+            }))),
         }
     }
 
@@ -177,14 +180,14 @@ impl TransakClient {
             return Ok(cached.access_token.clone());
         }
 
-        let access_token = self.refresh_token_internal().await?;
-        let cached = CachedToken::new(access_token.clone(), TOKEN_TTL_SECONDS);
-        *token_guard = Some(cached);
+        let token: CachedToken = self.refresh_token_internal().await?.into();
+        let access_token = token.access_token.clone();
+        *token_guard = Some(token);
 
         Ok(access_token)
     }
 
-    async fn refresh_token_internal(&self) -> Result<String, reqwest::Error> {
+    async fn refresh_token_internal(&self) -> Result<TokenResponse, reqwest::Error> {
         let path = format!("/partners/api/v2/refresh-token?apiKey={}", self.api_key);
         let body = serde_json::json!({
             "apiKey": self.api_key
@@ -200,7 +203,7 @@ impl TransakClient {
             .await?
             .json()
             .await?;
-        Ok(response.data.access_token)
+        Ok(response.data)
     }
 }
 

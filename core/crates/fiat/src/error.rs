@@ -11,6 +11,7 @@ pub enum FiatQuoteError {
     AddressNotSubscribed(String),
     IpAddressValidationFailed(String),
     InvalidRequest(String),
+    InvalidWebhook,
 }
 
 impl fmt::Display for FiatQuoteError {
@@ -25,6 +26,7 @@ impl fmt::Display for FiatQuoteError {
             Self::AddressNotSubscribed(address) => write!(f, "Address {} is not subscribed", address),
             Self::IpAddressValidationFailed(msg) => write!(f, "IP address validation failed: {}", msg),
             Self::InvalidRequest(msg) => write!(f, "Invalid request: {}", msg),
+            Self::InvalidWebhook => write!(f, "Invalid webhook payload"),
         }
     }
 }
