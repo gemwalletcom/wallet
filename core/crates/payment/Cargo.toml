@@ -1,0 +1,10 @@
+[package]
+name = "payment"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+primitives = { path = "../primitives" }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 use typeshare::typeshare;
 
-use crate::{AssetId, NFTAssetId, PerpetualDirection, PerpetualProvider, stake_type::Resource};
+use crate::{AssetId, NFTAssetId, PaymentLink, PaymentMerchant, PerpetualDirection, PerpetualProvider, stake_type::Resource};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[typeshare(swift = "Sendable")]
@@ -100,4 +100,12 @@ mod tests {
             serde_json::json!({ "assetId": serialized, "name": "NFT" })
         );
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionPaymentMetadata {
+    pub link: PaymentLink,
+    pub merchant: PaymentMerchant,
 }

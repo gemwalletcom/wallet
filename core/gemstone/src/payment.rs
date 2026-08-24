@@ -1,35 +1,6 @@
-use crate::{GemstoneError, models::custom_types::GemBigUint};
-use primitives::{AssetId, Payment, PaymentAmount, PaymentLink, PaymentRequest, PaymentURLDecoder};
-
-pub type GemPayment = Payment;
-pub type GemPaymentRequest = PaymentRequest;
-pub type GemPaymentLink = PaymentLink;
-pub type GemPaymentAmount = PaymentAmount;
-
-#[uniffi::remote(Enum)]
-pub enum GemPayment {
-    Request(GemPaymentRequest),
-    Link(GemPaymentLink),
-}
-
-#[uniffi::remote(Enum)]
-pub enum GemPaymentAmount {
-    ExactValue(String),
-    AtomicValue(GemBigUint),
-}
-
-#[uniffi::remote(Record)]
-pub struct GemPaymentRequest {
-    pub address: String,
-    pub amount: Option<GemPaymentAmount>,
-    pub memo: Option<String>,
-    pub asset_id: Option<AssetId>,
-}
-
-#[uniffi::remote(Enum)]
-pub enum GemPaymentLink {
-    SolanaPay(String),
-}
+use crate::GemstoneError;
+use crate::models::payment::GemPayment;
+use primitives::PaymentURLDecoder;
 
 #[uniffi::export]
 pub fn payment_decode_url(string: &str) -> Result<GemPayment, GemstoneError> {
@@ -39,7 +10,8 @@ pub fn payment_decode_url(string: &str) -> Result<GemPayment, GemstoneError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::Chain;
+    use crate::models::payment::{GemPaymentAmount, GemPaymentLink, GemPaymentRequest};
+    use primitives::{AssetId, Chain};
 
     #[test]
     fn test_request() {

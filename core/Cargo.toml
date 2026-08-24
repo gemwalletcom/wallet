@@ -25,6 +25,7 @@ members = [
     "gemstone",
 
     "crates/primitives",
+    "crates/payment",
     "crates/fiat",
     "crates/cacher",
     "crates/name_resolver",

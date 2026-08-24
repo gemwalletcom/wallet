@@ -122,7 +122,10 @@ pub use self::platform::Platform;
 pub mod platform_store;
 pub use self::platform_store::PlatformStore;
 pub mod payment;
-pub use self::payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest};
+pub use self::payment::{
+    Payment, PaymentAction, PaymentAmount, PaymentLink, PaymentMerchant, PaymentOptions, PaymentOutcome, PaymentPrice, PaymentQuote, PaymentQuoteData, PaymentQuotes,
+    PaymentRequest, PaymentStatus,
+};
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
@@ -183,7 +186,8 @@ pub mod hex;
 pub use self::hex::{HexError, decode_hex, decode_hex_array};
 pub mod transaction_metadata_types;
 pub use self::transaction_metadata_types::{
-    TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata, TransactionSwapMetadata,
+    TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata,
+    TransactionSwapMetadata,
 };
 pub mod wallet_connect_namespace;
 pub use self::wallet_connect_namespace::WalletConnectCAIP2;
