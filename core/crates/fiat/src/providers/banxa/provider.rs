@@ -4,6 +4,7 @@ use streamer::FiatWebhook;
 
 use crate::{
     FiatProvider, FiatWebhookRequest,
+    error::FiatQuoteError,
     model::{FiatMapping, FiatProviderAsset},
     provider::generate_quote_id,
     providers::banxa::mapper::map_asset_with_limits,
@@ -45,7 +46,7 @@ impl FiatProvider for BanxaClient {
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
-        let order_id = map_webhook_data(request.data)?;
+        let order_id = map_webhook_data(request.data).map_err(|_| FiatQuoteError::InvalidRequest("Invalid Banxa webhook payload".to_string()))?;
         Ok(FiatWebhook::OrderId(order_id))
     }
 

@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, PaymentType};
 use streamer::FiatWebhook;
 
+use crate::error::FiatQuoteError;
 use crate::model::{FiatMapping, FiatProviderAsset};
 use crate::provider::generate_quote_id;
 use crate::{FiatProvider, FiatWebhookRequest};
@@ -45,8 +46,8 @@ impl FiatProvider for FlashnetClient {
 
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn Error + Send + Sync>> {
         self.verify_webhook(&request)?;
-        let payload = serde_json::from_value::<FlashnetWebhookPayload>(request.data)?;
-        Ok(map_webhook(payload)?)
+        let payload = serde_json::from_value::<FlashnetWebhookPayload>(request.data).map_err(|_| FiatQuoteError::InvalidRequest("Invalid Flashnet webhook payload".to_string()))?;
+        map_webhook(payload).map_err(|_| FiatQuoteError::InvalidRequest("Invalid Flashnet webhook payload".to_string()).into())
     }
 
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {

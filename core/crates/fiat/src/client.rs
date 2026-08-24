@@ -5,6 +5,7 @@ use std::error::Error;
 use crate::ip_check_client::{IPAddressInfo, IPCheckClient};
 use crate::{
     CachedFiatQuoteData, FiatCacherClient, FiatProvider, FiatWebhookRequest,
+    error::FiatQuoteError,
     model::{FiatMapping, FiatMappingMap},
 };
 use futures::future::join_all;
@@ -85,9 +86,10 @@ impl FiatClient {
         let webhook_data = request.data.clone();
         let webhook = match provider.process_webhook(request).await {
             Ok(webhook) => webhook,
-            Err(e) => {
-                error_with_fields!("failed to decode fiat webhook", &*e, provider = provider_id);
-                return Err(e);
+            Err(error) if error.downcast_ref::<FiatQuoteError>().is_some() => return Err(error),
+            Err(error) => {
+                error_with_fields!("failed to process fiat webhook", &*error, provider = provider_id);
+                return Err(error);
             }
         };
 

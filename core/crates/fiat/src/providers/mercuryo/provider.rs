@@ -1,5 +1,6 @@
 use crate::{
     FiatProvider, FiatWebhookRequest,
+    error::FiatQuoteError,
     model::{FiatMapping, FiatProviderAsset},
     provider::generate_quote_id,
     providers::mercuryo::mapper::{map_asset_limits, map_asset_with_limits},
@@ -62,7 +63,7 @@ impl FiatProvider for MercuryoClient {
     // full transaction: https://github.com/mercuryoio/api-migration-docs/blob/master/Widget_API_Mercuryo_v1.6.md#22-callbacks-response-body
     async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
-        let webhook_data = map_webhook_data(request.data)?;
+        let webhook_data = map_webhook_data(request.data).map_err(|_| FiatQuoteError::InvalidRequest("Invalid Mercuryo webhook payload".to_string()))?;
         Ok(FiatWebhook::Transaction(map_order_from_webhook(webhook_data)))
     }
 
