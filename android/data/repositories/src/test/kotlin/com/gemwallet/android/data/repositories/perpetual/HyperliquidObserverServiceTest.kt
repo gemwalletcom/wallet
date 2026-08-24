@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemPerpetualSubscription
+import uniffi.gemstone.HyperliquidSubscriptions
 
 class HyperliquidObserverServiceTest {
 
@@ -49,14 +50,8 @@ class HyperliquidObserverServiceTest {
             syncPerpetuals = mockk(relaxed = true),
             syncPerpetualPositions = mockk(relaxed = true),
             getPerpetualAccountMode = mockk { coEvery { getPerpetualAccountMode(any(), any()) } returns PerpetualAccountMode.Standard },
-            hyperliquid = mockk {
-                every { accountSubscriptions(any(), any()) } returns listOf(
-                    GemPerpetualSubscription.AccountState(ADDRESS),
-                    GemPerpetualSubscription.OpenOrders(ADDRESS),
-                )
-            },
             eventHandler = eventHandler,
-            subscriptionService = HyperliquidSubscriptionService { _, _ -> SUBSCRIBE_REQUEST },
+            subscriptionService = HyperliquidSubscriptionService(HyperliquidSubscriptions()),
             connection = connection,
             scope = scope,
         )
@@ -64,8 +59,52 @@ class HyperliquidObserverServiceTest {
         observer.start()
         advanceUntilIdle()
 
-        assertEquals(listOf(SUBSCRIBE_REQUEST, SUBSCRIBE_REQUEST), connection.sent)
+        assertEquals(
+            setOf(
+                """{"method":"subscribe","subscription":{"type":"clearinghouseState","user":"0xabc"}}""",
+                """{"method":"subscribe","subscription":{"type":"openOrders","user":"0xabc"}}""",
+            ),
+            connection.sent.toSet(),
+        )
         coVerify { eventHandler.handle(wallet.id, PerpetualAccountMode.Standard, MESSAGE) }
+        scope.cancel()
+    }
+
+
+    @Test
+    fun `subscription requested before connect is sent only once on connect`() = runTest {
+        val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+        val wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.HyperCore, address = ADDRESS)))
+        val connection = RecordingConnection(listOf(WebSocketEvent.Connected))
+        val eventHandler = mockk<HyperliquidEventHandler>(relaxed = true) {
+            every { chartUpdates } returns emptyFlow()
+        }
+        val observePerpetualWallet = mockk<ObservePerpetualWallet>()
+        every { observePerpetualWallet() } returns flowOf(wallet)
+        val observer = HyperliquidObserverService(
+            observePerpetualWallet = observePerpetualWallet,
+            syncPerpetuals = mockk(relaxed = true),
+            syncPerpetualPositions = mockk(relaxed = true),
+            getPerpetualAccountMode = mockk { coEvery { getPerpetualAccountMode(any(), any()) } returns PerpetualAccountMode.Standard },
+            eventHandler = eventHandler,
+            subscriptionService = HyperliquidSubscriptionService(HyperliquidSubscriptions()),
+            connection = connection,
+            scope = scope,
+        )
+
+        observer.subscribe(GemPerpetualSubscription.MarketData("UNI"))
+        observer.start()
+        advanceUntilIdle()
+
+        assertEquals(
+            setOf(
+                """{"method":"subscribe","subscription":{"type":"clearinghouseState","user":"0xabc"}}""",
+                """{"method":"subscribe","subscription":{"type":"openOrders","user":"0xabc"}}""",
+                """{"method":"subscribe","subscription":{"type":"activeAssetCtx","coin":"UNI"}}""",
+            ),
+            connection.sent.toSet(),
+        )
+        assertEquals(3, connection.sent.size)
         scope.cancel()
     }
 
@@ -81,6 +120,5 @@ class HyperliquidObserverServiceTest {
     private companion object {
         const val ADDRESS = "0xabc"
         const val MESSAGE = "message"
-        const val SUBSCRIBE_REQUEST = "subscribe-request"
     }
 }

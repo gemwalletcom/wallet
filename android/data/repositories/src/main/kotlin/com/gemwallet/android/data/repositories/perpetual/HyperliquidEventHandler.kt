@@ -44,6 +44,7 @@ class HyperliquidEventHandler(
                 is GemHyperliquidSocketMessage.MarketData -> perpetualRepository.updateMarket(message.market.toDTO())
                 is GemHyperliquidSocketMessage.MarketPrices -> handleMarketPrices(message.prices)
                 is GemHyperliquidSocketMessage.SubscriptionResponse -> Log.d(TAG, "Subscription response: ${message.subscriptionType}")
+                is GemHyperliquidSocketMessage.Error -> Log.e(TAG, "Error message: ${message.message}")
                 GemHyperliquidSocketMessage.Unknown -> Log.d(TAG, "Unknown message: ${text.take(100)}")
             }
         }.onFailure { Log.e(TAG, "Handle message error: ${text.take(100)}", it) }

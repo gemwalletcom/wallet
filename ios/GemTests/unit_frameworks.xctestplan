@@ -361,6 +361,13 @@
         "identifier" : "TransactionsServiceTests",
         "name" : "TransactionsServiceTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/FeatureServices",
+        "identifier" : "PerpetualServiceTests",
+        "name" : "PerpetualServiceTests"
+      }
     }
   ],
   "version" : 1

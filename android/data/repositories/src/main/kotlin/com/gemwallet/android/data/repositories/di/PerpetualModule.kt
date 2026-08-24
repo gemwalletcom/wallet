@@ -28,6 +28,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import javax.inject.Singleton
 import uniffi.gemstone.Hyperliquid
+import uniffi.gemstone.HyperliquidSubscriptions
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -67,10 +68,8 @@ object PerpetualModule {
 
     @Provides
     @Singleton
-    fun provideHyperliquidSubscriptionService(
-        hyperliquid: Hyperliquid,
-    ): HyperliquidSubscriptionService =
-        HyperliquidSubscriptionService(hyperliquid::websocketRequest)
+    fun provideHyperliquidSubscriptionService(): HyperliquidSubscriptionService =
+        HyperliquidSubscriptionService(HyperliquidSubscriptions())
 
     @Provides
     @Singleton
@@ -79,7 +78,6 @@ object PerpetualModule {
         syncPerpetuals: SyncPerpetuals,
         syncPerpetualPositions: SyncPerpetualPositions,
         getPerpetualAccountMode: GetPerpetualAccountMode,
-        hyperliquid: Hyperliquid,
         eventHandler: HyperliquidEventHandler,
         subscriptionService: HyperliquidSubscriptionService,
         getNodeUrlCase: GetNodeUrlCase,
@@ -89,7 +87,6 @@ object PerpetualModule {
         syncPerpetuals = syncPerpetuals,
         syncPerpetualPositions = syncPerpetualPositions,
         getPerpetualAccountMode = getPerpetualAccountMode,
-        hyperliquid = hyperliquid,
         eventHandler = eventHandler,
         subscriptionService = subscriptionService,
         connection = WebSocketConnection(

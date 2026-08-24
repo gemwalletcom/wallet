@@ -23,14 +23,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemPerpetualSubscription
-import uniffi.gemstone.Hyperliquid
 
 class HyperliquidObserverService(
     private val observePerpetualWallet: ObservePerpetualWallet,
     private val syncPerpetuals: SyncPerpetuals,
     private val syncPerpetualPositions: SyncPerpetualPositions,
     private val getPerpetualAccountMode: GetPerpetualAccountMode,
-    private val hyperliquid: Hyperliquid,
     private val eventHandler: HyperliquidEventHandler,
     private val subscriptionService: HyperliquidSubscriptionService,
     private val connection: WebSocketConnectable,
@@ -84,9 +82,9 @@ class HyperliquidObserverService(
         launch { sendSubscriptionRequests() }
         connection.connect().collect { event ->
             when (event) {
-                WebSocketEvent.Connected -> subscriptionService.resubscribe(hyperliquid.accountSubscriptions(address, mode.toGem()))
+                WebSocketEvent.Connected -> subscriptionService.connected(address, mode.toGem())
                 is WebSocketEvent.Message -> eventHandler.handle(walletId, mode, event.text)
-                WebSocketEvent.Disconnected -> Unit
+                WebSocketEvent.Disconnected -> subscriptionService.disconnected()
             }
         }
     }

@@ -37,6 +37,8 @@ public actor HyperliquidEventHandler {
                 try perpetualService.updatePrices(prices)
             case let .subscriptionResponse(subscriptionType):
                 debugLog("HyperliquidEventHandler: subscription response - \(subscriptionType)")
+            case let .error(message):
+                debugLog("HyperliquidEventHandler: error message: \(message)")
             case .unknown:
                 debugLog("HyperliquidEventHandler: unknown message: \(String(data: data, encoding: .utf8) ?? "nil")")
             }

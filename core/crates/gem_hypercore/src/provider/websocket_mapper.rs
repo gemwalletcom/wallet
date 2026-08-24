@@ -52,6 +52,7 @@ pub fn parse_websocket_data(data: &[u8], mode: PerpetualAccountMode) -> Result<H
         RawSocketMessage::SubscriptionResponse(data) => Ok(HyperliquidSocketMessage::SubscriptionResponse {
             subscription_type: data.subscription.subscription_type,
         }),
+        RawSocketMessage::Error(message) => Ok(HyperliquidSocketMessage::Error { message }),
         RawSocketMessage::Unknown => Ok(HyperliquidSocketMessage::Unknown),
     }
 }
@@ -288,5 +289,17 @@ mod tests {
                 HyperliquidSubscription::SpotState { address },
             ]
         );
+    }
+
+    #[test]
+    fn test_parse_error_channel() {
+        let json = br#"{"channel":"error","data":"Already subscribed: {\"type\":\"candle\",\"interval\":\"30m\",\"coin\":\"UNI\"}"}"#;
+
+        match parse_websocket_data(json, PerpetualAccountMode::Standard).unwrap() {
+            HyperliquidSocketMessage::Error { message } => {
+                assert_eq!(message, r#"Already subscribed: {"type":"candle","interval":"30m","coin":"UNI"}"#);
+            }
+            other => panic!("expected Error, got {other:?}"),
+        }
     }
 }
