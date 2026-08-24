@@ -15,6 +15,7 @@ import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.StakeValidator
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -96,6 +97,57 @@ class StakeRepositoryTest {
             .sync(walletId, assetId, address = "address", apr = 0.0)
 
         assertTrue(savedValidators.isEmpty())
+    }
+
+    @Test
+    fun sync_keepsStoredDelegationsWhenFetchFails() = runTest {
+        val walletId = WalletId("wallet")
+        val assetId = mockAssetId(chain = Chain.Celestia)
+
+        val gemApiStaticClient = mockk<GemApiStaticClient> {
+            coEvery { getValidators(Chain.Celestia.string) } returns emptyList()
+        }
+        val stakeService = mockk<StakeService> {
+            coEvery { getValidators(Chain.Celestia, any()) } returns emptyList()
+            coEvery { getDelegationValidators(Chain.Celestia, any()) } returns emptyList()
+            coEvery { getStakeDelegations(Chain.Celestia, any()) } returns null
+        }
+        val stakeDao = mockk<StakeDao> {
+            every { getValidators(assetId, StakeProviderType.Stake) } returns flowOf(emptyList())
+            coEvery { getDelegationIds(walletId, assetId) } returns listOf("stored")
+            coEvery { updateAndDeleteDelegations(walletId, any(), any()) } just runs
+        }
+
+        StakeRepository(gemApiStaticClient, stakeService, stakeDao)
+            .sync(walletId, assetId, address = "address", apr = 0.0)
+
+        coVerify(exactly = 0) { stakeDao.updateAndDeleteDelegations(any(), any(), any()) }
+    }
+
+    @Test
+    fun sync_deletesStoredDelegationsWhenFetchReturnsEmpty() = runTest {
+        val walletId = WalletId("wallet")
+        val assetId = mockAssetId(chain = Chain.Celestia)
+        val deletedIds = mutableListOf<List<String>>()
+
+        val gemApiStaticClient = mockk<GemApiStaticClient> {
+            coEvery { getValidators(Chain.Celestia.string) } returns emptyList()
+        }
+        val stakeService = mockk<StakeService> {
+            coEvery { getValidators(Chain.Celestia, any()) } returns emptyList()
+            coEvery { getDelegationValidators(Chain.Celestia, any()) } returns emptyList()
+            coEvery { getStakeDelegations(Chain.Celestia, any()) } returns emptyList()
+        }
+        val stakeDao = mockk<StakeDao> {
+            every { getValidators(assetId, StakeProviderType.Stake) } returns flowOf(emptyList())
+            coEvery { getDelegationIds(walletId, assetId) } returns listOf("stored")
+            coEvery { updateAndDeleteDelegations(walletId, emptyList(), capture(deletedIds)) } just runs
+        }
+
+        StakeRepository(gemApiStaticClient, stakeService, stakeDao)
+            .sync(walletId, assetId, address = "address", apr = 0.0)
+
+        assertEquals(listOf("stored"), deletedIds.single())
     }
 
     @Test
