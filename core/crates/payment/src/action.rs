@@ -20,26 +20,7 @@ pub fn validate(payment: &PaymentQuoteData, addresses: &[ChainAddress]) -> Resul
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain, PaymentAction, PaymentLink, PaymentQuote};
-
-    fn payment(quoted: Chain, signing: Chain) -> PaymentQuoteData {
-        PaymentQuoteData {
-            quote: PaymentQuote {
-                id: "opt_1".to_string(),
-                link: PaymentLink::WalletConnectPay("pay_123".to_string()),
-                asset_id: AssetId::from_chain(quoted),
-                value: 1000u32.into(),
-                collect_data_url: None,
-                provider_data: "{}".to_string(),
-            },
-            action: PaymentAction::Send {
-                chain: signing,
-                recipient: "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string(),
-                value: 1000u32.into(),
-                data: String::new(),
-            },
-        }
-    }
+    use primitives::Chain;
 
     fn addresses(chains: &[Chain]) -> Vec<ChainAddress> {
         chains.iter().map(|chain| ChainAddress::new(*chain, "0x1".to_string())).collect()
@@ -47,21 +28,27 @@ mod tests {
 
     #[test]
     fn test_validate_accepts_a_payment_signed_on_the_quoted_chain() {
-        assert_eq!(validate(&payment(Chain::Ethereum, Chain::Ethereum), &addresses(&[Chain::Ethereum])), Ok(()));
+        let payment = PaymentQuoteData::mock(Chain::Ethereum, Chain::Ethereum);
+
+        assert_eq!(validate(&payment, &addresses(&[Chain::Ethereum])), Ok(()));
     }
 
     #[test]
     fn test_validate_refuses_a_payment_signed_off_the_quoted_chain() {
+        let payment = PaymentQuoteData::mock(Chain::Ethereum, Chain::SmartChain);
+
         assert_eq!(
-            validate(&payment(Chain::Ethereum, Chain::SmartChain), &addresses(&[Chain::Ethereum, Chain::SmartChain])),
+            validate(&payment, &addresses(&[Chain::Ethereum, Chain::SmartChain])),
             Err(PaymentError::InvalidRequest("Payment asks to sign on smartchain for a quote on ethereum".to_string()))
         );
     }
 
     #[test]
     fn test_validate_refuses_a_payment_the_wallet_has_no_account_for() {
+        let payment = PaymentQuoteData::mock(Chain::Ethereum, Chain::Ethereum);
+
         assert_eq!(
-            validate(&payment(Chain::Ethereum, Chain::Ethereum), &addresses(&[Chain::Bitcoin])),
+            validate(&payment, &addresses(&[Chain::Bitcoin])),
             Err(PaymentError::InvalidRequest("Payment asks to sign on ethereum".to_string()))
         );
     }

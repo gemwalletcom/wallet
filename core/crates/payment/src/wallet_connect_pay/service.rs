@@ -4,7 +4,8 @@ use primitives::{AssetId, ChainAddress, PaymentOptions, PaymentOutcome, PaymentQ
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::account::{get_account_identifier, is_supported};
 use crate::wallet_connect_pay::action_mapper::map_wallet_rpc;
-use crate::wallet_connect_pay::client::{WalletConnectPayAuth, WalletConnectPayClient};
+use crate::wallet_connect_pay::client::WalletConnectPayClient;
+use crate::wallet_connect_pay::config::WalletConnectPayAuth;
 use crate::wallet_connect_pay::model::{PaymentOption, WalletConnectPayAction, WalletRpcAction};
 use crate::wallet_connect_pay::payment_mapper;
 use primitives::{PaymentAction, PaymentQuoteData};
@@ -71,8 +72,8 @@ impl<C: Client> WalletConnectPayService<C> {
 
     async fn wallet_rpc_actions(&self, payment_id: &str, option: &PaymentOption) -> Result<Vec<WalletRpcAction>, PaymentError> {
         let actions = match option.actions.first() {
-            None => self.client.get_actions(payment_id, &option.id, String::new()).await?,
-            Some(WalletConnectPayAction::Build(build)) => self.client.get_actions(payment_id, &option.id, build.data.clone()).await?,
+            None => self.client.get_actions(payment_id, &option.id, String::new()).await?.actions,
+            Some(WalletConnectPayAction::Build(build)) => self.client.get_actions(payment_id, &option.id, build.data.clone()).await?.actions,
             Some(WalletConnectPayAction::WalletRpc(_)) => option.actions.clone(),
         };
 
@@ -88,9 +89,10 @@ impl<C: Client> WalletConnectPayService<C> {
 mod tests {
     use super::*;
 
+    use crate::wallet_connect_pay::testkit::{FETCH_RESPONSE_NATIVE, OPTIONS_RESPONSE_COIN, OPTIONS_RESPONSE_NATIVE, TEST_PAYMENT_ID, mock_addresses};
     use gem_client::ClientError;
     use gem_client::testkit::MockClient;
-    use primitives::{AssetId, Chain, PaymentLink, PaymentMerchant};
+    use primitives::{AssetId, Chain, PaymentLink};
     use std::sync::{Arc, Mutex};
 
     fn service(mock: MockClient) -> WalletConnectPayService<MockClient> {
@@ -98,9 +100,7 @@ mod tests {
     }
 
     fn service_with_response() -> WalletConnectPayService<MockClient> {
-        service(MockClient::new().with_post(move |_, _| {
-            Ok(include_str!("../../testdata/options_response_coin.json").as_bytes().to_vec())
-        }))
+        service(MockClient::new().with_post(move |_, _| Ok(OPTIONS_RESPONSE_COIN.as_bytes().to_vec())))
     }
 
     #[tokio::test]
@@ -115,15 +115,15 @@ mod tests {
                     body: br#"{"code":"quote_expired"}"#.to_vec(),
                 });
             }
-            Ok(include_str!("../../testdata/options_response_coin.json").as_bytes().to_vec())
+            Ok(OPTIONS_RESPONSE_COIN.as_bytes().to_vec())
         });
         let service = service(client);
-        let PaymentOptions::Quotes(quotes) = service.get_options("pay_123", &addresses()).await.unwrap() else {
+        let PaymentOptions::Quotes(quotes) = service.get_options(TEST_PAYMENT_ID, &mock_addresses()).await.unwrap() else {
             panic!("Expected quotes");
         };
         let selected = quotes.quotes.first().unwrap().clone();
 
-        let result = service.get_quote_data("pay_123", &selected, &addresses()).await;
+        let result = service.get_quote_data(TEST_PAYMENT_ID, &selected, &mock_addresses()).await;
 
         let paths = requested.lock().unwrap().clone();
         assert!(paths.iter().filter(|path| path.contains("/options")).count() == 2, "expected a requote, got {paths:?}");
@@ -132,22 +132,7 @@ mod tests {
 
     #[test]
     fn test_get_quote_keeps_the_chosen_asset() {
-        let quote = |chain: Chain| PaymentQuote {
-            id: chain.as_ref().to_string(),
-            link: PaymentLink::WalletConnectPay("pay_123".to_string()),
-            asset_id: AssetId::from_chain(chain),
-            value: 1u32.into(),
-            collect_data_url: None,
-            provider_data: "{}".to_string(),
-        };
-        let quotes = PaymentQuotes {
-            merchant: PaymentMerchant {
-                name: "Merchant".to_string(),
-                icon_url: None,
-            },
-            price: None,
-            quotes: vec![quote(Chain::Ethereum), quote(Chain::Bitcoin)],
-        };
+        let quotes = PaymentQuotes::mock(vec![PaymentQuote::mock_with_chain(Chain::Ethereum), PaymentQuote::mock_with_chain(Chain::Bitcoin)]);
 
         let chosen = WalletConnectPayService::<MockClient>::get_quote(&quotes, &AssetId::from_chain(Chain::Bitcoin)).unwrap();
         assert_eq!(chosen.asset_id, AssetId::from_chain(Chain::Bitcoin));
@@ -156,20 +141,13 @@ mod tests {
         assert_eq!(gone, Err(PaymentError::QuoteExpired));
     }
 
-    fn addresses() -> Vec<ChainAddress> {
-        vec![
-            ChainAddress::new(Chain::Ethereum, "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string()),
-            ChainAddress::new(Chain::Bitcoin, "bc1".to_string()),
-        ]
-    }
-
     #[tokio::test]
     async fn test_get_quote_data_signs_the_gateway_settlement_call() {
         let client = MockClient::new().with_post(|path: &str, _| {
             let fixture = if path.contains("/fetch") {
-                include_str!("../../testdata/fetch_response_native.json").to_string()
+                FETCH_RESPONSE_NATIVE.to_string()
             } else {
-                let mut response: serde_json::Value = serde_json::from_str(include_str!("../../testdata/options_response_native.json")).unwrap();
+                let mut response: serde_json::Value = serde_json::from_str(OPTIONS_RESPONSE_NATIVE).unwrap();
                 response["info"]["expiresAt"] = serde_json::json!(4102444800i64);
                 response["options"][1]["expiresAt"] = serde_json::json!(4102444800i64);
                 response.to_string()
@@ -178,7 +156,7 @@ mod tests {
         });
         let service = service(client);
         let addresses = vec![ChainAddress::new(Chain::Ethereum, "0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB".to_string())];
-        let PaymentOptions::Quotes(quotes) = service.get_options("pay_123", &addresses).await.unwrap() else {
+        let PaymentOptions::Quotes(quotes) = service.get_options(TEST_PAYMENT_ID, &addresses).await.unwrap() else {
             panic!("Expected quotes");
         };
 
@@ -186,7 +164,7 @@ mod tests {
         let quote = quotes.quotes.first().unwrap();
         assert_eq!(quote.value, 14192816625800u64.into());
 
-        let payment = service.get_quote_data("pay_123", quote, &addresses).await.unwrap();
+        let payment = service.get_quote_data(TEST_PAYMENT_ID, quote, &addresses).await.unwrap();
 
         assert_eq!(
             payment.action,
@@ -202,14 +180,14 @@ mod tests {
     #[tokio::test]
     async fn test_options() {
         let service = service_with_response();
-        let prepared = service.get_options("pay_123", &addresses()).await.unwrap();
+        let prepared = service.get_options(TEST_PAYMENT_ID, &mock_addresses()).await.unwrap();
 
         let PaymentOptions::Quotes(quotes) = prepared else {
             panic!("Expected Ready, got {prepared:?}");
         };
         assert_eq!(quotes.merchant.name, "Gem Wallet Test Merchant");
         let quote = quotes.quotes.first().unwrap();
-        assert_eq!(quote.link, PaymentLink::WalletConnectPay("pay_123".to_string()));
+        assert_eq!(quote.link, PaymentLink::WalletConnectPay(TEST_PAYMENT_ID.to_string()));
         assert_eq!(quote.value, 16975688363325440u64.into());
         assert_eq!(WalletConnectPayService::<MockClient>::option(quote).unwrap().id, "opt_eth");
     }
@@ -219,7 +197,7 @@ mod tests {
         let unsupported = vec![ChainAddress::new(Chain::Bitcoin, "bc1".to_string())];
 
         assert_eq!(
-            service_with_response().get_options("pay_123", &unsupported).await,
+            service_with_response().get_options(TEST_PAYMENT_ID, &unsupported).await,
             Err(PaymentError::NoPaymentOptions)
         );
     }

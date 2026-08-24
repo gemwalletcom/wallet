@@ -101,57 +101,69 @@ fn coin_asset_id(unit: &str) -> Option<AssetId> {
 mod tests {
     use super::*;
     use crate::wallet_connect_pay::model::PaymentResultInfo;
+    use crate::wallet_connect_pay::testkit::{TEST_ACCOUNT_POLYGON, TEST_PAYMENT_ID, mock_accounts};
     use primitives::Chain;
 
-    const ACCOUNT: &str = "eip155:1:0x1085c5f70F7F7591D97da281A64688385455c2bD";
-
-    fn options_response() -> PaymentOptionsResponse {
-        serde_json::from_str(include_str!("../../testdata/options_response_coin.json")).unwrap()
-    }
-
-    fn accounts() -> Vec<String> {
-        vec![ACCOUNT.to_string()]
-    }
-
     fn quotes(response: PaymentOptionsResponse) -> Vec<PaymentQuote> {
-        match map_options(response, "pay_123", &accounts()).unwrap() {
+        match map_options(response, TEST_PAYMENT_ID, &mock_accounts()).unwrap() {
             PaymentOptions::Quotes(quotes) => quotes.quotes,
             PaymentOptions::Outcome(outcome) => panic!("expected quotes, got {outcome:?}"),
         }
     }
 
+    fn collects_data_from(url: &str) -> Option<String> {
+        map_quote(PaymentOption::mock_collect_data_from(url), TEST_PAYMENT_ID, &mock_accounts())?.collect_data_url
+    }
+
     #[test]
-    fn test_map_options_quotes_a_payment_in_the_coins_it_can_pay_with() {
-        let PaymentOptions::Quotes(quotes) = map_options(options_response(), "pay_123", &accounts()).unwrap() else {
+    fn test_map_options() {
+        let PaymentOptions::Quotes(quotes) = map_options(PaymentOptionsResponse::mock(), TEST_PAYMENT_ID, &mock_accounts()).unwrap() else {
             panic!("expected quotes");
         };
-
         assert_eq!(quotes.merchant.name, "Gem Wallet Test Merchant");
         assert_eq!(quotes.price.unwrap().symbol, "USD");
 
+        assert_eq!(quotes.quotes.len(), 1, "the token option must be dropped");
         let quote = &quotes.quotes[0];
         assert_eq!(quote.id, "opt_eth");
-        assert_eq!(quote.link, PaymentLink::WalletConnectPay("pay_123".to_string()));
+        assert_eq!(quote.link, PaymentLink::WalletConnectPay(TEST_PAYMENT_ID.to_string()));
         assert_eq!(quote.asset_id, AssetId::from_chain(Chain::Ethereum));
         assert_eq!(quote.collect_data_url, None);
     }
 
     #[test]
-    fn test_map_options_refuses_a_payment_it_can_no_longer_pay() {
-        let mut expired = options_response();
-        expired.info.as_mut().unwrap().status = PaymentStatus::Expired;
-        assert_eq!(map_options(expired, "pay_123", &accounts()), Err(PaymentError::PaymentExpired));
+    fn test_map_options_refuses_a_payment_it_cannot_quote() {
+        let map = |response| map_options(response, TEST_PAYMENT_ID, &mock_accounts());
 
-        let mut cancelled = options_response();
-        cancelled.info.as_mut().unwrap().status = PaymentStatus::Cancelled;
-        assert_eq!(map_options(cancelled, "pay_123", &accounts()), Err(PaymentError::PaymentExpired));
+        assert_eq!(map(PaymentOptionsResponse::mock_with_status(PaymentStatus::Expired)), Err(PaymentError::PaymentExpired));
+        assert_eq!(map(PaymentOptionsResponse::mock_with_status(PaymentStatus::Cancelled)), Err(PaymentError::PaymentExpired));
+        assert_eq!(map(PaymentOptionsResponse::mock_with_status(PaymentStatus::Failed)), Err(PaymentError::PaymentExpired));
+        assert_eq!(map(PaymentOptionsResponse::mock_without_info()), Err(PaymentError::PaymentNotFound));
+
+        let mut nothing_payable = PaymentOptionsResponse::mock();
+        nothing_payable.options.as_mut().unwrap().clear();
+        assert_eq!(map(nothing_payable), Err(PaymentError::NoPaymentOptions));
     }
 
     #[test]
-    fn test_map_options_offers_quotes_asking_for_no_personal_data_first() {
-        let mut response = options_response();
+    fn test_map_options_keeps_the_transaction_of_a_settled_payment() {
+        let mut response = PaymentOptionsResponse::mock_with_status(PaymentStatus::Succeeded);
+        response.result_info = Some(PaymentResultInfo { tx_id: "test:pay_1".to_string() });
+
+        assert_eq!(
+            map_options(response, TEST_PAYMENT_ID, &mock_accounts()).unwrap(),
+            PaymentOptions::Outcome(PaymentOutcome {
+                status: PaymentStatus::Succeeded,
+                transaction_id: Some("test:pay_1".to_string()),
+            })
+        );
+    }
+
+    #[test]
+    fn test_map_quotes_offers_quotes_asking_for_no_personal_data_first() {
+        let mut response = PaymentOptionsResponse::mock();
         let options = response.options.as_mut().unwrap();
-        options[1] = serde_json::from_str(include_str!("../../testdata/option_collect_data.json")).unwrap();
+        options[1] = PaymentOption::mock_collect_data();
         options.swap(0, 1);
 
         let quotes = quotes(response);
@@ -162,7 +174,31 @@ mod tests {
     }
 
     #[test]
-    fn test_asset_id_reads_the_chain_coin_and_refuses_a_token() {
+    fn test_map_quote_refuses_an_account_the_wallet_cannot_sign_for() {
+        let mut off_chain = PaymentOption::mock_collect_data();
+        off_chain.account = TEST_ACCOUNT_POLYGON.to_string();
+        assert_eq!(map_quote(off_chain.clone(), TEST_PAYMENT_ID, &[off_chain.account.clone()]), None);
+
+        let stranger = PaymentOption::mock_collect_data();
+        assert_eq!(map_quote(stranger, TEST_PAYMENT_ID, &["eip155:1:0xdeadbeef".to_string()]), None);
+    }
+
+    #[test]
+    fn test_map_quote_only_collects_data_on_the_gateway_domain() {
+        assert_eq!(
+            collects_data_from("https://data-collection.walletconnect.com/ic/pay_123"),
+            Some("https://data-collection.walletconnect.com/ic/pay_123".to_string())
+        );
+
+        assert_eq!(collects_data_from("https://evil.com/ic/pay_123"), None);
+        assert_eq!(collects_data_from("https://evil-walletconnect.com/ic/pay_123"), None);
+        assert_eq!(collects_data_from("https://walletconnect.com.evil.com/ic/pay_123"), None);
+        assert_eq!(collects_data_from("http://walletconnect.com/ic/pay_123"), None);
+        assert_eq!(collects_data_from("not a url"), None);
+    }
+
+    #[test]
+    fn test_coin_asset_id() {
         assert_eq!(coin_asset_id("caip19/eip155:1/slip44:60"), Some(AssetId::from(Chain::Ethereum, None)));
         assert_eq!(coin_asset_id("caip19/eip155:1").unwrap(), AssetId::from(Chain::Ethereum, None));
 
@@ -173,101 +209,8 @@ mod tests {
     }
 
     #[test]
-    fn test_map_option_refuses_an_account_off_the_quoted_chain() {
-        let mut option: PaymentOption = serde_json::from_str(include_str!("../../testdata/option_collect_data.json")).unwrap();
-        option.account = "eip155:137:0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string();
-
-        assert_eq!(map_quote(option.clone(), "pay_123", &[option.account.clone()]), None);
-    }
-
-    #[test]
-    fn test_map_option_refuses_an_account_the_wallet_did_not_offer() {
-        let option: PaymentOption = serde_json::from_str(include_str!("../../testdata/option_collect_data.json")).unwrap();
-
-        assert_eq!(map_quote(option, "pay_123", &["eip155:1:0xdeadbeef".to_string()]), None);
-    }
-
-    #[test]
-    fn test_map_option_with_collect_data() {
-        let option: PaymentOption = serde_json::from_str(include_str!("../../testdata/option_collect_data.json")).unwrap();
-        let mapped = map_quote(option.clone(), "pay_123", &accounts()).unwrap();
-
-        assert_eq!(mapped.collect_data_url.unwrap(), "https://data-collection.walletconnect.com/ic/pay_123");
-
-        for url in [
-            "https://evil.com/ic/pay_123",
-            "https://evil-walletconnect.com/ic/pay_123",
-            "https://walletconnect.com.evil.com/ic/pay_123",
-            "http://walletconnect.com/ic/pay_123",
-            "not a url",
-        ] {
-            let mut off_domain = option.clone();
-            off_domain.collect_data.as_mut().unwrap().url = url.to_string();
-
-            assert!(map_quote(off_domain, "pay_123", &accounts()).is_none(), "{url} must not reach the collection web view");
-        }
-    }
-
-    #[test]
-    fn test_map_options_refuses_a_payment_with_nothing_payable() {
-        let mut response = options_response();
-        response.options.as_mut().unwrap().clear();
-
-        assert_eq!(map_options(response, "pay_123", &accounts()), Err(PaymentError::NoPaymentOptions));
-    }
-
-    #[test]
-    fn test_map_options_drops_a_quote_priced_in_a_token() {
-        let quotes = quotes(options_response());
-
-        assert_eq!(quotes.len(), 1);
-        assert_eq!(quotes[0].asset_id, AssetId::from_chain(Chain::Ethereum));
-    }
-
-    #[test]
-    fn test_map_options_drops_an_option_quoted_against_another_wallet() {
-        let mut response = options_response();
-        let options = response.options.as_mut().unwrap();
-        options[1] = options[0].clone();
-        options[1].id = "opt_stranger".to_string();
-        options[1].account = "eip155:1:0x1234567890123456789012345678901234567890".to_string();
-
-        let quotes = quotes(response);
-
-        assert_eq!(quotes.len(), 1);
-        assert_eq!(quotes[0].id, "opt_eth");
-    }
-
-    #[test]
-    fn test_map_payment_options_without_info() {
-        let response = PaymentOptionsResponse {
-            info: None,
-            options: None,
-            result_info: None,
-        };
-
-        assert_eq!(map_options(response, "pay_123", &accounts()), Err(PaymentError::PaymentNotFound));
-    }
-
-    #[test]
-    fn test_map_options_keeps_the_transaction_of_a_settled_payment() {
-        let mut response = options_response();
-        response.info.as_mut().unwrap().status = PaymentStatus::Succeeded;
-        response.result_info = Some(PaymentResultInfo { tx_id: "test:pay_1".to_string() });
-
-        assert_eq!(
-            map_options(response, "pay_123", &accounts()).unwrap(),
-            PaymentOptions::Outcome(PaymentOutcome {
-                status: PaymentStatus::Succeeded,
-                transaction_id: Some("test:pay_1".to_string()),
-            })
-        );
-    }
-
-    #[test]
     fn test_map_payment_outcome() {
-        let response: PaymentStatusResponse = serde_json::from_str(include_str!("../../testdata/status_response_succeeded.json")).unwrap();
-        let outcome = map_payment_outcome(response);
+        let outcome = map_payment_outcome(PaymentStatusResponse::mock_succeeded());
 
         assert_eq!(outcome.status, PaymentStatus::Succeeded);
         assert_eq!(outcome.transaction_id.unwrap(), "test:pay_b9a2ecc101KYJAYCGQZ9E0K6NY7SR7YVV4");

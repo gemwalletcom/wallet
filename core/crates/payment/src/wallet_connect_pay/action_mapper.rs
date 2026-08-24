@@ -98,7 +98,7 @@ fn hex_value(value: &str) -> Result<BigUint, PaymentError> {
 mod tests {
     use super::*;
     use crate::wallet_connect_pay::model::{FetchActionsResponse, WalletConnectPayAction};
-    use crate::wallet_connect_pay::testkit::{TEST_ACCOUNT_ETHEREUM, TEST_ACCOUNT_POLYGON};
+    use crate::wallet_connect_pay::testkit::{FETCH_RESPONSE_PERMIT2, TEST_ACCOUNT_ETHEREUM, TEST_ACCOUNT_POLYGON, TEST_ADDRESS, TEST_EVM_RECIPIENT};
     use primitives::Chain;
 
     fn wallet_rpc(fixture: &str) -> WalletRpcAction {
@@ -120,8 +120,8 @@ mod tests {
     #[test]
     fn test_map_a_native_send() {
         let action = ethereum_transfer(serde_json::json!({
-            "from": "0x1085c5f70F7F7591D97da281A64688385455c2bD",
-            "to": "0xcB3028d6120802148f03d6c884D6AD6A210Df62A",
+            "from": TEST_ADDRESS,
+            "to": TEST_EVM_RECIPIENT,
             "value": "0x3c4f4c72b6b800",
             "data": "0x"
         }));
@@ -130,7 +130,7 @@ mod tests {
             map_wallet_rpc(TEST_ACCOUNT_ETHEREUM, &16975688363325440u64.into(), &action).unwrap(),
             PaymentAction::Send {
                 chain: Chain::Ethereum,
-                recipient: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
+                recipient: TEST_EVM_RECIPIENT.to_string(),
                 value: 16975688363325440u64.into(),
                 data: "0x".to_string(),
             }
@@ -141,8 +141,8 @@ mod tests {
     #[test]
     fn test_map_a_native_send_without_call_data() {
         let action = ethereum_transfer(serde_json::json!({
-            "from": "0x1085c5f70F7F7591D97da281A64688385455c2bD",
-            "to": "0xcB3028d6120802148f03d6c884D6AD6A210Df62A",
+            "from": TEST_ADDRESS,
+            "to": TEST_EVM_RECIPIENT,
             "value": "0x1"
         }));
 
@@ -151,30 +151,37 @@ mod tests {
 
     #[test]
     fn test_refuses_a_call_paying_a_different_value_than_quoted() {
-        let approval = wallet_rpc(include_str!("../../testdata/fetch_response_permit2.json"));
+        let approval = wallet_rpc(FETCH_RESPONSE_PERMIT2);
         assert_eq!(
             map_wallet_rpc(TEST_ACCOUNT_POLYGON, &1u32.into(), &approval),
             Err(PaymentError::InvalidRequest("Payment asks to send 0 for a quote of 1".to_string()))
         );
 
-        for method in ["eth_signTypedData_v4", "solana_signTransaction", "personal_sign"] {
+        let refused = |method: &str| {
             let action = WalletRpcAction {
                 chain_id: "eip155:1".to_string(),
                 method: method.to_string(),
                 params: serde_json::json!([TEST_ACCOUNT_ETHEREUM, "{}"]),
             };
-            assert_eq!(
-                map_wallet_rpc(TEST_ACCOUNT_ETHEREUM, &1u32.into(), &action),
-                Err(PaymentError::InvalidRequest(format!("Payment asks for {method}")))
-            );
-        }
+            map_wallet_rpc(TEST_ACCOUNT_ETHEREUM, &1u32.into(), &action)
+        };
+
+        assert_eq!(
+            refused("eth_signTypedData_v4"),
+            Err(PaymentError::InvalidRequest("Payment asks for eth_signTypedData_v4".to_string()))
+        );
+        assert_eq!(
+            refused("solana_signTransaction"),
+            Err(PaymentError::InvalidRequest("Payment asks for solana_signTransaction".to_string()))
+        );
+        assert_eq!(refused("personal_sign"), Err(PaymentError::InvalidRequest("Payment asks for personal_sign".to_string())));
     }
 
     #[test]
     fn test_refuses_a_transfer_from_another_account() {
         let action = ethereum_transfer(serde_json::json!({
-            "from": "0xcB3028d6120802148f03d6c884D6AD6A210Df62A",
-            "to": "0xcB3028d6120802148f03d6c884D6AD6A210Df62A",
+            "from": TEST_EVM_RECIPIENT,
+            "to": TEST_EVM_RECIPIENT,
             "value": "0x1"
         }));
 
@@ -187,8 +194,8 @@ mod tests {
     #[test]
     fn test_refuses_an_action_on_another_chain_than_its_account() {
         let action = ethereum_transfer(serde_json::json!({
-            "from": "0x1085c5f70F7F7591D97da281A64688385455c2bD",
-            "to": "0xcB3028d6120802148f03d6c884D6AD6A210Df62A",
+            "from": TEST_ADDRESS,
+            "to": TEST_EVM_RECIPIENT,
             "value": "0x1"
         }));
 

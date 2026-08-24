@@ -43,9 +43,11 @@ mod tests {
         assert!(is_supported(Chain::Ethereum));
         assert!(is_supported(Chain::Base));
 
-        for chain in [Chain::Bitcoin, Chain::Solana, Chain::Cosmos, Chain::Ton, Chain::Tron] {
-            assert!(!is_supported(chain), "{} must not be offered to the gateway", chain.as_ref());
-        }
+        assert!(!is_supported(Chain::Bitcoin));
+        assert!(!is_supported(Chain::Solana));
+        assert!(!is_supported(Chain::Cosmos));
+        assert!(!is_supported(Chain::Ton));
+        assert!(!is_supported(Chain::Tron));
     }
 
     #[test]
