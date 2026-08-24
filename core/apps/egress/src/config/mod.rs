@@ -2,6 +2,7 @@ mod loader;
 
 use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
+use std::num::NonZeroU32;
 use std::time::Duration;
 
 use serde::Deserialize;
@@ -68,8 +69,16 @@ pub(crate) struct RouteConfig {
     pub group: String,
     pub service: String,
     pub selection: Selection,
+    pub rate: Option<RateConfig>,
     pub retry: Option<RetryOverride>,
     pub endpoints: Vec<EndpointConfig>,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize)]
+pub(crate) struct RateConfig {
+    pub requests: NonZeroU32,
+    #[serde(deserialize_with = "duration::deserialize")]
+    pub period: Duration,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize)]

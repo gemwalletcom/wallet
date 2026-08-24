@@ -16,6 +16,7 @@ pub(crate) struct Metrics {
     failovers: Family<FailoverLabels, Counter>,
     inflight: Family<TrafficLabels, Gauge>,
     upstream_latency: Family<UpstreamLabels, Histogram>,
+    throttle_wait: Family<EndpointLabels, Histogram>,
     cooldowns: Family<CooldownLabels, TimestampGauge>,
     proxy_available: Family<ProxyLabels, Gauge>,
 }
@@ -73,6 +74,14 @@ struct UpstreamLabels {
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+struct EndpointLabels {
+    caller: String,
+    group: String,
+    service: String,
+    endpoint: String,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 struct CooldownLabels {
     group: String,
     service: String,
@@ -92,6 +101,7 @@ impl Metrics {
         let failovers = Family::<FailoverLabels, Counter>::default();
         let inflight = Family::<TrafficLabels, Gauge>::default();
         let upstream_latency = Family::<UpstreamLabels, Histogram>::new_with_constructor(|| Histogram::new(exponential_buckets(10.0, 2.0, 10)));
+        let throttle_wait = Family::<EndpointLabels, Histogram>::new_with_constructor(|| Histogram::new(exponential_buckets(10.0, 2.0, 10)));
         let cooldowns = Family::<CooldownLabels, TimestampGauge>::default();
         let proxy_available = Family::<ProxyLabels, Gauge>::default();
         let mut registry = MetricsRegistry::with_prefix("egress");
@@ -102,6 +112,9 @@ impl Metrics {
         registry
             .registry_mut()
             .register("upstream_latency_milliseconds", "Upstream response latency", upstream_latency.clone());
+        registry
+            .registry_mut()
+            .register("throttle_wait_milliseconds", "Time spent waiting for an endpoint rate limit", throttle_wait.clone());
         registry
             .registry_mut()
             .register("cooldown_until_seconds", "Endpoint path cooldown expiry time", cooldowns.clone());
@@ -115,6 +128,7 @@ impl Metrics {
             failovers,
             inflight,
             upstream_latency,
+            throttle_wait,
             cooldowns,
             proxy_available,
         }
@@ -178,6 +192,17 @@ impl Metrics {
                 status,
             })
             .observe(latency.as_secs_f64() * 1000.0);
+    }
+
+    pub(crate) fn record_throttle_wait(&self, caller: &str, group: &str, service: &str, endpoint: &str, wait: Duration) {
+        self.throttle_wait
+            .get_or_create(&EndpointLabels {
+                caller: caller.to_string(),
+                group: group.to_string(),
+                service: service.to_string(),
+                endpoint: endpoint.to_string(),
+            })
+            .observe(wait.as_secs_f64() * 1000.0);
     }
 
     pub(crate) fn set_cooldown(&self, group: &str, service: &str, endpoint: &str, path: &str, duration: Duration) {
@@ -249,6 +274,7 @@ mod tests {
         let metrics = Metrics::new();
         let inflight = metrics.track_inflight("worker", "prices", "jupiter");
         metrics.record_upstream_latency("worker", "prices", "jupiter", "key_1", 200, Duration::from_millis(125));
+        metrics.record_throttle_wait("worker", "prices", "jupiter", "key_1", Duration::from_millis(175));
         metrics.set_cooldown("prices", "jupiter", "key_1", "/tokens/v2/tag", Duration::from_secs(60));
 
         let encoded = metrics.encode();
@@ -259,6 +285,10 @@ mod tests {
         assert_eq!(
             metric_line(&encoded, "egress_upstream_latency_milliseconds_sum{"),
             "egress_upstream_latency_milliseconds_sum{caller=\"worker\",group=\"prices\",service=\"jupiter\",endpoint=\"key_1\",status=\"200\"} 125.0"
+        );
+        assert_eq!(
+            metric_line(&encoded, "egress_throttle_wait_milliseconds_sum{"),
+            "egress_throttle_wait_milliseconds_sum{caller=\"worker\",group=\"prices\",service=\"jupiter\",endpoint=\"key_1\"} 175.0"
         );
         let cooldown = metric_line(&encoded, "egress_cooldown_until_seconds{");
         let (labels, expiry) = cooldown.split_once("} ").unwrap();

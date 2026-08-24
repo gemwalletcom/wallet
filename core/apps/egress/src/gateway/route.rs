@@ -38,10 +38,11 @@ pub(super) enum MatchError {
 impl Route {
     pub(super) fn new(config: RouteConfig, default_statuses: &[u16], direct_client: &Client, proxies: &HashMap<String, OutboundProxy>) -> Result<Self, BoxError> {
         let statuses = config.retry.map_or_else(|| default_statuses.to_vec(), |retry| retry.statuses);
+        let rate = config.rate;
         let endpoints = config
             .endpoints
             .into_iter()
-            .map(|endpoint| Endpoint::new(endpoint, direct_client, proxies))
+            .map(|endpoint| Endpoint::new(endpoint, rate, direct_client, proxies))
             .collect::<Result<Vec<_>, BoxError>>()?;
         Ok(Self {
             group: config.group,
@@ -141,6 +142,7 @@ mod tests {
                 query: Some(query),
                 proxy: None,
             },
+            None,
             &Client::new(),
             &HashMap::new(),
         )

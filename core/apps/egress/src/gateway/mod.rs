@@ -150,6 +150,12 @@ impl Gateway {
                     return Err(GatewayError::new(Status::BadRequest, error.to_string()));
                 }
             };
+            if let Some(wait) = endpoint.throttle().await {
+                self.metrics.record_throttle_wait(caller, &route.group, &route.service, &endpoint.name, wait);
+            }
+            if !self.endpoint_available(route, endpoint, &path).await {
+                continue;
+            }
             let started = Instant::now();
             match endpoint.send(&method, target, headers, &self.forward_headers, body.clone()).await {
                 Ok((response, retry_after)) => {
@@ -321,6 +327,7 @@ mod tests {
                     group: "indexer".to_string(),
                     service: "blockscout".to_string(),
                     selection: Selection::Ordered,
+                    rate: None,
                     retry: None,
                     endpoints: ["key_1", "key_2"]
                         .map(|name| EndpointConfig {
