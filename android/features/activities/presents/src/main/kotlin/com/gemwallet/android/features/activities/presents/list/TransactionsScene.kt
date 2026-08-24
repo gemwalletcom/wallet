@@ -59,7 +59,6 @@ internal fun TransactionsScene(
                 )
             }
         },
-        navigationBarPadding = false,
     ) {
         PullToRefreshBox(
             isRefreshing = isRefreshing,

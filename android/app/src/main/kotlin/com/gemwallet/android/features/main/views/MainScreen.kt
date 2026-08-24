@@ -4,6 +4,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -182,7 +184,12 @@ fun MainScreen(
             }
         }
     ) {
-        Box(modifier = Modifier.padding(bottom = it.calculateBottomPadding())) {
+        val bottomPadding = it.calculateBottomPadding()
+        Box(
+            modifier = Modifier
+                .padding(bottom = bottomPadding)
+                .consumeWindowInsets(PaddingValues(bottom = bottomPadding))
+        ) {
             CompositionLocalProvider(LocalConnectionBannerHandled provides true) {
             AnimatedContent(
                 targetState = currentTab.value,
