@@ -69,6 +69,14 @@ impl NFTProviders {
         try_in_order(operations).await.ok().flatten()
     }
 
+    pub async fn get_asset_ids(&self, chain: Chain, address: &str) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>> {
+        let provider = self
+            .providers_for_chain(chain)
+            .next()
+            .ok_or_else(|| format!("no NFT provider for chain {}", chain.as_ref()))?;
+        provider.get_assets(chain, address.to_string()).await
+    }
+
     pub async fn get_nft_data(&self, chain: Chain, address: &str) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
         let provider = self
             .providers_for_chain(chain)
