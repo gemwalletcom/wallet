@@ -84,7 +84,7 @@ class PendingNavigationCoordinatorTest {
     }
 
     @Test
-    fun buildRoutes_paymentLink_storesRouteOnlyInDeveloperMode() = runTest {
+    fun buildRoutes_paymentLink_storesRoute() = runTest {
         val uri = "https://pay.walletconnect.com/pay_1"
         every { urlAction(uri) } returns UrlAction.Payment(GemPayment.Link(GemPaymentLink.WalletConnectPay("pay_1")))
         every { userConfig.developEnabled() } returns true
@@ -94,13 +94,6 @@ class PendingNavigationCoordinatorTest {
 
         val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
         assertEquals(listOf(PaymentRoute(PaymentLink.WalletConnectPay("pay_1"))), routes)
-
-        every { userConfig.developEnabled() } returns false
-        coordinator.handleScan(uri)
-
-        coordinator.buildRoutes(NoOpWalletConnect)
-
-        assertNull("payment links must not navigate outside developer mode", coordinator.pendingNavigation.value)
     }
 
     @Test

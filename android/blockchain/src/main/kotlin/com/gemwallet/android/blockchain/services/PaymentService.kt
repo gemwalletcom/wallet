@@ -18,9 +18,7 @@ class PaymentService(
         client.getOptions(link.toGem(), wallet.gemChainAddresses()).toPrimitives()
 
     suspend fun getQuoteData(quote: PaymentQuote, wallet: Wallet): PaymentQuoteData =
-        requireNotNull(client.getQuoteData(quote.toGem(), wallet.gemChainAddresses()).toPrimitives()) {
-            "Payment asks for an unsupported chain"
-        }
+        client.getQuoteData(quote.toGem(), wallet.gemChainAddresses()).toPrimitives()
 
     suspend fun confirm(quote: PaymentQuote, transactionHash: String): PaymentOutcome =
         client.confirm(quote.toGem(), transactionHash).toPrimitives()

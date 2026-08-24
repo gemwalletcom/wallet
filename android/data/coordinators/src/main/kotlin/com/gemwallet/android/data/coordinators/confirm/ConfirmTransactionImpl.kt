@@ -211,7 +211,8 @@ internal fun ConfirmParams.toTransactionMetadataJson(): String? = when (this) {
     is ConfirmParams.Stake.Unfreeze -> jsonEncoder.encodeToString(
         TransactionResourceTypeMetadata(resource)
     )
-    is ConfirmParams.TransferParams.Payment ->
-        jsonEncoder.encodeToString(TransactionPaymentMetadata(link = payment.quote.link, merchant = payment.merchant))
+    is ConfirmParams.TransferParams.Payment -> jsonEncoder.encodeToString(
+        TransactionPaymentMetadata(payment.quote.link, payment.merchant)
+    )
     else -> null
 }

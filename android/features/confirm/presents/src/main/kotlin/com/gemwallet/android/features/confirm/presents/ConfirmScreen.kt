@@ -46,7 +46,6 @@ import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
-import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.walletImageModel
@@ -134,7 +133,7 @@ fun ConfirmScreen(
 
     val perpetualType by viewModel.perpetualType.collectAsStateWithLifecycle()
     Scene(
-        title = confirmTitle(params, amountModel?.transactionType, perpetualType),
+        title = params?.title() ?: stringResource(R.string.transfer_title),
         closeIcon = params is ConfirmParams.TransferParams.Generic,
         onClose = { cancelAction() },
         mainAction = {
@@ -411,13 +410,9 @@ fun ConfirmError.toLabel() = when (this) {
 }
 
 @Composable
-private fun confirmTitle(
-    params: ConfirmParams?,
-    transactionType: TransactionType?,
-    perpetualType: PerpetualType?,
-): String = when {
-    params is ConfirmParams.TransferParams.Payment -> stringResource(R.string.transfer_payment_title)
-    params is ConfirmParams.TransferParams.Generic -> stringResource(R.string.transfer_review_request)
-    perpetualType != null -> perpetualType.title()
-    else -> stringResource(transactionType?.getTitle() ?: R.string.transfer_title)
+private fun ConfirmParams.title(): String = when (this) {
+    is ConfirmParams.TransferParams.Payment -> stringResource(R.string.transfer_payment_title)
+    is ConfirmParams.TransferParams.Generic -> stringResource(R.string.transfer_review_request)
+    is ConfirmParams.PerpetualParams -> perpetualType.title()
+    else -> stringResource(getTransactionType().getTitle())
 }

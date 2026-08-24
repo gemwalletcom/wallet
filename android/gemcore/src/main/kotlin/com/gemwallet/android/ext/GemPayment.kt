@@ -111,10 +111,10 @@ fun GemPaymentOutcome.toPrimitives(): PaymentOutcome = PaymentOutcome(
     transactionId = transactionId,
 )
 
-fun GemPaymentAction.toPrimitives(): PaymentAction? = when (this) {
+fun GemPaymentAction.toPrimitives(): PaymentAction = when (this) {
     is GemPaymentAction.Send -> PaymentAction.Send(
         PaymentActionSendInner(
-            chain = chain.toChain() ?: return null,
+            chain = requireNotNull(chain.toChain()) { "Unsupported payment chain: $chain" },
             recipient = recipient,
             value = value,
             data = data,
@@ -122,9 +122,9 @@ fun GemPaymentAction.toPrimitives(): PaymentAction? = when (this) {
     )
 }
 
-fun GemPaymentQuoteData.toPrimitives(): PaymentQuoteData? = PaymentQuoteData(
-    quote = quote.toPrimitives() ?: return null,
-    action = action.toPrimitives() ?: return null,
+fun GemPaymentQuoteData.toPrimitives(): PaymentQuoteData = PaymentQuoteData(
+    quote = requireNotNull(quote.toPrimitives()) { "Unsupported payment asset: ${quote.assetId}" },
+    action = action.toPrimitives(),
 )
 
 private fun Long.toSerializedDate(): SerializedDate = this * 1_000

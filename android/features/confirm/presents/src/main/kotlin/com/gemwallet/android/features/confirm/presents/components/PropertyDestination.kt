@@ -10,7 +10,7 @@ import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
-import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.property.MerchantPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -41,14 +41,10 @@ fun PropertyDestination(
                 listPosition = listPosition,
             )
         }
-        is ConfirmProperty.Destination.Merchant -> PropertyItem(
-            title = { PropertyTitleText(R.string.transfer_recipient_title) },
-            data = {
-                PropertyDataText(
-                    text = model.displayData(),
-                    badge = model.iconUrl?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },
-                )
-            },
+        is ConfirmProperty.Destination.Merchant -> MerchantPropertyItem(
+            title = R.string.transfer_recipient_title,
+            name = model.displayData(),
+            iconUrl = model.iconUrl,
             listPosition = listPosition,
         )
         is ConfirmProperty.Destination.Stake -> {
