@@ -12,6 +12,8 @@ import FiatConnect
 import FiatService
 import Foundation
 import Keystore
+import Payments
+import PaymentService
 import PerpetualService
 import Preferences
 import PriceAlertService
@@ -37,6 +39,7 @@ public struct ViewModelFactory: Sendable {
     let chainServiceFactory: ChainServiceFactory
     let scanService: ScanService
     let swapService: SwapService
+    let paymentService: PaymentService
     let assetsEnabler: any AssetsEnabler
     let priceUpdater: any PriceUpdater
     let walletSessionService: any WalletSessionManageable
@@ -123,6 +126,7 @@ public struct ViewModelFactory: Sendable {
                 addressNameService: addressNameService,
                 activityService: activityService,
                 eventPresenterService: eventPresenterService,
+                paymentService: paymentService,
                 chain: data.chain,
             ),
             onComplete: onComplete,
@@ -179,6 +183,25 @@ public struct ViewModelFactory: Sendable {
             assetsEnabler: assetsEnabler,
             type: type,
             amount: amount,
+        )
+    }
+
+    @MainActor
+    public func paymentScene(
+        wallet: Wallet,
+        link: PaymentLink,
+        quotes: PaymentQuotes,
+        onTransferAction: TransferDataAction,
+        onComplete: VoidAction,
+    ) -> PaymentSceneViewModel {
+        PaymentSceneViewModel(
+            wallet: wallet,
+            link: link,
+            quotes: quotes,
+            paymentService: paymentService,
+            balanceService: balanceService,
+            onTransferAction: onTransferAction,
+            onComplete: onComplete,
         )
     }
 

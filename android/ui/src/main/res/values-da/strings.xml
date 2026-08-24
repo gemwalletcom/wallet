@@ -140,6 +140,8 @@
   <string name="transfer_review_request">Anmodning om gennemgang</string>
   <string name="transfer_amount">Beløb</string>
   <string name="transfer_amount_title">Beløb</string>
+  <string name="transfer_pay_with">Betal med</string>
+  <string name="transfer_payment_title">Betaling</string>
   <string name="settings_terms_of_services">Servicevilkår</string>
   <string name="settings_privacy_policy">Privatlivspolitik</string>
   <string name="settings_title">Indstillinger</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">Ingen internetforbindelse</string>
   <string name="errors_no_service_connection">Ingen serviceforbindelse</string>
   <string name="errors_balances_activity_outdated">Saldi og aktivitet kan være forældede.</string>
+  <string name="errors_payment_expired">Betaling udløbet</string>
+  <string name="errors_payment_not_allowed">Betaling ikke tilladt</string>
   <string name="activity_title">Aktivitet</string>
   <string name="activity_state_empty_title">Din aktivitet vil blive vist her</string>
   <string name="activity_state_empty_description">Foretag din første transaktion</string>

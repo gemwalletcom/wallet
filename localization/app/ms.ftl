@@ -161,6 +161,8 @@ transfer_unfreeze_title = Nyahbekukan
 transfer_review_request = Semak Permintaan
 transfer_amount = Jumlah
 transfer_amount_title = Jumlah
+transfer_pay_with = Bayar dengan
+transfer_payment_title = Pembayaran
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = Sambungan Internet nampaknya di luar talian.
 errors_no_internet_connection = Tiada sambungan internet
 errors_no_service_connection = Tiada sambungan perkhidmatan
 errors_balances_activity_outdated = Baki dan aktiviti mungkin tidak terkini.
+errors_payment_expired = Pembayaran tamat tempoh
+errors_payment_not_allowed = Pembayaran tidak dibenarkan
 
 # Activity
 

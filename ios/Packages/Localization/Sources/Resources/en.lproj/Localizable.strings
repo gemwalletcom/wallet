@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Freeze";
 "transfer.unfreeze.title" = "Unfreeze";
 "transfer.review_request" = "Review Request";
+"transfer.pay_with" = "Pay with";
+"transfer.payment_title" = "Payment";
 "settings.terms_of_services" = "Terms of Services";
 "settings.privacy_policy" = "Privacy Policy";
 "settings.title" = "Settings";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "No internet connection";
 "errors.no_service_connection" = "No service connection";
 "errors.balances_activity_outdated" = "Balances and activity may be outdated.";
+"errors.payment_expired" = "Payment Expired";
+"errors.payment_not_allowed" = "Payment not allowed";
 "activity.title" = "Activity";
 "activity.state.empty.title" = "Your activity will appear here";
 "activity.state.empty.description" = "Make your first transaction";

@@ -140,6 +140,8 @@
   <string name="transfer_review_request">סקור בקשה</string>
   <string name="transfer_amount">כמות</string>
   <string name="transfer_amount_title">כמות</string>
+  <string name="transfer_pay_with">שלם באמצעות</string>
+  <string name="transfer_payment_title">תשלום</string>
   <string name="settings_terms_of_services">תנאי השירות</string>
   <string name="settings_privacy_policy">מדיניות פרטיות</string>
   <string name="settings_title">הגדרות</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">אין חיבור לאינטרנט</string>
   <string name="errors_no_service_connection">אין חיבור לשירות</string>
   <string name="errors_balances_activity_outdated">היתרות והפעילות עשויות להיות לא מעודכנות.</string>
+  <string name="errors_payment_expired">התשלום פג תוקף</string>
+  <string name="errors_payment_not_allowed">התשלום אינו מורשה</string>
   <string name="activity_title">פעילות</string>
   <string name="activity_state_empty_title">הפעילות שלך תופיע כאן</string>
   <string name="activity_state_empty_description">בצעו את העסקה הראשונה שלכם</string>

@@ -14,12 +14,14 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
     case perpetual(Asset, PerpetualType)
     case earn(Asset, EarnType, ContractCallData)
     case generic(asset: Asset, metadata: WalletConnectionSessionAppMetadata, extra: TransferDataExtra)
+    case payment(asset: Asset, payment: PaymentData, extra: TransferDataExtra)
 
     public var transactionType: TransactionType {
         switch self {
         case .transfer: .transfer
         case .deposit: .transfer
         case .withdrawal: .transfer
+        case let .payment(_, _, extra): extra.transactionType
         case let .generic(_, _, extra): extra.transactionType
         case .transferNft: .transferNFT
         case .tokenApprove: .tokenApproval
@@ -60,7 +62,8 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
              let .perpetual(asset, _),
              let .earn(asset, _, _),
              let .tokenApprove(asset, _),
-             let .generic(asset, _, _): asset.chain
+             let .generic(asset, _, _),
+             let .payment(asset, _, _): asset.chain
         case let .transferNft(asset): asset.chain
         }
     }
@@ -98,6 +101,8 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
              .account,
              .earn:
             return nil
+        case let .payment(_, payment, _):
+            return .encode(TransactionPaymentMetadata(link: payment.quote.link, merchant: payment.merchant))
         }
     }
 
@@ -111,7 +116,8 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
              let .generic(asset, _, _),
              let .account(asset, _),
              let .perpetual(asset, _),
-             let .earn(asset, _, _): [asset.id]
+             let .earn(asset, _, _),
+             let .payment(asset, _, _): [asset.id]
         case let .swap(from, to, _): [from.id, to.id]
         case .transferNft: []
         }
@@ -145,7 +151,7 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
             return approval
         case let .generic(_, _, extra):
             return extra.approval
-        case .transfer, .deposit, .withdrawal, .transferNft, .stake, .account, .perpetual:
+        case .transfer, .deposit, .withdrawal, .transferNft, .stake, .account, .perpetual, .payment:
             throw AnyError("Token approval transaction type does not match transfer data")
         }
     }
@@ -167,7 +173,7 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
     public var shouldIgnoreValueCheck: Bool {
         switch self {
         case .transferNft, .stake, .account, .tokenApprove, .perpetual, .earn: true
-        case .transfer, .deposit, .withdrawal, .swap, .generic: false
+        case .transfer, .deposit, .withdrawal, .swap, .generic, .payment: false
         }
     }
 

@@ -161,6 +161,8 @@ transfer_unfreeze_title = Çöz
 transfer_review_request = İnceleme Talebi
 transfer_amount = Miktar
 transfer_amount_title = Miktar
+transfer_pay_with = Şununla öde
+transfer_payment_title = Ödeme
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = İnternet bağlantısı kesilmiş gibi görünüyor.
 errors_no_internet_connection = İnternet bağlantısı yok
 errors_no_service_connection = Servis bağlantısı yok
 errors_balances_activity_outdated = Bakiyeler ve etkinlik güncel olmayabilir.
+errors_payment_expired = Ödeme süresi doldu
+errors_payment_not_allowed = Ödemeye izin verilmiyor
 
 # Activity
 

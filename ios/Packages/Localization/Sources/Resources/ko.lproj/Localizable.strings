@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "동결";
 "transfer.unfreeze.title" = "녹이다";
 "transfer.review_request" = "검토 요청";
+"transfer.pay_with" = "결제 수단";
+"transfer.payment_title" = "결제";
 "settings.terms_of_services" = "서비스 약관";
 "settings.privacy_policy" = "개인 정보 보호 정책";
 "settings.title" = "설정";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "인터넷 연결 없음";
 "errors.no_service_connection" = "서비스 연결 없음";
 "errors.balances_activity_outdated" = "잔액 및 활동이 최신이 아닐 수 있습니다.";
+"errors.payment_expired" = "결제 만료됨";
+"errors.payment_not_allowed" = "결제가 허용되지 않음";
 "activity.title" = "활동";
 "activity.state.empty.title" = "귀하의 활동이 여기에 표시됩니다";
 "activity.state.empty.description" = "첫 번째 거래를 하세요";

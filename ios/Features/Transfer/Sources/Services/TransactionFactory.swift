@@ -39,7 +39,7 @@ enum TransactionFactory {
         let direction: TransactionDirection = senderAddress == recipientAddress ? .selfTransfer : .outgoing
         let metadata: AnyCodableValue? = switch transferData.type {
         case .swap, .earn: approval == nil ? transferData.type.metadata : .null
-        case .transfer, .deposit, .withdrawal, .transferNft, .tokenApprove, .stake, .account, .perpetual, .generic: transferData.type.metadata
+        case .transfer, .deposit, .withdrawal, .transferNft, .tokenApprove, .stake, .account, .perpetual, .generic, .payment: transferData.type.metadata
         }
         return Transaction(
             id: TransactionId(chain: transferData.chain, hash: hash),

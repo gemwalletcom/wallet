@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "フリーズ";
 "transfer.unfreeze.title" = "凍結解除";
 "transfer.review_request" = "レビューリクエスト";
+"transfer.pay_with" = "支払い方法";
+"transfer.payment_title" = "支払い";
 "settings.terms_of_services" = "利用規約";
 "settings.privacy_policy" = "プライバシーポリシー";
 "settings.title" = "設定";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "インターネット接続がありません";
 "errors.no_service_connection" = "サービス接続がありません";
 "errors.balances_activity_outdated" = "残高とアクティビティは最新でない場合があります。";
+"errors.payment_expired" = "支払いの期限切れ";
+"errors.payment_not_allowed" = "支払いは許可されていません";
 "activity.title" = "アクティビティ";
 "activity.state.empty.title" = "アクティビティはここに表示されます";
 "activity.state.empty.description" = "最初の取引を行う";

@@ -42,6 +42,10 @@ public extension ToastMessage {
         ToastMessage(title: message, image: SystemImage.bellFill)
     }
 
+    static func processing(_ message: String) -> ToastMessage {
+        ToastMessage(title: message, image: SystemImage.refresh)
+    }
+
     static func success(_ message: String) -> ToastMessage {
         ToastMessage(title: message, image: SystemImage.checkmark)
     }

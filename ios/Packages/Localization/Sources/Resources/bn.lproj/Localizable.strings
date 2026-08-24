@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "ফ্রিজ করুন";
 "transfer.unfreeze.title" = "আনফ্রিজ করুন";
 "transfer.review_request" = "পর্যালোচনার অনুরোধ";
+"transfer.pay_with" = "যা দিয়ে পরিশোধ করবেন";
+"transfer.payment_title" = "পেমেন্ট";
 "settings.terms_of_services" = "পরিষেবার শর্তাবলী";
 "settings.privacy_policy" = "গোপনীয়তা নীতি";
 "settings.title" = "সেটিংস";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "ইন্টারনেট সংযোগ নেই";
 "errors.no_service_connection" = "পরিষেবা সংযোগ নেই";
 "errors.balances_activity_outdated" = "ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।";
+"errors.payment_expired" = "পেমেন্টের মেয়াদ শেষ";
+"errors.payment_not_allowed" = "পেমেন্ট অনুমোদিত নয়";
 "activity.title" = "কার্যকলাপ";
 "activity.state.empty.title" = "আপনার কার্যকলাপ এখানে প্রদর্শিত হবে";
 "activity.state.empty.description" = "আপনার প্রথম লেনদেন করুন";

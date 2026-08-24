@@ -161,6 +161,8 @@ transfer_unfreeze_title = Descongelar
 transfer_review_request = Solicitação de revisão
 transfer_amount = Quantia
 transfer_amount_title = Quantia
+transfer_pay_with = Pagar com
+transfer_payment_title = Pagamento
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = A conexão com a internet parece estar offline.
 errors_no_internet_connection = Sem conexão com a internet
 errors_no_service_connection = Sem conexão com o serviço
 errors_balances_activity_outdated = Os saldos e a atividade podem estar desatualizados.
+errors_payment_expired = Pagamento expirado
+errors_payment_not_allowed = Pagamento não permitido
 
 # Activity
 

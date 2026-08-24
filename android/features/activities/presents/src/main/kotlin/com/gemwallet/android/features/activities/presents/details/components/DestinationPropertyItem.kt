@@ -27,6 +27,7 @@ fun DestinationPropertyItem(property: TransactionDetailsValue.Destination, listP
             },
             displayText = property.name ?: AddressFormatter(property.data, chain = property.chain).value(),
             copyValue = property.data,
+            icon = property.imageUrl,
             explorerLink = property.explorerLink,
             listPosition = listPosition,
         )

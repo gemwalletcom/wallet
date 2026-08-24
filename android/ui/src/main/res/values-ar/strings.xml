@@ -140,6 +140,8 @@
   <string name="transfer_review_request">طلب مراجعة</string>
   <string name="transfer_amount">كمية</string>
   <string name="transfer_amount_title">كمية</string>
+  <string name="transfer_pay_with">ادفع بواسطة</string>
+  <string name="transfer_payment_title">الدفع</string>
   <string name="settings_terms_of_services">شروط الخدمات</string>
   <string name="settings_privacy_policy">سياسة الخصوصية</string>
   <string name="settings_title">إعدادات</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">لا يوجد اتصال بالإنترنت</string>
   <string name="errors_no_service_connection">لا يوجد اتصال بالخدمة</string>
   <string name="errors_balances_activity_outdated">قد تكون الأرصدة والنشاط غير محدثة.</string>
+  <string name="errors_payment_expired">انتهت صلاحية الدفعة</string>
+  <string name="errors_payment_not_allowed">الدفع غير مسموح به</string>
   <string name="activity_title">نشاط</string>
   <string name="activity_state_empty_title">سوف يظهر نشاطك هنا</string>
   <string name="activity_state_empty_description">قم بإجراء معاملتك الأولى</string>

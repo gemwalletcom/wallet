@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Bevriezen";
 "transfer.unfreeze.title" = "Ontvriezen";
 "transfer.review_request" = "Verzoek controleren";
+"transfer.pay_with" = "Betalen met";
+"transfer.payment_title" = "Betaling";
 "settings.terms_of_services" = "Servicevoorwaarden";
 "settings.privacy_policy" = "Privacybeleid";
 "settings.title" = "Instellingen";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Geen internetverbinding";
 "errors.no_service_connection" = "Geen serviceverbinding";
 "errors.balances_activity_outdated" = "Saldi en activiteit zijn mogelijk verouderd.";
+"errors.payment_expired" = "Betaling verlopen";
+"errors.payment_not_allowed" = "Betaling niet toegestaan";
 "activity.title" = "Activiteit";
 "activity.state.empty.title" = "Uw activiteit zal hier verschijnen";
 "activity.state.empty.description" = "Maak uw eerste transactie";

@@ -161,6 +161,8 @@ transfer_unfreeze_title = Разморозить
 transfer_review_request = Просмотр запроса
 transfer_amount = Сумма
 transfer_amount_title = Сумма
+transfer_pay_with = Оплатить с помощью
+transfer_payment_title = Платёж
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = По всей видимости, интернет-со
 errors_no_internet_connection = Нет подключения к интернету
 errors_no_service_connection = Нет подключения к сервису
 errors_balances_activity_outdated = Балансы и активность могут быть устаревшими.
+errors_payment_expired = Срок платежа истёк
+errors_payment_not_allowed = Платёж не разрешён
 
 # Activity
 

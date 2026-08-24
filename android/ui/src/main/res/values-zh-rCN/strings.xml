@@ -140,6 +140,8 @@
   <string name="transfer_review_request">审查请求</string>
   <string name="transfer_amount">金额</string>
   <string name="transfer_amount_title">数额</string>
+  <string name="transfer_pay_with">支付方式</string>
+  <string name="transfer_payment_title">支付</string>
   <string name="settings_terms_of_services">服务条款</string>
   <string name="settings_privacy_policy">隐私政策</string>
   <string name="settings_title">设置</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">无互联网连接</string>
   <string name="errors_no_service_connection">无服务连接</string>
   <string name="errors_balances_activity_outdated">余额和活动可能不是最新的。</string>
+  <string name="errors_payment_expired">支付已过期</string>
+  <string name="errors_payment_not_allowed">不允许支付</string>
   <string name="activity_title">活动</string>
   <string name="activity_state_empty_title">交易将在此显示</string>
   <string name="activity_state_empty_description">发起第一笔交易</string>

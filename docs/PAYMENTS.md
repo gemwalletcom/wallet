@@ -1,10 +1,8 @@
-# Payment QR codes
+# Payments
 
-The payment scanner decodes QR payloads in Core and opens confirmation, recipient review, or asset selection based on the result.
+Core decodes every scanned payload and returns one of two things: a payment request, which carries a recipient and optionally an amount the wallet builds a transfer for, or a payment link, which carries only an id the wallet must resolve with a payment gateway before anything can be signed.
 
-Open the scanner from the wallet screen and scan this page from another device. Use a test wallet and do not submit these example transactions.
-
-## Supported formats
+## Decoding
 
 | Type | Supported fields | Core implementation |
 |---|---|---|
@@ -12,8 +10,7 @@ Open the scanner from the wallet screen and scan this page from another device. 
 | ERC-681 | EVM native transfers and token `transfer` with `address` and `uint256` | [ERC-681 decoder](../core/crates/primitives/src/payment_decoder/erc681.rs) |
 | Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, and `memo` | [Solana Pay decoder](../core/crates/primitives/src/payment_decoder/solana_pay.rs) |
 | TON transfer | Native TON transfer with atomic `amount` and text comment | [TON decoder](../core/crates/primitives/src/payment_decoder/ton_pay.rs) |
-
-## How decoding works
+| WalletConnect Pay link | Payment id from `pay.walletconnect.com`, `wc:...?pay=`, or `gem://wc?uri=` | [WalletConnect Pay decoder](../core/crates/primitives/src/payment_decoder/wallet_connect_pay.rs) |
 
 ```mermaid
 flowchart TD
@@ -21,6 +18,7 @@ flowchart TD
     Action -->|"wc:"| WalletConnect["WalletConnect"]
     Action -->|"gem:// or gemwallet.com"| Deeplink["Gem deeplink"]
     Action --> Decoder["Payment decoder"]
+    Decoder -->|"Payment link"| Link["Gateway resolution"]
     Decoder --> Scheme{"URI scheme"}
     Scheme -->|"ethereum:"| ERC681["ERC-681"]
     Scheme -->|"solana:"| Solana["Solana Pay"]
@@ -36,15 +34,63 @@ flowchart TD
     Assets -->|"One, amount or memo missing/unusable"| Recipient["Recipient review"]
 ```
 
-WalletConnect and Gem deeplinks are routed before payments. Solana transaction links decode as payment links, but the scanner currently routes only payment requests.
+Payment links are tried before the request decoders because WalletConnect Pay arrives on `https:`, `wc:`, and `gem:` — schemes the pairing and deeplink routers also claim. A pairing URI without a `?pay=` payload still reaches WalletConnect unchanged.
 
-Core entry points:
+## Payment links (WalletConnect Pay)
 
-- [URL action routing](../core/crates/primitives/src/url_action.rs)
-- [Payment decoder dispatch](../core/crates/primitives/src/payment_decoder/decoder.rs)
-- [UniFFI bridge](../core/gemstone/src/payment.rs)
+A link carries a payment id, not an amount and a recipient. The wallet asks the gateway what the payment can be settled with, shows the payable coins, and hands the chosen quote to the standard confirm scene. Today the wallet settles coins on EVM chains only: options priced in a token, or asking for anything other than one plain transfer, are dropped in Core — token settlement is a later integration that lands in that same filter. Options quoted against an account the wallet did not offer are always refused.
 
-## Payment flows
+```mermaid
+flowchart TD
+    Link["Payment link<br/>pay.walletconnect.com / wc:...?pay= / gem://"] --> Options["PaymentService.get_options<br/>wallet accounts → gateway /options"]
+    Options -->|"Settled or processing"| Outcome["Outcome<br/>status + transaction id"]
+    Options -->|"Expired / cancelled / nothing payable"| Refuse["Error"]
+    Options -->|"Quotes"| Select["Payment scene<br/>pick a coin"]
+    Select -->|"Quote asks for personal data"| Collect["Data collection web view<br/>walletconnect.com only"]
+    Collect --> QuoteData
+    Select --> QuoteData["PaymentService.get_quote_data<br/>gateway /fetch → validated Send action"]
+    QuoteData --> Confirm["Confirm scene<br/>fee estimation, signing, broadcast"]
+    Confirm --> ConfirmGateway["PaymentService.confirm<br/>transaction hash → gateway /confirm"]
+    ConfirmGateway --> Outcome
+```
+
+The raw gateway option rides inside `PaymentQuote.provider_data`, so Core stays stateless across the app round trip — the same shape as the swapper's opaque `route_data`. The recorded transaction keeps the link and merchant in `TransactionPaymentMetadata`, which the activity list uses to show the merchant instead of the settlement address.
+
+## Failure and lifetime
+
+The gateway confirm runs after broadcast and is fire-and-forget: a confirm failure is logged, never surfaced as a payment failure, and never rolls back the broadcast — the payment's final state is the gateway's to report against the on-chain transaction.
+
+The gateway never learns wallet identity: `App-Id` is the WalletConnect project id and `Client-Id` is a random UUID per process. Wallet addresses appear only in request bodies as the accounts offered for payment.
+
+## iOS and Android
+
+| | iOS | Android |
+|---|---|---|
+| Entry point | `NavigationHandler` resolves the link before any scene opens | `PaymentRoute` opens the scene, which loads |
+| Settled or failed link | Toast, the scene never opens | Toast from the scene, which closes |
+| State model | `PaymentState` struct with `StateViewType` fields | sealed `PaymentSceneState` |
+| Refresh or prepare failure | Quotes stay on screen with Try Again | Toast closes the scene; reopening refetches the link |
+| Watch wallet | Refused before the scene | Refused by the scene |
+
+Deliberate differences today: iOS gates the link behind a pre-fetch so a dead payment never opens UI, while Android follows its route-first navigation and resolves inside the scene; iOS keeps a failed scene alive for retry, Android's sealed states replace the scene and recover by re-resolving the link.
+
+## Rules
+
+Changes on either platform must keep these true:
+
+- No gateway action reaches a signer unvalidated: exactly one action, `eth_sendTransaction`, signer equal to the quoted account, chain equal to the quoted asset's chain, value equal to the quoted amount.
+- An option Core cannot settle is dropped in Core, never passed on for the apps to filter; today that means coins on EVM only.
+- An option quoted for an account the wallet did not offer is never shown or signed.
+- Data collection opens only `https` URLs on `walletconnect.com`.
+- Payment links open only with developer mode enabled; every other scan behavior is unchanged.
+- A watch wallet never reaches the confirm scene from a payment link.
+- The gateway receives no wallet-identifying headers.
+
+Keep this document current in the same change when decoders, gateway validation, or the platform flows above change.
+
+## QR test cases
+
+Open the scanner from the wallet screen and scan this page from another device. Use a test wallet and do not submit these example transactions.
 
 | | |
 |---|---|
@@ -62,3 +108,15 @@ These payloads decode successfully but open the recipient screen for review or c
 | **XRP without destination tag**<br><img src="data/payments/xrp-amount-only.png" width="180" alt="XRP amount-only QR code"><br>`ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?amount=10`<br>Amount `10` is preserved; add a destination tag only if required. | **XRP without amount**<br><img src="data/payments/xrp-tag-only.png" width="180" alt="XRP destination-tag-only QR code"><br>`ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?dt=12345`<br>Tag `12345` is preserved; enter the amount. |
 
 Token tests require the exact token to be enabled in the wallet.
+
+## Code map
+
+- [URL action routing](../core/crates/primitives/src/url_action.rs)
+- [Payment decoder dispatch](../core/crates/primitives/src/payment_decoder/decoder.rs)
+- [Payment facade](../core/crates/payment/src/service.rs)
+- [Gateway client and parsers](../core/crates/payment/src/wallet_connect_pay)
+- [Gemstone bridge](../core/gemstone/src/payment/mod.rs)
+- [iOS service](../ios/Packages/FeatureServices/PaymentService/PaymentService.swift)
+- [iOS payment scene](../ios/Features/Payments)
+- [Android service](../android/blockchain/src/main/kotlin/com/gemwallet/android/blockchain/services/PaymentService.kt)
+- [Android payment screen](../android/features/payment)

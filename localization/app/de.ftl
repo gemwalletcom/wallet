@@ -161,6 +161,8 @@ transfer_unfreeze_title = Auftauen
 transfer_review_request = Überprüfungsanfrage
 transfer_amount = Betrag
 transfer_amount_title = Betrag
+transfer_pay_with = Bezahlen mit
+transfer_payment_title = Zahlung
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = Die Internetverbindung scheint unterbrochen zu sein.
 errors_no_internet_connection = Keine Internetverbindung
 errors_no_service_connection = Keine Serviceverbindung
 errors_balances_activity_outdated = Guthaben und Aktivität sind möglicherweise nicht aktuell.
+errors_payment_expired = Zahlung abgelaufen
+errors_payment_not_allowed = Zahlung nicht zulässig
 
 # Activity
 

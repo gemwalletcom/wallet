@@ -1,0 +1,21 @@
+[package]
+name = "payment"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+primitives = { path = "../primitives" }
+gem_client = { path = "../gem_client" }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
+
+chrono = { workspace = true }
+num-bigint = { workspace = true }
+num-traits = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }
+gem_client = { path = "../gem_client", features = ["testkit"] }
+tokio = { workspace = true, features = ["macros", "rt"] }

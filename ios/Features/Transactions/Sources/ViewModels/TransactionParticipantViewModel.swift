@@ -34,6 +34,12 @@ extension TransactionParticipantViewModel: ItemModelProvidable {
 // MARK: - Private
 
 extension TransactionParticipantViewModel {
+    private var merchant: PaymentMerchant? {
+        let transaction = transactionViewModel.transaction.transaction
+        guard transaction.type == .transfer else { return .none }
+        return transaction.metadata?.decode(TransactionPaymentMetadata.self)?.merchant
+    }
+
     private var participantItemModel: TransactionItemModel {
         guard transactionViewModel.participant.isNotEmpty,
               let participantTitle
@@ -45,11 +51,11 @@ extension TransactionParticipantViewModel {
         let chain = transactionViewModel.transaction.transaction.assetId.chain
         let addressName = transactionViewModel.getAddressName(address: address)
         let account = SimpleAccount(
-            name: addressName?.name,
+            name: merchant?.name ?? addressName?.name,
             chain: chain,
             address: address,
             memo: transactionViewModel.transaction.transaction.memo,
-            assetImage: nil,
+            assetImage: merchant?.iconUrl.flatMap { AssetImage(imageURL: $0.asURL) },
             addressType: addressName?.type,
         )
 

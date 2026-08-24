@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Kuganda";
 "transfer.unfreeze.title" = "Ondoa kuganda";
 "transfer.review_request" = "Ombi la Uhakiki";
+"transfer.pay_with" = "Lipa kwa";
+"transfer.payment_title" = "Malipo";
 "settings.terms_of_services" = "Masharti ya Huduma";
 "settings.privacy_policy" = "Sera ya Faragha";
 "settings.title" = "Mipangilio";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Hakuna muunganisho wa intaneti";
 "errors.no_service_connection" = "Hakuna muunganisho wa huduma";
 "errors.balances_activity_outdated" = "Salio na shughuli huenda si za sasa.";
+"errors.payment_expired" = "Malipo yamekwisha muda";
+"errors.payment_not_allowed" = "Malipo hayaruhusiwi";
 "activity.title" = "Shughuli";
 "activity.state.empty.title" = "Shughuli yako itaonekana hapa";
 "activity.state.empty.description" = "Fanya muamala wako wa kwanza";

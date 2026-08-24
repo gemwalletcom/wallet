@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Dondur";
 "transfer.unfreeze.title" = "Çöz";
 "transfer.review_request" = "İnceleme Talebi";
+"transfer.pay_with" = "Şununla öde";
+"transfer.payment_title" = "Ödeme";
 "settings.terms_of_services" = "Hizmet Şartları";
 "settings.privacy_policy" = "Gizlilik Politikası";
 "settings.title" = "Ayarlar";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "İnternet bağlantısı yok";
 "errors.no_service_connection" = "Servis bağlantısı yok";
 "errors.balances_activity_outdated" = "Bakiyeler ve etkinlik güncel olmayabilir.";
+"errors.payment_expired" = "Ödeme süresi doldu";
+"errors.payment_not_allowed" = "Ödemeye izin verilmiyor";
 "activity.title" = "Aktivite";
 "activity.state.empty.title" = "Etkinliğiniz burada görünecek";
 "activity.state.empty.description" = "İlk işleminizi yapın";

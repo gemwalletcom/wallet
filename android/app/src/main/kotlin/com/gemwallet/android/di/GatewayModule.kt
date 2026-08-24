@@ -4,6 +4,7 @@ import android.content.Context
 import com.gemwallet.android.Constants
 import com.gemwallet.android.NodeAuthInterceptor
 import com.gemwallet.android.NodeAuthTokenService
+import com.gemwallet.android.blockchain.services.PaymentService
 import com.gemwallet.android.blockchain.services.ServiceStatusService
 import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
@@ -22,11 +23,14 @@ import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemWalletConnectPayAuth
 import uniffi.gemstone.GemPreferences
 import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.serviceStatusTimeoutSeconds
 import uniffi.gemstone.WalletConnectSimulationClient
 import uniffi.gemstone.WalletConnectSimulationClientInterface
+import java.util.UUID
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -61,6 +65,20 @@ object GatewayModule {
             ),
         )
     }
+
+    @Provides
+    @Singleton
+    fun providePaymentService(
+        alienProvider: AlienProvider,
+    ): PaymentService = PaymentService(
+        GemPaymentService(
+            provider = alienProvider,
+            walletConnectPay = GemWalletConnectPayAuth(
+                appId = Constants.WALLET_CONNECT_PROJECT_ID,
+                clientId = UUID.randomUUID().toString(),
+            ),
+        ),
+    )
 
     @Provides
     @Singleton

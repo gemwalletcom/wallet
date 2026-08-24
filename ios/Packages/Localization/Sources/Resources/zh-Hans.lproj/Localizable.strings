@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "冻结";
 "transfer.unfreeze.title" = "解冻";
 "transfer.review_request" = "审查请求";
+"transfer.pay_with" = "支付方式";
+"transfer.payment_title" = "支付";
 "settings.terms_of_services" = "服务条款";
 "settings.privacy_policy" = "隐私政策";
 "settings.title" = "设置";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "无互联网连接";
 "errors.no_service_connection" = "无服务连接";
 "errors.balances_activity_outdated" = "余额和活动可能不是最新的。";
+"errors.payment_expired" = "支付已过期";
+"errors.payment_not_allowed" = "不允许支付";
 "activity.title" = "活动";
 "activity.state.empty.title" = "交易将在此显示";
 "activity.state.empty.description" = "发起第一笔交易";

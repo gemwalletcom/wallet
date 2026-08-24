@@ -161,6 +161,8 @@ transfer_unfreeze_title = 녹이다
 transfer_review_request = 검토 요청
 transfer_amount = 금액
 transfer_amount_title = 금액
+transfer_pay_with = 결제 수단
+transfer_payment_title = 결제
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = 인터넷 연결이 끊긴 것 같습니다.
 errors_no_internet_connection = 인터넷 연결 없음
 errors_no_service_connection = 서비스 연결 없음
 errors_balances_activity_outdated = 잔액 및 활동이 최신이 아닐 수 있습니다.
+errors_payment_expired = 결제 만료됨
+errors_payment_not_allowed = 결제가 허용되지 않음
 
 # Activity
 

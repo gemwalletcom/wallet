@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Заморозить";
 "transfer.unfreeze.title" = "Разморозить";
 "transfer.review_request" = "Просмотр запроса";
+"transfer.pay_with" = "Оплатить с помощью";
+"transfer.payment_title" = "Платёж";
 "settings.terms_of_services" = "Условия предоставления услуг";
 "settings.privacy_policy" = "Политика конфиденциальности";
 "settings.title" = "Настройки";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Нет подключения к интернету";
 "errors.no_service_connection" = "Нет подключения к сервису";
 "errors.balances_activity_outdated" = "Балансы и активность могут быть устаревшими.";
+"errors.payment_expired" = "Срок платежа истёк";
+"errors.payment_not_allowed" = "Платёж не разрешён";
 "activity.title" = "Активность";
 "activity.state.empty.title" = "Ваша активность будет отображаться здесь";
 "activity.state.empty.description" = "Совершите свою первую транзакцию";

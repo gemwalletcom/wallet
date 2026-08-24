@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Đóng băng";
 "transfer.unfreeze.title" = "Giải đông";
 "transfer.review_request" = "Yêu cầu xem xét";
+"transfer.pay_with" = "Thanh toán bằng";
+"transfer.payment_title" = "Thanh toán";
 "settings.terms_of_services" = "Điều khoản dịch vụ";
 "settings.privacy_policy" = "Chính sách bảo mật";
 "settings.title" = "Cài đặt";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Không có kết nối internet";
 "errors.no_service_connection" = "Không có kết nối dịch vụ";
 "errors.balances_activity_outdated" = "Số dư và hoạt động có thể chưa được cập nhật.";
+"errors.payment_expired" = "Thanh toán đã hết hạn";
+"errors.payment_not_allowed" = "Thanh toán không được phép";
 "activity.title" = "Hoạt động";
 "activity.state.empty.title" = "Hoạt động của bạn sẽ xuất hiện ở đây";
 "activity.state.empty.description" = "Thực hiện giao dịch đầu tiên của bạn";

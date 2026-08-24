@@ -15,7 +15,8 @@ public extension TransferDataType {
              let .perpetual(asset, _),
              let .earn(asset, _, _),
              let .tokenApprove(asset, _),
-             let .generic(asset, _, _):
+             let .generic(asset, _, _),
+             let .payment(asset, _, _):
             asset
         case let .transferNft(asset):
             asset.chain.asset

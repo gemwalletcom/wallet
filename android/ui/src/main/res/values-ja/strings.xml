@@ -140,6 +140,8 @@
   <string name="transfer_review_request">レビューリクエスト</string>
   <string name="transfer_amount">金額</string>
   <string name="transfer_amount_title">金額</string>
+  <string name="transfer_pay_with">支払い方法</string>
+  <string name="transfer_payment_title">支払い</string>
   <string name="settings_terms_of_services">利用規約</string>
   <string name="settings_privacy_policy">プライバシーポリシー</string>
   <string name="settings_title">設定</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">インターネット接続がありません</string>
   <string name="errors_no_service_connection">サービス接続がありません</string>
   <string name="errors_balances_activity_outdated">残高とアクティビティは最新でない場合があります。</string>
+  <string name="errors_payment_expired">支払いの期限切れ</string>
+  <string name="errors_payment_not_allowed">支払いは許可されていません</string>
   <string name="activity_title">アクティビティ</string>
   <string name="activity_state_empty_title">アクティビティはここに表示されます</string>
   <string name="activity_state_empty_description">最初の取引を行う</string>

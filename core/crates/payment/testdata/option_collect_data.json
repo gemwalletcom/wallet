@@ -1,0 +1,32 @@
+{
+  "id": "opt_ic",
+  "account": "eip155:1:0x1085c5f70F7F7591D97da281A64688385455c2bD",
+  "amount": {
+    "unit": "caip19/eip155:1/slip44:60",
+    "value": "1064973576179385",
+    "display": { "assetSymbol": "ETH", "assetName": "Ethereum", "decimals": 18 }
+  },
+  "etaS": 5,
+  "collectData": {
+    "url": "https://data-collection.walletconnect.com/ic/pay_123",
+    "fields": [],
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fullName": { "type": "string", "title": "Full Name", "minLength": 1, "description": "User's full legal name" },
+        "dob": { "type": "string", "format": "date", "title": "Date of Birth", "description": "Date of birth in YYYY-MM-DD format" },
+        "pobAddress": { "type": "string", "title": "Place of Birth Address", "maxLength": 200 },
+        "pobCountry": { "type": "string", "pattern": "^[A-Z]{2}$", "title": "Place of Birth Country" },
+        "porAddress": { "type": "string", "title": "Place of Residence Address", "maxLength": 200 },
+        "porCountry": { "type": "string", "pattern": "^[A-Z]{2}$", "title": "Place of Residence Country" },
+        "tosConfirmed": { "type": "boolean", "const": true, "title": "Terms of Service Confirmation" }
+      },
+      "required": ["fullName", "dob", "tosConfirmed"],
+      "anyOf": [
+        { "required": ["pobCountry", "pobAddress"] },
+        { "required": ["porCountry", "porAddress"] }
+      ]
+    }
+  }
+}

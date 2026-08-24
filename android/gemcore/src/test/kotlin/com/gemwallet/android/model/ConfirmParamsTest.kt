@@ -1,7 +1,7 @@
 package com.gemwallet.android.model
 
-import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockPaymentData
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -13,25 +13,50 @@ import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockSwapParams
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.PaymentLink
+import com.wallet.core.primitives.PaymentMerchant
+import com.wallet.core.primitives.PaymentQuote
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.swap.ApprovalData
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertSame
-import org.junit.Assert.assertThrows
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemResource
 import uniffi.gemstone.GemStakeType
 import uniffi.gemstone.GemTransactionInputType
+import com.gemwallet.android.domains.confirm.ConfirmError
+import com.wallet.core.primitives.swap.ApprovalData
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertThrows
 import uniffi.gemstone.TransactionType as GemTransactionType
 import java.math.BigInteger
 
 class ConfirmParamsTest {
+
+    @Test
+    fun paymentKeepsCalldataOutOfTheMemoAndSurvivesRouting() {
+        val params = ConfirmParams.TransferParams.Payment(
+            requestId = "pay_1",
+            asset = mockAssetEthereum(),
+            from = mockAccount(chain = Chain.Ethereum),
+            amount = BigInteger.ONE,
+            destination = DestinationAddress("0x57b2b4288220005234c0e88a04a7943193971d21"),
+            payment = mockPaymentData(),
+            calldata = "0xd3906488",
+        )
+
+        assertNull(params.memo())
+
+        val restored = ConfirmParams.unpack(requireNotNull(params.pack())) as ConfirmParams.TransferParams.Payment
+        assertEquals("0xd3906488", restored.calldata)
+        assertEquals("Merchant", restored.payment.merchant.name)
+        assertNull(restored.memo())
+    }
 
     @Test
     fun approvalDataMatchesTransactionType() {

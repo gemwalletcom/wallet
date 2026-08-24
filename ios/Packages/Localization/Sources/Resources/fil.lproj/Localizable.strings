@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "I-freeze";
 "transfer.unfreeze.title" = "I-unfreeze";
 "transfer.review_request" = "Suriin ang Kahilingan";
+"transfer.pay_with" = "Bayaran gamit ang";
+"transfer.payment_title" = "Bayad";
 "settings.terms_of_services" = "Mga Tuntunin ng Serbisyo";
 "settings.privacy_policy" = "Patakaran sa Privacy";
 "settings.title" = "Mga Setting";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Walang koneksyon sa internet";
 "errors.no_service_connection" = "Walang koneksyon sa serbisyo";
 "errors.balances_activity_outdated" = "Maaaring luma na ang mga balanse at aktibidad.";
+"errors.payment_expired" = "Nag-expire ang bayad";
+"errors.payment_not_allowed" = "Hindi pinapayagan ang bayad";
 "activity.title" = "Aktibidad";
 "activity.state.empty.title" = "Lalabas dito ang iyong aktibidad";
 "activity.state.empty.description" = "Gawin ang iyong unang transaksyon";

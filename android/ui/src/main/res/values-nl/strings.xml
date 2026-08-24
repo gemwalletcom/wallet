@@ -140,6 +140,8 @@
   <string name="transfer_review_request">Verzoek controleren</string>
   <string name="transfer_amount">Bedrag</string>
   <string name="transfer_amount_title">Bedrag</string>
+  <string name="transfer_pay_with">Betalen met</string>
+  <string name="transfer_payment_title">Betaling</string>
   <string name="settings_terms_of_services">Servicevoorwaarden</string>
   <string name="settings_privacy_policy">Privacybeleid</string>
   <string name="settings_title">Instellingen</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">Geen internetverbinding</string>
   <string name="errors_no_service_connection">Geen serviceverbinding</string>
   <string name="errors_balances_activity_outdated">Saldi en activiteit zijn mogelijk verouderd.</string>
+  <string name="errors_payment_expired">Betaling verlopen</string>
+  <string name="errors_payment_not_allowed">Betaling niet toegestaan</string>
   <string name="activity_title">Activiteit</string>
   <string name="activity_state_empty_title">Uw activiteit zal hier verschijnen</string>
   <string name="activity_state_empty_description">Maak uw eerste transactie</string>

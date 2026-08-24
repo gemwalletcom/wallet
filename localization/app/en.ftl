@@ -307,6 +307,8 @@ transfer_review_request = Review Request
 transfer_amount = Amount
 # Used in Transfer, Send, Stake, and confirmation flows for the amount title.
 transfer_amount_title = Amount
+transfer_pay_with = Pay with
+transfer_payment_title = Payment
 
 # Settings
 
@@ -488,6 +490,8 @@ errors_no_internet_connection = No internet connection
 # Used in the connection status banner when app services are unreachable.
 errors_no_service_connection = No service connection
 errors_balances_activity_outdated = Balances and activity may be outdated.
+errors_payment_expired = Payment Expired
+errors_payment_not_allowed = Payment not allowed
 
 # Activity
 

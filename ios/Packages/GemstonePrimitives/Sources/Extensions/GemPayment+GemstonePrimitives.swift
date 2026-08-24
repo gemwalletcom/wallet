@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import Gemstone
 import Primitives
 
@@ -36,6 +37,121 @@ public extension GemPaymentLink {
     func map() -> PaymentLink {
         switch self {
         case let .solanaPay(id): .solanaPay(id)
+        case let .walletConnectPay(id): .walletConnectPay(id)
         }
+    }
+}
+
+public extension PaymentLink {
+    func map() -> GemPaymentLink {
+        switch self {
+        case let .solanaPay(id): .solanaPay(id)
+        case let .walletConnectPay(id): .walletConnectPay(id)
+        }
+    }
+}
+
+public extension GemPaymentOptions {
+    func map() throws -> PaymentOptions {
+        switch self {
+        case let .quotes(quotes): try .quotes(quotes.map())
+        case let .outcome(outcome): .outcome(outcome.map())
+        }
+    }
+}
+
+public extension GemPaymentQuotes {
+    func map() throws -> PaymentQuotes {
+        try PaymentQuotes(
+            merchant: merchant.map(),
+            price: price?.map(),
+            quotes: quotes.map { try $0.map() },
+        )
+    }
+}
+
+public extension GemPaymentQuote {
+    func map() throws -> PaymentQuote {
+        try PaymentQuote(
+            id: id,
+            link: link.map(),
+            assetId: AssetId(id: assetId),
+            value: value,
+            collectDataUrl: collectDataUrl,
+            providerData: providerData,
+        )
+    }
+}
+
+public extension Primitives.PaymentQuote {
+    func map() -> GemPaymentQuote {
+        GemPaymentQuote(
+            id: id,
+            link: link.map(),
+            assetId: assetId.identifier,
+            value: value,
+            collectDataUrl: collectDataUrl,
+            providerData: providerData,
+        )
+    }
+}
+
+public extension GemPaymentPrice {
+    func map() -> PaymentPrice {
+        PaymentPrice(symbol: symbol, value: value, decimals: decimals)
+    }
+}
+
+public extension GemPaymentMerchant {
+    func map() -> PaymentMerchant {
+        PaymentMerchant(name: name, iconUrl: iconUrl)
+    }
+}
+
+public extension GemPaymentStatus {
+    func map() -> PaymentStatus {
+        switch self {
+        case .requiresAction: .requiresAction
+        case .processing: .processing
+        case .succeeded: .succeeded
+        case .failed: .failed
+        case .expired: .expired
+        case .cancelled: .cancelled
+        }
+    }
+}
+
+public extension GemPaymentOutcome {
+    func map() -> PaymentOutcome {
+        PaymentOutcome(status: status.map(), transactionId: transactionId)
+    }
+}
+
+public extension GemPaymentAction {
+    func map() throws -> PaymentAction {
+        switch self {
+        case let .send(chain, recipient, value, data):
+            guard let chain = Primitives.Chain(rawValue: chain) else {
+                throw AnyError("Unsupported payment chain: \(chain)")
+            }
+            return .send(PaymentActionSendInner(chain: chain, recipient: recipient, value: value, data: data))
+        }
+    }
+}
+
+public extension GemPaymentQuoteData {
+    func map() throws -> PaymentQuoteData {
+        try PaymentQuoteData(quote: quote.map(), action: action.map())
+    }
+}
+
+public extension PaymentMerchant {
+    var appMetadata: WalletConnectionSessionAppMetadata {
+        WalletConnectionSessionAppMetadata(
+            name: name,
+            description: .empty,
+            url: Gemstone.paymentWalletConnectUrl(),
+            icon: iconUrl ?? .empty,
+        )
     }
 }

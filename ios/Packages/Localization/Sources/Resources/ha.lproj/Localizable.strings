@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Daskare";
 "transfer.unfreeze.title" = "Cire daskarewa";
 "transfer.review_request" = "Buƙatar Bita";
+"transfer.pay_with" = "Biya da";
+"transfer.payment_title" = "Biya";
 "settings.terms_of_services" = "Sharuɗɗan Sabis";
 "settings.privacy_policy" = "takardar kebantawa";
 "settings.title" = "Saituna";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Babu haɗin intanet";
 "errors.no_service_connection" = "Babu haɗin sabis";
 "errors.balances_activity_outdated" = "Ma'aunai da ayyuka na iya zama tsofaffi.";
+"errors.payment_expired" = "Biyan ya ƙare";
+"errors.payment_not_allowed" = "Ba a yarda da biyan ba";
 "activity.title" = "Ayyuka";
 "activity.state.empty.title" = "Ayyukanku za su bayyana a nan";
 "activity.state.empty.description" = "Yi ciniki na farko";

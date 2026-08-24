@@ -4,6 +4,7 @@ import BalanceService
 import Blockchain
 import Foundation
 import GemstonePrimitives
+import PaymentService
 import Primitives
 import Signer
 import TransactionStateService
@@ -21,17 +22,20 @@ public struct TransferExecutor: TransferExecutable {
     private let chainService: any ChainServiceable
     private let assetsEnabler: any AssetsEnabler
     private let transactionStateScheduler: TransactionStateScheduler
+    private let paymentService: any PaymentServiceable
 
     public init(
         signer: any TransactionSigning,
         chainService: any ChainServiceable,
         assetsEnabler: any AssetsEnabler,
         transactionStateScheduler: TransactionStateScheduler,
+        paymentService: any PaymentServiceable,
     ) {
         self.signer = signer
         self.chainService = chainService
         self.assetsEnabler = assetsEnabler
         self.transactionStateScheduler = transactionStateScheduler
+        self.paymentService = paymentService
     }
 
     public func execute(input: TransferConfirmationInput) async throws {
@@ -74,6 +78,7 @@ extension TransferExecutor {
         debugLog("TransferExecutor broadcast response hash \(hash)")
 
         input.delegate?(.success(hash))
+        confirmPayment(type: input.data.type, transactionHash: hash)
 
         let transaction = try TransactionFactory.makePendingTransaction(
             wallet: input.wallet,
@@ -111,6 +116,17 @@ extension TransferExecutor {
         }
     }
 
+    private func confirmPayment(type: TransferDataType, transactionHash: String) {
+        guard case let .payment(_, payment, _) = type else { return }
+        Task {
+            do {
+                _ = try await paymentService.confirm(payment: payment, transactionHash: transactionHash)
+            } catch {
+                debugLog("TransferExecutor payment confirm error: \(error)")
+            }
+        }
+    }
+
     private func pendingTransactions(
         for transaction: Transaction,
         transferData: TransferData,
@@ -133,7 +149,7 @@ extension TransferExecutor {
                 && data.quote.providerData.provider == .hyperliquid
                 && transactionIndex < totalTransactions - 1:
                 return []
-            case .stake, .perpetual, .transfer, .deposit, .withdrawal, .transferNft, .swap, .tokenApprove, .generic, .account, .earn:
+            case .stake, .perpetual, .transfer, .deposit, .withdrawal, .transferNft, .swap, .tokenApprove, .generic, .account, .earn, .payment:
                 break
             }
         default:
@@ -151,7 +167,7 @@ extension TransferExecutor {
         switch data.chain {
         case .solana:
             switch data.type {
-            case .transfer, .deposit, .withdrawal, .transferNft, .stake, .account, .tokenApprove, .perpetual, .earn: BroadcastOptions(
+            case .transfer, .deposit, .withdrawal, .transferNft, .stake, .account, .tokenApprove, .perpetual, .earn, .payment: BroadcastOptions(
                     skipPreflight: false,
                 )
             case .swap, .generic: BroadcastOptions(skipPreflight: true)

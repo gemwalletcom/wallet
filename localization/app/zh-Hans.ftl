@@ -161,6 +161,8 @@ transfer_unfreeze_title = 解冻
 transfer_review_request = 审查请求
 transfer_amount = 金额
 transfer_amount_title = 数额
+transfer_pay_with = 支付方式
+transfer_payment_title = 支付
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = 网络连接似乎已断开。
 errors_no_internet_connection = 无互联网连接
 errors_no_service_connection = 无服务连接
 errors_balances_activity_outdated = 余额和活动可能不是最新的。
+errors_payment_expired = 支付已过期
+errors_payment_not_allowed = 不允许支付
 
 # Activity
 

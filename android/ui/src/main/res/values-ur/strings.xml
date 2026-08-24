@@ -140,6 +140,8 @@
   <string name="transfer_review_request">درخواست کا جائزہ لیں</string>
   <string name="transfer_amount">رقم</string>
   <string name="transfer_amount_title">رقم</string>
+  <string name="transfer_pay_with">اس سے ادائیگی کریں</string>
+  <string name="transfer_payment_title">ادائیگی</string>
   <string name="settings_terms_of_services">سروس کی شرائط</string>
   <string name="settings_privacy_policy">رازداری کی پالیسی</string>
   <string name="settings_title">ترتیبات</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">انٹرنیٹ کنکشن نہیں ہے</string>
   <string name="errors_no_service_connection">سروس کنکشن نہیں ہے</string>
   <string name="errors_balances_activity_outdated">بیلنس اور سرگرمی پرانی ہو سکتی ہے۔</string>
+  <string name="errors_payment_expired">ادائیگی کی میعاد ختم ہو گئی</string>
+  <string name="errors_payment_not_allowed">ادائیگی کی اجازت نہیں</string>
   <string name="activity_title">سرگرمی</string>
   <string name="activity_state_empty_title">آپ کی سرگرمی یہاں ظاہر ہوگی۔</string>
   <string name="activity_state_empty_description">اپنا پہلا لین دین کریں۔</string>

@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Îngheață";
 "transfer.unfreeze.title" = "Dezghețare";
 "transfer.review_request" = "Cerere de revizuire";
+"transfer.pay_with" = "Plătește cu";
+"transfer.payment_title" = "Plată";
 "settings.terms_of_services" = "Termeni și condiții";
 "settings.privacy_policy" = "Politica de confidențialitate";
 "settings.title" = "Setări";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Nicio conexiune la internet";
 "errors.no_service_connection" = "Nicio conexiune la serviciu";
 "errors.balances_activity_outdated" = "Soldurile și activitatea pot fi învechite.";
+"errors.payment_expired" = "Plată expirată";
+"errors.payment_not_allowed" = "Plată nepermisă";
 "activity.title" = "Activitate";
 "activity.state.empty.title" = "Activitatea ta va apărea aici";
 "activity.state.empty.description" = "Efectuați prima tranzacție";

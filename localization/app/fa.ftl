@@ -161,6 +161,8 @@ transfer_unfreeze_title = یخ‌زدایی
 transfer_review_request = درخواست بررسی
 transfer_amount = مبلغ
 transfer_amount_title = مبلغ
+transfer_pay_with = پرداخت با
+transfer_payment_title = پرداخت
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = به نظر می‌رسد اتصال اینترنت آ�
 errors_no_internet_connection = اتصال اینترنت برقرار نیست
 errors_no_service_connection = اتصال سرویس برقرار نیست
 errors_balances_activity_outdated = موجودی‌ها و فعالیت ممکن است به‌روز نباشند.
+errors_payment_expired = پرداخت منقضی شد
+errors_payment_not_allowed = پرداخت مجاز نیست
 
 # Activity
 

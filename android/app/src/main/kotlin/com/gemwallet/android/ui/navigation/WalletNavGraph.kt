@@ -41,6 +41,7 @@ import com.gemwallet.android.ui.navigation.routes.bridgesScreen
 import com.gemwallet.android.ui.navigation.routes.confirm
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
 import com.gemwallet.android.ui.navigation.routes.nftCollection
+import com.gemwallet.android.ui.navigation.routes.payment
 import com.gemwallet.android.ui.navigation.routes.perpetualScreen
 import com.gemwallet.android.ui.navigation.routes.portfolioChartScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
@@ -170,6 +171,11 @@ fun WalletNavGraph(
 
             confirm(
                 finishAction = { _ -> navigator.popConfirmFlow() },
+                onAcquireAsset = navigator::openAcquireAsset,
+                cancelAction = onCancel,
+            )
+
+            payment(
                 onAcquireAsset = navigator::openAcquireAsset,
                 cancelAction = onCancel,
             )

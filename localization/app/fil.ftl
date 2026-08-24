@@ -161,6 +161,8 @@ transfer_unfreeze_title = I-unfreeze
 transfer_review_request = Suriin ang Kahilingan
 transfer_amount = Halaga
 transfer_amount_title = Halaga
+transfer_pay_with = Bayaran gamit ang
+transfer_payment_title = Bayad
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = Mukhang offline ang koneksyon sa internet.
 errors_no_internet_connection = Walang koneksyon sa internet
 errors_no_service_connection = Walang koneksyon sa serbisyo
 errors_balances_activity_outdated = Maaaring luma na ang mga balanse at aktibidad.
+errors_payment_expired = Nag-expire ang bayad
+errors_payment_not_allowed = Hindi pinapayagan ang bayad
 
 # Activity
 

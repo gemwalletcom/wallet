@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "凍結";
 "transfer.unfreeze.title" = "解凍";
 "transfer.review_request" = "審查請求";
+"transfer.pay_with" = "付款方式";
+"transfer.payment_title" = "付款";
 "settings.terms_of_services" = "服務條款";
 "settings.privacy_policy" = "隱私政策";
 "settings.title" = "設置";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "無網際網路連線";
 "errors.no_service_connection" = "無服務連線";
 "errors.balances_activity_outdated" = "餘額和活動可能不是最新的。";
+"errors.payment_expired" = "付款已過期";
+"errors.payment_not_allowed" = "不允許付款";
 "activity.title" = "活動";
 "activity.state.empty.title" = "您的交易將顯示在此處";
 "activity.state.empty.description" = "發起您的第一筆交易";

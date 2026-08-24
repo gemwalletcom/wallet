@@ -15,6 +15,7 @@ import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.getNftMetadata
+import com.gemwallet.android.ext.getPaymentMetadata
 import com.gemwallet.android.ext.getPerpetualMetadata
 import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
@@ -258,13 +259,17 @@ class TransactionDetailsAggregateImpl(
         TransactionType.Transfer,
         TransactionType.TransferNFT -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> TransactionDetailsValue.Destination.Recipient(
-                data = data.transaction.to,
-                chain = data.asset.chain,
-                name = data.toAddress?.name,
-                addressType = data.toAddress?.type,
-                explorerLink = recipientExplorerLink,
-            )
+            TransactionDirection.Outgoing -> {
+                val merchant = data.transaction.getPaymentMetadata()?.merchant
+                TransactionDetailsValue.Destination.Recipient(
+                    data = data.transaction.to,
+                    chain = data.asset.chain,
+                    name = merchant?.name ?: data.toAddress?.name,
+                    addressType = data.toAddress?.type,
+                    explorerLink = recipientExplorerLink,
+                    imageUrl = merchant?.iconUrl,
+                )
+            }
             TransactionDirection.Incoming -> TransactionDetailsValue.Destination.Sender(
                 data = data.transaction.from,
                 chain = data.asset.chain,

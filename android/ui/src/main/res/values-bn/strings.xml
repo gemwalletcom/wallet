@@ -140,6 +140,8 @@
   <string name="transfer_review_request">পর্যালোচনার অনুরোধ</string>
   <string name="transfer_amount">পরিমাণ</string>
   <string name="transfer_amount_title">পরিমাণ</string>
+  <string name="transfer_pay_with">যা দিয়ে পরিশোধ করবেন</string>
+  <string name="transfer_payment_title">পেমেন্ট</string>
   <string name="settings_terms_of_services">পরিষেবার শর্তাবলী</string>
   <string name="settings_privacy_policy">গোপনীয়তা নীতি</string>
   <string name="settings_title">সেটিংস</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">ইন্টারনেট সংযোগ নেই</string>
   <string name="errors_no_service_connection">পরিষেবা সংযোগ নেই</string>
   <string name="errors_balances_activity_outdated">ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।</string>
+  <string name="errors_payment_expired">পেমেন্টের মেয়াদ শেষ</string>
+  <string name="errors_payment_not_allowed">পেমেন্ট অনুমোদিত নয়</string>
   <string name="activity_title">কার্যকলাপ</string>
   <string name="activity_state_empty_title">আপনার কার্যকলাপ এখানে প্রদর্শিত হবে</string>
   <string name="activity_state_empty_description">আপনার প্রথম লেনদেন করুন</string>

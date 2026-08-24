@@ -161,6 +161,8 @@ transfer_unfreeze_title = Dezghețare
 transfer_review_request = Cerere de revizuire
 transfer_amount = Suma
 transfer_amount_title = Suma
+transfer_pay_with = Plătește cu
+transfer_payment_title = Plată
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = Conexiunea la internet pare să fie offline.
 errors_no_internet_connection = Nicio conexiune la internet
 errors_no_service_connection = Nicio conexiune la serviciu
 errors_balances_activity_outdated = Soldurile și activitatea pot fi învechite.
+errors_payment_expired = Plată expirată
+errors_payment_not_allowed = Plată nepermisă
 
 # Activity
 

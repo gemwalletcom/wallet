@@ -161,6 +161,8 @@ transfer_unfreeze_title = 凍結解除
 transfer_review_request = レビューリクエスト
 transfer_amount = 金額
 transfer_amount_title = 金額
+transfer_pay_with = 支払い方法
+transfer_payment_title = 支払い
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = インターネット接続が切断されているよ�
 errors_no_internet_connection = インターネット接続がありません
 errors_no_service_connection = サービス接続がありません
 errors_balances_activity_outdated = 残高とアクティビティは最新でない場合があります。
+errors_payment_expired = 支払いの期限切れ
+errors_payment_not_allowed = 支払いは許可されていません
 
 # Activity
 

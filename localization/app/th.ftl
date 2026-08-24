@@ -161,6 +161,8 @@ transfer_unfreeze_title = ยกเลิกการฟรีซ
 transfer_review_request = คำขอตรวจสอบ
 transfer_amount = จำนวน
 transfer_amount_title = จำนวน
+transfer_pay_with = ชำระด้วย
+transfer_payment_title = การชำระเงิน
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = ดูเหมือนว่าการเชื่�
 errors_no_internet_connection = ไม่มีการเชื่อมต่ออินเทอร์เน็ต
 errors_no_service_connection = ไม่มีการเชื่อมต่อบริการ
 errors_balances_activity_outdated = ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน
+errors_payment_expired = การชำระเงินหมดอายุ
+errors_payment_not_allowed = ไม่อนุญาตให้ชำระเงิน
 
 # Activity
 

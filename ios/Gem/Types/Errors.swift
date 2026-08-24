@@ -36,6 +36,24 @@ extension Gemstone.SwapperError: @retroactive LocalizedError {
     }
 }
 
+extension Gemstone.PaymentError: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .PaymentExpired, .QuoteExpired:
+            return Localized.Errors.paymentExpired
+        case .Rejected:
+            return Localized.Errors.paymentNotAllowed
+        case .PaymentNotFound:
+            return Localized.Transaction.Status.failed
+        case .NoPaymentOptions, .NotSupported:
+            return Localized.Errors.notSupported
+        case let .InvalidRequest(message), let .Network(message):
+            debugLog("PaymentError \(message)")
+            return Localized.Errors.errorOccurred
+        }
+    }
+}
+
 extension Gemstone.AlienError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {

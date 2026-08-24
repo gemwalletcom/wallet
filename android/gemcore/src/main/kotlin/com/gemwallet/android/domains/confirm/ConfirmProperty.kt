@@ -63,6 +63,12 @@ sealed interface ConfirmProperty {
                         imageUrl = addressName?.imageUrl,
                     )
                 }
+                is ConfirmParams.TransferParams.Payment -> Transfer(
+                    domain = params.payment.merchant.name,
+                    address = params.destination().address,
+                    chain = params.assetId.chain,
+                    imageUrl = params.payment.merchant.iconUrl,
+                )
                 is ConfirmParams.TransferParams.Generic -> Generic(params.name)
             }
         }

@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "تجميد";
 "transfer.unfreeze.title" = "إزالة التجميد";
 "transfer.review_request" = "طلب مراجعة";
+"transfer.pay_with" = "ادفع بواسطة";
+"transfer.payment_title" = "الدفع";
 "settings.terms_of_services" = "شروط الخدمات";
 "settings.privacy_policy" = "سياسة الخصوصية";
 "settings.title" = "إعدادات";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "لا يوجد اتصال بالإنترنت";
 "errors.no_service_connection" = "لا يوجد اتصال بالخدمة";
 "errors.balances_activity_outdated" = "قد تكون الأرصدة والنشاط غير محدثة.";
+"errors.payment_expired" = "انتهت صلاحية الدفعة";
+"errors.payment_not_allowed" = "الدفع غير مسموح به";
 "activity.title" = "نشاط";
 "activity.state.empty.title" = "سوف يظهر نشاطك هنا";
 "activity.state.empty.description" = "قم بإجراء معاملتك الأولى";

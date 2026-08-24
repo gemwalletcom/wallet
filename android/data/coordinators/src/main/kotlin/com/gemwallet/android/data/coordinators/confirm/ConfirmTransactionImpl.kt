@@ -20,6 +20,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
+import com.wallet.core.primitives.TransactionPaymentMetadata
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
@@ -209,6 +210,9 @@ internal fun ConfirmParams.toTransactionMetadataJson(): String? = when (this) {
     )
     is ConfirmParams.Stake.Unfreeze -> jsonEncoder.encodeToString(
         TransactionResourceTypeMetadata(resource)
+    )
+    is ConfirmParams.TransferParams.Payment -> jsonEncoder.encodeToString(
+        TransactionPaymentMetadata(payment.quote.link, payment.merchant)
     )
     else -> null
 }

@@ -161,6 +161,8 @@ transfer_unfreeze_title = Ontvriezen
 transfer_review_request = Verzoek controleren
 transfer_amount = Bedrag
 transfer_amount_title = Bedrag
+transfer_pay_with = Betalen met
+transfer_payment_title = Betaling
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = De internetverbinding lijkt offline te zijn.
 errors_no_internet_connection = Geen internetverbinding
 errors_no_service_connection = Geen serviceverbinding
 errors_balances_activity_outdated = Saldi en activiteit zijn mogelijk verouderd.
+errors_payment_expired = Betaling verlopen
+errors_payment_not_allowed = Betaling niet toegestaan
 
 # Activity
 

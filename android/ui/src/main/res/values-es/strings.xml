@@ -140,6 +140,8 @@
   <string name="transfer_review_request">Revisar solicitud</string>
   <string name="transfer_amount">Cantidad</string>
   <string name="transfer_amount_title">Cantidad</string>
+  <string name="transfer_pay_with">Pagar con</string>
+  <string name="transfer_payment_title">Pago</string>
   <string name="settings_terms_of_services">Términos de servicios</string>
   <string name="settings_privacy_policy">Política de privacidad</string>
   <string name="settings_title">Ajustes</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">Sin conexión a internet</string>
   <string name="errors_no_service_connection">Sin conexión al servicio</string>
   <string name="errors_balances_activity_outdated">Los saldos y la actividad pueden estar desactualizados.</string>
+  <string name="errors_payment_expired">Pago caducado</string>
+  <string name="errors_payment_not_allowed">Pago no permitido</string>
   <string name="activity_title">Actividad</string>
   <string name="activity_state_empty_title">Tu actividad aparecerá aquí</string>
   <string name="activity_state_empty_description">Realiza tu primera transacción</string>

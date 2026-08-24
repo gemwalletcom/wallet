@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Заморозити";
 "transfer.unfreeze.title" = "Розморозити";
 "transfer.review_request" = "Переглянути запит";
+"transfer.pay_with" = "Оплатити за допомогою";
+"transfer.payment_title" = "Платіж";
 "settings.terms_of_services" = "Умови надання послуг";
 "settings.privacy_policy" = "Політика конфіденційності";
 "settings.title" = "Налаштування";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Немає підключення до інтернету";
 "errors.no_service_connection" = "Немає підключення до сервісу";
 "errors.balances_activity_outdated" = "Баланси та активність можуть бути застарілими.";
+"errors.payment_expired" = "Термін платежу минув";
+"errors.payment_not_allowed" = "Платіж не дозволено";
 "activity.title" = "Активність";
 "activity.state.empty.title" = "Ваша активність відображатиметься тут";
 "activity.state.empty.description" = "Зробіть свою першу транзакцію";

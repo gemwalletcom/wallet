@@ -140,6 +140,8 @@
   <string name="transfer_review_request">Review Request</string>
   <string name="transfer_amount">Amount</string>
   <string name="transfer_amount_title">Amount</string>
+  <string name="transfer_pay_with">Pay with</string>
+  <string name="transfer_payment_title">Payment</string>
   <string name="settings_terms_of_services">Terms of Services</string>
   <string name="settings_privacy_policy">Privacy Policy</string>
   <string name="settings_title">Settings</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">No internet connection</string>
   <string name="errors_no_service_connection">No service connection</string>
   <string name="errors_balances_activity_outdated">Balances and activity may be outdated.</string>
+  <string name="errors_payment_expired">Payment Expired</string>
+  <string name="errors_payment_not_allowed">Payment not allowed</string>
   <string name="activity_title">Activity</string>
   <string name="activity_state_empty_title">Your activity will appear here</string>
   <string name="activity_state_empty_description">Make your first transaction</string>

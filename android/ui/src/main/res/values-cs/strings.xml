@@ -140,6 +140,8 @@
   <string name="transfer_review_request">Žádost o kontrolu</string>
   <string name="transfer_amount">Množství</string>
   <string name="transfer_amount_title">Množství</string>
+  <string name="transfer_pay_with">Zaplatit pomocí</string>
+  <string name="transfer_payment_title">Platba</string>
   <string name="settings_terms_of_services">Podmínky služeb</string>
   <string name="settings_privacy_policy">Zásady ochrany osobních údajů</string>
   <string name="settings_title">Nastavení</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">Žádné připojení k internetu</string>
   <string name="errors_no_service_connection">Žádné připojení ke službě</string>
   <string name="errors_balances_activity_outdated">Zůstatky a aktivita mohou být zastaralé.</string>
+  <string name="errors_payment_expired">Platba vypršela</string>
+  <string name="errors_payment_not_allowed">Platba není povolena</string>
   <string name="activity_title">Aktivita</string>
   <string name="activity_state_empty_title">Vaše aktivita se zde zobrazí</string>
   <string name="activity_state_empty_description">Proveďte svou první transakci</string>

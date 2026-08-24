@@ -20,6 +20,7 @@ import KeystoreTestKit
 import Localization
 import NodeService
 import NodeServiceTestKit
+import PaymentServiceTestKit
 import PriceServiceTestKit
 import Primitives
 import PrimitivesComponents
@@ -734,6 +735,7 @@ private extension ConfirmTransferSceneViewModel {
                 addressNameService: addressNameService,
                 activityService: .mock(),
                 eventPresenterService: .mock(),
+                paymentService: .mock(),
                 chain: data.chain,
             ),
             onComplete: {},

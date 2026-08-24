@@ -161,6 +161,8 @@ transfer_unfreeze_title = Cire daskarewa
 transfer_review_request = Buƙatar Bita
 transfer_amount = Adadin
 transfer_amount_title = Adadin
+transfer_pay_with = Biya da
+transfer_payment_title = Biya
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = Da alama haɗin intanet ɗin ya katse.
 errors_no_internet_connection = Babu haɗin intanet
 errors_no_service_connection = Babu haɗin sabis
 errors_balances_activity_outdated = Ma'aunai da ayyuka na iya zama tsofaffi.
+errors_payment_expired = Biyan ya ƙare
+errors_payment_not_allowed = Ba a yarda da biyan ba
 
 # Activity
 

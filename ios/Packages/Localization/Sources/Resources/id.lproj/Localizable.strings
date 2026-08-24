@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Bekukan";
 "transfer.unfreeze.title" = "Cairkan";
 "transfer.review_request" = "Tinjau Permintaan";
+"transfer.pay_with" = "Bayar dengan";
+"transfer.payment_title" = "Pembayaran";
 "settings.terms_of_services" = "Syarat dan Ketentuan";
 "settings.privacy_policy" = "Kebijakan Privasi";
 "settings.title" = "Pengaturan";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Tidak ada koneksi internet";
 "errors.no_service_connection" = "Tidak ada koneksi layanan";
 "errors.balances_activity_outdated" = "Saldo dan aktivitas mungkin tidak terbaru.";
+"errors.payment_expired" = "Pembayaran kedaluwarsa";
+"errors.payment_not_allowed" = "Pembayaran tidak diizinkan";
 "activity.title" = "Aktivitas";
 "activity.state.empty.title" = "Aktivitas Anda akan muncul di sini";
 "activity.state.empty.description" = "Lakukan transaksi pertama Anda";

@@ -140,6 +140,8 @@
   <string name="transfer_review_request">Buƙatar Bita</string>
   <string name="transfer_amount">Adadin</string>
   <string name="transfer_amount_title">Adadin</string>
+  <string name="transfer_pay_with">Biya da</string>
+  <string name="transfer_payment_title">Biya</string>
   <string name="settings_terms_of_services">Sharuɗɗan Sabis</string>
   <string name="settings_privacy_policy">takardar kebantawa</string>
   <string name="settings_title">Saituna</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">Babu haɗin intanet</string>
   <string name="errors_no_service_connection">Babu haɗin sabis</string>
   <string name="errors_balances_activity_outdated">Ma\'aunai da ayyuka na iya zama tsofaffi.</string>
+  <string name="errors_payment_expired">Biyan ya ƙare</string>
+  <string name="errors_payment_not_allowed">Ba a yarda da biyan ba</string>
   <string name="activity_title">Ayyuka</string>
   <string name="activity_state_empty_title">Ayyukanku za su bayyana a nan</string>
   <string name="activity_state_empty_description">Yi ciniki na farko</string>

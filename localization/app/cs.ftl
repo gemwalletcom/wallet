@@ -161,6 +161,8 @@ transfer_unfreeze_title = Uvolnit
 transfer_review_request = Žádost o kontrolu
 transfer_amount = Množství
 transfer_amount_title = Množství
+transfer_pay_with = Zaplatit pomocí
+transfer_payment_title = Platba
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = Zdá se, že je internetové připojení offline.
 errors_no_internet_connection = Žádné připojení k internetu
 errors_no_service_connection = Žádné připojení ke službě
 errors_balances_activity_outdated = Zůstatky a aktivita mohou být zastaralé.
+errors_payment_expired = Platba vypršela
+errors_payment_not_allowed = Platba není povolena
 
 # Activity
 

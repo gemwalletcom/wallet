@@ -433,6 +433,10 @@ public enum Localized {
     public static let notSupported = Localized.tr("Localizable", "errors.not_supported", fallback: "Not Supported")
     /// This device does not support QR code scanning. You can only select QR code image from library.
     public static let notSupportedQr = Localized.tr("Localizable", "errors.not_supported_qr", fallback: "This device does not support QR code scanning. You can only select QR code image from library.")
+    /// Payment Expired
+    public static let paymentExpired = Localized.tr("Localizable", "errors.payment_expired", fallback: "Payment Expired")
+    /// Payment not allowed
+    public static let paymentNotAllowed = Localized.tr("Localizable", "errors.payment_not_allowed", fallback: "Payment not allowed")
     /// Permissions Not Granted
     public static let permissionsNotGranted = Localized.tr("Localizable", "errors.permissions_not_granted", fallback: "Permissions Not Granted")
     /// %@ is required
@@ -1494,6 +1498,10 @@ public enum Localized {
     public static let network = Localized.tr("Localizable", "transfer.network", fallback: "Network")
     /// Network Fee
     public static let networkFee = Localized.tr("Localizable", "transfer.network_fee", fallback: "Network Fee")
+    /// Pay with
+    public static let payWith = Localized.tr("Localizable", "transfer.pay_with", fallback: "Pay with")
+    /// Payment
+    public static let paymentTitle = Localized.tr("Localizable", "transfer.payment_title", fallback: "Payment")
     /// We've left %@ in your balance to cover future network fees.
     public static func reservedFees(_ p1: Any) -> String {
       return Localized.tr("Localizable", "transfer.reserved_fees", String(describing: p1), fallback: "We've left %@ in your balance to cover future network fees.")

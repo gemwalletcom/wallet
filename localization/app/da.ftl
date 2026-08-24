@@ -161,6 +161,8 @@ transfer_unfreeze_title = Optø
 transfer_review_request = Anmodning om gennemgang
 transfer_amount = Beløb
 transfer_amount_title = Beløb
+transfer_pay_with = Betal med
+transfer_payment_title = Betaling
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = Internetforbindelsen ser ud til at være offline.
 errors_no_internet_connection = Ingen internetforbindelse
 errors_no_service_connection = Ingen serviceforbindelse
 errors_balances_activity_outdated = Saldi og aktivitet kan være forældede.
+errors_payment_expired = Betaling udløbet
+errors_payment_not_allowed = Betaling ikke tilladt
 
 # Activity
 

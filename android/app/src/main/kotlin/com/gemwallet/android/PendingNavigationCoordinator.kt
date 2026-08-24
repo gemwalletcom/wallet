@@ -3,8 +3,10 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.annotation.VisibleForTesting
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.ext.request
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ui.navigation.routes.PaymentRoute
+import com.wallet.core.primitives.Payment
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +36,7 @@ internal sealed interface PendingNavigation {
 class PendingNavigationCoordinator @Inject constructor(
     private val notificationNavigation: NotificationNavigation,
     private val paymentNavigation: PaymentNavigation,
+    private val userConfig: UserConfig,
 ) {
 
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)
@@ -81,9 +84,9 @@ class PendingNavigationCoordinator @Inject constructor(
             emptyList()
         }
         is UrlAction.Deeplink -> listOfNotNull(action.deeplink.toRoute())
-        is UrlAction.Payment -> when (val request = action.payment.toPrimitives().request) {
-            null -> emptyList()
-            else -> paymentNavigation.prepareNavigation(request)
+        is UrlAction.Payment -> when (val payment = action.payment.toPrimitives()) {
+            is Payment.Request -> paymentNavigation.prepareNavigation(payment.content)
+            is Payment.Link -> if (userConfig.developEnabled()) listOf(PaymentRoute(payment.content)) else emptyList()
         }
     }
 

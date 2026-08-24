@@ -53,6 +53,13 @@
     },
     {
       "target" : {
+        "containerPath" : "container:Features\/Payments",
+        "identifier" : "PaymentsTests",
+        "name" : "PaymentsTests"
+      }
+    },
+    {
+      "target" : {
         "containerPath" : "container:Features\/LockManager",
         "identifier" : "LockManagerTests",
         "name" : "LockManagerTests"

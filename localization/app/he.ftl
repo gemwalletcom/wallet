@@ -161,6 +161,8 @@ transfer_unfreeze_title = לְהַפְשִׁיר
 transfer_review_request = סקור בקשה
 transfer_amount = כמות
 transfer_amount_title = כמות
+transfer_pay_with = שלם באמצעות
+transfer_payment_title = תשלום
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = נראה שחיבור האינטרנט אינו מקו�
 errors_no_internet_connection = אין חיבור לאינטרנט
 errors_no_service_connection = אין חיבור לשירות
 errors_balances_activity_outdated = היתרות והפעילות עשויות להיות לא מעודכנות.
+errors_payment_expired = התשלום פג תוקף
+errors_payment_not_allowed = התשלום אינו מורשה
 
 # Activity
 

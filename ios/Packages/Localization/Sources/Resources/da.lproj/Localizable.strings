@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Fryse";
 "transfer.unfreeze.title" = "Optø";
 "transfer.review_request" = "Anmodning om gennemgang";
+"transfer.pay_with" = "Betal med";
+"transfer.payment_title" = "Betaling";
 "settings.terms_of_services" = "Servicevilkår";
 "settings.privacy_policy" = "Privatlivspolitik";
 "settings.title" = "Indstillinger";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Ingen internetforbindelse";
 "errors.no_service_connection" = "Ingen serviceforbindelse";
 "errors.balances_activity_outdated" = "Saldi og aktivitet kan være forældede.";
+"errors.payment_expired" = "Betaling udløbet";
+"errors.payment_not_allowed" = "Betaling ikke tilladt";
 "activity.title" = "Aktivitet";
 "activity.state.empty.title" = "Din aktivitet vil blive vist her";
 "activity.state.empty.description" = "Foretag din første transaktion";

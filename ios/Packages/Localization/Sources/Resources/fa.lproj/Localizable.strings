@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "فریز کردن";
 "transfer.unfreeze.title" = "یخ‌زدایی";
 "transfer.review_request" = "درخواست بررسی";
+"transfer.pay_with" = "پرداخت با";
+"transfer.payment_title" = "پرداخت";
 "settings.terms_of_services" = "شرایط استفاده از خدمات";
 "settings.privacy_policy" = "سیاست حفظ حریم خصوصی";
 "settings.title" = "تنظیمات";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "اتصال اینترنت برقرار نیست";
 "errors.no_service_connection" = "اتصال سرویس برقرار نیست";
 "errors.balances_activity_outdated" = "موجودی‌ها و فعالیت ممکن است به‌روز نباشند.";
+"errors.payment_expired" = "پرداخت منقضی شد";
+"errors.payment_not_allowed" = "پرداخت مجاز نیست";
 "activity.title" = "فعالیت";
 "activity.state.empty.title" = "فعالیت شما اینجا نمایش داده می‌شود";
 "activity.state.empty.description" = "اولین تراکنش خود را انجام دهید";

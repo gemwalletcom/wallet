@@ -133,6 +133,8 @@
 "transfer.freeze.title" = "Einfrieren";
 "transfer.unfreeze.title" = "Auftauen";
 "transfer.review_request" = "Überprüfungsanfrage";
+"transfer.pay_with" = "Bezahlen mit";
+"transfer.payment_title" = "Zahlung";
 "settings.terms_of_services" = "Nutzungsbedingungen";
 "settings.privacy_policy" = "Datenschutzbestimmungen";
 "settings.title" = "Einstellungen";
@@ -214,6 +216,8 @@
 "errors.no_internet_connection" = "Keine Internetverbindung";
 "errors.no_service_connection" = "Keine Serviceverbindung";
 "errors.balances_activity_outdated" = "Guthaben und Aktivität sind möglicherweise nicht aktuell.";
+"errors.payment_expired" = "Zahlung abgelaufen";
+"errors.payment_not_allowed" = "Zahlung nicht zulässig";
 "activity.title" = "Aktivität";
 "activity.state.empty.title" = "Ihre Aktivität wird hier angezeigt";
 "activity.state.empty.description" = "Machen Sie Ihre erste Transaktion";

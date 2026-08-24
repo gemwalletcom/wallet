@@ -140,6 +140,8 @@
   <string name="transfer_review_request">Überprüfungsanfrage</string>
   <string name="transfer_amount">Betrag</string>
   <string name="transfer_amount_title">Betrag</string>
+  <string name="transfer_pay_with">Bezahlen mit</string>
+  <string name="transfer_payment_title">Zahlung</string>
   <string name="settings_terms_of_services">Nutzungsbedingungen</string>
   <string name="settings_privacy_policy">Datenschutzbestimmungen</string>
   <string name="settings_title">Einstellungen</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">Keine Internetverbindung</string>
   <string name="errors_no_service_connection">Keine Serviceverbindung</string>
   <string name="errors_balances_activity_outdated">Guthaben und Aktivität sind möglicherweise nicht aktuell.</string>
+  <string name="errors_payment_expired">Zahlung abgelaufen</string>
+  <string name="errors_payment_not_allowed">Zahlung nicht zulässig</string>
   <string name="activity_title">Aktivität</string>
   <string name="activity_state_empty_title">Ihre Aktivität wird hier angezeigt</string>
   <string name="activity_state_empty_description">Machen Sie Ihre erste Transaktion</string>

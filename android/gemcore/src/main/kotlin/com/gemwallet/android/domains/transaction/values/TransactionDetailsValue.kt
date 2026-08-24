@@ -49,6 +49,7 @@ sealed interface TransactionDetailsValue {
         val name: String? = null,
         val addressType: AddressType? = null,
         val explorerLink: BlockExplorerLink? = null,
+        val imageUrl: String? = null,
     ) : TransactionDetailsValue {
         class Sender(
             data: String,
@@ -63,7 +64,8 @@ sealed interface TransactionDetailsValue {
             name: String? = null,
             addressType: AddressType? = null,
             explorerLink: BlockExplorerLink? = null,
-        ) : Destination(data, chain, name, addressType, explorerLink)
+            imageUrl: String? = null,
+        ) : Destination(data, chain, name, addressType, explorerLink, imageUrl)
         class Contract(
             data: String,
             chain: Chain,

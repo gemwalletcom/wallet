@@ -38,7 +38,7 @@ extension ConfirmRecipientViewModel: ItemModelProvidable {
                     chain: model.chain,
                     address: model.recipient.address,
                     memo: model.recipient.memo,
-                    assetImage: addressNameImage,
+                    assetImage: merchantImage ?? addressNameImage,
                     addressType: addressName?.type,
                 ),
                 mode: .nameOrAddress,
@@ -52,6 +52,11 @@ extension ConfirmRecipientViewModel: ItemModelProvidable {
 // MARK: - Private
 
 extension ConfirmRecipientViewModel {
+    private var merchantImage: AssetImage? {
+        guard case let .payment(_, payment, _) = model.type else { return nil }
+        return AssetImage(imageURL: payment.merchant.iconUrl?.asURL)
+    }
+
     private var addressNameImage: AssetImage? {
         guard let addressName else { return nil }
         switch addressName.type {
@@ -79,7 +84,7 @@ extension ConfirmRecipientViewModel {
             case .send: Localized.Transfer.Recipient.title
             }
         case .earn: Localized.Common.provider
-        case .transfer, .deposit, .withdrawal, .transferNft, .tokenApprove, .account, .perpetual: Localized.Transfer.Recipient.title
+        case .transfer, .deposit, .withdrawal, .transferNft, .tokenApprove, .account, .perpetual, .payment: Localized.Transfer.Recipient.title
         }
     }
 
@@ -105,7 +110,8 @@ extension ConfirmRecipientViewModel {
              .transferNft,
              .deposit,
              .withdrawal,
-             .tokenApprove: true
+             .tokenApprove,
+             .payment: true
         }
     }
 }

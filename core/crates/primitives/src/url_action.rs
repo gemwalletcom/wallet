@@ -9,20 +9,20 @@ pub enum UrlAction {
 
 impl UrlAction {
     pub fn from_url(url: &str) -> Option<Self> {
+        if let Ok(payment) = PaymentURLDecoder::decode(url) {
+            return Some(Self::Payment { payment });
+        }
         if let Some(link) = WalletConnectLink::from_url(url) {
             return Some(Self::WalletConnect { link });
         }
-        if let Some(deeplink) = Deeplink::from_url(url) {
-            return Some(Self::Deeplink { deeplink });
-        }
-        PaymentURLDecoder::decode(url).ok().map(|payment| Self::Payment { payment })
+        Deeplink::from_url(url).map(|deeplink| Self::Deeplink { deeplink })
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AssetId, Chain, PaymentAmount, PaymentRequest};
+    use crate::{AssetId, Chain, PaymentAmount, PaymentLink, PaymentRequest};
 
     #[test]
     fn test_from_url() {
@@ -60,6 +60,12 @@ mod tests {
             })
         );
         assert_eq!(UrlAction::from_url("https://example.com/tokens/bitcoin"), None);
+        assert_eq!(
+            UrlAction::from_url("wc:abc@2?pay=https%3A%2F%2Fpay.walletconnect.com%2F%3Fpid%3Dpay_123"),
+            Some(UrlAction::Payment {
+                payment: Payment::Link(PaymentLink::WalletConnectPay("pay_123".to_string())),
+            })
+        );
         assert_eq!(
             UrlAction::from_url("not a url"),
             Some(UrlAction::Payment {

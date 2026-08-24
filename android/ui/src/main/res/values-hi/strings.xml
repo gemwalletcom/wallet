@@ -140,6 +140,8 @@
   <string name="transfer_review_request">समीक्षा अनुरोध</string>
   <string name="transfer_amount">रकम</string>
   <string name="transfer_amount_title">रकम</string>
+  <string name="transfer_pay_with">इससे भुगतान करें</string>
+  <string name="transfer_payment_title">भुगतान</string>
   <string name="settings_terms_of_services">सेवा की शर्तें</string>
   <string name="settings_privacy_policy">गोपनीयता नीति</string>
   <string name="settings_title">सेटिंग्स</string>
@@ -225,6 +227,8 @@
   <string name="errors_no_internet_connection">इंटरनेट कनेक्शन नहीं है</string>
   <string name="errors_no_service_connection">सेवा कनेक्शन नहीं है</string>
   <string name="errors_balances_activity_outdated">बैलेंस और गतिविधि पुरानी हो सकती है।</string>
+  <string name="errors_payment_expired">भुगतान समाप्त</string>
+  <string name="errors_payment_not_allowed">भुगतान की अनुमति नहीं है</string>
   <string name="activity_title">गतिविधि</string>
   <string name="activity_state_empty_title">आपकी गतिविधि यहां दिखाई देगी</string>
   <string name="activity_state_empty_description">अपना पहला लेनदेन करें</string>

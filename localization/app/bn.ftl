@@ -161,6 +161,8 @@ transfer_unfreeze_title = আনফ্রিজ করুন
 transfer_review_request = পর্যালোচনার অনুরোধ
 transfer_amount = পরিমাণ
 transfer_amount_title = পরিমাণ
+transfer_pay_with = যা দিয়ে পরিশোধ করবেন
+transfer_payment_title = পেমেন্ট
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = ইন্টারনেট সংযোগটি অ�
 errors_no_internet_connection = ইন্টারনেট সংযোগ নেই
 errors_no_service_connection = পরিষেবা সংযোগ নেই
 errors_balances_activity_outdated = ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।
+errors_payment_expired = পেমেন্টের মেয়াদ শেষ
+errors_payment_not_allowed = পেমেন্ট অনুমোদিত নয়
 
 # Activity
 

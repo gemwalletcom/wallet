@@ -161,6 +161,8 @@ transfer_unfreeze_title = إزالة التجميد
 transfer_review_request = طلب مراجعة
 transfer_amount = كمية
 transfer_amount_title = كمية
+transfer_pay_with = ادفع بواسطة
+transfer_payment_title = الدفع
 
 # Settings
 
@@ -255,6 +257,8 @@ errors_network_offline = يبدو أن الاتصال بالإنترنت غير 
 errors_no_internet_connection = لا يوجد اتصال بالإنترنت
 errors_no_service_connection = لا يوجد اتصال بالخدمة
 errors_balances_activity_outdated = قد تكون الأرصدة والنشاط غير محدثة.
+errors_payment_expired = انتهت صلاحية الدفعة
+errors_payment_not_allowed = الدفع غير مسموح به
 
 # Activity
 

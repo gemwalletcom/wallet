@@ -45,7 +45,8 @@ extension ConfirmAppViewModel {
              .stake,
              .account,
              .perpetual,
-             .earn: .none
+             .earn,
+             .payment: .none
         case let .generic(_, metadata, _):
             metadata.shortName
         }
@@ -62,7 +63,8 @@ extension ConfirmAppViewModel {
              .stake,
              .account,
              .perpetual,
-             .earn:
+             .earn,
+             .payment:
             .none
         case let .generic(_, session, _):
             AssetImage(imageURL: session.icon.asURL)
