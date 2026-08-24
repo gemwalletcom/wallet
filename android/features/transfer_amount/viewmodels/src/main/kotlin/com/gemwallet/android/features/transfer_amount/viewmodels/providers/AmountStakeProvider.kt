@@ -139,15 +139,26 @@ class AmountStakeProvider(
         else -> MutableStateFlow(emptyList())
     }
 
+    private data class DelegationIdentity(val validatorId: String, val delegationId: String)
+
+    private val delegationIdentity: DelegationIdentity? = when (params) {
+        is AmountParams.Stake.Undelegate -> DelegationIdentity(params.validatorId, params.delegationId)
+        is AmountParams.Stake.Redelegate -> DelegationIdentity(params.validatorId, params.delegationId)
+        is AmountParams.Stake.Withdraw -> DelegationIdentity(params.validatorId, params.delegationId)
+        else -> null
+    }
+
     private val delegation: StateFlow<Delegation?> = run {
-        val source = when (params) {
-            is AmountParams.Stake.Undelegate ->
-                getDelegation(validatorId = params.validatorId, delegationId = params.delegationId)
-            is AmountParams.Stake.Redelegate ->
-                getDelegation(validatorId = params.validatorId, delegationId = params.delegationId)
-            is AmountParams.Stake.Withdraw ->
-                getDelegation(validatorId = params.validatorId, delegationId = params.delegationId)
-            is AmountParams.Stake.Rewards ->
+        val source = when {
+            delegationIdentity != null -> assetInfo.filterNotNull().flatMapLatest { current ->
+                val walletId = current.walletId ?: return@flatMapLatest flowOf(null)
+                getDelegation(
+                    walletId = walletId,
+                    validatorId = delegationIdentity.validatorId,
+                    delegationId = delegationIdentity.delegationId,
+                )
+            }
+            params is AmountParams.Stake.Rewards ->
                 combine(rewardsDelegations, selectedValidatorId) { withRewards, pickedId ->
                     withRewards.firstOrNull { it.validator.id == pickedId } ?: withRewards.firstOrNull()
                 }
