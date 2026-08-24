@@ -53,6 +53,20 @@
       "platforms": [
         "chainflip"
       ]
+    },
+    {
+      "enabled": true,
+      "id": "btc.btc",
+      "direction": "egress",
+      "ticker": "BTC",
+      "name": "Bitcoin",
+      "network": "Bitcoin",
+      "decimals": 8,
+      "minimalAmount": 0.0001,
+      "minimalAmountNative": "10000",
+      "platforms": [
+        "chainflip"
+      ]
     }
   ]
 }

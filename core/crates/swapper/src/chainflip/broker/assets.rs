@@ -12,6 +12,7 @@ pub struct AssetsResponse {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BrokerAsset {
+    pub id: String,
     enabled: bool,
     direction: AssetDirection,
     pub ticker: String,
@@ -41,16 +42,19 @@ impl BrokerAsset {
 }
 
 impl AssetsResponse {
-    pub fn minimum_amount(&self, source_asset: &ChainflipAsset, destination_asset: &ChainflipAsset) -> Option<BigUint> {
-        let source_asset = self
-            .assets
-            .iter()
-            .find(|broker_asset| broker_asset.network == source_asset.chain && broker_asset.ticker == source_asset.asset)
-            .filter(|broker_asset| broker_asset.supports_ingress())?;
+    fn asset(&self, asset: &ChainflipAsset) -> Option<&BrokerAsset> {
         self.assets
             .iter()
-            .find(|broker_asset| broker_asset.network == destination_asset.chain && broker_asset.ticker == destination_asset.asset)
-            .filter(|broker_asset| broker_asset.supports_egress())?;
+            .find(|broker_asset| broker_asset.network == asset.chain && broker_asset.ticker == asset.asset)
+    }
+
+    pub fn quote_asset_id(&self, asset: &ChainflipAsset) -> Option<&str> {
+        self.asset(asset).map(|asset| asset.id.as_str())
+    }
+
+    pub fn minimum_amount(&self, source_asset: &ChainflipAsset, destination_asset: &ChainflipAsset) -> Option<BigUint> {
+        let source_asset = self.asset(source_asset).filter(|broker_asset| broker_asset.supports_ingress())?;
+        self.asset(destination_asset).filter(|broker_asset| broker_asset.supports_egress())?;
         Some(source_asset.minimal_amount_native.clone())
     }
 }
@@ -76,6 +80,7 @@ mod tests {
         let destination = asset("Tron", "TRX");
 
         assert_eq!(response().minimum_amount(&source, &destination), Some(BigUint::from(10_000_000_000_000_000u64)));
+        assert_eq!(response().quote_asset_id(&source), Some("eth.eth"));
 
         let mut assets = response();
         assets.assets[0].enabled = false;

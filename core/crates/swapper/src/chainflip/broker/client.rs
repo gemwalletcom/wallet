@@ -1,5 +1,5 @@
 use super::{
-    AssetsResponse, VaultSwapExtras, VaultSwapResponse,
+    AssetsResponse, QuoteRequest, QuoteResponse, VaultSwapExtras, VaultSwapResponse,
     jsonrpc::RequestSwapParameterEncoding,
     model::{ChainflipAsset, DcaParameters},
 };
@@ -27,6 +27,12 @@ where
 
     pub async fn get_assets(&self) -> Result<AssetsResponse, SwapperError> {
         self.client.get("/assets").await.map_err(SwapperError::from)
+    }
+
+    pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<Vec<QuoteResponse>, SwapperError> {
+        let query = serde_urlencoded::to_string(request).map_err(SwapperError::from)?;
+        let path = format!("/quotes-native?{query}");
+        self.client.get(&path).await.map_err(SwapperError::from)
     }
 
     pub async fn encode_vault_swap(
