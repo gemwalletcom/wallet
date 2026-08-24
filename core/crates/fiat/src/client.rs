@@ -8,6 +8,7 @@ use crate::{
     model::{FiatMapping, FiatMappingMap},
 };
 use futures::future::join_all;
+use gem_client::ClientError;
 use gem_tracing::{error_with_fields, info_with_fields};
 use number_formatter::BigNumberFormatter;
 use primitives::{
@@ -234,7 +235,13 @@ impl FiatClient {
             locale: locale.to_string(),
         };
 
-        let url = provider.get_quote_url(data.clone()).await?;
+        let url = match provider.get_quote_url(data.clone()).await {
+            Ok(url) => url,
+            Err(error) if matches!(error.downcast_ref::<ClientError>(), Some(ClientError::Http { status: 400..=499, .. })) => {
+                return Err(crate::error::FiatQuoteError::InvalidRequest(format!("{} rejected quote", provider.name().id())).into());
+            }
+            Err(error) => return Err(error),
+        };
         let country = match country_code {
             Some(country_code) => Some(country_code),
             None => Some(self.get_ip_address(ip_address).await?.alpha2),
