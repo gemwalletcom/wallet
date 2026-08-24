@@ -48,3 +48,15 @@ impl SecurityToken {
             || self.is_blacklisted.as_deref() == Some("1")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn response_accepts_missing_address_data() {
+        let response: Response<Option<SecurityAddress>> = serde_json::from_str(r#"{"code":1,"message":"OK","result":null}"#).unwrap();
+
+        assert!(response.result.is_none());
+    }
+}
