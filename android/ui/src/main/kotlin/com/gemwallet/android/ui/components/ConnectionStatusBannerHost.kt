@@ -5,7 +5,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
@@ -15,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.gemwallet.android.ui.theme.space0
 
 @Stable
 class ConnectionBannerState {
@@ -46,7 +44,6 @@ val LocalConnectionBannerHandled = compositionLocalOf { false }
 @Composable
 fun ConnectionStatusBannerHost(
     modifier: Modifier = Modifier,
-    windowInsets: WindowInsets = WindowInsets(space0),
 ) {
     if (LocalConnectionBannerHandled.current) return
     val state = LocalConnectionBannerState.current
@@ -63,7 +60,6 @@ fun ConnectionStatusBannerHost(
             title = displayTitle,
             onDismiss = state::dismiss,
             modifier = modifier,
-            windowInsets = windowInsets,
         )
     }
 }

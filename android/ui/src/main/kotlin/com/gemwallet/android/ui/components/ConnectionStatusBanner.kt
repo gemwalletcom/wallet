@@ -2,11 +2,9 @@ package com.gemwallet.android.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +23,6 @@ import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.pendingColor
-import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.tinyIconSize
 
@@ -34,7 +31,6 @@ fun ConnectionStatusBanner(
     title: String,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    windowInsets: WindowInsets = WindowInsets(space0),
 ) {
     Surface(
         modifier = modifier
@@ -44,7 +40,6 @@ fun ConnectionStatusBanner(
     ) {
         Row(
             modifier = Modifier
-                .windowInsetsPadding(windowInsets)
                 .padding(horizontal = padding16, vertical = space10),
             verticalAlignment = Alignment.CenterVertically,
         ) {
