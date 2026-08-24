@@ -5,11 +5,6 @@ use super::broker::DcaParameters;
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ChainflipRouteData {
     pub boost_fee: Option<u32>,
-    pub fee_bps: u32,
-    pub estimated_price: String,
+    pub estimated_price: f64,
     pub dca_parameters: Option<DcaParameters>,
-    #[serde(default)]
-    pub live_price_slippage_bps: Option<u8>,
-    #[serde(default)]
-    pub retry_duration_blocks: Option<u32>,
 }

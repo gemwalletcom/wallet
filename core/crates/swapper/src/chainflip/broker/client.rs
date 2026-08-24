@@ -4,7 +4,7 @@ use super::{
     model::{ChainflipAsset, DcaParameters},
 };
 use crate::SwapperError;
-use gem_client::{Client, ClientExt};
+use gem_client::{Client, ClientExt, build_path_with_query};
 use gem_jsonrpc::types::{JsonRpcResult, ToJsonRpcRequest};
 use serde_json::{Value, json};
 use std::fmt::Debug;
@@ -30,8 +30,7 @@ where
     }
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<Vec<QuoteResponse>, SwapperError> {
-        let query = serde_urlencoded::to_string(request).map_err(SwapperError::from)?;
-        let path = format!("/quotes-native?{query}");
+        let path = build_path_with_query("/quotes-native", request)?;
         self.client.get(&path).await.map_err(SwapperError::from)
     }
 

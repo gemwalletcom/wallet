@@ -48,14 +48,10 @@ impl AssetsResponse {
             .find(|broker_asset| broker_asset.network == asset.chain && broker_asset.ticker == asset.asset)
     }
 
-    pub fn quote_asset_id(&self, asset: &ChainflipAsset) -> Option<&str> {
-        self.asset(asset).map(|asset| asset.id.as_str())
-    }
-
-    pub fn minimum_amount(&self, source_asset: &ChainflipAsset, destination_asset: &ChainflipAsset) -> Option<BigUint> {
+    pub fn quote_assets(&self, source_asset: &ChainflipAsset, destination_asset: &ChainflipAsset) -> Option<(&BrokerAsset, &BrokerAsset)> {
         let source_asset = self.asset(source_asset).filter(|broker_asset| broker_asset.supports_ingress())?;
-        self.asset(destination_asset).filter(|broker_asset| broker_asset.supports_egress())?;
-        Some(source_asset.minimal_amount_native.clone())
+        let destination_asset = self.asset(destination_asset).filter(|broker_asset| broker_asset.supports_egress())?;
+        Some((source_asset, destination_asset))
     }
 }
 
@@ -79,23 +75,26 @@ mod tests {
         let source = asset("Ethereum", "ETH");
         let destination = asset("Tron", "TRX");
 
-        assert_eq!(response().minimum_amount(&source, &destination), Some(BigUint::from(10_000_000_000_000_000u64)));
-        assert_eq!(response().quote_asset_id(&source), Some("eth.eth"));
+        let assets = response();
+        let (source_asset, destination_asset) = assets.quote_assets(&source, &destination).unwrap();
+        assert_eq!(source_asset.id, "eth.eth");
+        assert_eq!(source_asset.minimal_amount_native, BigUint::from(10_000_000_000_000_000u64));
+        assert_eq!(destination_asset.id, "trx.tron");
 
         let mut assets = response();
         assets.assets[0].enabled = false;
-        assert!(assets.minimum_amount(&source, &destination).is_none());
+        assert!(assets.quote_assets(&source, &destination).is_none());
 
         let mut assets = response();
         assets.assets[1].enabled = false;
-        assert!(assets.minimum_amount(&source, &destination).is_none());
+        assert!(assets.quote_assets(&source, &destination).is_none());
 
         let mut assets = response();
         assets.assets[0].direction = AssetDirection::Egress;
-        assert!(assets.minimum_amount(&source, &destination).is_none());
+        assert!(assets.quote_assets(&source, &destination).is_none());
 
         let mut assets = response();
         assets.assets[1].direction = AssetDirection::Ingress;
-        assert!(assets.minimum_amount(&source, &destination).is_none());
+        assert!(assets.quote_assets(&source, &destination).is_none());
     }
 }
