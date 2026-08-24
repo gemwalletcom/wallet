@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.payment.viewmodels
 
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentMerchantUIModel
-import com.gemwallet.android.features.payment.viewmodels.model.PaymentOutcomeUIModel
+import com.wallet.core.primitives.PaymentStatus
 import com.gemwallet.android.features.payment.viewmodels.model.PaymentQuoteUIModel
 import com.gemwallet.android.model.ConfirmParams
 import com.wallet.core.primitives.Chain
@@ -29,7 +29,7 @@ sealed interface PaymentSceneState {
         val params: ConfirmParams.TransferParams.Payment,
     ) : PaymentSceneState
 
-    data class Outcome(val outcome: PaymentOutcomeUIModel) : PaymentSceneState
+    data class Outcome(val status: PaymentStatus) : PaymentSceneState
 
     data object Done : PaymentSceneState
 

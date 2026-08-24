@@ -5,7 +5,7 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use crate::error::PaymentError;
-use crate::wallet_connect_pay::account::parse_account;
+use crate::wallet_connect_pay::account::{get_account, is_supported};
 use crate::wallet_connect_pay::model::WalletRpcAction;
 
 const METHOD_ETHEREUM_SEND_TRANSACTION: &str = "eth_sendTransaction";
@@ -37,7 +37,10 @@ pub fn map_wallet_rpc(account: &str, quoted_value: &BigUint, action: &WalletRpcA
 }
 
 fn signer(account: &str, chain_id: &str) -> Result<ChainAddress, PaymentError> {
-    let account = parse_account(account).ok_or_else(|| PaymentError::InvalidRequest("Payment quote has no account".to_string()))?;
+    let account = get_account(account).ok_or_else(|| PaymentError::InvalidRequest("Payment quote has no account".to_string()))?;
+    if !is_supported(account.chain) {
+        return Err(PaymentError::InvalidRequest(format!("Unsupported chain: {}", account.chain.as_ref())));
+    }
     let chain = WalletConnectCAIP2::parse_chain_id(chain_id.to_string()).ok_or_else(|| PaymentError::InvalidRequest(format!("Unsupported chain: {chain_id}")))?;
     if chain != account.chain {
         return Err(PaymentError::InvalidRequest(format!(

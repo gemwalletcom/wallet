@@ -2,7 +2,7 @@ use gem_client::Client;
 use primitives::{AssetId, ChainAddress, PaymentOptions, PaymentOutcome, PaymentQuote, PaymentQuotes};
 
 use crate::error::PaymentError;
-use crate::wallet_connect_pay::account::account_identifier;
+use crate::wallet_connect_pay::account::{get_account_identifier, is_supported};
 use crate::wallet_connect_pay::action_mapper::map_wallet_rpc;
 use crate::wallet_connect_pay::client::{WalletConnectPayAuth, WalletConnectPayClient};
 use crate::wallet_connect_pay::model::{PaymentOption, WalletConnectPayAction, WalletRpcAction};
@@ -45,7 +45,11 @@ impl<C: Client> WalletConnectPayService<C> {
     }
 
     pub async fn get_options(&self, payment_id: &str, addresses: &[ChainAddress]) -> Result<PaymentOptions, PaymentError> {
-        let identifiers: Vec<String> = addresses.iter().filter_map(|address| account_identifier(address.chain, &address.address)).collect();
+        let identifiers: Vec<String> = addresses
+            .iter()
+            .filter(|address| is_supported(address.chain))
+            .filter_map(|address| get_account_identifier(address.chain, &address.address))
+            .collect();
         if identifiers.is_empty() {
             return Err(PaymentError::NoPaymentOptions);
         }

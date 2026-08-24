@@ -4,7 +4,7 @@ use std::str::FromStr;
 use url::Url;
 
 use crate::error::PaymentError;
-use crate::wallet_connect_pay::account::account_chain;
+use crate::wallet_connect_pay::account::get_chain;
 use crate::wallet_connect_pay::model::{PaymentOption, PaymentOptionsResponse, PaymentStatusResponse};
 
 const CAIP19_PREFIX: &str = "caip19";
@@ -63,7 +63,7 @@ fn map_quote(option: PaymentOption, payment_id: &str, accounts: &[String]) -> Op
     };
     let asset_id = coin_asset_id(&option.amount.unit)?;
     let value = BigUint::from_str(&option.amount.value).ok()?;
-    if account_chain(&option.account)? != asset_id.chain {
+    if get_chain(&option.account)? != asset_id.chain {
         return None;
     }
     Some(PaymentQuote {

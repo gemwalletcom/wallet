@@ -56,7 +56,7 @@ class PaymentViewModel @Inject constructor(
             val wallet = wallet() ?: return@launch
             val options = runGateway { paymentService.getOptions(link, wallet) } ?: return@launch
             when (options) {
-                is PaymentOptions.Outcome -> state.value = PaymentSceneState.Outcome(options.content.status.toUIModel())
+                is PaymentOptions.Outcome -> state.value = PaymentSceneState.Outcome(options.content.status)
                 is PaymentOptions.Quotes -> {
                     val quotes = options.content
                     payment.value = ActivePayment(link, quotes, wallet)
