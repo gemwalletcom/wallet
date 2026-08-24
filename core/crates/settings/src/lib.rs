@@ -436,7 +436,6 @@ impl Settings {
         let s = Config::builder()
             .add_source(File::from(path))
             .add_source(Environment::with_prefix("").prefix_separator("").separator("_"))
-            .add_source(Environment::with_prefix("").prefix_separator("").separator("__"))
             .build()?;
         s.try_deserialize()
     }
@@ -475,9 +474,9 @@ pub struct RewardsWallet {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Swap {
-    pub near_intents: URL,
+    pub nearintents: URL,
     pub okx: Okx,
-    pub swaps_xyz: URL,
+    pub swapsxyz: URL,
 }
 
 #[derive(Debug, Deserialize, Clone)]

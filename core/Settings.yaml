@@ -95,7 +95,7 @@ fiat:
       key:
         secret: ""
 swap:
-  near_intents:
+  nearintents:
     url: "https://1click.chaindefuser.com"
   okx:
     url: "https://web3.okx.com"
@@ -104,7 +104,7 @@ swap:
       secret: ""
     passphrase: ""
     project: ""
-  swaps_xyz:
+  swapsxyz:
     url: "https://api-v2.swaps.xyz/api"
 
 prices:
