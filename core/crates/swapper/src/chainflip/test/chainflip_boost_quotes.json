@@ -1,20 +1,28 @@
 [
   {
     "type": "regular",
+    "ingressAsset": "btc.btc",
+    "ingressAmountNative": "100000000",
+    "egressAsset": "eth.eth",
     "egressAmountNative": "4082976513112383071",
     "recommendedSlippageTolerancePercent": 1.5,
     "estimatedDurationSeconds": 1920,
     "estimatedPrice": 40.83386650883448,
     "boostQuote": {
+      "ingressAsset": "btc.btc",
+      "ingressAmountNative": "100000000",
+      "egressAsset": "eth.eth",
       "egressAmountNative": "4080934615929730944",
-      "recommendedSlippageTolerancePercent": 1,
       "estimatedDurationSeconds": 720,
-      "estimatedBoostFeeBps": 5,
+      "estimatedBoostFeeBps": 5.0,
       "estimatedPrice": 40.8338644692087
     }
   },
   {
     "type": "dca",
+    "ingressAsset": "btc.btc",
+    "ingressAmountNative": "100000000",
+    "egressAsset": "eth.eth",
     "egressAmountNative": "4082978824588206358",
     "recommendedSlippageTolerancePercent": 1.5,
     "estimatedDurationSeconds": 1944,
@@ -22,10 +30,12 @@
     "numberOfChunks": 3,
     "chunkIntervalBlocks": 2,
     "boostQuote": {
+      "ingressAsset": "btc.btc",
+      "ingressAmountNative": "100000000",
+      "egressAsset": "eth.eth",
       "egressAmountNative": "4080936927013539226",
-      "recommendedSlippageTolerancePercent": 1,
       "estimatedDurationSeconds": 744,
-      "estimatedBoostFeeBps": 5,
+      "estimatedBoostFeeBps": 5.0,
       "estimatedPrice": 40.83388759199202,
       "numberOfChunks": 3,
       "chunkIntervalBlocks": 2

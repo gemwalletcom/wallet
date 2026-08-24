@@ -1,6 +1,9 @@
 [
   {
     "type": "regular",
+    "ingressAsset": "sol.sol",
+    "ingressAmountNative": "10000000000",
+    "egressAsset": "btc.btc",
     "egressAmountNative": "145118751424",
     "recommendedSlippageTolerancePercent": 2.5,
     "estimatedDurationSeconds": 192.8,
@@ -8,6 +11,9 @@
   },
   {
     "type": "dca",
+    "ingressAsset": "sol.sol",
+    "ingressAmountNative": "10000000000",
+    "egressAsset": "btc.btc",
     "egressAmountNative": "145118751172",
     "recommendedSlippageTolerancePercent": 2.5,
     "estimatedDurationSeconds": 252.8,

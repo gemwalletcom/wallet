@@ -26,6 +26,7 @@ pub struct QuoteResponse {
     pub details: QuoteDetails,
     #[serde(rename = "type")]
     pub quote_type: QuoteType,
+    pub recommended_slippage_tolerance_percent: f64,
     pub boost_quote: Option<BoostQuote>,
 }
 
@@ -34,15 +35,18 @@ pub struct QuoteResponse {
 pub struct BoostQuote {
     #[serde(flatten)]
     pub details: QuoteDetails,
-    pub estimated_boost_fee_bps: u32,
+    pub estimated_boost_fee_bps: f64,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QuoteDetails {
+    pub ingress_asset: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub ingress_amount_native: BigUint,
+    pub egress_asset: String,
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub egress_amount_native: BigUint,
-    pub recommended_slippage_tolerance_percent: f64,
     pub estimated_duration_seconds: f64,
     pub estimated_price: f64,
     pub number_of_chunks: Option<u32>,
