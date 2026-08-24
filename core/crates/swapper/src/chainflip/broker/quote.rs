@@ -48,9 +48,3 @@ pub struct QuoteDetails {
     pub number_of_chunks: Option<u32>,
     pub chunk_interval_blocks: Option<u32>,
 }
-
-impl QuoteDetails {
-    pub fn slippage_bps(&self) -> u32 {
-        (self.recommended_slippage_tolerance_percent * 100.0) as u32
-    }
-}

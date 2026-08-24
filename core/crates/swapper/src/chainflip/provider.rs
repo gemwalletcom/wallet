@@ -10,8 +10,8 @@ use std::{fmt::Debug, sync::Arc, time::Duration};
 use super::{
     ChainflipRouteData,
     broker::{
-        AssetsResponse, BrokerClient, ChainflipAsset, DcaParameters, QuoteDetails, QuoteRequest as ChainflipQuoteRequest, QuoteResponse, QuoteType, RefundParameters,
-        TronVaultSwapResponse, VaultSwapChainExtras, VaultSwapExtras, VaultSwapResponse, VaultSwapSolanaExtras,
+        AssetsResponse, BrokerClient, ChainflipAsset, DcaParameters, QuoteRequest as ChainflipQuoteRequest, QuoteResponse, QuoteType, RefundParameters, TronVaultSwapResponse,
+        VaultSwapChainExtras, VaultSwapExtras, VaultSwapResponse, VaultSwapSolanaExtras,
     },
     capitalize::capitalize_first_letter,
     client::{ChainflipClient, SUPPORTED_ASSETS, map_swap_result},
@@ -87,11 +87,6 @@ fn vault_deposit_addresses() -> Vec<String> {
     vec![VAULT_ETH.to_string(), VAULT_ARB.to_string(), VAULT_SOL.to_string(), VAULT_TRON.to_string()]
 }
 
-struct ChainflipQuoteRequestData {
-    quote_request: ChainflipQuoteRequest,
-    minimum_amount: BigUint,
-}
-
 fn map_asset_id(asset: &QuoteAsset) -> ChainflipAsset {
     let asset_id = asset.asset_id();
     let chain_name = capitalize_first_letter(asset_id.chain.as_ref());
@@ -103,69 +98,57 @@ fn map_asset_id(asset: &QuoteAsset) -> ChainflipAsset {
     ChainflipAsset { chain: chain_name, asset: symbol }
 }
 
-fn build_quote_request(request: &QuoteRequest, assets: &AssetsResponse) -> Result<ChainflipQuoteRequestData, SwapperError> {
+fn build_quote_request(request: &QuoteRequest, assets: &AssetsResponse) -> Result<(ChainflipQuoteRequest, BigUint), SwapperError> {
     match request.from_asset.chain().chain_type() {
         ChainType::Ethereum | ChainType::Solana | ChainType::Tron => {}
         _ => return Err(SwapperError::NotSupportedChain),
     }
     let source_asset = map_asset_id(&request.from_asset);
     let destination_asset = map_asset_id(&request.to_asset);
-    let (source_broker_asset, destination_broker_asset) = assets.quote_assets(&source_asset, &destination_asset).ok_or(SwapperError::NoQuoteAvailable)?;
+    let source_broker_asset = assets.asset(&source_asset).filter(|asset| asset.supports_ingress()).ok_or(SwapperError::NoQuoteAvailable)?;
+    let destination_broker_asset = assets
+        .asset(&destination_asset)
+        .filter(|asset| asset.supports_egress())
+        .ok_or(SwapperError::NoQuoteAvailable)?;
 
-    Ok(ChainflipQuoteRequestData {
-        quote_request: ChainflipQuoteRequest {
+    Ok((
+        ChainflipQuoteRequest {
             amount: request.value.clone(),
             source_asset: source_broker_asset.id.clone(),
             destination_asset: destination_broker_asset.id.clone(),
             commission_bps: DEFAULT_FEE_BPS,
             is_vault_swap: true,
         },
-        minimum_amount: source_broker_asset.minimal_amount_native.clone(),
-    })
-}
-
-fn dca_parameters(quote_type: &QuoteType, details: &QuoteDetails) -> Result<Option<DcaParameters>, SwapperError> {
-    match quote_type {
-        QuoteType::Regular => Ok(None),
-        QuoteType::Dca => Ok(Some(DcaParameters {
-            number_of_chunks: details.number_of_chunks.ok_or(SwapperError::InvalidRoute)?,
-            chunk_interval: details.chunk_interval_blocks.ok_or(SwapperError::InvalidRoute)?,
-        })),
-    }
-}
-
-struct ExecutableQuote {
-    quote_type: QuoteType,
-    details: QuoteDetails,
-    boost_fee: Option<u32>,
-}
-
-impl From<QuoteResponse> for ExecutableQuote {
-    fn from(response: QuoteResponse) -> Self {
-        let QuoteResponse { details, quote_type, boost_quote } = response;
-        let (details, boost_fee) = match boost_quote {
-            Some(boost_quote) => (boost_quote.details, Some(boost_quote.estimated_boost_fee_bps)),
-            None => (details, None),
-        };
-        Self { quote_type, details, boost_fee }
-    }
+        source_broker_asset.minimal_amount_native.clone(),
+    ))
 }
 
 fn get_best_quote(quotes: Vec<QuoteResponse>) -> Result<(BigUint, u32, u32, ChainflipRouteData), SwapperError> {
     let quote = quotes
         .into_iter()
-        .map(ExecutableQuote::from)
         .max_by(|left, right| left.details.egress_amount_native.cmp(&right.details.egress_amount_native))
         .ok_or(SwapperError::NoQuoteAvailable)?;
+    let QuoteResponse { details, quote_type, boost_quote } = quote;
+    let (details, boost_fee) = match boost_quote {
+        Some(boost_quote) => (boost_quote.details, Some(boost_quote.estimated_boost_fee_bps)),
+        None => (details, None),
+    };
+    let dca_parameters = match quote_type {
+        QuoteType::Regular => None,
+        QuoteType::Dca => Some(DcaParameters {
+            number_of_chunks: details.number_of_chunks.ok_or(SwapperError::InvalidRoute)?,
+            chunk_interval: details.chunk_interval_blocks.ok_or(SwapperError::InvalidRoute)?,
+        }),
+    };
 
     Ok((
-        quote.details.egress_amount_native.clone(),
-        quote.details.slippage_bps(),
-        quote.details.estimated_duration_seconds.ceil() as u32,
+        details.egress_amount_native,
+        (details.recommended_slippage_tolerance_percent * 100.0) as u32,
+        details.estimated_duration_seconds.ceil() as u32,
         ChainflipRouteData {
-            boost_fee: quote.boost_fee,
-            estimated_price: quote.details.estimated_price,
-            dca_parameters: dca_parameters(&quote.quote_type, &quote.details)?,
+            boost_fee,
+            estimated_price: details.estimated_price,
+            dca_parameters,
         },
     ))
 }
@@ -241,15 +224,15 @@ where
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let assets = self.get_assets().await?;
-        let quote_request_data = build_quote_request(request, &assets)?;
-        validate_minimum_amount(&quote_request_data.quote_request.amount, &quote_request_data.minimum_amount)?;
+        let (quote_request, minimum_amount) = build_quote_request(request, &assets)?;
+        validate_minimum_amount(&quote_request.amount, &minimum_amount)?;
 
-        let quotes = self.broker_client.get_quotes(&quote_request_data.quote_request).await?;
+        let quotes = self.broker_client.get_quotes(&quote_request).await?;
         let (egress_amount, slippage_bps, eta_in_seconds, route_data) = get_best_quote(quotes)?;
 
         Ok(Quote {
-            min_from_value: Some(quote_request_data.minimum_amount.to_string()),
-            from_value: quote_request_data.quote_request.amount,
+            min_from_value: Some(minimum_amount.to_string()),
+            from_value: quote_request.amount,
             to_value: egress_amount.to_string(),
             data: ProviderData {
                 provider: self.provider.clone(),
@@ -390,10 +373,6 @@ mod tests {
         serde_json::from_str(include_str!("./broker/test/assets.json")).unwrap()
     }
 
-    fn boost_quotes_response() -> Vec<QuoteResponse> {
-        serde_json::from_str(include_str!("./test/chainflip_boost_quotes.json")).unwrap()
-    }
-
     #[test]
     fn test_validate_minimum_amount() {
         let minimum_amount = BigUint::from(68_000_000u32);
@@ -470,7 +449,7 @@ mod tests {
             ..QuoteRequest::mock(Chain::Ethereum, None)
         };
 
-        let quote_request = build_quote_request(&request, &assets_response()).unwrap().quote_request;
+        let (quote_request, _) = build_quote_request(&request, &assets_response()).unwrap();
         assert_eq!(
             gem_client::build_path_with_query("/quotes-native", &quote_request).unwrap(),
             "/quotes-native?amount=1000000000000000000&sourceAsset=eth.eth&destinationAsset=btc.btc&commissionBps=45&isVaultSwap=true"
@@ -628,7 +607,8 @@ mod tests {
 
     #[test]
     fn test_best_boost_quote() {
-        let (egress_amount, slippage_bps, eta_in_seconds, route_data) = get_best_quote(boost_quotes_response()).unwrap();
+        let quotes: Vec<QuoteResponse> = serde_json::from_str(include_str!("./test/chainflip_boost_quotes.json")).unwrap();
+        let (egress_amount, slippage_bps, eta_in_seconds, route_data) = get_best_quote(quotes).unwrap();
 
         assert_eq!(egress_amount.to_string(), "4080936927013539226");
         assert_eq!(slippage_bps, 100);
@@ -644,17 +624,6 @@ mod tests {
                 }),
             }
         );
-    }
-
-    #[test]
-    fn test_best_quote_uses_executable_amount() {
-        let mut quotes = boost_quotes_response();
-        quotes[0].details.egress_amount_native = BigUint::from(100u32);
-        quotes[0].boost_quote.as_mut().unwrap().details.egress_amount_native = BigUint::from(50u32);
-        quotes[1].details.egress_amount_native = BigUint::from(90u32);
-        quotes[1].boost_quote.as_mut().unwrap().details.egress_amount_native = BigUint::from(80u32);
-
-        assert_eq!(get_best_quote(quotes).unwrap().0, BigUint::from(80u32));
     }
 
     #[tokio::test]
