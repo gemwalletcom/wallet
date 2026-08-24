@@ -1,4 +1,3 @@
-use chrono::Utc;
 use gem_client::Client;
 use primitives::{AssetId, ChainAddress, PaymentOptions, PaymentOutcome, PaymentQuote, PaymentQuotes};
 
@@ -23,9 +22,6 @@ impl<C: Client> WalletConnectPayService<C> {
     }
 
     pub async fn get_quote_data(&self, payment_id: &str, quote: &PaymentQuote, addresses: &[ChainAddress]) -> Result<PaymentQuoteData, PaymentError> {
-        if quote.expires_at.is_some_and(|expires_at| expires_at <= Utc::now()) {
-            return self.requote(payment_id, quote, addresses).await;
-        }
         match self.action(payment_id, quote).await {
             Ok(action) => Ok(PaymentQuoteData { quote: quote.clone(), action }),
             Err(PaymentError::QuoteExpired) => self.requote(payment_id, quote, addresses).await,
@@ -88,7 +84,6 @@ impl<C: Client> WalletConnectPayService<C> {
 mod tests {
     use super::*;
 
-    use chrono::Duration;
     use gem_client::ClientError;
     use gem_client::testkit::MockClient;
     use primitives::{AssetId, Chain, PaymentLink, PaymentMerchant};
@@ -98,11 +93,9 @@ mod tests {
         WalletConnectPayService::new(mock, WalletConnectPayAuth::mock())
     }
 
-    fn service_with_response(transform: impl Fn(&mut serde_json::Value) + Send + Sync + 'static) -> WalletConnectPayService<MockClient> {
+    fn service_with_response() -> WalletConnectPayService<MockClient> {
         service(MockClient::new().with_post(move |_, _| {
-            let mut response: serde_json::Value = serde_json::from_str(include_str!("../../testdata/options_response_coin.json")).unwrap();
-            transform(&mut response);
-            Ok(response.to_string().into_bytes())
+            Ok(include_str!("../../testdata/options_response_coin.json").as_bytes().to_vec())
         }))
     }
 
@@ -118,9 +111,7 @@ mod tests {
                     body: br#"{"code":"quote_expired"}"#.to_vec(),
                 });
             }
-            let mut response: serde_json::Value = serde_json::from_str(include_str!("../../testdata/options_response_coin.json")).unwrap();
-            far_future(&mut response);
-            Ok(response.to_string().into_bytes())
+            Ok(include_str!("../../testdata/options_response_coin.json").as_bytes().to_vec())
         });
         let service = service(client);
         let PaymentOptions::Quotes(quotes) = service.get_options("pay_123", &addresses()).await.unwrap() else {
@@ -135,32 +126,6 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[tokio::test]
-    async fn test_prepared_payment_refetches_before_a_dead_quote_is_used() {
-        let requested = Arc::new(Mutex::new(Vec::<String>::new()));
-        let seen = requested.clone();
-        let client = MockClient::new().with_post(move |path: &str, _| {
-            seen.lock().unwrap().push(path.to_string());
-            let mut response: serde_json::Value = serde_json::from_str(include_str!("../../testdata/options_response_coin.json")).unwrap();
-            far_future(&mut response);
-            Ok(response.to_string().into_bytes())
-        });
-        let service = service(client);
-        let PaymentOptions::Quotes(quotes) = service.get_options("pay_123", &addresses()).await.unwrap() else {
-            panic!("Expected quotes");
-        };
-        let expired = PaymentQuote {
-            expires_at: Some(Utc::now() - Duration::seconds(1)),
-            ..quotes.quotes.first().unwrap().clone()
-        };
-
-        let _ = service.get_quote_data("pay_123", &expired, &addresses()).await;
-
-        let paths = requested.lock().unwrap().clone();
-        assert_eq!(paths.iter().filter(|path| path.contains("/options")).count(), 2);
-        assert_eq!(paths.iter().filter(|path| path.contains("/fetch")).count(), 1);
-    }
-
     #[test]
     fn test_get_quote_keeps_the_chosen_asset() {
         let quote = |chain: Chain| PaymentQuote {
@@ -168,7 +133,6 @@ mod tests {
             link: PaymentLink::WalletConnectPay("pay_123".to_string()),
             asset_id: AssetId::from_chain(chain),
             value: 1u32.into(),
-            expires_at: None,
             collect_data_url: None,
             provider_data: "{}".to_string(),
         };
@@ -178,7 +142,6 @@ mod tests {
                 icon_url: None,
             },
             price: None,
-            expires_at: None,
             quotes: vec![quote(Chain::Ethereum), quote(Chain::Bitcoin)],
         };
 
@@ -194,10 +157,6 @@ mod tests {
             ChainAddress::new(Chain::Ethereum, "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string()),
             ChainAddress::new(Chain::Bitcoin, "bc1".to_string()),
         ]
-    }
-
-    fn far_future(response: &mut serde_json::Value) {
-        response["info"]["expiresAt"] = serde_json::json!(4102444800i64);
     }
 
     #[tokio::test]
@@ -238,7 +197,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_options() {
-        let service = service_with_response(far_future);
+        let service = service_with_response();
         let prepared = service.get_options("pay_123", &addresses()).await.unwrap();
 
         let PaymentOptions::Quotes(quotes) = prepared else {
@@ -256,7 +215,7 @@ mod tests {
         let unsupported = vec![ChainAddress::new(Chain::Bitcoin, "bc1".to_string())];
 
         assert_eq!(
-            service_with_response(far_future).get_options("pay_123", &unsupported).await,
+            service_with_response().get_options("pay_123", &unsupported).await,
             Err(PaymentError::NoPaymentOptions)
         );
     }

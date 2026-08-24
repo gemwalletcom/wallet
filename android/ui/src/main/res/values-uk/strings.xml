@@ -141,7 +141,6 @@
   <string name="transfer_amount">Сума</string>
   <string name="transfer_amount_title">Сума</string>
   <string name="transfer_pay_with">Оплатити за допомогою</string>
-  <string name="transfer_payment_expires_in">Платіж спливає через</string>
   <string name="transfer_payment_title">Платіж</string>
   <string name="settings_terms_of_services">Умови надання послуг</string>
   <string name="settings_privacy_policy">Політика конфіденційності</string>

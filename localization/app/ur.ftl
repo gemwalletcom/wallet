@@ -162,7 +162,6 @@ transfer_review_request = درخواست کا جائزہ لیں
 transfer_amount = رقم
 transfer_amount_title = رقم
 transfer_pay_with = اس سے ادائیگی کریں
-transfer_payment_expires_in = ادائیگی ختم ہونے میں
 transfer_payment_title = ادائیگی
 
 # Settings

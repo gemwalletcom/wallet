@@ -24,7 +24,6 @@ pub struct PaymentAmountDisplay {
 pub struct PaymentInfo {
     pub status: PaymentStatus,
     pub amount: PaymentAmount,
-    pub expires_at: i64,
     pub merchant: PaymentMerchant,
 }
 
@@ -34,8 +33,6 @@ pub struct PaymentOption {
     pub id: String,
     pub account: String,
     pub amount: PaymentAmount,
-    #[serde(default)]
-    pub expires_at: Option<i64>,
     #[serde(default)]
     pub actions: Vec<WalletConnectPayAction>,
     #[serde(default)]

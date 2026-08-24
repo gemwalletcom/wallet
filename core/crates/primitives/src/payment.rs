@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
@@ -54,7 +53,6 @@ pub enum PaymentOptions {
 pub struct PaymentQuotes {
     pub merchant: PaymentMerchant,
     pub price: Option<PaymentPrice>,
-    pub expires_at: Option<DateTime<Utc>>,
     pub quotes: Vec<PaymentQuote>,
 }
 
@@ -67,7 +65,6 @@ pub struct PaymentQuote {
     pub asset_id: AssetId,
     #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
     pub value: BigUint,
-    pub expires_at: Option<DateTime<Utc>>,
     pub collect_data_url: Option<String>,
     pub provider_data: String,
 }

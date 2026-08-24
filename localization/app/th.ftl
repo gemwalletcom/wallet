@@ -162,7 +162,6 @@ transfer_review_request = คำขอตรวจสอบ
 transfer_amount = จำนวน
 transfer_amount_title = จำนวน
 transfer_pay_with = ชำระด้วย
-transfer_payment_expires_in = การชำระเงินหมดอายุใน
 transfer_payment_title = การชำระเงิน
 
 # Settings

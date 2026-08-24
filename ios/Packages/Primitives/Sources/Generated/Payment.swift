@@ -95,16 +95,14 @@ public struct PaymentQuote: Codable, Equatable, Hashable, Sendable {
 	public let link: PaymentLink
 	public let assetId: AssetId
 	public let value: String
-	public let expiresAt: Date?
 	public let collectDataUrl: String?
 	public let providerData: String
 
-	public init(id: String, link: PaymentLink, assetId: AssetId, value: String, expiresAt: Date?, collectDataUrl: String?, providerData: String) {
+	public init(id: String, link: PaymentLink, assetId: AssetId, value: String, collectDataUrl: String?, providerData: String) {
 		self.id = id
 		self.link = link
 		self.assetId = assetId
 		self.value = value
-		self.expiresAt = expiresAt
 		self.collectDataUrl = collectDataUrl
 		self.providerData = providerData
 	}
@@ -173,13 +171,11 @@ public struct PaymentQuoteData: Codable, Equatable, Hashable, Sendable {
 public struct PaymentQuotes: Codable, Equatable, Hashable, Sendable {
 	public let merchant: PaymentMerchant
 	public let price: PaymentPrice?
-	public let expiresAt: Date?
 	public let quotes: [PaymentQuote]
 
-	public init(merchant: PaymentMerchant, price: PaymentPrice?, expiresAt: Date?, quotes: [PaymentQuote]) {
+	public init(merchant: PaymentMerchant, price: PaymentPrice?, quotes: [PaymentQuote]) {
 		self.merchant = merchant
 		self.price = price
-		self.expiresAt = expiresAt
 		self.quotes = quotes
 	}
 }

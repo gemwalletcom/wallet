@@ -10,7 +10,6 @@ public struct PaymentState: Sendable {
     public var transferData: StateViewType<TransferData> = .noData
     public var selectedQuoteId: String?
     public var collectedQuoteIds: Set<String> = []
-    public var isExpired: Bool = false
 
     public init(quotes: PaymentQuotes) {
         self.quotes = quotes

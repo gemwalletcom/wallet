@@ -21,8 +21,6 @@ import uniffi.gemstone.GemPaymentQuoteData
 import uniffi.gemstone.GemPaymentQuotes
 import uniffi.gemstone.GemPaymentServiceInterface
 
-private const val EXPIRES_AT_SECONDS = 1_700_000_000L
-
 class PaymentServiceTest {
 
     private val client = mockk<GemPaymentServiceInterface>()
@@ -33,7 +31,6 @@ class PaymentServiceTest {
         link = GemPaymentLink.WalletConnectPay("pay_1"),
         assetId = "ethereum",
         value = "14192816625800",
-        expiresAt = EXPIRES_AT_SECONDS,
         collectDataUrl = null,
         providerData = "{\"opaque\":true}",
     )
@@ -41,19 +38,17 @@ class PaymentServiceTest {
     private fun gemQuotes() = GemPaymentQuotes(
         merchant = GemPaymentMerchant(name = "Merchant", iconUrl = null),
         price = null,
-        expiresAt = EXPIRES_AT_SECONDS,
         quotes = listOf(gemQuote()),
     )
 
     @Test
-    fun getOptions_readsGatewaySecondsAsMillis() = runBlocking {
+    fun getOptions_mapsGatewayQuotesToWalletAssets() = runBlocking {
         coEvery { client.getOptions(any(), any()) } returns GemPaymentOptions.Quotes(gemQuotes())
 
         val options = service.getOptions(PaymentLink.WalletConnectPay("pay_1"), mockWallet())
 
         val quotes = (options as PaymentOptions.Quotes).content
-        assertEquals(EXPIRES_AT_SECONDS * 1000, quotes.expiresAt)
-        assertEquals(EXPIRES_AT_SECONDS * 1000, quotes.quotes.first().expiresAt)
+        assertEquals("Merchant", quotes.merchant.name)
         assertEquals(Chain.Ethereum, quotes.quotes.first().assetId.chain)
         assertNull(quotes.quotes.first().assetId.tokenId)
     }

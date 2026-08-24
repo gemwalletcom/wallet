@@ -162,7 +162,6 @@ transfer_review_request = İnceleme Talebi
 transfer_amount = Miktar
 transfer_amount_title = Miktar
 transfer_pay_with = Şununla öde
-transfer_payment_expires_in = Ödemenin süresi doluyor
 transfer_payment_title = Ödeme
 
 # Settings

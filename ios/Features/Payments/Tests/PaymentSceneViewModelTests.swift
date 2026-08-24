@@ -72,19 +72,6 @@ struct PaymentSceneViewModelTests {
     }
 
     @Test
-    func leavingTheSceneDoesNotExpireThePayment() async {
-        let model = model(quotes: .mock(quotes: [.mock(id: "eth")], expiresAt: .now.addingTimeInterval(600)))
-
-        let expiry = Task { await model.awaitExpiry() }
-        try? await Task.sleep(for: .milliseconds(10))
-        expiry.cancel()
-        await expiry.value
-
-        #expect(!model.state.isExpired)
-        #expect(model.buttonModel.buttonAction == .confirm)
-    }
-
-    @Test
     func failureToPrepareKeepsTheQuotes() async {
         let model = model(quotes: .mock(quotes: [.mock(id: "eth")]))
 
@@ -147,11 +134,10 @@ private final class PaymentServiceMock: PaymentServiceable, @unchecked Sendable 
 }
 
 private extension PaymentQuotes {
-    static func mock(quotes: [PaymentQuote], expiresAt: Date? = .none) -> PaymentQuotes {
+    static func mock(quotes: [PaymentQuote]) -> PaymentQuotes {
         PaymentQuotes(
             merchant: PaymentMerchant(name: "Merchant", iconUrl: .none),
             price: .none,
-            expiresAt: expiresAt,
             quotes: quotes,
         )
     }
@@ -164,7 +150,6 @@ private extension PaymentQuote {
             link: .walletConnectPay("pay_1"),
             assetId: AssetId(chain: .ethereum, tokenId: .none),
             value: "1000",
-            expiresAt: .none,
             collectDataUrl: collectDataUrl,
             providerData: "{}",
         )

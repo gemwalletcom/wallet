@@ -141,7 +141,6 @@
   <string name="transfer_amount">Cantidad</string>
   <string name="transfer_amount_title">Cantidad</string>
   <string name="transfer_pay_with">Pagar con</string>
-  <string name="transfer_payment_expires_in">El pago caduca en</string>
   <string name="transfer_payment_title">Pago</string>
   <string name="settings_terms_of_services">Términos de servicios</string>
   <string name="settings_privacy_policy">Política de privacidad</string>

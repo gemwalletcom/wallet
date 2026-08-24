@@ -65,7 +65,6 @@ fun GemPaymentOptions.toPrimitives(): PaymentOptions = when (this) {
 fun GemPaymentQuotes.toPrimitives(): PaymentQuotes = PaymentQuotes(
     merchant = merchant.toPrimitives(),
     price = price?.toPrimitives(),
-    expiresAt = expiresAt?.toSerializedDate(),
     quotes = quotes.mapNotNull { it.toPrimitives() },
 )
 
@@ -74,7 +73,6 @@ fun GemPaymentQuote.toPrimitives(): PaymentQuote? = PaymentQuote(
     link = link.toPrimitives(),
     assetId = assetId.toAssetId() ?: return null,
     value = value,
-    expiresAt = expiresAt?.toSerializedDate(),
     collectDataUrl = collectDataUrl,
     providerData = providerData,
 )
@@ -84,7 +82,6 @@ fun PaymentQuote.toGem(): GemPaymentQuote = GemPaymentQuote(
     link = link.toGem(),
     assetId = assetId.toIdentifier(),
     value = value,
-    expiresAt = expiresAt?.toDateTimeUtc(),
     collectDataUrl = collectDataUrl,
     providerData = providerData,
 )

@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use primitives::{AssetId, PaymentLink, PaymentOptions, PaymentOutcome, PaymentPrice, PaymentQuote, PaymentQuotes, PaymentStatus, WalletConnectCAIP19};
 use std::str::FromStr;
@@ -6,7 +5,7 @@ use url::Url;
 
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::account::account_chain;
-use crate::wallet_connect_pay::model::{PaymentInfo, PaymentOption, PaymentOptionsResponse, PaymentStatusResponse};
+use crate::wallet_connect_pay::model::{PaymentOption, PaymentOptionsResponse, PaymentStatusResponse};
 
 const CAIP19_PREFIX: &str = "caip19";
 const COLLECT_DATA_HOST: &str = "walletconnect.com";
@@ -24,11 +23,6 @@ pub fn map_options(response: PaymentOptionsResponse, payment_id: &str, accounts:
         PaymentStatus::Failed | PaymentStatus::Expired | PaymentStatus::Cancelled => return Err(PaymentError::PaymentExpired),
     }
 
-    let expires_at = map_expiry(&payment)?;
-    if expires_at <= Utc::now() {
-        return Err(PaymentError::PaymentExpired);
-    }
-
     let quotes = map_quotes(response.options.unwrap_or_default(), payment_id, accounts);
     if quotes.is_empty() {
         return Err(PaymentError::NoPaymentOptions);
@@ -41,7 +35,6 @@ pub fn map_options(response: PaymentOptionsResponse, payment_id: &str, accounts:
             decimals: payment.amount.display.decimals,
         }),
         merchant: payment.merchant,
-        expires_at: Some(expires_at),
         quotes,
     }))
 }
@@ -57,10 +50,6 @@ pub fn map_payment_outcome(response: PaymentStatusResponse) -> PaymentOutcome {
         status: response.status,
         transaction_id: response.info.map(|info| info.tx_id),
     }
-}
-
-fn map_expiry(payment: &PaymentInfo) -> Result<DateTime<Utc>, PaymentError> {
-    DateTime::from_timestamp(payment.expires_at, 0).ok_or_else(|| PaymentError::InvalidRequest("Invalid payment expiry".to_string()))
 }
 
 fn map_quote(option: PaymentOption, payment_id: &str, accounts: &[String]) -> Option<PaymentQuote> {
@@ -80,7 +69,6 @@ fn map_quote(option: PaymentOption, payment_id: &str, accounts: &[String]) -> Op
     Some(PaymentQuote {
         id: option.id.clone(),
         link: PaymentLink::WalletConnectPay(payment_id.to_string()),
-        expires_at: option.expires_at.and_then(|expires_at| DateTime::from_timestamp(expires_at, 0)),
         provider_data,
         asset_id,
         value,
@@ -118,9 +106,7 @@ mod tests {
     const ACCOUNT: &str = "eip155:1:0x1085c5f70F7F7591D97da281A64688385455c2bD";
 
     fn options_response() -> PaymentOptionsResponse {
-        let mut response: PaymentOptionsResponse = serde_json::from_str(include_str!("../../testdata/options_response_coin.json")).unwrap();
-        response.info.as_mut().unwrap().expires_at = Utc::now().timestamp() + 600;
-        response
+        serde_json::from_str(include_str!("../../testdata/options_response_coin.json")).unwrap()
     }
 
     fn accounts() -> Vec<String> {
@@ -153,7 +139,7 @@ mod tests {
     #[test]
     fn test_map_options_refuses_a_payment_it_can_no_longer_pay() {
         let mut expired = options_response();
-        expired.info.as_mut().unwrap().expires_at = Utc::now().timestamp() - 1;
+        expired.info.as_mut().unwrap().status = PaymentStatus::Expired;
         assert_eq!(map_options(expired, "pay_123", &accounts()), Err(PaymentError::PaymentExpired));
 
         let mut cancelled = options_response();

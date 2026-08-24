@@ -308,7 +308,6 @@ transfer_amount = Amount
 # Used in Transfer, Send, Stake, and confirmation flows for the amount title.
 transfer_amount_title = Amount
 transfer_pay_with = Pay with
-transfer_payment_expires_in = Payment expires in
 transfer_payment_title = Payment
 
 # Settings

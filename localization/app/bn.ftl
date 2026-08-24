@@ -162,7 +162,6 @@ transfer_review_request = পর্যালোচনার অনুরোধ
 transfer_amount = পরিমাণ
 transfer_amount_title = পরিমাণ
 transfer_pay_with = যা দিয়ে পরিশোধ করবেন
-transfer_payment_expires_in = পেমেন্টের মেয়াদ শেষ হবে
 transfer_payment_title = পেমেন্ট
 
 # Settings

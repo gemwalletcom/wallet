@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 
 use crate::models::custom_types::GemBigUint;
 pub use primitives::payment::{
@@ -57,7 +56,6 @@ pub enum GemPaymentOptions {
 pub struct GemPaymentQuotes {
     pub merchant: GemPaymentMerchant,
     pub price: Option<GemPaymentPrice>,
-    pub expires_at: Option<DateTime<Utc>>,
     pub quotes: Vec<GemPaymentQuote>,
 }
 
@@ -67,7 +65,6 @@ pub struct GemPaymentQuote {
     pub link: GemPaymentLink,
     pub asset_id: AssetId,
     pub value: GemBigUint,
-    pub expires_at: Option<DateTime<Utc>>,
     pub collect_data_url: Option<String>,
     pub provider_data: String,
 }

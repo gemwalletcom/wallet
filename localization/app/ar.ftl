@@ -162,7 +162,6 @@ transfer_review_request = طلب مراجعة
 transfer_amount = كمية
 transfer_amount_title = كمية
 transfer_pay_with = ادفع بواسطة
-transfer_payment_expires_in = تنتهي صلاحية الدفعة خلال
 transfer_payment_title = الدفع
 
 # Settings

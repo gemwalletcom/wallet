@@ -96,5 +96,4 @@ struct TransferDataViewModel {
             URL(string: metadata.url)
         }
     }
-
 }

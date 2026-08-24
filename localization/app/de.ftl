@@ -162,7 +162,6 @@ transfer_review_request = Überprüfungsanfrage
 transfer_amount = Betrag
 transfer_amount_title = Betrag
 transfer_pay_with = Bezahlen mit
-transfer_payment_expires_in = Zahlung läuft ab in
 transfer_payment_title = Zahlung
 
 # Settings

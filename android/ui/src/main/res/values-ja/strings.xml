@@ -141,7 +141,6 @@
   <string name="transfer_amount">金額</string>
   <string name="transfer_amount_title">金額</string>
   <string name="transfer_pay_with">支払い方法</string>
-  <string name="transfer_payment_expires_in">支払い期限まで</string>
   <string name="transfer_payment_title">支払い</string>
   <string name="settings_terms_of_services">利用規約</string>
   <string name="settings_privacy_policy">プライバシーポリシー</string>

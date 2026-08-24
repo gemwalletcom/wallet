@@ -17,7 +17,6 @@ class PaymentQuoteUIModelTest {
             link = PaymentLink.WalletConnectPay("pay_1"),
             assetId = AssetId(Chain.Ethereum),
             value = "14192816625800",
-            expiresAt = null,
             collectDataUrl = null,
             providerData = "{}",
         )

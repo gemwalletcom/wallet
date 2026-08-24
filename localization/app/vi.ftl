@@ -162,7 +162,6 @@ transfer_review_request = Yêu cầu xem xét
 transfer_amount = Số lượng
 transfer_amount_title = Số lượng
 transfer_pay_with = Thanh toán bằng
-transfer_payment_expires_in = Thanh toán hết hạn sau
 transfer_payment_title = Thanh toán
 
 # Settings

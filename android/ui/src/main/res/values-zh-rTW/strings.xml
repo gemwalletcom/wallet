@@ -141,7 +141,6 @@
   <string name="transfer_amount">數量</string>
   <string name="transfer_amount_title">金額</string>
   <string name="transfer_pay_with">付款方式</string>
-  <string name="transfer_payment_expires_in">付款將於以下時間過期</string>
   <string name="transfer_payment_title">付款</string>
   <string name="settings_terms_of_services">服務條款</string>
   <string name="settings_privacy_policy">隱私政策</string>

@@ -162,7 +162,6 @@ transfer_review_request = レビューリクエスト
 transfer_amount = 金額
 transfer_amount_title = 金額
 transfer_pay_with = 支払い方法
-transfer_payment_expires_in = 支払い期限まで
 transfer_payment_title = 支払い
 
 # Settings

@@ -162,7 +162,6 @@ transfer_review_request = Tinjau Permintaan
 transfer_amount = Jumlah
 transfer_amount_title = Jumlah
 transfer_pay_with = Bayar dengan
-transfer_payment_expires_in = Pembayaran kedaluwarsa dalam
 transfer_payment_title = Pembayaran
 
 # Settings

@@ -141,7 +141,6 @@
   <string name="transfer_amount">كمية</string>
   <string name="transfer_amount_title">كمية</string>
   <string name="transfer_pay_with">ادفع بواسطة</string>
-  <string name="transfer_payment_expires_in">تنتهي صلاحية الدفعة خلال</string>
   <string name="transfer_payment_title">الدفع</string>
   <string name="settings_terms_of_services">شروط الخدمات</string>
   <string name="settings_privacy_policy">سياسة الخصوصية</string>

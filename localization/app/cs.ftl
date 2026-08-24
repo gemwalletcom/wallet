@@ -162,7 +162,6 @@ transfer_review_request = Žádost o kontrolu
 transfer_amount = Množství
 transfer_amount_title = Množství
 transfer_pay_with = Zaplatit pomocí
-transfer_payment_expires_in = Platba vyprší za
 transfer_payment_title = Platba
 
 # Settings

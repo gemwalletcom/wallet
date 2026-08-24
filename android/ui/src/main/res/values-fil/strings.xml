@@ -141,7 +141,6 @@
   <string name="transfer_amount">Halaga</string>
   <string name="transfer_amount_title">Halaga</string>
   <string name="transfer_pay_with">Bayaran gamit ang</string>
-  <string name="transfer_payment_expires_in">Mag-e-expire ang bayad sa</string>
   <string name="transfer_payment_title">Bayad</string>
   <string name="settings_terms_of_services">Mga Tuntunin ng Serbisyo</string>
   <string name="settings_privacy_policy">Patakaran sa Privacy</string>

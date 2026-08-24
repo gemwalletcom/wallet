@@ -65,7 +65,6 @@ public extension GemPaymentQuotes {
         try PaymentQuotes(
             merchant: merchant.map(),
             price: price?.map(),
-            expiresAt: expiresAt.map { Date(timeIntervalSince1970: TimeInterval($0)) },
             quotes: quotes.map { try $0.map() },
         )
     }
@@ -78,7 +77,6 @@ public extension GemPaymentQuote {
             link: link.map(),
             assetId: AssetId(id: assetId),
             value: value,
-            expiresAt: expiresAt.map { Date(timeIntervalSince1970: TimeInterval($0)) },
             collectDataUrl: collectDataUrl,
             providerData: providerData,
         )
@@ -92,7 +90,6 @@ public extension Primitives.PaymentQuote {
             link: link.map(),
             assetId: assetId.identifier,
             value: value,
-            expiresAt: expiresAt.map { Int64($0.timeIntervalSince1970) },
             collectDataUrl: collectDataUrl,
             providerData: providerData,
         )

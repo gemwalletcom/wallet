@@ -152,25 +152,11 @@ class ConfirmViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    private val isPaymentExpired = request.flatMapLatest { params ->
-        val expiresAt = (params as? ConfirmParams.TransferParams.Generic)?.payment?.quote?.expiresAt
-            ?: return@flatMapLatest flowOf(false)
-        flow {
-            emit(expiresAt <= System.currentTimeMillis())
-            val remaining = expiresAt - System.currentTimeMillis()
-            if (remaining > 0) {
-                delay(remaining)
-                emit(true)
-            }
-        }
-    }
-
-    val buttonState = combine(state, simulation, isPaymentExpired) { state, simulation, isPaymentExpired ->
+    val buttonState = combine(state, simulation) { state, simulation ->
         buttonState(
             enabled = state !is ConfirmState.Prepare
                 && state !is ConfirmState.Sending
-                && !simulation.warnings.hasCriticalWarning()
-                && !isPaymentExpired,
+                && !simulation.warnings.hasCriticalWarning(),
             loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)

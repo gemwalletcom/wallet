@@ -162,7 +162,6 @@ transfer_review_request = Ombi la Uhakiki
 transfer_amount = Kiasi
 transfer_amount_title = Kiasi
 transfer_pay_with = Lipa kwa
-transfer_payment_expires_in = Malipo yataisha baada ya
 transfer_payment_title = Malipo
 
 # Settings

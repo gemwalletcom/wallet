@@ -162,7 +162,6 @@ transfer_review_request = Revisar solicitud
 transfer_amount = Cantidad
 transfer_amount_title = Cantidad
 transfer_pay_with = Pagar con
-transfer_payment_expires_in = El pago caduca en
 transfer_payment_title = Pago
 
 # Settings

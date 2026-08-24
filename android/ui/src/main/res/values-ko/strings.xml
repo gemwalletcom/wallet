@@ -141,7 +141,6 @@
   <string name="transfer_amount">금액</string>
   <string name="transfer_amount_title">금액</string>
   <string name="transfer_pay_with">결제 수단</string>
-  <string name="transfer_payment_expires_in">결제 만료까지</string>
   <string name="transfer_payment_title">결제</string>
   <string name="settings_terms_of_services">서비스 약관</string>
   <string name="settings_privacy_policy">개인 정보 보호 정책</string>

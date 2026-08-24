@@ -162,7 +162,6 @@ transfer_review_request = Suriin ang Kahilingan
 transfer_amount = Halaga
 transfer_amount_title = Halaga
 transfer_pay_with = Bayaran gamit ang
-transfer_payment_expires_in = Mag-e-expire ang bayad sa
 transfer_payment_title = Bayad
 
 # Settings

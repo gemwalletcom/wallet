@@ -141,7 +141,6 @@
   <string name="transfer_amount">Amount</string>
   <string name="transfer_amount_title">Amount</string>
   <string name="transfer_pay_with">Pay with</string>
-  <string name="transfer_payment_expires_in">Payment expires in</string>
   <string name="transfer_payment_title">Payment</string>
   <string name="settings_terms_of_services">Terms of Services</string>
   <string name="settings_privacy_policy">Privacy Policy</string>

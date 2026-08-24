@@ -141,7 +141,6 @@
   <string name="transfer_amount">পরিমাণ</string>
   <string name="transfer_amount_title">পরিমাণ</string>
   <string name="transfer_pay_with">যা দিয়ে পরিশোধ করবেন</string>
-  <string name="transfer_payment_expires_in">পেমেন্টের মেয়াদ শেষ হবে</string>
   <string name="transfer_payment_title">পেমেন্ট</string>
   <string name="settings_terms_of_services">পরিষেবার শর্তাবলী</string>
   <string name="settings_privacy_policy">গোপনীয়তা নীতি</string>

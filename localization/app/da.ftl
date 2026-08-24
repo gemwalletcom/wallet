@@ -162,7 +162,6 @@ transfer_review_request = Anmodning om gennemgang
 transfer_amount = Beløb
 transfer_amount_title = Beløb
 transfer_pay_with = Betal med
-transfer_payment_expires_in = Betaling udløber om
 transfer_payment_title = Betaling
 
 # Settings

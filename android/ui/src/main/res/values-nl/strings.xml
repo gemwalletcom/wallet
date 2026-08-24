@@ -141,7 +141,6 @@
   <string name="transfer_amount">Bedrag</string>
   <string name="transfer_amount_title">Bedrag</string>
   <string name="transfer_pay_with">Betalen met</string>
-  <string name="transfer_payment_expires_in">Betaling verloopt over</string>
   <string name="transfer_payment_title">Betaling</string>
   <string name="settings_terms_of_services">Servicevoorwaarden</string>
   <string name="settings_privacy_policy">Privacybeleid</string>

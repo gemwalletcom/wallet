@@ -141,7 +141,6 @@
   <string name="transfer_amount">Montant</string>
   <string name="transfer_amount_title">Montant</string>
   <string name="transfer_pay_with">Payer avec</string>
-  <string name="transfer_payment_expires_in">Le paiement expire dans</string>
   <string name="transfer_payment_title">Paiement</string>
   <string name="settings_terms_of_services">Conditions d\'utilisation</string>
   <string name="settings_privacy_policy">Politique de confidentialité</string>

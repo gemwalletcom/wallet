@@ -141,7 +141,6 @@
   <string name="transfer_amount">כמות</string>
   <string name="transfer_amount_title">כמות</string>
   <string name="transfer_pay_with">שלם באמצעות</string>
-  <string name="transfer_payment_expires_in">התשלום יפוג בעוד</string>
   <string name="transfer_payment_title">תשלום</string>
   <string name="settings_terms_of_services">תנאי השירות</string>
   <string name="settings_privacy_policy">מדיניות פרטיות</string>

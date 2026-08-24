@@ -141,7 +141,6 @@
   <string name="transfer_amount">Beløb</string>
   <string name="transfer_amount_title">Beløb</string>
   <string name="transfer_pay_with">Betal med</string>
-  <string name="transfer_payment_expires_in">Betaling udløber om</string>
   <string name="transfer_payment_title">Betaling</string>
   <string name="settings_terms_of_services">Servicevilkår</string>
   <string name="settings_privacy_policy">Privatlivspolitik</string>

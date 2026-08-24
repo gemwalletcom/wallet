@@ -1500,8 +1500,6 @@ public enum Localized {
     public static let networkFee = Localized.tr("Localizable", "transfer.network_fee", fallback: "Network Fee")
     /// Pay with
     public static let payWith = Localized.tr("Localizable", "transfer.pay_with", fallback: "Pay with")
-    /// Payment expires in
-    public static let paymentExpiresIn = Localized.tr("Localizable", "transfer.payment_expires_in", fallback: "Payment expires in")
     /// Payment
     public static let paymentTitle = Localized.tr("Localizable", "transfer.payment_title", fallback: "Payment")
     /// We've left %@ in your balance to cover future network fees.

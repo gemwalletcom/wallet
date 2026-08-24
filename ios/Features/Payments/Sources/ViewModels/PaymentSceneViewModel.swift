@@ -53,8 +53,6 @@ public final class PaymentSceneViewModel {
 
     var payWithTitle: String { Localized.Transfer.payWith }
 
-    var expiresTitle: String { Localized.Transfer.paymentExpiresIn }
-
     var errorTitle: String { Localized.Errors.errorOccurred }
 
     var walletText: String { wallet.name }
@@ -118,13 +116,6 @@ extension PaymentSceneViewModel {
         }
     }
 
-    public func awaitExpiry() async {
-        guard let expiresAt = state.quotes.expiresAt else { return }
-        try? await Task.sleep(for: .seconds(max(0, expiresAt.timeIntervalSinceNow)))
-        guard !Task.isCancelled else { return }
-        state.isExpired = true
-    }
-
     func onSelectQuotes() {
         isPresentingSheet = .quotes
     }
@@ -185,7 +176,7 @@ extension PaymentSceneViewModel {
     }
 
     private func retry() async {
-        if state.refresh.isError || state.isExpired {
+        if state.refresh.isError {
             await fetch()
         } else {
             await confirm()

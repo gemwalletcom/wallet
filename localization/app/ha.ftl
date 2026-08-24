@@ -162,7 +162,6 @@ transfer_review_request = Buƙatar Bita
 transfer_amount = Adadin
 transfer_amount_title = Adadin
 transfer_pay_with = Biya da
-transfer_payment_expires_in = Biyan zai ƙare cikin
 transfer_payment_title = Biya
 
 # Settings

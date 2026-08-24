@@ -114,12 +114,7 @@ public final class ConfirmTransferSceneViewModel {
     public var payloadModel: SimulationPayloadModel { state.simulation.payload }
 
     var isButtonDisabled: Bool {
-        simulationWarnings.hasCritical || isPaymentExpired
-    }
-
-    var isPaymentExpired: Bool {
-        guard case let .payment(_, payment, _) = request.data.type, let expiresAt = payment.quote.expiresAt else { return false }
-        return expiresAt <= Date.now
+        simulationWarnings.hasCritical
     }
 
     var confirmButtonModel: ConfirmButtonViewModel {

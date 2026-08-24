@@ -44,7 +44,6 @@ import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyExpiryItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.walletItemIconModel
@@ -126,13 +125,7 @@ private fun PaymentQuotesScene(
         backHandle = true,
         onClose = { onAction(PaymentSceneAction.Cancel) },
         mainAction = {
-            if (state.expired) {
-                MainActionButton(
-                    title = stringResource(R.string.common_try_again),
-                    onClick = { onAction(PaymentSceneAction.Retry) },
-                )
-            } else {
-                MainActionButton(
+            MainActionButton(
                     state = if (state.selected == null) ButtonState.Disabled else ButtonState.Enabled,
                     onClick = { onAction(PaymentSceneAction.ConfirmQuote) },
                 ) {
@@ -146,7 +139,6 @@ private fun PaymentQuotesScene(
                         fontWeight = FontWeight.Medium,
                     )
                 }
-            }
         },
     ) {
         LazyColumn {
@@ -183,22 +175,13 @@ private fun PaymentQuotesScene(
                             badge = walletIcon?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },
                         )
                     },
-                    listPosition = if (state.expiresAt == null) ListPosition.Last else ListPosition.Middle,
+                    listPosition = ListPosition.Last,
                 )
-            }
-            state.expiresAt?.let { expiresAt ->
-                item {
-                    PropertyExpiryItem(
-                        title = stringResource(R.string.transfer_payment_expires_in),
-                        expiresAt = expiresAt,
-                        listPosition = ListPosition.Last,
-                    )
-                }
             }
             item {
                 val isSelectable = state.quotes.size > 1
                 PropertyItem(
-                    modifier = Modifier.clickable(enabled = isSelectable && !state.expired) { isSelectingQuote = true },
+                    modifier = Modifier.clickable(enabled = isSelectable) { isSelectingQuote = true },
                     title = { PropertyTitleText(R.string.transfer_pay_with) },
                     data = {
                         PropertyDataText(

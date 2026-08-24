@@ -141,7 +141,6 @@
   <string name="transfer_amount">Сумма</string>
   <string name="transfer_amount_title">Сумма</string>
   <string name="transfer_pay_with">Оплатить с помощью</string>
-  <string name="transfer_payment_expires_in">Платёж истекает через</string>
   <string name="transfer_payment_title">Платёж</string>
   <string name="settings_terms_of_services">Условия предоставления услуг</string>
   <string name="settings_privacy_policy">Политика конфиденциальности</string>

@@ -162,7 +162,6 @@ transfer_review_request = Cerere de revizuire
 transfer_amount = Suma
 transfer_amount_title = Suma
 transfer_pay_with = Plătește cu
-transfer_payment_expires_in = Plata expiră în
 transfer_payment_title = Plată
 
 # Settings

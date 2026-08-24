@@ -162,7 +162,6 @@ transfer_review_request = 審查請求
 transfer_amount = 數量
 transfer_amount_title = 金額
 transfer_pay_with = 付款方式
-transfer_payment_expires_in = 付款將於以下時間過期
 transfer_payment_title = 付款
 
 # Settings

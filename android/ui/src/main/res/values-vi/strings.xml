@@ -141,7 +141,6 @@
   <string name="transfer_amount">Số lượng</string>
   <string name="transfer_amount_title">Số lượng</string>
   <string name="transfer_pay_with">Thanh toán bằng</string>
-  <string name="transfer_payment_expires_in">Thanh toán hết hạn sau</string>
   <string name="transfer_payment_title">Thanh toán</string>
   <string name="settings_terms_of_services">Điều khoản dịch vụ</string>
   <string name="settings_privacy_policy">Chính sách bảo mật</string>

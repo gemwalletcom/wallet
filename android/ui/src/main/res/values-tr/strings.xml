@@ -141,7 +141,6 @@
   <string name="transfer_amount">Miktar</string>
   <string name="transfer_amount_title">Miktar</string>
   <string name="transfer_pay_with">Şununla öde</string>
-  <string name="transfer_payment_expires_in">Ödemenin süresi doluyor</string>
   <string name="transfer_payment_title">Ödeme</string>
   <string name="settings_terms_of_services">Hizmet Şartları</string>
   <string name="settings_privacy_policy">Gizlilik Politikası</string>

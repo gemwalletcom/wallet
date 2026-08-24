@@ -134,7 +134,6 @@
 "transfer.unfreeze.title" = "Разморозить";
 "transfer.review_request" = "Просмотр запроса";
 "transfer.pay_with" = "Оплатить с помощью";
-"transfer.payment_expires_in" = "Платёж истекает через";
 "transfer.payment_title" = "Платёж";
 "settings.terms_of_services" = "Условия предоставления услуг";
 "settings.privacy_policy" = "Политика конфиденциальности";

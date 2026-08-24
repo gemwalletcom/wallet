@@ -162,7 +162,6 @@ transfer_review_request = Solicitação de revisão
 transfer_amount = Quantia
 transfer_amount_title = Quantia
 transfer_pay_with = Pagar com
-transfer_payment_expires_in = O pagamento expira em
 transfer_payment_title = Pagamento
 
 # Settings

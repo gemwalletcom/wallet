@@ -162,7 +162,6 @@ transfer_review_request = 审查请求
 transfer_amount = 金额
 transfer_amount_title = 数额
 transfer_pay_with = 支付方式
-transfer_payment_expires_in = 支付将于以下时间过期
 transfer_payment_title = 支付
 
 # Settings

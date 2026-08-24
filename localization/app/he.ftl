@@ -162,7 +162,6 @@ transfer_review_request = סקור בקשה
 transfer_amount = כמות
 transfer_amount_title = כמות
 transfer_pay_with = שלם באמצעות
-transfer_payment_expires_in = התשלום יפוג בעוד
 transfer_payment_title = תשלום
 
 # Settings

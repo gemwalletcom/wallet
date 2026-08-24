@@ -141,7 +141,6 @@
   <string name="transfer_amount">Quantia</string>
   <string name="transfer_amount_title">Quantia</string>
   <string name="transfer_pay_with">Pagar com</string>
-  <string name="transfer_payment_expires_in">O pagamento expira em</string>
   <string name="transfer_payment_title">Pagamento</string>
   <string name="settings_terms_of_services">Termos de Serviços</string>
   <string name="settings_privacy_policy">Política de Privacidade</string>

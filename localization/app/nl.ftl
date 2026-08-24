@@ -162,7 +162,6 @@ transfer_review_request = Verzoek controleren
 transfer_amount = Bedrag
 transfer_amount_title = Bedrag
 transfer_pay_with = Betalen met
-transfer_payment_expires_in = Betaling verloopt over
 transfer_payment_title = Betaling
 
 # Settings

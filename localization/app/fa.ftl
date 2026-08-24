@@ -162,7 +162,6 @@ transfer_review_request = درخواست بررسی
 transfer_amount = مبلغ
 transfer_amount_title = مبلغ
 transfer_pay_with = پرداخت با
-transfer_payment_expires_in = انقضای پرداخت تا
 transfer_payment_title = پرداخت
 
 # Settings

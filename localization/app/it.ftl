@@ -162,7 +162,6 @@ transfer_review_request = Richiesta di revisione
 transfer_amount = Importo
 transfer_amount_title = Importo
 transfer_pay_with = Paga con
-transfer_payment_expires_in = Il pagamento scade tra
 transfer_payment_title = Pagamento
 
 # Settings

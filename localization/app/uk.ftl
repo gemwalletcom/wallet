@@ -162,7 +162,6 @@ transfer_review_request = Переглянути запит
 transfer_amount = Сума
 transfer_amount_title = Сума
 transfer_pay_with = Оплатити за допомогою
-transfer_payment_expires_in = Платіж спливає через
 transfer_payment_title = Платіж
 
 # Settings

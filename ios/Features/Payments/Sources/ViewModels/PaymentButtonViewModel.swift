@@ -26,7 +26,7 @@ struct PaymentButtonViewModel: StateButtonViewable {
     }
 
     var buttonAction: PaymentButtonAction {
-        if state.error != nil || state.isExpired {
+        if state.error != nil {
             return .tryAgain
         }
         if state.needsDataCollection {

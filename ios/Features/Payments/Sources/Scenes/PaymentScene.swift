@@ -28,9 +28,6 @@ public struct PaymentScene: View {
                     subtitle: model.walletText,
                     assetImage: model.walletAssetImage,
                 )
-                if let expiresAt = model.quotes.expiresAt {
-                    ListItemExpiryView(title: model.expiresTitle, expiresAt: expiresAt)
-                }
             }
 
             if let selected = model.selectedItem {
@@ -57,7 +54,6 @@ public struct PaymentScene: View {
         .safeAreaButton {
             StateButton(model.buttonModel)
         }
-        .task(id: model.state.quotes.expiresAt) { await model.awaitExpiry() }
     }
 }
 

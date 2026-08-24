@@ -29,7 +29,6 @@ mod tests {
                 link: PaymentLink::WalletConnectPay("pay_123".to_string()),
                 asset_id: AssetId::from_chain(quoted),
                 value: 1000u32.into(),
-                expires_at: None,
                 collect_data_url: None,
                 provider_data: "{}".to_string(),
             },

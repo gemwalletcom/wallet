@@ -134,7 +134,6 @@
 "transfer.unfreeze.title" = "解冻";
 "transfer.review_request" = "审查请求";
 "transfer.pay_with" = "支付方式";
-"transfer.payment_expires_in" = "支付将于以下时间过期";
 "transfer.payment_title" = "支付";
 "settings.terms_of_services" = "服务条款";
 "settings.privacy_policy" = "隐私政策";

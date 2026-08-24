@@ -19,8 +19,6 @@ sealed interface PaymentSceneState {
         val price: String?,
         val quotes: List<PaymentQuoteUIModel>,
         val selected: String?,
-        val expiresAt: Long?,
-        val expired: Boolean,
         val collectData: String? = null,
     ) : PaymentSceneState {
         val selectedQuote: PaymentQuoteUIModel?

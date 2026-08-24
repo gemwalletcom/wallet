@@ -162,7 +162,6 @@ transfer_review_request = Examiner la demande
 transfer_amount = Montant
 transfer_amount_title = Montant
 transfer_pay_with = Payer avec
-transfer_payment_expires_in = Le paiement expire dans
 transfer_payment_title = Paiement
 
 # Settings

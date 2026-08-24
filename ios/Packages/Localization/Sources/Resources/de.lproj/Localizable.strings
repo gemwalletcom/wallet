@@ -134,7 +134,6 @@
 "transfer.unfreeze.title" = "Auftauen";
 "transfer.review_request" = "Überprüfungsanfrage";
 "transfer.pay_with" = "Bezahlen mit";
-"transfer.payment_expires_in" = "Zahlung läuft ab in";
 "transfer.payment_title" = "Zahlung";
 "settings.terms_of_services" = "Nutzungsbedingungen";
 "settings.privacy_policy" = "Datenschutzbestimmungen";

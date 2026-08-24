@@ -134,7 +134,6 @@
 "transfer.unfreeze.title" = "녹이다";
 "transfer.review_request" = "검토 요청";
 "transfer.pay_with" = "결제 수단";
-"transfer.payment_expires_in" = "결제 만료까지";
 "transfer.payment_title" = "결제";
 "settings.terms_of_services" = "서비스 약관";
 "settings.privacy_policy" = "개인 정보 보호 정책";

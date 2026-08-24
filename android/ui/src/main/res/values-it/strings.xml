@@ -141,7 +141,6 @@
   <string name="transfer_amount">Importo</string>
   <string name="transfer_amount_title">Importo</string>
   <string name="transfer_pay_with">Paga con</string>
-  <string name="transfer_payment_expires_in">Il pagamento scade tra</string>
   <string name="transfer_payment_title">Pagamento</string>
   <string name="settings_terms_of_services">Termini di servizio</string>
   <string name="settings_privacy_policy">Informativa sulla privacy</string>

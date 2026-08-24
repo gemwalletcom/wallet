@@ -141,7 +141,6 @@
   <string name="transfer_amount">مبلغ</string>
   <string name="transfer_amount_title">مبلغ</string>
   <string name="transfer_pay_with">پرداخت با</string>
-  <string name="transfer_payment_expires_in">انقضای پرداخت تا</string>
   <string name="transfer_payment_title">پرداخت</string>
   <string name="settings_terms_of_services">شرایط استفاده از خدمات</string>
   <string name="settings_privacy_policy">سیاست حفظ حریم خصوصی</string>

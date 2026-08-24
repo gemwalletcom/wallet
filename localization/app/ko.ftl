@@ -162,7 +162,6 @@ transfer_review_request = 검토 요청
 transfer_amount = 금액
 transfer_amount_title = 금액
 transfer_pay_with = 결제 수단
-transfer_payment_expires_in = 결제 만료까지
 transfer_payment_title = 결제
 
 # Settings

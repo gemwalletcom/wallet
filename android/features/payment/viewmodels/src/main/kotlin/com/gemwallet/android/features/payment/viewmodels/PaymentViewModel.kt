@@ -48,7 +48,6 @@ class PaymentViewModel @Inject constructor(
 
     private val payment = MutableStateFlow<ActivePayment?>(null)
     private val confirmScope = CoroutineScope(Dispatchers.IO)
-    private var expiryJob: Job? = null
     private var quotesScene: PaymentSceneState.Quotes? = null
 
     fun onPayment(link: PaymentLink) {
@@ -62,7 +61,6 @@ class PaymentViewModel @Inject constructor(
                     val quotes = options.content
                     payment.value = ActivePayment(link, quotes, wallet)
                     state.value = quotes.toSceneState(wallet)
-                    watchExpiry(quotes)
                 }
             }
         }
@@ -130,12 +128,10 @@ class PaymentViewModel @Inject constructor(
                 if (quote.id in current.collected) quote.copy(requiresVerification = false) else quote
             },
         )
-        watchExpiry(current.quotes)
     }
 
     private fun prepare(scene: PaymentSceneState.Quotes, quote: PaymentQuote) {
         quotesScene = scene.copy(collectData = null)
-        expiryJob?.cancel()
         state.value = PaymentSceneState.Loading
         viewModelScope.launch(Dispatchers.IO) { prepare(quote) }
     }
@@ -195,21 +191,7 @@ class PaymentViewModel @Inject constructor(
         price = price?.toPriceText(),
         quotes = quotes.map { it.toUIModel(getAssetInfo(it.assetId).firstOrNull()) },
         selected = quotes.firstOrNull()?.id,
-        expiresAt = expiresAt,
-        expired = false,
     )
-
-    private fun watchExpiry(quotes: PaymentQuotes) {
-        val expiresAt = quotes.expiresAt ?: return
-        expiryJob?.cancel()
-        expiryJob = viewModelScope.launch(Dispatchers.IO) {
-            delay((expiresAt - System.currentTimeMillis()).coerceAtLeast(0))
-            state.value = when (val current = state.value) {
-                is PaymentSceneState.Quotes -> current.copy(expired = true)
-                else -> current
-            }
-        }
-    }
 
     private fun failure(error: PaymentLinkError, reason: String): PaymentSceneState {
         Log.e(TAG, reason)

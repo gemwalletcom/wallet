@@ -58,7 +58,6 @@ data class PaymentQuote (
 	val link: PaymentLink,
 	val assetId: AssetId,
 	val value: String,
-	val expiresAt: SerializedDate? = null,
 	val collectDataUrl: String? = null,
 	val providerData: String
 )
@@ -89,7 +88,6 @@ data class PaymentQuoteData (
 data class PaymentQuotes (
 	val merchant: PaymentMerchant,
 	val price: PaymentPrice? = null,
-	val expiresAt: SerializedDate? = null,
 	val quotes: List<PaymentQuote>
 )
 
