@@ -26,12 +26,14 @@ impl EgressConfig {
         for caller in self.callers.values_mut() {
             caller.key = expand_value(&caller.key, |name| env::var(name).ok())?;
         }
-        for route in &mut self.routes {
-            for endpoint in &mut route.endpoints {
-                endpoint.url = expand_value(&endpoint.url, |name| env::var(name).ok())?;
-                for values in [&mut endpoint.headers, &mut endpoint.query].into_iter().flatten() {
-                    for value in values.values_mut() {
-                        *value = expand_value(value, |name| env::var(name).ok())?;
+        for services in self.routes.values_mut() {
+            for route in services.values_mut() {
+                for endpoint in &mut route.endpoints {
+                    endpoint.url = expand_value(&endpoint.url, |name| env::var(name).ok())?;
+                    for values in [&mut endpoint.headers, &mut endpoint.query].into_iter().flatten() {
+                        for value in values.values_mut() {
+                            *value = expand_value(value, |name| env::var(name).ok())?;
+                        }
                     }
                 }
             }

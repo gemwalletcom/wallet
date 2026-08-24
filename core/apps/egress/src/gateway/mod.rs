@@ -25,7 +25,7 @@ type BoxError = Box<dyn Error + Send + Sync>;
 
 pub(crate) struct Gateway {
     callers: HashMap<String, CallerConfig>,
-    routes: Vec<Route>,
+    routes: HashMap<String, HashMap<String, Route>>,
     proxies: HashMap<String, OutboundProxy>,
     cooldowns: RwLock<HashMap<String, Cooldown>>,
     cooldown: Duration,
@@ -74,8 +74,14 @@ impl Gateway {
             .collect::<Result<HashMap<_, _>, reqwest::Error>>()?;
         let routes = routes
             .into_iter()
-            .map(|route| Route::new(route, &retry.statuses, &direct_client, &proxies))
-            .collect::<Result<Vec<_>, BoxError>>()?;
+            .map(|(group, services)| {
+                let services = services
+                    .into_iter()
+                    .map(|(service, route)| Route::new(group.clone(), service.clone(), route, &retry.statuses, &direct_client, &proxies).map(|route| (service, route)))
+                    .collect::<Result<HashMap<_, _>, BoxError>>()?;
+                Ok((group, services))
+            })
+            .collect::<Result<HashMap<_, _>, BoxError>>()?;
         let forward_headers = headers
             .forward
             .into_iter()
@@ -323,22 +329,26 @@ mod tests {
                     statuses: vec![429],
                 },
                 proxies: None,
-                routes: vec![RouteConfig {
-                    group: "indexer".to_string(),
-                    service: "blockscout".to_string(),
-                    selection: Selection::Ordered,
-                    rate: None,
-                    retry: None,
-                    endpoints: ["key_1", "key_2"]
-                        .map(|name| EndpointConfig {
-                            name: name.to_string(),
-                            url: "https://api.blockscout.com".to_string(),
-                            headers: None,
-                            query: None,
-                            proxy: None,
-                        })
-                        .into(),
-                }],
+                routes: HashMap::from([(
+                    "indexer".to_string(),
+                    HashMap::from([(
+                        "blockscout".to_string(),
+                        RouteConfig {
+                            selection: Selection::Ordered,
+                            rate: None,
+                            retry: None,
+                            endpoints: ["key_1", "key_2"]
+                                .map(|name| EndpointConfig {
+                                    name: name.to_string(),
+                                    url: "https://api.blockscout.com".to_string(),
+                                    headers: None,
+                                    query: None,
+                                    proxy: None,
+                                })
+                                .into(),
+                        },
+                    )]),
+                )]),
             },
             Metrics::new(),
         )
@@ -348,7 +358,7 @@ mod tests {
     #[tokio::test]
     async fn test_cooldowns_preserve_status_and_path() {
         let gateway = gateway();
-        let route = &gateway.routes[0];
+        let route = gateway.routes.get("indexer").unwrap().get("blockscout").unwrap();
         let failure = Failure {
             status: Status::TooManyRequests.code,
             reason: "cooldown",

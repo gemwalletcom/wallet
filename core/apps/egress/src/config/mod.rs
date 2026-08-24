@@ -17,7 +17,7 @@ pub(crate) struct EgressConfig {
     pub request: RequestConfig,
     pub retry: RetryConfig,
     pub proxies: Option<HashMap<String, ProxyConfig>>,
-    pub routes: Vec<RouteConfig>,
+    pub routes: HashMap<String, HashMap<String, RouteConfig>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -66,8 +66,6 @@ pub(crate) struct ProxyHealthConfig {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct RouteConfig {
-    pub group: String,
-    pub service: String,
     pub selection: Selection,
     pub rate: Option<RateConfig>,
     pub retry: Option<RetryOverride>,

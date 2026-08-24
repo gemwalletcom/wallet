@@ -13,29 +13,28 @@ retry:
   cooldown: 60s
   statuses: [403, 429]
 routes:
-  - group: indexer
-    service: fastnear_transfers
-    selection: ordered
-    endpoints:
-      - name: direct
-        url: https://transfers.main.fastnear.com
-  - group: indexer
-    service: fastnear_tx
-    selection: ordered
-    endpoints:
-      - name: direct
-        url: https://tx.main.fastnear.com
-  - group: prices
-    service: tonapi
-    selection: ordered
-    retry:
-      statuses: [401, 403, 429]
-    endpoints:
-      - name: key_1
-        url: https://tonapi.io
-        headers:
-          Authorization: "Bearer ${TONAPI_KEY_1}"
-      - name: key_2
-        url: https://tonapi.io
-        headers:
-          Authorization: "Bearer ${TONAPI_KEY_2}"
+  indexer:
+    fastnear_transfers:
+      selection: ordered
+      endpoints:
+        - name: direct
+          url: https://transfers.main.fastnear.com
+    fastnear_tx:
+      selection: ordered
+      endpoints:
+        - name: direct
+          url: https://tx.main.fastnear.com
+  prices:
+    tonapi:
+      selection: ordered
+      retry:
+        statuses: [401, 403, 429]
+      endpoints:
+        - name: key_1
+          url: https://tonapi.io
+          headers:
+            Authorization: "Bearer ${TONAPI_KEY_1}"
+        - name: key_2
+          url: https://tonapi.io
+          headers:
+            Authorization: "Bearer ${TONAPI_KEY_2}"
