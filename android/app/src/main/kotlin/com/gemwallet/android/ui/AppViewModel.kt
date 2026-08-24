@@ -2,23 +2,22 @@ package com.gemwallet.android.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
+import com.gemwallet.android.application.update.coordinators.SkipAppUpdate
+import com.gemwallet.android.application.update.coordinators.SyncAppUpdate
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.model.AppUpdateInfo
+import com.gemwallet.android.model.AppUpdateChannel
+import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.ext.VersionCheck
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.ui.navigation.WalletRootRoute
-import com.wallet.core.primitives.PlatformStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,8 +40,8 @@ class AppViewModel @Inject constructor(
     private val getPushEnabled: GetPushEnabled,
     private val switchPushEnabled: SwitchPushEnabled,
     private val walletsRepository: WalletsRepository,
-    private val getRemoteConfig: GetRemoteConfig,
-    private val platformStore: PlatformStore,
+    private val syncAppUpdate: SyncAppUpdate,
+    private val skipAppUpdate: SkipAppUpdate,
     private val notificationsAvailable: NotificationsAvailable,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     getWalletSummary: GetWalletSummary,
@@ -99,7 +98,7 @@ class AppViewModel @Inject constructor(
         if (update.isRequired) {
             return@launch
         }
-        userConfig.setAppVersionSkip(update.version)
+        skipAppUpdate.skipAppUpdate(update.version)
         state.update { it.copy(update = null) }
     }
 
@@ -110,48 +109,12 @@ class AppViewModel @Inject constructor(
         state.update { it.copy(update = null) }
     }
 
-    private suspend fun handleAppVersion() = withContext(Dispatchers.IO) {
-        if (BuildConfig.DEBUG) {
-            return@withContext
+    private suspend fun handleAppVersion() {
+        val offer = syncAppUpdate.syncAppUpdate() ?: return
+        if (offer.channel != AppUpdateChannel.Store) {
+            return
         }
-        val config = runCatching {
-            getRemoteConfig.getRemoteConfig()
-        }.getOrNull() ?: return@withContext
-
-        val lastRelease = config.releases
-            .filter {
-                val versionFlavor = when (it.store) {
-                    PlatformStore.GooglePlay -> "google"
-                    PlatformStore.Fdroid -> "fdroid"
-                    PlatformStore.Huawei -> "huawei"
-                    PlatformStore.SolanaStore -> "solana"
-                    PlatformStore.SamsungStore -> "samsung"
-                    PlatformStore.ApkUniversal -> "universal"
-                    PlatformStore.AppStore -> it.store.string
-                    PlatformStore.Emerald -> "emerald"
-                    PlatformStore.Local -> "local"
-                }
-                BuildConfig.FLAVOR == versionFlavor
-            }
-            .firstOrNull() ?: return@withContext
-
-        val skipVersion = userConfig.getAppVersionSkip().firstOrNull()
-        val lastVersion = lastRelease.version
-        val appUpdate = AppUpdateInfo(
-            version = lastVersion,
-            isRequired = lastRelease.upgradeRequired,
-        )
-        userConfig.setLatestAppUpdate(appUpdate)
-        if (VersionCheck.isVersionHigher(new = lastVersion, current = BuildConfig.VERSION_NAME)
-            && (lastRelease.upgradeRequired || skipVersion != lastVersion)
-            && platformStore != PlatformStore.ApkUniversal
-        ) {
-            state.update {
-                it.copy(
-                    update = appUpdate,
-                )
-            }
-        }
+        state.update { it.copy(update = offer) }
     }
 
     fun acceptTerms() {
@@ -213,7 +176,7 @@ class AppViewModel @Inject constructor(
 data class AppState(
     val session: Session? = null,
     val intent: AppIntent = AppIntent.None,
-    val update: AppUpdateInfo? = null,
+    val update: AppUpdateOffer? = null,
 )
 
 enum class AppIntent {

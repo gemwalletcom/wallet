@@ -33,7 +33,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.update_app.viewmodels.DownloadState
 import com.gemwallet.android.features.update_app.viewmodels.InAppUpdateViewModel
-import com.gemwallet.android.model.AppUpdateInfo
+import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -139,7 +139,7 @@ fun InAppUpdateBanner() {
 private fun UpdateInfo(
     modifier: Modifier = Modifier,
     state: DownloadState,
-    updateAvailable: AppUpdateInfo,
+    updateAvailable: AppUpdateOffer,
     onAction: () -> Unit,
 ) {
     Row(

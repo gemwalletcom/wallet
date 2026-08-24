@@ -1,15 +1,12 @@
 package com.gemwallet.android.features.update_app.viewmodels
 
-import com.gemwallet.android.cases.device.RequestPushToken
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.model.AppUpdateInfo
-import com.gemwallet.android.model.BuildInfo
-import com.wallet.core.primitives.PlatformStore
-import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.mockk
+import com.gemwallet.android.application.update.coordinators.ObserveAppUpdateOffer
+import com.gemwallet.android.application.update.coordinators.SkipAppUpdate
+import com.gemwallet.android.model.AppUpdateChannel
+import com.gemwallet.android.model.AppUpdateOffer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -19,6 +16,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -27,17 +25,14 @@ import org.junit.Test
 class InAppUpdateViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val skippedVersion = MutableStateFlow("")
-    private val latestAppUpdate = MutableStateFlow<AppUpdateInfo?>(null)
-    private val userConfig = mockk<UserConfig>(relaxed = true)
-    private val requestPushToken = mockk<RequestPushToken>(relaxed = true)
+    private val offer = MutableStateFlow<AppUpdateOffer?>(null)
+    private lateinit var skipAppUpdate: FakeSkipAppUpdate
     private lateinit var updateService: FakeInAppUpdateService
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        every { userConfig.getAppVersionSkip() } returns skippedVersion
-        every { userConfig.getLatestAppUpdate() } returns latestAppUpdate
+        skipAppUpdate = FakeSkipAppUpdate()
         updateService = FakeInAppUpdateService()
     }
 
@@ -47,9 +42,8 @@ class InAppUpdateViewModelTest {
     }
 
     @Test
-    fun `required update remains available even when skipped`() = runTest(testDispatcher) {
-        skippedVersion.value = "2.0.0"
-        latestAppUpdate.value = AppUpdateInfo(version = "2.0.0", isRequired = true)
+    fun `in app apk offer is available`() = runTest(testDispatcher) {
+        offer.value = AppUpdateOffer("2.0.0", isRequired = true, channel = AppUpdateChannel.InAppApk)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -61,8 +55,18 @@ class InAppUpdateViewModelTest {
     }
 
     @Test
+    fun `store offer is not shown as an in app update`() = runTest(testDispatcher) {
+        offer.value = AppUpdateOffer("2.0.0", isRequired = false, channel = AppUpdateChannel.Store)
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertNull(viewModel.updateAvailable.value)
+    }
+
+    @Test
     fun `skip ignores required update`() = runTest(testDispatcher) {
-        latestAppUpdate.value = AppUpdateInfo(version = "2.0.0", isRequired = true)
+        offer.value = AppUpdateOffer("2.0.0", isRequired = true, channel = AppUpdateChannel.InAppApk)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -70,12 +74,25 @@ class InAppUpdateViewModelTest {
         viewModel.skip()
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { userConfig.setAppVersionSkip(any()) }
+        assertTrue(skipAppUpdate.skippedVersions.isEmpty())
+    }
+
+    @Test
+    fun `skip stores the optional update version`() = runTest(testDispatcher) {
+        offer.value = AppUpdateOffer("2.0.0", isRequired = false, channel = AppUpdateChannel.InAppApk)
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.skip()
+        advanceUntilIdle()
+
+        assertEquals(listOf("2.0.0"), skipAppUpdate.skippedVersions)
     }
 
     @Test
     fun `update does not launch overlapping downloads and cancel marks canceled`() = runTest(testDispatcher) {
-        latestAppUpdate.value = AppUpdateInfo(version = "2.0.0", isRequired = false)
+        offer.value = AppUpdateOffer("2.0.0", isRequired = false, channel = AppUpdateChannel.InAppApk)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -107,15 +124,20 @@ class InAppUpdateViewModelTest {
     }
 
     private fun createViewModel() = InAppUpdateViewModel(
-        buildInfo = BuildInfo(
-            platformStore = PlatformStore.ApkUniversal,
-            versionName = "1.0.0",
-            versionCode = 1,
-            requestPushToken = requestPushToken,
-        ),
-        userConfig = userConfig,
+        observeAppUpdateOffer = object : ObserveAppUpdateOffer {
+            override fun observeAppUpdateOffer(): Flow<AppUpdateOffer?> = offer
+        },
+        skipAppUpdate = skipAppUpdate,
         updateService = updateService,
     )
+
+    private class FakeSkipAppUpdate : SkipAppUpdate {
+        val skippedVersions = mutableListOf<String>()
+
+        override suspend fun skipAppUpdate(version: String) {
+            skippedVersions.add(version)
+        }
+    }
 
     private class FakeInAppUpdateService : InAppUpdateService {
         var downloadCalls = 0

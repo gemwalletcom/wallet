@@ -2,43 +2,30 @@ package com.gemwallet.android.features.update_app.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.ext.VersionCheck
-import com.gemwallet.android.model.AppUpdateInfo
-import com.gemwallet.android.model.BuildInfo
-import com.wallet.core.primitives.PlatformStore
+import com.gemwallet.android.application.update.coordinators.ObserveAppUpdateOffer
+import com.gemwallet.android.application.update.coordinators.SkipAppUpdate
+import com.gemwallet.android.model.AppUpdateChannel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class InAppUpdateViewModel @Inject constructor(
-    private val buildInfo: BuildInfo,
-    private val userConfig: UserConfig,
+    observeAppUpdateOffer: ObserveAppUpdateOffer,
+    private val skipAppUpdate: SkipAppUpdate,
     private val updateService: InAppUpdateService,
 ) : ViewModel() {
 
-    val updateAvailable = userConfig.getAppVersionSkip()
-        .combine(userConfig.getLatestAppUpdate()) { skip, update ->
-            availableUpdate(update, skip)
-        }
+    val updateAvailable = observeAppUpdateOffer.observeAppUpdateOffer()
+        .map { offer -> offer?.takeIf { it.channel == AppUpdateChannel.InAppApk } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    internal fun availableUpdate(
-        update: AppUpdateInfo?,
-        skipVersion: String,
-    ): AppUpdateInfo? = update?.takeIf {
-        VersionCheck.isVersionHigher(new = it.version, current = buildInfo.versionName)
-            && buildInfo.platformStore == PlatformStore.ApkUniversal
-            && (it.isRequired || it.version != skipVersion)
-    }
 
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.Idle)
     val downloadState = _downloadState.asStateFlow()
@@ -102,7 +89,7 @@ class InAppUpdateViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            userConfig.setAppVersionSkip(update.version)
+            skipAppUpdate.skipAppUpdate(update.version)
         }
     }
 
