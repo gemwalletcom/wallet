@@ -53,10 +53,13 @@ class DelegationViewModel @Inject constructor(
     val validatorId = MutableStateFlow(savedStateHandle.requireString(RouteArgument.ValidatorId))
     val delegationId = MutableStateFlow(savedStateHandle.getString(RouteArgument.DelegationId))
 
-    val delegation = combine(validatorId, delegationId) { validatorId, delegationId -> Pair(validatorId, delegationId) }
-        .flatMapLatest {
-            val (validatorId, delegationId) = it
-            stakeRepository.getDelegation(delegationId = delegationId, validatorId = validatorId)
+    val delegation = combine(
+        validatorId,
+        delegationId,
+        sessionRepository.session().filterNotNull(),
+    ) { validatorId, delegationId, session -> Triple(validatorId, delegationId, session.wallet.id) }
+        .flatMapLatest { (validatorId, delegationId, walletId) ->
+            stakeRepository.getDelegation(walletId = walletId, validatorId = validatorId, delegationId = delegationId)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

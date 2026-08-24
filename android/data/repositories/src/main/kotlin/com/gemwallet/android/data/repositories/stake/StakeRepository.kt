@@ -58,8 +58,8 @@ class StakeRepository(
             }
     }
 
-    fun getDelegation(validatorId: String, delegationId: String): Flow<Delegation?> {
-        return stakeDao.getDelegation(validatorId, delegationId).map { it?.toModel() }
+    fun getDelegation(walletId: WalletId, validatorId: String, delegationId: String): Flow<Delegation?> {
+        return stakeDao.getDelegation(walletId, validatorId, delegationId).map { it?.toModel() }
     }
 
     suspend fun getRewards(walletId: WalletId, assetId: AssetId): List<Delegation> {

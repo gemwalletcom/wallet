@@ -34,7 +34,7 @@ class AmountProviderFactoryTest {
             every { this@mockk.invoke(any()) } returns flowOf(null)
         },
         getDelegation = mockk<GetDelegation>(relaxed = true) {
-            every { this@mockk.invoke(any(), any()) } returns flowOf(null)
+            every { this@mockk.invoke(any(), any(), any()) } returns flowOf(null)
         },
         getDelegations = mockk<GetDelegations>(relaxed = true) {
             every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList())
