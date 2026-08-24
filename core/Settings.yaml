@@ -95,12 +95,17 @@ fiat:
       key:
         secret: ""
 swap:
+  near_intents:
+    url: "https://1click.chaindefuser.com"
   okx:
+    url: "https://web3.okx.com"
     key:
       public: ""
       secret: ""
     passphrase: ""
     project: ""
+  swaps_xyz:
+    url: "https://api-v2.swaps.xyz/api"
 
 prices:
   coingecko:
@@ -141,6 +146,7 @@ coingecko:
   key:
     secret: ""
 coinmarketcap:
+  url: "https://pro-api.coinmarketcap.com"
   key:
     secret: ""
 
@@ -295,17 +301,22 @@ pusher:
   url: "http://localhost:8088"
   ios:
     topic: ""
-scan:
+security:
   timeout: 1200ms
+  abuseipdb:
+    url: https://api.abuseipdb.com
+    key:
+      secret: ""
   goplus:
     url: "https://api.gopluslabs.io"
-    key:
-      public: ""
-      secret: ""
   hashdit:
     url: "https://api.hashdit.io"
     key:
       public: ""
+      secret: ""
+  ipapi:
+    url: https://api.ipapi.is
+    key:
       secret: ""
 
 support:
@@ -397,13 +408,3 @@ assets:
 
 rewards:
   wallets: {}
-
-ip:
-  abuseipdb:
-    url: https://api.abuseipdb.com
-    key:
-      secret: ""
-  ipapi:
-    url: https://api.ipapi.is
-    key:
-      secret: ""

@@ -12,7 +12,7 @@ pub struct GoPlusProvider {
 }
 
 impl GoPlusProvider {
-    pub fn new(client: ReqwestClient, _api_key: &str) -> Self {
+    pub fn new(client: ReqwestClient) -> Self {
         GoPlusProvider { client }
     }
 }

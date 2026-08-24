@@ -42,7 +42,7 @@ pub struct DownloaderConfig {
     pub args: Args,
     pub img_config: ImgDownloaderConfig,
     pub coingecko: RemoteProviderConfig,
-    pub coinmarketcap_api_key: String,
+    pub coinmarketcap: RemoteProviderConfig,
     pub jupiter_api_key: String,
 }
 
@@ -57,7 +57,7 @@ impl Downloader {
             args,
             img_config,
             coingecko,
-            coinmarketcap_api_key,
+            coinmarketcap,
             jupiter_api_key,
         } = config;
         let folder = args.folder.clone().unwrap_or(img_config.folder);
@@ -67,7 +67,7 @@ impl Downloader {
             folder,
             coingecko_provider: CoingeckoProvider::new(coingecko, CoingeckoProviderConfig::new(img_config.coingecko)),
             coinmarketcap_provider: CoinMarketCapProvider::new(
-                CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), &coinmarketcap_api_key),
+                CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), coinmarketcap),
                 CoinMarketCapProviderConfig::new(img_config.coinmarketcap),
             ),
             jupiter_provider: JupiterProvider::new(

@@ -1,20 +1,21 @@
 use cacher::{CacheKey, CacherClient};
+use gem_client::build_request_url;
 use primitives::SwapProvider;
-use swapper::near_intents::base_url;
 
 pub struct NearIntentsProxyClient {
     client: reqwest::Client,
+    url: String,
     cacher: CacherClient,
 }
 
 impl NearIntentsProxyClient {
-    pub fn new(cacher: CacherClient) -> Self {
+    pub fn new(url: String, cacher: CacherClient) -> Self {
         let client = gem_client::reqwest_client();
-        Self { client, cacher }
+        Self { client, url, cacher }
     }
 
     pub async fn quote(&self, body: serde_json::Value) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
-        let url = format!("{}/v0/quote/forward", base_url());
+        let url = build_request_url(&self.url, "/v0/quote");
         let response = self.client.post(&url).json(&body).send().await?.json::<serde_json::Value>().await?;
 
         if let Some(address) = response.pointer("/quote/depositAddress").and_then(|v| v.as_str())

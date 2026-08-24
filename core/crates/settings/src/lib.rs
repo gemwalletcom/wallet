@@ -31,13 +31,12 @@ pub struct Settings {
     pub name: Name,
     pub chains: Chains,
     pub pusher: Pusher,
-    pub scan: Scan,
+    pub security: Security,
     pub support: Support,
     pub nft: NFT,
     pub indexer: Indexer,
     pub assets: Assets,
     pub rewards: Rewards,
-    pub ip: Ip,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -205,7 +204,7 @@ pub struct SecretKeySettings {
     pub key: KeySecret,
 }
 pub type CoinGecko = ProviderSettings;
-pub type CoinMarketCap = SecretKeySettings;
+pub type CoinMarketCap = ProviderSettings;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct UrlSecretKeySettings {
@@ -399,11 +398,13 @@ pub struct PusherIOS {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Scan {
+pub struct Security {
     #[serde(deserialize_with = "duration::deserialize")]
     pub timeout: Duration,
+    pub abuseipdb: UrlSecretKeySettings,
+    pub goplus: URL,
     pub hashdit: UrlKeySettings,
-    pub goplus: UrlKeySettings,
+    pub ipapi: UrlSecretKeySettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -473,20 +474,15 @@ pub struct RewardsWallet {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Ip {
-    pub abuseipdb: AbuseIPDB,
-    pub ipapi: IpApi,
-}
-pub type AbuseIPDB = UrlSecretKeySettings;
-pub type IpApi = UrlSecretKeySettings;
-
-#[derive(Debug, Deserialize, Clone)]
 pub struct Swap {
+    pub near_intents: URL,
     pub okx: Okx,
+    pub swaps_xyz: URL,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Okx {
+    pub url: String,
     pub key: Key,
     pub passphrase: String,
     pub project: String,

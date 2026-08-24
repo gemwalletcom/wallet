@@ -1,9 +1,8 @@
 use crate::model::{Info, Listing, ListingsResponse};
-use gem_client::{Client, ReqwestClient};
+use gem_client::{Client, RemoteProviderConfig, ReqwestClient};
 use serde_json::Value;
 use std::{collections::HashMap, error::Error};
 
-const COINMARKETCAP_API_URL: &str = "https://pro-api.coinmarketcap.com";
 const API_KEY_HEADER: &str = "X-CMC_PRO_API_KEY";
 
 #[derive(Debug, Clone)]
@@ -13,8 +12,8 @@ pub struct CoinMarketCapClient<C: Client> {
 }
 
 impl CoinMarketCapClient<ReqwestClient> {
-    pub fn new_with_reqwest_client(client: reqwest::Client, api_key: &str) -> Self {
-        Self::new_with_client_and_api_key(ReqwestClient::new(COINMARKETCAP_API_URL.to_string(), client), api_key)
+    pub fn new_with_reqwest_client(client: reqwest::Client, config: RemoteProviderConfig) -> Self {
+        Self::new_with_client_and_api_key(ReqwestClient::new(config.url, client), &config.key)
     }
 }
 
