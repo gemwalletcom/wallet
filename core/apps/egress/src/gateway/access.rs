@@ -29,7 +29,7 @@ impl<'a> AccessLog<'a> {
         }
     }
 
-    pub(super) fn route_not_found(method: &'a Method, uri: &'a str) {
+    pub(super) fn rejected(method: &'a Method, uri: &'a str, status: u16, reason: &str) {
         let access = Self {
             id: format!("{:016x}", rand::random::<u64>()),
             caller: "none",
@@ -40,7 +40,7 @@ impl<'a> AccessLog<'a> {
             start: Instant::now(),
         };
         access.request();
-        access.unavailable(Status::NotFound.code, "route");
+        access.unavailable(status, reason);
     }
 
     pub(super) fn request(&self) {

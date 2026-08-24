@@ -1,6 +1,6 @@
 mod loader;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
 use std::time::Duration;
 
@@ -11,11 +11,18 @@ use serde_serializers::{duration, size};
 pub(crate) struct EgressConfig {
     pub address: IpAddr,
     pub port: u16,
+    pub callers: HashMap<String, CallerConfig>,
     pub headers: HeadersConfig,
     pub request: RequestConfig,
     pub retry: RetryConfig,
     pub proxies: Option<HashMap<String, ProxyConfig>>,
     pub routes: Vec<RouteConfig>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct CallerConfig {
+    pub key: String,
+    pub groups: HashSet<String>,
 }
 
 #[derive(Debug, Deserialize)]

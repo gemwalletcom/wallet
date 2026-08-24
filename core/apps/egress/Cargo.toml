@@ -14,5 +14,6 @@ rocket = { workspace = true }
 url = { workspace = true }
 gem_tracing = { path = "../../crates/tracing" }
 gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
+gem_crypto = { path = "../../crates/gem_crypto" }
 metrics = { path = "../../crates/metrics" }
 serde_serializers = { path = "../../crates/serde_serializers" }

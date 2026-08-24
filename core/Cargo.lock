@@ -2948,6 +2948,7 @@ version = "2.114.10"
 dependencies = [
  "config",
  "gem_client",
+ "gem_crypto",
  "gem_tracing",
  "metrics",
  "prometheus-client",

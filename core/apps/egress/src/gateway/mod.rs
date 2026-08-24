@@ -16,14 +16,15 @@ use tokio::sync::RwLock;
 use access::AccessLog;
 use endpoint::Endpoint;
 use proxy::{OutboundProxy, build_client};
-use route::{Route, match_route};
+use route::{MatchError, Route, match_route};
 
-use crate::config::EgressConfig;
+use crate::config::{CallerConfig, EgressConfig};
 use crate::metrics::Metrics;
 
 type BoxError = Box<dyn Error + Send + Sync>;
 
 pub(crate) struct Gateway {
+    callers: HashMap<String, CallerConfig>,
     routes: Vec<Route>,
     proxies: HashMap<String, OutboundProxy>,
     cooldowns: RwLock<HashMap<String, Cooldown>>,
@@ -57,6 +58,7 @@ pub(crate) struct GatewayError {
 impl Gateway {
     pub(crate) fn new(config: EgressConfig, metrics: Metrics) -> Result<Self, BoxError> {
         let EgressConfig {
+            callers,
             headers,
             request,
             retry,
@@ -84,6 +86,7 @@ impl Gateway {
         }
 
         Ok(Self {
+            callers,
             routes,
             proxies,
             cooldowns: RwLock::new(HashMap::new()),
@@ -100,16 +103,25 @@ impl Gateway {
     }
 
     pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<GatewayResponse, GatewayError> {
-        let Some(route_match) = match_route(&self.routes, uri) else {
-            let uri = path::redact(uri);
-            AccessLog::route_not_found(&method, &uri);
-            return Err(GatewayError::new(Status::NotFound, "route not found"));
+        let route_match = match match_route(&self.routes, &self.callers, uri) {
+            Ok(route_match) => route_match,
+            Err(error) => {
+                let (status, reason, message) = match error {
+                    MatchError::Unauthorized => (Status::Unauthorized, "caller", "caller authentication failed"),
+                    MatchError::Forbidden => (Status::Forbidden, "group", "caller is not allowed to use this group"),
+                    MatchError::NotFound => (Status::NotFound, "route", "route not found"),
+                };
+                let uri = path::redact(uri);
+                AccessLog::rejected(&method, &uri, status.code, reason);
+                return Err(GatewayError::new(status, message));
+            }
         };
         let route = route_match.route;
         let path = route_match.redacted_path();
         let caller = route_match.caller;
         let access = AccessLog::new(caller, route, &method, &path);
         access.request();
+        let _inflight = self.metrics.track_inflight(caller, &route.group, &route.service);
         let mut candidates = self.available_endpoints(route, &path).await.map_err(|failure| {
             access.unavailable(failure.status, failure.reason);
             self.metrics.record_response(caller, &route.group, &route.service, &path, failure.status);
@@ -138,8 +150,11 @@ impl Gateway {
                     return Err(GatewayError::new(Status::BadRequest, error.to_string()));
                 }
             };
+            let started = Instant::now();
             match endpoint.send(&method, target, headers, &self.forward_headers, body.clone()).await {
                 Ok((response, retry_after)) => {
+                    self.metrics
+                        .record_upstream_latency(caller, &route.group, &route.service, &endpoint.name, response.status, started.elapsed());
                     self.metrics.record_request(caller, &route.group, &route.service, &endpoint.name, &path, response.status);
                     if route.should_retry(response.status) {
                         self.start_cooldown(
@@ -163,6 +178,8 @@ impl Gateway {
                     return Ok(response);
                 }
                 Err(reason) => {
+                    self.metrics
+                        .record_upstream_latency(caller, &route.group, &route.service, &endpoint.name, Status::BadGateway.code, started.elapsed());
                     access.upstream_failed(&endpoint.name, remote_host, reason);
                     self.start_cooldown(
                         route,
@@ -254,6 +271,7 @@ impl Gateway {
     }
 
     async fn start_cooldown(&self, route: &Route, endpoint: &Endpoint, path: &str, failure: Failure, duration: Duration) {
+        self.metrics.set_cooldown(&route.group, &route.service, &endpoint.name, path, duration);
         self.cooldowns.write().await.insert(
             endpoint.cooldown_key(&route.group, &route.service, path),
             Cooldown {
@@ -282,6 +300,13 @@ mod tests {
             EgressConfig {
                 address: IpAddr::V4(Ipv4Addr::LOCALHOST),
                 port: 0,
+                callers: HashMap::from([(
+                    "consumer".to_string(),
+                    CallerConfig {
+                        key: "secret".to_string(),
+                        groups: HashSet::from(["indexer".to_string()]),
+                    },
+                )]),
                 headers: HeadersConfig { forward: Vec::new() },
                 request: RequestConfig {
                     timeout: Duration::from_secs(1),

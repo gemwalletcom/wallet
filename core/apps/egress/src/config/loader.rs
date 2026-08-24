@@ -23,6 +23,9 @@ impl EgressConfig {
     }
 
     fn expand_environment(&mut self) -> Result<(), ConfigError> {
+        for caller in self.callers.values_mut() {
+            caller.key = expand_value(&caller.key, |name| env::var(name).ok())?;
+        }
         for route in &mut self.routes {
             for endpoint in &mut route.endpoints {
                 endpoint.url = expand_value(&endpoint.url, |name| env::var(name).ok())?;

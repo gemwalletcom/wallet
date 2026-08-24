@@ -1,5 +1,9 @@
 address: 0.0.0.0
 port: 80
+callers:
+  local:
+    key: local
+    groups: [indexer, prices]
 headers:
   forward: [accept, content-type, content-encoding, content-length, te]
 request:

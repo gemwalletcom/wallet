@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use gem_crypto::compare::constant_time_eq;
 use gem_tracing::path;
 use rand::seq::SliceRandom;
 use reqwest::Client;
@@ -9,7 +10,7 @@ use url::Url;
 use super::BoxError;
 use super::endpoint::Endpoint;
 use super::proxy::OutboundProxy;
-use crate::config::{RouteConfig, Selection};
+use crate::config::{CallerConfig, RouteConfig, Selection};
 
 pub(super) struct Route {
     pub(super) group: String,
@@ -25,6 +26,13 @@ pub(super) struct RouteMatch<'a> {
     pub(super) route: &'a Route,
     remainder: &'a str,
     query: Option<&'a str>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(super) enum MatchError {
+    Unauthorized,
+    Forbidden,
+    NotFound,
 }
 
 impl Route {
@@ -85,23 +93,33 @@ impl RouteMatch<'_> {
     }
 }
 
-pub(super) fn match_route<'a>(routes: &'a [Route], uri: &'a str) -> Option<RouteMatch<'a>> {
+pub(super) fn match_route<'a>(routes: &'a [Route], callers: &'a HashMap<String, CallerConfig>, uri: &'a str) -> Result<RouteMatch<'a>, MatchError> {
     let (path, query) = uri.split_once('?').map_or((uri, None), |(path, query)| (path, Some(query)));
-    let path = path.strip_prefix('/')?;
-    let (caller, path) = path.split_once('/')?;
+    let path = path.strip_prefix('/').ok_or(MatchError::NotFound)?;
+    let (caller, path) = path.split_once('/').ok_or(MatchError::NotFound)?;
+    let caller_config = callers.get(caller).ok_or(MatchError::Unauthorized)?;
+    let (key, path) = path.split_once('/').ok_or(MatchError::Unauthorized)?;
+    if !constant_time_eq(key.as_bytes(), caller_config.key.as_bytes()) {
+        return Err(MatchError::Unauthorized);
+    }
     let name_end = path.find('/').unwrap_or(path.len());
     let (name, remainder) = path.split_at(name_end);
-    let (group, service) = name.split_once('_')?;
+    let (group, service) = name.split_once('_').ok_or(MatchError::NotFound)?;
+    if !caller_config.groups.contains(group) {
+        return Err(MatchError::Forbidden);
+    }
     routes
         .iter()
         .find(|route| route.group == group && route.service == service)
         .map(|route| RouteMatch { caller, route, remainder, query })
+        .ok_or(MatchError::NotFound)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::config::EndpointConfig;
+    use std::collections::HashSet;
 
     fn route(group: &str, service: &str) -> Route {
         Route {
@@ -129,23 +147,43 @@ mod tests {
         .unwrap()
     }
 
+    fn callers() -> HashMap<String, CallerConfig> {
+        HashMap::from([(
+            "worker".to_string(),
+            CallerConfig {
+                key: "secret".to_string(),
+                groups: HashSet::from(["prices".to_string(), "indexer".to_string()]),
+            },
+        )])
+    }
+
+    fn match_error(result: Result<RouteMatch<'_>, MatchError>) -> MatchError {
+        match result {
+            Ok(_) => panic!("expected route matching to fail"),
+            Err(error) => error,
+        }
+    }
+
     #[test]
     fn test_match_route() {
         let routes = vec![route("prices", "tonapi"), route("prices", "tonapi_rates")];
-        let matched = match_route(&routes, "/worker/prices_tonapi_rates/v2").unwrap();
+        let callers = callers();
+        let matched = match_route(&routes, &callers, "/worker/secret/prices_tonapi_rates/v2").unwrap();
         assert_eq!(matched.caller, "worker");
         assert_eq!(matched.route.group, "prices");
         assert_eq!(matched.route.service, "tonapi_rates");
         assert_eq!(matched.redacted_path(), "/v2");
-        assert!(match_route(&routes, "/prices_tonapi_rates/v2").is_none());
-        assert_eq!(match_route(&routes, "/scheduler/prices_tonapi_rates/v2").unwrap().caller, "scheduler");
-        assert!(match_route(&routes, "/worker/prices_tonapi-other").is_none());
+        assert_eq!(match_error(match_route(&routes, &callers, "/prices_tonapi_rates/v2")), MatchError::Unauthorized);
+        assert_eq!(match_error(match_route(&routes, &callers, "/worker/wrong/prices_tonapi/v2")), MatchError::Unauthorized);
+        assert_eq!(match_error(match_route(&routes, &callers, "/worker/secret/nft_opensea/v2")), MatchError::Forbidden);
+        assert_eq!(match_error(match_route(&routes, &callers, "/worker/secret/prices_tonapi-other")), MatchError::NotFound);
     }
 
     #[test]
     fn test_target_url() {
         let route = route("prices", "tonapi");
-        let matched = match_route(std::slice::from_ref(&route), "/worker/prices_tonapi/v2/rates/TON%2FUSD?currency=usd").unwrap();
+        let callers = callers();
+        let matched = match_route(std::slice::from_ref(&route), &callers, "/worker/secret/prices_tonapi/v2/rates/TON%2FUSD?currency=usd").unwrap();
         assert_eq!(
             matched.target_url(&endpoint("https://tonapi.io/api/", HashMap::new())).unwrap().as_str(),
             "https://tonapi.io/api/v2/rates/TON%2FUSD?currency=usd"
@@ -155,7 +193,8 @@ mod tests {
     #[test]
     fn test_target_credentials() {
         let route = route("indexer", "blockscout");
-        let matched = match_route(std::slice::from_ref(&route), "/consumer/indexer_blockscout/api?apikey=client&chain=1").unwrap();
+        let callers = callers();
+        let matched = match_route(std::slice::from_ref(&route), &callers, "/worker/secret/indexer_blockscout/api?apikey=client&chain=1").unwrap();
         let endpoint = endpoint("https://api.blockscout.com", HashMap::from([("apikey".to_string(), "secret".to_string())]));
         assert_eq!(matched.target_url(&endpoint).unwrap().as_str(), "https://api.blockscout.com/api?chain=1&apikey=secret");
     }
