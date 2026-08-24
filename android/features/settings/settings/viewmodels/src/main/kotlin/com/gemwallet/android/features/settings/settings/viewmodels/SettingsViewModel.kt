@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -117,20 +116,14 @@ class SettingsViewModel @Inject constructor(
     fun enableNotifications() {
         viewModelScope.launch(Dispatchers.IO) {
             userConfig.stopAskNotifications()
-            switchPushEnabled.switchPushEnabled(
-                true,
-                wallets.firstOrNull() ?: emptyList()
-            )
+            switchPushEnabled.switchPushEnabled(true)
         }
     }
 
     fun disableNotifications() {
         viewModelScope.launch(Dispatchers.IO) {
             userConfig.stopAskNotifications()
-            switchPushEnabled.switchPushEnabled(
-                false,
-                wallets.firstOrNull() ?: emptyList()
-            )
+            switchPushEnabled.switchPushEnabled(false)
         }
     }
 

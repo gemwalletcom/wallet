@@ -76,7 +76,7 @@ class DeviceRepository(
         }
     }
 
-    override suspend fun switchPushEnabled(enabled: Boolean, wallets: List<Wallet>) {
+    override suspend fun switchPushEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Key.PushEnabled] = enabled && notificationsAvailable
         }
