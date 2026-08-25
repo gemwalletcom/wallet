@@ -33,9 +33,7 @@ interface PerpetualRepository {
 
     fun getPositions(walletId: WalletId): Flow<List<PerpetualPositionData>>
 
-    fun getPositionByPositionId(id: String): Flow<PerpetualPositionData?>
-
-    fun getPositionByPerpetualId(id: PerpetualId): Flow<PerpetualPositionData?>
+    fun getPositionByPerpetualId(walletId: WalletId, id: PerpetualId): Flow<PerpetualPositionData?>
 
     suspend fun putAsset(asset: Asset)
 

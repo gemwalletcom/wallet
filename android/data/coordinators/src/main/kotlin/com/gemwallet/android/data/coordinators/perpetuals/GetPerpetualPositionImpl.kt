@@ -13,6 +13,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualPositionData
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -20,8 +21,8 @@ import javax.inject.Inject
 class GetPerpetualPositionImpl @Inject constructor(
     private val perpetualRepository: PerpetualRepository
 ) : GetPerpetualPosition {
-    override fun getPositionByPerpetual(id: PerpetualId): Flow<PerpetualPositionDetailsDataAggregate?> {
-        return perpetualRepository.getPositionByPerpetualId(id).map { PerpetualPositionDetailsDataAggregateImpl(it ?: return@map null) }
+    override fun getPositionByPerpetual(walletId: WalletId, id: PerpetualId): Flow<PerpetualPositionDetailsDataAggregate?> {
+        return perpetualRepository.getPositionByPerpetualId(walletId, id).map { PerpetualPositionDetailsDataAggregateImpl(it ?: return@map null) }
     }
 }
 

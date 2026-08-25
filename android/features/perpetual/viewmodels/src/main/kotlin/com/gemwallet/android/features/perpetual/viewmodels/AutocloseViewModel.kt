@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.coordinators.BuildPerpetualParams
+import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -43,6 +45,7 @@ import javax.inject.Inject
 class AutocloseViewModel @Inject constructor(
     private val perpetualRepository: PerpetualRepository,
     private val buildPerpetualParams: BuildPerpetualParams,
+    getSession: GetSession,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -50,10 +53,12 @@ class AutocloseViewModel @Inject constructor(
 
     private val numericFormatter = NumericFormatter()
 
-    val position: StateFlow<PerpetualPositionData?> = perpetualRepository.getPerpetualByAssetId(assetId)
-        .distinctUntilChanged()
-        .flatMapLatest { data ->
-            data?.let { perpetualRepository.getPositionByPerpetualId(it.perpetual.id) } ?: flowOf(null)
+    val position: StateFlow<PerpetualPositionData?> = combine(
+        perpetualRepository.getPerpetualByAssetId(assetId).distinctUntilChanged(),
+        getSession().filterNotNull(),
+    ) { data, session -> data to session.wallet.id }
+        .flatMapLatest { (data, walletId) ->
+            data?.let { perpetualRepository.getPositionByPerpetualId(walletId, it.perpetual.id) } ?: flowOf(null)
         }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

@@ -89,8 +89,10 @@ class BuildPerpetualParamsImpl(
     private suspend fun getPerpetual(perpetualId: PerpetualId): PerpetualData? =
         perpetualRepository.getPerpetual(perpetualId).firstOrNull()
 
-    private suspend fun getPosition(perpetualId: PerpetualId): PerpetualPosition? =
-        perpetualRepository.getPositionByPerpetualId(perpetualId).firstOrNull()?.position
+    private suspend fun getPosition(perpetualId: PerpetualId): PerpetualPosition? {
+        val walletId = sessionRepository.session().value?.wallet?.id ?: return null
+        return perpetualRepository.getPositionByPerpetualId(walletId, perpetualId).firstOrNull()?.position
+    }
 
     private fun createTransferData(
         data: PerpetualData,
