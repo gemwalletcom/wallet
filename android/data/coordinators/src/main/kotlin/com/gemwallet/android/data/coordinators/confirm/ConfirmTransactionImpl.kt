@@ -46,6 +46,7 @@ class ConfirmTransactionImpl(
         session: Session,
         assetInfo: AssetInfo,
         scope: CoroutineScope,
+        transactionAssetId: AssetId?,
     ): String {
         val account = assetInfo.owner ?: throw ConfirmError.TransactionIncorrect
 
@@ -75,6 +76,7 @@ class ConfirmTransactionImpl(
                 assetInfo = assetInfo,
                 account = account,
                 session = session,
+                transactionAssetId = transactionAssetId,
                 transactionType = transactionType,
                 approval = approval,
                 approvalAmount = approvalAmount,
@@ -114,6 +116,7 @@ class ConfirmTransactionImpl(
         assetInfo: AssetInfo,
         account: Account,
         session: Session,
+        transactionAssetId: AssetId?,
         transactionType: TransactionType,
         approval: ApprovalData?,
         approvalAmount: BigInteger?,
@@ -125,14 +128,14 @@ class ConfirmTransactionImpl(
         val memo: String?
         val metadata: String?
         if (approval != null) {
-            assetId = AssetId(signerParams.input.asset.id.chain, approval.token)
+            assetId = transactionAssetId ?: AssetId(signerParams.input.asset.id.chain, approval.token)
             destinationAddress = approval.spender
             amount = requireNotNull(approvalAmount)
             memo = null
             metadata = null
         } else {
             if (!isFinalTransaction) return
-            assetId = assetInfo.id()
+            assetId = transactionAssetId ?: assetInfo.id()
             destinationAddress = signerParams.input.destination()?.address.orEmpty()
             amount = signerParams.finalAmount
             memo = signerParams.input.memo().orEmpty()

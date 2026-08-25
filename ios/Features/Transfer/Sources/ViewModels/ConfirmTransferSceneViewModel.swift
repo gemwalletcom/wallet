@@ -345,6 +345,7 @@ extension ConfirmTransferSceneViewModel {
                     request: request,
                     transactionData: transactionData,
                     amount: amount,
+                    simulation: state.simulation.result,
                 )
                 state.confirmation = .idle
                 onComplete?()

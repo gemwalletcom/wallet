@@ -80,12 +80,13 @@ public struct ConfirmService: Sendable {
         )
     }
 
-    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount) async throws {
+    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount, simulation: SimulationResult?) async throws {
         let input = TransferConfirmationInput(
             data: request.data,
             wallet: request.wallet,
             transactionData: transactionData,
             amount: amount,
+            simulation: simulation,
             delegate: request.delegate,
         )
         try await transferExecutor.execute(input: input)

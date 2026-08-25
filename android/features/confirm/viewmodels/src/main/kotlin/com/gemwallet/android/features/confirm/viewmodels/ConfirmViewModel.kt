@@ -369,11 +369,14 @@ class ConfirmViewModel @Inject constructor(
                 feeAssetInfo = feeAssetInfo,
                 fee = signerParams.fee().amount,
             )
+            val transactionAssetId = (signerParams.input as? ConfirmParams.TransferParams.Generic)
+                ?.let { simulationResult.value?.header?.assetId }
             val transactionHash = confirmTransaction(
                 signerParams.copy(finalAmount = amount),
                 session,
                 assetInfo,
                 viewModelScope,
+                transactionAssetId,
             )
             state.update { ConfirmState.Result(transactionHash = transactionHash) }
             viewModelScope.launch(Dispatchers.Main) {
