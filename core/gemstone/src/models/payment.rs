@@ -27,6 +27,7 @@ pub struct GemPaymentRequest {
     pub address: String,
     pub amount: Option<GemPaymentAmount>,
     pub memo: Option<String>,
+    pub references: Option<Vec<String>>,
     pub asset_id: Option<AssetId>,
 }
 

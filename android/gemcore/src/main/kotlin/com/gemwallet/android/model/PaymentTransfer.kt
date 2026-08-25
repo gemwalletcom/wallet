@@ -35,7 +35,7 @@ class PaymentTransfer(private val assetInfo: AssetInfo) {
             return null
         }
         return ConfirmParams.Builder(asset, owner, value)
-            .transfer(DestinationAddress(address), request.memo)
+            .transfer(DestinationAddress(address), request.memo, request.references.orEmpty())
     }
 
     private fun transferValue(request: PaymentRequest): BigInteger? =

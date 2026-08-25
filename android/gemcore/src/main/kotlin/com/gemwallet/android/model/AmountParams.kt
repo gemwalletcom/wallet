@@ -25,6 +25,7 @@ sealed interface AmountParams {
         override val assetId: AssetId,
         val destination: DestinationAddress,
         val memo: String? = null,
+        val references: List<String> = emptyList(),
         override val amount: String? = null,
     ) : AmountParams {
         override val transactionType: TransactionType get() = TransactionType.Transfer

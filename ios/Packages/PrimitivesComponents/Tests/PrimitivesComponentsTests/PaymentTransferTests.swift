@@ -28,6 +28,7 @@ struct PaymentTransferTests {
                 address: recipient,
                 amount: .atomicValue("19000000"),
                 memo: "payment-memo",
+                references: nil,
                 assetId: asset.id.identifier,
             ),
         )
@@ -65,7 +66,7 @@ struct PaymentTransferTests {
     @Test
     func destinationWithoutAmountRequiresRecipient() throws {
         let asset = Asset.mockEthereum()
-        let payment = PaymentRequest.mock(address: "0x123", memo: "test memo")
+        let payment = PaymentRequest.mock(address: "0x123", memo: "test memo", references: ["reference"])
 
         let destination = try PaymentTransfer(asset: asset).destination(for: payment)
 
@@ -75,6 +76,7 @@ struct PaymentTransferTests {
         }
         #expect(data.recipient.address == payment.address)
         #expect(data.recipient.memo == payment.memo)
+        #expect(data.recipient.references == ["reference"])
         #expect(data.amount == nil)
     }
 

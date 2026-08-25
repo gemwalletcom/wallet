@@ -92,6 +92,7 @@ class RecipientViewModel @Inject constructor(
 
     private val _memo = MutableStateFlow("")
     val memo = _memo.asStateFlow()
+    private var references = emptyList<String>()
     private var requestedAmount: String? = null
 
     private val session = getSession()
@@ -206,7 +207,7 @@ class RecipientViewModel @Inject constructor(
             when (type) {
                 is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
                 is RecipientType.Asset -> amountAction(
-                    AmountParams.Transfer(type.assetInfo.id(), destination, memo.value, requestedAmount)
+                    AmountParams.Transfer(type.assetInfo.id(), destination, memo.value, references, requestedAmount)
                 )
             }
         }
@@ -215,6 +216,7 @@ class RecipientViewModel @Inject constructor(
     fun onAddress(input: String) {
         if (input != address.value) {
             requestedAmount = null
+            references = emptyList()
         }
         addressInput.onTextChange(input)
     }
@@ -251,6 +253,7 @@ class RecipientViewModel @Inject constructor(
     private fun updateFrom(request: PaymentRequest) {
         addressInput.applyExternalAddress(assetId.chain.checksumAddress(request.address))
         request.memo?.let { _memo.value = it }
+        references = request.references.orEmpty()
         requestedAmount = request.exactAmount
     }
 

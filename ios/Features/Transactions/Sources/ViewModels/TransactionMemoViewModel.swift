@@ -17,7 +17,7 @@ struct TransactionMemoViewModel {
 
 extension TransactionMemoViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
-        guard transaction.assetId.chain.isMemoSupported, transaction.memo?.isEmpty == false else { return .empty }
+        guard transaction.memo?.isEmpty == false else { return .empty }
 
         return .listItem(
             MemoViewModel(memo: transaction.memo).listItemModel,

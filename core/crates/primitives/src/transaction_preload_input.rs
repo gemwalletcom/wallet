@@ -7,6 +7,7 @@ pub struct TransactionPreloadInput {
     pub input_type: TransactionInputType,
     pub sender_address: String,
     pub destination_address: String,
+    pub references: Vec<String>,
 }
 
 impl TransactionPreloadInput {

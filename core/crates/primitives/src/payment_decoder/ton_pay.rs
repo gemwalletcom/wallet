@@ -28,6 +28,7 @@ pub fn decode(path: &str) -> Result<Payment> {
             .and_then(|value| amount::exact_from_atomic(&value, Chain::Ton))
             .map(PaymentAmount::ExactValue),
         memo: query::value(&parameters, QUERY_TEXT),
+        references: None,
         asset_id: Some(AssetId::from_chain(Chain::Ton)),
     }))
 }
@@ -62,6 +63,7 @@ mod tests {
                 address: ADDRESS.to_string(),
                 amount: Some(PaymentAmount::ExactValue("1".to_string())),
                 memo: Some("order 7".to_string()),
+                references: None,
                 asset_id: Some(AssetId::from_chain(Chain::Ton)),
             })
         );

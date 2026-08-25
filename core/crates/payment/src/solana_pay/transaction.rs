@@ -41,6 +41,7 @@ pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransac
             address: transfer.recipient,
             amount: Some(PaymentAmount::AtomicValue(transfer.value)),
             memo: memo.clone(),
+            references: None,
             asset_id: Some(transfer.asset_id),
         }),
         transaction_type,

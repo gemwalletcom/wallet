@@ -281,6 +281,7 @@ mod chain_integration_tests {
                 input_type: input_type.clone(),
                 sender_address: TEMPO_TEST_ADDRESS.to_string(),
                 destination_address: TEMPO_TEST_ADDRESS.to_string(),
+                references: vec![],
             })
             .await?;
 

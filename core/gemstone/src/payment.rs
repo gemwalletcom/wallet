@@ -54,6 +54,7 @@ mod tests {
                 amount: Some(GemPaymentAmount::ExactValue("0.42301".to_string())),
                 memo: None,
                 asset_id: Some(AssetId::from_chain(Chain::Solana)),
+                references: None,
             })
         );
     }

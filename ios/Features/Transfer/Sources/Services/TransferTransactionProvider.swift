@@ -97,6 +97,7 @@ extension TransferTransactionProvider {
                 inputType: data.type,
                 senderAddress: wallet.account(for: data.chain).address,
                 destinationAddress: data.recipientData.recipient.address,
+                references: data.recipientData.recipient.references,
             ),
         )
     }

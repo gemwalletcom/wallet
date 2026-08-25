@@ -36,6 +36,7 @@ public enum TransactionLoadMetadata: Sendable {
         tokenProgram: SolanaTokenProgramId?,
         nft: SolanaNftStandard?,
         blockHash: String,
+        references: [String] = [],
     )
     case ton(
         senderTokenAddress: String?,
@@ -117,7 +118,7 @@ public extension TransactionLoadMetadata {
 
     func getBlockHash() throws -> String {
         switch self {
-        case let .solana(_, _, _, _, blockHash),
+        case let .solana(_, _, _, _, blockHash, _),
              let .near(_, blockHash),
              let .algorand(_, blockHash, _),
              let .polkadot(_, _, blockHash, _, _, _, _):

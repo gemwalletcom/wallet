@@ -22,6 +22,7 @@ data class PaymentRequest (
 	val address: String,
 	val amount: PaymentAmount? = null,
 	val memo: String? = null,
+	val references: List<String>? = null,
 	val assetId: AssetId? = null
 )
 

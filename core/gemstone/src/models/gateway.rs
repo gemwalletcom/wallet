@@ -37,6 +37,7 @@ pub struct GemTransactionPreloadInput {
     pub input_type: GemTransactionInputType,
     pub sender_address: String,
     pub destination_address: String,
+    pub references: Vec<String>,
 }
 
 impl From<GasPriceType> for GemGasPriceType {
@@ -75,6 +76,7 @@ impl From<TransactionPreloadInput> for GemTransactionPreloadInput {
             input_type: input.input_type.into(),
             sender_address: input.sender_address,
             destination_address: input.destination_address,
+            references: input.references,
         }
     }
 }
@@ -87,6 +89,7 @@ impl From<GemTransactionPreloadInput> for TransactionPreloadInput {
             input_type,
             sender_address: input.sender_address,
             destination_address,
+            references: input.references,
         }
     }
 }

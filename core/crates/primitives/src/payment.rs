@@ -27,6 +27,7 @@ pub struct PaymentRequest {
     pub address: String,
     pub amount: Option<PaymentAmount>,
     pub memo: Option<String>,
+    pub references: Option<Vec<String>>,
     pub asset_id: Option<AssetId>,
 }
 

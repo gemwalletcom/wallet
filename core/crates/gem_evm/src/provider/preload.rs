@@ -149,6 +149,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
+            references: vec![],
         };
 
         let metadata = client.get_transaction_preload(input).await?;
@@ -168,6 +169,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::SmartChain)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
+            references: vec![],
         };
 
         let metadata = client.get_transaction_preload(input).await?;
@@ -245,6 +247,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
+            references: vec![],
         };
         let metadata = client.get_transaction_preload(preload_input.clone()).await?;
 
@@ -285,6 +288,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::mock_erc20()),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
+            references: vec![],
         };
         let metadata = client.get_transaction_preload(preload_input.clone()).await?;
 

@@ -67,6 +67,7 @@ class PaymentNavigationTest {
                 address = account.address,
                 amount = GemPaymentAmount.AtomicValue("19000000"),
                 memo = "payment-memo",
+                references = null,
                 assetId = assetInfo.asset.id.toIdentifier(),
             ),
         )

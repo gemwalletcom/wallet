@@ -9,6 +9,7 @@ public extension TransactionPreloadInput {
             inputType: inputType.map(),
             senderAddress: senderAddress,
             destinationAddress: destinationAddress,
+            references: references,
         )
     }
 }

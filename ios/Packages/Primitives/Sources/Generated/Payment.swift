@@ -53,12 +53,14 @@ public struct PaymentRequest: Codable, Equatable, Hashable, Sendable {
 	public let address: String
 	public let amount: PaymentAmount?
 	public let memo: String?
+	public let references: [String]?
 	public let assetId: AssetId?
 
-	public init(address: String, amount: PaymentAmount?, memo: String?, assetId: AssetId?) {
+	public init(address: String, amount: PaymentAmount?, memo: String?, references: [String]?, assetId: AssetId?) {
 		self.address = address
 		self.amount = amount
 		self.memo = memo
+		self.references = references
 		self.assetId = assetId
 	}
 }

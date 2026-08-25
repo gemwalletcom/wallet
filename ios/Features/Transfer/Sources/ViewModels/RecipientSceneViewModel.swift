@@ -138,6 +138,7 @@ extension RecipientSceneViewModel {
                     name: addressInputModel.nameResolveState.result?.name,
                     address: addressInputModel.resolvedAddress,
                     memo: memo,
+                    references: recipientData?.recipient.references ?? [],
                 ),
                 amount: recipientData?.amount,
             ),

@@ -20,6 +20,7 @@ fun GemPaymentRequest.toPrimitives(): PaymentRequest = PaymentRequest(
     address = address,
     amount = amount?.toPrimitives(),
     memo = memo,
+    references = references,
     assetId = assetId?.toAssetId(),
 )
 

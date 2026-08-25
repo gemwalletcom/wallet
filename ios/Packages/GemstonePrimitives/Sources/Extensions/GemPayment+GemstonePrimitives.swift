@@ -18,6 +18,7 @@ public extension GemPaymentRequest {
             address: address,
             amount: amount?.map(),
             memo: memo,
+            references: references,
             assetId: assetId.map { try AssetId(id: $0) },
         )
     }

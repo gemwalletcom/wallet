@@ -42,6 +42,7 @@ class PaymentTransferTest {
         assertEquals(BigInteger("10000000"), params.amount)
         assertEquals(XRP_ADDRESS, params.destination()?.address)
         assertEquals("12345", params.memo())
+        assertEquals(listOf("reference"), params.references)
     }
 
     @Test
@@ -64,6 +65,7 @@ class PaymentTransferTest {
             address = XRP_ADDRESS,
             amount = PaymentAmount.ExactValue("10"),
             memo = memo,
+            references = listOf("reference"),
             assetId = AssetId(Chain.Xrp),
         )
     }

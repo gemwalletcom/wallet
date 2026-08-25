@@ -13,16 +13,18 @@ final class PaymentURLDecoderTests {
                     address: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326",
                     amount: .none,
                     memo: .none,
+                    references: .none,
                     assetId: .none,
                 )),
         )
 
         #expect(
-            try PaymentURLDecoder.decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5?amount=0.266232&memo=order7")
+            try PaymentURLDecoder.decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5?amount=0.266232&memo=order7&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny")
                 == .request(PaymentRequest(
                     address: "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5",
                     amount: .exactValue("0.266232"),
                     memo: "order7",
+                    references: ["82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny"],
                     assetId: AssetId(chain: .solana, tokenId: .none),
                 )),
         )

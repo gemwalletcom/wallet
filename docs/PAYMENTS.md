@@ -10,7 +10,7 @@ Open the scanner from the wallet screen and scan this page from another device. 
 |---|---|---|
 | Plain address and BIP-21-style URI | Raw addresses or recognized chain schemes with `amount` and `memo`. XRP accepts `xrp:`, `ripple:`, `xrpl:`, and destination tag `dt` | [BIP-21-style decoder](../core/crates/primitives/src/payment_decoder/bip21.rs) |
 | ERC-681 | EVM native transfers and token `transfer` with `address` and `uint256` | [ERC-681 decoder](../core/crates/primitives/src/payment_decoder/erc681.rs) |
-| Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, and `memo` | [Solana Pay decoder](../core/crates/primitives/src/payment_decoder/solana_pay.rs) |
+| Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, repeated `reference`, and `memo` | [Solana Pay decoder](../core/crates/primitives/src/payment_decoder/solana_pay.rs) |
 | TON transfer | Native TON transfer with atomic `amount` and text comment | [TON decoder](../core/crates/primitives/src/payment_decoder/ton_pay.rs) |
 
 ## How decoding works
@@ -42,7 +42,7 @@ flowchart TD
 
 WalletConnect and Gem deeplinks are routed before payments. Solana transaction links load the merchant and encoded transaction through the payment service before opening confirmation. Confirmation then preloads the transaction and simulates it concurrently using the same transaction simulation service as WalletConnect.
 
-Static Solana Pay transfer requests support recipient, amount, SPL token, and memo. Requests containing `reference` are rejected until the reference account can be preserved by the shared transfer flow.
+Static Solana Pay transfer requests use the regular transfer flow. Each `reference` is preserved in URL order and added to the SOL or SPL-token transfer instruction as a read-only, non-signer account. A `memo` is emitted as the instruction immediately before the transfer.
 
 Core entry points:
 

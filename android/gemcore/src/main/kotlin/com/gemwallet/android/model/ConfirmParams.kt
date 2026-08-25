@@ -57,6 +57,9 @@ sealed class ConfirmParams() {
     open val minimumAmount: BigInteger?
         get() = null
 
+    open val references: List<String>
+        get() = emptyList()
+
     val assetId: AssetId get() = asset.id
 
     class Builder(
@@ -65,7 +68,7 @@ sealed class ConfirmParams() {
         val amount: BigInteger = BigInteger.ZERO,
         val useMaxAmount: Boolean = false,
     ) {
-        fun transfer(destination: DestinationAddress, memo: String? = null): TransferParams {
+        fun transfer(destination: DestinationAddress, memo: String? = null, references: List<String> = emptyList()): TransferParams {
             return when (asset.id.type()) {
                 AssetSubtype.NATIVE -> TransferParams.Native(
                     asset = asset,
@@ -73,6 +76,7 @@ sealed class ConfirmParams() {
                     amount = amount,
                     destination = destination,
                     memo = memo,
+                    references = references,
                     useMaxAmount = useMaxAmount
                 )
                 AssetSubtype.TOKEN -> TransferParams.Token(
@@ -81,6 +85,7 @@ sealed class ConfirmParams() {
                     amount = amount,
                     destination = destination,
                     memo = memo,
+                    references = references,
                     useMaxAmount = useMaxAmount
                 )
             }
@@ -242,11 +247,11 @@ sealed class ConfirmParams() {
             @Serializable(BigIntegerSerializer::class) override val amount: BigInteger,
             override val destination: DestinationAddress,
             override val memo: String? = null,
+            override val references: List<String> = emptyList(),
             override val inputType: InputType? = null,
             override val useMaxAmount: Boolean = false,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType = GemTransactionInputType.Transfer(asset.toGem())
-
         }
 
         @Serializable
@@ -256,11 +261,11 @@ sealed class ConfirmParams() {
             @Serializable(BigIntegerSerializer::class) override val amount: BigInteger,
             override val destination: DestinationAddress,
             override val memo: String? = null,
+            override val references: List<String> = emptyList(),
             override val useMaxAmount: Boolean = false,
             override val inputType: InputType? = null,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType = Transfer(asset.toGem())
-
         }
 
         @Serializable
@@ -662,7 +667,7 @@ sealed class ConfirmParams() {
         }
     }
 
-    open  fun destination(): DestinationAddress? = null
+    open fun destination(): DestinationAddress? = null
 
     open fun memo(): String? = null
 
@@ -670,6 +675,7 @@ sealed class ConfirmParams() {
         return asset.id.toIdentifier().hashCode() +
                 destination().hashCode() +
                 memo().hashCode() +
+                references.hashCode() +
                 amount.hashCode() +
                 useMaxAmount.hashCode()
     }

@@ -44,6 +44,7 @@ private extension PaymentTransfer {
             name: nil,
             address: asset.chain.checksumAddress(payment.address),
             memo: payment.memo,
+            references: payment.references ?? [],
         )
     }
 

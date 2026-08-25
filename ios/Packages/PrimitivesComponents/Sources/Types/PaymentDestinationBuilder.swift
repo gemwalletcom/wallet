@@ -80,7 +80,7 @@ public enum PaymentDestinationBuilder {
 
     private static func recipientData(for payment: PaymentRequest) -> RecipientData {
         RecipientData(
-            recipient: Recipient(name: .none, address: payment.address, memo: payment.memo),
+            recipient: Recipient(name: .none, address: payment.address, memo: payment.memo, references: payment.references ?? []),
             amount: payment.exactAmount,
         )
     }

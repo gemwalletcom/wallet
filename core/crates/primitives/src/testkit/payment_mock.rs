@@ -6,6 +6,7 @@ impl PaymentRequest {
             address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".to_string(),
             amount: None,
             memo: None,
+            references: None,
             asset_id: None,
         }
     }

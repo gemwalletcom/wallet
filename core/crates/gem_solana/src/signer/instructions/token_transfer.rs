@@ -1,4 +1,7 @@
-use crate::{get_token_program_by_id, signer::transaction};
+use crate::{
+    get_token_program_by_id,
+    signer::{instructions::reference_accounts, transaction},
+};
 use primitives::{Asset, SignerError, SignerInput, SolanaTokenProgramId};
 use solana_primitives::{
     Instruction, Pubkey,
@@ -47,15 +50,11 @@ pub(in crate::signer::instructions) fn spl_transfer_checked(
     if let Some(memo_text) = input.get_memo() {
         instructions.push(memo(memo_text, &[]));
     }
-    instructions.push(transfer_checked_with_program_id(
-        &sender_token_address,
-        &mint,
-        &recipient_token_address,
-        &sender,
-        amount,
-        decimals,
-        &token_program_id,
-    ));
+    let instruction = transfer_checked_with_program_id(&sender_token_address, &mint, &recipient_token_address, &sender, amount, decimals, &token_program_id);
+    instructions.push(Instruction {
+        accounts: instruction.accounts.into_iter().chain(reference_accounts(input)?).collect(),
+        ..instruction
+    });
     Ok(instructions)
 }
 
@@ -187,5 +186,36 @@ mod tests {
         );
         assert_eq!(transaction.instructions()[0].accounts, Vec::<u8>::new());
         assert_eq!(transaction.instructions()[0].data, b"token memo");
+    }
+
+    #[test]
+    fn test_sign_payment_references() {
+        let references = ["82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny", "7GUcQZQwHHa9GBPhVq7v2LArSsp5VmGXV5zXnQ8Q7N3a"];
+        let metadata = solana_metadata_with_references(
+            Some(TEST_SENDER_TOKEN_ADDRESS),
+            Some(TEST_SENDER_TOKEN_ADDRESS),
+            Some(SolanaTokenProgramId::Token),
+            &references,
+        );
+        let input = TransactionLoadInput {
+            input_type: TransactionInputType::Transfer(Asset::mock_spl_token()),
+            sender_address: sender_address(),
+            destination_address: TEST_RECIPIENT.to_string(),
+            value: "123456".to_string(),
+            gas_price: GasPriceType::regular(0),
+            memo: Some("order".to_string()),
+            is_max_value: false,
+            metadata,
+        };
+
+        let result = SolanaChainSigner
+            .sign_token_transfer(&SignerInput::new(input, TransactionFee::mock()), &TEST_PRIVATE_KEY)
+            .unwrap();
+        let transaction = crate::decode_transaction(&result).unwrap();
+
+        assert_eq!(program_id(&transaction, 0), MEMO_PROGRAM_ID);
+        assert_eq!(program_id(&transaction, 1), TOKEN_PROGRAM_ID);
+        assert_eq!(account_key(&transaction, 1, 4), Pubkey::from_base58(references[0]).unwrap());
+        assert_eq!(account_key(&transaction, 1, 5), Pubkey::from_base58(references[1]).unwrap());
     }
 }

@@ -44,7 +44,8 @@ class SignerPreloaderProxy(
                     input = GemTransactionPreloadInput(
                         inputType = inputType,
                         senderAddress = params.from.address,
-                        destinationAddress = destination
+                        destinationAddress = destination,
+                        references = params.references,
                     )
                 )
             }

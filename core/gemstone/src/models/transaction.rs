@@ -429,6 +429,7 @@ pub enum GemTransactionLoadMetadata {
         token_program: Option<GemSolanaTokenProgramId>,
         nft: Option<GemSolanaNftStandard>,
         block_hash: String,
+        references: Vec<String>,
     },
     Ton {
         sender_token_address: Option<String>,

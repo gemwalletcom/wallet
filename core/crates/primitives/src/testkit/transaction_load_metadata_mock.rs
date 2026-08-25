@@ -56,6 +56,7 @@ impl TransactionLoadMetadata {
             token_program: None,
             nft: None,
             block_hash: block_hash.to_string(),
+            references: vec![],
         }
     }
 
@@ -66,6 +67,7 @@ impl TransactionLoadMetadata {
             token_program,
             nft: None,
             block_hash: "11111111111111111111111111111111".to_string(),
+            references: vec![],
         }
     }
 
@@ -76,6 +78,7 @@ impl TransactionLoadMetadata {
             token_program: Some(token_program),
             nft: Some(nft),
             block_hash: "11111111111111111111111111111111".to_string(),
+            references: vec![],
         }
     }
 
@@ -88,6 +91,7 @@ impl TransactionLoadMetadata {
                 collection: collection.map(String::from),
             }),
             block_hash: "11111111111111111111111111111111".to_string(),
+            references: vec![],
         }
     }
 }

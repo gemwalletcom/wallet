@@ -55,6 +55,7 @@ mod tests {
                     address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
                     amount: Some(PaymentAmount::ExactValue("0.1".to_string())),
                     memo: None,
+                    references: None,
                     asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
                 }),
             })

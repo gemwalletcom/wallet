@@ -82,7 +82,7 @@ class AmountTransferProvider(
         return when (params) {
             is AmountParams.Deposit -> builder.deposit(DestinationAddress.hyperliquidDeposit)
             is AmountParams.Withdraw -> builder.withdrawal(DestinationAddress(owner.address))
-            is AmountParams.Transfer -> builder.transfer(params.destination, params.memo)
+            is AmountParams.Transfer -> builder.transfer(params.destination, params.memo, params.references)
             else -> error("AmountTransferProvider requires Transfer, Deposit or Withdraw params")
         }
     }

@@ -76,6 +76,7 @@ mod chain_integration_tests {
                 ),
                 sender_address: TEST_ADDRESS_STAKING.to_string(),
                 destination_address: KNOWN_VALIDATOR_POOL.to_string(),
+                references: vec![],
             })
             .await?;
 
