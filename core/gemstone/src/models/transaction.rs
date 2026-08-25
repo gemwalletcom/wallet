@@ -633,6 +633,33 @@ impl From<GemTransferDataExtra> for TransferDataExtra {
     }
 }
 
+#[uniffi::export]
+pub fn transaction_metadata_block_number(metadata: &GemTransactionLoadMetadata) -> String {
+    match metadata {
+        GemTransactionLoadMetadata::Polkadot { block_number, .. }
+        | GemTransactionLoadMetadata::Tron { block_number, .. }
+        | GemTransactionLoadMetadata::Xrp { block_number, .. }
+        | GemTransactionLoadMetadata::Cardano { block_number, .. } => block_number.to_string(),
+        _ => "0".to_string(),
+    }
+}
+
+#[uniffi::export]
+pub fn transaction_metadata_sequence(metadata: &GemTransactionLoadMetadata) -> String {
+    match metadata {
+        GemTransactionLoadMetadata::Ton { sequence, .. }
+        | GemTransactionLoadMetadata::Cosmos { sequence, .. }
+        | GemTransactionLoadMetadata::Near { sequence, .. }
+        | GemTransactionLoadMetadata::Stellar { sequence, .. }
+        | GemTransactionLoadMetadata::Xrp { sequence, .. }
+        | GemTransactionLoadMetadata::Algorand { sequence, .. }
+        | GemTransactionLoadMetadata::Aptos { sequence, .. }
+        | GemTransactionLoadMetadata::Polkadot { sequence, .. } => sequence.to_string(),
+        GemTransactionLoadMetadata::Evm { nonce, .. } => nonce.to_string(),
+        _ => "0".to_string(),
+    }
+}
+
 impl From<TransferDataExtra> for GemTransferDataExtra {
     fn from(value: TransferDataExtra) -> Self {
         GemTransferDataExtra {

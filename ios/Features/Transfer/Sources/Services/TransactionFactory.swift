@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.transactionMetadataBlockNumber
+import func Gemstone.transactionMetadataSequence
 import GemstonePrimitives
 import Primitives
 
@@ -52,8 +54,8 @@ enum TransactionFactory {
             contract: nil,
             type: transactionType,
             state: .pending,
-            blockNumber: (try? String(transactionData.metadata.getBlockNumber())) ?? "0",
-            sequence: (try? String(transactionData.metadata.getSequence())) ?? "0",
+            blockNumber: transactionMetadataBlockNumber(metadata: transactionData.metadata),
+            sequence: transactionMetadataSequence(metadata: transactionData.metadata),
             fee: amount.networkFee.description,
             feeAssetId: transactionData.fee.feeAssetId,
             value: value,

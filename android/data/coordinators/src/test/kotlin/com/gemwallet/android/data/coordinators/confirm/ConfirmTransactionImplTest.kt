@@ -46,6 +46,7 @@ import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.TransactionType as GemTransactionType
 import uniffi.gemstone.broadcastDelayMilliseconds
 import uniffi.gemstone.broadcastOptions
+import uniffi.gemstone.transactionMetadataBlockNumber
 import java.math.BigInteger
 
 class ConfirmTransactionImplTest {
@@ -55,6 +56,7 @@ class ConfirmTransactionImplTest {
         mockkStatic("uniffi.gemstone.GemstoneKt")
         every { broadcastOptions(any(), any()) } returns BroadcastOptions(skipPreflight = false)
         every { broadcastDelayMilliseconds(any()) } returns 0uL
+        every { transactionMetadataBlockNumber(any()) } returns "0"
     }
 
     @After

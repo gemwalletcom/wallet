@@ -13,7 +13,6 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.SignerParams
-import com.gemwallet.android.model.blockNumber
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
@@ -22,6 +21,7 @@ import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import uniffi.gemstone.broadcastDelayMilliseconds
 import uniffi.gemstone.broadcastOptions
+import uniffi.gemstone.transactionMetadataBlockNumber
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
@@ -162,7 +162,7 @@ class ConfirmTransactionImpl(
             } else {
                 TransactionDirection.Outgoing
             },
-            blockNumber = signerParams.data().metadata.blockNumber()
+            blockNumber = transactionMetadataBlockNumber(signerParams.data().metadata)
         )
     }
 
