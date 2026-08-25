@@ -2,6 +2,7 @@ package com.gemwallet.android
 
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
+import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.ConfirmParams
@@ -41,19 +42,17 @@ class PaymentNavigation @Inject constructor(
 
     private suspend fun linkRoutes(link: PaymentLink): List<NavKey> {
         val assets = getSelectAssetsInfo().first()
-        val addresses = assets.mapNotNull { it.owner }
-            .distinctBy { it.chain }
-            .map { ChainAddress(chain = it.chain.string, address = it.address) }
-        val payment = paymentService.load(link.toGem(), addresses)
+        val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
+        val payment = paymentService.load(
+            link.toGem(),
+            accounts.map { ChainAddress(chain = it.chain.string, address = it.address) },
+        )
         val request = payment.request?.toPrimitives()
         val transfer = if (request == null) {
-            val assetInfo = assets.firstOrNull { assetInfo ->
-                assetInfo.asset.id.tokenId == null &&
-                    assetInfo.owner?.chain?.string == payment.account.chain &&
-                    assetInfo.owner?.address == payment.account.address
+            val account = accounts.firstOrNull {
+                it.chain.string == payment.account.chain && it.address == payment.account.address
             } ?: return emptyList()
-            val account = assetInfo.owner ?: return emptyList()
-            ConfirmParams.Builder(assetInfo.asset, account, BigInteger.ZERO)
+            ConfirmParams.Builder(account.chain.asset(), account, BigInteger.ZERO)
                 .transfer(DestinationAddress(""), payment.memo)
         } else {
             val destination = PaymentDestination.from(request, assets) as? PaymentDestination.Confirm ?: return emptyList()

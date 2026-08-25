@@ -44,10 +44,16 @@ public enum PaymentDestinationBuilder {
                 ),
             )
         }
-        guard let data = try PaymentTransfer(asset: asset).confirmation(for: request, type: type) else {
+        guard case let .confirm(paymentData) = try PaymentTransfer(asset: asset).destination(for: request) else {
             throw AnyError(Localized.Errors.notSupported)
         }
-        return .confirm(data)
+        return .confirm(
+            TransferData(
+                type: type,
+                recipientData: paymentData.recipientData,
+                amount: paymentData.amount,
+            ),
+        )
     }
 
     private static func payableAssets(for payment: PaymentRequest, in assets: [AssetData]) -> [AssetData] {

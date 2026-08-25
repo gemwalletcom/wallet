@@ -24,7 +24,6 @@ public extension TransferData {
         transaction: String = "transaction",
         recipient: RecipientData = .mock(),
         amount: TransferAmountValue = .exact(.zero),
-        transactionType: TransactionType = .transfer,
     ) -> TransferData {
         .mock(
             type: .generic(
@@ -34,7 +33,7 @@ public extension TransferData {
                     data: Data(transaction.utf8),
                     outputType: .encodedTransaction,
                     outputAction: .send,
-                    transactionType: transactionType,
+                    transactionType: .transfer,
                 ),
             ),
             recipient: recipient,

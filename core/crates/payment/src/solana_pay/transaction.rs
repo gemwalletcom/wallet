@@ -36,8 +36,8 @@ pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransac
     }
     let transaction_type = transaction.transaction_type();
     let memo = transaction.memo();
-    let prepared = PreparedTransaction {
-        request: transaction.simple_transfer().map(|transfer| PaymentRequest {
+    Ok(PreparedTransaction {
+        request: transaction.simple_transfer(&signer).map(|transfer| PaymentRequest {
             address: transfer.recipient,
             amount: Some(PaymentAmount::AtomicValue(transfer.value)),
             memo: memo.clone(),
@@ -49,9 +49,7 @@ pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransac
             .serialize()
             .map(|bytes| encode_base64(&bytes))
             .map_err(|error| format!("failed to serialize Solana Pay transaction: {error}"))?,
-    };
-
-    Ok(prepared)
+    })
 }
 
 #[cfg(test)]

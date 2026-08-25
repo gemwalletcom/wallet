@@ -19,28 +19,16 @@ public struct PaymentTransfer: Sendable {
     }
 
     public func destination(for payment: PaymentRequest) throws -> Destination {
-        if let data = try confirmation(for: payment, type: .transfer(asset)) {
-            return .confirm(data)
-        }
-        return .recipient(
-            RecipientData(
-                recipient: try recipient(for: payment),
-                amount: payment.exactAmount,
-            ),
-        )
-    }
-}
-
-extension PaymentTransfer {
-    func confirmation(for payment: PaymentRequest, type: TransferDataType) throws -> TransferData? {
         let recipient = try recipient(for: payment)
         guard let value = confirmableValue(of: payment, address: recipient.address) else {
-            return nil
+            return .recipient(RecipientData(recipient: recipient, amount: payment.exactAmount))
         }
-        return TransferData(
-            type: type,
-            recipientData: RecipientData(recipient: recipient, amount: nil),
-            amount: .exact(value),
+        return .confirm(
+            TransferData(
+                type: .transfer(asset),
+                recipientData: RecipientData(recipient: recipient, amount: nil),
+                amount: .exact(value),
+            ),
         )
     }
 }

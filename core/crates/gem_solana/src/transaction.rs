@@ -13,7 +13,7 @@ pub trait VersionedTransactionExt {
 
     fn memo(&self) -> Option<String>;
 
-    fn simple_transfer(&self) -> Option<SolanaTransfer>;
+    fn simple_transfer(&self, signer: &Pubkey) -> Option<SolanaTransfer>;
 
     fn transaction_type(&self) -> TransactionType;
 }
@@ -51,15 +51,15 @@ impl VersionedTransactionExt for VersionedTransaction {
         })
     }
 
-    fn simple_transfer(&self) -> Option<SolanaTransfer> {
+    fn simple_transfer(&self, signer: &Pubkey) -> Option<SolanaTransfer> {
         let account_keys = self.account_keys();
         let mut transfer = None;
 
         for instruction in self.instructions() {
             let program = account_keys.get(instruction.program_id_index as usize)?.to_base58();
             let decoded = match program.as_str() {
-                SYSTEM_PROGRAM_ID => Some(system_transfer(instruction, account_keys)?),
-                TOKEN_PROGRAM_ID | TOKEN_2022_PROGRAM_ID => Some(token_transfer(self, instruction, account_keys)?),
+                SYSTEM_PROGRAM_ID => Some(system_transfer(instruction, account_keys, signer)?),
+                TOKEN_PROGRAM_ID | TOKEN_2022_PROGRAM_ID => Some(token_transfer(self, instruction, account_keys, signer)?),
                 ASSOCIATED_TOKEN_PROGRAM_ID | MEMO_PROGRAM_ID | COMPUTE_BUDGET_PROGRAM_ID => None,
                 _ => return None,
             };
@@ -99,9 +99,10 @@ impl VersionedTransactionExt for VersionedTransaction {
     }
 }
 
-fn system_transfer(instruction: &solana_primitives::CompiledInstruction, account_keys: &[Pubkey]) -> Option<SolanaTransfer> {
+fn system_transfer(instruction: &solana_primitives::CompiledInstruction, account_keys: &[Pubkey], signer: &Pubkey) -> Option<SolanaTransfer> {
     let data: &[u8; 12] = instruction.data.as_slice().try_into().ok()?;
     (data[..4] == 2u32.to_le_bytes()).then_some(())?;
+    (instruction_account(instruction, account_keys, 0)? == signer).then_some(())?;
     let recipient = instruction_account(instruction, account_keys, 1)?;
     Some(SolanaTransfer {
         asset_id: AssetId::from_chain(Chain::Solana),
@@ -110,9 +111,10 @@ fn system_transfer(instruction: &solana_primitives::CompiledInstruction, account
     })
 }
 
-fn token_transfer(transaction: &VersionedTransaction, instruction: &solana_primitives::CompiledInstruction, account_keys: &[Pubkey]) -> Option<SolanaTransfer> {
+fn token_transfer(transaction: &VersionedTransaction, instruction: &solana_primitives::CompiledInstruction, account_keys: &[Pubkey], signer: &Pubkey) -> Option<SolanaTransfer> {
     let data: &[u8; 10] = instruction.data.as_slice().try_into().ok()?;
     (data[0] == 12).then_some(())?;
+    (instruction_account(instruction, account_keys, 3)? == signer).then_some(())?;
     let mint = instruction_account(instruction, account_keys, 1)?;
     let token_account = instruction_account(instruction, account_keys, 2)?;
     let recipient = associated_token_owner(transaction, token_account).unwrap_or(token_account);
@@ -265,11 +267,12 @@ mod tests {
         let transaction = mock_transaction_with_accounts(account_keys.clone(), instructions.clone());
         let ambiguous = mock_transaction_with_accounts(account_keys, vec![instructions[1].clone(), instructions[1].clone()]);
 
-        let transfer = transaction.simple_transfer().unwrap();
+        let transfer = transaction.simple_transfer(&payer).unwrap();
         assert_eq!(transfer.asset_id, AssetId::from_token(Chain::Solana, &mint.to_base58()));
         assert_eq!(transfer.recipient, recipient.to_base58());
         assert_eq!(transfer.value, BigUint::from(19_000_000u64));
-        assert_eq!(ambiguous.simple_transfer(), None);
+        assert_eq!(ambiguous.simple_transfer(&payer), None);
+        assert_eq!(transaction.simple_transfer(&Pubkey::new([9; 32])), None);
     }
 
     #[cfg(feature = "signer")]
