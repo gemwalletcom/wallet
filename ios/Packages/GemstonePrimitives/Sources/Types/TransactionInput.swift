@@ -2,6 +2,8 @@
 
 import BigInt
 import Foundation
+import Gemstone
+import Primitives
 
 public struct TransactionInput: Sendable {
     public let type: TransferDataType
@@ -12,7 +14,7 @@ public struct TransactionInput: Sendable {
     public let balance: BigInt
     public let gasPrice: GasPriceType
     public let memo: String?
-    public let metadata: TransactionLoadMetadata
+    public let metadata: GemTransactionLoadMetadata
 
     public init(
         type: TransferDataType,
@@ -23,7 +25,7 @@ public struct TransactionInput: Sendable {
         balance: BigInt,
         gasPrice: GasPriceType,
         memo: String?,
-        metadata: TransactionLoadMetadata,
+        metadata: GemTransactionLoadMetadata,
     ) {
         self.type = type
         self.asset = asset
@@ -49,5 +51,4 @@ public extension TransactionInput {
             memo: memo,
         )
     }
-
 }

@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-@testable import Primitives
+import GemstonePrimitives
+import Primitives
 import PrimitivesTestKit
 
 public extension TransactionData {

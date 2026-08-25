@@ -2,6 +2,7 @@
 
 import BigInt
 import Blockchain
+import enum Gemstone.GemTransactionLoadMetadata
 import GemstonePrimitives
 import Primitives
 import ScanService
@@ -74,7 +75,7 @@ extension TransferTransactionProvider {
         data: TransferData,
         available: BigInt,
         rate: FeeRate,
-        metadata: TransactionLoadMetadata,
+        metadata: GemTransactionLoadMetadata,
     ) async throws -> TransactionData {
         let input = try TransactionInput(
             type: data.type,
@@ -91,7 +92,7 @@ extension TransferTransactionProvider {
         return try await chainService.load(input: input)
     }
 
-    private func getTransactionMetadata(wallet: Wallet, data: TransferData) async throws -> TransactionLoadMetadata {
+    private func getTransactionMetadata(wallet: Wallet, data: TransferData) async throws -> GemTransactionLoadMetadata {
         try await chainService.preload(
             input: TransactionPreloadInput(
                 inputType: data.type,

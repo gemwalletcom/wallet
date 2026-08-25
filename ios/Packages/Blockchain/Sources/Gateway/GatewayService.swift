@@ -6,7 +6,7 @@ import Gemstone
 import NativeProviderService
 import Primitives
 
-internal import GemstonePrimitives
+public import GemstonePrimitives
 
 public actor GatewayService: Sendable {
     let gateway: GemGateway
@@ -109,8 +109,8 @@ public extension GatewayService {
 // MARK: - Transaction Preload
 
 public extension GatewayService {
-    func transactionPreload(chain: Primitives.Chain, input: TransactionPreloadInput) async throws -> TransactionLoadMetadata {
-        try await gateway.getTransactionPreload(chain: chain.rawValue, input: input.map()).map()
+    func transactionPreload(chain: Primitives.Chain, input: TransactionPreloadInput) async throws -> GemTransactionLoadMetadata {
+        try await gateway.getTransactionPreload(chain: chain.rawValue, input: input.map())
     }
 
     func transactionScan(chain: Primitives.Chain, input: TransactionPreloadInput) async throws -> Primitives.ScanTransaction? {

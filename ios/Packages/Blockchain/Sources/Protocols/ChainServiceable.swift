@@ -2,6 +2,9 @@ import BigInt
 import Foundation
 import Primitives
 
+public import enum Gemstone.GemTransactionLoadMetadata
+public import GemstonePrimitives
+
 public protocol ChainFeeRateFetchable: Sendable {
     func feeRates(type: TransferDataType) async throws -> [FeeRate]
     func defaultPriority(for type: TransferDataType) -> FeePriority
@@ -13,7 +16,7 @@ public protocol ChainServiceable: ChainFeeRateFetchable {
     func getStakeBalance(for address: String) async throws -> AssetBalance?
     func getEarnBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance]
 
-    func preload(input: TransactionPreloadInput) async throws -> TransactionLoadMetadata
+    func preload(input: TransactionPreloadInput) async throws -> GemTransactionLoadMetadata
     func load(input: TransactionInput) async throws -> TransactionData
     func broadcast(data: String, options: BroadcastOptions) async throws -> String
     func transactionState(for request: TransactionStateRequest) async throws -> TransactionChanges

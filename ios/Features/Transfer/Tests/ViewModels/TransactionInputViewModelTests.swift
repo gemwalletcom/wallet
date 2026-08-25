@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import GemstonePrimitives
 import Preferences
 import Primitives
 import PrimitivesTestKit
