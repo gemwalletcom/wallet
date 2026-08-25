@@ -18,8 +18,14 @@ public actor GatewayService: Sendable {
             provider: provider,
             preferences: GemstonePreferences(namespace: "gateway"),
             securePreferences: GemstoneSecurePreferences(namespace: "gateway"),
-            apiUrl: Constants.apiURL.absoluteString,
         )
+    }
+
+    public nonisolated func confirmService(
+        simulation: TransactionSimulationService,
+        scanner: any GemConfirmScanner,
+    ) -> GemConfirmService {
+        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner)
     }
 }
 
@@ -111,10 +117,6 @@ public extension GatewayService {
 public extension GatewayService {
     func transactionPreload(chain: Primitives.Chain, input: TransactionPreloadInput) async throws -> GemTransactionLoadMetadata {
         try await gateway.getTransactionPreload(chain: chain.rawValue, input: input.map())
-    }
-
-    func transactionScan(chain: Primitives.Chain, input: TransactionPreloadInput) async throws -> Primitives.ScanTransaction? {
-        try await gateway.getTransactionScan(chain: chain.rawValue, input: input.map())?.map()
     }
 
     func transactionLoad(chain: Primitives.Chain, input: GemTransactionLoadInput) async throws -> TransactionData {

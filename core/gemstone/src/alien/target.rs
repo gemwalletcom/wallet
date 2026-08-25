@@ -32,10 +32,6 @@ impl AlienResponse {
     pub(crate) fn to_rpc_response(&self) -> RpcResponse {
         self.response.clone()
     }
-
-    pub(crate) fn data(&self) -> &[u8] {
-        &self.response.data
-    }
 }
 
 #[uniffi::remote(Enum)]

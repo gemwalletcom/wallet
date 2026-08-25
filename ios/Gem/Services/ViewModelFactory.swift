@@ -11,7 +11,7 @@ import EventPresenterService
 import FiatConnect
 import FiatService
 import Foundation
-import protocol Gemstone.TransactionSimulationServiceProtocol
+import class Gemstone.GemConfirmService
 import Keystore
 import PerpetualService
 import Preferences
@@ -36,7 +36,7 @@ import WalletTab
 public struct ViewModelFactory: Sendable {
     let keystore: any Keystore
     let chainServiceFactory: ChainServiceFactory
-    let scanService: ScanService
+    let gemConfirmService: GemConfirmService
     let swapService: SwapService
     let assetsEnabler: any AssetsEnabler
     let priceUpdater: any PriceUpdater
@@ -51,7 +51,6 @@ public struct ViewModelFactory: Sendable {
     let addressNameService: AddressNameService
     let activityService: ActivityService
     let eventPresenterService: EventPresenterService
-    let transactionSimulationService: any TransactionSimulationServiceProtocol
     let fiatService: FiatService
     let assetsService: AssetsService
     let assetSearchService: AssetSearchService
@@ -117,7 +116,7 @@ public struct ViewModelFactory: Sendable {
                 keystore: keystore,
                 chainServiceFactory: chainServiceFactory,
                 assetsEnabler: assetsEnabler,
-                scanService: scanService,
+                gemConfirmService: gemConfirmService,
                 balanceService: balanceService,
                 assetsService: assetsService,
                 priceService: priceService,
@@ -125,7 +124,6 @@ public struct ViewModelFactory: Sendable {
                 addressNameService: addressNameService,
                 activityService: activityService,
                 eventPresenterService: eventPresenterService,
-                transactionSimulationService: transactionSimulationService,
                 chain: data.chain,
             ),
             onComplete: onComplete,

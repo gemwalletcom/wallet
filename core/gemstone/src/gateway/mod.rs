@@ -11,7 +11,6 @@ pub use preferences::GemPreferences;
 pub(crate) use preferences::PreferencesWrapper;
 
 use crate::alien::{AlienProvider, AlienProviderWrapper, coalescing_provider};
-use crate::api_client::GemApiClient;
 use crate::models::*;
 use crate::transaction_state::StatusProvider;
 use chain_traits::ChainTraits;
@@ -20,11 +19,10 @@ use std::sync::Arc;
 use swapper::swapper::GemSwapper as Swapper;
 use yielder::Yielder;
 
-use primitives::{AssetId, Chain, ChartPeriod, ScanAddressTarget, ScanTransactionPayload, TransactionPreloadInput};
+use primitives::{AssetId, Chain, ChartPeriod};
 
 #[derive(uniffi::Object)]
 pub struct GemGateway {
-    pub api_client: GemApiClient,
     chain_factory: Arc<ChainClientFactory>,
     yielder: Yielder,
     status_provider: StatusProvider,
@@ -32,7 +30,7 @@ pub struct GemGateway {
 
 impl std::fmt::Debug for GemGateway {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("GemGateway").field("api_client", &self.api_client).finish()
+        f.debug_struct("GemGateway").finish()
     }
 }
 
@@ -50,16 +48,14 @@ impl GemGateway {
 #[uniffi::export]
 impl GemGateway {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferences>, secure_preferences: Arc<dyn GemPreferences>, api_url: String) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferences>, secure_preferences: Arc<dyn GemPreferences>) -> Self {
         let provider = coalescing_provider(provider);
-        let api_client = GemApiClient::new(api_url, provider.clone());
         let chain_factory = Arc::new(ChainClientFactory::new(provider.clone(), preferences, secure_preferences));
         let alien_wrapper = Arc::new(AlienProviderWrapper::new(provider));
         let yielder = Yielder::new(alien_wrapper.clone());
         let swapper = Swapper::new(alien_wrapper);
         let status_provider = StatusProvider::new(chain_factory.clone(), swapper);
         Self {
-            api_client,
             chain_factory,
             yielder,
             status_provider,
@@ -130,29 +126,6 @@ impl GemGateway {
             .with_provider(chain, |provider| async move { provider.get_transaction_preload(preload_input).await })
             .await?;
         Ok(metadata)
-    }
-
-    pub async fn get_transaction_scan(&self, _chain: Chain, input: GemTransactionPreloadInput) -> Result<Option<GemScanTransaction>, GatewayError> {
-        let preload_input: TransactionPreloadInput = input.into();
-
-        let Some(scan_type) = preload_input.scan_type() else {
-            return Ok(None);
-        };
-
-        let payload = ScanTransactionPayload {
-            origin: ScanAddressTarget {
-                asset_id: preload_input.input_type.get_asset().id.clone(),
-                address: preload_input.sender_address.clone(),
-            },
-            target: ScanAddressTarget {
-                asset_id: preload_input.input_type.get_recipient_asset().id.clone(),
-                address: preload_input.destination_address.clone(),
-            },
-            website: preload_input.get_website(),
-            transaction_type: scan_type,
-        };
-
-        self.api_client.scan_transaction(payload).await.map(Some).map_err(|e| GatewayError::NetworkError { msg: e })
     }
 
     pub async fn get_transaction_load(&self, chain: Chain, input: GemTransactionLoadInput) -> Result<GemTransactionData, GatewayError> {

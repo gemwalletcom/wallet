@@ -1,8 +1,18 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
+use async_trait::async_trait;
+
 use crate::GemstoneError;
-use crate::models::transaction::GemTransactionInputType;
-use primitives::Account;
+use crate::fee::custom_gas_price;
+use crate::gateway::GemGateway;
+use crate::models::gateway::{GemFeeRate, GemTransactionPreloadInput};
+use crate::models::scan::{GemScanTransaction, GemScanTransactionPayload};
+use crate::models::transaction::{GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput, GemTransactionLoadMetadata};
+use crate::transaction_simulation::TransactionSimulationService;
+use num_bigint::BigInt;
+use primitives::{Account, ApplicationMetadataSource, AssetId, Chain, FeePriority, ScanAddressTarget, SimulationResult, TransactionPreloadInput};
 
 pub type GemAccount = Account;
 
@@ -32,4 +42,275 @@ pub fn confirm_input_encode(input: &GemConfirmInput) -> Result<String, GemstoneE
 #[uniffi::export]
 pub fn confirm_input_decode(input: &str) -> Result<GemConfirmInput, GemstoneError> {
     serde_json::from_str(input).map_err(GemstoneError::from)
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemConfirmFeeSelection {
+    Priority { priority: String },
+    Custom { gas_price: String },
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConfirmLoadOptions {
+    pub fee_selection: GemConfirmFeeSelection,
+    pub fee_asset_id: Option<AssetId>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConfirmData {
+    pub fee: GemTransactionLoadFee,
+    pub selected_priority: String,
+    pub fee_rates: Vec<GemFeeRate>,
+    pub metadata: GemTransactionLoadMetadata,
+    pub scan: Option<GemScanTransaction>,
+    pub simulation: Option<SimulationResult>,
+}
+
+#[derive(Debug, uniffi::Error)]
+pub enum GemConfirmError {
+    ScanMalicious,
+    ScanMemoRequired { symbol: String },
+    FeeRatesMissing,
+    Load { msg: String },
+}
+
+impl std::fmt::Display for GemConfirmError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ScanMalicious => write!(f, "transaction flagged as malicious"),
+            Self::ScanMemoRequired { symbol } => write!(f, "{symbol} transfer requires a memo"),
+            Self::FeeRatesMissing => write!(f, "fee rates not found"),
+            Self::Load { msg } => write!(f, "{msg}"),
+        }
+    }
+}
+
+impl std::error::Error for GemConfirmError {}
+
+#[uniffi::export(with_foreign)]
+#[async_trait]
+pub trait GemConfirmScanner: Send + Sync {
+    async fn scan_transaction(&self, payload: GemScanTransactionPayload) -> Option<GemScanTransaction>;
+}
+
+#[derive(uniffi::Object)]
+pub struct GemConfirmService {
+    gateway: Arc<GemGateway>,
+    simulation: Arc<TransactionSimulationService>,
+    scanner: Arc<dyn GemConfirmScanner>,
+}
+
+#[uniffi::export]
+impl GemConfirmService {
+    #[uniffi::constructor]
+    pub fn new(gateway: Arc<GemGateway>, simulation: Arc<TransactionSimulationService>, scanner: Arc<dyn GemConfirmScanner>) -> Self {
+        Self { gateway, simulation, scanner }
+    }
+
+    pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
+        let asset = input.input_type.asset();
+        let chain = asset.id.chain;
+        let symbol = asset.symbol.clone();
+        let destination = input.destination.as_ref().map(|destination| destination.address.clone()).unwrap_or_default();
+        let preload_input = GemTransactionPreloadInput {
+            input_type: input.input_type.clone(),
+            sender_address: input.from.address.clone(),
+            destination_address: destination.clone(),
+            references: input.references.clone(),
+        };
+
+        let scan_future = async {
+            match scan_payload(preload_input.clone()) {
+                Some(payload) => self.scanner.scan_transaction(payload).await,
+                None => None,
+            }
+        };
+        let (metadata, fee_rates, scan, simulation) = futures::join!(
+            self.gateway.get_transaction_preload(chain, preload_input.clone()),
+            self.gateway.get_fee_rates(chain, input.input_type.clone()),
+            scan_future,
+            self.simulate(chain, &input),
+        );
+        let metadata = metadata.map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let fee_rates = fee_rates.map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let simulation = simulation?;
+
+        validate_scan(scan.as_ref(), input.memo.as_deref(), &symbol)?;
+
+        let selected = select_fee_rate(&fee_rates, &options.fee_selection)?;
+        let load = self
+            .gateway
+            .get_transaction_load(
+                chain,
+                GemTransactionLoadInput {
+                    input_type: input.input_type.clone(),
+                    sender_address: input.from.address.clone(),
+                    destination_address: destination,
+                    value: input.value.clone(),
+                    gas_price: selected.gas_price_type.clone(),
+                    memo: input.memo.clone(),
+                    is_max_value: input.use_max,
+                    metadata,
+                },
+            )
+            .await
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+
+        let mut fee = load.fee;
+        if let Some(fee_asset_id) = options.fee_asset_id {
+            fee.fee_asset = fee_asset_id;
+        }
+
+        Ok(GemConfirmData {
+            fee,
+            selected_priority: selected.priority,
+            fee_rates,
+            metadata: load.metadata,
+            scan,
+            simulation,
+        })
+    }
+}
+
+impl GemConfirmService {
+    async fn simulate(&self, chain: Chain, input: &GemConfirmInput) -> Result<Option<SimulationResult>, GemConfirmError> {
+        let (metadata, extra) = match &input.input_type {
+            GemTransactionInputType::Generic { metadata, extra, .. } => (metadata, extra),
+            _ => return Ok(None),
+        };
+        match metadata.source {
+            ApplicationMetadataSource::Payment => {}
+            ApplicationMetadataSource::WalletConnect => return Ok(None),
+        }
+        let Some(transaction) = extra.data.as_ref().and_then(|data| String::from_utf8(data.clone()).ok()) else {
+            return Ok(None);
+        };
+        self.simulation
+            .simulate_transaction(chain, transaction, Some(input.from.address.clone()))
+            .await
+            .map(Some)
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })
+    }
+}
+
+fn validate_scan(scan: Option<&GemScanTransaction>, memo: Option<&str>, symbol: &str) -> Result<(), GemConfirmError> {
+    let Some(scan) = scan else {
+        return Ok(());
+    };
+    if scan.is_malicious {
+        return Err(GemConfirmError::ScanMalicious);
+    }
+    if scan.is_memo_required && memo.unwrap_or_default().trim().is_empty() {
+        return Err(GemConfirmError::ScanMemoRequired { symbol: symbol.to_string() });
+    }
+    Ok(())
+}
+
+fn scan_payload(input: GemTransactionPreloadInput) -> Option<GemScanTransactionPayload> {
+    let input: TransactionPreloadInput = input.into();
+    let scan_type = input.scan_type()?;
+    Some(GemScanTransactionPayload {
+        origin: ScanAddressTarget {
+            asset_id: input.input_type.get_asset().id.clone(),
+            address: input.sender_address.clone(),
+        },
+        target: ScanAddressTarget {
+            asset_id: input.input_type.get_recipient_asset().id.clone(),
+            address: input.destination_address.clone(),
+        },
+        website: input.get_website(),
+        transaction_type: scan_type,
+    })
+}
+
+fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSelection) -> Result<GemFeeRate, GemConfirmError> {
+    match selection {
+        GemConfirmFeeSelection::Priority { priority } => rates
+            .iter()
+            .find(|rate| &rate.priority == priority)
+            .or_else(|| rates.first())
+            .cloned()
+            .ok_or(GemConfirmError::FeeRatesMissing),
+        GemConfirmFeeSelection::Custom { gas_price } => {
+            let base = rates
+                .iter()
+                .find(|rate| rate.priority == FeePriority::Normal.as_ref())
+                .or_else(|| rates.first())
+                .ok_or(GemConfirmError::FeeRatesMissing)?;
+            let gas_price = gas_price
+                .parse::<BigInt>()
+                .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+            Ok(GemFeeRate {
+                priority: base.priority.clone(),
+                gas_price_type: custom_gas_price(base.gas_price_type.clone(), gas_price),
+            })
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::gateway::GemGasPriceType;
+
+    fn rate(priority: &str, gas_price: &str) -> GemFeeRate {
+        GemFeeRate {
+            priority: priority.to_string(),
+            gas_price_type: GemGasPriceType::Regular {
+                gas_price: gas_price.to_string(),
+            },
+        }
+    }
+
+    #[test]
+    fn test_select_fee_rate() {
+        let rates = vec![rate("normal", "10"), rate("fast", "20")];
+
+        let fast = select_fee_rate(&rates, &GemConfirmFeeSelection::Priority { priority: "fast".to_string() }).unwrap();
+        assert_eq!(fast.priority, "fast");
+
+        let fallback = select_fee_rate(&rates, &GemConfirmFeeSelection::Priority { priority: "slow".to_string() }).unwrap();
+        assert_eq!(fallback.priority, "normal");
+
+        let custom = select_fee_rate(&rates, &GemConfirmFeeSelection::Custom { gas_price: "33".to_string() }).unwrap();
+        assert_eq!(custom.priority, "normal");
+        match custom.gas_price_type {
+            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, "33"),
+            gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
+        }
+
+        match select_fee_rate(&[], &GemConfirmFeeSelection::Priority { priority: "normal".to_string() }) {
+            Err(GemConfirmError::FeeRatesMissing) => {}
+            result => panic!("expected missing fee rates, got {result:?}"),
+        }
+    }
+
+    #[test]
+    fn test_validate_scan() {
+        let safe = GemScanTransaction {
+            is_malicious: false,
+            is_memo_required: false,
+        };
+        let malicious = GemScanTransaction {
+            is_malicious: true,
+            is_memo_required: false,
+        };
+        let memo_required = GemScanTransaction {
+            is_malicious: false,
+            is_memo_required: true,
+        };
+
+        assert!(validate_scan(None, None, "USDT").is_ok());
+        assert!(validate_scan(Some(&safe), None, "USDT").is_ok());
+        assert!(validate_scan(Some(&memo_required), Some("deposit"), "USDT").is_ok());
+
+        match validate_scan(Some(&malicious), Some("memo"), "USDT") {
+            Err(GemConfirmError::ScanMalicious) => {}
+            result => panic!("expected a malicious verdict, got {result:?}"),
+        }
+        match validate_scan(Some(&memo_required), Some("  "), "USDT") {
+            Err(GemConfirmError::ScanMemoRequired { symbol }) => assert_eq!(symbol, "USDT"),
+            result => panic!("expected a required memo, got {result:?}"),
+        }
+    }
 }

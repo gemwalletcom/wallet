@@ -76,7 +76,6 @@ object GatewayModule {
                 sharedPreferences = context.getSharedPreferences("gateway_preferences", Context.MODE_PRIVATE)
             ),
             securePreferences = securePreferences,
-            apiUrl = Constants.API_URL
         )
     }
 
@@ -112,8 +111,14 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideTransactionSimulationService(
+    fun provideGemTransactionSimulationService(
         alienProvider: AlienProvider,
+    ): TransactionSimulationService = TransactionSimulationService(alienProvider)
+
+    @Provides
+    @Singleton
+    fun provideTransactionSimulationService(
+        service: TransactionSimulationService,
     ): com.gemwallet.android.blockchain.services.TransactionSimulationService =
-        com.gemwallet.android.blockchain.services.TransactionSimulationService(TransactionSimulationService(alienProvider))
+        com.gemwallet.android.blockchain.services.TransactionSimulationService(service)
 }

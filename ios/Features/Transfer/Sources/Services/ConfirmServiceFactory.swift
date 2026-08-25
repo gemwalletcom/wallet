@@ -8,11 +8,10 @@ import ChainService
 import EventPresenterService
 import ExplorerService
 import Foundation
-import protocol Gemstone.TransactionSimulationServiceProtocol
+import class Gemstone.GemConfirmService
 import Keystore
 import PriceService
 import Primitives
-import ScanService
 import Signer
 import TransactionStateService
 
@@ -21,7 +20,7 @@ public enum ConfirmServiceFactory {
         keystore: any Keystore,
         chainServiceFactory: any ChainServiceFactorable,
         assetsEnabler: any AssetsEnabler,
-        scanService: ScanService,
+        gemConfirmService: GemConfirmService,
         balanceService: BalanceService,
         assetsService: AssetsService,
         priceService: PriceService,
@@ -29,7 +28,6 @@ public enum ConfirmServiceFactory {
         addressNameService: AddressNameService,
         activityService: ActivityService,
         eventPresenterService: EventPresenterService,
-        transactionSimulationService: any TransactionSimulationServiceProtocol,
         chain: Chain,
     ) -> ConfirmService {
         let chainService = chainServiceFactory.service(for: chain)
@@ -41,8 +39,7 @@ public enum ConfirmServiceFactory {
             ),
             inputProvider: ConfirmTransferInputProvider(
                 transferTransactionProvider: TransferTransactionProvider(
-                    chainService: chainService,
-                    scanService: scanService,
+                    confirmService: gemConfirmService,
                 ),
                 feeAssetProvider: FeeAssetProvider(assetStore: assetsService.assetStore),
             ),
@@ -50,7 +47,6 @@ public enum ConfirmServiceFactory {
                 addressNameService: addressNameService,
                 assetsService: assetsService,
             ),
-            transactionSimulationService: transactionSimulationService,
             transferExecutor: TransferExecutor(
                 signer: TransactionSigner(keystore: keystore),
                 chainService: chainService,

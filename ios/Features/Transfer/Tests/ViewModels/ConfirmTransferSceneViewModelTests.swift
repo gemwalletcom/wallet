@@ -14,7 +14,7 @@ import EventPresenterService
 import EventPresenterServiceTestKit
 import FiatServiceTestKit
 import Foundation
-import class Gemstone.TransactionSimulationService
+import class Gemstone.GemConfirmService
 import GemstonePrimitives
 import InfoSheet
 import KeystoreTestKit
@@ -693,7 +693,6 @@ private extension ConfirmService {
                 feeAssetProvider: FeeAssetProviderMock(),
             ),
             simulationService: ConfirmSimulationService(addressNameService: .mock(addressStore: .mock()), assetsService: .mock()),
-            transactionSimulationService: TransactionSimulationService(noHandle: .init()),
             transferExecutor: TransferExecutorMock(),
             activityService: .mock(),
             eventPresenterService: .mock(),
@@ -738,7 +737,7 @@ private extension ConfirmTransferSceneViewModel {
                 keystore: KeystoreMock(),
                 chainServiceFactory: ChainServiceFactoryMock(),
                 assetsEnabler: .mock(),
-                scanService: .mock(),
+                gemConfirmService: GemConfirmService(noHandle: .init()),
                 balanceService: .mock(),
                 assetsService: .mock(),
                 priceService: .mock(),
@@ -746,7 +745,6 @@ private extension ConfirmTransferSceneViewModel {
                 addressNameService: addressNameService,
                 activityService: .mock(),
                 eventPresenterService: .mock(),
-                transactionSimulationService: TransactionSimulationService(noHandle: .init()),
                 chain: data.chain,
             ),
             onComplete: {},

@@ -1,7 +1,6 @@
 pub mod address;
 pub mod address_formatter;
 pub mod alien;
-pub mod api_client;
 mod application;
 pub mod auth;
 pub mod balance_calculator;
