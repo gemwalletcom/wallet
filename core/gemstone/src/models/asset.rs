@@ -1,7 +1,4 @@
-use primitives::{
-    Asset, AssetId, AssetProperties, AssetScore, AssetType, Chain, ChainAsset, WalletType,
-    known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC, SOLANA_USDC, SOLANA_USDT, TEMPO_BRIDGED_USDC, TEMPO_PATHUSD, TEMPO_USDT0, TRON_USDT},
-};
+use primitives::{Asset, AssetId, AssetProperties, AssetScore, AssetType, Chain, ChainAsset, WalletType, known_assets};
 
 pub type GemAsset = Asset;
 pub type GemAssetType = AssetType;
@@ -55,13 +52,7 @@ pub fn default_token_rank() -> i32 {
 
 #[uniffi::export]
 pub fn wallet_default_assets(chain: Chain) -> Vec<GemAsset> {
-    match chain {
-        Chain::HyperCore => vec![HYPERCORE_PERPETUAL_USDC.clone(), HYPERCORE_SPOT_USDC.clone()],
-        Chain::Solana => vec![SOLANA_USDC.clone(), SOLANA_USDT.clone()],
-        Chain::Tempo => vec![TEMPO_BRIDGED_USDC.clone(), TEMPO_PATHUSD.clone(), TEMPO_USDT0.clone()],
-        Chain::Tron => vec![TRON_USDT.clone()],
-        _ => vec![],
-    }
+    known_assets::wallet_default_assets(chain)
 }
 
 #[uniffi::export]
@@ -98,6 +89,7 @@ pub fn chain_asset_wrapper(chain: Chain) -> GemChainAsset {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::known_assets::{SOLANA_USDC, SOLANA_USDT, TEMPO_BRIDGED_USDC, TEMPO_PATHUSD, TEMPO_USDT0, TRON_USDT};
 
     #[test]
     fn test_wallet_asset_is_enabled() {
