@@ -1,7 +1,7 @@
-use gem_client::{Client, ClientError, ClientExt};
+use gem_client::{Client, ClientExt};
 
 use crate::PaymentError;
-use crate::solana_pay::model::{ErrorResponse, TransactionRequest, TransactionRequestInfo, TransactionResponse};
+use crate::solana_pay::model::{TransactionRequest, TransactionRequestInfo, TransactionResponse};
 
 #[derive(Debug)]
 pub(super) struct SolanaPayClient<C: Client> {
@@ -14,27 +14,18 @@ impl<C: Client> SolanaPayClient<C> {
     }
 
     pub(super) async fn get_info(&self) -> Result<TransactionRequestInfo, PaymentError> {
-        self.client.get("").await.map_err(Self::map_error)
+        Ok(self.client.get("").await?)
     }
 
     pub(super) async fn get_transaction(&self, account: &str) -> Result<TransactionResponse, PaymentError> {
-        self.client.post("", &TransactionRequest { account }).await.map_err(Self::map_error)
-    }
-
-    fn map_error(error: ClientError) -> PaymentError {
-        if let ClientError::Http { body, .. } = &error
-            && let Ok(response) = serde_json::from_slice::<ErrorResponse>(body)
-        {
-            return PaymentError::InvalidRequest { reason: response.error };
-        }
-        error.into()
+        Ok(self.client.post("", &TransactionRequest { account }).await?)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_client::testkit::MockClient;
+    use gem_client::{ClientError, testkit::MockClient};
 
     #[tokio::test]
     async fn maps_gateway_error_response() {

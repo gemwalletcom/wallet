@@ -1,6 +1,12 @@
 use std::fmt;
 
 use gem_client::ClientError;
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct ErrorResponse {
+    error: String,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum PaymentError {
@@ -23,8 +29,11 @@ impl std::error::Error for PaymentError {}
 impl From<ClientError> for PaymentError {
     fn from(error: ClientError) -> Self {
         match error {
-            ClientError::Http { status, .. } => Self::Network {
-                reason: format!("Payment gateway returned HTTP {status}"),
+            ClientError::Http { status, body } => match serde_json::from_slice::<ErrorResponse>(&body) {
+                Ok(response) => Self::InvalidRequest { reason: response.error },
+                Err(_) => Self::Network {
+                    reason: format!("Payment gateway returned HTTP {status}"),
+                },
             },
             ClientError::Network(reason) | ClientError::Serialization(reason) => Self::Network { reason },
             ClientError::Timeout => Self::Network {

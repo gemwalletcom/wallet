@@ -1,11 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
-pub(super) struct ErrorResponse {
-    pub error: String,
-}
-
-#[derive(Debug, Deserialize)]
 pub(super) struct TransactionRequestInfo {
     pub label: String,
     pub icon: String,
