@@ -64,16 +64,16 @@ struct PaymentTransferTests {
     }
 
     @Test
-    func transactionWithUndecodableValueFallsBack() throws {
+    func transactionWithMismatchedAssetFallsBack() throws {
         let asset = Asset.mockSolanaUSDC()
         let transaction = Self.paymentTransaction(
             memo: "payment-memo",
             request: GemPaymentRequest(
                 address: "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n",
-                amount: .atomicValue("not-a-number"),
+                amount: .atomicValue("19000000"),
                 memo: "payment-memo",
                 references: nil,
-                assetId: asset.id.identifier,
+                assetId: Primitives.Chain.solana.assetId.identifier,
             ),
         )
 
@@ -96,7 +96,7 @@ struct PaymentTransferTests {
         let checksummedAddress = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
         let payment = PaymentRequest.mock(address: " \n\(address)\r ", amount: .exactValue("1.234"))
 
-        let destination = try PaymentTransfer(asset: asset).destination(for: payment)
+        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset)
 
         guard case let .confirm(data) = destination else {
             Issue.record("Expected confirmation")
@@ -111,7 +111,7 @@ struct PaymentTransferTests {
         let asset = Asset.mockEthereum()
         let payment = PaymentRequest.mock(address: "0x123", memo: "test memo", references: ["reference"])
 
-        let destination = try PaymentTransfer(asset: asset).destination(for: payment)
+        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset)
 
         guard case let .recipient(data) = destination else {
             Issue.record("Expected recipient review")
@@ -128,7 +128,7 @@ struct PaymentTransferTests {
         let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
         let payment = PaymentRequest.mock(address: Self.xrpAddress, amount: .exactValue("10"), memo: "12345", assetId: xrp.id)
 
-        let destination = try PaymentTransfer(asset: xrp).destination(for: payment)
+        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: xrp)
 
         guard case let .confirm(data) = destination else {
             Issue.record("Expected confirmation for tagged XRP payment")
@@ -144,7 +144,7 @@ struct PaymentTransferTests {
         let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
         let payment = PaymentRequest.mock(address: Self.xrpAddress, amount: .exactValue("10"), assetId: xrp.id)
 
-        let destination = try PaymentTransfer(asset: xrp).destination(for: payment)
+        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: xrp)
 
         guard case let .recipient(data) = destination else {
             Issue.record("Expected recipient review for XRP payment without a destination tag")
@@ -163,13 +163,32 @@ struct PaymentTransferTests {
             amount: .exactValue("0.0000000000000000001"),
         )
 
-        let destination = try PaymentTransfer(asset: asset).destination(for: payment)
+        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset)
 
         guard case let .recipient(data) = destination else {
             Issue.record("Expected recipient review for an unrepresentable ETH amount")
             return
         }
         #expect(data.amount == "0.0000000000000000001")
+    }
+
+    @Test
+    func destinationSolanaWithoutMemoConfirms() throws {
+        let asset = Asset.mockSolanaUSDC()
+        let payment = PaymentRequest.mock(
+            address: "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5",
+            amount: .exactValue("1"),
+            assetId: asset.id,
+        )
+
+        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset)
+
+        guard case let .confirm(data) = destination else {
+            Issue.record("Expected a Solana payment without a memo to confirm")
+            return
+        }
+        #expect(data.amount == .exact(BigInt(1_000_000)))
+        #expect(data.recipientData.recipient.memo == nil)
     }
 
     private static let xrpAddress = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"

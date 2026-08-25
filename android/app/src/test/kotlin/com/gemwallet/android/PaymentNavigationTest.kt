@@ -31,16 +31,19 @@ import uniffi.gemstone.ChainAddress
 import uniffi.gemstone.GemApplicationMetadata
 import uniffi.gemstone.GemApplicationMetadataSource
 import uniffi.gemstone.GemPaymentAmount
+import uniffi.gemstone.GemPaymentConfirmTransfer
 import uniffi.gemstone.GemPaymentRequest
 import uniffi.gemstone.GemPaymentTransaction
 import uniffi.gemstone.PaymentServiceInterface
 import uniffi.gemstone.TransactionType
+import uniffi.gemstone.paymentDecodedTransfer
 
 class PaymentNavigationTest {
 
     @After
     fun tearDown() {
         unmockkStatic("com.gemwallet.android.ext.ChainKt")
+        unmockkStatic("uniffi.gemstone.GemstoneKt")
     }
 
     @Test
@@ -49,21 +52,26 @@ class PaymentNavigationTest {
         val getSelectAssetsInfo = mockk<GetSelectAssetsInfo>()
         val paymentService = mockk<PaymentServiceInterface>()
         val account = requireNotNull(assetInfo.owner)
-        mockkStatic("com.gemwallet.android.ext.ChainKt")
-        every { account.chain.checksumAddress(any()) } answers { secondArg() }
-        every { account.chain.isValidAddress(any()) } returns true
-        every { account.chain.isMemoSupport() } returns false
+        val request = GemPaymentRequest(
+            address = account.address,
+            amount = GemPaymentAmount.AtomicValue("19000000"),
+            memo = "payment-memo",
+            references = null,
+            assetId = assetInfo.asset.id.toIdentifier(),
+        )
+        mockkStatic("uniffi.gemstone.GemstoneKt")
+        every { paymentDecodedTransfer(request, any()) } returns GemPaymentConfirmTransfer(
+            assetId = assetInfo.asset.id.toIdentifier(),
+            address = account.address,
+            value = "19000000",
+            memo = "payment-memo",
+            references = listOf(),
+        )
         every { getSelectAssetsInfo() } returns flowOf(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
             account = account,
             memo = "payment-memo",
-            request = GemPaymentRequest(
-                address = account.address,
-                amount = GemPaymentAmount.AtomicValue("19000000"),
-                memo = "payment-memo",
-                references = null,
-                assetId = assetInfo.asset.id.toIdentifier(),
-            ),
+            request = request,
         )
         val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService)
 
@@ -90,21 +98,26 @@ class PaymentNavigationTest {
         val paymentService = mockk<PaymentServiceInterface>()
         val account = requireNotNull(assetInfo.owner)
         val recipient = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
-        mockkStatic("com.gemwallet.android.ext.ChainKt")
-        every { account.chain.checksumAddress(any()) } answers { secondArg() }
-        every { account.chain.isValidAddress(any()) } returns true
-        every { account.chain.isMemoSupport() } returns true
+        val request = GemPaymentRequest(
+            address = recipient,
+            amount = GemPaymentAmount.AtomicValue("19000000"),
+            memo = null,
+            references = null,
+            assetId = assetInfo.asset.id.toIdentifier(),
+        )
+        mockkStatic("uniffi.gemstone.GemstoneKt")
+        every { paymentDecodedTransfer(request, any()) } returns GemPaymentConfirmTransfer(
+            assetId = assetInfo.asset.id.toIdentifier(),
+            address = recipient,
+            value = "19000000",
+            memo = null,
+            references = listOf(),
+        )
         every { getSelectAssetsInfo() } returns flowOf(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
             account = account,
             memo = null,
-            request = GemPaymentRequest(
-                address = recipient,
-                amount = GemPaymentAmount.AtomicValue("19000000"),
-                memo = null,
-                references = null,
-                assetId = assetInfo.asset.id.toIdentifier(),
-            ),
+            request = request,
         )
         val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService)
 

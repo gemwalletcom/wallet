@@ -228,7 +228,7 @@ extension RecipientSceneViewModel {
     private func handle(payment: PaymentRequest) throws {
         switch type {
         case let .asset(asset):
-            switch try PaymentTransfer(asset: asset).destination(for: payment) {
+            switch try PaymentDestinationBuilder.transfer(payment: payment, asset: asset) {
             case let .confirm(data): handle(transferData: data)
             case let .recipient(data): update(from: data)
             }

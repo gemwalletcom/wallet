@@ -48,3 +48,24 @@ public extension PaymentLink {
         }
     }
 }
+
+public extension PaymentRequest {
+    func map() -> GemPaymentRequest {
+        GemPaymentRequest(
+            address: address,
+            amount: amount?.map(),
+            memo: memo,
+            references: references,
+            assetId: assetId?.identifier,
+        )
+    }
+}
+
+public extension PaymentAmount {
+    func map() -> GemPaymentAmount {
+        switch self {
+        case let .exactValue(value): .exactValue(value)
+        case let .atomicValue(value): .atomicValue(value)
+        }
+    }
+}
