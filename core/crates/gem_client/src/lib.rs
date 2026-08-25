@@ -22,7 +22,7 @@ pub mod client_config;
 pub mod query;
 
 pub use content_type::{CONTENT_TYPE, ContentType};
-pub use provider_config::{DEFAULT_REQUEST_TIMEOUT, RemoteProviderConfig};
+pub use provider_config::RemoteProviderConfig;
 pub use query::{build_path_with_query, build_request_url};
 pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response};
 
@@ -33,7 +33,7 @@ pub use reqwest_client::{ReqwestClient, json_response};
 pub use retry::{default_should_retry, retry, retry_policy};
 
 #[cfg(feature = "reqwest")]
-pub use client_config::{builder, reqwest_client};
+pub use client_config::{DEFAULT_REQUEST_TIMEOUT, builder, reqwest_client};
 
 pub const X_CACHE_TTL: &str = "x-gem-cache-ttl";
 

@@ -74,16 +74,10 @@ impl ProviderFactory {
                 let client = EthereumClient::new(rpc_client, evm_chain);
                 TempoProvider::new_or_else(client, |client| {
                     let indexer = EVMIndexer::for_chain(
-                        gem_client.clone().with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
-                            chain,
-                            &config.indexers.alchemy.url,
-                            AlchemyApi::JsonRpc,
-                            &config.indexers.alchemy.key,
-                        )),
                         gem_client
                             .clone()
-                            .with_request_timeout(config.indexers.ankr.timeout)
-                            .with_base_url(format!("{}/{}", config.indexers.ankr.url, config.indexers.ankr.key)),
+                            .with_base_url(alchemy_url(chain, &config.indexers.alchemy.url, AlchemyApi::JsonRpc, &config.indexers.alchemy.key)),
+                        gem_client.clone().with_base_url(format!("{}/{}", config.indexers.ankr.url, config.indexers.ankr.key)),
                         config.indexers.blockscout.configure_client(gem_client),
                         config.indexers.blockscout.key,
                         evm_chain,
@@ -137,14 +131,12 @@ impl ProviderFactory {
             )),
             ChainType::Solana => Box::new(SolanaProvider::new(
                 SolanaClient::new(JsonRpcClient::new(gem_client.clone())),
-                Box::new(SolanaIndexer::new(JsonRpcClient::new(
-                    gem_client.with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
-                        chain,
-                        &config.indexers.alchemy.url,
-                        AlchemyApi::JsonRpc,
-                        &config.indexers.alchemy.key,
-                    )),
-                ))),
+                Box::new(SolanaIndexer::new(JsonRpcClient::new(gem_client.with_base_url(alchemy_url(
+                    chain,
+                    &config.indexers.alchemy.url,
+                    AlchemyApi::JsonRpc,
+                    &config.indexers.alchemy.key,
+                ))))),
             )),
             ChainType::Ton => Box::new(TonClient::new(gem_client)),
             ChainType::Tron => {

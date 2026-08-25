@@ -31,16 +31,13 @@ fn build_test_indexer(chain: EVMChain, rpc_url: &str) -> Arc<EVMIndexer<ReqwestC
     let client = ReqwestClient::new_test_client(rpc_url.to_string());
     Arc::new(
         EVMIndexer::for_chain(
-            client.clone().with_request_timeout(settings.indexer.alchemy.request.timeout).with_base_url(alchemy_url(
+            client.clone().with_base_url(alchemy_url(
                 chain.to_chain(),
                 &settings.indexer.alchemy.url,
                 AlchemyApi::JsonRpc,
                 &settings.indexer.alchemy.key.secret,
             )),
-            client
-                .clone()
-                .with_request_timeout(settings.indexer.ankr.request.timeout)
-                .with_base_url(format!("{}/{}", settings.indexer.ankr.url, settings.indexer.ankr.key.secret)),
+            client.clone().with_base_url(format!("{}/{}", settings.indexer.ankr.url, settings.indexer.ankr.key.secret)),
             settings.indexer.blockscout.remote_provider_config().configure_client(client),
             settings.indexer.blockscout.key.secret,
             chain,

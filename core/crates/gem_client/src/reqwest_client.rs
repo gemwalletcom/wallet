@@ -12,7 +12,6 @@ pub struct ReqwestClient {
     base_url: String,
     client: reqwest::Client,
     default_headers: HashMap<String, String>,
-    request_timeout: Option<Duration>,
     user_agent: Option<String>,
 }
 
@@ -22,7 +21,6 @@ impl ReqwestClient {
             base_url: url,
             client,
             default_headers: HashMap::new(),
-            request_timeout: None,
             user_agent: None,
         }
     }
@@ -32,7 +30,6 @@ impl ReqwestClient {
             base_url: url,
             client,
             default_headers: HashMap::new(),
-            request_timeout: None,
             user_agent: (!user_agent.is_empty()).then_some(user_agent),
         }
     }
@@ -47,7 +44,6 @@ impl ReqwestClient {
             base_url: url,
             client,
             default_headers: HashMap::new(),
-            request_timeout: None,
             user_agent: None,
         }
     }
@@ -60,13 +56,6 @@ impl ReqwestClient {
         Self { base_url, ..self }
     }
 
-    pub fn with_request_timeout(self, request_timeout: Duration) -> Self {
-        Self {
-            request_timeout: Some(request_timeout),
-            ..self
-        }
-    }
-
     pub fn request(&self, method: Method, path: &str) -> RequestBuilder {
         let url = build_request_url(&self.base_url, path);
         self.build_request(self.client.request(method, url), HashMap::new())
@@ -77,10 +66,6 @@ impl ReqwestClient {
     }
 
     fn build_request(&self, request: RequestBuilder, headers: HashMap<String, String>) -> RequestBuilder {
-        let request = match self.request_timeout {
-            Some(timeout) => request.timeout(timeout),
-            None => request,
-        };
         let request = if let Some(ref user_agent) = self.user_agent {
             request.header(USER_AGENT, user_agent)
         } else {
@@ -197,23 +182,11 @@ pub async fn json_response<T: DeserializeOwned>(response: reqwest::Response) -> 
 #[cfg(test)]
 mod tests {
     use super::ReqwestClient;
-    use reqwest::Method;
-    use std::time::Duration;
 
     #[test]
     fn empty_user_agent_override_preserves_client_default() {
         let client = ReqwestClient::new_with_user_agent("https://example.com".to_string(), crate::reqwest_client(), String::new());
 
         assert!(client.user_agent.is_none());
-    }
-
-    #[test]
-    fn request_timeout_is_applied() {
-        let timeout = Duration::from_secs(5);
-        let client = ReqwestClient::new("https://example.com".to_string(), crate::reqwest_client()).with_request_timeout(timeout);
-        let request = client.request(Method::GET, "/path").build().unwrap();
-
-        assert_eq!(request.timeout(), Some(&timeout));
-        assert_eq!(request.url().as_str(), "https://example.com/path");
     }
 }
