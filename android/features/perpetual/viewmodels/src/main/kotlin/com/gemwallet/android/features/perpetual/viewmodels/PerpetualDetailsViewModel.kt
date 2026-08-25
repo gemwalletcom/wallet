@@ -12,6 +12,7 @@ import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserve
 
 import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
+import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -60,6 +62,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val syncPerpetualPositions: SyncPerpetualPositions,
     private val buildPerpetualParams: BuildPerpetualParams,
     private val perpetualObserver: PerpetualObserver,
+    getSession: GetSession,
     getPerpetualChartPeriod: GetPerpetualChartPeriod,
     private val setPerpetualChartPeriod: SetPerpetualChartPeriod,
     savedStateHandle: SavedStateHandle
@@ -92,9 +95,12 @@ class PerpetualDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val position = perpetual
-        .flatMapLatest { perpetual ->
-            perpetual?.let { getPerpetualPosition.getPositionByPerpetual(it.id) } ?: flowOf(null)
+    val position = combine(
+        perpetual,
+        getSession().filterNotNull(),
+    ) { perpetual, session -> perpetual to session.wallet.id }
+        .flatMapLatest { (perpetual, walletId) ->
+            perpetual?.let { getPerpetualPosition.getPositionByPerpetual(walletId, it.id) } ?: flowOf(null)
         }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

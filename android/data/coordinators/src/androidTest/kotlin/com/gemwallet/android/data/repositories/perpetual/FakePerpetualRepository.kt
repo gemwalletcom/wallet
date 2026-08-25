@@ -117,15 +117,9 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
         return positionsFlow.map { it[walletId.id] ?: emptyList() }
     }
 
-    override fun getPositionByPositionId(id: String): Flow<PerpetualPositionData?> {
+    override fun getPositionByPerpetualId(walletId: WalletId, id: PerpetualId): Flow<PerpetualPositionData?> {
         return positionsFlow.map { positionsMap ->
-            positionsMap.values.flatten().firstOrNull { it.position.id == id }
-        }
-    }
-
-    override fun getPositionByPerpetualId(id: PerpetualId): Flow<PerpetualPositionData?> {
-        return positionsFlow.map { positionsMap ->
-            positionsMap.values.flatten().firstOrNull { it.perpetual.id == id }
+            positionsMap[walletId.id].orEmpty().firstOrNull { it.perpetual.id == id }
         }
     }
 

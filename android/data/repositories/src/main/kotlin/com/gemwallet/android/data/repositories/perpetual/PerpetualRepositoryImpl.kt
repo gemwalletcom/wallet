@@ -109,12 +109,8 @@ class PerpetualRepositoryImpl(
         return perpetualPositionDao.getPositionsData(walletId.id).map { items -> items.mapNotNull { it.toDTO() } }
     }
 
-    override fun getPositionByPositionId(id: String): Flow<PerpetualPositionData?> {
-        return perpetualPositionDao.getPositionData(id).map { it?.toDTO() }
-    }
-
-    override fun getPositionByPerpetualId(id: PerpetualId): Flow<PerpetualPositionData?> {
-        return perpetualPositionDao.getPositionDataByPerpetual(id.toIdentifier()).map { it?.toDTO() }
+    override fun getPositionByPerpetualId(walletId: WalletId, id: PerpetualId): Flow<PerpetualPositionData?> {
+        return perpetualPositionDao.getPositionDataByPerpetual(walletId.id, id.toIdentifier()).map { it?.toDTO() }
     }
 
     override suspend fun putAsset(asset: Asset) {
