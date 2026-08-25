@@ -252,7 +252,10 @@ class FiatViewModelTest {
             runCurrent()
             assertEquals(FiatQuoteType.Sell, viewModel.type.value)
             assertEquals("25", viewModel.amount.value)
-            assertEquals(FiatConfig.defaultBuyAmount.toString(), viewModel.buyOperation.amount.value)
+
+            viewModel.setType(FiatQuoteType.Buy)
+            runCurrent()
+            assertEquals(FiatConfig.defaultBuyAmount.toString(), viewModel.amount.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }

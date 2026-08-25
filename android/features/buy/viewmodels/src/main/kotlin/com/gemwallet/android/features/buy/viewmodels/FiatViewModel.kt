@@ -53,12 +53,6 @@ import java.math.BigInteger
 import javax.inject.Inject
 import kotlin.random.Random
 
-private data class QuoteRefreshTrigger(
-    val type: FiatQuoteType,
-    val amount: String,
-    val ticker: Long,
-)
-
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class FiatViewModel @Inject constructor(
@@ -78,16 +72,16 @@ class FiatViewModel @Inject constructor(
     val type = MutableStateFlow(initialType)
     val assetId = MutableStateFlow(savedStateHandle.requireAssetId(RouteArgument.AssetId))
 
-    val buyOperation = FiatOperationState(
+    private val buyOperation = FiatOperationState(
         defaultAmount = defaultAmount(FiatQuoteType.Buy, FiatConfig.defaultBuyAmount),
         minFiatAmount = FiatConfig.minimumAmount.toDouble(),
     )
-    val sellOperation = FiatOperationState(
+    private val sellOperation = FiatOperationState(
         defaultAmount = defaultAmount(FiatQuoteType.Sell, FiatConfig.defaultSellAmount),
         minFiatAmount = FiatConfig.minimumAmount.toDouble(),
     )
 
-    private fun currentOperation() = when (type.value) {
+    private fun operationFor(type: FiatQuoteType) = when (type) {
         FiatQuoteType.Buy -> buyOperation
         FiatQuoteType.Sell -> sellOperation
     }
@@ -95,12 +89,9 @@ class FiatViewModel @Inject constructor(
     private fun defaultAmount(type: FiatQuoteType, fallback: Int): String =
         initialAmount?.takeIf { type == initialType } ?: fallback.toString()
 
-    val amount: StateFlow<String> = type.flatMapLatest {
-        when (it) {
-            FiatQuoteType.Buy -> buyOperation.amount
-            FiatQuoteType.Sell -> sellOperation.amount
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, currentOperation().defaultAmount)
+    val amount: StateFlow<String> = type
+        .flatMapLatest { operationFor(it).amount }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, operationFor(type.value).defaultAmount)
 
     private val assetData: StateFlow<AssetData?> = assetId
         .flatMapLatest { getBuyAssetInfo(it) }
@@ -138,12 +129,9 @@ class FiatViewModel @Inject constructor(
         } + FiatSuggestion.RandomAmount
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val state: StateFlow<FiatSceneState> = type.flatMapLatest {
-        when (it) {
-            FiatQuoteType.Buy -> buyOperation.state
-            FiatQuoteType.Sell -> sellOperation.state
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, FiatSceneState.Ready)
+    val state: StateFlow<FiatSceneState> = type
+        .flatMapLatest { operationFor(it).state }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, FiatSceneState.Ready)
 
     private val ticker = tickerFlow(5 * DateUtils.MINUTE_IN_MILLIS) {}
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
@@ -154,20 +142,15 @@ class FiatViewModel @Inject constructor(
                 assetData = data,
                 type = currentType,
                 amount = amount,
-                refreshTrigger = QuoteRefreshTrigger(
-                    type = currentType,
-                    amount = amount,
-                    ticker = tick,
-                ),
+                ticker = tick,
             )
         }
-        .distinctUntilChanged { old, new -> old.refreshTrigger == new.refreshTrigger }
+        .distinctUntilChanged { old, new ->
+            old.type == new.type && old.amount == new.amount && old.ticker == new.ticker
+        }
         .mapLatest { params ->
             val (data, currentType, amount, _) = params
-            val operation = when (currentType) {
-                FiatQuoteType.Buy -> buyOperation
-                FiatQuoteType.Sell -> sellOperation
-            }
+            val operation = operationFor(currentType)
             val validator = AmountValidator(operation.minFiatAmount)
 
             if (!validator.validate(amount)) {
@@ -205,12 +188,9 @@ class FiatViewModel @Inject constructor(
         .launchIn(viewModelScope)
     }
 
-    val quotes = type.flatMapLatest {
-        when (it) {
-            FiatQuoteType.Buy -> buyOperation.quotes
-            FiatQuoteType.Sell -> sellOperation.quotes
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val quotes = type
+        .flatMapLatest { operationFor(it).quotes }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val providers = combine(assetInfoUIModel.filterNotNull(), quotes, assetPriceUsd) { asset, quotes, priceUsd ->
         quotes.map { quote ->
@@ -218,12 +198,9 @@ class FiatViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val currentSelectedQuote = type.flatMapLatest {
-        when (it) {
-            FiatQuoteType.Buy -> buyOperation.selectedQuote
-            FiatQuoteType.Sell -> sellOperation.selectedQuote
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    private val currentSelectedQuote = type
+        .flatMapLatest { operationFor(it).selectedQuote }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val selectedProvider = combine(assetInfoUIModel, currentSelectedQuote) { asset, quote ->
         return@combine asset?.let { quote?.toProviderUIModel(asset.asset, currency) }
@@ -234,7 +211,7 @@ class FiatViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     fun updateAmount(newAmount: String) {
-        currentOperation().updateAmount(newAmount)
+        operationFor(type.value).updateAmount(newAmount)
     }
 
     fun updateAmount(suggestion: FiatSuggestion) {
@@ -242,11 +219,11 @@ class FiatViewModel @Inject constructor(
             FiatSuggestion.RandomAmount -> randomAmount().toString()
             is FiatSuggestion.SuggestionAmount -> suggestion.value.toInt().toString()
         }
-        currentOperation().updateAmount(value)
+        operationFor(type.value).updateAmount(value)
     }
 
     fun setProvider(provider: FiatProvider) {
-        currentOperation().selectProvider(provider.name)
+        operationFor(type.value).selectProvider(provider.name)
     }
 
     fun setType(type: FiatQuoteType) {
@@ -275,7 +252,7 @@ class FiatViewModel @Inject constructor(
         val assetData: AssetData,
         val type: FiatQuoteType,
         val amount: String,
-        val refreshTrigger: QuoteRefreshTrigger,
+        val ticker: Long,
     )
 
 }
