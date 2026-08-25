@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use crate::{Asset, AssetId, AssetType, Chain, asset_constants::*};
+use crate::{Asset, AssetId, AssetScore, AssetType, Chain, asset_constants::*};
 
 const USDT_NAME: &str = "Tether";
 const USDT_SYMBOL: &str = "USDT";
@@ -124,3 +124,15 @@ pub static TRON_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tron
 pub static TEMPO_BRIDGED_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_BRIDGED_USDC_TOKEN_ID, "Bridged USDC", "USDC.e", 6, AssetType::TIP20));
 pub static TEMPO_USDT0: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_USDT0_TOKEN_ID, "USDT0", "USDT0", 6, AssetType::TIP20));
 pub static TEMPO_PATHUSD: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_PATHUSD_TOKEN_ID, "pathUSD", "pathUSD", 6, AssetType::TIP20));
+
+pub fn default_token_rank(asset_id: &AssetId) -> i32 {
+    match (asset_id.chain, asset_id.token_id.as_deref()) {
+        (Chain::Solana, Some(SOLANA_USDC_TOKEN_ID)) | (Chain::Solana, Some(SOLANA_USDT_TOKEN_ID)) => 34,
+        (Chain::Tron, Some(TRON_USDT_TOKEN_ID)) => 33,
+        (Chain::HyperCore, Some(HYPERCORE_SPOT_USDC_TOKEN_ID)) => 32,
+        (Chain::Tempo, Some(TEMPO_USDT0_TOKEN_ID)) => 26,
+        (Chain::Tempo, Some(TEMPO_BRIDGED_USDC_TOKEN_ID)) => 18,
+        (Chain::Tempo, Some(TEMPO_PATHUSD_TOKEN_ID)) => 16,
+        _ => AssetScore::default().rank,
+    }
+}

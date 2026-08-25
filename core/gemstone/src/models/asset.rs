@@ -44,8 +44,8 @@ pub struct GemAsset {
 }
 
 #[uniffi::export]
-pub fn asset_default_rank(chain: Chain) -> i32 {
-    chain.rank()
+pub fn asset_default_rank(asset_id: AssetId) -> i32 {
+    asset_id.default_rank()
 }
 
 #[uniffi::export]

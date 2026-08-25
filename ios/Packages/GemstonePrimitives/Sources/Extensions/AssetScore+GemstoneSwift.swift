@@ -19,6 +19,6 @@ public extension AssetScore {
 
     /// from 0 to 100. anything below is 0 is not good
     static func defaultRank(chain: Chain) -> Int {
-        Gemstone.assetDefaultRank(chain: chain.rawValue).asInt
+        Gemstone.assetDefaultRank(assetId: chain.assetId.identifier).asInt
     }
 }

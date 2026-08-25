@@ -61,8 +61,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.assetDefaultRank
+import uniffi.gemstone.defaultTokenRank
 
 class AssetsRepositoryTest {
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
@@ -491,7 +493,7 @@ class AssetsRepositoryTest {
             )
         }
 
-        assertEquals(15, assetSlot.captured.rank)
+        assertTrue(assetSlot.captured.rank > defaultTokenRank())
         assertEquals(asset.defaultBasic.score.rank, assetSlot.captured.rank)
     }
 

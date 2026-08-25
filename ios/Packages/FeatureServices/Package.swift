@@ -732,6 +732,7 @@ let package = Package(
             dependencies: [
                 "AssetsService",
                 "AssetsServiceTestKit",
+                "GemstonePrimitives",
                 .product(name: "Store", package: "Store"),
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),

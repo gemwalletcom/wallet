@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Debug};
+use std::{collections::HashMap, fmt::Debug, time::Duration};
 
 use async_trait::async_trait;
 use serde::{Serialize, de::DeserializeOwned};
@@ -33,8 +33,9 @@ pub use reqwest_client::{ReqwestClient, json_response};
 pub use retry::{default_should_retry, retry, retry_policy};
 
 #[cfg(feature = "reqwest")]
-pub use client_config::{DEFAULT_REQUEST_TIMEOUT, builder, reqwest_client};
+pub use client_config::{builder, reqwest_client};
 
+pub const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 pub const X_CACHE_TTL: &str = "x-gem-cache-ttl";
 
 #[async_trait]
