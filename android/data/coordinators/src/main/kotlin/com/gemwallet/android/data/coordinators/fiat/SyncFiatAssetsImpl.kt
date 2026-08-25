@@ -1,28 +1,26 @@
 package com.gemwallet.android.data.coordinators.fiat
 
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.fiat.coordinators.GetBuyableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.ext.toAssetId
+import com.wallet.core.primitives.ConfigVersions
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 
 class SyncFiatAssetsImpl(
     private val configStore: ConfigStore,
-    private val getRemoteConfig: GetRemoteConfig,
     private val getBuyableFiatAssets: GetBuyableFiatAssets,
     private val getSellableFiatAssets: GetSellableFiatAssets,
     private val availabilityService: AssetsAvailabilityService,
     private val prefetchAssets: PrefetchAssets,
 ) : SyncFiatAssets {
 
-    override suspend fun invoke() {
+    override suspend fun invoke(versions: ConfigVersions) {
         try {
-            val versions = getRemoteConfig.getRemoteConfig().versions
             val buyAssets = if (shouldSync(FIAT_ON_RAMP_ASSETS_VERSION, versions.fiatOnRampAssets)) {
                 getBuyableFiatAssets()
             } else {

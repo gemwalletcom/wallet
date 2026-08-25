@@ -33,18 +33,22 @@ public struct ImportAssetsService: Sendable {
         let tokenAssets = chains.flatMap(\.defaultAssets)
         let assetIds = chains.map(\.id) + tokenAssets.ids
 
-        let existingAssets = try assetStore.getAssets(for: assetIds)
-        let hasMissingAssets = existingAssets.count != assetIds.count
+        let existingAssetIds = try assetStore.getAssets(for: assetIds).ids.asSet()
+        let missingAssetIds = assetIds.asSet().subtracting(existingAssetIds)
         let isNewVersion = preferences.localAssetsVersion < releaseVersion
 
         #if targetEnvironment(simulator)
         #else
-            guard isNewVersion || hasMissingAssets else { return }
+            guard isNewVersion || missingAssetIds.isNotEmpty else { return }
         #endif
 
-        if hasMissingAssets {
-            let chainAssets = chains.map { AssetBasic.native($0.asset) }
-            let defaultTokenAssets = tokenAssets.map { AssetBasic.seed($0) }
+        if missingAssetIds.isNotEmpty {
+            let chainAssets = chains
+                .filter { missingAssetIds.contains($0.id) }
+                .map { AssetBasic.native($0.asset) }
+            let defaultTokenAssets = tokenAssets
+                .filter { missingAssetIds.contains($0.id.identifier) }
+                .map { AssetBasic.seed($0) }
 
             try assetStore.add(assets: chainAssets)
             try assetStore.insert(assets: defaultTokenAssets)

@@ -5,6 +5,7 @@ import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
+import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.services.SyncService
@@ -50,11 +51,13 @@ object DataModule {
     @Singleton
     @Provides
     fun provideSyncService(
+        getRemoteConfig: GetRemoteConfig,
         syncFiatAssets: SyncFiatAssets,
         syncSwapAssets: SyncSwapAssets,
         syncDevice: SyncDevice,
     ): SyncService {
         return SyncService(
+            getRemoteConfig = getRemoteConfig,
             syncFiatAssets = syncFiatAssets,
             syncSwapAssets = syncSwapAssets,
             syncDevice = syncDevice,

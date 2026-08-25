@@ -3,7 +3,6 @@ package com.gemwallet.android.data.coordinators.di
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.swap.coordinators.BuildSwapConfirmParams
 import com.gemwallet.android.application.swap.coordinators.GetSwapAssets
 import com.gemwallet.android.application.swap.coordinators.GetSwapQuoteData
@@ -127,14 +126,12 @@ object SwapModule {
     @Provides
     fun provideSyncSwapAssets(
         @SwapConfigStore configStore: ConfigStore,
-        getRemoteConfig: GetRemoteConfig,
         getSwapAssets: GetSwapAssets,
         assetsRepository: AssetsRepository,
         availabilityService: AssetsAvailabilityService,
         prefetchAssets: PrefetchAssets,
     ): SyncSwapAssets = SyncSwapAssetsImpl(
         configStore = configStore,
-        getRemoteConfig = getRemoteConfig,
         getSwapAssets = getSwapAssets,
         assetsRepository = assetsRepository,
         availabilityService = availabilityService,

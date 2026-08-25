@@ -480,9 +480,8 @@ class AssetsRepositoryTest {
         )
 
         val assetSlot = slot<DbAsset>()
-        val updateSlot = slot<List<DbAssetBasicUpdate>>()
         coVerify { assetsDao.insert(capture(assetSlot)) }
-        coVerify { assetsDao.updateBasicAssets(capture(updateSlot)) }
+        coVerify(exactly = 0) { assetsDao.updateBasicAssets(any()) }
         coVerify(exactly = 0) { assetsDao.updateAssetRank(any(), any()) }
         coVerify {
             assetsDao.setWalletAssetVisibility(
@@ -494,7 +493,30 @@ class AssetsRepositoryTest {
 
         assertEquals(15, assetSlot.captured.rank)
         assertEquals(asset.defaultBasic.score.rank, assetSlot.captured.rank)
-        assertEquals(15, updateSlot.captured.single().rank)
+    }
+
+    @Test
+    fun createAssets_keepsStoredAssetPropertiesForExistingRows() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+        val wallet = mockWallet(
+            type = WalletType.Multicoin,
+            accounts = listOf(mockAccount(chain = Chain.Bitcoin), mockAccount(chain = Chain.Tron)),
+        )
+
+        val subject = createSubject()
+        subject.createAssets(wallet)
+
+        coVerify(exactly = 0) { assetsDao.updateBasicAssets(any()) }
+        coVerify(exactly = 0) { assetsDao.upsert(any()) }
+        coVerify { assetsDao.insert(match<DbAsset> { it.id == "bitcoin" }) }
+        coVerify { assetsDao.insert(match<DbAsset> { it.id == "tron" }) }
+        coVerify {
+            assetsDao.setWalletAssetVisibility(
+                walletId = wallet.id.id,
+                assetId = "bitcoin",
+                isVisible = true,
+            )
+        }
     }
 
     @Test

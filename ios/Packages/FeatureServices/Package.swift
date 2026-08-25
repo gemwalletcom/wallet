@@ -732,6 +732,8 @@ let package = Package(
             dependencies: [
                 "AssetsService",
                 "AssetsServiceTestKit",
+                .product(name: "Store", package: "Store"),
+                .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "ChainServiceTestKit", package: "ChainServices"),
                 .product(name: "BlockchainTestKit", package: "Blockchain"),

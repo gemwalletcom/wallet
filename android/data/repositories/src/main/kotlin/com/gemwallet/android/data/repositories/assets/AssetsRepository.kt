@@ -126,7 +126,7 @@ class AssetsRepository @Inject constructor(
         wallet.accounts.forEach { account ->
             val asset = account.chain.asset()
             if (account.chain.defaultAssetRank < 0) {
-                add(listOf(asset.defaultBasic))
+                assetsDao.insert(asset.defaultBasic.toRecord())
                 return@forEach
             }
             val isVisible = walletAssetIsEnabled(asset.id.toIdentifier(), wallet.type.toGem())
@@ -378,14 +378,8 @@ class AssetsRepository @Inject constructor(
     }
 
     private suspend fun insertLocalAsset(walletId: String, asset: Asset, visible: Boolean) {
-        val assetBasic = asset.defaultBasic
-        val assetId = asset.id
-        insertAssetRecord(
-            walletId = walletId,
-            assetId = assetId,
-            record = assetBasic.toRecord(),
-            visible = visible,
-        )
+        assetsDao.insert(asset.defaultBasic.toRecord())
+        assetsDao.setWalletAssetVisibility(walletId, asset.id.toIdentifier(), visible)
     }
 
     private suspend fun insertAssetRecord(

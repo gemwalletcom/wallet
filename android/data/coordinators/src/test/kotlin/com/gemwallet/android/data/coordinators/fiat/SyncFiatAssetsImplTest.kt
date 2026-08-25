@@ -1,17 +1,14 @@
 package com.gemwallet.android.data.coordinators.fiat
 
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.fiat.coordinators.GetBuyableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ConfigResponse
 import com.wallet.core.primitives.ConfigVersions
 import com.wallet.core.primitives.FiatAssets
-import com.wallet.core.primitives.SwapConfig
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -23,7 +20,6 @@ import org.junit.Test
 class SyncFiatAssetsImplTest {
 
     private val configStore = mockk<ConfigStore>(relaxed = true)
-    private val getRemoteConfig = mockk<GetRemoteConfig>()
     private val getBuyableFiatAssets = mockk<GetBuyableFiatAssets>()
     private val getSellableFiatAssets = mockk<GetSellableFiatAssets>()
     private val availabilityService = mockk<AssetsAvailabilityService>(relaxed = true)
@@ -31,7 +27,6 @@ class SyncFiatAssetsImplTest {
 
     private val subject = SyncFiatAssetsImpl(
         configStore = configStore,
-        getRemoteConfig = getRemoteConfig,
         getBuyableFiatAssets = getBuyableFiatAssets,
         getSellableFiatAssets = getSellableFiatAssets,
         availabilityService = availabilityService,
@@ -40,18 +35,13 @@ class SyncFiatAssetsImplTest {
 
     @Test
     fun syncFiatAssets_usesRemoteConfigToRefreshBuyAndSellAssets() = runTest {
-        coEvery { getRemoteConfig.getRemoteConfig() } returns remoteConfig(
-            fiatOnRampAssets = 2,
-            fiatOffRampAssets = 3,
-        )
         every { configStore.getInt("fiat-on-ramp-assets-version") } returns 1
         every { configStore.getInt("fiat-off-ramp-assets-version") } returns 2
         coEvery { getBuyableFiatAssets() } returns FiatAssets(5u, listOf("bitcoin"))
         coEvery { getSellableFiatAssets() } returns FiatAssets(7u, listOf("ethereum"))
 
-        subject()
+        subject(versions(fiatOnRampAssets = 2, fiatOffRampAssets = 3))
 
-        coVerify { getRemoteConfig.getRemoteConfig() }
         coVerify {
             prefetchAssets.prefetchAssets(
                 listOf(
@@ -68,14 +58,10 @@ class SyncFiatAssetsImplTest {
 
     @Test
     fun syncFiatAssets_skipsRefreshWhenVersionsAreCurrent() = runTest {
-        coEvery { getRemoteConfig.getRemoteConfig() } returns remoteConfig(
-            fiatOnRampAssets = 2,
-            fiatOffRampAssets = 3,
-        )
         every { configStore.getInt("fiat-on-ramp-assets-version") } returns 2
         every { configStore.getInt("fiat-off-ramp-assets-version") } returns 3
 
-        subject()
+        subject(versions(fiatOnRampAssets = 2, fiatOffRampAssets = 3))
 
         coVerify(exactly = 0) { getBuyableFiatAssets() }
         coVerify(exactly = 0) { getSellableFiatAssets() }
@@ -86,16 +72,12 @@ class SyncFiatAssetsImplTest {
 
     @Test
     fun syncFiatAssets_updatesVersionsWhenRemoteAssetsAreEmpty() = runTest {
-        coEvery { getRemoteConfig.getRemoteConfig() } returns remoteConfig(
-            fiatOnRampAssets = 2,
-            fiatOffRampAssets = 3,
-        )
         every { configStore.getInt("fiat-on-ramp-assets-version") } returns 1
         every { configStore.getInt("fiat-off-ramp-assets-version") } returns 2
         coEvery { getBuyableFiatAssets() } returns FiatAssets(5u, emptyList())
         coEvery { getSellableFiatAssets() } returns FiatAssets(7u, emptyList())
 
-        subject()
+        subject(versions(fiatOnRampAssets = 2, fiatOffRampAssets = 3))
 
         coVerify(exactly = 0) { prefetchAssets.prefetchAssets(any()) }
         coVerify { availabilityService.updateBuyAvailable(emptyList()) }
@@ -104,18 +86,12 @@ class SyncFiatAssetsImplTest {
         verify { configStore.putInt("fiat-off-ramp-assets-version", 7, "") }
     }
 
-    private fun remoteConfig(
+    private fun versions(
         fiatOnRampAssets: Int,
         fiatOffRampAssets: Int,
-    ) = ConfigResponse(
-        releases = emptyList(),
-        versions = ConfigVersions(
-            fiatOnRampAssets = fiatOnRampAssets,
-            fiatOffRampAssets = fiatOffRampAssets,
-            swapAssets = 0,
-        ),
-        swap = SwapConfig(
-            enabledProviders = emptyList(),
-        ),
+    ) = ConfigVersions(
+        fiatOnRampAssets = fiatOnRampAssets,
+        fiatOffRampAssets = fiatOffRampAssets,
+        swapAssets = 0,
     )
 }
