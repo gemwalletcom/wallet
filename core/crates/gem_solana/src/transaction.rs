@@ -52,57 +52,50 @@ impl VersionedTransactionExt for VersionedTransaction {
     }
 
     fn simple_transfer(&self, signer: &Pubkey) -> Option<SolanaTransfer> {
-        let account_keys = self.account_keys();
-        let mut transfer = None;
-
-        for instruction in self.instructions() {
-            let program = account_keys.get(instruction.program_id_index as usize)?.to_base58();
-            let decoded = match program.as_str() {
-                SYSTEM_PROGRAM_ID => Some(system_transfer(instruction, account_keys, signer)?),
-                TOKEN_PROGRAM_ID | TOKEN_2022_PROGRAM_ID => Some(token_transfer(self, instruction, account_keys, signer)?),
-                ASSOCIATED_TOKEN_PROGRAM_ID | MEMO_PROGRAM_ID | COMPUTE_BUDGET_PROGRAM_ID => None,
-                _ => return None,
-            };
-            if let Some(decoded) = decoded
-                && transfer.replace(decoded).is_some()
-            {
-                return None;
-            }
-        }
-
-        transfer
+        decode_transfer(self, Some(signer))
     }
 
     fn transaction_type(&self) -> TransactionType {
-        let account_keys = self.account_keys();
-        let mut has_transfer = false;
-
-        for instruction in self.instructions() {
-            let Some(program) = account_keys.get(instruction.program_id_index as usize).map(Pubkey::to_base58) else {
-                return TransactionType::SmartContractCall;
-            };
-            match program.as_str() {
-                SYSTEM_PROGRAM_ID => match instruction.data.get(..4) {
-                    Some(data) if data == 2u32.to_le_bytes() => has_transfer = true,
-                    _ => return TransactionType::SmartContractCall,
-                },
-                TOKEN_PROGRAM_ID | TOKEN_2022_PROGRAM_ID => match instruction.data.first() {
-                    Some(3 | 12) => has_transfer = true,
-                    _ => return TransactionType::SmartContractCall,
-                },
-                ASSOCIATED_TOKEN_PROGRAM_ID | MEMO_PROGRAM_ID | COMPUTE_BUDGET_PROGRAM_ID => {}
-                _ => return TransactionType::SmartContractCall,
-            }
+        match decode_transfer(self, None) {
+            Some(_) => TransactionType::Transfer,
+            None => TransactionType::SmartContractCall,
         }
-
-        if has_transfer { TransactionType::Transfer } else { TransactionType::SmartContractCall }
     }
 }
 
-fn system_transfer(instruction: &solana_primitives::CompiledInstruction, account_keys: &[Pubkey], signer: &Pubkey) -> Option<SolanaTransfer> {
+fn decode_transfer(transaction: &VersionedTransaction, signer: Option<&Pubkey>) -> Option<SolanaTransfer> {
+    let account_keys = transaction.account_keys();
+    let mut transfer = None;
+
+    for instruction in transaction.instructions() {
+        let program = account_keys.get(instruction.program_id_index as usize)?.to_base58();
+        let decoded = match program.as_str() {
+            SYSTEM_PROGRAM_ID => Some(system_transfer(instruction, account_keys, signer)?),
+            TOKEN_PROGRAM_ID | TOKEN_2022_PROGRAM_ID => Some(token_transfer(transaction, instruction, account_keys, signer)?),
+            ASSOCIATED_TOKEN_PROGRAM_ID | MEMO_PROGRAM_ID | COMPUTE_BUDGET_PROGRAM_ID => None,
+            _ => return None,
+        };
+        if let Some(decoded) = decoded
+            && transfer.replace(decoded).is_some()
+        {
+            return None;
+        }
+    }
+
+    transfer
+}
+
+fn authorized(account: &Pubkey, signer: Option<&Pubkey>) -> bool {
+    match signer {
+        Some(signer) => account == signer,
+        None => true,
+    }
+}
+
+fn system_transfer(instruction: &solana_primitives::CompiledInstruction, account_keys: &[Pubkey], signer: Option<&Pubkey>) -> Option<SolanaTransfer> {
     let data: &[u8; 12] = instruction.data.as_slice().try_into().ok()?;
     (data[..4] == 2u32.to_le_bytes()).then_some(())?;
-    (instruction_account(instruction, account_keys, 0)? == signer).then_some(())?;
+    authorized(instruction_account(instruction, account_keys, 0)?, signer).then_some(())?;
     let recipient = instruction_account(instruction, account_keys, 1)?;
     Some(SolanaTransfer {
         asset_id: AssetId::from_chain(Chain::Solana),
@@ -111,10 +104,10 @@ fn system_transfer(instruction: &solana_primitives::CompiledInstruction, account
     })
 }
 
-fn token_transfer(transaction: &VersionedTransaction, instruction: &solana_primitives::CompiledInstruction, account_keys: &[Pubkey], signer: &Pubkey) -> Option<SolanaTransfer> {
+fn token_transfer(transaction: &VersionedTransaction, instruction: &solana_primitives::CompiledInstruction, account_keys: &[Pubkey], signer: Option<&Pubkey>) -> Option<SolanaTransfer> {
     let data: &[u8; 10] = instruction.data.as_slice().try_into().ok()?;
     (data[0] == 12).then_some(())?;
-    (instruction_account(instruction, account_keys, 3)? == signer).then_some(())?;
+    authorized(instruction_account(instruction, account_keys, 3)?, signer).then_some(())?;
     let mint = instruction_account(instruction, account_keys, 1)?;
     let token_account = instruction_account(instruction, account_keys, 2)?;
     let recipient = associated_token_owner(transaction, token_account).unwrap_or(token_account);
@@ -221,15 +214,51 @@ mod tests {
 
     #[test]
     fn test_transaction_type() {
-        let transfer = mock_transaction(&[
-            (ASSOCIATED_TOKEN_PROGRAM_ID, vec![]),
-            (TOKEN_PROGRAM_ID, vec![12]),
-            (MEMO_PROGRAM_ID, b"payment memo".to_vec()),
-        ]);
+        let payer = Pubkey::new([1; 32]);
+        let source = Pubkey::new([2; 32]);
+        let mint = Pubkey::new([3; 32]);
+        let destination = Pubkey::new([4; 32]);
+        let account_keys = vec![
+            payer,
+            source,
+            mint,
+            destination,
+            Pubkey::from_base58(TOKEN_PROGRAM_ID).unwrap(),
+            Pubkey::from_base58(MEMO_PROGRAM_ID).unwrap(),
+        ];
+        let mut transfer_data = vec![12];
+        transfer_data.extend_from_slice(&19_000_000u64.to_le_bytes());
+        transfer_data.push(6);
+        let mut legacy_transfer_data = vec![3];
+        legacy_transfer_data.extend_from_slice(&19_000_000u64.to_le_bytes());
+        let transfer_instruction = solana_primitives::CompiledInstruction {
+            program_id_index: 4,
+            accounts: vec![1, 2, 3, 0],
+            data: transfer_data,
+        };
+        let memo_instruction = solana_primitives::CompiledInstruction {
+            program_id_index: 5,
+            accounts: vec![],
+            data: b"payment memo".to_vec(),
+        };
+        let transfer = mock_transaction_with_accounts(account_keys.clone(), vec![transfer_instruction.clone(), memo_instruction]);
+        let truncated_transfer = mock_transaction(&[(TOKEN_PROGRAM_ID, vec![12])]);
+        let legacy_transfer = mock_transaction_with_accounts(
+            account_keys.clone(),
+            vec![solana_primitives::CompiledInstruction {
+                program_id_index: 4,
+                accounts: vec![1, 3, 0],
+                data: legacy_transfer_data,
+            }],
+        );
+        let ambiguous = mock_transaction_with_accounts(account_keys, vec![transfer_instruction.clone(), transfer_instruction]);
         let contract_call = mock_transaction(&[("BPFLoaderUpgradeab1e11111111111111111111111", vec![1])]);
 
         assert_eq!(transfer.transaction_type(), TransactionType::Transfer);
         assert_eq!(transfer.memo().as_deref(), Some("payment memo"));
+        assert_eq!(truncated_transfer.transaction_type(), TransactionType::SmartContractCall);
+        assert_eq!(legacy_transfer.transaction_type(), TransactionType::SmartContractCall);
+        assert_eq!(ambiguous.transaction_type(), TransactionType::SmartContractCall);
         assert_eq!(contract_call.transaction_type(), TransactionType::SmartContractCall);
     }
 

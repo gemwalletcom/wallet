@@ -34,16 +34,20 @@ pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransac
         [_] => return Err("Solana Pay transaction already contains the wallet signature".to_string()),
         _ => return Err("Solana Pay transaction has an invalid signature count".to_string()),
     }
-    let transaction_type = transaction.transaction_type();
     let memo = transaction.memo();
+    let request = transaction.simple_transfer(&signer).map(|transfer| PaymentRequest {
+        address: transfer.recipient,
+        amount: Some(PaymentAmount::AtomicValue(transfer.value)),
+        memo: memo.clone(),
+        references: None,
+        asset_id: Some(transfer.asset_id),
+    });
+    let transaction_type = match &request {
+        Some(_) => TransactionType::Transfer,
+        None => TransactionType::SmartContractCall,
+    };
     Ok(PreparedTransaction {
-        request: transaction.simple_transfer(&signer).map(|transfer| PaymentRequest {
-            address: transfer.recipient,
-            amount: Some(PaymentAmount::AtomicValue(transfer.value)),
-            memo: memo.clone(),
-            references: None,
-            asset_id: Some(transfer.asset_id),
-        }),
+        request,
         transaction_type,
         memo,
         transaction: transaction
@@ -103,5 +107,24 @@ mod tests {
         assert_eq!(transaction.recent_blockhash(), &[7u8; 32]);
         assert_eq!(prepared.transaction_type, TransactionType::Transfer);
         assert_eq!(prepared.memo.as_deref(), Some(memo));
+        let request = prepared.request.expect("expected a decoded transfer request");
+        assert_eq!(request.amount, Some(PaymentAmount::AtomicValue(0u32.into())));
+        assert_eq!(request.memo.as_deref(), Some(memo));
+
+        let mut ambiguous = VersionedTransaction::deserialize_with_version(&decode_base64(TRANSACTION).unwrap()).unwrap();
+        match &mut ambiguous {
+            VersionedTransaction::Legacy { message, .. } => {
+                let instruction = message.instructions[0].clone();
+                message.instructions.push(instruction);
+            }
+            VersionedTransaction::V0 { message, .. } => {
+                let instruction = message.instructions[0].clone();
+                message.instructions.push(instruction);
+            }
+        }
+        let prepared = prepare(&encode_base64(&ambiguous.serialize().unwrap()), ACCOUNT).unwrap();
+
+        assert_eq!(prepared.transaction_type, TransactionType::SmartContractCall);
+        assert!(prepared.request.is_none());
     }
 }
