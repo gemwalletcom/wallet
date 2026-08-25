@@ -73,7 +73,7 @@ private fun List<SimulationBalanceChange>.toBalanceChanges(assets: Map<AssetId, 
     }
 }
 
-fun List<ConfirmProperty>.reorderWalletConnectProperties(): List<ConfirmProperty> {
+fun List<ConfirmProperty>.reorderRequestProperties(): List<ConfirmProperty> {
     val app = filterIsInstance<ConfirmProperty.Destination.Generic>()
     val wallet = filterIsInstance<ConfirmProperty.Source>()
     val network = filterIsInstance<ConfirmProperty.Network>()
@@ -83,7 +83,7 @@ fun List<ConfirmProperty>.reorderWalletConnectProperties(): List<ConfirmProperty
         addAll(wallet)
         addAll(network)
         addAll(
-            this@reorderWalletConnectProperties.filterNot {
+            this@reorderRequestProperties.filterNot {
                 it is ConfirmProperty.Destination.Generic
                     || it is ConfirmProperty.Source
                     || it is ConfirmProperty.Network

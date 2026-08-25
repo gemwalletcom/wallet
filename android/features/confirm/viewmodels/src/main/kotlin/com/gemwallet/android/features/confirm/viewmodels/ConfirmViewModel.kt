@@ -10,7 +10,6 @@ import com.gemwallet.android.application.confirm.coordinators.CalculateTransferA
 import com.gemwallet.android.application.confirm.coordinators.GetFeeAssets
 import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.cases.addresses.GetAddressNames
-import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -47,6 +46,7 @@ import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,7 +73,7 @@ class ConfirmViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val assetsRepository: AssetsRepository,
     private val prefetchAssets: PrefetchAssets,
-    private val signerPreload: SignerPreloaderProxy,
+    private val confirmLoader: ConfirmLoader,
     private val transactionBalanceService: TransactionBalanceService,
     private val calculateTransferAmount: CalculateTransferAmount,
     private val getFeeAssets: GetFeeAssets,
@@ -189,11 +189,18 @@ class ConfirmViewModel @Inject constructor(
         }
 
         val preload = try {
-            signerPreload.preload(
+            val result = confirmLoader.load(
                 params = request,
-                selection = feeSelection,
+                feeSelection = feeSelection,
                 feeAssetSelection = feeAssetSelection,
             )
+            result.simulation?.let {
+                simulationResult.value = it
+                prefetchAssets.prefetchAssets(it.simulationAssetIds())
+            }
+            result.signerParams
+        } catch (error: CancellationException) {
+            throw error
         } catch (err: Throwable) {
             state.update {
                 ConfirmState.Error(err.toPreloadConfirmError())
@@ -375,6 +382,8 @@ class ConfirmViewModel @Inject constructor(
             viewModelScope.launch(Dispatchers.Main) {
                 finishAction(transactionHash)
             }
+        } catch (error: CancellationException) {
+            throw error
         } catch (err: Throwable) {
             state.update { ConfirmState.BroadcastError(err.toBroadcastConfirmError()) }
         }

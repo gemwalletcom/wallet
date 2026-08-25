@@ -14,6 +14,8 @@ import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockSwapParams
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ApplicationMetadata
+import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
@@ -54,18 +56,15 @@ class ConfirmParamsTest {
     fun genericInputPreservesDecodedTransactionType() {
         val approval = ApprovalData(token = "token", spender = "spender", value = "1", isUnlimited = false)
         val params = ConfirmParams.TransferParams.Generic(
-            requestId = "request",
             asset = mockAssetEthereum(),
             from = mockAccount(chain = Chain.Ethereum),
             amount = BigInteger.ONE,
             destination = DestinationAddress("destination"),
-            memo = "0x01",
+            memo = "memo",
             inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
             isSendable = true,
-            name = "App",
-            description = "Description",
-            url = "https://example.com",
-            icon = "https://example.com/icon.png",
+            metadata = applicationMetadata(),
+            data = "0x01",
             gasLimit = "21000",
             decodedTransactionType = TransactionType.TokenApproval,
             approval = approval,
@@ -75,6 +74,9 @@ class ConfirmParamsTest {
 
         assertTrue(input is GemTransactionInputType.Generic)
         assertEquals(GemTransactionType.TOKEN_APPROVAL, (input as GemTransactionInputType.Generic).extra.transactionType)
+        assertEquals("21000", input.extra.gasLimit)
+        assertEquals(listOf(1.toByte()), input.extra.data?.toList())
+        assertEquals("memo", params.memo)
         assertSame(approval, params.approvalData(TransactionType.TokenApproval))
     }
 
@@ -95,18 +97,15 @@ class ConfirmParamsTest {
 
         val variants = listOf<ConfirmParams>(
             ConfirmParams.TransferParams.Generic(
-                requestId = "request",
                 asset = mockAssetEthereum(),
                 from = mockAccount(chain = Chain.Ethereum),
                 amount = BigInteger.ONE,
                 destination = destination,
-                memo = "0x01",
+                memo = "memo",
                 inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
                 isSendable = true,
-                name = "App",
-                description = "Description",
-                url = "https://example.com",
-                icon = "https://example.com/icon.png",
+                metadata = applicationMetadata(),
+                data = "0x01",
                 gasLimit = "21000",
                 decodedTransactionType = TransactionType.SmartContractCall,
             ),
@@ -182,4 +181,12 @@ class ConfirmParamsTest {
         assertTrue(stakeType is GemStakeType.Unfreeze)
         assertEquals(GemResource.ENERGY, (stakeType as GemStakeType.Unfreeze).resource)
     }
+
+    private fun applicationMetadata() = ApplicationMetadata(
+        name = "App",
+        description = "Description",
+        url = "https://example.com",
+        icon = "https://example.com/icon.png",
+        source = ApplicationMetadataSource.WalletConnect,
+    )
 }

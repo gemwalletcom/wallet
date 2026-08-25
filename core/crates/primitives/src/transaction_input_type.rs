@@ -59,6 +59,13 @@ impl TransactionInputType {
         }
     }
 
+    pub fn get_application_metadata(&self) -> Result<&ApplicationMetadata, &'static str> {
+        match self {
+            TransactionInputType::Generic(_, metadata, _) => Ok(metadata),
+            _ => Err("expected generic transaction"),
+        }
+    }
+
     pub fn get_approval_data(&self) -> Result<&ApprovalData, &'static str> {
         match self {
             TransactionInputType::TokenApprove(_, approval) => Ok(approval),

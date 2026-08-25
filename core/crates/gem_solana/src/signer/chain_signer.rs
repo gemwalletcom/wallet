@@ -1,7 +1,7 @@
 use super::{instructions, swap, transaction};
 use crate::{VersionedTransactionExt, decode_transaction, transaction::is_transaction_bytes};
 use gem_encoding::encode_base64;
-use primitives::{ApplicationMetadataSource, ChainSigner, SignerError, SignerInput, TransactionInputType, TransferDataOutputType};
+use primitives::{ApplicationMetadataSource, ChainSigner, SignerError, SignerInput, TransferDataOutputType};
 use solana_primitives::{Pubkey, sign_message as sign_solana_message};
 
 #[derive(Default)]
@@ -49,6 +49,7 @@ impl ChainSigner for SolanaChainSigner {
 
     fn sign_data(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let extra = input.input_type.get_generic_data().map_err(SignerError::invalid_input)?;
+        let metadata = input.input_type.get_application_metadata().map_err(SignerError::invalid_input)?;
         let data = extra.data_as_str().map_err(SignerError::invalid_input)?;
         let mut transaction = decode_transaction(data).map_err(SignerError::invalid_input)?;
 
@@ -57,11 +58,7 @@ impl ChainSigner for SolanaChainSigner {
             return Err(SignerError::invalid_input("user signature should be first"));
         }
 
-        let is_payment = matches!(
-            &input.input_type,
-            TransactionInputType::Generic(_, metadata, _) if metadata.source == ApplicationMetadataSource::Payment
-        );
-        if is_payment && transaction.recent_blockhash() == &[0; 32] {
+        if metadata.source == ApplicationMetadataSource::Payment && transaction.recent_blockhash() == &[0; 32] {
             *transaction.recent_blockhash_mut() = transaction::block_hash(input)?;
         }
 

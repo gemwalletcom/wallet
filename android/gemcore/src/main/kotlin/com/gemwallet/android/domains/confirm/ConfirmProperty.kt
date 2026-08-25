@@ -63,7 +63,7 @@ sealed interface ConfirmProperty {
                         imageUrl = addressName?.imageUrl,
                     )
                 }
-                is ConfirmParams.TransferParams.Generic -> Generic(params.name)
+                is ConfirmParams.TransferParams.Generic -> Generic(params.metadata.name)
             }
         }
     }

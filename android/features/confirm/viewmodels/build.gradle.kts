@@ -52,6 +52,7 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":data:repositories"))
     implementation(project(":gemcore"))
+    implementation(project(":blockchain"))
 
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.savedstate)

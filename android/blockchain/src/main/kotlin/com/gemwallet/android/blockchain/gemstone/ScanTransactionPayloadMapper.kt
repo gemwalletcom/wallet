@@ -15,7 +15,7 @@ internal fun ConfirmParams.toScanTransactionPayload(destination: String): ScanTr
         assetId = if (this is ConfirmParams.SwapParams) toAsset.id else assetId,
         address = destination,
     ),
-    website = (this as? ConfirmParams.TransferParams.Generic)?.url,
+    website = (this as? ConfirmParams.TransferParams.Generic)?.metadata?.url,
     type = getTransactionType(),
 )
 

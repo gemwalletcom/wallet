@@ -1,16 +1,37 @@
 package com.gemwallet.android.ext
 
 import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
-import uniffi.gemstone.GemWalletConnectionSessionAppMetadata
-import uniffi.gemstone.walletConnectAppShortName
+import com.wallet.core.primitives.ApplicationMetadata
+import com.wallet.core.primitives.ApplicationMetadataSource
+import uniffi.gemstone.GemApplicationMetadata
+import uniffi.gemstone.GemApplicationMetadataSource
+import uniffi.gemstone.applicationMetadataShortName
 
-fun WalletConnectionSessionAppMetadata.toGem() = GemWalletConnectionSessionAppMetadata(
+fun ApplicationMetadata.toGem() = GemApplicationMetadata(
     name = name,
     description = description,
     url = url,
     icon = icon,
+    source = source.toGem(),
 )
+
+fun GemApplicationMetadata.toPrimitives() = ApplicationMetadata(
+    name = name,
+    description = description,
+    url = url,
+    icon = icon,
+    source = source.toPrimitives(),
+)
+
+fun ApplicationMetadataSource.toGem() = when (this) {
+    ApplicationMetadataSource.WalletConnect -> GemApplicationMetadataSource.WALLET_CONNECT
+    ApplicationMetadataSource.Payment -> GemApplicationMetadataSource.PAYMENT
+}
+
+fun GemApplicationMetadataSource.toPrimitives() = when (this) {
+    GemApplicationMetadataSource.WALLET_CONNECT -> ApplicationMetadataSource.WalletConnect
+    GemApplicationMetadataSource.PAYMENT -> ApplicationMetadataSource.Payment
+}
 
 fun Account.toGem() = uniffi.gemstone.Account(
     chain = chain.string,
@@ -19,8 +40,8 @@ fun Account.toGem() = uniffi.gemstone.Account(
     extendedPublicKey = extendedPublicKey,
 )
 
-val WalletConnectionSessionAppMetadata.shortName: String
-    get() = walletConnectAppShortName(toGem())
+val ApplicationMetadata.shortName: String
+    get() = applicationMetadataShortName(toGem())
 
 fun List<String>?.walletConnectIcon(): String {
     return this?.firstOrNull { it.endsWith("png", ignoreCase = true) || it.endsWith("jpg", ignoreCase = true) }

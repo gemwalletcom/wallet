@@ -13,8 +13,8 @@ import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
 import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import uniffi.gemstone.MessageSigner
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.blockchain.gemstone.toGem
@@ -35,7 +35,7 @@ import java.math.BigInteger
 sealed class WCRequest(
     internal val sessionRequest: WalletConnectSessionRequest,
     internal val account: Account,
-    private val appMetadata: WalletConnectionSessionAppMetadata,
+    internal val appMetadata: ApplicationMetadata,
 ) {
     internal val walletConnect = WalletConnect()
 
@@ -54,7 +54,7 @@ sealed class WCRequest(
     class SignMessage(
         sessionRequest: WalletConnectSessionRequest,
         account: Account,
-        appMetadata: WalletConnectionSessionAppMetadata,
+        appMetadata: ApplicationMetadata,
         val action: WalletConnectAction.SignMessage,
         val simulation: SimulationResult,
         private val explorerName: String?,
@@ -105,7 +105,7 @@ sealed class WCRequest(
     abstract class Transaction(
         sessionRequest: WalletConnectSessionRequest,
         account: Account,
-        appMetadata: WalletConnectionSessionAppMetadata,
+        appMetadata: ApplicationMetadata,
         val isSendable: Boolean,
         val inputType: ConfirmParams.TransferParams.InputType,
         val transactionType: WalletConnectTransactionType,
@@ -121,7 +121,7 @@ sealed class WCRequest(
         abstract class Signing(
             sessionRequest: WalletConnectSessionRequest,
             account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
+            appMetadata: ApplicationMetadata,
             transactionType: WalletConnectTransactionType,
             data: String,
             simulation: SimulationResult,
@@ -139,7 +139,7 @@ sealed class WCRequest(
         class SignTransaction(
             sessionRequest: WalletConnectSessionRequest,
             account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
+            appMetadata: ApplicationMetadata,
             val action: WalletConnectAction.SignTransaction,
             simulation: SimulationResult,
         ) : Signing(
@@ -158,7 +158,7 @@ sealed class WCRequest(
         class SignAllTransactions(
             sessionRequest: WalletConnectSessionRequest,
             account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
+            appMetadata: ApplicationMetadata,
             transactionType: WalletConnectTransactionType,
             data: String,
             simulation: SimulationResult,
@@ -178,7 +178,7 @@ sealed class WCRequest(
         class SendTransaction(
             sessionRequest: WalletConnectSessionRequest,
             account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
+            appMetadata: ApplicationMetadata,
             val action: WalletConnectAction.SendTransaction,
             simulation: SimulationResult,
         ) : Transaction(
@@ -209,14 +209,10 @@ private fun WalletConnectTransaction.map(
 ): Generic {
     return when (this) {
         is WalletConnectTransaction.Ethereum -> Generic(
-            requestId = request.requestId.toString(),
             asset = request.chain.asset(),
             from = request.account,
-            memo = data.data,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
+            metadata = request.appMetadata,
+            data = data.data.orEmpty(),
             gasLimit = data.gasLimit,
             inputType = request.inputType,
             destination = DestinationAddress(data.to),
@@ -257,15 +253,11 @@ private fun buildEncodedTransactionParams(
     outputType: TransferDataOutputType,
     isSendable: Boolean,
 ): Generic = Generic(
-    requestId = request.requestId.toString(),
     asset = request.chain.asset(),
     from = request.account,
-    memo = encodedTransaction,
-    name = request.name,
-    description = request.description,
-    url = request.url,
-    icon = request.icon,
-    gasLimit = "",
+    metadata = request.appMetadata,
+    data = encodedTransaction,
+    gasLimit = null,
     inputType = when (outputType) {
         TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
         TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature

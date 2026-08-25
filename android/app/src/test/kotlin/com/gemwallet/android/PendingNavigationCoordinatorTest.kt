@@ -9,13 +9,18 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.Deeplink
+import uniffi.gemstone.GemPayment
+import uniffi.gemstone.GemPaymentLink
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
 import uniffi.gemstone.urlAction
@@ -85,6 +90,28 @@ class PendingNavigationCoordinatorTest {
 
         coordinator.buildRoutes(NoOpWalletConnect)
 
+        assertNull(coordinator.pendingNavigation.value)
+    }
+
+    @Test
+    fun buildRoutes_paymentLink_showsLoadingUntilNavigationIsPrepared() = runTest {
+        val uri = "solana:https%3A%2F%2Fexample.com%2Fpay"
+        val payment = GemPayment.Link(GemPaymentLink.SolanaPay("https://example.com/pay"))
+        val release = CompletableDeferred<Unit>()
+        every { urlAction(uri) } returns UrlAction.Payment(payment)
+        coEvery { paymentNavigation.routes(any()) } coAnswers {
+            release.await()
+            emptyList()
+        }
+        coordinator.handleScan(uri)
+
+        val build = launch { coordinator.buildRoutes(NoOpWalletConnect) }
+        yield()
+
+        assertEquals(PendingNavigation.Loading(PendingNavigation.FromScan(uri)), coordinator.pendingNavigation.value)
+
+        release.complete(Unit)
+        build.join()
         assertNull(coordinator.pendingNavigation.value)
     }
 

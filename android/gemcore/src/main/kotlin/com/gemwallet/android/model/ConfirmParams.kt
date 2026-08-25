@@ -15,6 +15,7 @@ import com.gemwallet.android.serializer.BigIntegerSerializer
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.serializer.unpackRoutePayload
 import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
@@ -34,7 +35,6 @@ import uniffi.gemstone.GemSwapQuoteDataType
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransactionInputType.*
 import uniffi.gemstone.GemTransferDataExtra
-import uniffi.gemstone.GemWalletConnectionSessionAppMetadata
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.TransferDataOutputAction
 import uniffi.gemstone.TransferDataOutputType
@@ -175,70 +175,58 @@ sealed class ConfirmParams() {
 
         @Serializable
         class Generic(
-            val requestId: String,
             override val asset: Asset,
             override val from: Account,
             @Serializable(BigIntegerSerializer::class) override val amount: BigInteger = BigInteger.ZERO,
             override val destination: DestinationAddress = DestinationAddress(""),
             override val memo: String? = null,
             override val useMaxAmount: Boolean = false,
-            override val inputType: InputType? = null,
+            override val inputType: InputType,
             val isSendable: Boolean,
-            val name: String,
-            val description: String,
-            val url: String,
-            val icon: String,
+            val metadata: ApplicationMetadata,
+            val data: String,
             val gasLimit: String?,
             val decodedTransactionType: TransactionType = TransactionType.SmartContractCall,
             val approval: ApprovalData? = null,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType {
-                val type = requireNotNull(inputType) { "inputType is required for Generic transactions" }
                 return Generic(
-                asset = asset.toGem(),
-                metadata = GemWalletConnectionSessionAppMetadata(
-                    name = name,
-                    description = description,
-                    url = url,
-                    icon = icon,
-                ),
-                extra = GemTransferDataExtra(
-                    gasLimit = null,
-                    gasPrice = null,
-                    data = memo?.let { data ->
-                        if (data.has0xPrefix()) {
-                            try {
-                                return@let data.fromHex()
-                            } catch (_: Error) { }
-                        }
-                        data.toByteArray()
-                    },
-                    outputType = when (type) {
-                        InputType.Signature -> TransferDataOutputType.SIGNATURE
-                        InputType.EncodeTransaction -> TransferDataOutputType.ENCODED_TRANSACTION
-                    },
-                    outputAction = when (type) {
-                        InputType.Signature -> TransferDataOutputAction.SIGN
-                        InputType.EncodeTransaction -> TransferDataOutputAction.SEND
-                    },
-                    transactionType = decodedTransactionType.toGem(),
-                    to = destination().address
-                ),
-            )
+                    asset = asset.toGem(),
+                    metadata = metadata.toGem(),
+                    extra = GemTransferDataExtra(
+                        gasLimit = gasLimit,
+                        gasPrice = null,
+                        data = data.let { data ->
+                            if (data.has0xPrefix()) {
+                                try {
+                                    return@let data.fromHex()
+                                } catch (_: IllegalArgumentException) { }
+                            }
+                            data.toByteArray()
+                        },
+                        outputType = when (inputType) {
+                            InputType.Signature -> TransferDataOutputType.SIGNATURE
+                            InputType.EncodeTransaction -> TransferDataOutputType.ENCODED_TRANSACTION
+                        },
+                        outputAction = when (inputType) {
+                            InputType.Signature -> TransferDataOutputAction.SIGN
+                            InputType.EncodeTransaction -> TransferDataOutputAction.SEND
+                        },
+                        transactionType = decodedTransactionType.toGem(),
+                        to = destination().address,
+                    ),
+                )
             }
 
             override fun hashCode(): Int {
                 var result = asset.hashCode()
-                result = 31 * result + requestId.hashCode()
                 result = 31 * result + from.hashCode()
                 result = 31 * result + amount.hashCode()
                 result = 31 * result + destination.hashCode()
                 result = 31 * result + memo.hashCode()
                 result = 31 * result + useMaxAmount.hashCode()
-                result = 31 * result + name.hashCode()
-                result = 31 * result + destination.hashCode()
-                result = 31 * result + url.hashCode()
-                result = 31 * result + icon.hashCode()
+                result = 31 * result + metadata.hashCode()
+                result = 31 * result + data.hashCode()
                 result = 31 * result + (gasLimit?.hashCode() ?: 0)
                 result = 31 * result + decodedTransactionType.hashCode()
                 result = 31 * result + (approval?.hashCode() ?: 0)

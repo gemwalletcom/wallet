@@ -3,11 +3,13 @@ package com.gemwallet.android.ext
 import com.wallet.core.primitives.Payment
 import com.wallet.core.primitives.PaymentAmount
 import com.wallet.core.primitives.PaymentLink
+import com.wallet.core.primitives.PaymentLinkSolanaPayInner
 import com.wallet.core.primitives.PaymentRequest
 import uniffi.gemstone.GemPayment
 import uniffi.gemstone.GemPaymentAmount
 import uniffi.gemstone.GemPaymentLink
 import uniffi.gemstone.GemPaymentRequest
+import uniffi.gemstone.GemPaymentException
 
 fun GemPayment.toPrimitives(): Payment = when (this) {
     is GemPayment.Request -> Payment.Request(v1.toPrimitives())
@@ -27,5 +29,16 @@ fun GemPaymentAmount.toPrimitives(): PaymentAmount = when (this) {
 }
 
 fun GemPaymentLink.toPrimitives(): PaymentLink = when (this) {
-    is GemPaymentLink.SolanaPay -> PaymentLink.SolanaPay(v1)
+    is GemPaymentLink.SolanaPay -> PaymentLink.SolanaPay(PaymentLinkSolanaPayInner(url))
 }
+
+fun PaymentLink.toGem(): GemPaymentLink = when (this) {
+    is PaymentLink.SolanaPay -> GemPaymentLink.SolanaPay(content.url)
+}
+
+val GemPaymentException.userMessage: String?
+    get() = when (this) {
+        is GemPaymentException.InvalidRequest -> reason
+        is GemPaymentException.Network -> reason
+        is GemPaymentException.NoPaymentOptions -> null
+    }

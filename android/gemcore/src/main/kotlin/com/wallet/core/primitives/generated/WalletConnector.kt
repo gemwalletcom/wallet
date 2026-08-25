@@ -8,18 +8,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-data class WalletConnectionSessionAppMetadata (
-	val name: String,
-	val description: String,
-	val url: String,
-	val icon: String
-)
-
-@Serializable
 data class WalletConnectionSessionProposal (
 	val defaultWallet: Wallet,
 	val wallets: List<Wallet>,
-	val metadata: WalletConnectionSessionAppMetadata
+	val metadata: ApplicationMetadata
 )
 
 @Serializable
@@ -59,7 +51,7 @@ data class WalletConnectionSession (
 	val chains: List<Chain>,
 	val createdAt: SerializedDate,
 	val expireAt: SerializedDate,
-	val metadata: WalletConnectionSessionAppMetadata
+	val metadata: ApplicationMetadata
 )
 
 @Serializable

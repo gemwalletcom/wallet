@@ -3,8 +3,8 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.annotation.VisibleForTesting
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.ext.request
 import com.gemwallet.android.ext.toPrimitives
+import com.wallet.core.primitives.Payment
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +28,8 @@ internal sealed interface PendingNavigation {
     data class FromScan(override val code: String) : Input
 
     data class Routes(val routes: List<NavKey>) : PendingNavigation
+
+    data class Loading(val input: Input) : PendingNavigation
 }
 
 @Singleton
@@ -56,6 +58,11 @@ class PendingNavigationCoordinator @Inject constructor(
     suspend fun buildRoutes(walletConnect: WalletConnectHandler): Boolean {
         val pending = _pendingNavigation.value as? PendingNavigation.Input ?: return true
         val action = pending.code?.let(::urlAction)
+        val loading = if (action is UrlAction.Payment && action.payment.toPrimitives() is Payment.Link) {
+            PendingNavigation.Loading(pending).also { replace(pending, it) }
+        } else {
+            null
+        }
 
         val routes = when {
             action != null -> routes(action, walletConnect)
@@ -63,7 +70,7 @@ class PendingNavigationCoordinator @Inject constructor(
             else -> emptyList()
         }
 
-        replace(pending, routes.takeIf { it.isNotEmpty() }?.let(PendingNavigation::Routes))
+        replace(loading ?: pending, routes.takeIf { it.isNotEmpty() }?.let(PendingNavigation::Routes))
 
         return when (pending) {
             is PendingNavigation.FromIntent -> true
@@ -81,10 +88,7 @@ class PendingNavigationCoordinator @Inject constructor(
             emptyList()
         }
         is UrlAction.Deeplink -> listOfNotNull(action.deeplink.toRoute())
-        is UrlAction.Payment -> when (val request = action.payment.toPrimitives().request) {
-            null -> emptyList()
-            else -> paymentNavigation.prepareNavigation(request)
-        }
+        is UrlAction.Payment -> paymentNavigation.routes(action.payment.toPrimitives())
     }
 
     private fun replace(pending: PendingNavigation, replacement: PendingNavigation?) {

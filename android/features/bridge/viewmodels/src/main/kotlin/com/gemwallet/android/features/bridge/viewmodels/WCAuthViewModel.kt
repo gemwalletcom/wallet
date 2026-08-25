@@ -29,7 +29,8 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
+import com.wallet.core.primitives.ApplicationMetadata
+import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -332,11 +333,12 @@ class WCAuthViewModel @Inject constructor(
     }
 
     private fun WalletConnectAuthenticationRequest.toSessionUI(): SessionUI {
-        return WalletConnectionSessionAppMetadata(
+        return ApplicationMetadata(
             name = walletConnectAppName(metadata?.name, metadata?.url),
             description = metadata?.description ?: "",
             url = metadata?.url ?: "",
             icon = metadata?.icon ?: "",
+            source = ApplicationMetadataSource.WalletConnect,
         ).toSessionUI()
     }
 

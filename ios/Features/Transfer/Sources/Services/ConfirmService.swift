@@ -59,11 +59,16 @@ public struct ConfirmService: Sendable {
     }
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
-        async let simulation = loadSimulationState(request: request)
+        async let simulation = simulation(request: request)
         async let feeAssets = inputProvider.feeAssets(walletId: request.wallet.id, chain: request.data.chain)
         async let preload = preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
 
-        return try await ConfirmTransferData(preload: preload, simulation: simulation, feeAssets: feeAssets)
+        let (preload, simulation, feeAssets) = try await (preload, simulation, feeAssets)
+        return await ConfirmTransferData(
+            preload: preload,
+            simulation: simulationService.updateState(data: request.data, simulation: simulation),
+            feeAssets: feeAssets,
+        )
     }
 
     func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
@@ -111,8 +116,8 @@ public struct ConfirmService: Sendable {
 // MARK: - Private
 
 private extension ConfirmService {
-    func loadSimulationState(request: ConfirmTransferRequest) async throws -> ConfirmSimulationState {
-        let simulation: SimulationResult? = if let requestSimulation = request.simulation {
+    func simulation(request: ConfirmTransferRequest) async throws -> SimulationResult? {
+        if let requestSimulation = request.simulation {
             requestSimulation
         } else if request.data.type.applicationMetadata?.source == .payment {
             try await transactionSimulationService.simulateTransaction(
@@ -123,7 +128,6 @@ private extension ConfirmService {
         } else {
             nil
         }
-        return await simulationService.updateState(data: request.data, simulation: simulation)
     }
 
     func updateRecent(data: RecentActivityData, walletId: WalletId) {

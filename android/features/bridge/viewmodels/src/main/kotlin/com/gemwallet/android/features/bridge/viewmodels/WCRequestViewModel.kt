@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
+import com.gemwallet.android.blockchain.services.TransactionSimulationService
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
@@ -25,9 +26,9 @@ import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.WalletConnectionSession
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +52,7 @@ class WCRequestViewModel @Inject constructor(
     private val bridgeRepository: BridgesRepository,
     private val passwordStore: PasswordStore,
     private val signMessageOperator: GemSignMessageOperator,
-    private val simulationService: com.gemwallet.android.blockchain.services.WalletConnectSimulationService,
+    private val simulationService: TransactionSimulationService,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
@@ -191,7 +192,7 @@ class WCRequestViewModel @Inject constructor(
         action: WalletConnectAction,
         sessionRequest: WalletConnectSessionRequest,
         account: Account,
-        appMetadata: WalletConnectionSessionAppMetadata,
+        appMetadata: ApplicationMetadata,
         chain: Chain,
         sessionDomain: String,
     ): WCRequest = when (action) {

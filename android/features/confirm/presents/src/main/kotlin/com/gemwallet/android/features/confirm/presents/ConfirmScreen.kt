@@ -3,8 +3,10 @@ package com.gemwallet.android.features.confirm.presents
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,8 +21,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.title
@@ -37,7 +41,7 @@ import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.features.confirm.presents.components.FeeDetails
 import com.gemwallet.android.features.confirm.presents.components.PropertyDestination
 import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
-import com.gemwallet.android.features.confirm.viewmodels.reorderWalletConnectProperties
+import com.gemwallet.android.features.confirm.viewmodels.reorderRequestProperties
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ValueFormatter
@@ -48,6 +52,7 @@ import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.ApplicationMetadataSource
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_head.AmountListHead
@@ -104,11 +109,13 @@ fun ConfirmScreen(
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
-    val isWalletConnect = params is ConfirmParams.TransferParams.Generic
-    val displayTxProperties = if (isWalletConnect) txProperties.reorderWalletConnectProperties() else txProperties
+    val request = params as? ConfirmParams.TransferParams.Generic
+    val isExternalRequest = request != null
+    val isPayment = request?.metadata?.source == ApplicationMetadataSource.Payment
+    val displayTxProperties = if (isExternalRequest) txProperties.reorderRequestProperties() else txProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
-    var showWalletConnectDetails by remember { mutableStateOf(false) }
+    var showSimulationDetails by remember { mutableStateOf(false) }
     var selectedDetailElement by remember(params) { mutableStateOf<ConfirmDetailElement?>(null) }
     var isShowedBroadcastError by remember((state as? ConfirmState.BroadcastError)?.message) {
         mutableStateOf(state is ConfirmState.BroadcastError)
@@ -131,8 +138,8 @@ fun ConfirmScreen(
 
     val perpetualType by viewModel.perpetualType.collectAsStateWithLifecycle()
     Scene(
-        title = confirmTitle(isWalletConnect, amountModel?.transactionType, perpetualType),
-        closeIcon = isWalletConnect,
+        title = confirmTitle(isExternalRequest, amountModel?.transactionType, perpetualType),
+        closeIcon = isExternalRequest,
         onClose = { cancelAction() },
         mainAction = {
             MainActionButton(
@@ -152,6 +159,14 @@ fun ConfirmScreen(
         ) {
             item {
                 when {
+                    isPayment && simulation.headerAsset == null -> Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .alpha(0f)
+                            .clearAndSetSemantics { },
+                    ) {
+                        AmountListHead(amount = "", icon = params.asset)
+                    }
                     simulation.headerAsset != null -> {
                         val asset = requireNotNull(simulation.headerAsset)
                         val title = if (simulation.headerIsUnlimited) {
@@ -232,7 +247,7 @@ fun ConfirmScreen(
                 addressNames = payloadAddressNames,
                 onDetailsClick = simulation.secondaryPayloadFields
                     .takeIf { it.isNotEmpty() }
-                    ?.let { { showWalletConnectDetails = true } },
+                    ?.let { { showSimulationDetails = true } },
             )
             confirmBalanceChangesContent(simulation.balanceChanges)
             item {
@@ -289,8 +304,8 @@ fun ConfirmScreen(
         )
 
         ModalBottomSheet(
-            isVisible = showWalletConnectDetails,
-            onDismissRequest = { showWalletConnectDetails = false },
+            isVisible = showSimulationDetails,
+            onDismissRequest = { showSimulationDetails = false },
             skipPartiallyExpanded = true,
             title = stringResource(R.string.common_details),
         ) {
@@ -409,11 +424,11 @@ fun ConfirmError.toLabel() = when (this) {
 
 @Composable
 private fun confirmTitle(
-    isWalletConnect: Boolean,
+    isExternalRequest: Boolean,
     transactionType: TransactionType?,
     perpetualType: PerpetualType?,
 ): String = when {
-    isWalletConnect -> stringResource(R.string.transfer_review_request)
+    isExternalRequest -> stringResource(R.string.transfer_review_request)
     perpetualType != null -> perpetualType.title()
     else -> stringResource(transactionType?.getTitle() ?: R.string.transfer_title)
 }

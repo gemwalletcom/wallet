@@ -31,8 +31,7 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
             .find(|address| address.chain == Chain::Solana)
             .cloned()
             .ok_or(PaymentError::NoPaymentOptions)?;
-        let info = self.client.get_info().await?;
-        let response = self.client.get_transaction(&account.address).await?;
+        let (info, response) = futures::try_join!(self.client.get_info(), self.client.get_transaction(&account.address))?;
         let prepared = crate::solana_pay::transaction::prepare(&response.transaction, &account.address).map_err(|reason| PaymentError::InvalidRequest { reason })?;
 
         Ok(PaymentTransaction {

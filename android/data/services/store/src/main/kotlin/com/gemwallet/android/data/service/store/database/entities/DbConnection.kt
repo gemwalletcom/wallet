@@ -6,10 +6,11 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ApplicationMetadata
+import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.WalletConnectionSession
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import com.wallet.core.primitives.WalletConnectionState
 
 @Entity(
@@ -45,11 +46,12 @@ fun DbConnection.toDTO(wallet: Wallet): WalletConnection {
             createdAt = createdAt,
             expireAt = expireAt,
             chains = chains,
-            metadata = WalletConnectionSessionAppMetadata(
+            metadata = ApplicationMetadata(
                 name = appName,
                 description = appDescription,
                 icon = appIcon,
                 url = appUrl,
+                source = ApplicationMetadataSource.WalletConnect,
             ),
         )
     )

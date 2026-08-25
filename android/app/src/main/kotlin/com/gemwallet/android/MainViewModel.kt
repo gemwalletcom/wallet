@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.ext.userMessage
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.CheckAccountsService
 import com.gemwallet.android.services.MigrateV3KeystoreService
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemPaymentException
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 
@@ -76,9 +78,20 @@ class MainViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .filter { it }
                 .collect {
-                    val handled = pendingNavigationCoordinator.buildRoutes(walletConnectHandler)
-                    if (!handled) {
-                        _uiState.update { it.copy(isScanErrorVisible = true) }
+                    try {
+                        val handled = pendingNavigationCoordinator.buildRoutes(walletConnectHandler)
+                        if (!handled) {
+                            _uiState.update { it.copy(isScanErrorVisible = true) }
+                        }
+                    } catch (error: GemPaymentException) {
+                        val isLoadingPayment = pendingNavigationCoordinator.pendingNavigation.value is PendingNavigation.Loading
+                        pendingNavigationCoordinator.clear()
+                        if (isLoadingPayment) {
+                            _uiState.update { state ->
+                                error.userMessage?.let { state.copy(navigationError = it) }
+                                    ?: state.copy(isScanErrorVisible = true)
+                            }
+                        }
                     }
                 }
         }
@@ -169,8 +182,14 @@ class MainViewModel @Inject constructor(
         _uiState.update { it.copy(isWalletConnectPairingToastVisible = false) }
     }
 
-    fun resetWalletConnectError() {
-        _uiState.update { it.copy(walletConnectError = null, isWalletConnectUnsupportedVisible = false) }
+    fun resetError() {
+        _uiState.update {
+            it.copy(
+                navigationError = null,
+                walletConnectError = null,
+                isWalletConnectUnsupportedVisible = false,
+            )
+        }
     }
 
     fun showWalletConnectError(error: String) {
@@ -207,6 +226,7 @@ class MainViewModel @Inject constructor(
         val hasUnlockedApp: Boolean = false,
         val isWalletConnectPairingToastVisible: Boolean = false,
         val walletConnectError: String? = null,
+        val navigationError: String? = null,
         val isWalletConnectUnsupportedVisible: Boolean = false,
         val isScanErrorVisible: Boolean = false,
     )

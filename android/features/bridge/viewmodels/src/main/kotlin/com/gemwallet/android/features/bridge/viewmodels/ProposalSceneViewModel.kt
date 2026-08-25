@@ -15,7 +15,8 @@ import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOrigi
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
+import com.wallet.core.primitives.ApplicationMetadata
+import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -51,11 +52,12 @@ class ProposalSceneViewModel @Inject constructor(
     val proposal = _proposal.map {
         it ?: return@map null
         val icons = it.icons
-        WalletConnectionSessionAppMetadata(
+        ApplicationMetadata(
             name = walletConnectAppName(it.name, it.url),
             description = it.description,
             url = it.url,
             icon = icons.walletConnectIcon(),
+            source = ApplicationMetadataSource.WalletConnect,
         ).toSessionUI()
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)

@@ -23,10 +23,11 @@ import java.util.concurrent.TimeUnit
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemPreferences
+import uniffi.gemstone.PaymentService
+import uniffi.gemstone.PaymentServiceInterface
 import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.serviceStatusTimeoutSeconds
-import uniffi.gemstone.WalletConnectSimulationClient
-import uniffi.gemstone.WalletConnectSimulationClientInterface
+import uniffi.gemstone.TransactionSimulationService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -79,6 +80,10 @@ object GatewayModule {
         )
     }
 
+    @Provides
+    @Singleton
+    fun providePaymentService(alienProvider: AlienProvider): PaymentServiceInterface = PaymentService(alienProvider)
+
     @Singleton
     @Provides
     fun provideNodeAuthInterceptor(preferences: GemPreferences): NodeAuthInterceptor = NodeAuthInterceptor(preferences)
@@ -107,8 +112,8 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideWalletConnectSimulationService(
+    fun provideTransactionSimulationService(
         alienProvider: AlienProvider,
-    ): com.gemwallet.android.blockchain.services.WalletConnectSimulationService =
-        com.gemwallet.android.blockchain.services.WalletConnectSimulationService(WalletConnectSimulationClient(alienProvider))
+    ): com.gemwallet.android.blockchain.services.TransactionSimulationService =
+        com.gemwallet.android.blockchain.services.TransactionSimulationService(TransactionSimulationService(alienProvider))
 }

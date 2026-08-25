@@ -11,6 +11,7 @@ gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_solana = { path = "../gem_solana" }
 solana-primitives = { workspace = true }
 
+futures = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
