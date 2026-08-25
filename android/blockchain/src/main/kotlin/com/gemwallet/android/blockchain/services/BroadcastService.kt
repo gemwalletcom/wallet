@@ -1,8 +1,6 @@
 package com.gemwallet.android.blockchain.services
 
 import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.TransactionType
 import uniffi.gemstone.BroadcastOptions
 import uniffi.gemstone.GemGateway
 
@@ -13,21 +11,12 @@ class BroadcastService(
     suspend fun send(
         account: Account,
         signedMessage: ByteArray,
-        type: TransactionType
+        options: BroadcastOptions,
     ): String {
-        val hash = gateway.transactionBroadcast(
+        return gateway.transactionBroadcast(
             chain = account.chain.string,
             data = String(signedMessage),
-            options = BroadcastOptions(
-                skipPreflight = when (account.chain) {
-                    Chain.Solana -> when (type) {
-                        TransactionType.Swap -> true
-                        else -> false
-                    }
-                    else -> false
-                }
-            )
+            options = options,
         )
-        return hash
     }
 }

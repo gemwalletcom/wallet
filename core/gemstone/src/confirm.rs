@@ -7,12 +7,12 @@ use async_trait::async_trait;
 use crate::GemstoneError;
 use crate::fee::custom_gas_price;
 use crate::gateway::GemGateway;
-use crate::models::gateway::{GemFeeRate, GemTransactionPreloadInput};
+use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::scan::{GemScanTransaction, GemScanTransactionPayload};
 use crate::models::transaction::{GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput, GemTransactionLoadMetadata};
 use crate::transaction_simulation::TransactionSimulationService;
 use num_bigint::BigInt;
-use primitives::{Account, ApplicationMetadataSource, AssetId, Chain, FeePriority, ScanAddressTarget, SimulationResult, TransactionPreloadInput};
+use primitives::{Account, ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, SimulationResult, TransactionPreloadInput};
 
 pub type GemAccount = Account;
 
@@ -193,6 +193,34 @@ impl GemConfirmService {
     }
 }
 
+#[uniffi::export]
+pub fn broadcast_options(chain: Chain, input_type: &GemTransactionInputType) -> GemBroadcastOptions {
+    match (chain, input_type) {
+        (Chain::Solana, GemTransactionInputType::Swap { .. } | GemTransactionInputType::Generic { .. }) => GemBroadcastOptions { skip_preflight: true },
+        _ => GemBroadcastOptions { skip_preflight: false },
+    }
+}
+
+#[uniffi::export]
+pub fn broadcast_delay_milliseconds(chain: Chain) -> u64 {
+    match chain.chain_type() {
+        ChainType::Ethereum | ChainType::HyperCore => 0,
+        ChainType::Solana
+        | ChainType::Bitcoin
+        | ChainType::Cosmos
+        | ChainType::Ton
+        | ChainType::Tron
+        | ChainType::Aptos
+        | ChainType::Sui
+        | ChainType::Near
+        | ChainType::Stellar
+        | ChainType::Algorand
+        | ChainType::Xrp
+        | ChainType::Polkadot
+        | ChainType::Cardano => 500,
+    }
+}
+
 fn validate_scan(scan: Option<&GemScanTransaction>, memo: Option<&str>, symbol: &str) -> Result<(), GemConfirmError> {
     let Some(scan) = scan else {
         return Ok(());
@@ -252,6 +280,7 @@ fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSelection) -> 
 mod tests {
     use super::*;
     use crate::models::gateway::GemGasPriceType;
+    use primitives::{ApplicationMetadata, Asset, TransferDataExtra, swap::SwapData};
 
     fn rate(priority: &str, gas_price: &str) -> GemFeeRate {
         GemFeeRate {
@@ -283,6 +312,30 @@ mod tests {
             Err(GemConfirmError::FeeRatesMissing) => {}
             result => panic!("expected missing fee rates, got {result:?}"),
         }
+    }
+
+    #[test]
+    fn test_broadcast_policy() {
+        let transfer = GemTransactionInputType::Transfer { asset: Asset::mock_sol() };
+        let swap = GemTransactionInputType::Swap {
+            from_asset: Asset::mock_sol(),
+            to_asset: Asset::mock_spl_token(),
+            swap_data: SwapData::mock(),
+        };
+        let payment = GemTransactionInputType::Generic {
+            asset: Asset::mock_sol(),
+            metadata: ApplicationMetadata::mock(),
+            extra: TransferDataExtra::mock().into(),
+        };
+
+        assert!(broadcast_options(Chain::Solana, &swap).skip_preflight);
+        assert!(broadcast_options(Chain::Solana, &payment).skip_preflight);
+        assert!(!broadcast_options(Chain::Solana, &transfer).skip_preflight);
+        assert!(!broadcast_options(Chain::Ethereum, &payment).skip_preflight);
+
+        assert_eq!(broadcast_delay_milliseconds(Chain::Ethereum), 0);
+        assert_eq!(broadcast_delay_milliseconds(Chain::HyperCore), 0);
+        assert_eq!(broadcast_delay_milliseconds(Chain::Solana), 500);
     }
 
     #[test]

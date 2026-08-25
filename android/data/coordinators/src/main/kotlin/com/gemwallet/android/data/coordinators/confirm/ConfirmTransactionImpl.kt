@@ -20,6 +20,8 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
+import uniffi.gemstone.broadcastDelayMilliseconds
+import uniffi.gemstone.broadcastOptions
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
@@ -57,6 +59,7 @@ class ConfirmTransactionImpl(
             return signedTransactions.first().data
         }
 
+        val broadcastOptions = broadcastOptions(account.chain.string, signerParams.input.toDto())
         var lastHash = ""
         for ((index, signedTransaction) in signedTransactions.withIndex()) {
             val isFinalTransaction = index == signedTransactions.lastIndex
@@ -68,7 +71,7 @@ class ConfirmTransactionImpl(
             val transactionHash = broadcastService.send(
                 account = account,
                 signedMessage = signedTransaction.data.toByteArray(),
-                type = transactionType,
+                options = broadcastOptions,
             )
             addTransaction(
                 transactionHash = transactionHash,
@@ -83,7 +86,7 @@ class ConfirmTransactionImpl(
                 isFinalTransaction = isFinalTransaction,
             )
             if (!isFinalTransaction) {
-                delay(500)
+                delay(broadcastDelayMilliseconds(account.chain.string).toLong())
             } else {
                 lastHash = transactionHash
                 scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }

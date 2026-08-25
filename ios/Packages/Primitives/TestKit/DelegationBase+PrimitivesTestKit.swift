@@ -7,9 +7,9 @@ public extension DelegationBase {
     static func mock(
         state: DelegationState,
         assetId: AssetId = .mock(),
-        balance: String = .empty,
-        shares: String = .empty,
-        rewards: String = .empty,
+        balance: String = "0",
+        shares: String = "0",
+        rewards: String = "0",
         completionDate: Date? = nil,
         delegationId: String = .empty,
         validatorId: String = .empty,
