@@ -56,7 +56,7 @@ impl ProviderType {
 
     pub fn slippage_mode(id: SwapperProvider) -> SlippageMode {
         match id {
-            SwapperProvider::Okx | SwapperProvider::Squid | SwapperProvider::Mayan => SlippageMode::Auto,
+            SwapperProvider::Okx | SwapperProvider::Squid | SwapperProvider::Mayan | SwapperProvider::Relay => SlippageMode::Auto,
             SwapperProvider::UniswapV3
             | SwapperProvider::UniswapV4
             | SwapperProvider::PancakeswapV3
@@ -73,7 +73,6 @@ impl ProviderType {
             | SwapperProvider::Chainflip
             | SwapperProvider::Thorchain
             | SwapperProvider::NearIntents
-            | SwapperProvider::Relay
             | SwapperProvider::Across
             | SwapperProvider::Hyperliquid
             | SwapperProvider::SwapsXyz => SlippageMode::Exact,

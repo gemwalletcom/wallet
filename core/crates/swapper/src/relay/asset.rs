@@ -9,16 +9,17 @@ use primitives::{
         ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID,
         GNOSIS_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, HYPEREVM_USDT_ASSET_ID, INK_USDC_ASSET_ID, INK_USDT0_ASSET_ID, LINEA_USDT_ASSET_ID, MANTLE_USDC_ASSET_ID,
         MONAD_USDC_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, PLASMA_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SEIEVM_USDC_ASSET_ID,
-        SEIEVM_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID,
-        UNICHAIN_USDC_ASSET_ID, WORLD_USDC_E_ASSET_ID, ZKSYNC_USDT_ASSET_ID,
+        SEIEVM_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID, TRON_USDT_ASSET_ID,
+        TRON_USDT_TOKEN_ID, UNICHAIN_USDC_ASSET_ID, WORLD_USDC_E_ASSET_ID, ZKSYNC_USDT_ASSET_ID,
     },
-    contract_constants::EVM_ZERO_ADDRESS,
+    contract_constants::{EVM_ZERO_ADDRESS, TRON_BLACK_HOLE_ADDRESS},
 };
 
 fn is_native_currency(chain: Chain, currency: &str) -> bool {
     match chain {
         Chain::Bitcoin => true,
         Chain::Solana => currency == SYSTEM_PROGRAM_ID || currency == WSOL_TOKEN_ADDRESS,
+        Chain::Tron => currency == TRON_BLACK_HOLE_ADDRESS,
         _ if currency == EVM_ZERO_ADDRESS => true,
         _ => false,
     }
@@ -27,6 +28,9 @@ fn is_native_currency(chain: Chain, currency: &str) -> bool {
 pub fn map_currency_to_asset_id(chain: Chain, currency: &str) -> AssetId {
     if is_native_currency(chain, currency) {
         return AssetId::from_chain(chain);
+    }
+    if chain == Chain::Tron && currency == TRON_USDT_TOKEN_ID {
+        return TRON_USDT_ASSET_ID.clone();
     }
     if let ChainType::Ethereum = chain.chain_type()
         && let Ok(address) = ethereum_address_checksum(currency)
@@ -68,6 +72,7 @@ pub static SUPPORTED_CHAINS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
             Chain::Tempo,
             vec![TEMPO_BRIDGED_USDC_ASSET_ID.clone(), TEMPO_PATHUSD_ASSET_ID.clone(), TEMPO_USDT0_ASSET_ID.clone()],
         ),
+        SwapperChainAsset::Assets(Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
     ]
 });
 
@@ -78,6 +83,15 @@ pub fn asset_to_currency(asset_id: &AssetId) -> Result<String, SwapperError> {
                 Ok(EVM_ZERO_ADDRESS.to_string())
             } else {
                 asset_id.token_id.clone().ok_or(SwapperError::NotSupportedAsset)
+            }
+        }
+        ChainType::Tron => {
+            if asset_id.is_native() {
+                Ok(TRON_BLACK_HOLE_ADDRESS.to_string())
+            } else if asset_id == &*TRON_USDT_ASSET_ID {
+                Ok(TRON_USDT_TOKEN_ID.to_string())
+            } else {
+                Err(SwapperError::NotSupportedAsset)
             }
         }
         _ => Err(SwapperError::NotSupportedChain),
@@ -105,6 +119,16 @@ mod tests {
     #[test]
     fn test_non_evm_asset_not_supported() {
         assert_eq!(asset_to_currency(&AssetId::from_chain(Chain::Solana)), Err(SwapperError::NotSupportedChain));
+    }
+
+    #[test]
+    fn test_tron_assets() {
+        assert_eq!(asset_to_currency(&AssetId::from_chain(Chain::Tron)).unwrap(), TRON_BLACK_HOLE_ADDRESS);
+        assert_eq!(asset_to_currency(&TRON_USDT_ASSET_ID).unwrap(), TRON_USDT_TOKEN_ID);
+        assert_eq!(asset_to_currency(&AssetId::from_token(Chain::Tron, "TUnknownToken")), Err(SwapperError::NotSupportedAsset));
+
+        assert_eq!(map_currency_to_asset_id(Chain::Tron, TRON_BLACK_HOLE_ADDRESS), AssetId::from_chain(Chain::Tron));
+        assert_eq!(map_currency_to_asset_id(Chain::Tron, TRON_USDT_TOKEN_ID), TRON_USDT_ASSET_ID.clone());
     }
 
     #[test]
