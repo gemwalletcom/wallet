@@ -30,7 +30,9 @@ impl<C: Client + Clone> ChainBlockTransactions for EthereumProvider<C> {
 #[cfg(feature = "rpc")]
 impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn get_transactions_by_block_with_receipts(&self, block_number: u64) -> Result<Vec<(Transaction, TransactionReceipt)>, Box<dyn Error + Sync + Send>> {
-        let block = self.get_block(block_number).await?;
+        let Some(block) = self.get_block(block_number).await? else {
+            return Err(format!("block {block_number} not available").into());
+        };
         if block.transactions.is_empty() {
             return Ok(Vec::new());
         }
@@ -97,9 +99,9 @@ impl<C: Client + Clone> ChainTransaction for EthereumProvider<C> {
 
 #[cfg(all(test, feature = "rpc"))]
 mod tests {
-    use chain_traits::{ChainTransaction, TransactionIdRequest};
+    use chain_traits::{ChainBlockTransactions, ChainTransaction, TransactionIdRequest};
     use gem_client::{ClientError, testkit::MockClient};
-    use gem_jsonrpc::JsonRpcClient;
+    use gem_jsonrpc::{JsonRpcClient, testkit::mock_jsonrpc_client};
     use primitives::{Chain, EVMChain, testkit::json::load_json_rpc_result};
     use serde_json::{Value, json};
 
@@ -107,6 +109,16 @@ mod tests {
         method,
         rpc::{EthereumClient, EthereumProvider},
     };
+
+    #[tokio::test]
+    async fn test_get_transactions_by_block_null() {
+        let client = mock_jsonrpc_client(|_, _| Ok(Value::Null));
+        let provider = EthereumProvider::new_rpc_only(EthereumClient::new(client, EVMChain::Ink));
+
+        let error = provider.get_transactions_by_block(54181824).await.unwrap_err();
+
+        assert_eq!(error.to_string(), "block 54181824 not available");
+    }
 
     #[tokio::test]
     async fn test_get_transaction_by_hash_batches_known_block() {
