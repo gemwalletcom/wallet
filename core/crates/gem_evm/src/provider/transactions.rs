@@ -38,12 +38,14 @@ impl<C: Client + Clone> EthereumProvider<C> {
         }
 
         let receipts = self.get_block_receipts(block_number).await?;
-        let chain = self.get_chain();
         Ok(block
             .transactions
             .into_iter()
             .zip(receipts)
-            .filter_map(|(transaction, receipt)| EthereumMapper::map_transaction(chain, &transaction, &receipt, &block.timestamp).map(|transaction| (transaction, receipt)))
+            .filter_map(|(transaction, receipt)| {
+                EthereumMapper::map_transaction_with_parser(self.get_chain(), &transaction, &receipt, &block.timestamp, self.provider.protocol_parser())
+                    .map(|transaction| (transaction, receipt))
+            })
             .collect())
     }
 
@@ -85,7 +87,10 @@ impl<C: Client + Clone> EthereumProvider<C> {
             Some(timestamp) => timestamp,
             None => self.get_block_timestamp(receipt.block_number).await?,
         };
-        Ok(EthereumMapper::map_transaction(self.get_chain(), &transaction, &receipt, &timestamp).map(|transaction| (transaction, receipt)))
+        Ok(
+            EthereumMapper::map_transaction_with_parser(self.get_chain(), &transaction, &receipt, &timestamp, self.provider.protocol_parser())
+                .map(|transaction| (transaction, receipt)),
+        )
     }
 }
 

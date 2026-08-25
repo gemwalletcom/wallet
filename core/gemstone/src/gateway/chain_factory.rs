@@ -6,6 +6,7 @@ use gem_aptos::rpc::client::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::client::CardanoClient;
 use gem_cosmos::rpc::client::CosmosClient;
+use gem_everstake::EverstakeStakingClient;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
@@ -81,10 +82,12 @@ impl ChainClientFactory {
                 let client = EthereumClient::new(JsonRpcClient::new(alien_client), evm_chain);
                 let provider = TempoProvider::new_or_else(client, |client| {
                     if evm_chain.is_opstack() {
-                        let fee_calculator = Box::new(OptimismGasOracle::new(client.clone()));
-                        Box::new(EthereumProvider::new_rpc_only_with_fee_calculator(client, fee_calculator))
+                        Box::new(EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(OptimismGasOracle::new(client))))
                     } else {
-                        Box::new(EthereumProvider::new_rpc_only(client))
+                        Box::new(match evm_chain {
+                            EVMChain::Ethereum => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, String::new()))),
+                            _ => EthereumProvider::new_rpc_only(client),
+                        })
                     }
                 });
                 Ok(Arc::from(provider))

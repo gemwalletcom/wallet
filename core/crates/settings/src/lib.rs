@@ -28,6 +28,7 @@ pub struct Settings {
     pub defi: Defi,
     pub coingecko: CoinGecko,
     pub coinmarketcap: CoinMarketCap,
+    pub everstake: URL,
     pub name: Name,
     pub chains: Chains,
     pub pusher: Pusher,

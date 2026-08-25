@@ -3786,6 +3786,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_everstake"
+version = "2.114.10"
+dependencies = [
+ "alloy-primitives",
+ "alloy-sol-types",
+ "async-trait",
+ "chrono",
+ "gem_client",
+ "gem_evm",
+ "num-bigint 0.5.1",
+ "num-traits",
+ "primitives",
+ "serde",
+ "serde_serializers",
+ "settings",
+ "tokio",
+]
+
+[[package]]
 name = "gem_evm"
 version = "2.114.11"
 dependencies = [
@@ -4202,6 +4221,7 @@ dependencies = [
  "gem_cosmos",
  "gem_crypto",
  "gem_derivation",
+ "gem_everstake",
  "gem_evm",
  "gem_hypercore",
  "gem_jsonrpc",
@@ -8017,6 +8037,7 @@ dependencies = [
  "gem_cardano",
  "gem_client",
  "gem_cosmos",
+ "gem_everstake",
  "gem_evm",
  "gem_hypercore",
  "gem_jsonrpc",

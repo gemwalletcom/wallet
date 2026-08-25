@@ -74,3 +74,13 @@ impl StakeChain {
         self.config().reserved_for_fees
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::StakeChain;
+
+    #[test]
+    fn test_ethereum_min_stake_amount() {
+        assert_eq!(StakeChain::Ethereum.get_min_stake_amount(), 10u64.pow(16));
+    }
+}

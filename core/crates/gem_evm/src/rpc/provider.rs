@@ -3,16 +3,10 @@ use std::{error::Error, ops::Deref};
 use async_trait::async_trait;
 use chain_traits::{ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
-use num_bigint::BigInt;
-use primitives::{AssetBalance, TransactionFee, TransactionLoadInput};
+use primitives::AssetBalance;
 
 use super::EthereumClient;
-use crate::provider::preload_mapper::TransactionParams;
-
-#[async_trait]
-pub trait EvmFeeCalculator: Send + Sync {
-    async fn calculate_fee(&self, input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>>;
-}
+use super::chain_provider::EvmChainProvider;
 
 #[async_trait]
 pub trait AssetBalanceProvider: Send + Sync {
@@ -32,7 +26,7 @@ pub struct EthereumProvider<C: Client + Clone> {
     client: EthereumClient<C>,
     transactions_by_address_provider: Box<dyn ChainTransactions>,
     asset_balance_provider: Box<dyn AssetBalanceProvider>,
-    pub(crate) fee_calculator: Box<dyn EvmFeeCalculator>,
+    pub(crate) provider: Box<dyn EvmChainProvider>,
 }
 
 impl<C: Client + Clone> EthereumProvider<C> {
@@ -40,12 +34,23 @@ impl<C: Client + Clone> EthereumProvider<C> {
     where
         C: 'static,
     {
-        let fee_calculator = Box::new(client.clone());
+        Self::new_with_provider(client.clone(), transactions_by_address_provider, asset_balance_provider, Box::new(client))
+    }
+
+    pub fn new_with_provider(
+        client: EthereumClient<C>,
+        transactions_by_address_provider: Box<dyn ChainTransactions>,
+        asset_balance_provider: Box<dyn AssetBalanceProvider>,
+        provider: Box<dyn EvmChainProvider>,
+    ) -> Self
+    where
+        C: 'static,
+    {
         Self {
             client,
             transactions_by_address_provider,
             asset_balance_provider,
-            fee_calculator,
+            provider,
         }
     }
 
@@ -56,14 +61,11 @@ impl<C: Client + Clone> EthereumProvider<C> {
         Self::new(client, Box::new(EmptyTransactionsProvider), Box::new(EmptyAssetBalanceProvider))
     }
 
-    pub fn new_rpc_only_with_fee_calculator(client: EthereumClient<C>, fee_calculator: Box<dyn EvmFeeCalculator>) -> Self
+    pub fn new_rpc_only_with_provider(client: EthereumClient<C>, provider: Box<dyn EvmChainProvider>) -> Self
     where
         C: 'static,
     {
-        Self {
-            fee_calculator,
-            ..Self::new_rpc_only(client)
-        }
+        Self::new_with_provider(client, Box::new(EmptyTransactionsProvider), Box::new(EmptyAssetBalanceProvider), provider)
     }
 
     pub(crate) async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
@@ -88,12 +90,13 @@ impl<C: Client + Clone> ChainTransactions for EthereumProvider<C> {
 
 #[cfg(test)]
 mod tests {
-    use chain_traits::ChainTraits;
+    use chain_traits::{ChainBalances, ChainStaking, ChainTraits};
     use gem_client::testkit::MockClient;
     use gem_jsonrpc::client::JsonRpcClient;
     use primitives::EVMChain;
 
     use super::*;
+    use crate::testkit::chain_provider_mock::MockChainProvider;
 
     #[tokio::test]
     async fn test_rpc_only_provider_returns_empty_transactions_and_asset_balances() {
@@ -107,5 +110,22 @@ mod tests {
         assert!(transactions.is_empty());
 
         assert!(provider.get_balance_assets("0x123".to_string()).await.unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_provider_injection() {
+        let make_client = || EthereumClient::new(JsonRpcClient::new(MockClient::new()), EVMChain::Ethereum);
+
+        let ethereum = EthereumProvider::new_rpc_only(make_client());
+        assert_eq!(ethereum.get_staking_apy().await.unwrap(), None);
+        assert!(ethereum.get_staking_delegations("0x123".to_string()).await.unwrap().is_empty());
+        assert_eq!(ethereum.get_balance_staking("0x123".to_string()).await.unwrap(), None);
+        assert!(ethereum.provider.protocol_parser().is_none());
+
+        let ethereum = EthereumProvider::new_rpc_only_with_provider(make_client(), Box::new(MockChainProvider));
+        assert_eq!(ethereum.get_staking_apy().await.unwrap(), Some(42.0));
+        assert!(ethereum.get_staking_delegations("0x123".to_string()).await.unwrap().is_empty());
+        assert!(ethereum.get_balance_staking("0x123".to_string()).await.unwrap().is_some());
+        assert!(ethereum.provider.protocol_parser().is_some());
     }
 }

@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use gem_client::Client;
 use gem_evm::provider::preload;
 use gem_evm::provider::preload_mapper::TransactionParams;
-use gem_evm::rpc::{EthereumClient, EvmFeeCalculator};
+use gem_evm::rpc::{EthereumClient, EvmFeeCalculator, EvmStakingClient};
 use num_bigint::BigInt;
 use primitives::{AssetId, Chain, TransactionFee, TransactionLoadInput, TransactionType, asset_constants::TEMPO_PATHUSD_ASSET_ID};
 
@@ -15,6 +15,9 @@ use crate::fee::{FEE_MANAGER_ADDRESS, USD_CURRENCY, decode_set_user_fee_token, s
 pub(crate) struct TempoFeeCalculator<C: Client + Clone> {
     client: EthereumClient<C>,
 }
+
+#[async_trait]
+impl<C: Client + Clone> EvmStakingClient for TempoFeeCalculator<C> {}
 
 #[async_trait]
 impl<C: Client + Clone> EvmFeeCalculator for TempoFeeCalculator<C> {

@@ -1,4 +1,3 @@
-mod everstake;
 mod monad;
 mod smartchain;
 mod transaction;
@@ -13,12 +12,11 @@ use crate::rpc::model::{Transaction, TransactionReceipt};
 
 #[cfg(test)]
 use super::ProtocolParsers;
-use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
-use transaction::make_staking_transaction;
+pub(super) use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
 
-pub use everstake::EverstakeParser;
 pub use monad::MonadStakingParser;
 pub use smartchain::SmartChainStakingParser;
+pub use transaction::make_staking_transaction;
 
 #[cfg(test)]
 fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> PrimitivesTransaction {

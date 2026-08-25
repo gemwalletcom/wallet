@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use gem_client::Client;
 use gem_evm::provider::preload;
 use gem_evm::provider::preload_mapper::TransactionParams;
-use gem_evm::rpc::{EthereumClient, EvmFeeCalculator};
+use gem_evm::rpc::{EthereumClient, EvmFeeCalculator, EvmStakingClient};
 use gem_evm::u256::u256_to_biguint;
 use num_bigint::BigInt;
 use primitives::contract_constants::OPTIMISM_GAS_PRICE_ORACLE_CONTRACT;
@@ -19,6 +19,9 @@ const RLP_EMPTY_LIST: u8 = 0xc0;
 pub struct OptimismGasOracle<C: Client + Clone> {
     client: EthereumClient<C>,
 }
+
+#[async_trait]
+impl<C: Client + Clone> EvmStakingClient for OptimismGasOracle<C> {}
 
 #[async_trait]
 impl<C: Client + Clone> EvmFeeCalculator for OptimismGasOracle<C> {
