@@ -19,21 +19,28 @@ public struct PaymentTransfer: Sendable {
     }
 
     public func destination(for payment: PaymentRequest) throws -> Destination {
-        if let assetId = payment.assetId, assetId != asset.id {
-            throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
+        if let data = try confirmation(for: payment, type: .transfer(asset)) {
+            return .confirm(data)
         }
-        let address = asset.chain.checksumAddress(payment.address)
-        let recipient = Recipient(name: .none, address: address, memo: payment.memo)
-
-        guard let value = confirmableValue(of: payment, address: address) else {
-            return .recipient(RecipientData(recipient: recipient, amount: payment.exactAmount))
-        }
-        return .confirm(
-            TransferData(
-                type: .transfer(asset),
-                recipientData: RecipientData(recipient: recipient, amount: .none),
-                amount: .exact(value),
+        return .recipient(
+            RecipientData(
+                recipient: try recipient(for: payment),
+                amount: payment.exactAmount,
             ),
+        )
+    }
+}
+
+extension PaymentTransfer {
+    func confirmation(for payment: PaymentRequest, type: TransferDataType) throws -> TransferData? {
+        let recipient = try recipient(for: payment)
+        guard let value = confirmableValue(of: payment, address: recipient.address) else {
+            return nil
+        }
+        return TransferData(
+            type: type,
+            recipientData: RecipientData(recipient: recipient, amount: nil),
+            amount: .exact(value),
         )
     }
 }
@@ -41,6 +48,17 @@ public struct PaymentTransfer: Sendable {
 // MARK: - Private
 
 private extension PaymentTransfer {
+    func recipient(for payment: PaymentRequest) throws -> Recipient {
+        guard payment.assetId == nil || payment.assetId == asset.id else {
+            throw AnyError(Localized.Errors.notSupported)
+        }
+        return Recipient(
+            name: nil,
+            address: asset.chain.checksumAddress(payment.address),
+            memo: payment.memo,
+        )
+    }
+
     func confirmableValue(of payment: PaymentRequest, address: String) -> BigInt? {
         guard asset.chain.isValidAddress(address) else { return .none }
         if asset.chain.isMemoSupported {

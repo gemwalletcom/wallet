@@ -72,15 +72,7 @@ struct ConfirmHeaderViewModelTests {
     @Test
     func paymentLoadingReservesAssetValueHeader() {
         let asset = Asset.mockSolana()
-        let data = TransferData(
-            asset: asset,
-            metadata: .mock(source: .payment),
-            transaction: "transaction",
-            memo: nil,
-            outputType: .encodedTransaction,
-            outputAction: .send,
-            transactionType: .transfer,
-        )
+        let data = TransferData.mockPayment(asset: asset)
         let model = ConfirmHeaderViewModel(request: .mock(data: data), state: .mock())
 
         guard case let .header(item) = model.itemModel,

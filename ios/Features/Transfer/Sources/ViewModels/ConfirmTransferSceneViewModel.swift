@@ -111,7 +111,7 @@ public final class ConfirmTransferSceneViewModel {
         guard request.data.type.applicationMetadata?.source == .payment else {
             return true
         }
-        return state.transaction.value != nil && state.simulation.headerData != nil
+        return state.transaction.value != nil
     }
 
     var simulationWarnings: [SimulationWarning] {
@@ -345,7 +345,6 @@ extension ConfirmTransferSceneViewModel {
                     request: request,
                     transactionData: transactionData,
                     amount: amount,
-                    simulation: state.simulation.result,
                 )
                 state.confirmation = .idle
                 onComplete?()

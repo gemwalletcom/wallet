@@ -1,12 +1,13 @@
 use gem_encoding::encode_base64;
 use gem_solana::{VersionedTransactionExt, decode_transaction};
-use primitives::TransactionType;
+use primitives::{PaymentAmount, PaymentRequest, TransactionType};
 use solana_primitives::{Pubkey, SignatureBytes};
 
 pub(super) struct PreparedTransaction {
     pub transaction: String,
     pub transaction_type: TransactionType,
     pub memo: Option<String>,
+    pub request: Option<PaymentRequest>,
 }
 
 pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransaction, String> {
@@ -33,11 +34,17 @@ pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransac
         [_] => return Err("Solana Pay transaction already contains the wallet signature".to_string()),
         _ => return Err("Solana Pay transaction has an invalid signature count".to_string()),
     }
-    *transaction.recent_blockhash_mut() = [0; 32];
-
+    let transaction_type = transaction.transaction_type();
+    let memo = transaction.memo();
     let prepared = PreparedTransaction {
-        transaction_type: transaction.transaction_type(),
-        memo: transaction.memo(),
+        request: transaction.simple_transfer().map(|transfer| PaymentRequest {
+            address: transfer.recipient,
+            amount: Some(PaymentAmount::AtomicValue(transfer.value)),
+            memo: memo.clone(),
+            asset_id: Some(transfer.asset_id),
+        }),
+        transaction_type,
+        memo,
         transaction: transaction
             .serialize()
             .map(|bytes| encode_base64(&bytes))
@@ -94,7 +101,7 @@ mod tests {
         assert_eq!(transaction.account_keys()[0].to_base58(), ACCOUNT);
         assert_eq!(transaction.signatures().len(), 1);
         assert_eq!(transaction.signatures()[0].as_bytes(), &[0u8; 64]);
-        assert_eq!(transaction.recent_blockhash(), &[0u8; 32]);
+        assert_eq!(transaction.recent_blockhash(), &[7u8; 32]);
         assert_eq!(prepared.transaction_type, TransactionType::Transfer);
         assert_eq!(prepared.memo.as_deref(), Some(memo));
     }

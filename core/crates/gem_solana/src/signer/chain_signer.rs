@@ -58,7 +58,7 @@ impl ChainSigner for SolanaChainSigner {
             return Err(SignerError::invalid_input("user signature should be first"));
         }
 
-        if metadata.source == ApplicationMetadataSource::Payment && transaction.recent_blockhash() == &[0; 32] {
+        if metadata.source == ApplicationMetadataSource::Payment {
             *transaction.recent_blockhash_mut() = transaction::block_hash(input)?;
         }
 
@@ -121,9 +121,9 @@ mod tests {
     }
 
     #[test]
-    fn test_sign_data_uses_loaded_blockhash_for_payment() {
+    fn test_sign_data_uses_latest_blockhash_for_payment() {
         let mut transaction = mock_legacy_transaction();
-        *transaction.recent_blockhash_mut() = [0; 32];
+        *transaction.recent_blockhash_mut() = [7; 32];
         transaction.add_signature(solana_primitives::SignatureBytes::new([0; 64]));
         let encoded = encode_base64(&transaction.serialize().unwrap());
         let blockhash = bs58::encode([4; 32]).into_string();

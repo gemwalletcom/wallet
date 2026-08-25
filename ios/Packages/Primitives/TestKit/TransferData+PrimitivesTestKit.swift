@@ -18,4 +18,27 @@ public extension TransferData {
             minimumValue: minimumValue,
         )
     }
+
+    static func mockPayment(
+        asset: Asset = .mockSolana(),
+        transaction: String = "transaction",
+        recipient: RecipientData = .mock(),
+        amount: TransferAmountValue = .exact(.zero),
+        transactionType: TransactionType = .transfer,
+    ) -> TransferData {
+        .mock(
+            type: .generic(
+                asset: asset,
+                metadata: .mock(source: .payment),
+                extra: .mock(
+                    data: Data(transaction.utf8),
+                    outputType: .encodedTransaction,
+                    outputAction: .send,
+                    transactionType: transactionType,
+                ),
+            ),
+            recipient: recipient,
+            amount: amount,
+        )
+    }
 }

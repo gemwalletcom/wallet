@@ -45,19 +45,26 @@ class PaymentNavigation @Inject constructor(
             .distinctBy { it.chain }
             .map { ChainAddress(chain = it.chain.string, address = it.address) }
         val payment = paymentService.load(link.toGem(), addresses)
-        val assetInfo = assets.firstOrNull { assetInfo ->
-            val owner = assetInfo.owner ?: return@firstOrNull false
-            assetInfo.asset.id.tokenId == null &&
-                owner.chain.string == payment.account.chain &&
-                owner.address == payment.account.address
-        } ?: return emptyList()
-        val account = assetInfo.owner ?: return emptyList()
+        val request = payment.request?.toPrimitives()
+        val transfer = if (request == null) {
+            val assetInfo = assets.firstOrNull { assetInfo ->
+                assetInfo.asset.id.tokenId == null &&
+                    assetInfo.owner?.chain?.string == payment.account.chain &&
+                    assetInfo.owner?.address == payment.account.address
+            } ?: return emptyList()
+            val account = assetInfo.owner ?: return emptyList()
+            ConfirmParams.Builder(assetInfo.asset, account, BigInteger.ZERO)
+                .transfer(DestinationAddress(""), payment.memo)
+        } else {
+            val destination = PaymentDestination.from(request, assets) as? PaymentDestination.Confirm ?: return emptyList()
+            destination.params as? ConfirmParams.TransferParams ?: return emptyList()
+        }
         val params = ConfirmParams.TransferParams.Generic(
-            asset = assetInfo.asset,
-            from = account,
-            amount = BigInteger.ZERO,
-            destination = DestinationAddress(""),
-            memo = payment.memo,
+            asset = transfer.asset,
+            from = transfer.from,
+            amount = transfer.amount,
+            destination = transfer.destination,
+            memo = transfer.memo,
             inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
             isSendable = true,
             metadata = payment.merchant.toPrimitives(),

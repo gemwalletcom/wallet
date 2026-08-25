@@ -59,11 +59,11 @@ public struct ConfirmService: Sendable {
     }
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
-        async let simulation = simulation(request: request)
-        async let feeAssets = inputProvider.feeAssets(walletId: request.wallet.id, chain: request.data.chain)
-        async let preload = preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
+        async let simulationResult = simulation(request: request)
+        async let availableFeeAssets = inputProvider.feeAssets(walletId: request.wallet.id, chain: request.data.chain)
+        async let preloadResult = preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
 
-        let (preload, simulation, feeAssets) = try await (preload, simulation, feeAssets)
+        let (preload, simulation, feeAssets) = try await (preloadResult, simulationResult, availableFeeAssets)
         return await ConfirmTransferData(
             preload: preload,
             simulation: simulationService.updateState(data: request.data, simulation: simulation),
@@ -80,13 +80,12 @@ public struct ConfirmService: Sendable {
         )
     }
 
-    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount, simulation: SimulationResult?) async throws {
+    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount) async throws {
         let input = TransferConfirmationInput(
             data: request.data,
             wallet: request.wallet,
             transactionData: transactionData,
             amount: amount,
-            simulation: simulation,
             delegate: request.delegate,
         )
         try await transferExecutor.execute(input: input)

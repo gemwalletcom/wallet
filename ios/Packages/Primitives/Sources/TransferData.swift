@@ -21,35 +21,6 @@ public struct TransferData: Identifiable, Sendable, Hashable {
         self.minimumValue = minimumValue
     }
 
-    public init(
-        asset: Asset,
-        metadata: ApplicationMetadata,
-        transaction: String,
-        memo: String?,
-        outputType: TransferDataOutputType,
-        outputAction: TransferDataOutputAction,
-        transactionType: TransactionType,
-    ) {
-        self.init(
-            type: .generic(
-                asset: asset,
-                metadata: metadata,
-                extra: TransferDataExtra(
-                    to: "",
-                    data: Data(transaction.utf8),
-                    outputType: outputType,
-                    outputAction: outputAction,
-                    transactionType: transactionType,
-                ),
-            ),
-            recipientData: RecipientData(
-                recipient: Recipient(name: nil, address: "", memo: memo),
-                amount: nil,
-            ),
-            amount: .exact(.zero),
-        )
-    }
-
     public var value: BigInt {
         amount.value
     }

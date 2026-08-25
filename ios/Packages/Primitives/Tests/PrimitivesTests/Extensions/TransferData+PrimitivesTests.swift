@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -10,13 +11,21 @@ struct TransferDataTypeTests {
         let asset = Asset.mockSolana()
         let metadata = ApplicationMetadata.mock(source: .payment)
         let data = TransferData(
-            asset: asset,
-            metadata: metadata,
-            transaction: "encoded-transaction",
-            memo: "payment memo",
-            outputType: .encodedTransaction,
-            outputAction: .send,
-            transactionType: .transfer,
+            type: .generic(
+                asset: asset,
+                metadata: metadata,
+                extra: .mock(
+                    data: Data("encoded-transaction".utf8),
+                    outputType: .encodedTransaction,
+                    outputAction: .send,
+                    transactionType: .transfer,
+                ),
+            ),
+            recipientData: RecipientData(
+                recipient: Recipient(name: nil, address: "", memo: "payment memo"),
+                amount: nil,
+            ),
+            amount: .exact(.zero),
         )
 
         guard case let .generic(mappedAsset, mappedMetadata, extra) = data.type else {

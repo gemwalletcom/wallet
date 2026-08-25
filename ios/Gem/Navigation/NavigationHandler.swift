@@ -79,6 +79,7 @@ final class NavigationHandler: Sendable {
         do {
             try await handleURLAction(action)
         } catch {
+            eventPresenterService.toastPresenter.toastMessage = nil
             showError(error)
         }
     }
@@ -144,9 +145,12 @@ extension NavigationHandler {
         case let .link(link):
             eventPresenterService.toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
             let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address) }
-            let data = try await paymentService.load(link: link, addresses: addresses)
+            let transaction = try await paymentService.loadPaymentTransaction(link: link, addresses: addresses)
+            let chain = try transaction.account.chain.map()
+            let assetId = try transaction.request?.map().assetId ?? chain.asset.id
+            let asset = try await assetsService.getOrFetchTokenAsset(for: assetId)
             eventPresenterService.toastPresenter.toastMessage = nil
-            presenter.isPresentingPayment.wrappedValue = .confirm(data)
+            presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset)
         }
     }
 }

@@ -13,13 +13,17 @@ pub(crate) fn mock_transaction(programs: &[(&str, Vec<u8>)]) -> VersionedTransac
         })
         .collect();
 
+    mock_transaction_with_accounts(account_keys, instructions)
+}
+
+pub(crate) fn mock_transaction_with_accounts(account_keys: Vec<Pubkey>, instructions: Vec<CompiledInstruction>) -> VersionedTransaction {
     VersionedTransaction::Legacy {
         signatures: vec![],
         message: LegacyMessage {
             header: MessageHeader {
                 num_required_signatures: 1,
                 num_readonly_signed_accounts: 0,
-                num_readonly_unsigned_accounts: programs.len() as u8,
+                num_readonly_unsigned_accounts: (account_keys.len() - 1) as u8,
             },
             account_keys,
             recent_blockhash: [0; 32],

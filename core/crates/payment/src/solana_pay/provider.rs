@@ -46,6 +46,7 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
             transaction: prepared.transaction,
             transaction_type: prepared.transaction_type,
             memo: prepared.memo,
+            request: prepared.request,
         })
     }
 }

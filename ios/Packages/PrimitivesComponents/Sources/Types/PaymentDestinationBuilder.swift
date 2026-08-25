@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
+import Gemstone
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -15,6 +17,37 @@ public enum PaymentDestinationBuilder {
             return .selectAsset(.send(recipientData(for: payment)), chains: payable.map(\.asset.chain).distinct())
         }
         return try build(payment: payment, assetData: assetData)
+    }
+
+    public static func build(transaction: GemPaymentTransaction, asset: Asset) throws -> PaymentDestination {
+        let request: PaymentRequest? = try transaction.request?.map()
+        let type = TransferDataType.generic(
+            asset: asset,
+            metadata: transaction.merchant.map(),
+            extra: TransferDataExtra(
+                to: request.map { asset.chain.checksumAddress($0.address) } ?? "",
+                data: Data(transaction.transaction.utf8),
+                outputType: .encodedTransaction,
+                outputAction: .send,
+                transactionType: transaction.transactionType.map(),
+            ),
+        )
+        guard let request else {
+            return .confirm(
+                TransferData(
+                    type: type,
+                    recipientData: RecipientData(
+                        recipient: Recipient(name: nil, address: "", memo: transaction.memo),
+                        amount: nil,
+                    ),
+                    amount: .exact(.zero),
+                ),
+            )
+        }
+        guard let data = try PaymentTransfer(asset: asset).confirmation(for: request, type: type) else {
+            throw AnyError(Localized.Errors.notSupported)
+        }
+        return .confirm(data)
     }
 
     private static func payableAssets(for payment: PaymentRequest, in assets: [AssetData]) -> [AssetData] {

@@ -37,21 +37,11 @@ import Validators
 struct ConfirmTransferSceneViewModelTests {
     @Test
     func paymentHeaderAppearsAfterLoading() {
-        let data = TransferData(
-            asset: .mockSolana(),
-            metadata: .mock(source: .payment),
-            transaction: "transaction",
-            memo: nil,
-            outputType: .encodedTransaction,
-            outputAction: .send,
-            transactionType: .transfer,
-        )
+        let data = TransferData.mockPayment()
         let model = ConfirmTransferSceneViewModel.mock(data: data)
 
         #expect(model.isHeaderVisible == false)
         model.state.transaction = .data(.mock())
-        #expect(model.isHeaderVisible == false)
-        model.state.simulation = .mock(headerData: AssetValueHeaderData(asset: .mockSolana(), value: .exact(19)))
         #expect(model.isHeaderVisible == true)
     }
 

@@ -42,4 +42,5 @@ pub struct GemPaymentTransaction {
     pub transaction: String,
     pub transaction_type: TransactionType,
     pub memo: Option<String>,
+    pub request: Option<GemPaymentRequest>,
 }

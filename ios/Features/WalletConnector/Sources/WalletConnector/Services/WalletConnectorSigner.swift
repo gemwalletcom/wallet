@@ -132,11 +132,10 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
              let .sui(transaction, outputType),
              let .ton(transaction, outputType),
              let .tron(transaction, outputType):
-            let transferData = TransferData(
-                asset: chain.asset,
-                metadata: session.session.metadata,
+            let transferData = transferData(
+                chain: chain,
+                session: session.session,
                 transaction: transaction,
-                memo: nil,
                 outputType: outputType,
                 outputAction: .sign,
                 transactionType: transactionType,
@@ -202,11 +201,10 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
              let .sui(transaction, outputType),
              let .ton(transaction, outputType),
              let .tron(transaction, outputType):
-            let transferData = TransferData(
-                asset: chain.asset,
-                metadata: session.session.metadata,
+            let transferData = transferData(
+                chain: chain,
+                session: session.session,
                 transaction: transaction,
-                memo: nil,
                 outputType: outputType,
                 outputAction: .send,
                 transactionType: transactionType,
@@ -219,11 +217,10 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
         let wallet = try getWallet(id: session.wallet.id)
-        let transferData = TransferData(
-            asset: chain.asset,
-            metadata: session.session.metadata,
+        let transferData = transferData(
+            chain: chain,
+            session: session.session,
             transaction: transaction,
-            memo: nil,
             outputType: .encodedTransaction,
             outputAction: .send,
             transactionType: .smartContractCall,
@@ -251,6 +248,34 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
 
     public func addConnection(connection: WalletConnection) throws {
         try connectionsStore.addConnection(connection)
+    }
+
+    private func transferData(
+        chain: Chain,
+        session: WalletConnectionSession,
+        transaction: String,
+        outputType: TransferDataOutputType,
+        outputAction: TransferDataOutputAction,
+        transactionType: TransactionType,
+    ) -> TransferData {
+        TransferData(
+            type: .generic(
+                asset: chain.asset,
+                metadata: session.metadata,
+                extra: TransferDataExtra(
+                    to: "",
+                    data: Data(transaction.utf8),
+                    outputType: outputType,
+                    outputAction: outputAction,
+                    transactionType: transactionType,
+                ),
+            ),
+            recipientData: RecipientData(
+                recipient: Recipient(name: nil, address: "", memo: nil),
+                amount: nil,
+            ),
+            amount: .exact(.zero),
+        )
     }
 }
 

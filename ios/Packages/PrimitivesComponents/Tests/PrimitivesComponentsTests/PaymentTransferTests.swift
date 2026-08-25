@@ -1,12 +1,50 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import Gemstone
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
 
 struct PaymentTransferTests {
+    @Test
+    func transactionUsesDecodedTransfer() throws {
+        let asset = Asset.mockSolanaUSDC()
+        let recipient = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
+        let transaction = GemPaymentTransaction(
+            merchant: GemApplicationMetadata(
+                name: "Merchant",
+                description: "Payment",
+                url: "https://example.com",
+                icon: "https://example.com/icon.png",
+                source: .payment,
+            ),
+            account: Gemstone.ChainAddress(chain: .solana, address: "account"),
+            transaction: "encoded-transaction",
+            transactionType: .transfer,
+            memo: "payment-memo",
+            request: GemPaymentRequest(
+                address: recipient,
+                amount: .atomicValue("19000000"),
+                memo: "payment-memo",
+                assetId: asset.id.identifier,
+            ),
+        )
+
+        let destination = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset)
+        guard case let .confirm(data) = destination else {
+            Issue.record("Expected confirmation")
+            return
+        }
+
+        #expect(data.type.asset == asset)
+        #expect(data.value == 19_000_000)
+        #expect(data.recipientData.recipient.address == recipient)
+        #expect(data.recipientData.recipient.memo == "payment-memo")
+        #expect(try data.encodedTransaction() == "encoded-transaction")
+    }
+
     @Test
     func destinationWithExactAmountConfirms() throws {
         let asset = Asset.mockEthereum()

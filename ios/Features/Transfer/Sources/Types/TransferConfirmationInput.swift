@@ -9,7 +9,6 @@ public struct TransferConfirmationInput: Sendable {
     public let wallet: Wallet
     public let transactionData: TransactionData
     public let amount: TransferAmount
-    public let simulation: SimulationResult?
     public let delegate: TransferDataCallback.ConfirmTransferDelegate?
 
     public init(
@@ -17,14 +16,12 @@ public struct TransferConfirmationInput: Sendable {
         wallet: Wallet,
         transactionData: TransactionData,
         amount: TransferAmount,
-        simulation: SimulationResult? = nil,
         delegate: TransferDataCallback.ConfirmTransferDelegate?,
     ) {
         self.data = data
         self.wallet = wallet
         self.transactionData = transactionData
         self.amount = amount
-        self.simulation = simulation
         self.delegate = delegate
     }
 

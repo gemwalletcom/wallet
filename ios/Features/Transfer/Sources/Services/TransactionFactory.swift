@@ -11,15 +11,9 @@ enum TransactionFactory {
         amount: TransferAmount,
         hash: String,
         transactionType: TransactionType,
-        simulation: SimulationResult? = nil,
     ) throws -> Primitives.Transaction {
         let senderAddress = try wallet.account(for: transferData.chain).address
         let approval = try transferData.type.approvalData(for: transactionType)
-        let simulationHeader: SimulationHeader? = if case .generic = transferData.type {
-            simulation?.header
-        } else {
-            nil
-        }
 
         let recipientAddress: String
         let value: String
@@ -33,11 +27,11 @@ enum TransactionFactory {
             case let .swap(_, _, swapData): swapData.data.to
             default: transferData.recipientData.recipient.address
             }
-            value = simulationHeader?.value ?? amount.value.description
             memo = transferData.recipientData.recipient.memo ?? ""
+            value = amount.value.description
         }
 
-        let assetId = simulationHeader?.assetId ?? approval.map { AssetId(chain: transferData.chain, tokenId: $0.token) } ?? transferData.type.asset.id
+        let assetId = approval.map { AssetId(chain: transferData.chain, tokenId: $0.token) } ?? transferData.type.asset.id
         let direction: TransactionDirection = senderAddress == recipientAddress ? .selfTransfer : .outgoing
         let metadata: AnyCodableValue? = switch transferData.type {
         case .swap, .earn: approval == nil ? transferData.type.metadata : .null

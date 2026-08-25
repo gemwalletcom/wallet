@@ -1,4 +1,4 @@
-use primitives::{ApplicationMetadata, ChainAddress, TransactionType};
+use primitives::{ApplicationMetadata, ChainAddress, PaymentRequest, TransactionType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PaymentTransaction {
@@ -7,4 +7,5 @@ pub struct PaymentTransaction {
     pub transaction: String,
     pub transaction_type: TransactionType,
     pub memo: Option<String>,
+    pub request: Option<PaymentRequest>,
 }
