@@ -162,12 +162,6 @@ pub struct GemHyperliquidOpenOrder {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Enum)]
-pub enum GemSubscriptionMethod {
-    Subscribe,
-    Unsubscribe,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Enum)]
 pub enum GemPerpetualSubscription {
     AccountState { address: String },
     SpotState { address: String },
@@ -202,6 +196,9 @@ pub enum GemHyperliquidSocketMessage {
     },
     SubscriptionResponse {
         subscription_type: String,
+    },
+    Error {
+        message: String,
     },
     Unknown,
 }

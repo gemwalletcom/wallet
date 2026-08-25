@@ -2,55 +2,39 @@
 
 import Foundation
 import enum Gemstone.GemPerpetualSubscription
-import enum Gemstone.GemSubscriptionMethod
-import class Gemstone.Hyperliquid
+import class Gemstone.HyperliquidSubscriptions
 import Primitives
 import WebSocketClient
 
 public actor HyperliquidSubscriptionService {
     private let webSocket: any WebSocketConnectable
-    private let hyperliquid = Hyperliquid()
-
-    private var activeSubscriptions: Set<GemPerpetualSubscription> = []
+    private let subscriptions = HyperliquidSubscriptions()
 
     public init(webSocket: any WebSocketConnectable) {
         self.webSocket = webSocket
     }
 
     public func subscribe(_ subscription: GemPerpetualSubscription) async throws {
-        activeSubscriptions.insert(subscription)
-        try await send(method: .subscribe, subscription: subscription)
+        try await send(subscriptions.subscribe(subscription: subscription))
     }
 
     public func unsubscribe(_ subscription: GemPerpetualSubscription) async throws {
-        activeSubscriptions.remove(subscription)
-        try await send(method: .unsubscribe, subscription: subscription)
+        try await send(subscriptions.unsubscribe(subscription: subscription))
     }
 
     public func connected(address: String, mode: PerpetualAccountMode) async throws {
-        let subscriptions = (hyperliquid.accountSubscriptions(address: address, mode: mode.map()) + activeSubscriptions.asArray()).distinct()
-        try await subscribe(subscriptions)
+        try await send(subscriptions.connected(address: address, mode: mode.map()))
+    }
+
+    public func disconnected() {
+        subscriptions.disconnected()
     }
 
     // MARK: - Private
 
-    private func subscribe(_ subscriptions: [GemPerpetualSubscription]) async throws {
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            for subscription in subscriptions {
-                group.addTask {
-                    try await self.send(method: .subscribe, subscription: subscription)
-                }
-            }
-            try await group.waitForAll()
+    private func send(_ requests: [String]) async throws {
+        for request in requests {
+            try await webSocket.send(request)
         }
-    }
-
-    private func send(method: GemSubscriptionMethod, subscription: GemPerpetualSubscription) async throws {
-        try await webSocket.send(
-            hyperliquid.websocketRequest(
-                method: method,
-                subscription: subscription,
-            ),
-        )
     }
 }

@@ -105,6 +105,15 @@ let package = Package(
             ],
             path: "PerpetualService/TestKit",
         ),
+        .testTarget(
+            name: "PerpetualServiceTests",
+            dependencies: [
+                "PerpetualService",
+                "Primitives",
+                .product(name: "WebSocketClientTestKit", package: "SwiftHTTPClient"),
+            ],
+            path: "PerpetualService/Tests",
+        ),
         .target(
             name: "BalanceService",
             dependencies: [

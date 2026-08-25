@@ -47,6 +47,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
         observeTask = nil
         currentWallet = nil
 
+        await subscriptionService.disconnected()
         await webSocket.disconnect()
     }
 
@@ -95,7 +96,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
             case let .message(data):
                 await eventHandler.handle(data, walletId: walletId, mode: mode)
             case .disconnected:
-                break
+                await subscriptionService.disconnected()
             }
         }
     }

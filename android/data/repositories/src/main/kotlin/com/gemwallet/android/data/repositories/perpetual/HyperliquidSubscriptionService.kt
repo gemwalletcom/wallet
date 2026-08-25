@@ -1,32 +1,41 @@
 package com.gemwallet.android.data.repositories.perpetual
 
+import android.util.Log
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import uniffi.gemstone.GemPerpetualAccountMode
 import uniffi.gemstone.GemPerpetualSubscription
-import uniffi.gemstone.GemSubscriptionMethod
-import java.util.concurrent.ConcurrentHashMap
+import uniffi.gemstone.HyperliquidSubscriptions
 
 class HyperliquidSubscriptionService(
-    private val encodeRequest: (GemSubscriptionMethod, GemPerpetualSubscription) -> String,
+    private val subscriptions: HyperliquidSubscriptions,
 ) {
     private val outgoing = Channel<String>(Channel.UNLIMITED)
     val messages: ReceiveChannel<String> = outgoing
 
-    private val activeSubscriptions = ConcurrentHashMap.newKeySet<GemPerpetualSubscription>()
-
     fun subscribe(subscription: GemPerpetualSubscription) {
-        activeSubscriptions.add(subscription)
-        outgoing.trySend(encodeRequest(GemSubscriptionMethod.SUBSCRIBE, subscription))
+        send { subscriptions.subscribe(subscription) }
     }
 
     fun unsubscribe(subscription: GemPerpetualSubscription) {
-        activeSubscriptions.remove(subscription)
-        outgoing.trySend(encodeRequest(GemSubscriptionMethod.UNSUBSCRIBE, subscription))
+        send { subscriptions.unsubscribe(subscription) }
     }
 
-    suspend fun resubscribe(defaultSubscriptions: List<GemPerpetualSubscription>) {
-        (defaultSubscriptions + activeSubscriptions).distinct().forEach {
-            outgoing.send(encodeRequest(GemSubscriptionMethod.SUBSCRIBE, it))
-        }
+    fun connected(address: String, mode: GemPerpetualAccountMode) {
+        send { subscriptions.connected(address, mode) }
+    }
+
+    fun disconnected() {
+        subscriptions.disconnected()
+    }
+
+    private fun send(requests: () -> List<String>) {
+        runCatching(requests)
+            .onSuccess { it.forEach(outgoing::trySend) }
+            .onFailure { Log.e(TAG, "Subscription request error", it) }
+    }
+
+    companion object {
+        private const val TAG = "HyperliquidSubscriptions"
     }
 }
