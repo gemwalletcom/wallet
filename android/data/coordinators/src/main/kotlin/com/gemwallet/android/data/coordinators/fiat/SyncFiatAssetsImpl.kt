@@ -59,7 +59,7 @@ class SyncFiatAssetsImpl(
 
     private fun shouldSync(configKey: String, remoteVersion: Int): Boolean {
         val currentVersion = configStore.getInt(configKey)
-        return currentVersion <= 0 || currentVersion < remoteVersion
+        return currentVersion != remoteVersion
     }
 
     private companion object {

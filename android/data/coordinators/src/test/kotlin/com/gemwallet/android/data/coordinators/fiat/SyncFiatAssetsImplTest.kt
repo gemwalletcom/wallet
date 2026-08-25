@@ -57,6 +57,20 @@ class SyncFiatAssetsImplTest {
     }
 
     @Test
+    fun syncFiatAssets_refreshesWhenRemoteVersionDiffersFromStored() = runTest {
+        every { configStore.getInt("fiat-on-ramp-assets-version") } returns 9
+        every { configStore.getInt("fiat-off-ramp-assets-version") } returns 3
+        coEvery { getBuyableFiatAssets() } returns FiatAssets(2u, listOf("bitcoin"))
+
+        subject(versions(fiatOnRampAssets = 2, fiatOffRampAssets = 3))
+
+        coVerify { getBuyableFiatAssets() }
+        coVerify(exactly = 0) { getSellableFiatAssets() }
+        coVerify { availabilityService.updateBuyAvailable(listOf("bitcoin")) }
+        verify { configStore.putInt("fiat-on-ramp-assets-version", 2, "") }
+    }
+
+    @Test
     fun syncFiatAssets_skipsRefreshWhenVersionsAreCurrent() = runTest {
         every { configStore.getInt("fiat-on-ramp-assets-version") } returns 2
         every { configStore.getInt("fiat-off-ramp-assets-version") } returns 3

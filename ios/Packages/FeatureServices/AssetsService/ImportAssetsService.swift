@@ -70,11 +70,9 @@ public struct ImportAssetsService: Sendable {
 
         let assetIds = (buyAssets.assetIds + sellAssets.assetIds).compactMap { try? AssetId(id: $0) }
 
-        async let prefetchResult = try assetsService.prefetchAssets(assetIds: assetIds)
-        async let setBuyableResult = try assetStore.setAssetIsBuyable(for: buyAssets.assetIds, value: true)
-        async let setSellableResult = try assetStore.setAssetIsSellable(for: sellAssets.assetIds, value: true)
-
-        _ = try await (prefetchResult, setBuyableResult, setSellableResult)
+        try await assetsService.prefetchAssets(assetIds: assetIds)
+        try assetStore.updateBuyableAssets(assetIds: buyAssets.assetIds)
+        try assetStore.updateSellableAssets(assetIds: sellAssets.assetIds)
 
         preferences.fiatOnRampAssetsVersion = Int(buyAssets.version)
         preferences.fiatOffRampAssetsVersion = Int(sellAssets.version)

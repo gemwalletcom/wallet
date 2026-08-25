@@ -41,7 +41,7 @@ class SyncSwapAssetsImpl(
 
     private fun shouldSync(remoteVersion: Int): Boolean {
         val currentVersion = configStore.getInt(SWAP_ASSETS_VERSION)
-        return currentVersion <= 0 || currentVersion < remoteVersion
+        return currentVersion != remoteVersion
     }
 
     private companion object {
