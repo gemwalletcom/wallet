@@ -225,6 +225,7 @@ sealed class ConfirmParams() {
                         },
                         transactionType = decodedTransactionType.toGem(),
                         to = destination().address,
+                        approval = approval?.toGem(),
                     ),
                 )
             }
@@ -646,9 +647,8 @@ sealed class ConfirmParams() {
     }
 
     fun pack(): String? = when (this) {
-        is TransferParams.Native, is TransferParams.Token -> runCatching {
-            confirmInputEncode(toConfirmInput()).packRouteString()
-        }.getOrNull()
+        is TransferParams.Native, is TransferParams.Token, is TransferParams.Generic ->
+            runCatching { confirmInputEncode(toConfirmInput()).packRouteString() }.getOrNull() ?: packRoutePayload()
         else -> packRoutePayload()
     }
 

@@ -213,6 +213,7 @@ pub struct GemTransferDataExtra {
     pub output_type: GemTransferDataOutputType,
     pub output_action: GemTransferDataOutputAction,
     pub transaction_type: TransactionType,
+    pub approval: Option<GemApprovalData>,
 }
 
 #[uniffi::remote(Record)]
@@ -642,6 +643,7 @@ impl From<TransferDataExtra> for GemTransferDataExtra {
             output_type: value.output_type,
             output_action: value.output_action,
             transaction_type: value.transaction_type,
+            approval: None,
         }
     }
 }

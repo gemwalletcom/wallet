@@ -5,9 +5,14 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
+import com.wallet.core.primitives.ApplicationMetadata
+import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.swap.ApprovalData
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,6 +49,82 @@ class ConfirmInputCodecTest {
         assertEquals("payment-memo", params.memo)
         assertEquals(listOf("reference"), params.references)
         assertTrue(params.useMaxAmount)
+    }
+
+    @Test
+    fun genericPackRoundTripsThroughCoreCodec() {
+        val account = mockAccount(chain = Chain.Solana)
+        val approval = ApprovalData(token = "token", spender = "spender", value = "1", isUnlimited = false)
+        val original = ConfirmParams.TransferParams.Generic(
+            asset = mockAssetSolana(),
+            from = account,
+            amount = BigInteger.ZERO,
+            destination = DestinationAddress("merchant"),
+            memo = "payment-memo",
+            inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
+            isSendable = true,
+            metadata = ApplicationMetadata(
+                name = "Merchant",
+                description = "Payment",
+                url = "https://example.com",
+                icon = "https://example.com/icon.png",
+                source = ApplicationMetadataSource.Payment,
+            ),
+            data = "encoded-transaction",
+            gasLimit = "21000",
+            decodedTransactionType = TransactionType.Transfer,
+            approval = approval,
+        )
+
+        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack()))
+
+        assertTrue(unpacked is ConfirmParams.TransferParams.Generic)
+        val params = unpacked as ConfirmParams.TransferParams.Generic
+        assertEquals(original.asset, params.asset)
+        assertEquals(account, params.from)
+        assertEquals(DestinationAddress("merchant"), params.destination)
+        assertEquals("payment-memo", params.memo)
+        assertEquals(ConfirmParams.TransferParams.InputType.EncodeTransaction, params.inputType)
+        assertTrue(params.isSendable)
+        assertEquals("Merchant", params.metadata.name)
+        assertEquals(ApplicationMetadataSource.Payment, params.metadata.source)
+        assertEquals("encoded-transaction", params.data)
+        assertEquals("21000", params.gasLimit)
+        assertEquals(TransactionType.Transfer, params.decodedTransactionType)
+        assertEquals(approval, params.approval)
+    }
+
+    @Test
+    fun genericHexDataSurvivesCoreCodec() {
+        val account = mockAccount(chain = Chain.Ethereum)
+        val original = ConfirmParams.TransferParams.Generic(
+            asset = mockAssetEthereum(),
+            from = account,
+            amount = BigInteger.ZERO,
+            destination = DestinationAddress("0x000000000022D473030F116dDEE9F6B43aC78BA3"),
+            memo = null,
+            inputType = ConfirmParams.TransferParams.InputType.Signature,
+            isSendable = false,
+            metadata = ApplicationMetadata(
+                name = "Dapp",
+                description = "",
+                url = "https://dapp.example",
+                icon = "",
+                source = ApplicationMetadataSource.WalletConnect,
+            ),
+            data = "0xa9059cbb00000000000000000000000000000000000000000000000000000000000000ff",
+            gasLimit = null,
+            decodedTransactionType = TransactionType.SmartContractCall,
+        )
+
+        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack()))
+
+        assertTrue(unpacked is ConfirmParams.TransferParams.Generic)
+        val params = unpacked as ConfirmParams.TransferParams.Generic
+        assertEquals(original.data, params.data)
+        assertEquals(ConfirmParams.TransferParams.InputType.Signature, params.inputType)
+        assertEquals(false, params.isSendable)
+        assertEquals(null, params.approval)
     }
 
     @Test

@@ -3,11 +3,17 @@ package com.gemwallet.android.domains.confirm
 import com.gemwallet.android.domains.asset.toPrimitives
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.math.hex
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
+import com.gemwallet.android.model.toModel
 import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransferDataOutputAction
+import uniffi.gemstone.TransferDataOutputType
+import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
 
 fun ConfirmParams.toConfirmInput(): GemConfirmInput = GemConfirmInput(
     inputType = toDto(),
@@ -31,6 +37,37 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
             ConfirmParams.Builder(asset, from, value, useMax)
                 .transfer(DestinationAddress(destination.address, destination.name), memo, references)
         }
+        is GemTransactionInputType.Generic -> {
+            val asset = inputType.asset.toPrimitives() ?: return null
+            val extra = inputType.extra
+            ConfirmParams.TransferParams.Generic(
+                asset = asset,
+                from = from,
+                amount = value,
+                destination = DestinationAddress(destination?.address.orEmpty(), destination?.name),
+                memo = memo,
+                useMaxAmount = useMax,
+                inputType = when (extra.outputType) {
+                    TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
+                    TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
+                },
+                isSendable = extra.outputAction == TransferDataOutputAction.SEND,
+                metadata = inputType.metadata.toPrimitives(),
+                data = extra.data.toGenericData(),
+                gasLimit = extra.gasLimit,
+                decodedTransactionType = extra.transactionType.toPrimitives(),
+                approval = extra.approval?.toModel(),
+            )
+        }
         else -> null
+    }
+}
+
+private fun ByteArray?.toGenericData(): String {
+    this ?: return ""
+    return try {
+        Charsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(this)).toString()
+    } catch (_: CharacterCodingException) {
+        "0x$hex"
     }
 }
