@@ -20,7 +20,7 @@ struct PaymentTransferTests {
                 icon: "https://example.com/icon.png",
                 source: .payment,
             ),
-            account: Gemstone.ChainAddress(chain: .solana, address: "account"),
+            account: Gemstone.ChainAddress(chain: Primitives.Chain.solana.rawValue, address: "account"),
             transaction: "encoded-transaction",
             transactionType: .transfer,
             memo: "payment-memo",
