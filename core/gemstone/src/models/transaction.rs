@@ -10,6 +10,7 @@ use primitives::{
     TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UInt64,
     perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData},
 };
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swap::{GemApprovalData, GemSwapData};
 use swapper::SwapperProvider;
@@ -184,7 +185,7 @@ pub struct GemContractCallData {
     pub gas_limit: Option<String>,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Enum)]
 pub enum GemStakeType {
     Delegate { validator: GemDelegationValidator },
     Undelegate { delegation: GemDelegation },
@@ -203,7 +204,7 @@ pub enum GemEarnType {
     Withdraw(GemDelegation),
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
 pub struct GemTransferDataExtra {
     pub to: String,
     pub gas_limit: Option<String>,
@@ -278,7 +279,7 @@ pub enum PerpetualType {
     Reduce(PerpetualReduceData),
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemTransactionInputType {
     Transfer {

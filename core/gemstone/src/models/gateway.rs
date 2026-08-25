@@ -19,7 +19,7 @@ pub struct BroadcastOptions {
     pub skip_preflight: bool,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, uniffi::Enum)]
 pub enum GemGasPriceType {
     Regular { gas_price: String },
     Eip1559 { gas_price: String, priority_fee: String },
