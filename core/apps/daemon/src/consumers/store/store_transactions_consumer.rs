@@ -3,7 +3,7 @@ use std::{collections::HashMap, error::Error};
 
 use async_trait::async_trait;
 use futures::{StreamExt, stream};
-use primitives::{AssetIdVecExt, DeviceSubscription, NFTAssetId, Transaction, TransactionId, TransactionState, TransactionType};
+use primitives::{AssetIdVecExt, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
 use storage::{AssetFilter, AssetsAddressesRepository, AssetsRepository, Database, NftAssetFilter, NftRepository, TransactionsRepository, WalletsRepository};
 use streamer::{
     AssetId, NotificationsPayload, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload,
@@ -77,7 +77,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
             .into_iter()
             .collect();
 
-        let missing_nft_assets = self.get_missing_nft_assets(nft_asset_ids)?;
+        let missing_nft_assets = self.get_missing_nft_assets(Self::supported_nft_asset_ids(nft_asset_ids))?;
         let _ = self.stream_producer.publish_fetch_nft_assets(missing_nft_assets).await;
 
         let subscribed_transactions = subscriptions
@@ -181,6 +181,11 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
 }
 
 impl StoreTransactionsConsumer {
+    fn supported_nft_asset_ids(nft_asset_ids: Vec<NFTAssetId>) -> Vec<NFTAssetId> {
+        let supported_chains = NFTChain::all().into_iter().map(Chain::from).collect::<HashSet<_>>();
+        nft_asset_ids.into_iter().filter(|asset_id| supported_chains.contains(&asset_id.chain)).collect()
+    }
+
     fn should_store_asset_addresses(transaction: &Transaction) -> bool {
         match transaction.state {
             TransactionState::Confirmed | TransactionState::InTransit => true,
@@ -271,7 +276,15 @@ fn should_publish_transaction(notification_type: &TransactionNotificationType, i
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain, Device, SwapProvider, TransactionSwapMetadata, WalletId};
+    use primitives::{AssetId, Device, SwapProvider, TransactionSwapMetadata, WalletId};
+
+    #[test]
+    fn test_supported_nft_asset_ids() {
+        let ethereum = NFTAssetId::mock();
+        let base = NFTAssetId::new(Chain::Base, "0x1", "1");
+
+        assert_eq!(StoreTransactionsConsumer::supported_nft_asset_ids(vec![ethereum.clone(), base]), vec![ethereum]);
+    }
 
     #[test]
     fn test_should_publish_transaction() {
