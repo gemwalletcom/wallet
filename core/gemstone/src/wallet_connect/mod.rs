@@ -5,7 +5,7 @@ use gem_wallet_connect::{
     WalletConnectTransactionType as WcWalletConnectTransactionType, WalletConnectVerifier, config_session_properties,
 };
 use primitives::{
-    Account, Chain, ChainAddress, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest, WalletConnectionSessionAppMetadata,
+    Account, Chain, ChainAddress, TransactionType, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest,
     WalletConnectionVerificationStatus,
 };
 use std::collections::HashMap;
@@ -17,9 +17,7 @@ use crate::{
     models::swap::GemApprovalData,
 };
 
-mod simulation;
-mod simulation_client;
-pub use simulation_client::WalletConnectSimulationClient;
+pub(crate) mod simulation;
 
 // UniFFI remote enum declaration
 #[uniffi::remote(Enum)]
@@ -130,6 +128,7 @@ pub enum WalletConnectTransaction {
     Solana {
         data: WCSolanaTransactionData,
         output_type: TransferDataOutputType,
+        transaction_type: TransactionType,
     },
     Sui {
         data: WCSuiTransactionData,
@@ -301,9 +300,14 @@ impl From<WcWalletConnectTransaction> for WalletConnectTransaction {
                 data: data.into(),
                 kind: kind.into(),
             },
-            WcWalletConnectTransaction::Solana { data, output_type } => Self::Solana {
+            WcWalletConnectTransaction::Solana {
+                data,
+                output_type,
+                transaction_type,
+            } => Self::Solana {
                 data: WCSolanaTransactionData { transaction: data.transaction },
                 output_type,
+                transaction_type,
             },
             WcWalletConnectTransaction::Sui { data, output_type } => Self::Sui {
                 data: WCSuiTransactionData {
@@ -428,31 +432,9 @@ impl WalletConnect {
     }
 }
 
-#[uniffi::export]
-pub fn wallet_connect_app_short_name(metadata: WalletConnectionSessionAppMetadata) -> String {
-    metadata.short_name()
-}
-
 #[cfg(test)]
 mod tests {
     use primitives::{Chain, ChainAddress, SimulationWarning, SimulationWarningType};
-
-    #[test]
-    fn short_name_strips_separators() {
-        use primitives::WalletConnectionSessionAppMetadata;
-        let meta = |name: &str| WalletConnectionSessionAppMetadata {
-            name: name.to_string(),
-            description: String::new(),
-            url: String::new(),
-            icon: String::new(),
-        };
-        assert_eq!(meta("Polymarket - Buy & Sell").short_name(), "Polymarket");
-        assert_eq!(meta("Uniswap: Trade Crypto").short_name(), "Uniswap");
-        assert_eq!(meta("OpenSea | NFT Marketplace").short_name(), "OpenSea");
-        assert_eq!(meta("  Compound  ").short_name(), "Compound");
-        assert_eq!(meta("Sushiswap").short_name(), "Sushiswap");
-        assert_eq!(meta(&"A".repeat(100)).short_name(), "A".repeat(80));
-    }
 
     #[test]
     fn parse_chain_id_uses_shared_caip2_parser() {

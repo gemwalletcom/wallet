@@ -1,4 +1,4 @@
-use crate::{Chain, Wallet};
+use crate::{ApplicationMetadata, Chain, Wallet};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
@@ -90,35 +90,7 @@ pub struct WalletConnectionSession {
     pub chains: Vec<Chain>,
     pub created_at: DateTime<Utc>,
     pub expire_at: DateTime<Utc>,
-    pub metadata: WalletConnectionSessionAppMetadata,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
-#[serde(rename_all = "camelCase")]
-pub struct WalletConnectionSessionAppMetadata {
-    pub name: String,
-    pub description: String,
-    pub url: String,
-    pub icon: String,
-}
-
-const SHORT_NAME_SEPARATORS: [char; 3] = ['-', ':', '|'];
-const SHORT_NAME_MAX_LENGTH: usize = 80;
-
-impl WalletConnectionSessionAppMetadata {
-    pub fn short_name(&self) -> String {
-        let name = self.name.trim();
-        for sep in SHORT_NAME_SEPARATORS {
-            if let Some(idx) = name.find(sep) {
-                return name[..idx].trim().to_string();
-            }
-        }
-        if name.len() > SHORT_NAME_MAX_LENGTH {
-            return name[..SHORT_NAME_MAX_LENGTH].to_string();
-        }
-        name.to_string()
-    }
+    pub metadata: ApplicationMetadata,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -127,7 +99,7 @@ impl WalletConnectionSessionAppMetadata {
 pub struct WalletConnectionSessionProposal {
     pub default_wallet: Wallet,
     pub wallets: Vec<Wallet>,
-    pub metadata: WalletConnectionSessionAppMetadata,
+    pub metadata: ApplicationMetadata,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

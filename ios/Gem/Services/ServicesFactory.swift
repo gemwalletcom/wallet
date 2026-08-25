@@ -22,6 +22,8 @@ import FiatService
 import Foundation
 import GemAPI
 import GemAPIDevice
+import class Gemstone.PaymentService
+import class Gemstone.TransactionSimulationService
 import GemstonePrimitives
 import Keystore
 import NativeProviderService
@@ -46,6 +48,7 @@ import TransactionsService
 import TransactionStateService
 import Transfer
 import WalletConnector
+import WalletConnectorService
 import WalletService
 import WalletSessionService
 import WebSocketClient
@@ -98,6 +101,8 @@ struct ServicesFactory {
         )
         let nativeProvider = NativeProvider(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
         let gatewayService = GatewayService(provider: nativeProvider)
+        let paymentService = PaymentService(provider: nativeProvider)
+        let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
         let serviceStatusService = ServiceStatusService(requestInterceptor: nodeAuthProvider)
         let chainServiceFactory = ChainServiceFactory(
             gatewayService: gatewayService,
@@ -225,8 +230,7 @@ struct ServicesFactory {
             connectionsStore: storeManager.connectionsStore,
             walletSessionService: walletSessionService,
             interactor: walletConnectorManager,
-            nodeProvider: nodeProvider,
-            requestInterceptor: nodeAuthProvider,
+            transactionSimulationService: transactionSimulationService,
         )
 
         let assetsEnabler = AssetsEnablerService(
@@ -292,6 +296,7 @@ struct ServicesFactory {
             assetsService: assetsService,
             connectionsService: connectionsService,
             eventPresenterService: eventPresenterService,
+            paymentService: paymentService,
             transactionsService: transactionsService,
             walletConnectorPresenter: presenter,
             walletSessionService: walletSessionService,
@@ -349,6 +354,7 @@ struct ServicesFactory {
             addressNameService: addressNameService,
             activityService: activityService,
             eventPresenterService: eventPresenterService,
+            transactionSimulationService: transactionSimulationService,
             fiatService: fiatService,
             assetsService: assetsService,
             assetSearchService: assetSearchService,
@@ -487,18 +493,17 @@ extension ServicesFactory {
         connectionsStore: ConnectionsStore,
         walletSessionService: WalletSessionService,
         interactor: any WalletConnectorInteractable,
-        nodeProvider: any NodeURLFetchable,
-        requestInterceptor: any RequestInterceptable,
+        transactionSimulationService: TransactionSimulationService,
     ) -> ConnectionsService {
-        ConnectionsService(
+        let signer = WalletConnectorSigner(
+            connectionsStore: connectionsStore,
+            walletSessionService: walletSessionService,
+            walletConnectorInteractor: interactor,
+        )
+        return ConnectionsService(
             store: connectionsStore,
-            signer: WalletConnectorSigner(
-                connectionsStore: connectionsStore,
-                walletSessionService: walletSessionService,
-                walletConnectorInteractor: interactor,
-            ),
-            nodeProvider: nodeProvider,
-            requestInterceptor: requestInterceptor,
+            signer: signer,
+            connector: WalletConnectorService(signer: signer, transactionSimulationService: transactionSimulationService),
         )
     }
 

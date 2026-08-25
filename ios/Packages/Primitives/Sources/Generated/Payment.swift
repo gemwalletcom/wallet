@@ -108,8 +108,17 @@ public enum Payment: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
+
+/// Generated type representing the anonymous struct variant `SolanaPay` of the `PaymentLink` Rust enum
+public struct PaymentLinkSolanaPayInner: Codable, Equatable, Hashable, Sendable {
+	public let url: String
+
+	public init(url: String) {
+		self.url = url
+	}
+}
 public enum PaymentLink: Codable, Equatable, Hashable, Sendable {
-	case solanaPay(String)
+	case solanaPay(PaymentLinkSolanaPayInner)
 
 	enum CodingKeys: String, CodingKey, Codable {
 		case solanaPay
@@ -124,7 +133,7 @@ public enum PaymentLink: Codable, Equatable, Hashable, Sendable {
 		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
 			switch type {
 			case .solanaPay:
-				if let content = try? container.decode(String.self, forKey: .content) {
+				if let content = try? container.decode(PaymentLinkSolanaPayInner.self, forKey: .content) {
 					self = .solanaPay(content)
 					return
 				}

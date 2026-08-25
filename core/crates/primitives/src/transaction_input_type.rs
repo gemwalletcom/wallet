@@ -4,9 +4,7 @@ use crate::stake_type::StakeType;
 use crate::swap::{ApprovalData, SwapData, SwapQuoteDataType};
 use crate::transaction_fee::TransactionFee;
 use crate::transaction_load_metadata::TransactionLoadMetadata;
-use crate::{
-    Asset, AssetId, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, WalletConnectionSessionAppMetadata, nft::NFTAsset, perpetual::AccountDataType,
-};
+use crate::{ApplicationMetadata, Asset, AssetId, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, nft::NFTAsset, perpetual::AccountDataType};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 use serde::{Deserialize, Serialize};
@@ -24,7 +22,7 @@ pub enum TransactionInputType {
     Swap(Asset, Asset, SwapData),
     Stake(Asset, StakeType),
     TokenApprove(Asset, ApprovalData),
-    Generic(Asset, WalletConnectionSessionAppMetadata, TransferDataExtra),
+    Generic(Asset, ApplicationMetadata, TransferDataExtra),
     TransferNft(Asset, NFTAsset),
     Account(Asset, AccountDataType),
     Perpetual(Asset, PerpetualType),

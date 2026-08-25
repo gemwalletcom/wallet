@@ -6,6 +6,8 @@ import Blockchain
 import ChainService
 import EventPresenterService
 import ExplorerService
+import protocol Gemstone.TransactionSimulationServiceProtocol
+import GemstonePrimitives
 import Keystore
 import Primitives
 
@@ -13,6 +15,7 @@ public struct ConfirmService: Sendable {
     private let metadataProvider: any TransferMetadataProvidable
     private let inputProvider: ConfirmTransferInputProvider
     private let simulationService: ConfirmSimulationService
+    private let transactionSimulationService: any TransactionSimulationServiceProtocol
     private let transferExecutor: any TransferExecutable
     private let activityService: ActivityService
     private let eventPresenterService: EventPresenterService
@@ -25,6 +28,7 @@ public struct ConfirmService: Sendable {
         metadataProvider: any TransferMetadataProvidable,
         inputProvider: ConfirmTransferInputProvider,
         simulationService: ConfirmSimulationService,
+        transactionSimulationService: any TransactionSimulationServiceProtocol,
         transferExecutor: any TransferExecutable,
         activityService: ActivityService,
         eventPresenterService: EventPresenterService,
@@ -36,6 +40,7 @@ public struct ConfirmService: Sendable {
         self.metadataProvider = metadataProvider
         self.inputProvider = inputProvider
         self.simulationService = simulationService
+        self.transactionSimulationService = transactionSimulationService
         self.transferExecutor = transferExecutor
         self.activityService = activityService
         self.eventPresenterService = eventPresenterService
@@ -54,9 +59,9 @@ public struct ConfirmService: Sendable {
     }
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
-        async let simulation = simulationService.updateState(data: request.data, simulation: request.simulation)
+        async let simulation = loadSimulationState(request: request)
         async let feeAssets = inputProvider.feeAssets(walletId: request.wallet.id, chain: request.data.chain)
-        let preload = try await preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
+        async let preload = preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
 
         return try await ConfirmTransferData(preload: preload, simulation: simulation, feeAssets: feeAssets)
     }
@@ -70,13 +75,13 @@ public struct ConfirmService: Sendable {
         )
     }
 
-    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount) async throws {
+    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount, simulation: SimulationResult?) async throws {
         let input = TransferConfirmationInput(
             data: request.data,
             wallet: request.wallet,
             transactionData: transactionData,
             amount: amount,
-            simulation: request.simulation,
+            simulation: simulation,
             delegate: request.delegate,
         )
         try await transferExecutor.execute(input: input)
@@ -105,8 +110,23 @@ public struct ConfirmService: Sendable {
 
 // MARK: - Private
 
-extension ConfirmService {
-    private func updateRecent(data: RecentActivityData, walletId: WalletId) {
+private extension ConfirmService {
+    func loadSimulationState(request: ConfirmTransferRequest) async throws -> ConfirmSimulationState {
+        let simulation: SimulationResult? = if let requestSimulation = request.simulation {
+            requestSimulation
+        } else if request.data.type.applicationMetadata?.source == .payment {
+            try await transactionSimulationService.simulateTransaction(
+                chain: request.data.chain,
+                transaction: request.data.encodedTransaction(),
+                signerAddress: request.wallet.account(for: request.data.chain).address,
+            )
+        } else {
+            nil
+        }
+        return await simulationService.updateState(data: request.data, simulation: simulation)
+    }
+
+    func updateRecent(data: RecentActivityData, walletId: WalletId) {
         do {
             try activityService.updateRecent(data: data, walletId: walletId)
         } catch {

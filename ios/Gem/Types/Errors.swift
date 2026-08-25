@@ -23,6 +23,15 @@ extension Gemstone.GemstoneError: @retroactive LocalizedError {
     }
 }
 
+extension Gemstone.GemPaymentError: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .NoPaymentOptions: Localized.Errors.notSupported
+        case let .InvalidRequest(reason), let .Network(reason): reason
+        }
+    }
+}
+
 extension Gemstone.SwapperError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {

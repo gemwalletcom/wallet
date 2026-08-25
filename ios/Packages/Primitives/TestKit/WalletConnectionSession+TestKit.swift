@@ -11,7 +11,7 @@ public extension WalletConnectionSession {
         chains: [Chain] = [.ethereum],
         createdAt: Date = .now,
         expireAt: Date = .distantFuture,
-        metadata: WalletConnectionSessionAppMetadata = .mock(),
+        metadata: ApplicationMetadata = .mock(),
     ) -> WalletConnectionSession {
         WalletConnectionSession(
             id: id,
@@ -25,18 +25,20 @@ public extension WalletConnectionSession {
     }
 }
 
-public extension WalletConnectionSessionAppMetadata {
+public extension ApplicationMetadata {
     static func mock(
         name: String = "",
         description: String = "",
         url: String = "",
         icon: String = "",
-    ) -> WalletConnectionSessionAppMetadata {
-        WalletConnectionSessionAppMetadata(
+        source: ApplicationMetadataSource = .walletConnect,
+    ) -> ApplicationMetadata {
+        ApplicationMetadata(
             name: name,
             description: description,
             url: url,
             icon: icon,
+            source: source,
         )
     }
 }

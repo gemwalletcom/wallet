@@ -95,11 +95,12 @@ extension WalletConnectionRecord {
             chains: chains ?? [],
             createdAt: createdAt,
             expireAt: expireAt,
-            metadata: WalletConnectionSessionAppMetadata(
+            metadata: ApplicationMetadata(
                 name: appName,
                 description: appDescription,
                 url: appLink,
                 icon: appIcon,
+                source: .walletConnect,
             ),
         )
     }

@@ -119,50 +119,27 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         await walletConnectorInteractor.sessionReject(error: error)
     }
 
-    private func buildTransferData(
-        chain: Chain,
-        metadata: WalletConnectionSessionAppMetadata,
-        transaction: String,
-        outputType: TransferDataOutputType,
-        outputAction: TransferDataOutputAction,
-    ) -> TransferData {
-        TransferData(
-            type: .generic(
-                asset: chain.asset,
-                metadata: metadata,
-                extra: TransferDataExtra(
-                    to: "",
-                    data: transaction.data(using: .utf8),
-                    outputType: outputType,
-                    outputAction: outputAction,
-                ),
-            ),
-            recipientData: RecipientData(
-                recipient: Recipient(name: .none, address: "", memo: .none),
-                amount: .none,
-            ),
-            amount: .exact(.zero),
-        )
-    }
-
     public func signTransaction(sessionId: String, chain: Chain, transaction: WalletConnectorTransaction, simulation: SimulationResult) async throws -> String {
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
         let wallet = try getWallet(id: session.wallet.id)
+        let transactionType = transaction.transactionType
 
         switch transaction {
         case .ethereum:
             throw AnyError("Not supported")
-        case let .solana(transaction, outputType),
+        case let .solana(transaction, outputType, _),
              let .sui(transaction, outputType),
              let .ton(transaction, outputType),
              let .tron(transaction, outputType):
-            let transferData = buildTransferData(
-                chain: chain,
+            let transferData = TransferData(
+                asset: chain.asset,
                 metadata: session.session.metadata,
                 transaction: transaction,
+                memo: nil,
                 outputType: outputType,
                 outputAction: .sign,
+                transactionType: transactionType,
             )
             return try await walletConnectorInteractor.signTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
         }
@@ -172,6 +149,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
         let wallet = try getWallet(id: session.wallet.id)
+        let transactionType = transaction.transactionType
 
         switch transaction {
         case let .ethereum(transaction, kind):
@@ -220,16 +198,18 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
             )
 
             return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
-        case let .solana(transaction, outputType),
+        case let .solana(transaction, outputType, _),
              let .sui(transaction, outputType),
              let .ton(transaction, outputType),
              let .tron(transaction, outputType):
-            let transferData = buildTransferData(
-                chain: chain,
+            let transferData = TransferData(
+                asset: chain.asset,
                 metadata: session.session.metadata,
                 transaction: transaction,
+                memo: nil,
                 outputType: outputType,
                 outputAction: .send,
+                transactionType: transactionType,
             )
             return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
         }
@@ -239,12 +219,14 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
         let wallet = try getWallet(id: session.wallet.id)
-        let transferData = buildTransferData(
-            chain: chain,
+        let transferData = TransferData(
+            asset: chain.asset,
             metadata: session.session.metadata,
             transaction: transaction,
+            memo: nil,
             outputType: .encodedTransaction,
             outputAction: .send,
+            transactionType: .smartContractCall,
         )
         let simulation = SimulationResult(
             warnings: [],

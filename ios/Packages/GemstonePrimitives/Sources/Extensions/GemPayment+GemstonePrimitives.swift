@@ -35,7 +35,15 @@ public extension GemPaymentAmount {
 public extension GemPaymentLink {
     func map() -> PaymentLink {
         switch self {
-        case let .solanaPay(id): .solanaPay(id)
+        case let .solanaPay(url): .solanaPay(PaymentLinkSolanaPayInner(url: url))
+        }
+    }
+}
+
+public extension PaymentLink {
+    func map() -> GemPaymentLink {
+        switch self {
+        case let .solanaPay(link): .solanaPay(url: link.url)
         }
     }
 }

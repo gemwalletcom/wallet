@@ -4,15 +4,14 @@ import Foundation
 import Gemstone
 import enum Gemstone.SignDigestType
 import struct Gemstone.SignMessage
+import class Gemstone.TransactionSimulationService
 import class Gemstone.WalletConnect
 import enum Gemstone.WalletConnectAction
 import enum Gemstone.WalletConnectChainOperation
 import enum Gemstone.WalletConnectResponseType
-import class Gemstone.WalletConnectSimulationClient
 import enum Gemstone.WalletConnectTransaction
 import enum Gemstone.WalletConnectTransactionType
 import GemstonePrimitives
-import NativeProviderService
 import Primitives
 @preconcurrency import ReownWalletKit
 @preconcurrency import WalletConnectPairing
@@ -22,15 +21,14 @@ public final class WalletConnectorService {
     private let signer: WalletConnectorSignable
     private let messageTracker = MessageTracker()
     private let walletConnect = WalletConnect()
-    private let simulationClient: WalletConnectSimulationClient
+    private let transactionSimulationService: TransactionSimulationService
 
     public init(
         signer: WalletConnectorSignable,
-        nodeProvider: any NodeURLFetchable,
-        requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
+        transactionSimulationService: TransactionSimulationService,
     ) {
         self.signer = signer
-        simulationClient = WalletConnectSimulationClient(provider: NativeProvider(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor))
+        self.transactionSimulationService = transactionSimulationService
     }
 }
 
@@ -98,7 +96,7 @@ extension WalletConnectorService: WalletConnectorServiceable {
 
 extension WalletConnectorService {
     private func simulateSignMessage(chain: Gemstone.Chain, signType: SignDigestType, data: String, sessionDomain: String) async throws -> Primitives.SimulationResult {
-        try await simulationClient
+        try await transactionSimulationService
             .simulateSignMessage(chain: chain, signType: signType, data: data, sessionDomain: sessionDomain)
             .map()
     }
@@ -108,7 +106,7 @@ extension WalletConnectorService {
         transactionType: WalletConnectTransactionType,
         data: String,
     ) async throws -> Primitives.SimulationResult {
-        try await simulationClient
+        try await transactionSimulationService
             .simulateSendTransaction(chain: chain, transactionType: transactionType, data: data)
             .map()
     }

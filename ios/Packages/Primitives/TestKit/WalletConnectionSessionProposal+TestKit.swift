@@ -6,7 +6,7 @@ public extension WalletConnectionSessionProposal {
     static func mock(
         defaultWallet: Wallet = .mock(),
         wallets: [Wallet] = [.mock()],
-        metadata: WalletConnectionSessionAppMetadata = .mock(),
+        metadata: ApplicationMetadata = .mock(),
     ) -> WalletConnectionSessionProposal {
         WalletConnectionSessionProposal(
             defaultWallet: defaultWallet,

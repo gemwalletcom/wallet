@@ -49,6 +49,8 @@ extension ConfirmTransferScene {
                 headerType: model.headerType,
                 showClearHeader: model.showClearHeader,
             )
+            .opacity(self.model.isHeaderVisible ? 1 : 0)
+            .accessibilityHidden(!self.model.isHeaderVisible)
         case let .app(model):
             ListItemImageView(model: model)
                 .contextMenu(

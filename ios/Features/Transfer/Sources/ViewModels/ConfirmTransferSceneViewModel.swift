@@ -107,6 +107,13 @@ public final class ConfirmTransferSceneViewModel {
         state.confirmation.isConfirming
     }
 
+    var isHeaderVisible: Bool {
+        guard request.data.type.applicationMetadata?.source == .payment else {
+            return true
+        }
+        return state.transaction.value != nil && state.simulation.headerData != nil
+    }
+
     var simulationWarnings: [SimulationWarning] {
         state.simulation.warnings
     }
@@ -334,7 +341,12 @@ extension ConfirmTransferSceneViewModel {
         state.confirmation = .confirming
         Task {
             do {
-                try await confirmService.confirm(request: request, transactionData: transactionData, amount: amount)
+                try await confirmService.confirm(
+                    request: request,
+                    transactionData: transactionData,
+                    amount: amount,
+                    simulation: state.simulation.result,
+                )
                 state.confirmation = .idle
                 onComplete?()
             } catch {

@@ -122,10 +122,7 @@ pub use self::platform::Platform;
 pub mod platform_store;
 pub use self::platform_store::PlatformStore;
 pub mod payment;
-pub use self::payment::{
-    Payment, PaymentAction, PaymentAmount, PaymentLink, PaymentMerchant, PaymentOptions, PaymentOutcome, PaymentPrice, PaymentQuote, PaymentQuoteData, PaymentQuotes,
-    PaymentRequest, PaymentStatus,
-};
+pub use self::payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest};
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
@@ -186,8 +183,7 @@ pub mod hex;
 pub use self::hex::{HexError, decode_hex, decode_hex_array};
 pub mod transaction_metadata_types;
 pub use self::transaction_metadata_types::{
-    TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata,
-    TransactionSwapMetadata,
+    TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata, TransactionSwapMetadata,
 };
 pub mod wallet_connect_namespace;
 pub use self::wallet_connect_namespace::WalletConnectCAIP2;
@@ -195,6 +191,8 @@ pub mod wallet_connect;
 pub use self::wallet_connect::{WCEthereumTransaction, WCTonMessage, WalletConnectLink, WalletConnectRequest};
 pub mod account;
 pub use self::account::Account;
+pub mod application_metadata;
+pub use self::application_metadata::{ApplicationMetadata, ApplicationMetadataSource};
 pub mod wallet;
 pub use self::wallet::{Wallet, WalletSource};
 pub mod wallet_type;
@@ -209,8 +207,8 @@ pub mod wallet_import;
 pub use self::wallet_import::WalletImport;
 pub mod wallet_connector;
 pub use self::wallet_connector::{
-    WCPairingProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionSessionAppMetadata,
-    WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus,
+    WCPairingProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState,
+    WalletConnectionVerificationStatus,
 };
 pub mod nft;
 pub use self::nft::{NFTAsset, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource, NFTType, ReportNft};

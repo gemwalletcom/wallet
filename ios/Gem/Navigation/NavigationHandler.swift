@@ -5,10 +5,12 @@ import Components
 import ConnectionsService
 import EventPresenterService
 import Foundation
+import class Gemstone.PaymentService
 import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
+import Style
 import SwiftUI
 import TransactionsService
 import WalletConnector
@@ -22,6 +24,7 @@ final class NavigationHandler: Sendable {
     private let assetsService: AssetsService
     private let connectionsService: ConnectionsService
     private let eventPresenterService: EventPresenterService
+    private let paymentService: PaymentService
     private let transactionsService: TransactionsService
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
@@ -32,6 +35,7 @@ final class NavigationHandler: Sendable {
         assetsService: AssetsService,
         connectionsService: ConnectionsService,
         eventPresenterService: EventPresenterService,
+        paymentService: PaymentService,
         transactionsService: TransactionsService,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
@@ -41,6 +45,7 @@ final class NavigationHandler: Sendable {
         self.assetsService = assetsService
         self.connectionsService = connectionsService
         self.eventPresenterService = eventPresenterService
+        self.paymentService = paymentService
         self.transactionsService = transactionsService
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
@@ -93,7 +98,7 @@ extension NavigationHandler {
     private func handleURLAction(_ action: URLAction) async throws {
         switch action {
         case let .deeplink(deeplink): try await handleDeepLink(deeplink)
-        case let .payment(payment): try handlePayment(payment)
+        case let .payment(payment): try await handlePayment(payment)
         case let .walletConnect(action): await handleWalletConnect(action)
         }
     }
@@ -130,14 +135,19 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
-    private func handlePayment(_ payment: Payment) throws {
+    private func handlePayment(_ payment: Payment) async throws {
         guard let wallet = walletSessionService.currentWallet else { return }
-        guard case let .request(request) = payment else {
-            throw AnyError(Localized.Errors.notSupported)
+        switch payment {
+        case let .request(request):
+            let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [])
+            presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets)
+        case let .link(link):
+            eventPresenterService.toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
+            let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address) }
+            let data = try await paymentService.load(link: link, addresses: addresses)
+            eventPresenterService.toastPresenter.toastMessage = nil
+            presenter.isPresentingPayment.wrappedValue = .confirm(data)
         }
-        let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [])
-
-        presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets)
     }
 }
 

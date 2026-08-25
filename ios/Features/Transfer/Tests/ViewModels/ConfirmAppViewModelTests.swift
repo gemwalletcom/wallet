@@ -11,7 +11,7 @@ import TransferTestKit
 struct ConfirmAppViewModelTests {
     @Test
     func generic() {
-        let metadata = WalletConnectionSessionAppMetadata.mock(
+        let metadata = ApplicationMetadata.mock(
             name: "PancakeSwap - Trade",
             url: "https://pancakeswap.finance/swap",
         )

@@ -47,6 +47,13 @@ private extension ConfirmHeaderViewModel {
             return .assetValue(headerData)
         }
 
+        if case let .generic(asset, _, _) = request.data.type,
+           request.data.type.applicationMetadata?.source == .payment,
+           state.transaction.value == nil
+        {
+            return .assetValue(AssetValueHeaderData(asset: asset, value: .exact(.zero)))
+        }
+
         if case let .tokenApprove(asset, _) = request.data.type {
             return .asset(image: AssetViewModel(asset: asset).assetImage)
         }

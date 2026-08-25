@@ -4,26 +4,12 @@
 
 import Foundation
 
-public struct WalletConnectionSessionAppMetadata: Codable, Equatable, Hashable, Sendable {
-	public let name: String
-	public let description: String
-	public let url: String
-	public let icon: String
-
-	public init(name: String, description: String, url: String, icon: String) {
-		self.name = name
-		self.description = description
-		self.url = url
-		self.icon = icon
-	}
-}
-
 public struct WalletConnectionSessionProposal: Codable, Equatable, Hashable, Sendable {
 	public let defaultWallet: Wallet
 	public let wallets: [Wallet]
-	public let metadata: WalletConnectionSessionAppMetadata
+	public let metadata: ApplicationMetadata
 
-	public init(defaultWallet: Wallet, wallets: [Wallet], metadata: WalletConnectionSessionAppMetadata) {
+	public init(defaultWallet: Wallet, wallets: [Wallet], metadata: ApplicationMetadata) {
 		self.defaultWallet = defaultWallet
 		self.wallets = wallets
 		self.metadata = metadata
@@ -62,9 +48,9 @@ public struct WalletConnectionSession: Codable, Equatable, Hashable, Sendable {
 	public let chains: [Chain]
 	public let createdAt: Date
 	public let expireAt: Date
-	public let metadata: WalletConnectionSessionAppMetadata
+	public let metadata: ApplicationMetadata
 
-	public init(id: String, sessionId: String, state: WalletConnectionState, chains: [Chain], createdAt: Date, expireAt: Date, metadata: WalletConnectionSessionAppMetadata) {
+	public init(id: String, sessionId: String, state: WalletConnectionState, chains: [Chain], createdAt: Date, expireAt: Date, metadata: ApplicationMetadata) {
 		self.id = id
 		self.sessionId = sessionId
 		self.state = state

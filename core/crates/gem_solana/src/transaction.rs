@@ -1,6 +1,71 @@
 use gem_encoding::{decode_base64, encode_base64};
-use primitives::SolanaInstruction;
-use solana_primitives::{AccountMeta, AddressLookupTableAccount, Instruction, Pubkey, TransactionBuilder, VersionedTransaction};
+use primitives::{SolanaInstruction, TransactionType};
+use solana_primitives::{
+    AccountMeta, AddressLookupTableAccount, Instruction, Pubkey, TransactionBuilder, VersionedTransaction,
+    instructions::program_ids::{ASSOCIATED_TOKEN_PROGRAM_ID, COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID, SYSTEM_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID},
+};
+
+pub trait VersionedTransactionExt {
+    fn account_keys_mut(&mut self) -> &mut [Pubkey];
+
+    fn recent_blockhash_mut(&mut self) -> &mut [u8; 32];
+
+    fn memo(&self) -> Option<String>;
+
+    fn transaction_type(&self) -> TransactionType;
+}
+
+impl VersionedTransactionExt for VersionedTransaction {
+    fn account_keys_mut(&mut self) -> &mut [Pubkey] {
+        match self {
+            Self::Legacy { message, .. } => &mut message.account_keys,
+            Self::V0 { message, .. } => &mut message.account_keys,
+        }
+    }
+
+    fn recent_blockhash_mut(&mut self) -> &mut [u8; 32] {
+        match self {
+            Self::Legacy { message, .. } => &mut message.recent_blockhash,
+            Self::V0 { message, .. } => &mut message.recent_blockhash,
+        }
+    }
+
+    fn memo(&self) -> Option<String> {
+        let account_keys = self.account_keys();
+        self.instructions().iter().find_map(|instruction| {
+            let program = account_keys.get(instruction.program_id_index as usize)?;
+            if program.to_base58() != MEMO_PROGRAM_ID {
+                return None;
+            }
+            String::from_utf8(instruction.data.clone()).ok().filter(|memo| !memo.is_empty())
+        })
+    }
+
+    fn transaction_type(&self) -> TransactionType {
+        let account_keys = self.account_keys();
+        let mut has_transfer = false;
+
+        for instruction in self.instructions() {
+            let Some(program) = account_keys.get(instruction.program_id_index as usize).map(Pubkey::to_base58) else {
+                return TransactionType::SmartContractCall;
+            };
+            match program.as_str() {
+                SYSTEM_PROGRAM_ID => match instruction.data.get(..4) {
+                    Some(data) if data == 2u32.to_le_bytes() => has_transfer = true,
+                    _ => return TransactionType::SmartContractCall,
+                },
+                TOKEN_PROGRAM_ID | TOKEN_2022_PROGRAM_ID => match instruction.data.first() {
+                    Some(3 | 12) => has_transfer = true,
+                    _ => return TransactionType::SmartContractCall,
+                },
+                ASSOCIATED_TOKEN_PROGRAM_ID | MEMO_PROGRAM_ID | COMPUTE_BUDGET_PROGRAM_ID => {}
+                _ => return TransactionType::SmartContractCall,
+            }
+        }
+
+        if has_transfer { TransactionType::Transfer } else { TransactionType::SmartContractCall }
+    }
+}
 
 pub fn try_decode_transaction(transaction_base64: &str) -> Option<VersionedTransaction> {
     let data = decode_base64(transaction_base64).ok()?;
@@ -71,12 +136,27 @@ mod tests {
     use super::*;
     #[cfg(feature = "signer")]
     use crate::signer::testkit::{SINGLE_SIG_TX, mock_legacy_transaction};
+    use crate::testkit::mock_transaction;
 
     #[test]
     fn test_try_decode_blockhash() {
         assert!(try_decode_blockhash("BZcyEKqjBNG5bEY6i5ev6PfPTgDSB9LwovJE1hJfJoHF").is_some());
         assert!(try_decode_blockhash("invalid blockhash").is_none());
         assert!(try_decode_blockhash("1111111111111111111111111111111").is_none());
+    }
+
+    #[test]
+    fn test_transaction_type() {
+        let transfer = mock_transaction(&[
+            (ASSOCIATED_TOKEN_PROGRAM_ID, vec![]),
+            (TOKEN_PROGRAM_ID, vec![12]),
+            (MEMO_PROGRAM_ID, b"payment memo".to_vec()),
+        ]);
+        let contract_call = mock_transaction(&[("BPFLoaderUpgradeab1e11111111111111111111111", vec![1])]);
+
+        assert_eq!(transfer.transaction_type(), TransactionType::Transfer);
+        assert_eq!(transfer.memo().as_deref(), Some("payment memo"));
+        assert_eq!(contract_call.transaction_type(), TransactionType::SmartContractCall);
     }
 
     #[cfg(feature = "signer")]

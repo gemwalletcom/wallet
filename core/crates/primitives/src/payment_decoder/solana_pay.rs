@@ -17,7 +17,7 @@ const QUERY_REFERENCE: &str = "reference";
 
 pub fn decode(path: &str) -> Result<Payment> {
     if path.starts_with(TRANSACTION_LINK_PREFIX) {
-        return Ok(Payment::Link(PaymentLink::SolanaPay(transaction_link(path)?)));
+        return Ok(Payment::Link(PaymentLink::SolanaPay { url: transaction_link(path)? }));
     }
 
     let (recipient, query) = path.split_once('?').unwrap_or((path, ""));
@@ -93,13 +93,15 @@ mod tests {
     fn test_decode_transaction_link() {
         assert_eq!(
             decode("https://merchant.example/pay?order=12345").unwrap(),
-            Payment::Link(PaymentLink::SolanaPay("https://merchant.example/pay?order=12345".to_string()))
+            Payment::Link(PaymentLink::SolanaPay {
+                url: "https://merchant.example/pay?order=12345".to_string()
+            })
         );
         assert_eq!(
             decode("https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1%3Fnetwork%3Dsol").unwrap(),
-            Payment::Link(PaymentLink::SolanaPay(
-                "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1?network=sol".to_string()
-            ))
+            Payment::Link(PaymentLink::SolanaPay {
+                url: "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1?network=sol".to_string()
+            })
         );
     }
 

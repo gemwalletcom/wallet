@@ -7,7 +7,7 @@ use primitives::{
     AccountDataType, Asset, AssetId, Chain, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualProvider,
     PerpetualType, Resource, SignerInput, StakeType, TransactionChange, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionMetadata,
     TransactionPerpetualMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate, TransferDataExtra,
-    TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UInt64, WalletConnectionSessionAppMetadata,
+    TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UInt64,
     perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData},
 };
 use std::collections::HashMap;
@@ -203,16 +203,6 @@ pub enum GemEarnType {
     Withdraw(GemDelegation),
 }
 
-pub type GemWalletConnectionSessionAppMetadata = WalletConnectionSessionAppMetadata;
-
-#[uniffi::remote(Record)]
-pub struct GemWalletConnectionSessionAppMetadata {
-    pub name: String,
-    pub description: String,
-    pub url: String,
-    pub icon: String,
-}
-
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemTransferDataExtra {
     pub to: String,
@@ -312,7 +302,7 @@ pub enum GemTransactionInputType {
     },
     Generic {
         asset: GemAsset,
-        metadata: GemWalletConnectionSessionAppMetadata,
+        metadata: GemApplicationMetadata,
         extra: GemTransferDataExtra,
     },
     TransferNft {

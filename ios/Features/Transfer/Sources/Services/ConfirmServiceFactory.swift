@@ -8,6 +8,7 @@ import ChainService
 import EventPresenterService
 import ExplorerService
 import Foundation
+import protocol Gemstone.TransactionSimulationServiceProtocol
 import Keystore
 import PriceService
 import Primitives
@@ -28,6 +29,7 @@ public enum ConfirmServiceFactory {
         addressNameService: AddressNameService,
         activityService: ActivityService,
         eventPresenterService: EventPresenterService,
+        transactionSimulationService: any TransactionSimulationServiceProtocol,
         chain: Chain,
     ) -> ConfirmService {
         let chainService = chainServiceFactory.service(for: chain)
@@ -48,6 +50,7 @@ public enum ConfirmServiceFactory {
                 addressNameService: addressNameService,
                 assetsService: assetsService,
             ),
+            transactionSimulationService: transactionSimulationService,
             transferExecutor: TransferExecutor(
                 signer: TransactionSigner(keystore: keystore),
                 chainService: chainService,

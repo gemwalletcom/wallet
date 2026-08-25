@@ -6,6 +6,36 @@ import Testing
 
 struct TransferDataTypeTests {
     @Test
+    func genericEncodedTransaction() throws {
+        let asset = Asset.mockSolana()
+        let metadata = ApplicationMetadata.mock(source: .payment)
+        let data = TransferData(
+            asset: asset,
+            metadata: metadata,
+            transaction: "encoded-transaction",
+            memo: "payment memo",
+            outputType: .encodedTransaction,
+            outputAction: .send,
+            transactionType: .transfer,
+        )
+
+        guard case let .generic(mappedAsset, mappedMetadata, extra) = data.type else {
+            Issue.record("Expected generic transfer data")
+            return
+        }
+        #expect(mappedAsset == asset)
+        #expect(mappedMetadata == metadata)
+        #expect(extra.data.flatMap { String(data: $0, encoding: .utf8) } == "encoded-transaction")
+        #expect(extra.outputType == .encodedTransaction)
+        #expect(extra.outputAction == .send)
+        #expect(extra.transactionType == .transfer)
+        #expect(try data.encodedTransaction() == "encoded-transaction")
+        #expect(data.recipientData.recipient.address.isEmpty)
+        #expect(data.recipientData.recipient.memo == "payment memo")
+        #expect(data.value == .zero)
+    }
+
+    @Test
     func approvalDataMatchesTransactionType() throws {
         let approval = ApprovalData.mock()
         let swap = TransferDataType.swap(

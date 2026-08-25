@@ -32,7 +32,7 @@ final class PaymentURLDecoderTests {
     func decodeLink() throws {
         #expect(
             try PaymentURLDecoder.decode("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1")
-                == .link(.solanaPay("https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1")),
+                == .link(.solanaPay(PaymentLinkSolanaPayInner(url: "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1"))),
         )
     }
 

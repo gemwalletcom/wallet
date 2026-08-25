@@ -1,7 +1,7 @@
 use super::{instructions, swap, transaction};
-use crate::{decode_transaction, transaction::is_transaction_bytes};
+use crate::{VersionedTransactionExt, decode_transaction, transaction::is_transaction_bytes};
 use gem_encoding::encode_base64;
-use primitives::{ChainSigner, SignerError, SignerInput, TransferDataOutputType};
+use primitives::{ApplicationMetadataSource, ChainSigner, SignerError, SignerInput, TransactionInputType, TransferDataOutputType};
 use solana_primitives::{Pubkey, sign_message as sign_solana_message};
 
 #[derive(Default)]
@@ -57,6 +57,14 @@ impl ChainSigner for SolanaChainSigner {
             return Err(SignerError::invalid_input("user signature should be first"));
         }
 
+        let is_payment = matches!(
+            &input.input_type,
+            TransactionInputType::Generic(_, metadata, _) if metadata.source == ApplicationMetadataSource::Payment
+        );
+        if is_payment && transaction.recent_blockhash() == &[0; 32] {
+            *transaction.recent_blockhash_mut() = transaction::block_hash(input)?;
+        }
+
         let message_bytes = transaction.serialize_message().map_err(|e| SignerError::signing_error(format!("serialize message: {e}")))?;
         let signature = sign_solana_message(private_key, &message_bytes).map_err(|e| SignerError::signing_error(format!("sign: {e}")))?;
 
@@ -77,7 +85,7 @@ mod tests {
     use crate::signer::testkit::{DOUBLE_SIG_TX, EXPECTED_MESSAGE_HEX, SINGLE_SIG_TX, mock_legacy_transaction};
     use gem_encoding::decode_base64;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{Chain, ChainSigner, SignerInput, TransactionLoadInput, TransferDataOutputType};
+    use primitives::{ApplicationMetadataSource, Chain, ChainSigner, SignerInput, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType};
     use solana_primitives::VersionedTransaction;
 
     #[test]
@@ -113,6 +121,42 @@ mod tests {
         let signed_transaction = VersionedTransaction::deserialize_with_version(&signed_bytes).unwrap();
         assert_eq!(signed_transaction.signatures().len(), 1);
         assert_ne!(signed_transaction.signatures()[0].as_bytes(), &[0u8; 64]);
+    }
+
+    #[test]
+    fn test_sign_data_uses_loaded_blockhash_for_payment() {
+        let mut transaction = mock_legacy_transaction();
+        *transaction.recent_blockhash_mut() = [0; 32];
+        transaction.add_signature(solana_primitives::SignatureBytes::new([0; 64]));
+        let encoded = encode_base64(&transaction.serialize().unwrap());
+        let blockhash = bs58::encode([4; 32]).into_string();
+        let mut input = TransactionLoadInput::mock_sign_data(Chain::Solana, &encoded, TransferDataOutputType::EncodedTransaction);
+        let TransactionInputType::Generic(_, metadata, _) = &mut input.input_type else {
+            panic!("expected generic transaction input");
+        };
+        metadata.source = ApplicationMetadataSource::Payment;
+        input.metadata = TransactionLoadMetadata::mock_solana(&blockhash);
+        let fee = input.default_fee();
+        let input = SignerInput::new(input, fee);
+
+        let result = SolanaChainSigner.sign_data(&input, &TEST_PRIVATE_KEY).unwrap();
+        let signed = VersionedTransaction::deserialize_with_version(&decode_base64(&result).unwrap()).unwrap();
+        assert_eq!(signed.recent_blockhash(), &[4; 32]);
+    }
+
+    #[test]
+    fn test_sign_data_preserves_wallet_connect_blockhash() {
+        let mut transaction = mock_legacy_transaction();
+        *transaction.recent_blockhash_mut() = [0; 32];
+        transaction.add_signature(solana_primitives::SignatureBytes::new([0; 64]));
+        let encoded = encode_base64(&transaction.serialize().unwrap());
+        let mut input = TransactionLoadInput::mock_sign_data(Chain::Solana, &encoded, TransferDataOutputType::EncodedTransaction);
+        input.metadata = TransactionLoadMetadata::mock_solana(&bs58::encode([4; 32]).into_string());
+        let fee = input.default_fee();
+
+        let result = SolanaChainSigner.sign_data(&SignerInput::new(input, fee), &TEST_PRIVATE_KEY).unwrap();
+        let signed = VersionedTransaction::deserialize_with_version(&decode_base64(&result).unwrap()).unwrap();
+        assert_eq!(signed.recent_blockhash(), &[0; 32]);
     }
 
     #[test]

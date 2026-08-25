@@ -14,6 +14,7 @@ import EventPresenterService
 import EventPresenterServiceTestKit
 import FiatServiceTestKit
 import Foundation
+import class Gemstone.TransactionSimulationService
 import GemstonePrimitives
 import InfoSheet
 import KeystoreTestKit
@@ -34,6 +35,26 @@ import Validators
 
 @MainActor
 struct ConfirmTransferSceneViewModelTests {
+    @Test
+    func paymentHeaderAppearsAfterLoading() {
+        let data = TransferData(
+            asset: .mockSolana(),
+            metadata: .mock(source: .payment),
+            transaction: "transaction",
+            memo: nil,
+            outputType: .encodedTransaction,
+            outputAction: .send,
+            transactionType: .transfer,
+        )
+        let model = ConfirmTransferSceneViewModel.mock(data: data)
+
+        #expect(model.isHeaderVisible == false)
+        model.state.transaction = .data(.mock())
+        #expect(model.isHeaderVisible == false)
+        model.state.simulation = .mock(headerData: AssetValueHeaderData(asset: .mockSolana(), value: .exact(19)))
+        #expect(model.isHeaderVisible == true)
+    }
+
     @Test
     func itemModelReturnsNonEmpty() {
         let model = ConfirmTransferSceneViewModel.mock()
@@ -682,6 +703,7 @@ private extension ConfirmService {
                 feeAssetProvider: FeeAssetProviderMock(),
             ),
             simulationService: ConfirmSimulationService(addressNameService: .mock(addressStore: .mock()), assetsService: .mock()),
+            transactionSimulationService: TransactionSimulationService(noHandle: .init()),
             transferExecutor: TransferExecutorMock(),
             activityService: .mock(),
             eventPresenterService: .mock(),
@@ -734,6 +756,7 @@ private extension ConfirmTransferSceneViewModel {
                 addressNameService: addressNameService,
                 activityService: .mock(),
                 eventPresenterService: .mock(),
+                transactionSimulationService: TransactionSimulationService(noHandle: .init()),
                 chain: data.chain,
             ),
             onComplete: {},

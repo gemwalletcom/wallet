@@ -1,5 +1,6 @@
 use crate::actions::{WCSolanaTransactionData, WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
+use gem_solana::{VersionedTransactionExt, decode_transaction};
 use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
 use serde_json::Value;
 
@@ -57,9 +58,11 @@ impl SolanaRequestHandler {
             .and_then(|value| value.as_str())
             .ok_or_else(|| "Missing transaction field".to_string())?
             .to_string();
+        let transaction_type = decode_transaction(&transaction)?.transaction_type();
         Ok(WalletConnectTransaction::Solana {
             data: WCSolanaTransactionData { transaction },
             output_type,
+            transaction_type,
         })
     }
 
@@ -118,5 +121,21 @@ mod tests {
                 data: expected_data,
             }
         );
+    }
+
+    #[test]
+    fn test_decode_transfer_transaction() {
+        const TRANSACTION: &str = "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAECC4JMKqNplIXybGb/GhK1ofdVWeuEjXnQor7gi0Y2hMcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQECAAAMAgAAAAAAAAAAAAAA";
+
+        let decoded =
+            SolanaRequestHandler::decode_send_transaction(serde_json::json!({ "transaction": TRANSACTION }).to_string(), TransferDataOutputType::EncodedTransaction).unwrap();
+
+        assert!(matches!(
+            decoded,
+            WalletConnectTransaction::Solana {
+                transaction_type: primitives::TransactionType::Transfer,
+                ..
+            }
+        ));
     }
 }

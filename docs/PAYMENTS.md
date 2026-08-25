@@ -27,6 +27,10 @@ flowchart TD
     Scheme -->|"ton:"| TON["TON transfer"]
     Scheme -->|"Supported chain scheme"| BIP21["BIP-21-style decoder"]
     Scheme -->|"No scheme"| Address["Plain address request<br/>No asset selected"]
+    Solana -->|"HTTPS transaction request"| PaymentReview["Open review request<br/>Loading"]
+    PaymentReview --> Gateway["Load merchant and transaction"]
+    Gateway --> Confirm["Open confirmation"]
+    Confirm --> Simulation["Preload and simulate concurrently"]
     ERC681 & Solana & TON & BIP21 & Address --> Request{"Payment request?"}
     Request -->|"No"| Reject["Not supported"]
     Request -->|"Yes"| Assets{"Matching wallet assets"}
@@ -36,12 +40,15 @@ flowchart TD
     Assets -->|"One, amount or memo missing/unusable"| Recipient["Recipient review"]
 ```
 
-WalletConnect and Gem deeplinks are routed before payments. Solana transaction links decode as payment links, but the scanner currently routes only payment requests.
+WalletConnect and Gem deeplinks are routed before payments. Solana transaction links load the merchant and encoded transaction through the payment service before opening confirmation. Confirmation then preloads the transaction and simulates it concurrently using the same transaction simulation service as WalletConnect.
+
+Static Solana Pay transfer requests support recipient, amount, SPL token, and memo. Requests containing `reference` are rejected until the reference account can be preserved by the shared transfer flow.
 
 Core entry points:
 
 - [URL action routing](../core/crates/primitives/src/url_action.rs)
 - [Payment decoder dispatch](../core/crates/primitives/src/payment_decoder/decoder.rs)
+- [Payment service](../core/crates/payment/src/service.rs)
 - [UniFFI bridge](../core/gemstone/src/payment.rs)
 
 ## Payment flows

@@ -28,8 +28,18 @@ public extension WalletConnectorEVMTransactionKind {
 
 public enum WalletConnectorTransaction {
     case ethereum(WCEthereumTransaction, WalletConnectorEVMTransactionKind)
-    case solana(String, TransferDataOutputType)
+    case solana(String, TransferDataOutputType, TransactionType)
     case sui(String, TransferDataOutputType)
     case ton(String, TransferDataOutputType)
     case tron(String, TransferDataOutputType)
+}
+
+public extension WalletConnectorTransaction {
+    var transactionType: TransactionType {
+        switch self {
+        case let .ethereum(_, kind): kind.transactionType
+        case let .solana(_, _, transactionType): transactionType
+        case .sui, .ton, .tron: .smartContractCall
+        }
+    }
 }

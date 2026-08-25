@@ -4149,6 +4149,7 @@ version = "2.114.10"
 dependencies = [
  "base64 0.23.0",
  "gem_evm",
+ "gem_solana",
  "gem_ton",
  "hex",
  "primitives",
@@ -4219,6 +4220,7 @@ dependencies = [
  "hex",
  "num-bigint 0.5.1",
  "number_formatter",
+ "payment",
  "primitives",
  "serde_json",
  "signer",
@@ -6089,7 +6091,15 @@ checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 name = "payment"
 version = "2.114.10"
 dependencies = [
+ "gem_client",
+ "gem_encoding",
+ "gem_jsonrpc",
+ "gem_solana",
  "primitives",
+ "serde",
+ "serde_json",
+ "solana-primitives",
+ "tokio",
 ]
 
 [[package]]

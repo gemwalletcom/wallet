@@ -35,37 +35,10 @@ public extension ConfirmAppViewModel {
 
 extension ConfirmAppViewModel {
     private var appValue: String? {
-        switch type {
-        case .transfer,
-             .deposit,
-             .withdrawal,
-             .transferNft,
-             .swap,
-             .tokenApprove,
-             .stake,
-             .account,
-             .perpetual,
-             .earn: .none
-        case let .generic(_, metadata, _):
-            metadata.shortName
-        }
+        type.applicationMetadata?.shortName
     }
 
     private var assetImage: AssetImage? {
-        switch type {
-        case .transfer,
-             .deposit,
-             .withdrawal,
-             .transferNft,
-             .swap,
-             .tokenApprove,
-             .stake,
-             .account,
-             .perpetual,
-             .earn:
-            .none
-        case let .generic(_, session, _):
-            AssetImage(imageURL: session.icon.asURL)
-        }
+        type.applicationMetadata.map { AssetImage(imageURL: $0.icon.asURL) }
     }
 }

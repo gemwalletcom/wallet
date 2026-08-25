@@ -21,6 +21,7 @@ public struct ConfirmSimulationService: Sendable {
     func makeState(data: TransferData, simulation: SimulationResult?) -> ConfirmSimulationState {
         let assets = simulationAssets(simulation)
         return ConfirmSimulationState(
+            result: simulation,
             warnings: simulation?.warnings ?? [],
             payload: payloadModel(data: data, simulation: simulation),
             headerData: cachedHeaderData(data: data, simulation: simulation, assets: assets),
@@ -41,6 +42,7 @@ public struct ConfirmSimulationService: Sendable {
 
         let assets = simulationAssets(simulation)
         return ConfirmSimulationState(
+            result: simulation,
             warnings: simulation?.warnings ?? [],
             payload: payload,
             headerData: cachedHeaderData(data: data, simulation: simulation, assets: assets),

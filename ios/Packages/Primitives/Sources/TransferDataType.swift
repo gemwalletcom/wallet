@@ -13,7 +13,7 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
     case account(Asset, AccountDataType)
     case perpetual(Asset, PerpetualType)
     case earn(Asset, EarnType, ContractCallData)
-    case generic(asset: Asset, metadata: WalletConnectionSessionAppMetadata, extra: TransferDataExtra)
+    case generic(asset: Asset, metadata: ApplicationMetadata, extra: TransferDataExtra)
 
     public var transactionType: TransactionType {
         switch self {
@@ -47,6 +47,11 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
             case .modify: .perpetualModifyPosition
             }
         }
+    }
+
+    public var applicationMetadata: ApplicationMetadata? {
+        guard case let .generic(_, metadata, _) = self else { return nil }
+        return metadata
     }
 
     public var chain: Chain {
@@ -89,8 +94,11 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
             case .stake, .unstake, .redelegate, .rewards, .withdraw:
                 return nil
             }
-        case let .generic(_, _, extra):
-            return .encode(TransactionWalletConnectMetadata(outputAction: extra.outputAction))
+        case let .generic(_, metadata, extra):
+            return switch metadata.source {
+            case .walletConnect: .encode(TransactionWalletConnectMetadata(outputAction: extra.outputAction))
+            case .payment: nil
+            }
         case .transfer,
              .deposit,
              .withdrawal,

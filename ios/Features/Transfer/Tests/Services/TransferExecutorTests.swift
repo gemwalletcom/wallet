@@ -17,6 +17,35 @@ import TransactionStateServiceTestKit
 
 struct TransferExecutorTests {
     @Test
+    func paymentPendingTransactionUsesSimulationAndMemo() throws {
+        let memo = "ck:262:operator:m:1787598390"
+        let asset = Asset.mockSolanaUSDC()
+        let transferData = TransferData(
+            asset: .mockSolana(),
+            metadata: .mock(source: .payment),
+            transaction: "encoded-transaction",
+            memo: memo,
+            outputType: .encodedTransaction,
+            outputAction: .send,
+            transactionType: .transfer,
+        )
+
+        let transaction = try TransactionFactory.makePendingTransaction(
+            wallet: .mock(accounts: [.mock(chain: .solana)]),
+            transferData: transferData,
+            transactionData: .mock(),
+            amount: .mock(),
+            hash: "hash",
+            transactionType: .transfer,
+            simulation: .mock(header: SimulationHeader(assetId: asset.id, value: "19000000", isUnlimited: false)),
+        )
+
+        #expect(transaction.assetId == asset.id)
+        #expect(transaction.value == "19000000")
+        #expect(transaction.memo == memo)
+    }
+
+    @Test
     func hyperCorePerpetualStoresPrimaryOrder() async throws {
         let db = DB.mockAssets(assets: [.mock(asset: Asset.mockHypercoreUSDC())])
         let transactionStore = TransactionStore(db: db)

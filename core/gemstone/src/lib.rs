@@ -2,6 +2,7 @@ pub mod address;
 pub mod address_formatter;
 pub mod alien;
 pub mod api_client;
+mod application;
 pub mod auth;
 pub mod balance_calculator;
 pub mod block_explorer;
@@ -27,6 +28,7 @@ pub mod siwe;
 pub mod support;
 #[cfg(all(test, feature = "reqwest_provider"))]
 pub(crate) mod testkit;
+pub mod transaction_simulation;
 pub mod transaction_state;
 pub mod transfer_amount;
 pub mod url_action;

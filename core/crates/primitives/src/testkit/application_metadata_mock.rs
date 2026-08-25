@@ -1,12 +1,13 @@
-use crate::WalletConnectionSessionAppMetadata;
+use crate::{ApplicationMetadata, ApplicationMetadataSource};
 
-impl WalletConnectionSessionAppMetadata {
+impl ApplicationMetadata {
     pub fn mock() -> Self {
-        WalletConnectionSessionAppMetadata {
+        ApplicationMetadata {
             name: "Test Dapp".to_string(),
             description: "Test Dapp".to_string(),
             url: "https://example.com".to_string(),
             icon: "https://example.com/icon.png".to_string(),
+            source: ApplicationMetadataSource::WalletConnect,
         }
     }
 }

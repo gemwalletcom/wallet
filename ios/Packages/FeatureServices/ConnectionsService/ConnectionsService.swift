@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Preferences
 import Primitives
 import Store
@@ -27,21 +26,6 @@ public final class ConnectionsService: Sendable {
         self.signer = signer
         self.connector = connector
         self.preferences = preferences
-    }
-
-    public convenience init(
-        store: ConnectionsStore,
-        signer: any WalletConnectorSignable,
-        nodeProvider: any NodeURLFetchable,
-        requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
-        preferences: Preferences = .standard,
-    ) {
-        self.init(
-            store: store,
-            signer: signer,
-            connector: WalletConnectorService(signer: signer, nodeProvider: nodeProvider, requestInterceptor: requestInterceptor),
-            preferences: preferences,
-        )
     }
 }
 

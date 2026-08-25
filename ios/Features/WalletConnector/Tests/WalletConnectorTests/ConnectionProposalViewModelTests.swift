@@ -8,7 +8,7 @@ import Testing
 struct ConnectionProposalViewModelTests {
     @Test
     func appTextKeepsNameAndDomain() {
-        let metadata = WalletConnectionSessionAppMetadata.mock(
+        let metadata = ApplicationMetadata.mock(
             name: "PancakeSwap - Trade",
             url: "https://pancakeswap.finance/swap",
         )

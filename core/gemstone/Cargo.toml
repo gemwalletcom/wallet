@@ -19,6 +19,7 @@ swap_integration_tests = ["reqwest_provider"]
 
 [dependencies]
 swapper = { path = "../crates/swapper" }
+payment = { path = "../crates/payment" }
 primitives = { path = "../crates/primitives" }
 support = { path = "../crates/support", default-features = false }
 gem_cosmos = { path = "../crates/gem_cosmos", features = ["rpc", "signer"] }

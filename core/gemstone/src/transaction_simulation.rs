@@ -19,17 +19,16 @@ use crate::{
     alien::{AlienClient, AlienProvider, AlienProviderWrapper, coalescing_provider, new_alien_client},
     message::sign_type::SignDigestType,
     network::JsonRpcClient,
+    wallet_connect::{WalletConnectTransactionType, simulation},
 };
 
-use super::{WalletConnectTransactionType, simulation};
-
 #[derive(uniffi::Object)]
-pub struct WalletConnectSimulationClient {
+pub struct TransactionSimulationService {
     provider: Arc<dyn AlienProvider>,
 }
 
 #[uniffi::export]
-impl WalletConnectSimulationClient {
+impl TransactionSimulationService {
     #[uniffi::constructor]
     pub fn new(provider: Arc<dyn AlienProvider>) -> Self {
         Self {
@@ -66,9 +65,20 @@ impl WalletConnectSimulationClient {
 
         Ok(simulation.prepend_warnings(validation_warnings))
     }
+
+    pub async fn simulate_transaction(&self, chain: Chain, encoded_transaction: String, signer_address: Option<String>) -> Result<SimulationResult, GemstoneError> {
+        self.simulate_chain_transaction(
+            chain,
+            SimulationInput {
+                encoded_transaction,
+                signer_address,
+            },
+        )
+        .await
+    }
 }
 
-impl WalletConnectSimulationClient {
+impl TransactionSimulationService {
     async fn simulate_eip712_message(&self, chain: Chain, message: &gem_evm::eip712::EIP712Message) -> Result<SimulationResult, GemstoneError> {
         let provider = self.ethereum_provider(chain)?;
         Ok(SimulationClient::new(&provider).simulate_eip712_message(chain, message).await?)
@@ -135,7 +145,7 @@ impl WalletConnectSimulationClient {
     }
 
     async fn simulate_chain_transaction(&self, chain: Chain, input: SimulationInput) -> Result<SimulationResult, GemstoneError> {
-        Ok(self.simulation_client(chain)?.simulate_transaction(input).await?)
+        Ok(self.chain_simulation(chain)?.simulate_transaction(input).await?)
     }
 
     fn ethereum_provider(&self, chain: Chain) -> Result<EthereumProvider<AlienClient>, GemstoneError> {
@@ -145,7 +155,7 @@ impl WalletConnectSimulationClient {
         Ok(EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain)))
     }
 
-    fn simulation_client(&self, chain: Chain) -> Result<Box<dyn ChainSimulation>, GemstoneError> {
+    fn chain_simulation(&self, chain: Chain) -> Result<Box<dyn ChainSimulation>, GemstoneError> {
         let url = self.provider.get_endpoint(chain)?;
         let new_client = || new_alien_client(url.clone(), self.provider.clone());
         match chain {
@@ -156,7 +166,7 @@ impl WalletConnectSimulationClient {
             }
             Chain::Ton => Ok(Box::new(TonClient::new(new_client()))),
             Chain::Tron => Ok(Box::new(TronProvider::new_rpc_only(TronClient::new(new_client())))),
-            _ => Err(format!("{chain} does not support WalletConnect transaction simulation").into()),
+            _ => Err(format!("{chain} does not support transaction simulation").into()),
         }
     }
 }
@@ -178,7 +188,23 @@ fn map_transaction_object(transaction: &WcEthereumTransactionData) -> Transactio
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::alien::{AlienError, AlienResponse, AlienTarget};
+    use async_trait::async_trait;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
+
+    #[derive(Debug)]
+    struct TestProvider;
+
+    #[async_trait]
+    impl AlienProvider for TestProvider {
+        async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
+            unreachable!()
+        }
+
+        fn get_endpoint(&self, _chain: Chain) -> Result<String, AlienError> {
+            Ok("https://example.invalid".to_string())
+        }
+    }
 
     fn mock_wc_transaction() -> WcEthereumTransactionData {
         WcEthereumTransactionData {
@@ -219,5 +245,24 @@ mod tests {
         assert_eq!(transaction_object.gas_price, None);
         assert_eq!(transaction_object.max_fee_per_gas, None);
         assert_eq!(transaction_object.max_priority_fee_per_gas, None);
+    }
+
+    #[test]
+    fn test_wallet_connect_send_transaction_ignores_simulation_error() {
+        futures::executor::block_on(async {
+            let service = TransactionSimulationService::new(Arc::new(TestProvider));
+
+            let result = service
+                .simulate_send_transaction(
+                    Chain::Solana,
+                    WalletConnectTransactionType::Solana {
+                        output_type: primitives::TransferDataOutputType::EncodedTransaction,
+                    },
+                    "invalid simulation input".to_string(),
+                )
+                .await;
+
+            assert!(result.is_ok());
+        });
     }
 }
