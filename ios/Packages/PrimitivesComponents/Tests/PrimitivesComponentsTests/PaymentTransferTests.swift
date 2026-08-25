@@ -12,17 +12,7 @@ struct PaymentTransferTests {
     func transactionUsesDecodedTransfer() throws {
         let asset = Asset.mockSolanaUSDC()
         let recipient = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
-        let transaction = GemPaymentTransaction(
-            merchant: GemApplicationMetadata(
-                name: "Merchant",
-                description: "Payment",
-                url: "https://example.com",
-                icon: "https://example.com/icon.png",
-                source: .payment,
-            ),
-            account: Gemstone.ChainAddress(chain: Primitives.Chain.solana.rawValue, address: "account"),
-            transaction: "encoded-transaction",
-            transactionType: .transfer,
+        let transaction = Self.paymentTransaction(
             memo: "payment-memo",
             request: GemPaymentRequest(
                 address: recipient,
@@ -42,6 +32,59 @@ struct PaymentTransferTests {
         #expect(data.type.asset == asset)
         #expect(data.value == 19_000_000)
         #expect(data.recipientData.recipient.address == recipient)
+        #expect(data.recipientData.recipient.memo == "payment-memo")
+        #expect(try data.encodedTransaction() == "encoded-transaction")
+    }
+
+    @Test
+    func transactionWithoutMemoConfirms() throws {
+        let asset = Asset.mockSolanaUSDC()
+        let recipient = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
+        let transaction = Self.paymentTransaction(
+            memo: nil,
+            request: GemPaymentRequest(
+                address: recipient,
+                amount: .atomicValue("19000000"),
+                memo: nil,
+                references: nil,
+                assetId: asset.id.identifier,
+            ),
+        )
+
+        let destination = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset)
+        guard case let .confirm(data) = destination else {
+            Issue.record("Expected confirmation for a decoded transfer without a memo")
+            return
+        }
+
+        #expect(data.value == 19_000_000)
+        #expect(data.recipientData.recipient.address == recipient)
+        #expect(data.recipientData.recipient.memo == nil)
+        #expect(try data.encodedTransaction() == "encoded-transaction")
+    }
+
+    @Test
+    func transactionWithUndecodableValueFallsBack() throws {
+        let asset = Asset.mockSolanaUSDC()
+        let transaction = Self.paymentTransaction(
+            memo: "payment-memo",
+            request: GemPaymentRequest(
+                address: "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n",
+                amount: .atomicValue("not-a-number"),
+                memo: "payment-memo",
+                references: nil,
+                assetId: asset.id.identifier,
+            ),
+        )
+
+        let destination = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset)
+        guard case let .confirm(data) = destination else {
+            Issue.record("Expected confirmation via the encoded transaction fallback")
+            return
+        }
+
+        #expect(data.value == .zero)
+        #expect(data.recipientData.recipient.address.isEmpty)
         #expect(data.recipientData.recipient.memo == "payment-memo")
         #expect(try data.encodedTransaction() == "encoded-transaction")
     }
@@ -130,4 +173,21 @@ struct PaymentTransferTests {
     }
 
     private static let xrpAddress = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+
+    private static func paymentTransaction(memo: String?, request: GemPaymentRequest?) -> GemPaymentTransaction {
+        GemPaymentTransaction(
+            merchant: GemApplicationMetadata(
+                name: "Merchant",
+                description: "Payment",
+                url: "https://example.com",
+                icon: "https://example.com/icon.png",
+                source: .payment,
+            ),
+            account: Gemstone.ChainAddress(chain: Primitives.Chain.solana.rawValue, address: "account"),
+            transaction: "encoded-transaction",
+            transactionType: .transfer,
+            memo: memo,
+            request: request,
+        )
+    }
 }

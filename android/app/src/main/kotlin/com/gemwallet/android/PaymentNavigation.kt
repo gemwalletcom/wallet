@@ -8,6 +8,7 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.PaymentDestination
+import com.gemwallet.android.model.PaymentTransfer
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
@@ -47,17 +48,13 @@ class PaymentNavigation @Inject constructor(
             link.toGem(),
             accounts.map { ChainAddress(chain = it.chain.string, address = it.address) },
         )
-        val request = payment.request?.toPrimitives()
-        val transfer = if (request == null) {
-            val account = accounts.firstOrNull {
-                it.chain.string == payment.account.chain && it.address == payment.account.address
-            } ?: return emptyList()
-            ConfirmParams.Builder(account.chain.asset(), account, BigInteger.ZERO)
-                .transfer(DestinationAddress(""), payment.memo)
-        } else {
-            val destination = PaymentDestination.from(request, assets) as? PaymentDestination.Confirm ?: return emptyList()
-            destination.params as? ConfirmParams.TransferParams ?: return emptyList()
-        }
+        val account = accounts.firstOrNull {
+            it.chain.string == payment.account.chain && it.address == payment.account.address
+        } ?: return emptyList()
+        val transfer = payment.request?.toPrimitives()?.let { request ->
+            assets.firstOrNull { it.asset.id == request.assetId }?.let { PaymentTransfer(it).decodedTransfer(request) }
+        } ?: ConfirmParams.Builder(account.chain.asset(), account, BigInteger.ZERO)
+            .transfer(DestinationAddress(""), payment.memo)
         val params = ConfirmParams.TransferParams.Generic(
             asset = transfer.asset,
             from = transfer.from,

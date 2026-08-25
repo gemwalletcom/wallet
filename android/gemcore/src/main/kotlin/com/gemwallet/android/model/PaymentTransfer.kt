@@ -15,28 +15,33 @@ class PaymentTransfer(private val assetInfo: AssetInfo) {
         if (assetId != null && assetId != assetInfo.asset.id) {
             return PaymentDestination.Unsupported
         }
-        val address = assetInfo.asset.chain.checksumAddress(request.address)
+        val params = if (requiresMemo(request)) null else decodedTransfer(request)
 
-        return when (val params = confirmParams(request, address)) {
+        return when (params) {
             null -> PaymentDestination.Recipient(assetInfo.asset.id, request)
             else -> PaymentDestination.Confirm(params)
         }
     }
 
-    private fun confirmParams(request: PaymentRequest, address: String): ConfirmParams? {
+    fun decodedTransfer(request: PaymentRequest): ConfirmParams.TransferParams? {
         val asset = assetInfo.asset
         val owner = assetInfo.owner ?: return null
-        val value = transferValue(request) ?: return null
-
-        if (!asset.chain.isValidAddress(address)) {
+        val assetId = request.assetId
+        if (assetId != null && assetId != asset.id) {
             return null
         }
-        if (asset.chain.isMemoSupport() && request.memo.isNullOrEmpty()) {
+        val value = transferValue(request) ?: return null
+        val address = asset.chain.checksumAddress(request.address)
+
+        if (!asset.chain.isValidAddress(address)) {
             return null
         }
         return ConfirmParams.Builder(asset, owner, value)
             .transfer(DestinationAddress(address), request.memo, request.references.orEmpty())
     }
+
+    private fun requiresMemo(request: PaymentRequest): Boolean =
+        assetInfo.asset.chain.isMemoSupport() && request.memo.isNullOrEmpty()
 
     private fun transferValue(request: PaymentRequest): BigInteger? =
         when (val amount = request.amount) {

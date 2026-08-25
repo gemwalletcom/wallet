@@ -23,19 +23,31 @@ public struct PaymentTransfer: Sendable {
         guard let value = confirmableValue(of: payment, address: recipient.address) else {
             return .recipient(RecipientData(recipient: recipient, amount: payment.exactAmount))
         }
-        return .confirm(
-            TransferData(
-                type: .transfer(asset),
-                recipientData: RecipientData(recipient: recipient, amount: nil),
-                amount: .exact(value),
-            ),
-        )
+        return .confirm(transferData(recipient: recipient, value: value))
+    }
+
+    public func decodedTransfer(for payment: PaymentRequest) -> TransferData? {
+        guard let recipient = try? recipient(for: payment),
+              asset.chain.isValidAddress(recipient.address),
+              let value = transferValue(of: payment)
+        else {
+            return .none
+        }
+        return transferData(recipient: recipient, value: value)
     }
 }
 
 // MARK: - Private
 
 private extension PaymentTransfer {
+    func transferData(recipient: Recipient, value: BigInt) -> TransferData {
+        TransferData(
+            type: .transfer(asset),
+            recipientData: RecipientData(recipient: recipient, amount: nil),
+            amount: .exact(value),
+        )
+    }
+
     func recipient(for payment: PaymentRequest) throws -> Recipient {
         guard payment.assetId == nil || payment.assetId == asset.id else {
             throw AnyError(Localized.Errors.notSupported)

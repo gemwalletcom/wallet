@@ -32,7 +32,7 @@ public enum PaymentDestinationBuilder {
                 transactionType: transaction.transactionType.map(),
             ),
         )
-        guard let request else {
+        guard let transfer = request.flatMap({ PaymentTransfer(asset: asset).decodedTransfer(for: $0) }) else {
             return .confirm(
                 TransferData(
                     type: type,
@@ -44,14 +44,11 @@ public enum PaymentDestinationBuilder {
                 ),
             )
         }
-        guard case let .confirm(paymentData) = try PaymentTransfer(asset: asset).destination(for: request) else {
-            throw AnyError(Localized.Errors.notSupported)
-        }
         return .confirm(
             TransferData(
                 type: type,
-                recipientData: paymentData.recipientData,
-                amount: paymentData.amount,
+                recipientData: transfer.recipientData,
+                amount: transfer.amount,
             ),
         )
     }
