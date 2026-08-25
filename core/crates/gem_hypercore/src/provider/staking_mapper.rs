@@ -7,10 +7,14 @@ use number_formatter::BigNumberFormatter;
 use primitives::{Asset, Chain, DelegationBase, DelegationState, DelegationValidator};
 
 pub fn map_staking_validators(validators: Vec<Validator>, chain: Chain, apy: Option<f64>) -> Vec<DelegationValidator> {
-    let calculated_apy = apy.unwrap_or_else(|| Validator::max_apr(validators.clone()));
+    let calculated_apy = apy.unwrap_or_else(|| Validator::max_apr(&validators));
     let mut result: Vec<DelegationValidator> = validators
         .into_iter()
-        .map(|x| DelegationValidator::stake(chain, x.validator_address(), x.name, x.is_active, x.commission, calculated_apy))
+        .map(|x| {
+            let apr = x.predicted_apr().unwrap_or(calculated_apy);
+            let address = x.validator_address();
+            DelegationValidator::stake(chain, address, x.name, x.is_active, x.commission, apr)
+        })
         .collect();
 
     result.push(DelegationValidator::system(chain));
@@ -73,6 +77,18 @@ mod tests {
     use crate::models::user::{DelegatorHistoryDelta, DelegatorWithdrawalDelta};
     use primitives::{Chain, DelegationState};
 
+    fn validator(address: &str, name: &str, commission: f64, predicted_apr: Option<f64>) -> Validator {
+        Validator {
+            validator: address.to_string(),
+            name: name.to_string(),
+            commission,
+            is_active: true,
+            stats: predicted_apr
+                .map(|apr| vec![("month".to_string(), ValidatorStats { predicted_apr: apr })])
+                .unwrap_or_default(),
+        }
+    }
+
     fn withdrawal_entry(time: u64, amount: &str, phase: &str) -> DelegatorHistoryUpdate {
         DelegatorHistoryUpdate {
             time,
@@ -90,13 +106,7 @@ mod tests {
 
     #[test]
     fn test_map_staking_validators() {
-        let validators = vec![Validator {
-            validator: "0x5ac99df645f3414876c816caa18b2d234024b487".to_string(),
-            name: "Test Validator".to_string(),
-            commission: 5.0,
-            is_active: true,
-            stats: vec![("test".to_string(), ValidatorStats { predicted_apr: 0.15 })],
-        }];
+        let validators = vec![validator("0x5ac99df645f3414876c816caa18b2d234024b487", "Test Validator", 5.0, Some(0.15))];
 
         let result = map_staking_validators(validators, Chain::HyperCore, None);
         assert_eq!(result.len(), 2);
@@ -115,18 +125,27 @@ mod tests {
 
     #[test]
     fn test_map_staking_validators_with_apy() {
-        let validators = vec![Validator {
-            validator: "0x5ac99df645f3414876c816caa18b2d234024b487".to_string(),
-            name: "Test Validator".to_string(),
-            commission: 5.0,
-            is_active: true,
-            stats: vec![],
-        }];
+        let validators = vec![validator("0x5ac99df645f3414876c816caa18b2d234024b487", "Test Validator", 5.0, None)];
 
         let result = map_staking_validators(validators, Chain::HyperCore, Some(10.0));
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].apr, 10.0);
         assert_eq!(result[1].id, DelegationValidator::SYSTEM_ID);
+    }
+
+    #[test]
+    fn test_map_staking_validators_keeps_each_validator_apr() {
+        let validators = vec![
+            validator("0x5ac99df645f3414876c816caa18b2d234024b487", "High", 1.0, Some(0.25)),
+            validator("0x66be52ec79f829cc88e5778a255e2cb9492798fd", "Low", 2.0, Some(0.0625)),
+            validator("0x343da7ff0446247ca47aa41e2a25c5bbb230ed0a", "Zero", 3.0, Some(0.0)),
+        ];
+
+        let result = map_staking_validators(validators, Chain::HyperCore, Some(7.0));
+
+        assert_eq!(result[0].apr, 25.0);
+        assert_eq!(result[1].apr, 6.25);
+        assert_eq!(result[2].apr, 0.0);
     }
 
     #[test]
