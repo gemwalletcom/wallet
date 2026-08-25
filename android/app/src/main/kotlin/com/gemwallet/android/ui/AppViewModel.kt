@@ -126,10 +126,7 @@ class AppViewModel @Inject constructor(
     fun onNotificationsEnable() {
         viewModelScope.launch(Dispatchers.IO) {
             userConfig.stopAskNotifications()
-            switchPushEnabled.switchPushEnabled(
-                true,
-                walletsRepository.getAll().firstOrNull() ?: emptyList()
-            )
+            switchPushEnabled.switchPushEnabled(true)
         }
     }
 

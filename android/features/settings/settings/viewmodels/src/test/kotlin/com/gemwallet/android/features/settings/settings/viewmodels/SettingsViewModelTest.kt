@@ -66,7 +66,7 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { userConfig.stopAskNotifications() }
-        coVerify(exactly = 1) { switchPushEnabled.switchPushEnabled(false, emptyList()) }
+        coVerify(exactly = 1) { switchPushEnabled.switchPushEnabled(false) }
     }
 
     @Test
