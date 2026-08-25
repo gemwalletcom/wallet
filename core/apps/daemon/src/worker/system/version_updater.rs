@@ -29,19 +29,18 @@ impl VersionUpdater {
         ]
     }
 
-    pub async fn update_store(&self, store: PlatformStore) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let version = self.get_store_version(store).await?;
-
+    pub async fn update_store(&self, store: PlatformStore) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
         if !self.database.releases()?.is_update_enabled(store)? {
-            return Ok(version);
+            return Ok(None);
         }
 
+        let version = self.get_store_version(store).await?;
         let current = self.get_current_version(store)?;
         if current.as_ref() != Some(&version) {
             self.set_release(Release::new(store, version.clone(), false))?;
         }
 
-        Ok(version)
+        Ok(Some(version))
     }
 
     fn get_current_version(&self, store: PlatformStore) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
