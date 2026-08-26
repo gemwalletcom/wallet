@@ -3,6 +3,7 @@
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
+import protocol Gemstone.GemRewardsServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
@@ -65,7 +66,7 @@ extension EnvironmentValues {
     @Entry var nameService: any NameServiceable = AppResolver.main.services.nameService
     @Entry var activityService: ActivityService = AppResolver.main.services.activityService
     @Entry var viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory
-    @Entry var rewardsService: RewardsService = AppResolver.main.services.rewardsService
+    @Entry var rewardsService: any GemRewardsServiceProtocol = AppResolver.main.services.rewardsService
     @Entry var walletSearchService: WalletSearchService = AppResolver.main.services.walletSearchService
     @Entry var inAppNotificationService: any GemNotificationServiceProtocol = AppResolver.main.services.inAppNotificationService
     @Entry var portfolioService: any GemPortfolioServiceProtocol = AppResolver.main.services.portfolioService

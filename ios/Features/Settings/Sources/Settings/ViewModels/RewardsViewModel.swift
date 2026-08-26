@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemRewardsServiceProtocol
+import GemstonePrimitives
 import GemstoneServices
 import Components
 import Foundation
-import GemstonePrimitives
 import Localization
 import Preferences
 import Primitives
@@ -21,7 +22,7 @@ public final class RewardsViewModel: Sendable {
         return formatter
     }()
 
-    private let rewardsService: RewardsServiceable
+    private let rewardsService: any GemRewardsServiceProtocol
     private let assetsEnabler: any AssetsEnabler
     private let activateCode: String?
 
@@ -34,7 +35,7 @@ public final class RewardsViewModel: Sendable {
     var isPresentingAlert: AlertMessage?
 
     public init(
-        rewardsService: RewardsServiceable,
+        rewardsService: any GemRewardsServiceProtocol,
         assetsEnabler: any AssetsEnabler,
         wallet: Wallet,
         wallets: [Wallet],
@@ -114,13 +115,13 @@ public final class RewardsViewModel: Sendable {
 
     var shareText: String? {
         guard let code = rewards?.code else { return nil }
-        let link = rewardsService.generateReferralLink(code: code).absoluteString
+        let link = (try? rewardsService.referralLink(code: code).absoluteString) ?? ""
         return Localized.Rewards.shareText(link)
     }
 
     var referralLink: String? {
         guard let code = rewards?.code else { return nil }
-        return rewardsService.generateReferralLink(code: code).absoluteString
+        return (try? rewardsService.referralLink(code: code).absoluteString) ?? ""
     }
 
     var hasReferralCode: Bool {
@@ -247,7 +248,7 @@ public final class RewardsViewModel: Sendable {
     private func useReferralCode() async {
         guard let code = activateCode else { return }
         do {
-            try await rewardsService.useReferralCode(wallet: selectedWallet, referralCode: code)
+            try await rewardsService.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
             await fetch()
         } catch {
@@ -258,7 +259,7 @@ public final class RewardsViewModel: Sendable {
     func activatePendingReferral() async {
         guard let code = rewards?.usedReferralCode else { return }
         do {
-            try await rewardsService.useReferralCode(wallet: selectedWallet, referralCode: code)
+            try await rewardsService.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
             await fetch()
         } catch {

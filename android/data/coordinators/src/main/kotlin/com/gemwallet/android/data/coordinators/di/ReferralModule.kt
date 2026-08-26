@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.GetAuthPayload
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.referral.coordinators.CreateReferral
 import com.gemwallet.android.application.referral.coordinators.GetRewards
@@ -25,11 +24,9 @@ object ReferralModule {
     @Singleton
     fun provideCreateReferral(
         rewardsService: GemRewardsService,
-        getAuthPayload: GetAuthPayload,
     ): CreateReferral {
         return CreateReferralImpl(
             rewardsService = rewardsService,
-            getAuthPayload = getAuthPayload
         )
     }
 
@@ -48,13 +45,11 @@ object ReferralModule {
     fun provideRedeem(
         sessionRepository: SessionRepository,
         rewardsService: GemRewardsService,
-        getAuthPayload: GetAuthPayload,
         enableAsset: EnableAsset,
     ): Redeem {
         return RedeemImpl(
             sessionRepository = sessionRepository,
             rewardsService = rewardsService,
-            getAuthPayload = getAuthPayload,
             enableAsset = enableAsset,
         )
     }
@@ -63,11 +58,9 @@ object ReferralModule {
     @Singleton
     fun provideUseReferralCode(
         rewardsService: GemRewardsService,
-        getAuthPayload: GetAuthPayload
     ): UseReferralCode {
         return UseReferralCodeImpl(
             rewardsService = rewardsService,
-            getAuthPayload = getAuthPayload
         )
     }
 }

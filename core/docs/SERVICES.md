@@ -33,13 +33,13 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemWalletService`](../gemstone/src/services/wallet/mod.rs) | [`GemWalletStore`](../gemstone/src/services/wallet/store.rs), [`GemKeystorePassword`](../gemstone/src/services/wallet/password.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/WalletStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/WalletStore.kt) | Done | Wallet import, creation, deletion, chain setup, pin and rename |
 | [`GemAppUpdateService`](../gemstone/src/services/app_update/mod.rs) | — | — | — | Done | Release for the store, version compare, skipped version via `GemPreferencesService` |
 | [`GemFiatService`](../gemstone/src/services/fiat/mod.rs) | [`GemFiatStore`](../gemstone/src/services/fiat/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/FiatStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/FiatStore.kt) | Done | Fiat quotes, transaction sync with asset prefetch |
-| [`GemAuthService`](../gemstone/src/services/auth/mod.rs) | — | — | — | Done | Wallet auth payloads |
+| [`GemAuthService`](../gemstone/src/services/auth/mod.rs) | [`GemKeystorePassword`](../gemstone/src/services/wallet/password.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/KeystorePasswordStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/KeystorePasswordStore.kt) | Done | Auth payload: nonce → auth message → Core keystore signature, device id from the device key ([rules](../gemstone/src/services/auth/rules.rs)) |
 | [`GemChartService`](../gemstone/src/services/chart/mod.rs) | — | — | — | Done | Price charts |
 | [`GemExplorerService`](../gemstone/src/services/explorer/mod.rs) | — | — | — | Done | Block explorer selection (preference) and transaction/address/token/NFT/validator links |
 | [`GemAppStartService`](../gemstone/src/services/app_start/mod.rs) | — | — | — | Done | App start (`run`) and wallet start (`setup_wallet`) orchestration; each step reports failures without stopping the rest |
 | [`GemConfigService`](../gemstone/src/services/config/mod.rs) | — | — | — | Done | Remote config, cached via `GemPreferencesService`; concurrent updates share one request |
 | [`GemPortfolioService`](../gemstone/src/services/portfolio/mod.rs) | [`GemPortfolioStore`](../gemstone/src/services/portfolio/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/PortfolioStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/PortfolioStore.kt) | Done | Portfolio chart for the wallet's held assets |
-| [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals |
+| [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals; authenticated calls take a wallet and build the auth payload through `GemAuthService` |
 | [`GemScanService`](../gemstone/src/services/scan/mod.rs) | — | — | — | Done | Transaction scanning |
 | [`GemWalletConnectService`](../gemstone/src/services/wallet_connect/mod.rs) | [`GemWalletConnectSigner`](../gemstone/src/services/wallet_connect/signer.rs) | [Swift](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorSigner.swift) | — | In progress | Request parse → simulate → decode → app signer → encode, session wallet selection and session chains ([rules](../gemstone/src/services/wallet_connect/rules.rs)); Android still handles requests in `WCRequestViewModel` |
 
@@ -60,7 +60,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`AppService/RateService`](../../ios/Packages/FeatureServices/AppService/RateService.swift) | — | App-only | App Store review prompt |
 | [`AppService/AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | — | App-only | Scene phase orchestration of observers |
 | `AssetsService` | `GemAssetsService` | Done | Wrapper removed; callers use the Core service (typed helpers in `GemAssetsService+GemstonePrimitives.swift`) and `AssetStore` directly; bundled asset seeding stays in `ImportAssetsService` |
-| [`AuthService`](../../ios/Packages/GemstoneServices/Sources) | `GemAuthService` | Done | |
+| `AuthService` | `GemAuthService` | Done | Wrapper removed; auth payload built in Core on both apps (Android `GetAuthPayloadImpl` removed) |
 | [`AvatarService`](../../ios/Packages/FeatureServices/AvatarService) | — | App-only | Image files |
 | `BalanceService` | `GemBalanceService` | Done | Wrapper removed; view models call `update` on the Core service and read `BalanceStore` directly |
 | `BannerService` | `GemBannerService` | Done | Wrapper removed; banner seeding (`setup`, `setup_wallet`), action handling and closing live in Core, the app provides `GemNotificationPermissions` |
@@ -78,7 +78,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | `PortfolioService` | `GemPortfolioService` | Done | Wrapper removed; held assets come from `GemPortfolioStore` on both apps |
 | [`PriceAlertService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceAlertService` | Done | |
 | [`PriceService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceService` | Done | |
-| [`RewardsService`](../../ios/Packages/GemstoneServices/Sources) | `GemRewardsService` | Done | |
+| `RewardsService` | `GemRewardsService` | Done | Wrapper removed; view models call the Core service (typed helpers in `GemRewardsService+GemstonePrimitives.swift`) |
 | `ServiceStatusService` | `GemServiceStatus` | Done | Wrapper removed on both apps; view models use the Core client directly |
 | [`StreamService`](../../ios/Packages/FeatureServices/StreamService) | `GemStreamService` | Done | Event handling in Core; socket connection and subscriptions app-side, see [DEVICE_WEBSOCKETS.md](DEVICE_WEBSOCKETS.md); Android: [`StreamEventHandler`](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/stream/StreamEventHandler.kt) |
 | [`SupportChatService`](../../ios/Packages/GemstoneServices/Sources) | `GemSupportService` | Done | Typing state and image files stay app-side |

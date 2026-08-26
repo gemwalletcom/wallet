@@ -15,7 +15,6 @@ public protocol Keystore: Sendable {
     func deleteKey(for wallet: Wallet) async throws
     func sign(wallet: Wallet, input: SignerInput) async throws -> [GemSignedTransaction]
     func signMessage(signer: MessageSigner, wallet: Wallet) async throws -> String
-    func signAuthMessageHash(wallet: Wallet, chain: Chain, hash: Data) async throws -> String
     func getPrivateKeyEncoded(wallet: Wallet, chain: Chain) async throws -> String
     func getMnemonic(wallet: Wallet) async throws -> [String]
     func getPasswordAuthentication() throws -> KeystoreAuthentication

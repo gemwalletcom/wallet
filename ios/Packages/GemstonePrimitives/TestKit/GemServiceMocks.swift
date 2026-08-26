@@ -237,14 +237,14 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
         return try rewards.json()
     }
 
-    public func createReferral(walletId _: String, auth _: Gemstone.AuthPayload, code _: String) async throws -> Gemstone.Rewards {
+    public func createReferral(wallet _: Gemstone.Wallet, code _: String) async throws -> Gemstone.Rewards {
         guard let rewards else { throw AnyError("not stubbed") }
         return try rewards.json()
     }
 
-    public func useReferralCode(walletId _: String, auth _: Gemstone.AuthPayload, code _: String) async throws {}
+    public func useReferralCode(wallet _: Gemstone.Wallet, code _: String) async throws {}
 
-    public func redeem(walletId _: String, auth _: Gemstone.AuthPayload, redemptionId _: String) async throws -> Gemstone.RedemptionResult {
+    public func redeem(wallet _: Gemstone.Wallet, redemptionId _: String) async throws -> Gemstone.RedemptionResult {
         guard let redemption else { throw AnyError("not stubbed") }
         return try redemption.json()
     }
@@ -329,6 +329,10 @@ public final class GemAuthServiceMock: GemAuthServiceProtocol, @unchecked Sendab
 
     public func getNonce() async throws -> Gemstone.AuthNonce {
         try nonce.json()
+    }
+
+    public func getAuthPayload(wallet _: Gemstone.Wallet) async throws -> Gemstone.AuthPayload {
+        try Primitives.AuthPayload(deviceId: "device", chain: .ethereum, address: "0x1", nonce: nonce.nonce, signature: "0x").json()
     }
 }
 

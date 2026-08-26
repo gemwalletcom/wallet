@@ -29,10 +29,6 @@ public struct KeystoreMock: Keystore {
         .empty
     }
 
-    public func signAuthMessageHash(wallet _: Primitives.Wallet, chain _: Primitives.Chain, hash _: Data) throws -> String {
-        .empty
-    }
-
     public func getPrivateKeyEncoded(wallet _: Primitives.Wallet, chain _: Primitives.Chain) throws -> String {
         .empty
     }

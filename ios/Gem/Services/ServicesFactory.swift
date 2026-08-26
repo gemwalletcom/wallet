@@ -37,7 +37,8 @@ struct ServicesFactory {
             service: GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore)),
         )
         let nativeProvider = NativeProvider(nodeProvider: nodeService)
-        let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, securePreferences: securePreferences)
+        let devicePrivateKey = (try? DeviceService.getOrCreateKeyPair(securePreferences: securePreferences))?.privateKey ?? Data()
+        let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
 
         let gemWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
         let gemDeviceStore = GemstoneDeviceStore()
@@ -54,7 +55,7 @@ struct ServicesFactory {
         )
         let gemDeviceApiClient = Self.makeDeviceApiClient(
             provider: nativeProvider,
-            securePreferences: securePreferences,
+            devicePrivateKey: devicePrivateKey,
             preflight: DeviceSyncPreflight(deviceService: deviceService),
         )
         let deviceObserverService = Self.makeDeviceObserverService(
@@ -267,8 +268,15 @@ struct ServicesFactory {
 
         let gemNameService = Gemstone.GemNameService(api: gemDeviceApiClient, store: GemstoneAddressStore(store: storeManager.addressStore))
         let activityService = ActivityService(store: storeManager.recentActivityStore)
-        let authService = AuthService(service: Gemstone.GemAuthService(api: gemDeviceApiClient), keystore: storages.keystore)
-        let rewardsService = RewardsService(service: Gemstone.GemRewardsService(api: gemDeviceApiClient), authService: authService)
+        let rewardsService = Gemstone.GemRewardsService(
+            api: gemDeviceApiClient,
+            auth: Gemstone.GemAuthService(
+                api: gemDeviceApiClient,
+                keystore: storages.keystore.gemKeystore,
+                password: GemstoneKeystorePassword(keystore: storages.keystore, walletStore: storeManager.walletStore),
+                devicePrivateKey: devicePrivateKey,
+            ),
+        )
         let toastPresenter = ToastPresenter()
         let navigationHandler = NavigationHandler(
             navigationState: navigation,
@@ -419,23 +427,21 @@ struct ServicesFactory {
 extension ServicesFactory {
     private static func makeDeviceApiClient(
         provider: NativeProvider,
-        securePreferences: SecurePreferences,
+        devicePrivateKey: Data,
         preflight: (any GemWalletRequestPreflight)? = nil,
     ) -> Gemstone.GemDeviceApiClient {
-        let keyPair = try? DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
-        let privateKey = keyPair?.privateKey ?? Data()
         if let preflight {
             return Gemstone.GemDeviceApiClient.withPreflight(
                 provider: provider,
                 baseUrl: Constants.apiURL.absoluteString,
-                devicePrivateKey: privateKey,
+                devicePrivateKey: devicePrivateKey,
                 preflight: preflight,
             )
         }
         return Gemstone.GemDeviceApiClient(
             provider: provider,
             baseUrl: Constants.apiURL.absoluteString,
-            devicePrivateKey: privateKey,
+            devicePrivateKey: devicePrivateKey,
         )
     }
 

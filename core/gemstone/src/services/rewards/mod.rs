@@ -1,53 +1,59 @@
 use std::sync::Arc;
 
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::{AuthPayload, AuthenticatedRequest, ReferralCode, Rewards, WalletId};
+use primitives::{AuthenticatedRequest, ReferralCode, Rewards, Wallet, WalletId};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::config::rewards::get_referral_url;
+use crate::services::auth::GemAuthService;
+use crate::services::error::GemServiceError;
 
-#[derive(Debug, uniffi::Object)]
+#[derive(uniffi::Object)]
 pub struct GemRewardsService {
     api: Arc<GemDeviceApiClient>,
+    auth: Arc<GemAuthService>,
 }
 
 #[uniffi::export]
 impl GemRewardsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>) -> Self {
-        Self { api }
+    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>) -> Self {
+        Self { api, auth }
     }
 
     pub fn referral_link(&self, code: String) -> String {
         get_referral_url(&code)
     }
 
-    pub async fn get_rewards(&self, wallet_id: WalletId) -> Result<Rewards, GemApiError> {
-        Ok(self.api.client.get_rewards(wallet_id.id()).await?)
+    pub async fn get_rewards(&self, wallet_id: WalletId) -> Result<Rewards, GemServiceError> {
+        Ok(self.api.client.get_rewards(wallet_id.id()).await.map_err(GemApiError::from)?)
     }
 
-    pub async fn create_referral(&self, wallet_id: WalletId, auth: AuthPayload, code: String) -> Result<Rewards, GemApiError> {
+    pub async fn create_referral(&self, wallet: Wallet, code: String) -> Result<Rewards, GemServiceError> {
+        let wallet_id = wallet.id.id();
         let request = AuthenticatedRequest {
-            auth,
+            auth: self.auth.get_auth_payload(wallet).await?,
             data: ReferralCode { code },
         };
-        Ok(self.api.client.create_referral(wallet_id.id(), request).await?)
+        Ok(self.api.client.create_referral(wallet_id, request).await.map_err(GemApiError::from)?)
     }
 
-    pub async fn use_referral_code(&self, wallet_id: WalletId, auth: AuthPayload, code: String) -> Result<(), GemApiError> {
+    pub async fn use_referral_code(&self, wallet: Wallet, code: String) -> Result<(), GemServiceError> {
+        let wallet_id = wallet.id.id();
         let request = AuthenticatedRequest {
-            auth,
+            auth: self.auth.get_auth_payload(wallet).await?,
             data: ReferralCode { code },
         };
-        self.api.client.use_referral_code(wallet_id.id(), request).await?;
+        self.api.client.use_referral_code(wallet_id, request).await.map_err(GemApiError::from)?;
         Ok(())
     }
 
-    pub async fn redeem(&self, wallet_id: WalletId, auth: AuthPayload, redemption_id: String) -> Result<RedemptionResult, GemApiError> {
+    pub async fn redeem(&self, wallet: Wallet, redemption_id: String) -> Result<RedemptionResult, GemServiceError> {
+        let wallet_id = wallet.id.id();
         let request = AuthenticatedRequest {
-            auth,
+            auth: self.auth.get_auth_payload(wallet).await?,
             data: RedemptionRequest { id: redemption_id },
         };
-        Ok(self.api.client.redeem_rewards(wallet_id.id(), request).await?)
+        Ok(self.api.client.redeem_rewards(wallet_id, request).await.map_err(GemApiError::from)?)
     }
 }
