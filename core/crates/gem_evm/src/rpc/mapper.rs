@@ -110,6 +110,7 @@ impl EthereumMapper {
                 None,
                 created_at,
             )
+            .with_data(Some(transaction.input.clone()))
         };
 
         let build_erc20_approval = |approval: Erc20ApprovalPayload| {
@@ -333,6 +334,7 @@ mod tests {
         assert_eq!(transaction.from, "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7");
         assert_eq!(transaction.to, "0x0D9DAB1A248f63B0a48965bA8435e4de7497a3dC");
         assert_eq!(transaction.value, "930678651");
+        assert_eq!(transaction.data, Some(sc_erc20_tx.input));
     }
 
     #[test]
