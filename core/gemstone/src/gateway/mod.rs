@@ -101,9 +101,6 @@ impl GemGateway {
         Ok(self.status_provider.get_swap_status(chain, request).await?)
     }
 
-    /// Resolves the next update for a transaction on record — request shape, swap
-    /// routing, timeout, and the state merge — so the clients only have to store
-    /// the result.
     pub async fn get_transaction_update(&self, transaction: Transaction) -> Result<GemTransactionUpdate, GatewayError> {
         Ok(self.status_provider.get_update(&transaction).await?)
     }

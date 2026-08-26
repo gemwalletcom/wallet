@@ -172,7 +172,7 @@ impl TransactionLoadInput {
             gas_price_type: self.gas_price.clone(),
             gas_limit: 0.into(),
             options: HashMap::new(),
-            fee_asset: AssetId::from_chain(self.input_type.get_asset().chain),
+            fee_asset: AssetId::from_chain(self.input_type.get_asset().chain()),
         }
     }
 }

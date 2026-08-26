@@ -5,50 +5,16 @@ use typeshare::typeshare;
 
 use crate::{AssetBasic, AssetProperties, AssetScore, Chain, asset_id::AssetId, asset_type::AssetType};
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Asset {
     pub id: AssetId,
-    #[typeshare(skip)]
-    pub chain: Chain,
-    #[typeshare(skip)]
-    pub token_id: Option<String>,
     pub name: String,
     pub symbol: String,
     pub decimals: i32,
     #[serde(rename = "type")]
     pub asset_type: AssetType,
-}
-
-impl<'de> Deserialize<'de> for Asset {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[derive(Deserialize)]
-        #[serde(rename_all = "camelCase")]
-        struct Fields {
-            id: AssetId,
-            #[serde(default)]
-            chain: Option<Chain>,
-            #[serde(default)]
-            token_id: Option<String>,
-            name: String,
-            symbol: String,
-            decimals: i32,
-            #[serde(rename = "type")]
-            asset_type: AssetType,
-        }
-
-        let fields = Fields::deserialize(deserializer)?;
-        Ok(Self {
-            chain: fields.chain.unwrap_or(fields.id.chain),
-            token_id: fields.token_id.or_else(|| fields.id.token_id.clone()),
-            id: fields.id,
-            name: fields.name,
-            symbol: fields.symbol,
-            decimals: fields.decimals,
-            asset_type: fields.asset_type,
-        })
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -136,8 +102,6 @@ impl Chain {
     pub fn new_asset(&self, name: impl Into<String>, symbol: impl Into<String>, decimals: i32, asset_type: AssetType) -> Asset {
         Asset {
             id: self.as_asset_id(),
-            chain: *self,
-            token_id: None,
             name: name.into(),
             symbol: symbol.into(),
             decimals,
@@ -149,14 +113,16 @@ impl Chain {
 impl Asset {
     pub fn new(id: AssetId, name: String, symbol: String, decimals: i32, asset_type: AssetType) -> Asset {
         Asset {
-            id: id.clone(),
-            chain: id.chain,
-            token_id: id.token_id.clone(),
+            id,
             name,
             symbol,
             decimals,
             asset_type,
         }
+    }
+
+    pub fn token_id(&self) -> Option<&str> {
+        self.id.token_id.as_deref()
     }
 
     pub fn chain(&self) -> Chain {
@@ -279,12 +245,12 @@ mod asset_deserialize_tests {
     fn test_deserialize_derives_skipped_fields_from_id() {
         let token: Asset =
             serde_json::from_str(r#"{"id":"ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7","name":"Tether","symbol":"USDT","decimals":6,"type":"ERC20"}"#).unwrap();
-        assert_eq!(token.chain, Chain::Ethereum);
-        assert_eq!(token.token_id.as_deref(), Some("0xdAC17F958D2ee523a2206206994597C13D831ec7"));
+        assert_eq!(token.chain(), Chain::Ethereum);
+        assert_eq!(token.token_id().as_deref(), Some("0xdAC17F958D2ee523a2206206994597C13D831ec7"));
 
         let native: Asset = serde_json::from_str(r#"{"id":"ethereum","name":"Ethereum","symbol":"ETH","decimals":18,"type":"NATIVE"}"#).unwrap();
-        assert_eq!(native.chain, Chain::Ethereum);
-        assert_eq!(native.token_id, None);
+        assert_eq!(native.chain(), Chain::Ethereum);
+        assert_eq!(native.token_id(), None);
 
         let round_tripped: Asset = serde_json::from_str(&serde_json::to_string(&token).unwrap()).unwrap();
         assert_eq!(round_tripped, token);

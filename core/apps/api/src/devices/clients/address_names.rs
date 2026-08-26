@@ -56,12 +56,12 @@ fn map_requests(requests: Vec<ChainAddress>, scan_names: &HashMap<ChainAddress, 
 }
 
 fn asset_entry(asset: Asset) -> Option<(ChainAddress, AddressName)> {
-    let address = asset.token_id?;
+    let address = asset.token_id()?.to_string();
 
     Some((
-        ChainAddress::new(asset.chain, address.clone()),
+        ChainAddress::new(asset.chain(), address.clone()),
         AddressName {
-            chain: asset.chain,
+            chain: asset.chain(),
             address,
             name: asset.name,
             address_type: AddressType::Contract,

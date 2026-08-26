@@ -76,7 +76,7 @@ impl From<TransactionPreloadInput> for GemTransactionPreloadInput {
 impl From<GemTransactionPreloadInput> for TransactionPreloadInput {
     fn from(input: GemTransactionPreloadInput) -> Self {
         let input_type: TransactionInputType = input.input_type.into();
-        let destination_address = checksum_address(&input.destination_address, input_type.get_asset().chain);
+        let destination_address = checksum_address(&input.destination_address, input_type.get_asset().chain());
         Self {
             input_type,
             sender_address: input.sender_address,

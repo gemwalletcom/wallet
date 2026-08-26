@@ -21,8 +21,6 @@ impl<C: Client> ChainToken for HyperCoreClient<C> {
 
         Ok(Asset {
             id: asset_id.clone(),
-            chain: self.chain,
-            token_id: asset_id.token_id,
             name: token.name.clone(),
             symbol: token.name.clone(),
             decimals: token.wei_decimals,

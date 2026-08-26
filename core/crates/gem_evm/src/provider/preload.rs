@@ -116,7 +116,7 @@ pub fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result
         fee,
         gas_limit.clone(),
         HashMap::new(),
-        AssetId::from_chain(input.input_type.get_asset().chain),
+        AssetId::from_chain(input.input_type.get_asset().chain()),
     ))
 }
 

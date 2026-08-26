@@ -63,8 +63,8 @@ impl AssetDocument {
             return None;
         }
 
-        let network_name = ChainAsset::from_chain(asset.chain).network_name;
-        Some(vec![asset.chain.to_string(), network_name])
+        let network_name = ChainAsset::from_chain(asset.chain()).network_name;
+        Some(vec![asset.chain().to_string(), network_name])
     }
 }
 

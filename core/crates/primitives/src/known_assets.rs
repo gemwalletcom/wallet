@@ -155,7 +155,7 @@ pub static WALLET_DEFAULT_ASSETS: LazyLock<Vec<WalletDefaultAsset>> = LazyLock::
 pub fn wallet_default_assets(chain: Chain) -> Vec<Asset> {
     WALLET_DEFAULT_ASSETS
         .iter()
-        .filter(|default| default.asset.chain == chain)
+        .filter(|default| default.asset.chain() == chain)
         .map(|default| default.asset.clone())
         .collect()
 }

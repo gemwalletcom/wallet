@@ -7,8 +7,6 @@ pub fn map_token_data(resource: &Resource<CoinInfo>, token_id: &str) -> Result<A
 
     Ok(Asset {
         id: AssetId::from_token(Chain::Aptos, token_id),
-        chain: Chain::Aptos,
-        token_id: Some(token_id.to_string()),
         name: coin_info.name.clone(),
         symbol: coin_info.symbol.clone(),
         decimals: coin_info.decimals as i32,

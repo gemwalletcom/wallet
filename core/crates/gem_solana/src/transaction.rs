@@ -104,7 +104,12 @@ fn system_transfer(instruction: &solana_primitives::CompiledInstruction, account
     })
 }
 
-fn token_transfer(transaction: &VersionedTransaction, instruction: &solana_primitives::CompiledInstruction, account_keys: &[Pubkey], signer: Option<&Pubkey>) -> Option<SolanaTransfer> {
+fn token_transfer(
+    transaction: &VersionedTransaction,
+    instruction: &solana_primitives::CompiledInstruction,
+    account_keys: &[Pubkey],
+    signer: Option<&Pubkey>,
+) -> Option<SolanaTransfer> {
     let data: &[u8; 10] = instruction.data.as_slice().try_into().ok()?;
     (data[0] == 12).then_some(())?;
     authorized(instruction_account(instruction, account_keys, 3)?, signer).then_some(())?;

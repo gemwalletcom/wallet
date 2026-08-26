@@ -57,7 +57,7 @@ pub fn get_transaction_params(chain: EVMChain, input: &TransactionLoadInput) -> 
         TransactionInputType::Transfer(asset) | TransactionInputType::Deposit(asset) => match asset.id.token_subtype() {
             AssetSubtype::NATIVE => Ok(TransactionParams::new(input.destination_address.clone(), vec![], value)),
             AssetSubtype::TOKEN => {
-                let to = asset.token_id.as_ref().ok_or("Missing token ID")?.clone();
+                let to = asset.token_id().ok_or("Missing token ID")?;
                 let data = encode_erc20_transfer(&input.destination_address, &value)?;
                 Ok(TransactionParams::new(to, data, BigInt::from(0)))
             }
@@ -90,7 +90,7 @@ pub fn get_transaction_params(chain: EVMChain, input: &TransactionLoadInput) -> 
                     AssetSubtype::TOKEN => match swap_data.data.data_type {
                         SwapQuoteDataType::Contract => Ok(TransactionParams::new(swap_data.data.to.clone(), hex::decode(swap_data.data.data.clone())?, BigInt::ZERO)),
                         SwapQuoteDataType::Transfer => {
-                            let to = from_asset.token_id.clone().ok_or("Missing token ID")?.clone();
+                            let to = from_asset.token_id().ok_or("Missing token ID")?;
                             let data = encode_erc20_transfer(&swap_data.data.to, &value)?;
                             Ok(TransactionParams::new(to, data, BigInt::ZERO))
                         }

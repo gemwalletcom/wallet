@@ -221,7 +221,7 @@ impl FiatClient {
             country_code,
         } = self.fiat_cacher.get_quote(quote_id).await?;
         let provider = self.provider(quote.provider.id.as_ref())?;
-        let wallet_address_row = self.database.client()?.subscriptions_wallet_address_for_chain(device_id, wallet_id, quote.asset.chain)?;
+        let wallet_address_row = self.database.client()?.subscriptions_wallet_address_for_chain(device_id, wallet_id, quote.asset.chain())?;
         let data = FiatQuoteUrlData {
             quote,
             asset_symbol,
