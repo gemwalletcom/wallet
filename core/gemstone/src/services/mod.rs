@@ -50,7 +50,7 @@ pub use nft::{GemNftService, GemNftStore};
 pub use node::{GemNodeService, GemNodeStore};
 pub use notification::{GemNotificationService, GemNotificationStore};
 pub use perpetual::{GemPerpetualService, GemPerpetualStore};
-pub use portfolio::GemPortfolioService;
+pub use portfolio::{GemPortfolioService, GemPortfolioStore};
 pub use preferences::{GemPreferencesService, GemPreferencesStore};
 pub use price::{GemPriceService, GemPriceStore};
 pub use price_alert::{GemPriceAlertService, GemPriceAlertStore};

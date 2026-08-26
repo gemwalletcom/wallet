@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Store
 import GemstoneServices
 import Foundation
 import Primitives
@@ -28,14 +29,14 @@ public extension TransferMetadataProvidable {
 }
 
 public final class TransferMetadataProvider: TransferMetadataProvidable {
-    private let balanceService: BalanceService
+    private let balanceStore: BalanceStore
     private let priceService: PriceService
 
     public init(
-        balanceService: BalanceService,
+        balanceStore: BalanceStore,
         priceService: PriceService,
     ) {
-        self.balanceService = balanceService
+        self.balanceStore = balanceStore
         self.priceService = priceService
     }
 
@@ -45,10 +46,10 @@ public final class TransferMetadataProvider: TransferMetadataProvidable {
         feeAssetId: AssetId,
         extraIds: [AssetId] = [],
     ) throws -> TransferDataMetadata {
-        guard let balance = try balanceService.getBalance(walletId: walletId, assetId: assetId) else {
+        guard let balance = try balanceStore.getBalance(walletId: walletId, assetId: assetId) else {
             throw AnyError("Missing balance for assetId: \(assetId.identifier)")
         }
-        guard let feeBalance = try balanceService.getBalance(walletId: walletId, assetId: feeAssetId) else {
+        guard let feeBalance = try balanceStore.getBalance(walletId: walletId, assetId: feeAssetId) else {
             throw AnyError("Missing balance for feeAssetId: \(feeAssetId.identifier)")
         }
 

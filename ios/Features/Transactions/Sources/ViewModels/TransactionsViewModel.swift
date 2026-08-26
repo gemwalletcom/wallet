@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemTransactionsServiceProtocol
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
@@ -14,7 +15,7 @@ import GemstoneServices
 @MainActor
 public final class TransactionsViewModel {
     public let explorerService: any GemExplorerServiceProtocol
-    public let transactionsService: TransactionsService
+    public let transactionsService: any GemTransactionsServiceProtocol
     public let preferences: Preferences
 
     private let type: TransactionsRequestType
@@ -31,7 +32,7 @@ public final class TransactionsViewModel {
     public var isPresentingToastMessage: ToastMessage?
 
     public init(
-        transactionsService: TransactionsService,
+        transactionsService: any GemTransactionsServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         wallet: Wallet,
         type: TransactionsRequestType,
@@ -75,7 +76,7 @@ public extension TransactionsViewModel {
 
     func fetch() async {
         do {
-            try await transactionsService.updateAll(walletId: walletId)
+            try await transactionsService.sync(walletId: walletId.id, assetId: nil)
         } catch {
             debugLog("fetch getTransactions error \(error)")
         }

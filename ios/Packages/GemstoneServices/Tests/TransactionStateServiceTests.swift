@@ -44,8 +44,8 @@ struct TransactionStateServiceTests {
         try await confirmation("updates balances once") { updatedBalances in
             let fixture = try makeFixture(
                 type: .transfer,
-                balanceUpdater: BalanceUpdaterMock { _, assetIds in
-                    #expect(assetIds == [sourceAsset])
+                balanceService: GemBalanceServiceMock { _, assetIds in
+                    #expect(assetIds == [sourceAsset.identifier])
                     updatedBalances()
                 },
             ) { store, walletId, transaction in
@@ -108,9 +108,9 @@ struct TransactionStateServiceTests {
         try await confirmation("updates balances") { updatedBalances in
             let postProcessingService = TransactionPostProcessingService(
                 transactionStore: .mock(),
-                balanceUpdater: BalanceUpdaterMock { updatedWallet, assetIds in
-                    #expect(updatedWallet.id == wallet.id)
-                    #expect(assetIds == [fromAsset, toAsset])
+                balanceService: GemBalanceServiceMock { walletId, assetIds in
+                    #expect(walletId == wallet.id.id)
+                    #expect(assetIds == [fromAsset.identifier, toAsset.identifier])
                     updatedBalances()
                 },
                 stakeService: GemStakeServiceMock(),
@@ -137,7 +137,7 @@ struct TransactionStateServiceTests {
         )
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: .mock(),
-            balanceUpdater: BalanceUpdaterMock(),
+            balanceService: GemBalanceServiceMock(),
             stakeService: GemStakeServiceMock(),
             nftService: GemNftServiceMock(assets: [nftData], store: GemstoneNftStore(store: nftStore)),
         )
@@ -169,7 +169,7 @@ private extension TransactionStateServiceTests {
 
     func makeFixture(
         type: TransactionType = .swap,
-        balanceUpdater: BalanceUpdaterMock = .init(),
+        balanceService: GemBalanceServiceMock = GemBalanceServiceMock(),
         update: @escaping Update,
     ) throws -> Fixture {
         let fromAsset = AssetId.mock(.bitcoin)
@@ -195,7 +195,7 @@ private extension TransactionStateServiceTests {
 
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: store,
-            balanceUpdater: balanceUpdater,
+            balanceService: balanceService,
             stakeService: GemStakeServiceMock(),
             nftService: GemNftService.mock(),
         )

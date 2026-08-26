@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemTransactionsServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
 import GemstoneServices
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -17,9 +19,9 @@ import UIKit
 @MainActor
 public final class AssetSceneViewModel: Sendable {
     private let assetsEnabler: any AssetsEnabler
-    private let balanceService: BalanceService
+    private let balanceService: any GemBalanceServiceProtocol
     private let assetsService: AssetsService
-    private let transactionsService: TransactionsService
+    private let transactionsService: any GemTransactionsServiceProtocol
     private let priceUpdater: any PriceUpdater
     private let bannerService: BannerService
 
@@ -40,9 +42,9 @@ public final class AssetSceneViewModel: Sendable {
 
     public init(
         assetsEnabler: any AssetsEnabler,
-        balanceService: BalanceService,
+        balanceService: any GemBalanceServiceProtocol,
         assetsService: AssetsService,
-        transactionsService: TransactionsService,
+        transactionsService: any GemTransactionsServiceProtocol,
         priceUpdater: any PriceUpdater,
         priceAlertService: PriceAlertService,
         bannerService: BannerService,
@@ -525,7 +527,7 @@ extension AssetSceneViewModel {
 
     private func fetchTransactions() async {
         do {
-            try await transactionsService.updateForAsset(walletId: walletModel.wallet.id, assetId: assetModel.asset.id)
+            try await transactionsService.sync(walletId: walletModel.wallet.id.id, assetId: assetModel.asset.id.identifier)
         } catch {
             // TODO: - handle fetchTransactions error
             debugLog("asset scene: fetchTransactions error \(error)")
@@ -578,7 +580,7 @@ extension AssetSceneViewModel {
     }
 
     private func updateWallet() async {
-        async let balance: Void = balanceService.updateBalance(for: walletModel.wallet, assetIds: [assetModel.asset.id])
+        async let balance: Void? = try? balanceService.update(walletId: walletModel.wallet.id.id, assetIds: [assetModel.asset.id.identifier])
         async let transactions: Void = fetchTransactions()
         _ = await (balance, transactions)
     }

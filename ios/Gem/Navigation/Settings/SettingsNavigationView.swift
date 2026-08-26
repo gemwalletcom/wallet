@@ -20,6 +20,7 @@ struct SettingsNavigationView: View {
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.stakeStore) private var stakeStore
+    @Environment(\.transactionStore) private var transactionStore
     @Environment(\.explorerService) private var explorerService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.connectionsService) private var connectionsService
@@ -141,7 +142,7 @@ struct SettingsNavigationView: View {
         .navigationDestination(for: Scenes.Developer.self) { _ in
             DeveloperScene(model: DeveloperViewModel(
                 walletId: walletId,
-                transactionsService: transactionsService,
+                transactionStore: transactionStore,
                 assetService: assetsService,
                 stakeStore: stakeStore,
                 bannerService: bannerService,

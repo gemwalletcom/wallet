@@ -314,6 +314,10 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
     public func getAssets(period _: Gemstone.ChartPeriod, request _: Gemstone.PortfolioAssetsRequest) async throws -> Gemstone.PortfolioAssets {
         try Primitives.PortfolioAssets(totalValue: 0, values: [], allTimeHigh: allTimeHigh, allTimeLow: allTimeLow, allocation: []).json()
     }
+
+    public func getWalletAssets(walletId _: Gemstone.WalletId, period: Gemstone.ChartPeriod) async throws -> Gemstone.PortfolioAssets {
+        try await getAssets(period: period, request: Primitives.PortfolioAssetsRequest(assets: []).json())
+    }
 }
 
 public final class GemAuthServiceMock: GemAuthServiceProtocol, @unchecked Sendable {
@@ -357,9 +361,15 @@ public final class GemTransactionStateServiceMock: GemTransactionStateServicePro
 }
 
 public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked Sendable {
-    public init() {}
+    private let onUpdate: @Sendable (String, [Gemstone.AssetId]) async -> Void
 
-    public func update(walletId _: String, assetIds _: [Gemstone.AssetId]) async throws {}
+    public init(onUpdate: @escaping @Sendable (String, [Gemstone.AssetId]) async -> Void = { _, _ in }) {
+        self.onUpdate = onUpdate
+    }
+
+    public func update(walletId: String, assetIds: [Gemstone.AssetId]) async throws {
+        await onUpdate(walletId, assetIds)
+    }
 
     public func enableAssets(walletId _: String, assetIds _: [Gemstone.AssetId], enabled _: Bool, currency _: Gemstone.Currency) async throws {}
 

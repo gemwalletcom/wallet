@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
 import Components
@@ -21,7 +22,7 @@ import SwiftUI
 @MainActor
 public final class WalletSceneViewModel: Sendable, AssetActions {
     private let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
-    let balanceService: BalanceService
+    let balanceService: any GemBalanceServiceProtocol
     let assetsEnabler: any AssetsEnabler
     private let bannerService: BannerService
     private let balanceCalculator = BalanceCalculator()
@@ -52,7 +53,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
     public init(
         assetDiscoveryService: any GemAssetDiscoveryServiceProtocol,
-        balanceService: BalanceService,
+        balanceService: any GemBalanceServiceProtocol,
         assetsEnabler: any AssetsEnabler,
         bannerService: BannerService,
         nftService: any GemNftServiceProtocol,
@@ -291,7 +292,7 @@ extension WalletSceneViewModel {
 
     private func updateWallet(for wallet: Wallet) async {
         let assetIds = assets.map(\.asset.id)
-        async let balance: () = balanceService.updateBalance(for: wallet, assetIds: assetIds)
+        async let balance: Void? = try? balanceService.update(walletId: wallet.id.id, assetIds: assetIds.ids)
         async let discovery: () = discoverAssets(wallet: wallet)
         _ = await (balance, discovery)
     }

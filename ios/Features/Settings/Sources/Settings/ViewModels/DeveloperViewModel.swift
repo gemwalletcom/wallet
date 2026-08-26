@@ -16,7 +16,7 @@ import SwiftUI
 @MainActor
 public final class DeveloperViewModel {
     private let walletId: WalletId
-    private let transactionsService: TransactionsService
+    private let transactionStore: TransactionStore
     private let assetService: AssetsService
     private let stakeStore: StakeStore
     private let bannerService: BannerService
@@ -27,7 +27,7 @@ public final class DeveloperViewModel {
 
     public init(
         walletId: WalletId,
-        transactionsService: TransactionsService,
+        transactionStore: TransactionStore,
         assetService: AssetsService,
         stakeStore: StakeStore,
         bannerService: BannerService,
@@ -35,7 +35,7 @@ public final class DeveloperViewModel {
         perpetualService: PerpetualService,
     ) {
         self.walletId = walletId
-        self.transactionsService = transactionsService
+        self.transactionStore = transactionStore
         self.assetService = assetService
         self.stakeStore = stakeStore
         self.bannerService = bannerService
@@ -74,15 +74,15 @@ public final class DeveloperViewModel {
 
     func clearTransactions() {
         performAction {
-            try transactionsService.transactionStore.clear()
+            try transactionStore.clear()
         }
     }
 
     func clearPendingTransactions() {
         performAction {
             let states = [TransactionState.pending, TransactionState.inTransit]
-            let transactionIds = try transactionsService.transactionStore.getTransactions(states: states).map(\.id.identifier)
-            _ = try transactionsService.transactionStore.deleteTransactionId(ids: transactionIds)
+            let transactionIds = try transactionStore.getTransactions(states: states).map(\.id.identifier)
+            _ = try transactionStore.deleteTransactionId(ids: transactionIds)
         }
     }
 
@@ -276,7 +276,7 @@ public final class DeveloperViewModel {
                 createdAt: element.createdAt,
             )
         }
-        try? transactionsService.transactionStore.addTransactions(walletId: walletId, transactions: transactions)
+        try? transactionStore.addTransactions(walletId: walletId, transactions: transactions)
     }
 
     func deeplink(deeplink: DeepLink) {

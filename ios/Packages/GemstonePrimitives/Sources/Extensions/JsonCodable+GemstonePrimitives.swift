@@ -109,6 +109,7 @@ extension Primitives.PerpetualReduceData: JsonCodable {}
 extension Primitives.PerpetualTriggerOrder: JsonCodable {}
 extension Primitives.PerpetualType: JsonCodable {}
 extension Primitives.PortfolioAssets: JsonCodable {}
+extension Primitives.PortfolioAsset: JsonCodable {}
 extension Primitives.PortfolioAssetsRequest: JsonCodable {}
 extension Primitives.Price: JsonCodable {}
 extension Primitives.PriceAlert: JsonCodable {}

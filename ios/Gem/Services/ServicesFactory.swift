@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPortfolioServiceProtocol
+import protocol Gemstone.GemTransactionsServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import ActivityService
@@ -133,7 +136,7 @@ struct ServicesFactory {
             assets: gemAssetsService,
             price: gemPriceService,
         )
-        let balanceService = BalanceService(balanceStore: storeManager.balanceStore, service: gemBalanceService)
+        let balanceService = gemBalanceService
         let gemStakeService = gatewayService.stakeService(
             staticApi: gemStaticApiClient,
             store: GemstoneStakeStore(store: storeManager.stakeStore, addressStore: storeManager.addressStore),
@@ -141,10 +144,7 @@ struct ServicesFactory {
         let stakeService = gemStakeService
         let gemNftService = Gemstone.GemNftService(api: gemDeviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
         let nftService = gemNftService
-        let transactionsService = TransactionsService(
-            service: gemTransactionsService,
-            transactionStore: storeManager.transactionStore,
-        )
+        let transactionsService = gemTransactionsService
         let transactionStateScheduler = Self.makeTransactionService(
             transactionStore: storeManager.transactionStore,
             gatewayService: gatewayService,
@@ -162,7 +162,7 @@ struct ServicesFactory {
             pushNotificationService: pushNotificationEnablerService,
         )
         let navigationPresenter = NavigationPresenter()
-        let portfolioService = PortfolioService(service: Gemstone.GemPortfolioService(api: gemDeviceApiClient), assetStore: storeManager.assetStore)
+        let portfolioService = Gemstone.GemPortfolioService(api: gemDeviceApiClient, store: GemstonePortfolioStore(assetStore: storeManager.assetStore))
         let gemPerpetualStore = GemstonePerpetualStore(store: storeManager.perpetualStore, assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
         let gemPerpetualService = gatewayService.perpetualService(price: gemPriceService, store: gemPerpetualStore)
         let perpetualService = PerpetualService(
@@ -287,7 +287,6 @@ struct ServicesFactory {
         )
 
         let gemNameService = Gemstone.GemNameService(api: gemDeviceApiClient, store: GemstoneAddressStore(store: storeManager.addressStore))
-        let addressNameService = AddressNameService(addressStore: storeManager.addressStore, service: gemNameService)
         let activityService = ActivityService(store: storeManager.recentActivityStore)
         let authService = AuthService(service: Gemstone.GemAuthService(api: gemDeviceApiClient), keystore: storages.keystore)
         let rewardsService = RewardsService(service: Gemstone.GemRewardsService(api: gemDeviceApiClient), authService: authService)
@@ -299,7 +298,7 @@ struct ServicesFactory {
             connectionsService: connectionsService,
             toastPresenter: toastPresenter,
             paymentService: paymentService,
-            transactionsService: transactionsService,
+            transactionStore: storeManager.transactionStore,
             walletConnectorPresenter: presenter,
             walletSessionService: walletSessionService,
         )
@@ -361,9 +360,11 @@ struct ServicesFactory {
             amountService: AmountService(stakeService: stakeService),
             nameService: GemstoneNameService(service: gemNameService),
             balanceService: balanceService,
+            balanceStore: storeManager.balanceStore,
+            addressStore: storeManager.addressStore,
             priceService: priceService,
             transactionStateScheduler: transactionStateScheduler,
-            addressNameService: addressNameService,
+            gemNameService: gemNameService,
             activityService: activityService,
             toastPresenter: toastPresenter,
             fiatService: fiatService,
@@ -415,7 +416,6 @@ struct ServicesFactory {
             perpetualService: perpetualService,
             hyperliquidObserverService: hyperliquidObserverService,
             nameService: GemstoneNameService(service: gemNameService),
-            addressNameService: addressNameService,
             activityService: activityService,
             toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,
@@ -482,11 +482,11 @@ extension ServicesFactory {
         gatewayService: GatewayService,
         stakeService: any GemStakeServiceProtocol,
         nftService: any GemNftServiceProtocol,
-        balanceService: BalanceService,
+        balanceService: any GemBalanceServiceProtocol,
     ) -> TransactionStateScheduler {
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: transactionStore,
-            balanceUpdater: balanceService,
+            balanceService: balanceService,
             stakeService: stakeService,
             nftService: nftService,
         )

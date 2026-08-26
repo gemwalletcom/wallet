@@ -1,19 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemNameServiceProtocol
 import GemstoneServices
 import BigInt
 import Primitives
 import PrimitivesComponents
 
 public struct ConfirmSimulationService: Sendable {
-    private let addressNameService: AddressNameService
+    private let nameService: any GemNameServiceProtocol
     private let assetsService: AssetsService
 
     public init(
-        addressNameService: AddressNameService,
+        nameService: any GemNameServiceProtocol,
         assetsService: AssetsService,
     ) {
-        self.addressNameService = addressNameService
+        self.nameService = nameService
         self.assetsService = assetsService
     }
 
@@ -31,7 +33,7 @@ public struct ConfirmSimulationService: Sendable {
     func updateState(data: TransferData, simulation: SimulationResult?) async -> ConfirmSimulationState {
         var payload = payloadModel(data: data, simulation: simulation)
         let addressRequests = payload.addressRequests
-        async let names = addressNameService.getAddressNames(requests: addressRequests)
+        async let names = nameService.addressNames(requests: addressRequests)
         do {
             try await assetsService.prefetchAssets(assetIds: simulation?.simulationAssetIds ?? [])
         } catch {

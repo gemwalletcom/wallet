@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
 import GemstoneServices
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -18,7 +19,7 @@ import WalletConnectorService
 public final class SignMessageSceneViewModel {
     private let explorerService: any GemExplorerServiceProtocol
     private let keystore: any Keystore
-    private let addressNameService: AddressNameService
+    private let nameService: any GemNameServiceProtocol
     private let payload: SignMessagePayload
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private let signer: MessageSigner
@@ -32,13 +33,13 @@ public final class SignMessageSceneViewModel {
     public init(
         explorerService: any GemExplorerServiceProtocol,
         keystore: any Keystore,
-        addressNameService: AddressNameService,
+        nameService: any GemNameServiceProtocol,
         payload: SignMessagePayload,
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
     ) {
         self.explorerService = explorerService
         self.keystore = keystore
-        self.addressNameService = addressNameService
+        self.nameService = nameService
         self.payload = payload
         let signer = MessageSigner(message: payload.message)
         self.signer = signer
@@ -184,6 +185,6 @@ private extension SignMessageSceneViewModel {
     func loadPayloadAddressNamesIfNeeded() async {
         guard payloadAddressNames.isEmpty, payloadModel.hasFields else { return }
 
-        payloadAddressNames = await (try? addressNameService.getAddressNames(requests: payloadModel.addressRequests)) ?? [:]
+        payloadAddressNames = await (try? nameService.addressNames(requests: payloadModel.addressRequests)) ?? [:]
     }
 }

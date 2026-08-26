@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import GemstoneServices
 import BigInt
 import Components
@@ -24,7 +25,7 @@ public final class SwapSceneViewModel {
     static let inputPercentSuggestions = [25, 50, 100].map { PercentageSuggestion(value: $0) }
 
     public let wallet: Wallet
-    private let balanceUpdater: any BalanceUpdater
+    private let balanceService: any GemBalanceServiceProtocol
     private let priceUpdater: any PriceUpdater
 
     public var swapState: SwapState = .init()
@@ -63,7 +64,7 @@ public final class SwapSceneViewModel {
     public init(
         preferences: Preferences = Preferences.standard,
         input: SwapInput,
-        balanceUpdater: any BalanceUpdater,
+        balanceService: any GemBalanceServiceProtocol,
         priceUpdater: any PriceUpdater,
         swapQuotesProvider: SwapQuotesProvidable,
         swapQuoteDataProvider: any SwapQuoteDataProvidable,
@@ -73,7 +74,7 @@ public final class SwapSceneViewModel {
         self.pairSelectorModel = pairSelectorModel
         self.preferences = preferences
         wallet = input.wallet
-        self.balanceUpdater = balanceUpdater
+        self.balanceService = balanceService
         self.priceUpdater = priceUpdater
 
         fromAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
@@ -443,7 +444,7 @@ extension SwapSceneViewModel {
     }
 
     private func performUpdate(for assetIds: [AssetId]) async {
-        await balanceUpdater.updateBalance(for: wallet, assetIds: assetIds)
+        try? await balanceService.update(walletId: wallet.id.id, assetIds: assetIds.ids)
     }
 
     private func updateValidators(for assetData: AssetData?) {

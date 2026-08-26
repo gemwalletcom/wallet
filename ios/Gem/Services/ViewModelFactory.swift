@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import ActivityService
 import GemstoneServices
@@ -35,10 +37,12 @@ public struct ViewModelFactory: Sendable {
     let explorerService: any GemExplorerServiceProtocol
     let amountService: AmountService
     let nameService: any NameServiceable
-    let balanceService: BalanceService
+    let balanceService: any GemBalanceServiceProtocol
+    let balanceStore: BalanceStore
+    let addressStore: AddressStore
     let priceService: PriceService
     let transactionStateScheduler: TransactionStateScheduler
-    let addressNameService: AddressNameService
+    let gemNameService: any GemNameServiceProtocol
     let activityService: ActivityService
     let toastPresenter: ToastPresenter
     let fiatService: any GemFiatServiceProtocol
@@ -108,11 +112,12 @@ public struct ViewModelFactory: Sendable {
                 chainServiceFactory: chainServiceFactory,
                 assetsEnabler: assetsEnabler,
                 gemConfirmService: gemConfirmService,
-                balanceService: balanceService,
+                balanceStore: balanceStore,
                 assetsService: assetsService,
                 priceService: priceService,
                 transactionStateScheduler: transactionStateScheduler,
-                addressNameService: addressNameService,
+                nameService: gemNameService,
+                addressStore: addressStore,
                 activityService: activityService,
                 toastPresenter: toastPresenter,
                 chain: data.chain,
@@ -180,7 +185,7 @@ public struct ViewModelFactory: Sendable {
     ) -> SwapSceneViewModel {
         SwapSceneViewModel(
             input: input,
-            balanceUpdater: balanceService,
+            balanceService: balanceService,
             priceUpdater: priceUpdater,
             swapQuotesProvider: SwapQuotesProvider(swapService: swapService),
             swapQuoteDataProvider: SwapQuoteDataProvider(keystore: keystore, swapService: swapService),
@@ -243,7 +248,7 @@ public struct ViewModelFactory: Sendable {
         SignMessageSceneViewModel(
             explorerService: explorerService,
             keystore: keystore,
-            addressNameService: addressNameService,
+            nameService: gemNameService,
             payload: payload,
             confirmTransferDelegate: confirmTransferDelegate,
         )

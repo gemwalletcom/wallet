@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPortfolioServiceProtocol
+import protocol Gemstone.GemTransactionsServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import ActivityService
@@ -26,7 +29,7 @@ extension AppResolver {
     struct Services {
         // Environment-level services
         let assetsService: AssetsService
-        let balanceService: BalanceService
+        let balanceService: any GemBalanceServiceProtocol
         let bannerService: BannerService
         let chainServiceFactory: ChainServiceFactory
         let connectionsService: ConnectionsService
@@ -43,7 +46,7 @@ extension AppResolver {
         let chartService: any GemChartServiceProtocol
         let marketService: any GemPriceServiceProtocol
         let stakeService: any GemStakeServiceProtocol
-        let transactionsService: TransactionsService
+        let transactionsService: any GemTransactionsServiceProtocol
         let transactionStateScheduler: TransactionStateScheduler
         let walletService: WalletService
         let walletSessionService: any WalletSessionManageable
@@ -65,7 +68,6 @@ extension AppResolver {
         let perpetualService: PerpetualService
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: any NameServiceable
-        let addressNameService: AddressNameService
         let activityService: ActivityService
         let toastPresenter: ToastPresenter
         let viewModelFactory: ViewModelFactory
@@ -74,7 +76,7 @@ extension AppResolver {
         let assetSearchService: AssetSearchService
         let appLifecycleService: AppLifecycleService
         let inAppNotificationService: any GemNotificationServiceProtocol
-        let portfolioService: PortfolioService
+        let portfolioService: any GemPortfolioServiceProtocol
         let fiatService: any GemFiatServiceProtocol
         let contactService: ContactService
         let supportChatService: SupportChatService

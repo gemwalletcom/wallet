@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemTransactionsServiceProtocol
 import BigInt
 import protocol Gemstone.GemExplorerServiceProtocol
 import Formatters
@@ -18,7 +19,7 @@ import SwiftUI
 @MainActor
 public final class PerpetualSceneViewModel {
     private let observerService: any PerpetualObservable
-    private let transactionsService: TransactionsService
+    private let transactionsService: any GemTransactionsServiceProtocol
     private let onTransferData: TransferDataAction
     private let onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?
     private let perpetualOrderFactory = PerpetualOrderFactory()
@@ -62,7 +63,7 @@ public final class PerpetualSceneViewModel {
         wallet: Wallet,
         asset: Asset,
         perpetualService: PerpetualServiceable,
-        transactionsService: TransactionsService,
+        transactionsService: any GemTransactionsServiceProtocol,
         observerService: any PerpetualObservable,
         explorerService: any GemExplorerServiceProtocol,
         preferences: Preferences = .standard,
@@ -374,7 +375,7 @@ private extension PerpetualSceneViewModel {
 
     func updateTransactions() async {
         do {
-            try await transactionsService.updateForAsset(walletId: wallet.id, assetId: asset.id)
+            try await transactionsService.sync(walletId: wallet.id.id, assetId: asset.id.identifier)
         } catch {
             debugLog("perpetual scene: fetchTransactions error \(error)")
         }

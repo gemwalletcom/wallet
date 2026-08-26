@@ -14,7 +14,7 @@ public extension WalletSceneViewModel {
     static func mock(wallet: Wallet = .mock()) -> WalletSceneViewModel {
         WalletSceneViewModel(
             assetDiscoveryService: GemAssetDiscoveryServiceMock(),
-            balanceService: .mock(),
+            balanceService: GemBalanceServiceMock(),
             assetsEnabler: .mock(),
             bannerService: .mock(),
             nftService: GemNftService.mock(),

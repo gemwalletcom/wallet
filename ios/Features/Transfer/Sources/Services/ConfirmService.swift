@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Store
 import ActivityService
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -18,7 +19,7 @@ public struct ConfirmService: Sendable {
     private let keystore: any Keystore
     private let chainService: any ChainServiceable
     private let explorerService: any GemExplorerServiceProtocol
-    private let addressNameService: AddressNameService
+    private let addressStore: AddressStore
 
     public init(
         metadataProvider: any TransferMetadataProvidable,
@@ -30,7 +31,7 @@ public struct ConfirmService: Sendable {
         keystore: any Keystore,
         chainService: any ChainServiceable,
         explorerService: any GemExplorerServiceProtocol,
-        addressNameService: AddressNameService,
+        addressStore: AddressStore,
     ) {
         self.metadataProvider = metadataProvider
         self.inputProvider = inputProvider
@@ -41,7 +42,7 @@ public struct ConfirmService: Sendable {
         self.keystore = keystore
         self.chainService = chainService
         self.explorerService = explorerService
-        self.addressNameService = addressNameService
+        self.addressStore = addressStore
     }
 
     func simulationState(request: ConfirmTransferRequest) -> ConfirmSimulationState {
@@ -94,7 +95,7 @@ public struct ConfirmService: Sendable {
     }
 
     public func addressName(chain: Chain, address: String) throws -> AddressName? {
-        try addressNameService.getAddressName(chain: chain, address: address)
+        try addressStore.getAddressName(chain: chain, address: address)
     }
 
     public func passwordAuthentication() throws -> KeystoreAuthentication {

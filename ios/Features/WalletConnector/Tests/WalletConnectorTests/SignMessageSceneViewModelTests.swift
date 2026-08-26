@@ -29,7 +29,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -53,7 +53,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -75,7 +75,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -97,7 +97,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -134,7 +134,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -156,7 +156,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -179,7 +179,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -205,7 +205,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -238,7 +238,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -261,7 +261,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -294,7 +294,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -365,7 +365,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -402,7 +402,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -441,7 +441,7 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel(
             explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
-            addressNameService: .mock(),
+            nameService: GemNameServiceMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )

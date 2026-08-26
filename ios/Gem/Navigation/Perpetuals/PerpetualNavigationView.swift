@@ -1,3 +1,4 @@
+import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemExplorerServiceProtocol
 import Components
 import Perpetuals
@@ -16,7 +17,7 @@ public struct PerpetualNavigationView: View {
         asset: Asset,
         wallet: Wallet,
         perpetualService: any PerpetualServiceable,
-        transactionsService: TransactionsService,
+        transactionsService: any GemTransactionsServiceProtocol,
         observerService: any PerpetualObservable,
         explorerService: any GemExplorerServiceProtocol,
         isPresentingSheet: Binding<WalletSheetType?>,

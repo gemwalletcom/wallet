@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
@@ -8,18 +9,18 @@ import Store
 
 public struct TransactionPostProcessingService: Sendable {
     private let transactionStore: TransactionStore
-    private let balanceUpdater: any BalanceUpdater
+    private let balanceService: any GemBalanceServiceProtocol
     private let stakeService: any GemStakeServiceProtocol
     private let nftService: any GemNftServiceProtocol
 
     public init(
         transactionStore: TransactionStore,
-        balanceUpdater: any BalanceUpdater,
+        balanceService: any GemBalanceServiceProtocol,
         stakeService: any GemStakeServiceProtocol,
         nftService: any GemNftServiceProtocol,
     ) {
         self.transactionStore = transactionStore
-        self.balanceUpdater = balanceUpdater
+        self.balanceService = balanceService
         self.stakeService = stakeService
         self.nftService = nftService
     }
@@ -56,9 +57,10 @@ public struct TransactionPostProcessingService: Sendable {
     }
 
     func updateBalances(wallet: Wallet, transaction: Transaction) async {
-        await balanceUpdater.updateBalance(
-            for: wallet,
-            assetIds: transaction.associatedAssetIds,
-        )
+        do {
+            try await balanceService.update(walletId: wallet.id.id, assetIds: transaction.associatedAssetIds.ids)
+        } catch {
+            debugLog("update balance error: \(error)")
+        }
     }
 }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import GemstoneServices
 import Components
 import Foundation
@@ -14,7 +15,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class NetworkAssetsSceneViewModel: AssetActions {
-    let balanceService: BalanceService
+    let balanceService: any GemBalanceServiceProtocol
     let assetsEnabler: any AssetsEnabler
     private let preferences: Preferences
     let wallet: Wallet
@@ -28,7 +29,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     public init(
         wallet: Wallet,
         chain: Chain,
-        balanceService: BalanceService,
+        balanceService: any GemBalanceServiceProtocol,
         assetsEnabler: any AssetsEnabler,
         preferences: Preferences = .standard,
         onManageAssets: @escaping () -> Void,
@@ -109,7 +110,11 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     func updateBalances() async {
-        await balanceService.updateBalance(for: wallet, assetIds: assetIds)
+        do {
+            try await balanceService.update(walletId: wallet.id.id, assetIds: assetIds.ids)
+        } catch {
+            debugLog("update balance error: \(error)")
+        }
     }
 
     func onCopyAddress(_ message: String) {

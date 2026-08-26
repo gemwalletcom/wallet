@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Store
 import GemstoneServices
 import Components
 import ConnectionsService
@@ -22,7 +23,7 @@ final class NavigationHandler: Sendable {
     private let connectionsService: ConnectionsService
     private let toastPresenter: ToastPresenter
     private let paymentService: PaymentService
-    private let transactionsService: TransactionsService
+    private let transactionStore: TransactionStore
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
 
@@ -33,7 +34,7 @@ final class NavigationHandler: Sendable {
         connectionsService: ConnectionsService,
         toastPresenter: ToastPresenter,
         paymentService: PaymentService,
-        transactionsService: TransactionsService,
+        transactionStore: TransactionStore,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
     ) {
@@ -43,7 +44,7 @@ final class NavigationHandler: Sendable {
         self.connectionsService = connectionsService
         self.toastPresenter = toastPresenter
         self.paymentService = paymentService
-        self.transactionsService = transactionsService
+        self.transactionStore = transactionStore
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
     }
@@ -241,8 +242,8 @@ extension NavigationHandler {
             return
         }
 
-        try transactionsService.addTransaction(walletId: walletId, transaction: transaction)
-        let transaction = try transactionsService.getTransaction(walletId: walletId, transactionId: transaction.id)
+        try transactionStore.addTransactions(walletId: walletId, transactions: [transaction])
+        let transaction = try transactionStore.getTransaction(walletId: walletId, transactionId: transaction.id)
 
         await selectWalletIfNeeded(walletId)
         switch asset.type {

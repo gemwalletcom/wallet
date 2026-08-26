@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPortfolioServiceProtocol
+import protocol Gemstone.GemTransactionsServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import ActivityService
 import AppService
@@ -35,9 +38,10 @@ extension EnvironmentValues {
     @Entry var walletSessionService: any WalletSessionManageable = AppResolver.main.services.walletSessionService
     @Entry var priceAlertService: PriceAlertService = AppResolver.main.services.priceAlertService
     @Entry var deviceService: DeviceService = AppResolver.main.services.deviceService
-    @Entry var balanceService: BalanceService = AppResolver.main.services.balanceService
+    @Entry var balanceService: any GemBalanceServiceProtocol = AppResolver.main.services.balanceService
     @Entry var bannerService: BannerService = AppResolver.main.services.bannerService
-    @Entry var transactionsService: TransactionsService = AppResolver.main.services.transactionsService
+    @Entry var transactionsService: any GemTransactionsServiceProtocol = AppResolver.main.services.transactionsService
+    @Entry var transactionStore: TransactionStore = StoreManager(db: AppResolver.main.storages.db).transactionStore
     @Entry var assetsService: AssetsService = AppResolver.main.services.assetsService
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
     @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler
@@ -60,7 +64,7 @@ extension EnvironmentValues {
     @Entry var rewardsService: RewardsService = AppResolver.main.services.rewardsService
     @Entry var walletSearchService: WalletSearchService = AppResolver.main.services.walletSearchService
     @Entry var inAppNotificationService: any GemNotificationServiceProtocol = AppResolver.main.services.inAppNotificationService
-    @Entry var portfolioService: PortfolioService = AppResolver.main.services.portfolioService
+    @Entry var portfolioService: any GemPortfolioServiceProtocol = AppResolver.main.services.portfolioService
     @Entry var contactService: ContactService = AppResolver.main.services.contactService
     @Entry var supportChatService: SupportChatService = AppResolver.main.services.supportChatService
 }

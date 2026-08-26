@@ -20,7 +20,7 @@ struct ConfirmServiceTests {
     @Test
     func simulationStateUsesTransferApprovalValue() {
         let service = ConfirmSimulationService(
-            addressNameService: .mock(addressStore: .mock()),
+            nameService: GemNameServiceMock(),
             assetsService: .mock(),
         )
 
@@ -42,7 +42,7 @@ struct ConfirmServiceTests {
         try assetStore.add(assets: [.mock(asset: .mockEthereumUSDT())])
 
         let service = ConfirmSimulationService(
-            addressNameService: .mock(addressStore: .mock()),
+            nameService: GemNameServiceMock(),
             assetsService: .mock(assetStore: assetStore),
         )
 
@@ -60,7 +60,7 @@ struct ConfirmServiceTests {
         try assetStore.add(assets: [.mock(asset: .mockEthereumUSDT())])
 
         let service = ConfirmSimulationService(
-            addressNameService: .mock(addressStore: .mock()),
+            nameService: GemNameServiceMock(),
             assetsService: .mock(assetStore: assetStore),
         )
 
@@ -90,7 +90,7 @@ struct ConfirmServiceTests {
         try assetStore.add(assets: [.mock(asset: solana), .mock(asset: usdc)])
 
         let service = ConfirmSimulationService(
-            addressNameService: .mock(addressStore: .mock()),
+            nameService: GemNameServiceMock(),
             assetsService: .mock(assetStore: assetStore),
         )
 
@@ -127,7 +127,7 @@ struct ConfirmServiceTests {
 
         let assetStore = AssetStore.mock()
         let fetchedState = await ConfirmSimulationService(
-            addressNameService: .mock(addressStore: .mock()),
+            nameService: GemNameServiceMock(),
             assetsService: .mock(
                 assetStore: assetStore,
                 assetsProvider: GemAssetsServiceMock(
@@ -146,10 +146,7 @@ struct ConfirmServiceTests {
     @Test
     func simulationStateIgnoresAddressNameLookupFailure() async {
         let service = ConfirmSimulationService(
-            addressNameService: .mock(
-                addressStore: .mock(),
-                service: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
-            ),
+            nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
             assetsService: .mock(),
         )
 

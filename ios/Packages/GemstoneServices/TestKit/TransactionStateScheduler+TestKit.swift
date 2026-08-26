@@ -18,7 +18,7 @@ public extension TransactionStateScheduler {
     ) -> TransactionStateScheduler {
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: transactionStore,
-            balanceUpdater: .mock(),
+            balanceService: GemBalanceServiceMock(),
             stakeService: stakeService,
             nftService: nftService,
         )

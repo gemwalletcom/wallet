@@ -159,6 +159,10 @@ class AssetsRepository @Inject constructor(
 
     fun getAssetsInfo(): Flow<List<AssetInfo>> = assetsInfo
 
+    fun getAssetsInfo(walletId: WalletId): Flow<List<AssetInfo>> = assetsDao.getAssetsInfo(walletId.id)
+        .toAssetInfoModel()
+        .flowOn(Dispatchers.IO)
+
     fun getAssetsInfo(assetsId: List<AssetId>): Flow<List<AssetInfo>> = currentWalletId()
         .flatMapLatest { walletId -> assetsDao.getAssetsInfo(walletId, assetsId.map { it.toIdentifier() }) }
         .toAssetInfoModel()

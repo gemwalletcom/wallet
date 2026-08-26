@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import BigInt
 import protocol Gemstone.GemSwapperProtocol
@@ -388,7 +389,7 @@ extension SwapSceneViewModel {
                 wallet: .mock(accounts: [.mock(chain: .ethereum)]),
                 pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil),
             ),
-            balanceUpdater: .mock(),
+            balanceService: GemBalanceServiceMock(),
             priceUpdater: .mock(),
             swapQuotesProvider: swapQuotesProvider ?? SwapQuotesProvider(swapService: .mock(swapper: swapper)),
             swapQuoteDataProvider: SwapQuoteDataProvider(keystore: LocalKeystore.mock(), swapService: .mock(swapper: swapper)),
