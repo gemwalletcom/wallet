@@ -6,10 +6,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
-import com.gemwallet.android.data.service.store.database.entities.DbPriceAlert
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.ext.id
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PriceAlertInfo
@@ -85,46 +83,6 @@ class PriceAlertRepositoryImpl(
         priceAlertsDao.enabled(priceAlertId, true)
     }
 
-    override suspend fun updatePriceAlerts(alerts: List<PriceAlert>) {
-        updateSnapshot(
-            localAlerts = priceAlertsDao.getAllPriceAlerts(),
-            remoteAlerts = alerts,
-        )
-    }
-
-    override suspend fun updateAssetPriceAlerts(assetId: AssetId, alerts: List<PriceAlert>) {
-        val assetIdIdentifier = assetId.toIdentifier()
-        updateSnapshot(
-            localAlerts = priceAlertsDao.getAllPriceAlerts(assetIdIdentifier),
-            remoteAlerts = alerts.filter { it.assetId.toIdentifier() == assetIdIdentifier },
-        )
-    }
-
-    private suspend fun updateSnapshot(
-        localAlerts: List<DbPriceAlert>,
-        remoteAlerts: List<PriceAlert>,
-    ) {
-        val localByKey = localAlerts.associateBy(::identityKey)
-        val remoteByKey = remoteAlerts.associateBy(::identityKey)
-
-        val records = remoteByKey.map { (key, alert) ->
-            alert.toRecord().copy(id = localByKey[key]?.id ?: 0)
-        }
-        val staleIds = localByKey.keys
-            .subtract(remoteByKey.keys)
-            .mapNotNull { key -> localByKey[key]?.id }
-
-        if (staleIds.isNotEmpty()) {
-            priceAlertsDao.delete(staleIds)
-        }
-        if (records.isNotEmpty()) {
-            priceAlertsDao.put(records)
-        }
-    }
-
-    private fun identityKey(priceAlert: PriceAlert): String = priceAlert.id
-
-    private fun identityKey(priceAlert: DbPriceAlert): String = priceAlert.toDTO().priceAlert.id
 
     private object Key {
         val isPriceAlertsEnabled = booleanPreferencesKey("price_alerts_enabled")

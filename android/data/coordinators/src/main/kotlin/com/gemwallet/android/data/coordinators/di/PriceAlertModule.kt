@@ -123,11 +123,9 @@ object PriceAlertModule {
     @Provides
     fun provideUpdatePriceAlerts(
         priceAlertService: GemPriceAlertService,
-        priceAlertRepository: PriceAlertRepository,
     ): UpdatePriceAlerts {
         return UpdatePriceAlertsImpl(
             priceAlertService = priceAlertService,
-            priceAlertRepository = priceAlertRepository,
         )
     }
 

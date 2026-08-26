@@ -97,19 +97,17 @@ public actor GemSubscriptionServiceMock: GemSubscriptionServiceProtocol {
 }
 
 public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unchecked Sendable {
-    private let priceAlerts: [Primitives.PriceAlert]
+    public init() {}
 
-    public init(priceAlerts: [Primitives.PriceAlert] = []) {
-        self.priceAlerts = priceAlerts
-    }
-
-    public func getPriceAlerts(assetId _: String?) async throws -> [Gemstone.PriceAlert] {
-        try priceAlerts.map { try $0.json() }
-    }
+    public func sync(assetId _: String?) async throws {}
 
     public func addPriceAlerts(alerts _: [Gemstone.PriceAlert]) async throws {}
 
     public func deletePriceAlerts(alerts _: [Gemstone.PriceAlert]) async throws {}
+
+    public func priceAlertId(alert: Gemstone.PriceAlert) -> String {
+        (try? Primitives.PriceAlert(alert).id) ?? ""
+    }
 }
 
 public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @unchecked Sendable {

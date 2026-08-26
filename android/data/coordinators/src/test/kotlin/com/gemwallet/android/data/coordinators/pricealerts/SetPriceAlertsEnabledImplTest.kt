@@ -87,9 +87,7 @@ class SetPriceAlertsEnabledImplTest {
 
         override suspend fun addPriceAlert(priceAlert: PriceAlert) = Unit
 
-        override suspend fun updatePriceAlerts(alerts: List<PriceAlert>) = Unit
 
-        override suspend fun updateAssetPriceAlerts(assetId: AssetId, alerts: List<PriceAlert>) = Unit
 
         override suspend fun getPriceAlert(priceAlertId: Int): PriceAlertInfo? = null
 

@@ -31,7 +31,7 @@ pub use nft::GemNftService;
 pub use notification::{GemNotificationService, GemNotificationStore};
 pub use portfolio::GemPortfolioService;
 pub use price::GemPriceService;
-pub use price_alert::GemPriceAlertService;
+pub use price_alert::{GemPriceAlertService, GemPriceAlertStore};
 pub use rewards::GemRewardsService;
 pub use scan::GemScanService;
 pub use static_assets::GemStaticAssetsService;

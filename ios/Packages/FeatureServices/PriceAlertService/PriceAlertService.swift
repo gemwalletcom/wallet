@@ -44,27 +44,11 @@ public struct PriceAlertService: Sendable {
     }
 
     public func update() async throws {
-        let remote = try await apiService.getPriceAlerts(assetId: .none).map { try PriceAlert($0) }
-        let local = try store.getPriceAlerts()
-        try syncChanges(remote: remote, local: local)
+        try await apiService.sync(assetId: .none)
     }
 
     public func update(assetId: String) async throws {
-        let remote = try await apiService.getPriceAlerts(assetId: assetId).map { try PriceAlert($0) }
-        let local = try store.getPriceAlerts(for: assetId)
-        try syncChanges(remote: remote, local: local)
-    }
-
-    private func syncChanges(remote: [PriceAlert], local: [PriceAlert]) throws {
-        let changes = SyncDiff.calculate(
-            primary: .remote,
-            local: local.map(\.id).asSet(),
-            remote: remote.map(\.id).asSet(),
-        )
-        try store.diffPriceAlerts(
-            deleteIds: changes.toDelete.asArray(),
-            alerts: remote,
-        )
+        try await apiService.sync(assetId: assetId)
     }
 
     public func enable(priceAlert: PriceAlert) async throws {

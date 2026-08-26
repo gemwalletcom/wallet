@@ -22,10 +22,6 @@ interface PriceAlertRepository {
 
     suspend fun addPriceAlert(priceAlert: PriceAlert)
 
-    suspend fun updatePriceAlerts(alerts: List<PriceAlert>)
-
-    suspend fun updateAssetPriceAlerts(assetId: AssetId, alerts: List<PriceAlert>)
-
     suspend fun getPriceAlert(priceAlertId: Int): PriceAlertInfo?
 
     suspend fun disable(priceAlertId: Int)

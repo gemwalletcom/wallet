@@ -187,7 +187,7 @@ struct ServicesFactory {
             webSocket: webSocket,
         )
         let priceAlertService = Self.makePriceAlertService(
-            apiService: Gemstone.GemPriceAlertService(api: gemDeviceApiClient),
+            apiService: Gemstone.GemPriceAlertService(api: gemDeviceApiClient, store: GemstonePriceAlertStore(store: storeManager.priceAlertStore)),
             priceAlertStore: storeManager.priceAlertStore,
             deviceService: deviceService,
             priceUpdater: streamSubscriptionService,

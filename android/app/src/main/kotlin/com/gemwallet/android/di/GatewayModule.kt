@@ -35,7 +35,6 @@ import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemPortfolioService
-import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemSubscriptionService
 import uniffi.gemstone.GemSupportService
@@ -157,9 +156,6 @@ object GatewayModule {
     @Singleton
     fun provideGemWalletConfigurationService(apiClient: GemstoneDeviceApiClient): GemWalletConfigurationService = GemWalletConfigurationService(apiClient)
 
-    @Provides
-    @Singleton
-    fun provideGemPriceAlertService(apiClient: GemstoneDeviceApiClient): GemPriceAlertService = GemPriceAlertService(apiClient)
 
     @Provides
     @Singleton
