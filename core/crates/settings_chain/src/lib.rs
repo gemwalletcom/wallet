@@ -10,6 +10,7 @@ use gem_alchemy::{AlchemyApi, alchemy_url};
 use gem_algorand::rpc::{AlgorandClient, AlgorandIndexer, AlgorandProvider};
 use gem_aptos::rpc::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
+use gem_bsc::BscStakingClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_client::{ReqwestClient, retry_policy};
 use gem_cosmos::rpc::client::CosmosClient;
@@ -96,6 +97,7 @@ impl ProviderFactory {
                                 Box::new(EverstakeStakingClient::new(client, config.everstake_url.clone())),
                             ),
                             EVMChain::Monad => EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(MonadStakingClient::new(client))),
+                            EVMChain::SmartChain => EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(BscStakingClient::new(client))),
                             _ => EthereumProvider::new(client, transactions, asset_balances),
                         })
                     } else {
@@ -104,6 +106,7 @@ impl ProviderFactory {
                                 EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, config.everstake_url.clone())))
                             }
                             EVMChain::Monad => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(MonadStakingClient::new(client))),
+                            EVMChain::SmartChain => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(BscStakingClient::new(client))),
                             _ => EthereumProvider::new_rpc_only(client),
                         })
                     }

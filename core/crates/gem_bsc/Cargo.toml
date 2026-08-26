@@ -3,8 +3,26 @@ name = "gem_bsc"
 version = { workspace = true }
 edition = { workspace = true }
 
-[dependencies]
+[features]
+default = []
+rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client"]
+reqwest = ["rpc", "gem_evm/reqwest", "gem_client/reqwest"]
+chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 
-hex = { workspace = true }
+[dependencies]
+primitives = { path = "../primitives" }
+gem_evm = { path = "../gem_evm" }
+
+gem_client = { path = "../gem_client", optional = true }
+async-trait = { workspace = true, optional = true }
+chrono = { workspace = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true }
+num-bigint = { workspace = true }
+num-traits = { workspace = true }
+
+[dev-dependencies]
+gem_evm = { path = "../gem_evm", features = ["rpc", "testkit"] }
+primitives = { path = "../primitives", features = ["testkit"] }
+settings = { path = "../settings", features = ["testkit"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

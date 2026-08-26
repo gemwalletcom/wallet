@@ -1,2 +1,16 @@
-pub mod stake_hub;
-pub use stake_hub::HUB_READER_ADDRESS;
+mod constants;
+mod contracts;
+mod encode;
+mod mapper;
+mod model;
+
+#[cfg(feature = "rpc")]
+mod parser;
+#[cfg(feature = "rpc")]
+mod staking;
+
+#[cfg(test)]
+mod testkit;
+
+#[cfg(feature = "rpc")]
+pub use staking::BscStakingClient;
