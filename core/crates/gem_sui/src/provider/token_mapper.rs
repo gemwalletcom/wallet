@@ -34,7 +34,7 @@ mod tests {
         assert_eq!(asset.name, "USD Coin");
         assert_eq!(asset.symbol, "USDC");
         assert_eq!(asset.decimals, 6);
-        assert_eq!(asset.chain, Chain::Sui);
+        assert_eq!(asset.chain(), Chain::Sui);
         assert_eq!(asset.asset_type, AssetType::TOKEN);
     }
 }

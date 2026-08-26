@@ -152,8 +152,6 @@ mod tests {
                     chain: Chain::Ton,
                     token_id: token_id.clone(),
                 },
-                chain: Chain::Ton,
-                token_id,
                 name,
                 symbol,
                 decimals,

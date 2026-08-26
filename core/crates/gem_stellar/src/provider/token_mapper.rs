@@ -29,6 +29,6 @@ mod tests {
 
         let result = map_token_data(&stellar_asset, token_id, chain);
         assert_eq!(result.symbol, "USDC");
-        assert_eq!(result.chain, Chain::Stellar);
+        assert_eq!(result.chain(), Chain::Stellar);
     }
 }

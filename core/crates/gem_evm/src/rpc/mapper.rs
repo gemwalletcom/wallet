@@ -220,7 +220,7 @@ mod tests {
         let transaction = EthereumMapper::map_transaction(Chain::Ethereum, &contract_call_tx, &contract_call_receipt, &BigUint::from(1735671600u64)).unwrap();
 
         assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
-        assert_eq!(transaction.hash, "0x876707912c2d625723aa14bf268d83ede36c2657c70da500628e40e6b51577c9");
+        assert_eq!(transaction.hash(), "0x876707912c2d625723aa14bf268d83ede36c2657c70da500628e40e6b51577c9");
         assert_eq!(transaction.from, "0x39ab5f6f1269590225EdAF9ad4c5967B09243747");
         assert_eq!(transaction.to, "0xB907Dcc926b5991A149d04Cb7C0a4a25dC2D8f9a");
         assert_eq!(transaction.data, Some(contract_call_tx.input));
@@ -256,7 +256,7 @@ mod tests {
                 .result;
 
         let transaction = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &transaction_receipt, &BigUint::from(1735671600u64)).unwrap();
-        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+        assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
 
         assert_eq!(transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
@@ -277,7 +277,7 @@ mod tests {
         let transaction_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/transfer_nft_eip721_safe_transfer_receipt.json"));
 
         let transaction = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &transaction_receipt, &BigUint::from(1782990479u64)).unwrap();
-        assert_eq!(transaction.hash, "0x13bac6f98a228d71e9e31641629c0c0d8b2c46f93cfe4eafee5371548ab374ca");
+        assert_eq!(transaction.hash(), "0x13bac6f98a228d71e9e31641629c0c0d8b2c46f93cfe4eafee5371548ab374ca");
         assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
         assert_eq!(transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
         assert_eq!(transaction.from, "0x3835e41EA342975eEEF8AaCf0c3809A38F6c04f1");

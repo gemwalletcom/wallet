@@ -79,7 +79,7 @@ mod tests {
         let lookup: TransactionLookup = serde_json::from_str(include_str!("../../testdata/transaction_by_hash.json")).unwrap();
         let transaction = map_transaction_by_hash(lookup).unwrap();
 
-        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+        assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.from, "RXIOUIR5IGFZMIZ7CR7FJXDYY4JI7NZG5UCWCZZNWXUPFJRLG6K6X5ITXM");
         assert_eq!(transaction.to, "NXSHXB3CLKPZ4JJ3LIXOKOEAB575EDDHCUTDYAKYRXZWVJ6CCQUP55ZEPE");
         assert_eq!(transaction.value, "100000");

@@ -159,7 +159,7 @@ mod tests {
             .unwrap()
             .unwrap();
 
-        assert_eq!(transaction.hash, "0xd6878ac03656ac15c9bc24cc4daf3ff276de637ec2d9708c420186f6cba9dc06");
+        assert_eq!(transaction.hash(), "0xd6878ac03656ac15c9bc24cc4daf3ff276de637ec2d9708c420186f6cba9dc06");
     }
 }
 

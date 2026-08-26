@@ -327,7 +327,7 @@ mod tests {
         let expected_contract = primary_contract(digest.move_call_packages.iter().map(String::as_str)).unwrap();
         let transaction = map_transaction(digest).unwrap();
 
-        assert_eq!(transaction.hash, "AqXACRuimqMVf4wiVjR3Ch5PBunhQAJY3ZfAMF3MXUsW");
+        assert_eq!(transaction.hash(), "AqXACRuimqMVf4wiVjR3Ch5PBunhQAJY3ZfAMF3MXUsW");
         assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
         assert_eq!(transaction.from, "0x1b4cd8b734f2465614678ca0450ce9c4f2ff4835c6a7545522892a1a8fb67991");
         assert_eq!(transaction.to, expected_contract);
@@ -338,7 +338,7 @@ mod tests {
         let digest: Digest = serde_json::from_str(include_str!("../../testdata/transfer_sui.json")).unwrap();
         let transaction = map_transaction(digest).unwrap();
 
-        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+        assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
     }
 
@@ -347,7 +347,7 @@ mod tests {
         let digest: Digest = serde_json::from_str(include_str!("../../testdata/stake_grpc.json")).unwrap();
         let transaction = map_transaction(digest).unwrap();
 
-        assert_eq!(transaction.hash, "DXKezMGJZaxJRC6a6zCr3JdfquYGxgU1zjV4xrNAaCFB");
+        assert_eq!(transaction.hash(), "DXKezMGJZaxJRC6a6zCr3JdfquYGxgU1zjV4xrNAaCFB");
         assert_eq!(transaction.transaction_type, TransactionType::StakeDelegate);
         assert_eq!(transaction.value, "2000000000");
         assert_eq!(transaction.from, OWNER_ADDRESS);

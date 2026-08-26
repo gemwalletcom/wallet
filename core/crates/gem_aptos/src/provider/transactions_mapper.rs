@@ -292,7 +292,7 @@ mod tests {
 
         assert!(result.is_some());
         let tx = result.unwrap();
-        assert_eq!(tx.hash, TEST_TRANSACTION_ID);
+        assert_eq!(tx.hash(), TEST_TRANSACTION_ID);
         assert_eq!(tx.id.to_string(), format!("aptos_{TEST_TRANSACTION_ID}"));
         assert_eq!(tx.from, "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446");
         assert_eq!(tx.to, "0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc");

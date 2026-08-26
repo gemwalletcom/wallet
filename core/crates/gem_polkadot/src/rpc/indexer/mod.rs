@@ -110,7 +110,7 @@ mod tests {
         let transactions = PolkadotIndexer::new(client).get_transactions_by_address("address", 100, None).await.unwrap();
 
         assert_eq!(
-            transactions.iter().map(|transaction| transaction.hash.as_str()).collect::<Vec<_>>(),
+            transactions.iter().map(|transaction| transaction.hash()).collect::<Vec<_>>(),
             vec!["asset-hub-newest", "asset-hub-older"]
         );
         assert_eq!(
