@@ -6,6 +6,7 @@ import Components
 import Formatters
 import Foundation
 import enum Gemstone.SwapperError
+import enum Gemstone.SwapperProvider
 import struct Gemstone.SwapperQuote
 import GemstonePrimitives
 import Localization
@@ -46,6 +47,8 @@ public final class SwapSceneViewModel {
     var pairSelectorModel: SwapPairSelectorViewModel
 
     var selectedSwapQuote: SwapperQuote?
+    private var preferredProvider: SwapperProvider?
+
     var amountInputModel: InputValidationViewModel = .init(mode: .onDemand)
     var toValue: String = ""
     var fetchTrigger: SwapFetchTrigger?
@@ -235,7 +238,7 @@ extension SwapSceneViewModel {
 
         resetTransferDataState()
         resetValues()
-        selectedSwapQuote = nil
+        resetQuoteSelection()
         updateValidators(for: new)
         setFetchTrigger(isImmediate: true)
     }
@@ -245,7 +248,7 @@ extension SwapSceneViewModel {
 
         resetTransferDataState()
         resetToValue()
-        selectedSwapQuote = nil
+        resetQuoteSelection()
         setFetchTrigger(isImmediate: true)
     }
 
@@ -288,6 +291,7 @@ extension SwapSceneViewModel {
 
     func onFinishSwapProviderSelection(_ quote: SwapperQuote) {
         resetTransferDataState()
+        preferredProvider = quote.data.provider.id
         selectedSwapQuote = quote
     }
 
@@ -369,7 +373,7 @@ extension SwapSceneViewModel {
             resetToValue()
             swapState.quotes = .noData
             resetTransferDataState()
-            selectedSwapQuote = nil
+            resetQuoteSelection()
             fetchTrigger = nil
             return
         }
@@ -424,7 +428,7 @@ extension SwapSceneViewModel {
 
             guard !isTransferDataLoading, currentInput == input else { return }
             swapState.quotes = .data(swapQuotes)
-            selectedSwapQuote = swapQuotes.first(where: { $0.data.provider.id == selectedSwapQuote?.data.provider.id }) ?? swapQuotes.first
+            selectedSwapQuote = swapQuotes.first(where: { $0.data.provider.id == preferredProvider }) ?? swapQuotes.first
             if let selectedSwapQuote, let asset = toAsset?.asset {
                 applyQuote(selectedSwapQuote, asset: asset)
             }
@@ -454,6 +458,11 @@ extension SwapSceneViewModel {
                 ],
             )],
         )
+    }
+
+    private func resetQuoteSelection() {
+        selectedSwapQuote = nil
+        preferredProvider = nil
     }
 
     private func resetTransferDataState() {
