@@ -20,12 +20,12 @@ public struct PerpetualConfig {
         Config.shared.getPerpetualConfig().depositAssetId
     }
 
-    public static var depositAsset: Asset {
+    public static var depositAsset: Primitives.Asset {
         guard let assetId = try? AssetId(id: depositAssetId) else {
             preconditionFailure("Invalid perpetual deposit asset id: \(depositAssetId)")
         }
         let usdc = Chain.hyperCore.defaultAsset(type: .perpetual)
-        return Asset(id: assetId, name: usdc.name, symbol: usdc.symbol, decimals: usdc.decimals, type: .token)
+        return Primitives.Asset(id: assetId, name: usdc.name, symbol: usdc.symbol, decimals: usdc.decimals, type: .token)
     }
 
     public static var minDeposit: BigInt {

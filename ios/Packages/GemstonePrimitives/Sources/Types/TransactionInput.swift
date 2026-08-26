@@ -7,7 +7,7 @@ import Primitives
 
 public struct TransactionInput: Sendable {
     public let type: TransferDataType
-    public let asset: Asset
+    public let asset: Primitives.Asset
     public let senderAddress: String
     public let destinationAddress: String
     public let value: BigInt
@@ -18,7 +18,7 @@ public struct TransactionInput: Sendable {
 
     public init(
         type: TransferDataType,
-        asset: Asset,
+        asset: Primitives.Asset,
         senderAddress: String,
         destinationAddress: String,
         value: BigInt,

@@ -7,7 +7,7 @@ import Primitives
 
 public struct SignerInput {
     public let type: TransferDataType
-    public let asset: Asset
+    public let asset: Primitives.Asset
     public let value: BigInt
     public let fee: Fee
     public let useMaxAmount: Bool
@@ -19,7 +19,7 @@ public struct SignerInput {
 
     public init(
         type: TransferDataType,
-        asset: Asset,
+        asset: Primitives.Asset,
         value: BigInt,
         fee: Fee,
         isMaxAmount: Bool,

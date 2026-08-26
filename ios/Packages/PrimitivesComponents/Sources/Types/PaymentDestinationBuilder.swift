@@ -13,7 +13,7 @@ public enum PaymentDestinationBuilder {
         case recipient(RecipientData)
     }
 
-    public static func transfer(payment: Primitives.PaymentRequest, asset: Asset) throws -> TransferDestination {
+    public static func transfer(payment: Primitives.PaymentRequest, asset: Primitives.Asset) throws -> TransferDestination {
         switch try Gemstone.paymentTransferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
             return try .confirm(transferData(transfer: transfer, asset: asset))
@@ -49,7 +49,7 @@ public enum PaymentDestinationBuilder {
         }
     }
 
-    public static func build(transaction: GemPaymentTransaction, asset: Asset) throws -> PaymentDestination {
+    public static func build(transaction: GemPaymentTransaction, asset: Primitives.Asset) throws -> PaymentDestination {
         let type = try TransferDataType.generic(
             asset: asset,
             metadata: Primitives.ApplicationMetadata(transaction.merchant),
@@ -91,7 +91,7 @@ public enum PaymentDestinationBuilder {
         assets.first { $0.asset.id.identifier == assetId }
     }
 
-    private static func transferData(transfer: GemPaymentConfirmTransfer, asset: Asset) throws -> TransferData {
+    private static func transferData(transfer: GemPaymentConfirmTransfer, asset: Primitives.Asset) throws -> TransferData {
         try TransferData(
             type: .transfer(asset),
             recipientData: RecipientData(
@@ -111,7 +111,7 @@ public enum PaymentDestinationBuilder {
     }
 }
 
-public extension Asset {
+public extension Primitives.Asset {
     var paymentWalletAsset: GemPaymentWalletAsset {
         GemPaymentWalletAsset(assetId: id.identifier, decimals: decimals)
     }

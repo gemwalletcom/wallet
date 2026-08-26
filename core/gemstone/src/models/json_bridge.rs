@@ -1,5 +1,6 @@
 use primitives::asset_balance::BalanceMetadata;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
+use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
 use primitives::perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::stake_type::Resource;
@@ -11,7 +12,7 @@ use primitives::{
     ScanTransactionPayload, SimulationPayloadField, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, TransactionPerpetualMetadata, TransactionState,
     TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
-use primitives::{Delegation, EarnType, Price, StakeType};
+use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType};
 
 /// Bridges `primitives` types across the FFI as JSON strings.
 ///
@@ -51,8 +52,10 @@ json_bridge!(
     ApplicationMetadata,
     ApplicationMetadataSource,
     ApprovalData,
+    Asset,
     AssetType,
     BalanceMetadata,
+    CancelOrderData,
     ChainAsset,
     ChartCandleStick,
     ChartCandleUpdate,
@@ -78,17 +81,22 @@ json_bridge!(
     PerpetualAccountMode,
     PerpetualAccountSummary,
     PerpetualBalance,
+    PerpetualConfirmData,
     PerpetualData,
     PerpetualDirection,
     PerpetualMarginType,
     PerpetualMarketData,
     PerpetualMetadata,
+    PerpetualModifyConfirmData,
+    PerpetualModifyPositionType,
     PerpetualOrderType,
     PerpetualPortfolio,
     PerpetualPortfolioTimeframeData,
     PerpetualPosition,
     PerpetualPositionsSummary,
+    PerpetualReduceData,
     PerpetualTriggerOrder,
+    PerpetualType,
     Price,
     Resource,
     ScanAddressTarget,
@@ -107,6 +115,7 @@ json_bridge!(
     SwapQuote,
     SwapQuoteData,
     SwapQuoteDataType,
+    TPSLOrderData,
     TransactionPerpetualMetadata,
     TransactionState,
     TransactionType,

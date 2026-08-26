@@ -4,17 +4,6 @@ pub type GemAsset = Asset;
 pub type GemAssetType = AssetType;
 pub type GemChainAsset = ChainAsset;
 
-#[uniffi::remote(Record)]
-pub struct GemAsset {
-    pub id: AssetId,
-    pub chain: Chain,
-    pub token_id: Option<String>,
-    pub name: String,
-    pub symbol: String,
-    pub decimals: i32,
-    pub asset_type: GemAssetType,
-}
-
 #[uniffi::export]
 pub fn asset_default_rank(asset_id: AssetId) -> i32 {
     asset_id.default_rank()

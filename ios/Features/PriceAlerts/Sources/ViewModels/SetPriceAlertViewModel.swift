@@ -15,7 +15,7 @@ import Style
 @MainActor
 @Observable
 public final class SetPriceAlertViewModel {
-    private let asset: Asset
+    private let asset: Primitives.Asset
     private let priceAlertService: PriceAlertService
     private let onComplete: StringAction
     private let preferences = Preferences.standard
@@ -33,7 +33,7 @@ public final class SetPriceAlertViewModel {
 
     public init(
         walletId: WalletId,
-        asset: Asset,
+        asset: Primitives.Asset,
         priceAlertService: PriceAlertService,
         price: Double? = nil,
         onComplete: StringAction,

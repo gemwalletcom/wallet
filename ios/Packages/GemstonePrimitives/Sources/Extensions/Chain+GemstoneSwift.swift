@@ -24,7 +24,7 @@ public extension Primitives.Chain {
         rawValue
     }
 
-    var asset: Asset {
+    var asset: Primitives.Asset {
         chainAsset.asset
     }
 
@@ -124,16 +124,16 @@ public extension Primitives.Chain {
         Gemstone.transactionStateConfig(chain: rawValue).map()
     }
 
-    var defaultAssets: [Asset] {
+    var defaultAssets: [Primitives.Asset] {
         Gemstone.walletDefaultAssets(chain: map()).map { asset in
-            guard let asset = try? asset.map() else {
+            guard let asset = try? Primitives.Asset(asset) else {
                 preconditionFailure("Invalid default asset for \(self)")
             }
             return asset
         }
     }
 
-    func defaultAsset(type: Primitives.AssetType) -> Asset {
+    func defaultAsset(type: Primitives.AssetType) -> Primitives.Asset {
         guard let asset = defaultAssets.first(where: { $0.type == type }) else {
             preconditionFailure("Missing \(type) default asset for \(self)")
         }

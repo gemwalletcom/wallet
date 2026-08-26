@@ -5,7 +5,7 @@ use typeshare::typeshare;
 
 use crate::{AssetBasic, AssetProperties, AssetScore, Chain, asset_id::AssetId, asset_type::AssetType};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Asset {
@@ -19,6 +19,39 @@ pub struct Asset {
     pub decimals: i32,
     #[serde(rename = "type")]
     pub asset_type: AssetType,
+}
+
+/// `chain` and `token_id` are `typeshare(skip)`, so the platforms never send them.
+/// They are both carried by `id`, so derive them when absent and accept them when
+/// present — which keeps every payload that already includes them working.
+impl<'de> Deserialize<'de> for Asset {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        struct Fields {
+            id: AssetId,
+            #[serde(default)]
+            chain: Option<Chain>,
+            #[serde(default)]
+            token_id: Option<String>,
+            name: String,
+            symbol: String,
+            decimals: i32,
+            #[serde(rename = "type")]
+            asset_type: AssetType,
+        }
+
+        let fields = Fields::deserialize(deserializer)?;
+        Ok(Self {
+            chain: fields.chain.unwrap_or(fields.id.chain),
+            token_id: fields.token_id.or_else(|| fields.id.token_id.clone()),
+            id: fields.id,
+            name: fields.name,
+            symbol: fields.symbol,
+            decimals: fields.decimals,
+            asset_type: fields.asset_type,
+        })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -238,5 +271,27 @@ mod tests {
         assert_eq!(native.score.rank, Chain::Robinhood.rank());
         assert_eq!(token.score.rank, AssetScore::default().rank);
         assert!(known_token.score.rank > crate::asset_score::AssetRank::Trivial.threshold());
+    }
+}
+
+#[cfg(test)]
+mod asset_deserialize_tests {
+    use super::*;
+
+    #[test]
+    fn test_deserialize_derives_skipped_fields_from_id() {
+        // What the platforms send: no `chain`, no `tokenId`.
+        let token: Asset =
+            serde_json::from_str(r#"{"id":"ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7","name":"Tether","symbol":"USDT","decimals":6,"type":"ERC20"}"#).unwrap();
+        assert_eq!(token.chain, Chain::Ethereum);
+        assert_eq!(token.token_id.as_deref(), Some("0xdAC17F958D2ee523a2206206994597C13D831ec7"));
+
+        let native: Asset = serde_json::from_str(r#"{"id":"ethereum","name":"Ethereum","symbol":"ETH","decimals":18,"type":"NATIVE"}"#).unwrap();
+        assert_eq!(native.chain, Chain::Ethereum);
+        assert_eq!(native.token_id, None);
+
+        // Payloads that still carry them keep working, and round-trips are stable.
+        let round_tripped: Asset = serde_json::from_str(&serde_json::to_string(&token).unwrap()).unwrap();
+        assert_eq!(round_tripped, token);
     }
 }

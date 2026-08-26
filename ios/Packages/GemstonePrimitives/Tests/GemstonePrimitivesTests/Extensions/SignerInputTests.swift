@@ -46,7 +46,7 @@ final class SignerInputTests {
 private extension SignerInput {
     static func mock(
         type: TransferDataType = .transfer(.mock()),
-        asset: Asset = .mock(),
+        asset: Primitives.Asset = .mock(),
         value: BigInt = .zero,
         fee: Fee = .mock(),
         isMaxAmount: Bool = false,

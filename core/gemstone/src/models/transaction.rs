@@ -8,11 +8,10 @@ use primitives::nft::NFTAsset;
 use primitives::solana_nft::SolanaNftStandard;
 use primitives::solana_token_program::SolanaTokenProgramId;
 use primitives::{
-    AccountDataType, Asset, AssetId, Chain, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualProvider,
-    PerpetualType, SignerInput, StakeType, TransactionChange, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionMetadata,
-    TransactionPerpetualMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate, TransferDataExtra,
-    TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UInt64,
-    perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData},
+    AccountDataType, AssetId, Chain, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, SignerInput,
+    StakeType, TransactionChange, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionMetadata, TransactionPerpetualMetadata,
+    TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType,
+    TronStakeData, TronUnfreeze, TronVote, UInt64, perpetual::PerpetualReduceData,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -114,69 +113,7 @@ pub struct GemTransferDataExtra {
     pub approval: Option<GemApprovalData>,
 }
 
-#[uniffi::remote(Record)]
-pub struct PerpetualConfirmData {
-    pub direction: PerpetualDirection,
-    pub margin_type: PerpetualMarginType,
-    pub base_asset: Asset,
-    pub asset_index: i32,
-    pub price: String,
-    pub fiat_value: f64,
-    pub size: String,
-    pub slippage: f64,
-    pub leverage: u8,
-    pub pnl: Option<f64>,
-    pub entry_price: Option<f64>,
-    pub market_price: f64,
-    pub margin_amount: f64,
-    pub take_profit: Option<String>,
-    pub stop_loss: Option<String>,
-}
-
-#[uniffi::remote(Record)]
-pub struct CancelOrderData {
-    pub asset_index: i32,
-    pub order_id: u64,
-}
-
-#[uniffi::remote(Record)]
-pub struct TPSLOrderData {
-    pub direction: PerpetualDirection,
-    pub take_profit: Option<String>,
-    pub stop_loss: Option<String>,
-    pub size: String,
-}
-
-#[uniffi::remote(Enum)]
-pub enum PerpetualModifyPositionType {
-    Tpsl(TPSLOrderData),
-    Cancel(Vec<CancelOrderData>),
-}
-
-#[uniffi::remote(Record)]
-pub struct PerpetualModifyConfirmData {
-    pub base_asset: Asset,
-    pub asset_index: i32,
-    pub modify_types: Vec<PerpetualModifyPositionType>,
-    pub take_profit_order_id: Option<UInt64>,
-    pub stop_loss_order_id: Option<UInt64>,
-}
-#[uniffi::remote(Record)]
-pub struct PerpetualReduceData {
-    pub data: PerpetualConfirmData,
-    pub position_direction: PerpetualDirection,
-}
-
 pub type GemPerpetualType = PerpetualType;
-
-#[uniffi::remote(Enum)]
-pub enum PerpetualType {
-    Open(PerpetualConfirmData),
-    Close(PerpetualConfirmData),
-    Modify(PerpetualModifyConfirmData),
-    Increase(PerpetualConfirmData),
-    Reduce(PerpetualReduceData),
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]

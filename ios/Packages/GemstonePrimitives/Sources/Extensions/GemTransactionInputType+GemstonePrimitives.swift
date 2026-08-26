@@ -6,7 +6,7 @@ import Gemstone
 import Primitives
 
 public extension GemTransactionInputType {
-    func getAsset() -> GemAsset {
+    func getAsset() -> Gemstone.Asset {
         switch self {
         case let .transfer(asset): asset
         case let .deposit(asset): asset
@@ -27,27 +27,27 @@ public extension GemTransactionInputType {
     func map() throws -> TransferDataType {
         switch self {
         case let .transfer(asset):
-            try TransferDataType.transfer(asset.map())
+            try TransferDataType.transfer(Primitives.Asset(asset))
         case let .deposit(asset):
-            try TransferDataType.deposit(asset.map())
+            try TransferDataType.deposit(Primitives.Asset(asset))
         case let .swap(fromAsset, toAsset, gemSwapData):
-            try TransferDataType.swap(fromAsset.map(), toAsset.map(), Primitives.SwapData(gemSwapData))
+            try TransferDataType.swap(Primitives.Asset(fromAsset), Primitives.Asset(toAsset), Primitives.SwapData(gemSwapData))
         case let .transferNft(_, nftAsset):
             try TransferDataType.transferNft(Primitives.NFTAsset(nftAsset))
         case let .stake(asset, type):
-            try TransferDataType.stake(asset.map(), Primitives.StakeType(type))
+            try TransferDataType.stake(Primitives.Asset(asset), Primitives.StakeType(type))
         case let .tokenApprove(asset, approvalData):
-            try TransferDataType.tokenApprove(asset.map(), Primitives.ApprovalData(approvalData))
+            try TransferDataType.tokenApprove(Primitives.Asset(asset), Primitives.ApprovalData(approvalData))
         case let .generic(asset, metadata, extra):
-            try TransferDataType.generic(asset: asset.map(), metadata: Primitives.ApplicationMetadata(metadata), extra: extra.map())
+            try TransferDataType.generic(asset: Primitives.Asset(asset), metadata: Primitives.ApplicationMetadata(metadata), extra: extra.map())
         case let .account(asset, accountType):
-            try TransferDataType.account(asset.map(), Primitives.AccountDataType(accountType))
+            try TransferDataType.account(Primitives.Asset(asset), Primitives.AccountDataType(accountType))
         case let .perpetual(asset: asset, perpetualType: perpetualType):
-            try TransferDataType.perpetual(asset.map(), perpetualType.map())
+            try TransferDataType.perpetual(Primitives.Asset(asset), Primitives.PerpetualType(perpetualType))
         case let .earn(asset, earnType, data):
-            try TransferDataType.earn(asset.map(), Primitives.EarnType(earnType), Primitives.ContractCallData(data))
+            try TransferDataType.earn(Primitives.Asset(asset), Primitives.EarnType(earnType), Primitives.ContractCallData(data))
         case let .withdrawal(asset):
-            try TransferDataType.withdrawal(asset.map())
+            try TransferDataType.withdrawal(Primitives.Asset(asset))
         }
     }
 }
@@ -56,30 +56,30 @@ public extension TransferDataType {
     func map() throws -> GemTransactionInputType {
         switch self {
         case let .transfer(asset):
-            return try .transfer(asset: asset.map())
+            return try .transfer(asset: asset.json())
         case let .deposit(asset):
-            return try .deposit(asset: asset.map())
+            return try .deposit(asset: asset.json())
         case let .swap(fromAsset, toAsset, swapData):
-            return try .swap(fromAsset: fromAsset.map(), toAsset: toAsset.map(), swapData: swapData.json())
+            return try .swap(fromAsset: fromAsset.json(), toAsset: toAsset.json(), swapData: swapData.json())
         case let .transferNft(nftAsset):
-            return try .transferNft(asset: Asset(nftAsset.chain).map(), nftAsset: nftAsset.json())
+            return try .transferNft(asset: Primitives.Asset(nftAsset.chain).json(), nftAsset: nftAsset.json())
         case let .stake(asset, stakeType):
-            return try .stake(asset: asset.map(), stakeType: stakeType.json())
+            return try .stake(asset: asset.json(), stakeType: stakeType.json())
         case let .tokenApprove(asset, approvalData):
-            return try .tokenApprove(asset: asset.map(), approvalData: approvalData.json())
+            return try .tokenApprove(asset: asset.json(), approvalData: approvalData.json())
         case let .generic(asset, metadata, extra):
-            return try .generic(asset: asset.map(), metadata: metadata.json(), extra: extra.map())
+            return try .generic(asset: asset.json(), metadata: metadata.json(), extra: extra.map())
         case let .withdrawal(asset):
             if asset.chain == .hyperCore {
-                return try .withdrawal(asset: asset.map())
+                return try .withdrawal(asset: asset.json())
             }
             throw AnyError("Unsupported transaction type: \(self)")
         case let .account(asset, accountData):
-            return try .account(asset: asset.map(), accountType: accountData.json())
+            return try .account(asset: asset.json(), accountType: accountData.json())
         case let .perpetual(asset, perpetualType):
-            return try .perpetual(asset: asset.map(), perpetualType: perpetualType.map())
+            return try .perpetual(asset: asset.json(), perpetualType: perpetualType.json())
         case let .earn(asset, earnType, data):
-            return try .earn(asset: asset.map(), earnType: earnType.json(), data: data.json())
+            return try .earn(asset: asset.json(), earnType: earnType.json(), data: data.json())
         }
     }
 }

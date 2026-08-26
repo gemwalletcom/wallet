@@ -99,8 +99,8 @@ public extension GatewayService {
 // MARK: - Token
 
 public extension GatewayService {
-    func tokenData(chain: Primitives.Chain, tokenId: String) async throws -> Asset {
-        try await gateway.getTokenData(chain: chain.rawValue, tokenId: tokenId).map()
+    func tokenData(chain: Primitives.Chain, tokenId: String) async throws -> Primitives.Asset {
+        try await Primitives.Asset(gateway.getTokenData(chain: chain.rawValue, tokenId: tokenId))
     }
 
     func isTokenAddress(chain: Primitives.Chain, tokenId: String) async throws -> Bool {

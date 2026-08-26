@@ -21,7 +21,7 @@ public extension GemTransactionLoadInput {
     func map() throws -> TransactionInput {
         try TransactionInput(
             type: inputType.map(),
-            asset: inputType.getAsset().map(),
+            asset: Primitives.Asset(inputType.getAsset()),
             senderAddress: senderAddress,
             destinationAddress: destinationAddress,
             value: BigInt.from(string: value),
