@@ -3,7 +3,6 @@
 import AssetsService
 import Components
 import ConnectionsService
-import EventPresenterService
 import Foundation
 import class Gemstone.PaymentService
 import GemstonePrimitives
@@ -23,7 +22,7 @@ final class NavigationHandler: Sendable {
 
     private let assetsService: AssetsService
     private let connectionsService: ConnectionsService
-    private let eventPresenterService: EventPresenterService
+    private let toastPresenter: ToastPresenter
     private let paymentService: PaymentService
     private let transactionsService: TransactionsService
     private let walletConnectorPresenter: WalletConnectorPresenter
@@ -34,7 +33,7 @@ final class NavigationHandler: Sendable {
         presenter: NavigationPresenter,
         assetsService: AssetsService,
         connectionsService: ConnectionsService,
-        eventPresenterService: EventPresenterService,
+        toastPresenter: ToastPresenter,
         paymentService: PaymentService,
         transactionsService: TransactionsService,
         walletConnectorPresenter: WalletConnectorPresenter,
@@ -44,7 +43,7 @@ final class NavigationHandler: Sendable {
         self.presenter = presenter
         self.assetsService = assetsService
         self.connectionsService = connectionsService
-        self.eventPresenterService = eventPresenterService
+        self.toastPresenter = toastPresenter
         self.paymentService = paymentService
         self.transactionsService = transactionsService
         self.walletConnectorPresenter = walletConnectorPresenter
@@ -79,7 +78,7 @@ final class NavigationHandler: Sendable {
         do {
             try await handleURLAction(action)
         } catch {
-            eventPresenterService.toastPresenter.toastMessage = nil
+            toastPresenter.toastMessage = nil
             showError(error)
         }
     }
@@ -143,13 +142,13 @@ extension NavigationHandler {
             let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [])
             presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets)
         case let .link(link):
-            eventPresenterService.toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
+            toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
             let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address) }
             let transaction = try await paymentService.load(link: link, addresses: addresses)
             let chain = try transaction.account.chain.map()
             let assetId = try transaction.request?.map().assetId ?? chain.asset.id
             let asset = try await assetsService.getOrFetchTokenAsset(for: assetId)
-            eventPresenterService.toastPresenter.toastMessage = nil
+            toastPresenter.toastMessage = nil
             presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset)
         }
     }
@@ -215,7 +214,7 @@ extension NavigationHandler {
 extension NavigationHandler {
     private func showError(_ error: any Error) {
         debugLog("NavigationHandler error: \(error)")
-        eventPresenterService.toastPresenter.toastMessage = .error(error.localizedDescription)
+        toastPresenter.toastMessage = .error(error.localizedDescription)
     }
 
     private func selectTab(for tab: TabItem?) {

@@ -2,9 +2,23 @@
 
 import Components
 import Localization
+import Primitives
 import Style
 
 public extension ToastMessage {
+    static func transfer(for type: TransferDataType) -> ToastMessage? {
+        guard case let .perpetual(_, perpetualType) = type else {
+            return nil
+        }
+        return switch perpetualType {
+        case let .open(data): .success(Localized.Perpetual.openDirection(PerpetualDirectionViewModel(direction: data.direction).title))
+        case .close: .success(Localized.Perpetual.closePosition)
+        case .modify: .success(Localized.Perpetual.modifyPosition)
+        case .increase: .success(Localized.Perpetual.increasePosition)
+        case .reduce: .success(Localized.Perpetual.reducePosition)
+        }
+    }
+
     static func copied(_ value: String) -> ToastMessage {
         ToastMessage(title: Localized.Common.copied(value), image: SystemImage.copy)
     }

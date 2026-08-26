@@ -16,7 +16,6 @@ import ContactService
 import DeviceService
 import DiscoverAssetsService
 import EarnService
-import EventPresenterService
 import ExplorerService
 import FiatService
 import Foundation
@@ -35,6 +34,7 @@ import Preferences
 import PriceAlertService
 import PriceService
 import Primitives
+import PrimitivesComponents
 import RewardsService
 import ScanService
 import ServiceStatusService
@@ -289,13 +289,13 @@ struct ServicesFactory {
         let activityService = ActivityService(store: storeManager.recentActivityStore)
         let authService = AuthService(apiService: apiService, keystore: storages.keystore)
         let rewardsService = RewardsService(apiService: apiService, authService: authService)
-        let eventPresenterService = EventPresenterService()
+        let toastPresenter = ToastPresenter()
         let navigationHandler = NavigationHandler(
             navigationState: navigation,
             presenter: navigationPresenter,
             assetsService: assetsService,
             connectionsService: connectionsService,
-            eventPresenterService: eventPresenterService,
+            toastPresenter: toastPresenter,
             paymentService: paymentService,
             transactionsService: transactionsService,
             walletConnectorPresenter: presenter,
@@ -357,7 +357,7 @@ struct ServicesFactory {
             transactionStateScheduler: transactionStateScheduler,
             addressNameService: addressNameService,
             activityService: activityService,
-            eventPresenterService: eventPresenterService,
+            toastPresenter: toastPresenter,
             fiatService: fiatService,
             assetsService: assetsService,
             assetSearchService: assetSearchService,
@@ -409,7 +409,7 @@ struct ServicesFactory {
             nameService: apiService,
             addressNameService: addressNameService,
             activityService: activityService,
-            eventPresenterService: eventPresenterService,
+            toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,
             rewardsService: rewardsService,
             walletSearchService: walletSearchService,

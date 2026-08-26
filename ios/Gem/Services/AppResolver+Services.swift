@@ -13,7 +13,6 @@ import ConnectionStatusService
 import ContactService
 import DeviceService
 import DiscoverAssetsService
-import EventPresenterService
 import ExplorerService
 import FiatService
 import Foundation
@@ -24,6 +23,7 @@ import PerpetualService
 import PriceAlertService
 import PriceService
 import Primitives
+import PrimitivesComponents
 import RewardsService
 import ScanService
 import ServiceStatusService
@@ -82,7 +82,7 @@ extension AppResolver {
         let nameService: any NameServiceable
         let addressNameService: AddressNameService
         let activityService: ActivityService
-        let eventPresenterService: EventPresenterService
+        let toastPresenter: ToastPresenter
         let viewModelFactory: ViewModelFactory
         let rewardsService: RewardsService
         let walletSearchService: WalletSearchService

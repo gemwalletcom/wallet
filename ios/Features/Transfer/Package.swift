@@ -39,7 +39,6 @@ let package = Package(
         .package(name: "InfoSheet", path: "../InfoSheet"),
         .package(name: "Swap", path: "../Swap"),
         .package(name: "Perpetuals", path: "../Perpetuals"),
-        .package(name: "EventPresenterService", path: "../EventPresenterService"),
 
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
@@ -69,7 +68,6 @@ let package = Package(
                 "InfoSheet",
                 "Swap",
                 "Perpetuals",
-                "EventPresenterService",
 
                 .product(name: "ChainService", package: "ChainServices"),
                 .product(name: "WalletSessionService", package: "FeatureServices"),
@@ -127,7 +125,6 @@ let package = Package(
                 .product(name: "Signer", package: "Signer"),
                 .product(name: "EarnServiceTestKit", package: "FeatureServices"),
                 .product(name: "FiatServiceTestKit", package: "FeatureServices"),
-                .product(name: "EventPresenterServiceTestKit", package: "EventPresenterService"),
             ],
             path: "Tests",
         ),

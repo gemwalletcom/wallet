@@ -7,7 +7,6 @@ import BalanceServiceTestKit
 import BigInt
 import BlockchainTestKit
 import ChainServiceTestKit
-import EventPresenterServiceTestKit
 import Foundation
 import GemAPITestKit
 import KeystoreTestKit

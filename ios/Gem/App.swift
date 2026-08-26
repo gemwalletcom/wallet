@@ -41,7 +41,7 @@ struct GemApp: App {
                     nameService: resolver.services.nameService,
                     releaseAlertService: resolver.services.releaseAlertService,
                     rateService: resolver.services.rateService,
-                    eventPresenterService: resolver.services.eventPresenterService,
+                    toastPresenter: resolver.services.toastPresenter,
                     avatarService: resolver.services.avatarService,
                     deviceService: resolver.services.deviceService,
                 ),

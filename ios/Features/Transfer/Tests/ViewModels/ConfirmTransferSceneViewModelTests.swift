@@ -10,8 +10,6 @@ import BlockchainTestKit
 import ChainService
 import ChainServiceTestKit
 import Components
-import EventPresenterService
-import EventPresenterServiceTestKit
 import FiatServiceTestKit
 import Foundation
 import class Gemstone.GemConfirmService
@@ -695,7 +693,7 @@ private extension ConfirmService {
             simulationService: ConfirmSimulationService(addressNameService: .mock(addressStore: .mock()), assetsService: .mock()),
             transferExecutor: TransferExecutorMock(),
             activityService: .mock(),
-            eventPresenterService: .mock(),
+            toastPresenter: ToastPresenter(),
             keystore: KeystoreMock(),
             chainService: ChainServiceMock(),
             explorerService: MockExplorerLink(),
@@ -744,7 +742,7 @@ private extension ConfirmTransferSceneViewModel {
                 transactionStateScheduler: .mock(),
                 addressNameService: addressNameService,
                 activityService: .mock(),
-                eventPresenterService: .mock(),
+                toastPresenter: ToastPresenter(),
                 chain: data.chain,
             ),
             onComplete: {},

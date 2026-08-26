@@ -5,13 +5,13 @@ import AddressNameService
 import AssetsService
 import BalanceService
 import ChainService
-import EventPresenterService
 import ExplorerService
 import Foundation
 import class Gemstone.GemConfirmService
 import Keystore
 import PriceService
 import Primitives
+import PrimitivesComponents
 import Signer
 import TransactionStateService
 
@@ -27,7 +27,7 @@ public enum ConfirmServiceFactory {
         transactionStateScheduler: TransactionStateScheduler,
         addressNameService: AddressNameService,
         activityService: ActivityService,
-        eventPresenterService: EventPresenterService,
+        toastPresenter: ToastPresenter,
         chain: Chain,
     ) -> ConfirmService {
         let chainService = chainServiceFactory.service(for: chain)
@@ -54,7 +54,7 @@ public enum ConfirmServiceFactory {
                 transactionStateScheduler: transactionStateScheduler,
             ),
             activityService: activityService,
-            eventPresenterService: eventPresenterService,
+            toastPresenter: toastPresenter,
             keystore: keystore,
             chainService: chainService,
             explorerService: ExplorerService.standard,

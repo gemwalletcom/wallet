@@ -225,7 +225,6 @@
 		83FE37B22D2715BF0048D54C /* WalletConnector */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WalletConnector; sourceTree = "<group>"; };
 		B604C2E72F3F537800CBAFDC /* Contacts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Contacts; sourceTree = "<group>"; };
 		A1B2C3D42F400000000000A2 /* NativeProviderService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = NativeProviderService; sourceTree = "<group>"; };
-		B67B3EEE2EFD25A6007AFA9C /* EventPresenterService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = EventPresenterService; sourceTree = "<group>"; };
 		B67ED5462DDB5DCC009F74E6 /* NavigationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationHandler.swift; sourceTree = "<group>"; };
 		FADEC0DE000000000000B001 /* AddContactNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContactNavigationView.swift; sourceTree = "<group>"; };
 		B67ED5492DDB5DCD009F74E6 /* NavigationPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPresenter.swift; sourceTree = "<group>"; };
@@ -697,7 +696,6 @@
 			children = (
 				B604C2E72F3F537800CBAFDC /* Contacts */,
 				838B9B9C2F0C120100380F29 /* Recents */,
-				B67B3EEE2EFD25A6007AFA9C /* EventPresenterService */,
 				B6EA21D42E27E21700F1C849 /* Support */,
 				836281AD2DEF32F600CA5C75 /* Assets */,
 				838383112D5E677A00D1CAF2 /* WalletTab */,
