@@ -51,6 +51,8 @@ extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
 extension Primitives.ConnectionComponent: JsonCodable {}
 extension Primitives.ConnectionStatus: JsonCodable {}
+extension Primitives.Contact: JsonCodable {}
+extension Primitives.ContactAddress: JsonCodable {}
 extension Primitives.ContractCallData: JsonCodable {}
 extension Primitives.Currency: JsonCodable {}
 extension Primitives.Delegation: JsonCodable {}

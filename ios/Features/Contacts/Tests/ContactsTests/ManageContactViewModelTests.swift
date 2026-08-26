@@ -4,8 +4,8 @@ import Components
 @testable import Contacts
 import ContactService
 import Primitives
+import GemstonePrimitivesTestKit
 import PrimitivesTestKit
-import StoreTestKit
 import Testing
 
 @MainActor
@@ -41,7 +41,7 @@ extension ManageContactViewModel {
         mode: Mode,
     ) -> ManageContactViewModel {
         ManageContactViewModel(
-            service: ContactService(store: .mock(), addressStore: .mock()),
+            service: ContactService(provider: GemContactServiceMock()),
             nameService: nameService,
             mode: mode,
         )

@@ -200,6 +200,16 @@ public actor GemWalletConfigurationServiceMock: GemWalletConfigurationServicePro
     }
 }
 
+public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked Sendable {
+    public init() {}
+
+    public func addContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress]) async throws {}
+
+    public func updateContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress]) async throws {}
+
+    public func deleteContact(contactId _: String) async throws {}
+}
+
 public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Sendable {
     public init() {}
 

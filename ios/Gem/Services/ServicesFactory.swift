@@ -342,7 +342,12 @@ struct ServicesFactory {
             ),
         )
 
-        let contactService = ContactService(store: storeManager.contactStore, addressStore: storeManager.addressStore)
+        let contactService = ContactService(
+            provider: Gemstone.GemContactService(
+                store: GemstoneContactStore(store: storeManager.contactStore),
+                addressStore: GemstoneAddressStore(store: storeManager.addressStore),
+            ),
+        )
 
         let perpetualEnablerService = PerpetualEnablerService(
             observer: hyperliquidObserverService,

@@ -182,24 +182,26 @@ public final class ManageContactViewModel {
     }
 
     func onSave() {
-        do {
-            let contact = Contact.new(
-                id: contactId,
-                name: nameInputModel.text.trim(),
-                description: description.isEmpty ? nil : description,
-                imageUrl: try saveAvatar(),
-                createdAt: mode.contact?.createdAt ?? .now,
-            )
-            switch mode {
-            case .add: try service.addContact(contact, addresses: addresses)
-            case .edit: try service.updateContact(contact, addresses: addresses)
+        Task {
+            do {
+                let contact = Contact.new(
+                    id: contactId,
+                    name: nameInputModel.text.trim(),
+                    description: description.isEmpty ? nil : description,
+                    imageUrl: try saveAvatar(),
+                    createdAt: mode.contact?.createdAt ?? .now,
+                )
+                switch mode {
+                case .add: try await service.addContact(contact, addresses: addresses)
+                case .edit: try await service.updateContact(contact, addresses: addresses)
+                }
+                if let previous = mode.contact?.imageUrl, previous != contact.imageUrl {
+                    try? service.removeAvatar(previous)
+                }
+                avatar = Avatar(imageUrl: contact.imageUrl)
+            } catch {
+                debugLog("ManageContactViewModel save error: \(error)")
             }
-            if let previous = mode.contact?.imageUrl, previous != contact.imageUrl {
-                try? service.removeAvatar(previous)
-            }
-            avatar = Avatar(imageUrl: contact.imageUrl)
-        } catch {
-            debugLog("ManageContactViewModel save error: \(error)")
         }
     }
 }

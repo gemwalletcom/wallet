@@ -5,12 +5,16 @@ import com.gemwallet.android.cases.contacts.DeleteContact
 import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.contacts.UpdateContact
 import com.gemwallet.android.data.repositories.contacts.ContactsRepository
+import com.gemwallet.android.data.repositories.contacts.GemstoneContactStore
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.ContactsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAddressStore
+import uniffi.gemstone.GemContactService
+import uniffi.gemstone.GemContactStore
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -19,10 +23,18 @@ object ContactsModule {
 
     @Singleton
     @Provides
-    fun provideContactsRepository(
-        contactsDao: ContactsDao,
-        addressesDao: AddressesDao,
-    ): ContactsRepository = ContactsRepository(contactsDao, addressesDao)
+    fun provideGemContactStore(contactsDao: ContactsDao, addressesDao: AddressesDao): GemContactStore =
+        GemstoneContactStore(contactsDao, addressesDao)
+
+    @Singleton
+    @Provides
+    fun provideGemContactService(store: GemContactStore, addressStore: GemAddressStore): GemContactService =
+        GemContactService(store, addressStore)
+
+    @Singleton
+    @Provides
+    fun provideContactsRepository(contactsDao: ContactsDao, contactService: GemContactService): ContactsRepository =
+        ContactsRepository(contactsDao, contactService)
 
     @Singleton
     @Provides

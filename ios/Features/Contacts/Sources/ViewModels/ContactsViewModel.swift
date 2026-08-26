@@ -46,10 +46,12 @@ public final class ContactsViewModel {
     func add(to contact: ContactData) {
         guard case let .addAddress(recipient) = mode else { return }
         let updated = contact.addAddress(from: recipient)
-        do {
-            try service.updateContact(updated.contact, addresses: updated.addresses)
-        } catch {
-            debugLog("ContactsViewModel add error: \(error)")
+        Task {
+            do {
+                try await service.updateContact(updated.contact, addresses: updated.addresses)
+            } catch {
+                debugLog("ContactsViewModel add error: \(error)")
+            }
         }
     }
 
@@ -69,12 +71,15 @@ public final class ContactsViewModel {
     }
 
     func deleteContacts(at offsets: IndexSet) {
-        do {
-            for index in offsets {
-                try service.deleteContact(contacts[index].contact)
+        let selected = offsets.map { contacts[$0].contact }
+        Task {
+            do {
+                for contact in selected {
+                    try await service.deleteContact(contact)
+                }
+            } catch {
+                debugLog("ContactsViewModel deleteContacts error: \(error)")
             }
-        } catch {
-            debugLog("ContactsViewModel deleteContacts error: \(error)")
         }
     }
 }

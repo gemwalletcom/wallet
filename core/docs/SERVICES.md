@@ -12,6 +12,7 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemAssetsService`](../gemstone/src/services/assets/mod.rs) | [`GemAssetStore`](../gemstone/src/services/assets/store.rs) | [Swift](../../ios/Packages/FeatureServices/AssetsService/GemstoneAssetStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/assets/GemstoneAssetStore.kt) | Done | Asset details, search, prefetch, missing balances, buy/sell/swap availability from config versions |
 | [`GemBalanceService`](../gemstone/src/services/balance/mod.rs) | [`GemBalanceStore`](../gemstone/src/services/balance/store.rs) | [Swift](../../ios/Packages/FeatureServices/BalanceService/GemstoneBalanceStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/assets/GemstoneBalanceStore.kt) | Done | Coin/token/stake/earn balance updates via gateway |
 | [`GemBannerService`](../gemstone/src/services/banner/mod.rs) | [`GemBannerStore`](../gemstone/src/services/banner/store.rs) | [Swift](../../ios/Packages/FeatureServices/BannerService/GemstoneBannerStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/banners/GemstoneBannerStore.kt) | Done | Banner state rules |
+| [`GemContactService`](../gemstone/src/services/contact/mod.rs) | [`GemContactStore`](../gemstone/src/services/contact/store.rs) | [Swift](../../ios/Packages/FeatureServices/ContactService/GemstoneContactStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/contacts/GemstoneContactStore.kt) | Done | Contact writes and address-name sync |
 | [`GemDeviceService`](../gemstone/src/services/device/mod.rs) | [`GemDeviceStore`](../gemstone/src/services/device/store.rs) | [Swift](../../ios/Packages/FeatureServices/DeviceService/GemstoneDeviceStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/device/GemstoneDeviceStore.kt) | Done | Device registration and subscription sync |
 | [`GemNameService`](../gemstone/src/services/name/mod.rs) | [`GemAddressStore`](../gemstone/src/services/name/store.rs) | [Swift](../../ios/Packages/FeatureServices/AddressNameService/GemstoneAddressStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/addresses/GemstoneAddressStore.kt) | Done | Name resolution, address names |
 | [`GemNftService`](../gemstone/src/services/nft/mod.rs) | [`GemNftStore`](../gemstone/src/services/nft/store.rs) | [Swift](../../ios/Packages/FeatureServices/NFTService/GemstoneNftStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/nft/GemstoneNftStore.kt) | Done | NFT sync, asset refresh, reporting |
@@ -43,7 +44,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 
 | App service | Core service | Status | Notes |
 | --- | --- | --- | --- |
-| [`ActivityService`](../../ios/Packages/FeatureServices/ActivityService) | — | Review | |
+| [`ActivityService`](../../ios/Packages/FeatureServices/ActivityService) | — | App-only | Recent activity rows, no rules; Android: `RecentAssetsService` |
 | [`AddressNameService`](../../ios/Packages/FeatureServices/AddressNameService) | `GemNameService` | Done | |
 | [`AppService/OnstartService`](../../ios/Packages/FeatureServices/AppService/OnstartService.swift) | — | Review | Startup migrations, asset import |
 | [`AppService/OnstartAsyncService`](../../ios/Packages/FeatureServices/AppService/OnstartAsyncService.swift) | — | Done | Runs config update, availability sync, banner setup; Android: [`SyncService`](../../android/app/src/main/kotlin/com/gemwallet/android/services/SyncService.kt) |
@@ -51,15 +52,15 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`AppService/ConfigService`](../../ios/Packages/FeatureServices/AppService/ConfigService.swift) | `GemConfigService` | Done | Thin actor that dedupes concurrent updates |
 | [`AppService/ReleaseAlertService`](../../ios/Packages/FeatureServices/AppService/ReleaseAlertService.swift) | `GemAppUpdateService` | Done | Android: [`AppUpdateCoordinator`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/update/AppUpdateCoordinator.kt) |
 | [`AppService/RateService`](../../ios/Packages/FeatureServices/AppService/RateService.swift) | — | App-only | App Store review prompt |
-| [`AppService/AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | — | Review | |
+| [`AppService/AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | — | App-only | Scene phase orchestration of observers |
 | [`AssetsService`](../../ios/Packages/FeatureServices/AssetsService) | `GemAssetsService` | Review | Sync, details, availability in Core; `ImportAssetsService.migrate` seeds bundled assets app-side |
 | [`AuthService`](../../ios/Packages/FeatureServices/AuthService) | `GemAuthService` | Done | |
 | [`AvatarService`](../../ios/Packages/FeatureServices/AvatarService) | — | App-only | Image files |
 | [`BalanceService`](../../ios/Packages/FeatureServices/BalanceService) | `GemBalanceService` | Done | |
 | [`BannerService`](../../ios/Packages/FeatureServices/BannerService) | `GemBannerService` | Done | |
-| [`ConnectionsService`](../../ios/Packages/FeatureServices/ConnectionsService) | — | Review | WalletConnect sessions |
+| [`ConnectionsService`](../../ios/Packages/FeatureServices/ConnectionsService) | — | App-only | WalletConnect SDK sessions |
 | [`ConnectionStatusService`](../../ios/Packages/FeatureServices/ConnectionStatusService) | — | App-only | Connectivity |
-| [`ContactService`](../../ios/Packages/FeatureServices/ContactService) | — | Review | |
+| [`ContactService`](../../ios/Packages/FeatureServices/ContactService) | `GemContactService` | Done | Avatar files stay app-side; Android: `ContactsRepository` |
 | [`DeviceService`](../../ios/Packages/FeatureServices/DeviceService) | `GemDeviceService` | Done | |
 | [`DiscoverAssetsService`](../../ios/Packages/FeatureServices/DiscoverAssetsService) | `GemAssetDiscoveryService` | Done | |
 | [`EarnService`](../../ios/Packages/FeatureServices/EarnService) | — | Planned | Android has no earn feature yet |
@@ -76,13 +77,13 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`SwapService`](../../ios/Packages/FeatureServices/SwapService) | — | Review | Swapper lives in Core; app wrapper to review |
 | [`TransactionsService`](../../ios/Packages/FeatureServices/TransactionsService) | `GemTransactionsService` | Done | |
 | [`TransactionStateService`](../../ios/Packages/FeatureServices/TransactionStateService) | `GemTransactionStateService` | Done | |
-| [`WalletService`](../../ios/Packages/FeatureServices/WalletService) | — | Review | Keystore |
+| [`WalletService`](../../ios/Packages/FeatureServices/WalletService) | `GemKeystore` | Done | Keystore in Core, see [KEYSTORE_V4.md](KEYSTORE_V4.md); wallet rows app-side |
 | [`WalletSessionService`](../../ios/Packages/FeatureServices/WalletSessionService) | — | App-only | Current wallet session |
-| [`ChainServices/ChainService`](../../ios/Packages/ChainServices/ChainService) | — | Review | |
-| [`ChainServices/ExplorerService`](../../ios/Packages/ChainServices/ExplorerService) | — | Review | |
+| [`ChainServices/ChainService`](../../ios/Packages/ChainServices/ChainService) | `GemGateway` | Done | Thin factory over the Core gateway |
+| [`ChainServices/ExplorerService`](../../ios/Packages/ChainServices/ExplorerService) | `Explorer` | Done | Explorer URLs from Core; selected explorer preference app-side |
 | [`ChainServices/NodeService`](../../ios/Packages/ChainServices/NodeService) | `GemNodeService` | Done | |
 | [`ChainServices/StakeService`](../../ios/Packages/ChainServices/StakeService) | `GemStakeService` | Done | |
-| [`ChainServices/WalletConnectorService`](../../ios/Packages/ChainServices/WalletConnectorService) | — | Review | |
+| [`ChainServices/WalletConnectorService`](../../ios/Packages/ChainServices/WalletConnectorService) | — | App-only | WalletConnect SDK bridge |
 | [`SystemServices`](../../ios/Packages/SystemServices) | — | App-only | Connectivity, image gallery, local store |
 
 ## Conventions
