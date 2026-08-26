@@ -31,7 +31,6 @@ import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.TogglePerpetualPinImpl
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
-import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemPerpetualService

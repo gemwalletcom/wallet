@@ -6,7 +6,6 @@ import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemRewardsService
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 
 class GetRewardsImpl(
     private val rewardsService: GemRewardsService,

@@ -81,7 +81,6 @@ impl GemGateway {
     pub async fn get_earn_positions(&self, address: String, asset_id: AssetId) -> Vec<GemDelegationBase> {
         self.yielder.get_positions(&address, &asset_id).await
     }
-
 }
 
 #[uniffi::export]

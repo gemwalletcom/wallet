@@ -1,7 +1,6 @@
 package com.gemwallet.android.domains.perpetual
 
 import com.gemwallet.android.domains.asset.toGem
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.CancelOrderData
 import com.wallet.core.primitives.PerpetualAccountMode

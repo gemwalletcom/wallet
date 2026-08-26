@@ -31,7 +31,6 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemTransactionInputType
-import uniffi.gemstone.TransactionType as GemTransactionType
 
 class ConfirmParamsTest {
 

@@ -1,7 +1,6 @@
 package com.gemwallet.android.model
 
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId

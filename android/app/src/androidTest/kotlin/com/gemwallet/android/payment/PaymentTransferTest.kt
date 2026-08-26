@@ -2,7 +2,6 @@ package com.gemwallet.android.payment
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.ext.request
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.PaymentDestination

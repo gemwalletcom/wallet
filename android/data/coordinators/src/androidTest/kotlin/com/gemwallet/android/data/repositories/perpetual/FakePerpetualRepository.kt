@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.perpetual
 
-import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType

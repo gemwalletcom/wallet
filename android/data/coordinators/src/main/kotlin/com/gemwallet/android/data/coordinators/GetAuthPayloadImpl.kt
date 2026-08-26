@@ -9,9 +9,7 @@ import com.gemwallet.android.ext.referralChain
 import com.wallet.core.primitives.AuthPayload
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
-import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.createAuthMessage
-import java.io.IOException
 import uniffi.gemstone.GemAuthService
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AuthNonce

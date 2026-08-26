@@ -4,7 +4,6 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.secondsToMillis
-import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.walletConnectAppName
 import com.gemwallet.android.ext.walletConnectIcon

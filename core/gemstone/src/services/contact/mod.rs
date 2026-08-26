@@ -4,8 +4,8 @@ pub mod store;
 
 use std::sync::Arc;
 
-use primitives::contact::ContactAddress;
 use primitives::Contact;
+use primitives::contact::ContactAddress;
 
 use crate::services::name::GemAddressStore;
 
@@ -32,7 +32,7 @@ impl GemContactService {
 
     pub async fn update_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemContactError> {
         let existing_ids = self.store.get_address_ids(contact.id.clone()).await?;
-        let delete_address_ids = rules::removed_address_ids(existing_ids, &addresses);
+        let delete_address_ids = rules::stale_address_ids(existing_ids, &addresses);
         self.store.update_contact(contact.clone(), addresses.clone(), delete_address_ids).await?;
         self.save_address_names(&contact, &addresses).await
     }

@@ -3,7 +3,6 @@ package com.gemwallet.android.data.coordinators.asset
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset

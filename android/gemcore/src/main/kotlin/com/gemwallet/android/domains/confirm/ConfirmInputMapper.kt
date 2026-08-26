@@ -8,8 +8,6 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.toModel
 import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.ApplicationMetadata
-import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
 import java.nio.ByteBuffer

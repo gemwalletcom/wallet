@@ -3,9 +3,6 @@ package com.gemwallet.android
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.PaymentDestination
@@ -16,11 +13,9 @@ import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
-import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Payment
 import com.wallet.core.primitives.PaymentLink
 import com.wallet.core.primitives.PaymentRequest
-import com.wallet.core.primitives.TransactionType
 import java.math.BigInteger
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first

@@ -1,6 +1,5 @@
 package com.gemwallet.android.model
 
-import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.toGem
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.toConfirmInput
@@ -44,8 +43,6 @@ import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransactionInputType.*
 import uniffi.gemstone.GemTransferDataExtra
 import uniffi.gemstone.SwapperProvider
-import uniffi.gemstone.TransferDataOutputAction
-import uniffi.gemstone.TransferDataOutputType
 import uniffi.gemstone.confirmInputDecode
 import uniffi.gemstone.confirmInputEncode
 

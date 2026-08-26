@@ -3,13 +3,10 @@
 import Foundation
 import Gemstone
 import enum Gemstone.SignDigestType
-import struct Gemstone.SignMessage
 import class Gemstone.TransactionSimulationService
 import class Gemstone.WalletConnect
 import enum Gemstone.WalletConnectAction
 import enum Gemstone.WalletConnectChainOperation
-import enum Gemstone.WalletConnectResponseType
-import enum Gemstone.WalletConnectTransaction
 import enum Gemstone.WalletConnectTransactionType
 import GemstonePrimitives
 import Primitives

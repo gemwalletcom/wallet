@@ -6,7 +6,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import uniffi.gemstone.GemFiatService
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.FiatQuoteUrl
 
 class GetBuyQuoteUrlImpl(

@@ -3,7 +3,6 @@ package com.gemwallet.android.features.bridge.viewmodels.model
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.hexToBigInteger
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic

@@ -4,8 +4,6 @@ import Foundation
 import enum Gemstone.EvmTransactionKind
 import enum Gemstone.WalletConnectTransaction
 import struct Gemstone.WcEthereumTransactionData
-import struct Gemstone.WcSolanaTransactionData
-import struct Gemstone.WcSuiTransactionData
 import GemstonePrimitives
 import Primitives
 

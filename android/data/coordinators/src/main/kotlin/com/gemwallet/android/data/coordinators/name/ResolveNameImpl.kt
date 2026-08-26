@@ -5,7 +5,6 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 import uniffi.gemstone.GemNameService
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 
 class ResolveNameImpl(
     private val nameService: GemNameService,

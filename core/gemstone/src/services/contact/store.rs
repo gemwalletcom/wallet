@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use primitives::contact::ContactAddress;
 use primitives::Contact;
+use primitives::contact::ContactAddress;
 
 use super::error::GemContactError;
 

@@ -3,7 +3,6 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.annotation.VisibleForTesting
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Payment
 import javax.inject.Inject

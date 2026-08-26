@@ -6,7 +6,6 @@ import com.gemwallet.android.application.swap.coordinators.SwapNoQuoteException
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.toModel
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.swap.SwapQuoteData
 import java.math.BigInteger

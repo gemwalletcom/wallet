@@ -17,7 +17,7 @@ pub fn address_names(contact: &Contact, addresses: &[ContactAddress]) -> Vec<Add
         .collect()
 }
 
-pub fn removed_address_ids(existing_ids: Vec<String>, addresses: &[ContactAddress]) -> Vec<String> {
+pub fn stale_address_ids(existing_ids: Vec<String>, addresses: &[ContactAddress]) -> Vec<String> {
     let kept: HashSet<&str> = addresses.iter().map(|address| address.id.as_str()).collect();
     existing_ids.into_iter().filter(|id| !kept.contains(id.as_str())).collect()
 }
@@ -55,6 +55,6 @@ mod tests {
         assert_eq!(names[0].status, VerificationStatus::Verified);
         assert_eq!(names[0].image_url.as_deref(), Some("image"));
 
-        assert_eq!(removed_address_ids(vec!["a".into(), "b".into()], &[address("a"), address("c")]), vec!["b".to_string()]);
+        assert_eq!(stale_address_ids(vec!["a".into(), "b".into()], &[address("a"), address("c")]), vec!["b".to_string()]);
     }
 }

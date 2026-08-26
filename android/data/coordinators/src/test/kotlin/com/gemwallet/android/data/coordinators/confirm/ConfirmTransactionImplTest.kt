@@ -39,13 +39,11 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemSignedTransaction
 import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.SwapperProvider
-import uniffi.gemstone.TransactionType as GemTransactionType
 import uniffi.gemstone.transactionMetadataBlockNumber
 
 class ConfirmTransactionImplTest {

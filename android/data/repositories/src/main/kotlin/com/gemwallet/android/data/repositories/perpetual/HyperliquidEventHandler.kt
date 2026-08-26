@@ -7,9 +7,6 @@ import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.PerpetualAccountMode
-import com.wallet.core.primitives.PerpetualBalance
-import com.wallet.core.primitives.PerpetualMarketData
-import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.channels.BufferOverflow

@@ -1,9 +1,9 @@
 use primitives::FiatRate;
-use primitives::contact::ContactAddress;
 use primitives::TransactionId;
 use primitives::Wallet;
 use primitives::asset_balance::BalanceMetadata;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
+use primitives::contact::ContactAddress;
 use primitives::currency::Currency;
 use primitives::name::NameRecord;
 use primitives::node::Node;
@@ -26,7 +26,10 @@ use primitives::{
     WalletSubscription, WalletSubscriptionChains,
 };
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
-use primitives::{AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, Contact, FiatAssets, FiatQuoteType, Markets, PlatformStore, Release, SearchResponse, StreamEvent};
+use primitives::{
+    AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, Contact, FiatAssets, FiatQuoteType, Markets, PlatformStore, Release,
+    SearchResponse, StreamEvent,
+};
 use primitives::{ChartPeriod, Charts};
 
 macro_rules! json_bridge {

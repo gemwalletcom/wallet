@@ -10,7 +10,6 @@ import com.wallet.core.primitives.PriceAlertDirection
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import uniffi.gemstone.GemPriceAlertService
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 
 class ExcludePriceAlertImpl(

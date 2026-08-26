@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.banners
 
 import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.data.service.store.database.entities.DbBanner
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.BannerEvent

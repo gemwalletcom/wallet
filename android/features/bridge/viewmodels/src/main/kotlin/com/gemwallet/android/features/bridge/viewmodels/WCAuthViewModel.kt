@@ -26,7 +26,6 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.Wallet
