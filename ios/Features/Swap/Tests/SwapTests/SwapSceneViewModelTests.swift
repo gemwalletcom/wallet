@@ -10,7 +10,7 @@ import Keystore
 import KeystoreTestKit
 import Preferences
 import PreferencesTestKit
-import PriceServiceTestKit
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store

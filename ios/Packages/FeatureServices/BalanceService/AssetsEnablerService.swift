@@ -5,7 +5,7 @@ import typealias Gemstone.Currency
 import protocol Gemstone.GemBalanceServiceProtocol
 import GemstonePrimitives
 import Preferences
-import PriceService
+import GemstoneServices
 import Primitives
 
 public struct AssetsEnablerService: AssetsEnabler {

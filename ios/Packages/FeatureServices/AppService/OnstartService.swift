@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AssetsService
+import GemstoneServices
 import Foundation
 import protocol Gemstone.GemPreferencesServiceProtocol
 import NodeService

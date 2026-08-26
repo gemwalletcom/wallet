@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import DeviceServiceTestKit
+import GemstoneServicesTestKit
 import Foundation
-import PriceService
-import PriceServiceTestKit
+import GemstoneServices
 import Primitives
 @testable import Settings
 import Testing

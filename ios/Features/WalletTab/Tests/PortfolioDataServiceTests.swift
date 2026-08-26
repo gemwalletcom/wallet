@@ -2,8 +2,8 @@
 
 import Foundation
 import GemstonePrimitivesTestKit
-import PriceService
-import PriceServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import Store

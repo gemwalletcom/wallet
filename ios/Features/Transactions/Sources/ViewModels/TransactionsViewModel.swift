@@ -8,7 +8,7 @@ import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
-import TransactionsService
+import GemstoneServices
 
 @Observable
 @MainActor

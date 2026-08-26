@@ -1,18 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
-import AssetsServiceTestKit
+import GemstoneServicesTestKit
 import BalanceServiceTestKit
-import BannerServiceTestKit
 import BigInt
-import PriceAlertServiceTestKit
-import PriceServiceTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
 import SwiftUI
 import Testing
-import TransactionsServiceTestKit
 
 @MainActor
 struct AssetSceneViewModelTests {

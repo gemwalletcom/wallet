@@ -4,7 +4,7 @@ import Components
 import GemstonePrimitives
 import Localization
 import Onboarding
-import PriceService
+import GemstoneServices
 import Primitives
 import Style
 import SwiftUI

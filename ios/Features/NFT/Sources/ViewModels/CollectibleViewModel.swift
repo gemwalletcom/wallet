@@ -8,7 +8,7 @@ import GemstonePrimitives
 import ImageGalleryService
 import InfoSheet
 import Localization
-import NFTService
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style

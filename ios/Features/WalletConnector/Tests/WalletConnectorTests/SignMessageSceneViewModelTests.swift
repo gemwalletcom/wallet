@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AddressNameServiceTestKit
+import GemstoneServicesTestKit
 import Foundation
 import struct Gemstone.SignMessage
 import KeystoreTestKit

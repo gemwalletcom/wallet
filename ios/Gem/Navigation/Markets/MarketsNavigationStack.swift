@@ -2,7 +2,7 @@
 
 import Foundation
 import MarketInsight
-import PriceService
+import GemstoneServices
 import SwiftUI
 
 struct MarketsNavigationStack: View {

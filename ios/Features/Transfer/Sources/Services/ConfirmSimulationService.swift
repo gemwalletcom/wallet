@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AddressNameService
-import AssetsService
+import GemstoneServices
 import BigInt
 import Primitives
 import PrimitivesComponents

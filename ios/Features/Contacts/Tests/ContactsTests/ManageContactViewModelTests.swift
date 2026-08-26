@@ -2,7 +2,8 @@
 
 import Components
 @testable import Contacts
-import ContactService
+import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import GemstonePrimitivesTestKit
 import PrimitivesTestKit

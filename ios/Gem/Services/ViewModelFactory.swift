@@ -1,21 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ActivityService
-import AddressNameService
+import GemstoneServices
 import Assets
-import AssetsService
 import BalanceService
 import ChainService
 import EarnService
 import FiatConnect
-import GemstoneServices
 import Foundation
 import class Gemstone.GemConfirmService
 import Keystore
 import PerpetualService
 import Preferences
-import PriceAlertService
-import PriceService
 import Primitives
 import PrimitivesComponents
 import Stake

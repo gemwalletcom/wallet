@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ActivityService
-import AssetsService
+import GemstoneServices
 import BalanceService
 import Components
 import Foundation
 import GemstonePrimitives
 import Localization
 import Preferences
-import PriceAlertService
 import Primitives
 import PrimitivesComponents
 import Recents

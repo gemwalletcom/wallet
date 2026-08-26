@@ -1,36 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ActivityService
-import AddressNameService
+import GemstoneServices
 import AppService
-import AssetsService
 import AvatarService
 import BalanceService
-import BannerService
 import ChainService
 import ConnectionsService
 import ConnectionStatusService
-import ContactService
-import DeviceService
-import DiscoverAssetsService
 import ExplorerService
-import GemstoneServices
 import Foundation
-import NFTService
 import NodeService
-import NotificationService
 import PerpetualService
-import PriceAlertService
-import PriceService
 import Primitives
 import PrimitivesComponents
-import RewardsService
 import ServiceStatusService
 import StakeService
 import StreamService
-import SupportChatService
 import SwapService
-import TransactionsService
 import TransactionStateService
 import WalletConnector
 import WalletService

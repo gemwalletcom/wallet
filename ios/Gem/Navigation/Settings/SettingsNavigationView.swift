@@ -1,21 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Contacts
-import ContactService
-import DeviceService
+import GemstoneServices
 import InAppNotifications
 import MarketInsight
-import NotificationService
 import Preferences
 import PriceAlerts
-import PriceService
 import Primitives
 import PrimitivesComponents
-import RewardsService
 import Settings
 import Store
 import Support
-import SupportChatService
 import SwiftUI
 import WalletConnector
 import WalletSessionService

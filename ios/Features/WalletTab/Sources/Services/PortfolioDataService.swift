@@ -2,7 +2,7 @@
 
 import Foundation
 import PerpetualService
-import PriceService
+import GemstoneServices
 import Primitives
 
 enum PortfolioDataInput {

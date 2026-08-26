@@ -1,9 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BannerService
-import DeviceService
+import GemstoneServices
 import protocol Gemstone.GemWalletConfigurationServiceProtocol
-import NotificationService
 import Primitives
 
 public final class OnstartWalletService: Sendable {

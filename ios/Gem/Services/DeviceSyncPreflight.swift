@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import DeviceService
+import GemstoneServices
 import Gemstone
 
 final class DeviceSyncPreflight: GemWalletRequestPreflight, @unchecked Sendable {

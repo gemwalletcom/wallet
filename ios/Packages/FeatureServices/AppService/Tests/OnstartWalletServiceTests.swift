@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import AppService
-import BannerService
-import DeviceServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Foundation
 import GemstonePrimitivesTestKit
-import NotificationService
 import Preferences
 import PreferencesTestKit
 import Primitives

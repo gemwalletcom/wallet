@@ -4,8 +4,8 @@
 import ConnectionsService
 import ConnectionsServiceTestKit
 import ConnectionStatusService
-import DeviceService
-import DeviceServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Foundation
 import PerpetualService
 import PerpetualServiceTestKit

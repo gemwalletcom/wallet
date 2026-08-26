@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import AppService
-import AssetsService
-import AssetsServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import Primitives

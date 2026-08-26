@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ActivityService
-import AddressNameService
+import GemstoneServices
 import Blockchain
 import ChainService
 import ExplorerService

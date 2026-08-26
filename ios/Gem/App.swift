@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import AppService
-import AssetsService
-import DeviceService
+import GemstoneServices
 import LockManager
 import NodeService
 import Preferences

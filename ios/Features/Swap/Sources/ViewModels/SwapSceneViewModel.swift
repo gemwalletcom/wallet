@@ -11,7 +11,7 @@ import struct Gemstone.SwapperQuote
 import GemstonePrimitives
 import Localization
 import Preferences
-import PriceService
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Store

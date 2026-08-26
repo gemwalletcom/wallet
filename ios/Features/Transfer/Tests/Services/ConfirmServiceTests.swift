@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ActivityServiceTestKit
-import AddressNameServiceTestKit
-import AssetsService
-import AssetsServiceTestKit
+import GemstoneServicesTestKit
+import GemstoneServices
 import BalanceServiceTestKit
 import BigInt
 import BlockchainTestKit
@@ -13,7 +12,6 @@ import GemstonePrimitivesTestKit
 import GemAPITestKit
 import GemstoneStore
 import KeystoreTestKit
-import PriceServiceTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit

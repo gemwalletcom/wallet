@@ -1,11 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BannerService
+import GemstoneServices
 import Components
-import DeviceService
 import Foundation
 import Localization
-import NotificationService
 import Preferences
 import Primitives
 import Style

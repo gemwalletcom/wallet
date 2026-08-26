@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
-import AssetsService
+import GemstoneServices
 import Components
 import InfoSheet
 import Localization
@@ -9,7 +9,6 @@ import MarketInsight
 import NFT
 import Perpetuals
 import PriceAlerts
-import PriceService
 import Primitives
 import PrimitivesComponents
 import QRScanner

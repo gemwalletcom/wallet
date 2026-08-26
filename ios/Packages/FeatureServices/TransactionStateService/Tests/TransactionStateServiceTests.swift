@@ -8,8 +8,8 @@ import struct Gemstone.GemTransactionStateResult
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneStore
-import NFTService
-import NFTServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import StakeServiceTestKit

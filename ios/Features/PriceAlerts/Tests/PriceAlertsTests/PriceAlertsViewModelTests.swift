@@ -2,7 +2,7 @@
 
 import Foundation
 @testable import PriceAlerts
-import PriceAlertServiceTestKit
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing

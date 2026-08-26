@@ -5,7 +5,7 @@ import Localization
 import PhotosUI
 import Primitives
 import Store
-import SupportChatService
+import GemstoneServices
 import SwiftUI
 
 @Observable

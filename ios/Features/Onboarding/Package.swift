@@ -26,6 +26,7 @@ let package = Package(
         .package(name: "QRScanner", path: "../QRScanner"),
         .package(name: "Keystore", path: "../../Packages/Keystore"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
+        .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "Store", path: "../../Packages/Store"),
     ],
     targets: [
@@ -43,7 +44,7 @@ let package = Package(
                 "Keystore",
                 .product(name: "WalletService", package: "FeatureServices"),
                 .product(name: "WalletSessionService", package: "FeatureServices"),
-                .product(name: "BannerService", package: "FeatureServices"),
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "AvatarService", package: "FeatureServices"),
                 "Formatters",
                 "Store",

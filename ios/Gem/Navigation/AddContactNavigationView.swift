@@ -2,7 +2,7 @@
 
 import Components
 import Contacts
-import ContactService
+import GemstoneServices
 import PrimitivesComponents
 import Style
 import SwiftUI

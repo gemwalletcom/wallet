@@ -6,7 +6,8 @@ import GemstonePrimitivesTestKit
 import Preferences
 import PreferencesTestKit
 import StreamService
-import SupportChatService
+import GemstoneServices
+import GemstoneServicesTestKit
 
 public extension StreamEventService {
     static func mock(

@@ -2,8 +2,8 @@
 
 import Foundation
 @testable import PriceAlerts
-import PriceAlertService
-import PriceAlertServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store

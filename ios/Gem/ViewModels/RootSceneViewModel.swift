@@ -3,7 +3,7 @@
 import AppService
 import AvatarService
 import Components
-import DeviceService
+import GemstoneServices
 import Foundation
 import Localization
 import LockManager
@@ -12,7 +12,6 @@ import Preferences
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import TransactionsService
 import TransactionStateService
 import WalletConnector
 import WalletService

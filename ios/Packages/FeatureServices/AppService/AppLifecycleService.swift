@@ -2,7 +2,7 @@
 
 import ConnectionsService
 import ConnectionStatusService
-import DeviceService
+import GemstoneServices
 import Foundation
 import PerpetualService
 import Preferences

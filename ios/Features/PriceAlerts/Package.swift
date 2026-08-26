@@ -25,6 +25,7 @@ let package = Package(
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "Preferences", path: "../../Packages/Preferences"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
+        .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
     ],
     targets: [
         .target(
@@ -37,7 +38,7 @@ let package = Package(
                 "PrimitivesComponents",
                 "Gemstone",
                 "Store",
-                .product(name: "PriceAlertService", package: "FeatureServices"),
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Preferences",
             ],
             path: "Sources",
@@ -46,7 +47,7 @@ let package = Package(
             name: "PriceAlertsTests",
             dependencies: [
                 "PriceAlerts",
-                .product(name: "PriceAlertServiceTestKit", package: "FeatureServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
             ],
         ),
     ],

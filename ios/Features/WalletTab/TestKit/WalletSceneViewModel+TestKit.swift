@@ -1,10 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BalanceServiceTestKit
-import BannerServiceTestKit
-import DiscoverAssetsServiceTestKit
+import GemstoneServicesTestKit
 import Foundation
-import NFTServiceTestKit
 import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit

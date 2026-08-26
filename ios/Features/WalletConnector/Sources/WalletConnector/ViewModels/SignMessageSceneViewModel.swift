@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AddressNameService
+import GemstoneServices
 import Components
 import ExplorerService
 import Foundation

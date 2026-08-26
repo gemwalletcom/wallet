@@ -1,0 +1,20 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import GemstoneServices
+import Foundation
+import Primitives
+import PrimitivesTestKit
+import Store
+import StoreTestKit
+
+public extension AssetSearchService {
+    static func mock(
+        assetsService: AssetsService = .mock(),
+        searchStore: SearchStore = .mock(),
+    ) -> AssetSearchService {
+        AssetSearchService(
+            assetsService: assetsService,
+            searchStore: searchStore,
+        )
+    }
+}

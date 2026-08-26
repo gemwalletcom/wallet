@@ -8,7 +8,7 @@ import Localization
 import Preferences
 import Primitives
 import PrimitivesComponents
-import RewardsService
+import GemstoneServices
 import Style
 
 @Observable

@@ -45,7 +45,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | App service | Core service | Status | Notes |
 | --- | --- | --- | --- |
 | [`ActivityService`](../../ios/Packages/FeatureServices/ActivityService) | — | App-only | Recent activity rows, no rules; Android: `RecentAssetsService` |
-| [`AddressNameService`](../../ios/Packages/FeatureServices/AddressNameService) | `GemNameService` | Done | |
+| [`AddressNameService`](../../ios/Packages/GemstoneServices/Sources) | `GemNameService` | Done | |
 | [`AppService/OnstartService`](../../ios/Packages/FeatureServices/AppService/OnstartService.swift) | — | App-only | Preference migrations and bundled asset seeding from the app asset configuration |
 | [`AppService/OnstartAsyncService`](../../ios/Packages/FeatureServices/AppService/OnstartAsyncService.swift) | — | Done | Runs config update, availability sync, banner setup; Android: [`SyncService`](../../android/app/src/main/kotlin/com/gemwallet/android/services/SyncService.kt) |
 | [`AppService/OnstartWalletService`](../../ios/Packages/FeatureServices/AppService/OnstartWalletService.swift) | `GemWalletConfigurationService` | Done | Configuration sync in Core; iOS-only banner seeding and push permission prompt stay app-side |
@@ -53,29 +53,29 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`AppService/ReleaseAlertService`](../../ios/Packages/FeatureServices/AppService/ReleaseAlertService.swift) | `GemAppUpdateService` | Done | Android: [`AppUpdateCoordinator`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/update/AppUpdateCoordinator.kt) |
 | [`AppService/RateService`](../../ios/Packages/FeatureServices/AppService/RateService.swift) | — | App-only | App Store review prompt |
 | [`AppService/AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | — | App-only | Scene phase orchestration of observers |
-| [`AssetsService`](../../ios/Packages/FeatureServices/AssetsService) | `GemAssetsService` | Done | Sync, details, availability in Core; remaining methods are store reads and bundled asset seeding |
-| [`AuthService`](../../ios/Packages/FeatureServices/AuthService) | `GemAuthService` | Done | |
+| [`AssetsService`](../../ios/Packages/GemstoneServices/Sources) | `GemAssetsService` | Done | Sync, details, availability in Core; remaining methods are store reads and bundled asset seeding |
+| [`AuthService`](../../ios/Packages/GemstoneServices/Sources) | `GemAuthService` | Done | |
 | [`AvatarService`](../../ios/Packages/FeatureServices/AvatarService) | — | App-only | Image files |
 | [`BalanceService`](../../ios/Packages/FeatureServices/BalanceService) | `GemBalanceService` | Done | |
-| [`BannerService`](../../ios/Packages/FeatureServices/BannerService) | `GemBannerService` | Done | |
+| [`BannerService`](../../ios/Packages/GemstoneServices/Sources) | `GemBannerService` | Done | |
 | [`ConnectionsService`](../../ios/Packages/FeatureServices/ConnectionsService) | — | App-only | WalletConnect SDK sessions |
 | [`ConnectionStatusService`](../../ios/Packages/FeatureServices/ConnectionStatusService) | — | App-only | Connectivity |
-| [`ContactService`](../../ios/Packages/FeatureServices/ContactService) | `GemContactService` | Done | Avatar files stay app-side; Android: `ContactsRepository` |
-| [`DeviceService`](../../ios/Packages/FeatureServices/DeviceService) | `GemDeviceService` | Done | |
-| [`DiscoverAssetsService`](../../ios/Packages/FeatureServices/DiscoverAssetsService) | `GemAssetDiscoveryService` | Done | |
+| [`ContactService`](../../ios/Packages/GemstoneServices/Sources) | `GemContactService` | Done | Avatar files stay app-side; Android: `ContactsRepository` |
+| [`DeviceService`](../../ios/Packages/GemstoneServices/Sources) | `GemDeviceService` | Done | |
+| [`DiscoverAssetsService`](../../ios/Packages/GemstoneServices/Sources) | `GemAssetDiscoveryService` | Done | |
 | [`EarnService`](../../ios/Packages/FeatureServices/EarnService) | `GemStakeService` | Done | Earn positions sync via `sync_earn`; Android has no earn UI yet |
-| [`FiatService`](../../ios/Packages/FeatureServices/FiatService) | `GemFiatService` | Done | Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
-| [`NFTService`](../../ios/Packages/FeatureServices/NFTService) | `GemNftService` | Done | |
-| [`NotificationService`](../../ios/Packages/FeatureServices/NotificationService) | `GemNotificationService` | Done | |
+| [`FiatService`](../../ios/Packages/GemstoneServices/Sources) | `GemFiatService` | Done | Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
+| [`NFTService`](../../ios/Packages/GemstoneServices/Sources) | `GemNftService` | Done | |
+| [`NotificationService`](../../ios/Packages/GemstoneServices/Sources) | `GemNotificationService` | Done | |
 | [`PerpetualService`](../../ios/Packages/FeatureServices/PerpetualService) | `GemPerpetualService` | Done | |
-| [`PriceAlertService`](../../ios/Packages/FeatureServices/PriceAlertService) | `GemPriceAlertService` | Done | |
-| [`PriceService`](../../ios/Packages/FeatureServices/PriceService) | `GemPriceService` | Done | |
-| [`RewardsService`](../../ios/Packages/FeatureServices/RewardsService) | `GemRewardsService` | Done | |
+| [`PriceAlertService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceAlertService` | Done | |
+| [`PriceService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceService` | Done | |
+| [`RewardsService`](../../ios/Packages/GemstoneServices/Sources) | `GemRewardsService` | Done | |
 | [`ServiceStatusService`](../../ios/Packages/FeatureServices/ServiceStatusService) | `GemServiceStatus` | Done | Thin wrapper over the Core client |
 | [`StreamService`](../../ios/Packages/FeatureServices/StreamService) | `GemStreamService` | Done | Event handling in Core; socket connection and subscriptions app-side, see [DEVICE_WEBSOCKETS.md](DEVICE_WEBSOCKETS.md); Android: [`StreamEventHandler`](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/stream/StreamEventHandler.kt) |
-| [`SupportChatService`](../../ios/Packages/FeatureServices/SupportChatService) | `GemSupportService` | Done | Typing state and image files stay app-side |
+| [`SupportChatService`](../../ios/Packages/GemstoneServices/Sources) | `GemSupportService` | Done | Typing state and image files stay app-side |
 | [`SwapService`](../../ios/Packages/FeatureServices/SwapService) | `GemSwapper` | Done | Thin wrapper on both apps, see [SWAPPER.md](../../docs/SWAPPER.md) |
-| [`TransactionsService`](../../ios/Packages/FeatureServices/TransactionsService) | `GemTransactionsService` | Done | |
+| [`TransactionsService`](../../ios/Packages/GemstoneServices/Sources) | `GemTransactionsService` | Done | |
 | [`TransactionStateService`](../../ios/Packages/FeatureServices/TransactionStateService) | `GemTransactionStateService` | Done | |
 | [`WalletService`](../../ios/Packages/FeatureServices/WalletService) | `GemKeystore` | Done | Keystore in Core, see [KEYSTORE_V4.md](KEYSTORE_V4.md); wallet rows app-side |
 | [`WalletSessionService`](../../ios/Packages/FeatureServices/WalletSessionService) | — | App-only | Current wallet session |
@@ -94,7 +94,7 @@ Store adapters and the thin app services are being consolidated so both apps loo
 - **iOS `Packages/GemstoneServices`** — the thin app-side services that wrap the Core services (`BalanceService.swift`, `FiatService.swift`, …), one file per service, tests under `Tests/`. The migrated `FeatureServices` move here as they are wired to `GemstoneStore`; wrappers that add nothing over the Core service (for example `AssetDiscoveryService`) are removed and callers use the Core service directly.
 - **Android** — the same split in Android's patterns: store adapters in one package (`data/repositories/.../gemstone`, one file per store) and the coordinators/repositories stay thin wrappers over the Core services.
 
-Status: GemstoneStore — done on both apps (iOS package `GemstoneStore`, Android package `data.repositories.gemstone`); GemstoneServices — planned.
+Status: GemstoneStore — done on both apps (iOS package `GemstoneStore`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets moved; Balance, Earn, TransactionState, Perpetual, Stake, Node next.
 
 ## Conventions
 

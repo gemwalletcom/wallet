@@ -3,7 +3,7 @@
 import Components
 import Localization
 import Preferences
-import PriceAlertService
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Store

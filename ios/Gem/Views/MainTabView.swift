@@ -8,7 +8,7 @@ import Primitives
 import Style
 import SwiftUI
 import Transactions
-import TransactionsService
+import GemstoneServices
 import WalletTab
 
 struct MainTabView: View {

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import AppService
-import BannerService
-import BannerServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Foundation
 
 public extension BannerSetupRunner {

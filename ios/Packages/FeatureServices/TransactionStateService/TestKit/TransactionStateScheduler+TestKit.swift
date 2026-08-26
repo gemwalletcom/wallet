@@ -8,8 +8,8 @@ import EarnService
 import EarnServiceTestKit
 import Foundation
 import GemstoneStore
-import NFTService
-import NFTServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import StakeService
 import StakeServiceTestKit
 import Store

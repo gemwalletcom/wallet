@@ -4,7 +4,6 @@ import BigInt
 import ExplorerService
 import Formatters
 import Foundation
-import enum Gemstone.GemPerpetualSubscription
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -14,7 +13,7 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import TransactionsService
+import GemstoneServices
 
 @Observable
 @MainActor

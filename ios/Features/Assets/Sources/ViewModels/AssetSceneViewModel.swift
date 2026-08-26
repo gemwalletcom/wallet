@@ -1,21 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AssetsService
+import GemstoneServices
 import BalanceService
-import BannerService
 import Components
 import ExplorerService
 import GemstonePrimitives
 import Localization
 import Preferences
-import PriceAlertService
-import PriceService
 import Primitives
 import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import TransactionsService
 import UIKit
 
 @Observable

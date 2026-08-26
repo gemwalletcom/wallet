@@ -1,16 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ActivityServiceTestKit
-import AddressNameService
-import AddressNameServiceTestKit
-import AssetsServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import BalanceServiceTestKit
 import BigInt
 import BlockchainTestKit
 import ChainService
 import ChainServiceTestKit
 import Components
-import GemstoneServicesTestKit
 import Foundation
 import class Gemstone.GemConfirmService
 import GemstonePrimitives
@@ -19,7 +17,6 @@ import KeystoreTestKit
 import Localization
 import NodeService
 import NodeServiceTestKit
-import PriceServiceTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit

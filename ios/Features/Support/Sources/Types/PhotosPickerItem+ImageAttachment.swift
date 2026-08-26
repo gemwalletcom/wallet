@@ -2,7 +2,7 @@
 
 import Components
 import PhotosUI
-import SupportChatService
+import GemstoneServices
 import SwiftUI
 import UIKit
 

@@ -4,8 +4,8 @@ import Foundation
 import PerpetualServiceTestKit
 import Preferences
 import PreferencesTestKit
-import PriceService
-import PriceServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import WalletTab

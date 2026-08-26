@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import DeviceService
+import GemstoneServices
 import Foundation
 import GemAPI
 import GemAPIDevice

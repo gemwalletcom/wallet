@@ -6,7 +6,7 @@ import Foundation
 import Gemstone
 import Localization
 import Preferences
-import PriceAlertService
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Store

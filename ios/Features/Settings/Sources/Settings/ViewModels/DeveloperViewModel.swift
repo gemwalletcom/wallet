@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AssetsService
-import BannerService
+import GemstoneServices
 import BigInt
 import Components
 import Foundation
@@ -9,12 +8,10 @@ import GemstonePrimitives
 import Localization
 import PerpetualService
 import Preferences
-import PriceService
 import Primitives
 import PrimitivesComponents
 import StakeService
 import SwiftUI
-import TransactionsService
 
 @Observable
 @MainActor

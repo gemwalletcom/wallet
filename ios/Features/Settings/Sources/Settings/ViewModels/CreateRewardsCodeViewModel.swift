@@ -4,7 +4,7 @@ import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
-import RewardsService
+import GemstoneServices
 
 @Observable
 @MainActor

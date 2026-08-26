@@ -3,7 +3,7 @@ import ExplorerService
 import Formatters
 import Foundation
 @testable import NFT
-import NFTServiceTestKit
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit

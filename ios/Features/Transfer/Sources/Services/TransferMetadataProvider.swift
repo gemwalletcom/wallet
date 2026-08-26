@@ -2,7 +2,7 @@
 
 import BalanceService
 import Foundation
-import PriceService
+import GemstoneServices
 import Primitives
 
 public protocol TransferMetadataProvidable: Sendable {

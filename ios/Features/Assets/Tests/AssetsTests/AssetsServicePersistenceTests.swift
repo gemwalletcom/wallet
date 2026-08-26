@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AssetsService
-import AssetsServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import class Gemstone.GemPriceService
 import GemstoneStore
-import PriceServiceTestKit
 import Foundation
 import GemAPITestKit
 import Primitives

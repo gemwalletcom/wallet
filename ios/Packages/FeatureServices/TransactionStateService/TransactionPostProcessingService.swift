@@ -3,7 +3,7 @@
 import BalanceService
 import EarnService
 import Foundation
-import NFTService
+import GemstoneServices
 import Primitives
 import StakeService
 import Store

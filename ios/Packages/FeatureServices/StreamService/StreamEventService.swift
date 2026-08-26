@@ -5,7 +5,7 @@ import protocol Gemstone.GemStreamServiceProtocol
 import GemstonePrimitives
 import Preferences
 import Primitives
-import SupportChatService
+import GemstoneServices
 
 public struct StreamEventService: Sendable {
     private let service: any GemStreamServiceProtocol

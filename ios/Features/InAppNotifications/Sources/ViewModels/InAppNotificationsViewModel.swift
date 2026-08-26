@@ -3,7 +3,7 @@
 import Components
 import Foundation
 import Localization
-import NotificationService
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Store

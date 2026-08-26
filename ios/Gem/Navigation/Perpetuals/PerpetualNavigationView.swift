@@ -5,7 +5,7 @@ import Primitives
 import Store
 import Style
 import SwiftUI
-import TransactionsService
+import GemstoneServices
 import WalletTab
 
 public struct PerpetualNavigationView: View {

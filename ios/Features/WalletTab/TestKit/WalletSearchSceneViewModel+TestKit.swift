@@ -2,8 +2,8 @@
 
 import ActivityService
 import ActivityServiceTestKit
-import AssetsService
-import AssetsServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import BalanceService
 import BalanceServiceTestKit
 import PerpetualService

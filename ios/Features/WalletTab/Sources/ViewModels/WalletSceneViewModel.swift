@@ -1,16 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BalanceService
-import BannerService
+import GemstoneServices
 import Components
-import DiscoverAssetsService
 import Formatters
 import Foundation
 import GemstonePrimitives
 import InfoSheet
 import Localization
 import NFT
-import NFTService
 import Preferences
 import Primitives
 import PrimitivesComponents

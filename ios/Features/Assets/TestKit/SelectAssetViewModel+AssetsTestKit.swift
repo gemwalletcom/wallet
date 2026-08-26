@@ -2,12 +2,11 @@
 
 import ActivityServiceTestKit
 @testable import Assets
-import AssetsServiceTestKit
+import GemstoneServicesTestKit
 import BalanceService
 import BalanceServiceTestKit
 import Components
 import Foundation
-import PriceAlertServiceTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store

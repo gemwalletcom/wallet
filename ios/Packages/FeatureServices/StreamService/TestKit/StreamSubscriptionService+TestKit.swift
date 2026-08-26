@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import PriceService
-import PriceServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import StreamService
 import WalletSessionService
 import WalletSessionServiceTestKit
