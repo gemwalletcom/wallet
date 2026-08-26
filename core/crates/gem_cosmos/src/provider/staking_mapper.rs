@@ -96,14 +96,13 @@ pub fn map_staking_delegations(
     for unbonding in unbonding_delegations.unbonding_responses {
         for entry in unbonding.entries {
             let balance = parse_to_biguint(&entry.balance.to_string());
-            let rewards = rewards_map.get(&unbonding.validator_address).map(|r| parse_to_biguint(&r.to_string())).unwrap_or_default();
 
             delegations.push(DelegationBase {
                 asset_id: asset_id.clone(),
                 state: DelegationState::Pending,
                 balance,
                 shares: BigUint::from(0u32),
-                rewards,
+                rewards: BigUint::from(0u32),
                 completion_date: entry.completion_time.parse::<chrono::DateTime<chrono::Utc>>().ok(),
                 delegation_id: entry.creation_height,
                 validator_id: unbonding.validator_address.clone(),
@@ -161,6 +160,26 @@ mod tests {
         assert_eq!(delegation.shares.to_string(), "0");
         assert!(delegation.completion_date.is_none());
         assert_eq!(delegation.delegation_id, "");
+    }
+
+    #[test]
+    fn test_map_delegations_counts_validator_rewards_once() {
+        let delegations: Delegations = serde_json::from_str(include_str!("../../testdata/staking_delegations.json")).unwrap();
+        let rewards: Rewards = serde_json::from_str(include_str!("../../testdata/staking_rewards.json")).unwrap();
+        let unbonding: UnbondingDelegations = serde_json::from_str(include_str!("../../testdata/staking_unbonding_delegations.json")).unwrap();
+
+        let result = map_staking_delegations(delegations, unbonding, rewards, CosmosChain::Cosmos, "uatom");
+
+        assert_eq!(result.len(), 2);
+
+        let active = result.iter().find(|x| x.state == DelegationState::Active).unwrap();
+        let pending = result.iter().find(|x| x.state == DelegationState::Pending).unwrap();
+        assert_eq!(active.validator_id, pending.validator_id);
+        assert_eq!(active.rewards.to_string(), "307413");
+        assert_eq!(pending.rewards.to_string(), "0");
+
+        let total: BigUint = result.iter().map(|x| x.rewards.clone()).sum();
+        assert_eq!(total.to_string(), "307413");
     }
 
     #[test]
