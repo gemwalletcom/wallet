@@ -1,83 +1,36 @@
 package com.gemwallet.android.data.coordinators.di
 
-import android.content.Context
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
-import com.gemwallet.android.application.fiat.coordinators.GetBuyableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.GetFiatTransactions
-import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.ObserveFiatTransactions
-import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
 import com.gemwallet.android.data.coordinators.fiat.GetAssetPriceUsdImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuoteUrlImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuotesImpl
-import com.gemwallet.android.data.coordinators.fiat.GetBuyableFiatAssetsImpl
 import com.gemwallet.android.data.coordinators.fiat.GetFiatTransactionsImpl
-import com.gemwallet.android.data.coordinators.fiat.GetSellableFiatAssetsImpl
 import com.gemwallet.android.data.coordinators.fiat.ObserveFiatTransactionsImpl
-import com.gemwallet.android.data.coordinators.fiat.SyncFiatAssetsImpl
 import com.gemwallet.android.data.coordinators.fiat.SyncFiatTransactionsImpl
-import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Qualifier
-import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemFiatService
 import javax.inject.Singleton
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class FiatConfigStore
 
 @InstallIn(SingletonComponent::class)
 @Module
 object FiatModule {
-    @Provides
-    @Singleton
-    @FiatConfigStore
-    fun provideFiatConfigStore(
-        @ApplicationContext context: Context,
-    ): ConfigStore {
-        return ConfigStore(
-            context.getSharedPreferences(
-                "buy_config",
-                Context.MODE_PRIVATE,
-            )
-        )
-    }
 
-    @Provides
-    @Singleton
-    fun provideGetBuyableFiatAssets(
-        assetsService: GemAssetsService,
-    ): GetBuyableFiatAssets {
-        return GetBuyableFiatAssetsImpl(
-            assetsService = assetsService,
-        )
-    }
 
-    @Provides
-    @Singleton
-    fun provideGetSellableFiatAssets(
-        assetsService: GemAssetsService,
-    ): GetSellableFiatAssets {
-        return GetSellableFiatAssetsImpl(
-            assetsService = assetsService,
-        )
-    }
 
     @Provides
     @Singleton
@@ -98,23 +51,6 @@ object FiatModule {
         return ObserveFiatTransactionsImpl(sessionRepository, fiatTransactionsDao)
     }
 
-    @Provides
-    @Singleton
-    fun provideSyncFiatAssets(
-        @FiatConfigStore configStore: ConfigStore,
-        getBuyableFiatAssets: GetBuyableFiatAssets,
-        getSellableFiatAssets: GetSellableFiatAssets,
-        availabilityService: AssetsAvailabilityService,
-        prefetchAssets: PrefetchAssets,
-    ): SyncFiatAssets {
-        return SyncFiatAssetsImpl(
-            configStore = configStore,
-            getBuyableFiatAssets = getBuyableFiatAssets,
-            getSellableFiatAssets = getSellableFiatAssets,
-            availabilityService = availabilityService,
-            prefetchAssets = prefetchAssets,
-        )
-    }
 
     @Provides
     @Singleton

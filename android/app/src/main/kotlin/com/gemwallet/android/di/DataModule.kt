@@ -1,7 +1,5 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
-import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
@@ -16,6 +14,7 @@ import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.TransactionSimulationService
+import uniffi.gemstone.GemAssetsService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -50,14 +49,12 @@ object DataModule {
     @Provides
     fun provideSyncService(
         getRemoteConfig: GetRemoteConfig,
-        syncFiatAssets: SyncFiatAssets,
-        syncSwapAssets: SyncSwapAssets,
+        assetsService: GemAssetsService,
         syncDevice: SyncDevice,
     ): SyncService {
         return SyncService(
             getRemoteConfig = getRemoteConfig,
-            syncFiatAssets = syncFiatAssets,
-            syncSwapAssets = syncSwapAssets,
+            assetsService = assetsService,
             syncDevice = syncDevice,
         )
     }

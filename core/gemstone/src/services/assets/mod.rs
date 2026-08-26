@@ -1,16 +1,19 @@
 pub mod error;
+pub mod model;
 pub mod rules;
 pub mod store;
 
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetBasic, AssetFull, AssetId, AssetPrice, Chain, FiatAssets, FiatQuoteType, SearchResponse, WalletId};
+use primitives::{AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, WalletId};
 
 pub use error::GemAssetError;
+pub use model::AssetList;
 pub use store::GemAssetStore;
 
 use crate::api::{GemApiClient, GemApiError};
+use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 
 #[derive(uniffi::Object)]
@@ -18,13 +21,41 @@ pub struct GemAssetsService {
     api: Arc<GemApiClient>,
     store: Arc<dyn GemAssetStore>,
     price: Arc<GemPriceService>,
+    preferences: Arc<GemPreferencesService>,
 }
 
 #[uniffi::export]
 impl GemAssetsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemApiClient>, store: Arc<dyn GemAssetStore>, price: Arc<GemPriceService>) -> Self {
-        Self { api, store, price }
+    pub fn new(api: Arc<GemApiClient>, store: Arc<dyn GemAssetStore>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>) -> Self {
+        Self { api, store, price, preferences }
+    }
+
+    pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemAssetError> {
+        let lists = [
+            (AssetList::Buy, versions.fiat_on_ramp_assets),
+            (AssetList::Sell, versions.fiat_off_ramp_assets),
+            (AssetList::Swap, versions.swap_assets),
+        ];
+        for (list, remote_version) in lists {
+            if self.preferences.get_assets_version(list)? == Some(remote_version.to_string()) {
+                continue;
+            }
+            let assets = match list {
+                AssetList::Buy => self.get_fiat_assets(FiatQuoteType::Buy).await?,
+                AssetList::Sell => self.get_fiat_assets(FiatQuoteType::Sell).await?,
+                AssetList::Swap => self.get_swap_assets().await?,
+            };
+            let asset_ids: Vec<AssetId> = assets.asset_ids.iter().filter_map(|id| AssetId::new(id)).collect();
+            self.prefetch_assets(asset_ids.clone()).await?;
+            match list {
+                AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
+                AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
+                AssetList::Swap => self.store.set_swappable_assets(asset_ids).await?,
+            }
+            self.preferences.set_assets_version(list, assets.version.to_string())?;
+        }
+        Ok(())
     }
 
     pub async fn sync_asset(&self, asset_id: AssetId, currency: Currency) -> Result<AssetFull, GemAssetError> {

@@ -29,9 +29,6 @@ struct PreferencesTests {
         #expect(preferences.importFiatMappingsVersion == 0)
         #expect(preferences.importFiatPurchaseAssetsVersion == 0)
         #expect(preferences.localAssetsVersion == 0)
-        #expect(preferences.fiatOnRampAssetsVersion == 0)
-        #expect(preferences.fiatOffRampAssetsVersion == 0)
-        #expect(preferences.swapAssetsVersion == 0)
         #expect(preferences.launchesCount == 0)
         #expect(preferences.subscriptionsVersion == 0)
         #expect(preferences.authenticationLockOption == 0)
@@ -79,14 +76,8 @@ struct PreferencesTests {
         preferences.localAssetsVersion = 3
         #expect(preferences.localAssetsVersion == 3)
 
-        preferences.fiatOnRampAssetsVersion = 4
-        #expect(preferences.fiatOnRampAssetsVersion == 4)
 
-        preferences.fiatOffRampAssetsVersion = 5
-        #expect(preferences.fiatOffRampAssetsVersion == 5)
 
-        preferences.swapAssetsVersion = 6
-        #expect(preferences.swapAssetsVersion == 6)
 
         preferences.launchesCount = 7
         #expect(preferences.launchesCount == 7)
@@ -139,9 +130,6 @@ struct PreferencesTests {
         preferences.importFiatMappingsVersion = 1
         preferences.importFiatPurchaseAssetsVersion = 2
         preferences.localAssetsVersion = 3
-        preferences.fiatOnRampAssetsVersion = 4
-        preferences.fiatOffRampAssetsVersion = 5
-        preferences.swapAssetsVersion = 6
         preferences.launchesCount = 7
         preferences.subscriptionsVersion = 8
         preferences.authenticationLockOption = 9
@@ -160,9 +148,6 @@ struct PreferencesTests {
         #expect(preferences.importFiatMappingsVersion == 1)
         #expect(preferences.importFiatPurchaseAssetsVersion == 2)
         #expect(preferences.localAssetsVersion == 3)
-        #expect(preferences.fiatOnRampAssetsVersion == 4)
-        #expect(preferences.fiatOffRampAssetsVersion == 5)
-        #expect(preferences.swapAssetsVersion == 6)
         #expect(preferences.launchesCount == 7)
         #expect(preferences.subscriptionsVersion == 8)
         #expect(preferences.authenticationLockOption == 9)
@@ -182,9 +167,6 @@ struct PreferencesTests {
         #expect(preferences.importFiatMappingsVersion == 0)
         #expect(preferences.importFiatPurchaseAssetsVersion == 0)
         #expect(preferences.localAssetsVersion == 0)
-        #expect(preferences.fiatOnRampAssetsVersion == 0)
-        #expect(preferences.fiatOffRampAssetsVersion == 0)
-        #expect(preferences.swapAssetsVersion == 0)
         #expect(preferences.launchesCount == 0)
         #expect(preferences.subscriptionsVersion == 0)
         #expect(preferences.authenticationLockOption == 0)

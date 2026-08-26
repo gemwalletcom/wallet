@@ -102,7 +102,7 @@ struct ServicesFactory {
         let marketService = MarketService(service: gemPriceService)
         let priceService = PriceService(priceStore: storeManager.priceStore, service: gemPriceService)
         let gemAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
-        let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient, store: gemAssetStore, price: gemPriceService)
+        let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient, store: gemAssetStore, price: gemPriceService, preferences: preferencesService)
         let gemTransactionsService = Gemstone.GemTransactionsService(
             api: gemDeviceApiClient,
             assets: gemAssetsService,
@@ -268,8 +268,6 @@ struct ServicesFactory {
         let rateService = RateService(preferences: preferences)
 
         let onStartService = OnstartService(
-            assetsProvider: gemAssetsService,
-            assetsService: assetsService,
             assetStore: storeManager.assetStore,
             nodeStore: storeManager.nodeStore,
             preferences: preferences,
@@ -557,23 +555,15 @@ extension ServicesFactory {
         configService: ConfigService,
         swappableChainsProvider: any SwappableChainsProvider,
     ) -> OnstartAsyncService {
-        let importAssetsService = ImportAssetsService(
-            assetsProvider: assetsProvider,
-            assetsService: assetsService,
-            assetStore: assetsService.assetStore,
-            preferences: preferences,
-        )
-
         return OnstartAsyncService(
             runners: [
                 ConfigUpdateRunner(configService: configService),
                 BannerSetupRunner(bannerSetupService: bannerSetupService),
                 AssetsUpdateRunner(
                     configService: configService,
-                    importAssetsService: importAssetsService,
+                    assetsProvider: assetsProvider,
                     assetsService: assetsService,
                     swappableChainsProvider: swappableChainsProvider,
-                    preferences: preferences,
                 ),
             ],
         )

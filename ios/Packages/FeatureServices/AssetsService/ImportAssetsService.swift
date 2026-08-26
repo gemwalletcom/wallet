@@ -1,27 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import protocol Gemstone.GemAssetsServiceProtocol
-import GemstonePrimitives
-import GemstonePrimitives
 import Preferences
 import Primitives
 import Store
 
 public struct ImportAssetsService: Sendable {
-    let assetsProvider: any GemAssetsServiceProtocol
-    let assetsService: AssetsService
     let assetStore: AssetStore
     let preferences: Preferences
 
     public init(
-        assetsProvider: any GemAssetsServiceProtocol,
-        assetsService: AssetsService,
         assetStore: AssetStore,
         preferences: Preferences,
     ) {
-        self.assetsProvider = assetsProvider
-        self.assetsService = assetsService
         self.assetStore = assetStore
         self.preferences = preferences
     }
@@ -63,28 +54,4 @@ public struct ImportAssetsService: Sendable {
         #endif
     }
 
-    public func updateFiatAssets() async throws {
-        async let getBuyAssets = try FiatAssets(assetsProvider.getFiatAssets(quoteType: FiatQuoteType.buy.json()))
-        async let getSellAssets = try FiatAssets(assetsProvider.getFiatAssets(quoteType: FiatQuoteType.sell.json()))
-
-        let (buyAssets, sellAssets) = try await (getBuyAssets, getSellAssets)
-
-        let assetIds = (buyAssets.assetIds + sellAssets.assetIds).compactMap { try? AssetId(id: $0) }
-
-        try await assetsService.prefetchAssets(assetIds: assetIds)
-        try assetStore.updateBuyableAssets(assetIds: buyAssets.assetIds)
-        try assetStore.updateSellableAssets(assetIds: sellAssets.assetIds)
-
-        preferences.fiatOnRampAssetsVersion = Int(buyAssets.version)
-        preferences.fiatOffRampAssetsVersion = Int(sellAssets.version)
-    }
-
-    public func updateSwapAssets() async throws {
-        let assets = try await FiatAssets(assetsProvider.getSwapAssets())
-
-        try await assetsService.prefetchAssets(assetIds: assets.assetIds.compactMap { try? AssetId(id: $0) })
-        try assetStore.setAssetIsSwappable(for: assets.assetIds, value: true)
-
-        preferences.swapAssetsVersion = Int(assets.version)
-    }
 }

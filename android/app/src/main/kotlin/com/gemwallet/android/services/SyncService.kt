@@ -1,26 +1,21 @@
 package com.gemwallet.android.services
 
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
-import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
-import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
 import com.gemwallet.android.cases.device.SyncDevice
+import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAssetsService
 import javax.inject.Inject
 
 class SyncService @Inject constructor(
     private val getRemoteConfig: GetRemoteConfig,
-    private val syncFiatAssets: SyncFiatAssets,
-    private val syncSwapAssets: SyncSwapAssets,
+    private val assetsService: GemAssetsService,
     private val syncDevice: SyncDevice,
 ) {
-
     suspend fun sync() {
         withContext(Dispatchers.IO) {
-            runCatching { getRemoteConfig.getRemoteConfig().versions }.onSuccess { versions ->
-                runCatching { syncFiatAssets(versions) }
-                runCatching { syncSwapAssets(versions) }
-            }
+            runCatching { assetsService.syncAvailability(getRemoteConfig.getRemoteConfig().versions.toJson()) }
             runCatching { syncDevice.syncDevice() }
         }
     }

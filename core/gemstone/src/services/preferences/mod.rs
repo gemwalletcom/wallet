@@ -5,12 +5,17 @@ use std::sync::Arc;
 
 use primitives::ConfigResponse;
 
+use crate::services::assets::AssetList;
+
 pub use error::GemPreferencesError;
 pub use store::GemPreferencesStore;
 
 const PRICE_ALERTS_ENABLED: &str = "price_alerts_enabled";
 const SKIPPED_APP_VERSION: &str = "skipped_app_version";
 const CONFIG: &str = "config";
+const BUY_ASSETS_VERSION: &str = "buy_assets_version";
+const SELL_ASSETS_VERSION: &str = "sell_assets_version";
+const SWAP_ASSETS_VERSION: &str = "swap_assets_version";
 
 #[derive(uniffi::Object)]
 pub struct GemPreferencesService {
@@ -42,6 +47,14 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn get_assets_version(&self, list: AssetList) -> Result<Option<String>, GemPreferencesError> {
+        self.store.get(assets_version_key(list).to_string())
+    }
+
+    pub fn set_assets_version(&self, list: AssetList, version: String) -> Result<(), GemPreferencesError> {
+        self.store.set(assets_version_key(list).to_string(), version)
+    }
+
     pub fn get_config(&self) -> Result<Option<ConfigResponse>, GemPreferencesError> {
         Ok(self.store.get(CONFIG.to_string())?.and_then(|json| serde_json::from_str(&json).ok()))
     }
@@ -49,6 +62,14 @@ impl GemPreferencesService {
     pub fn set_config(&self, config: &ConfigResponse) -> Result<(), GemPreferencesError> {
         let json = serde_json::to_string(config).map_err(|error| GemPreferencesError::Store { msg: error.to_string() })?;
         self.store.set(CONFIG.to_string(), json)
+    }
+}
+
+fn assets_version_key(list: AssetList) -> &'static str {
+    match list {
+        AssetList::Buy => BUY_ASSETS_VERSION,
+        AssetList::Sell => SELL_ASSETS_VERSION,
+        AssetList::Swap => SWAP_ASSETS_VERSION,
     }
 }
 

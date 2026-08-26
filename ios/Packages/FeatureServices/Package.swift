@@ -434,6 +434,7 @@ let package = Package(
                 "AssetsService",
                 "Primitives",
                 "GemstonePrimitives",
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
             ],
             path: "AssetsService/TestKit",
         ),

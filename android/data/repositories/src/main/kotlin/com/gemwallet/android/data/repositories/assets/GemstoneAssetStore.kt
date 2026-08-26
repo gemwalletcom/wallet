@@ -16,6 +16,7 @@ import uniffi.gemstone.GemAssetStore
 
 class GemstoneAssetStore(
     private val assetsDao: AssetsDao,
+    private val availabilityService: AssetsAvailabilityService,
 ) : GemAssetStore {
 
     override suspend fun getAssetIds(assetIds: List<String>): List<String> = withContext(Dispatchers.IO) {
@@ -40,6 +41,12 @@ class GemstoneAssetStore(
             market = null,
         )
     }
+
+    override suspend fun setBuyableAssets(assetIds: List<String>) = availabilityService.updateBuyAvailable(assetIds)
+
+    override suspend fun setSellableAssets(assetIds: List<String>) = availabilityService.updateSellAvailable(assetIds)
+
+    override suspend fun setSwappableAssets(assetIds: List<String>) = availabilityService.updateSwapAvailable(assetIds)
 
     override suspend fun addMissingBalances(walletId: String, assetIds: List<String>) = withContext(Dispatchers.IO) {
         for (assetId in assetsDao.getAssetIds(assetIds)) {

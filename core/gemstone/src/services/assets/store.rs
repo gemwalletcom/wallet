@@ -11,4 +11,7 @@ pub trait GemAssetStore: Send + Sync {
     async fn save_assets(&self, assets: Vec<AssetBasic>) -> Result<(), GemAssetError>;
     async fn save_asset(&self, asset: AssetFull) -> Result<(), GemAssetError>;
     async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemAssetError>;
+    async fn set_buyable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemAssetError>;
+    async fn set_sellable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemAssetError>;
+    async fn set_swappable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemAssetError>;
 }

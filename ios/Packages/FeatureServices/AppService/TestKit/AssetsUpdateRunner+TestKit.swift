@@ -4,25 +4,22 @@ import AppService
 import AssetsService
 import AssetsServiceTestKit
 import Foundation
-import Preferences
-import PreferencesTestKit
+import protocol Gemstone.GemAssetsServiceProtocol
 import Primitives
 import PrimitivesTestKit
 
 public extension AssetsUpdateRunner {
     static func mock(
         configService: ConfigService = .mock(),
-        importAssetsService: ImportAssetsService = .mock(),
+        assetsProvider: any GemAssetsServiceProtocol = GemAssetsServiceMock(),
         assetsService: AssetsService = .mock(),
         swappableChainsProvider: any SwappableChainsProvider = SwappableChainsProviderMock.mock(),
-        preferences: Preferences = .mock(),
     ) -> AssetsUpdateRunner {
         AssetsUpdateRunner(
             configService: configService,
-            importAssetsService: importAssetsService,
+            assetsProvider: assetsProvider,
             assetsService: assetsService,
             swappableChainsProvider: swappableChainsProvider,
-            preferences: preferences,
         )
     }
 }

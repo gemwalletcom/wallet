@@ -17,7 +17,7 @@ import org.junit.Test
 class GemstoneAssetStoreTest {
 
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
-    private val subject = GemstoneAssetStore(assetsDao)
+    private val subject = GemstoneAssetStore(assetsDao, AssetsAvailabilityService(assetsDao))
 
     @Test
     fun addMissingBalances_insertsHiddenBalanceOnlyForExistingAssets() = runBlocking {

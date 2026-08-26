@@ -39,6 +39,7 @@ import dagger.Lazy
 import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.repositories.prices.GemstonePriceStore
 import com.gemwallet.android.data.service.store.database.PricesDao
+import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPriceService
 import dagger.Module
 import dagger.Provides
@@ -83,10 +84,11 @@ object AssetsModule {
         walletsRepository: Lazy<WalletsRepository>,
         assetsDao: AssetsDao,
         balancesDao: BalancesDao,
+        availabilityService: AssetsAvailabilityService,
     ): GemBalanceService = GemBalanceService(
         gateway,
         GemstoneWalletStore(walletsRepository),
-        GemstoneAssetStore(assetsDao),
+        GemstoneAssetStore(assetsDao, availabilityService),
         GemstoneBalanceStore(balancesDao),
     )
 
@@ -179,8 +181,10 @@ object AssetsModule {
     fun provideGemAssetsService(
         apiClient: GemApiClient,
         assetsDao: AssetsDao,
+        availabilityService: AssetsAvailabilityService,
         priceService: GemPriceService,
-    ): GemAssetsService = GemAssetsService(apiClient, GemstoneAssetStore(assetsDao), priceService)
+        preferencesService: GemPreferencesService,
+    ): GemAssetsService = GemAssetsService(apiClient, GemstoneAssetStore(assetsDao, availabilityService), priceService, preferencesService)
 
     @Provides
     @Singleton

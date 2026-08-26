@@ -4,7 +4,9 @@ import AssetsService
 import Foundation
 import class Gemstone.GemApiClient
 import class Gemstone.GemAssetsService
+import class Gemstone.GemPreferencesService
 import class Gemstone.GemPriceService
+import GemstonePrimitivesTestKit
 import NativeProviderService
 import PriceServiceTestKit
 import Primitives
@@ -24,6 +26,7 @@ public extension GemAssetsService {
             ),
             store: GemstoneAssetStore(assetStore: assetStore, balanceStore: balanceStore),
             price: priceService,
+            preferences: GemPreferencesService(store: GemPreferencesStoreMock()),
         )
     }
 }

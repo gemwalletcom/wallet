@@ -48,6 +48,7 @@ extension Primitives.ChartDateValue: JsonCodable {}
 extension Primitives.ChartPeriod: JsonCodable {}
 extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}
+extension Primitives.ConfigVersions: JsonCodable {}
 extension Primitives.ConnectionComponent: JsonCodable {}
 extension Primitives.ConnectionStatus: JsonCodable {}
 extension Primitives.ContractCallData: JsonCodable {}

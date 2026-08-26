@@ -1,4 +1,6 @@
 use crate::api::GemApiError;
+use crate::services::preferences::GemPreferencesError;
+use crate::services::price::GemPriceError;
 
 #[derive(Debug, uniffi::Error)]
 pub enum GemAssetError {
@@ -23,8 +25,14 @@ impl From<GemApiError> for GemAssetError {
     }
 }
 
-impl From<crate::services::price::GemPriceError> for GemAssetError {
-    fn from(error: crate::services::price::GemPriceError) -> Self {
+impl From<GemPriceError> for GemAssetError {
+    fn from(error: GemPriceError) -> Self {
         Self::Price { msg: error.to_string() }
+    }
+}
+
+impl From<GemPreferencesError> for GemAssetError {
+    fn from(error: GemPreferencesError) -> Self {
+        Self::Store { msg: error.to_string() }
     }
 }

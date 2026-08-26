@@ -38,6 +38,18 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
         try assetStore.updateAssociations(assetId: asset.asset.id, associations: asset.associations)
     }
 
+    public func setBuyableAssets(assetIds: [Gemstone.AssetId]) async throws {
+        try assetStore.updateBuyableAssets(assetIds: assetIds)
+    }
+
+    public func setSellableAssets(assetIds: [Gemstone.AssetId]) async throws {
+        try assetStore.updateSellableAssets(assetIds: assetIds)
+    }
+
+    public func setSwappableAssets(assetIds: [Gemstone.AssetId]) async throws {
+        try assetStore.setAssetIsSwappable(for: assetIds, value: true)
+    }
+
     public func addMissingBalances(walletId: String, assetIds: [Gemstone.AssetId]) async throws {
         try balanceStore.addBalance(
             assetIds: assetIds.map { try Primitives.AssetId(id: $0) },

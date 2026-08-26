@@ -98,6 +98,25 @@ public final class GemConfigServiceMock: GemConfigServiceProtocol, @unchecked Se
     }
 }
 
+public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Sendable {
+    private let lock = NSLock()
+    private var values: [String: String] = [:]
+
+    public init() {}
+
+    public func get(key: String) throws -> String? {
+        lock.withLock { values[key] }
+    }
+
+    public func set(key: String, value: String) throws {
+        lock.withLock { values[key] = value }
+    }
+
+    public func remove(key: String) throws {
+        lock.withLock { values[key] = nil }
+    }
+}
+
 public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @unchecked Sendable {
     private let lock = NSLock()
     private var priceAlertsEnabled: Bool

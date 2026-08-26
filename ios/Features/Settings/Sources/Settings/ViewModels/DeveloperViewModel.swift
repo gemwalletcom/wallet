@@ -283,14 +283,6 @@ public final class DeveloperViewModel {
         try? transactionsService.transactionStore.addTransactions(walletId: walletId, transactions: transactions)
     }
 
-    // preferences
-
-    func clearAssetsVersion() {
-        performAction {
-            Preferences.standard.swapAssetsVersion = 0
-        }
-    }
-
     func deeplink(deeplink: DeepLink) {
         Task { @MainActor in
             await UIApplication.shared.open(deeplink.gemUrl, options: [:])
