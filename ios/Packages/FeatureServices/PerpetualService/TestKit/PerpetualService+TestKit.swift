@@ -2,6 +2,8 @@
 
 import PerpetualService
 import Preferences
+import PriceService
+import PriceServiceTestKit
 import PreferencesTestKit
 import Primitives
 import Store
@@ -16,7 +18,7 @@ public extension PerpetualService {
         PerpetualService(
             store: PerpetualStore(db: db),
             assetStore: AssetStore(db: db),
-            priceStore: PriceStore(db: db),
+            priceService: .mock(db: db),
             balanceStore: BalanceStore(db: db),
             provider: provider,
             preferences: preferences,

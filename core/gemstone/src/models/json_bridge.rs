@@ -1,3 +1,4 @@
+use primitives::FiatRate;
 use primitives::TransactionId;
 use primitives::Wallet;
 use primitives::asset_balance::BalanceMetadata;
@@ -86,6 +87,7 @@ json_bridge!(
     EarnType,
     FiatAssets,
     FiatQuote,
+    FiatRate,
     FiatQuoteRequest,
     FiatQuoteType,
     FiatQuoteUrl,

@@ -108,7 +108,7 @@ class AssetsRepository @Inject constructor(
         val linkRecords = assetFull.links.toAssetLinkRecord(assetId)
         val marketRecord = rate?.let { assetFull.toMarketRecord(it.rate) }
         assetsDao.upsertAssetMetadata(record, linkRecords, marketRecord)
-        rate?.let { pricesRepository.updatePrice(assetFull, it) }
+        pricesRepository.updatePrice(assetFull, currency)
     }
 
     suspend fun updateAssetMarket(assetId: AssetId, market: AssetMarket, currency: Currency) = withContext(Dispatchers.IO) {

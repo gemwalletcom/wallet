@@ -4,13 +4,14 @@ import Formatters
 import Foundation
 import GemstonePrimitives
 import Preferences
+import PriceService
 import Primitives
 import Store
 
 public struct PerpetualService: PerpetualServiceable {
     private let store: PerpetualStore
     private let assetStore: AssetStore
-    private let priceStore: PriceStore
+    private let priceService: PriceService
     private let balanceStore: BalanceStore
     private let provider: PerpetualProvidable
     private let preferences: Preferences
@@ -18,14 +19,14 @@ public struct PerpetualService: PerpetualServiceable {
     public init(
         store: PerpetualStore,
         assetStore: AssetStore,
-        priceStore: PriceStore,
+        priceService: PriceService,
         balanceStore: BalanceStore,
         provider: PerpetualProvidable,
         preferences: Preferences,
     ) {
         self.store = store
         self.assetStore = assetStore
-        self.priceStore = priceStore
+        self.priceService = priceService
         self.balanceStore = balanceStore
         self.provider = provider
         self.preferences = preferences
@@ -43,12 +44,12 @@ public struct PerpetualService: PerpetualServiceable {
         try assetStore.add(assets: assets)
         try store.upsertPerpetuals(perpetuals)
         // setup prices
-        try priceStore.updatePrice(price: AssetPrice(
+        try await priceService.updatePrices([AssetPrice(
             assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
             price: 1,
             priceChangePercentage24h: 0,
             updatedAt: .now,
-        ), currency: Currency.usd.rawValue)
+        )], currency: Currency.usd.rawValue)
         preferences.perpetualMarketsUpdatedAt = .now
     }
 

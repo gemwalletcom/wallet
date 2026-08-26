@@ -80,6 +80,7 @@ extension Primitives.NameRecord: JsonCodable {}
 extension Primitives.Node: JsonCodable {}
 extension Primitives.TransactionId: JsonCodable {}
 extension Primitives.Wallet: JsonCodable {}
+extension Primitives.FiatRate: JsonCodable {}
 extension Primitives.Payment: JsonCodable {}
 extension Primitives.PaymentAmount: JsonCodable {}
 extension Primitives.PaymentLink: JsonCodable {}

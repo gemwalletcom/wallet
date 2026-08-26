@@ -83,6 +83,7 @@ let package = Package(
         .target(
             name: "PerpetualService",
             dependencies: [
+                "PriceService",
                 "Primitives",
                 "GemstonePrimitives",
                 "Store",
@@ -98,6 +99,7 @@ let package = Package(
         .target(
             name: "PerpetualServiceTestKit",
             dependencies: [
+                "PriceServiceTestKit",
                 "PerpetualService",
                 "Primitives",
                 .product(name: "StoreTestKit", package: "Store"),
@@ -210,6 +212,7 @@ let package = Package(
         .target(
             name: "PriceServiceTestKit",
             dependencies: [
+                .product(name: "NativeProviderService", package: "NativeProviderService"),
                 "Primitives",
                 "PriceService",
                 .product(name: "StoreTestKit", package: "Store"),
@@ -402,6 +405,7 @@ let package = Package(
         .target(
             name: "AssetsService",
             dependencies: [
+                "PriceService",
                 "Primitives",
                 "Store",
                 "Gemstone",
@@ -416,6 +420,7 @@ let package = Package(
         .target(
             name: "AssetsServiceTestKit",
             dependencies: [
+                "PriceServiceTestKit",
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "ChainServiceTestKit", package: "ChainServices"),

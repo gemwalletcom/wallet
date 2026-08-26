@@ -8,21 +8,16 @@ import Testing
 
 struct PriceStoreTests {
     @Test
-    func firstInsertAppliesCurrencyRate() throws {
+    func convertPricesRecomputesFiatPriceFromUsd() throws {
         let db = DB.mockWithChains([.ethereum])
         let priceStore = PriceStore(db: db)
-        let fiatRateStore = FiatRateStore(db: db)
-
         let assetId = Chain.ethereum.assetId
-        let rate = 90.0
         let priceUsd = 2500.0
-        let currency = Currency.rub.rawValue
 
-        try fiatRateStore.add([FiatRate(symbol: .rub, rate: rate)])
-        try priceStore.updatePrices(prices: [.mock(assetId: assetId, price: priceUsd)], currency: currency)
+        try priceStore.updatePrices([.mock(assetId: assetId, price: priceUsd, rate: 90)])
+        #expect(try priceStore.getPrices(for: [assetId.identifier]).first?.price == priceUsd * 90)
 
-        let result = try priceStore.getPrices(for: [assetId.identifier])
-
-        #expect(result.first?.price == priceUsd * rate)
+        try priceStore.convertPrices(rate: 2)
+        #expect(try priceStore.getPrices(for: [assetId.identifier]).first?.price == priceUsd * 2)
     }
 }

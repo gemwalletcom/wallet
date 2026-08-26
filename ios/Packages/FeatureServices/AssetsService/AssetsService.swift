@@ -5,26 +5,27 @@ import ChainService
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import GemstonePrimitives
+import PriceService
 import Primitives
 import Store
 
 public final class AssetsService: Sendable {
     public let assetStore: AssetStore
     let balanceStore: BalanceStore
-    let priceStore: PriceStore
+    let priceService: PriceService
     let assetsProvider: any GemAssetsServiceProtocol
     let chainServiceFactory: any ChainServiceFactorable
 
     public init(
         assetStore: AssetStore,
         balanceStore: BalanceStore,
-        priceStore: PriceStore,
+        priceService: PriceService,
         chainServiceFactory: any ChainServiceFactorable,
         assetsProvider: any GemAssetsServiceProtocol,
     ) {
         self.assetStore = assetStore
         self.balanceStore = balanceStore
-        self.priceStore = priceStore
+        self.priceService = priceService
         self.chainServiceFactory = chainServiceFactory
         self.assetsProvider = assetsProvider
     }
@@ -103,15 +104,9 @@ public final class AssetsService: Sendable {
         try assetStore.add(assets: [asset.basic])
         try assetStore.updateLinks(assetId: assetId, asset.links)
         try assetStore.updateAssociations(assetId: assetId, associations: asset.associations)
-        let price = asset.price?.mapToAssetPrice(assetId: assetId) ?? .empty(assetId: assetId)
-        try priceStore.updatePrice(price: price, currency: currency)
+        try await priceService.updateAssetPrice(assetId: assetId, price: asset.price?.mapToAssetPrice(assetId: assetId), currency: currency)
         if let market = asset.market {
-            let rate = try priceStore.getRate(currency: currency).rate
-            try priceStore.updateMarket(
-                assetId: assetId.identifier,
-                market: market,
-                rate: rate,
-            )
+            try priceService.updateMarketPrice(assetId: assetId, market: market, currency: currency)
         }
         return asset
     }

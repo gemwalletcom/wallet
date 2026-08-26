@@ -2,23 +2,37 @@
 
 import Foundation
 import func Gemstone.assetIdsEnabledByDefault
+import protocol Gemstone.GemPriceServiceProtocol
+import GemstonePrimitives
 import Primitives
 import Store
 
 public struct PriceService: Sendable {
     private let priceStore: PriceStore
-    private let fiatRateStore: FiatRateStore
+    private let service: any GemPriceServiceProtocol
 
     public init(
         priceStore: PriceStore,
-        fiatRateStore: FiatRateStore,
+        service: any GemPriceServiceProtocol,
     ) {
         self.priceStore = priceStore
-        self.fiatRateStore = fiatRateStore
+        self.service = service
     }
 
-    public func updatePrices(_ prices: [AssetPrice], currency: String) throws {
-        try priceStore.updatePrices(prices: prices, currency: currency)
+    public func updatePrices(_ prices: [AssetPrice], currency: String) async throws {
+        try await service.updatePrices(prices: prices.map { try $0.json() }, currency: currencyJson(currency))
+    }
+
+    public func updateAssetPrice(assetId: AssetId, price: AssetPrice?, currency: String) async throws {
+        try await service.updateAssetPrice(assetId: assetId.identifier, price: price.map { try $0.json() }, currency: currencyJson(currency))
+    }
+
+    public func addRates(_ rates: [FiatRate], currency: String) async throws {
+        try await service.updateRates(rates: rates.map { try $0.json() }, currency: currencyJson(currency))
+    }
+
+    public func changeCurrency(currency: String) async throws {
+        try await service.changeCurrency(currency: currencyJson(currency))
     }
 
     public func updateMarketPrice(assetId: AssetId, market: AssetMarket, currency: String) throws {
@@ -45,22 +59,19 @@ public struct PriceService: Sendable {
         return priceAssets
     }
 
-    public func changeCurrency(currency: String) throws {
-        try priceStore.updateCurrency(currency: currency)
-    }
-
     public func getRate(currency: String) throws -> Double {
         try priceStore.getRate(currency: currency).rate
-    }
-
-    public func addRates(_ rates: [FiatRate]) throws {
-        guard rates.isNotEmpty else { return }
-
-        try fiatRateStore.add(rates)
     }
 
     @discardableResult
     public func clear() throws -> Int {
         try priceStore.clear()
+    }
+
+    private func currencyJson(_ currency: String) throws -> String {
+        guard let currency = Currency(rawValue: currency) else {
+            throw AnyError("unknown currency: \(currency)")
+        }
+        return try currency.json()
     }
 }

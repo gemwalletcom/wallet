@@ -56,7 +56,7 @@ public struct StreamEventService: Sendable {
         switch event {
         case let .prices(payload):
             debugLog("stream event handler: prices: \(payload.prices.count), rates: \(payload.rates.count)")
-            await perform { try handlePrices(payload) }
+            await perform { try await handlePrices(payload) }
         case let .balances(update):
             debugLog("stream event handler: balances: wallet: \(update.walletId.id), assets: \(update.assetIds.map(\.identifier))")
             Task { await perform { try await handleBalanceUpdate(update) } }
@@ -101,9 +101,9 @@ extension StreamEventService {
         }
     }
 
-    private func handlePrices(_ payload: WebSocketPricePayload) throws {
-        try priceService.addRates(payload.rates)
-        try priceService.updatePrices(payload.prices, currency: preferences.currency)
+    private func handlePrices(_ payload: WebSocketPricePayload) async throws {
+        try await priceService.addRates(payload.rates, currency: preferences.currency)
+        try await priceService.updatePrices(payload.prices, currency: preferences.currency)
     }
 
     private func handleBalanceUpdate(_ update: StreamBalanceUpdate) async throws {

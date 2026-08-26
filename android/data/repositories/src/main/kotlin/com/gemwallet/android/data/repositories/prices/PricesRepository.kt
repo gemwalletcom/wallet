@@ -1,71 +1,44 @@
 package com.gemwallet.android.data.repositories.prices
 
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.entities.DbPrice
-import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
-import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.FiatRate
 import com.wallet.core.primitives.WebSocketPricePayload
-import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
+import uniffi.gemstone.GemPriceService
 
 @Singleton
 class PricesRepository @Inject constructor(
-    private val pricesDao: PricesDao,
+    private val priceService: GemPriceService,
     private val sessionRepository: SessionRepository,
 ) {
 
     suspend fun updatePrices(payload: WebSocketPricePayload) {
-        val currency = sessionRepository.getCurrentCurrency()
-        updateRates(payload.rates, currency)
-        val rate = currentRate(currency) ?: return
-        pricesDao.insert(payload.prices.toRecord(rate))
+        val currency = sessionRepository.getCurrentCurrency().toJson()
+        priceService.updateRates(payload.rates.map { it.toJson() }, currency)
+        priceService.updatePrices(payload.prices.map { it.toJson() }, currency)
     }
 
     suspend fun updatePrice(price: AssetPrice) {
-        val currency = sessionRepository.getCurrentCurrency()
-        val rate = currentRate(currency) ?: return
-        pricesDao.insert(price.toRecord(rate))
+        priceService.updatePrices(listOf(price.toJson()), sessionRepository.getCurrentCurrency().toJson())
     }
 
     suspend fun updatePrices(assets: List<AssetBasic>, currency: Currency) {
-        val rate = currentRate(currency) ?: return
-        val prices = assets.toPriceRecord(rate)
-        if (prices.isNotEmpty()) {
-            pricesDao.insert(prices)
-        }
+        val prices = assets.mapNotNull { asset -> asset.price?.let { AssetPrice(asset.asset.id, it.price, it.priceChangePercentage24h, it.updatedAt) } }
+        priceService.updatePrices(prices.map { it.toJson() }, currency.toJson())
     }
 
-    suspend fun updatePrice(assetFull: AssetFull, rate: FiatRate) {
-        pricesDao.insert(
-            assetFull.toPriceRecord(rate)
-                ?: DbPrice(assetId = assetFull.asset.id.toIdentifier(), currency = rate.symbol)
-        )
+    suspend fun updatePrice(assetFull: AssetFull, currency: Currency) {
+        val price = assetFull.price?.let { AssetPrice(assetFull.asset.id, it.price, it.priceChangePercentage24h, it.updatedAt) }
+        priceService.updateAssetPrice(assetFull.asset.id.toIdentifier(), price?.toJson(), currency.toJson())
     }
 
     suspend fun convertPricesToCurrency(currency: Currency) {
-        val rate = currentRate(currency) ?: return
-        pricesDao.getAll().firstOrNull()?.map {
-            it.copy(value = (it.usdValue ?: 0.0) * rate.rate, currency = currency)
-        }?.let { pricesDao.insert(it) }
-    }
-
-    private suspend fun currentRate(currency: Currency): FiatRate? {
-        return pricesDao.getRates(currency).firstOrNull()?.toDTO()
-    }
-
-    private suspend fun updateRates(newRates: List<FiatRate>, currency: Currency) {
-        pricesDao.setRates(newRates.toRecord())
-        newRates.firstOrNull { it.symbol == currency }?.let { rate ->
-            pricesDao.updateValues(currency, rate.rate)
-        }
+        priceService.changeCurrency(currency.toJson())
     }
 }

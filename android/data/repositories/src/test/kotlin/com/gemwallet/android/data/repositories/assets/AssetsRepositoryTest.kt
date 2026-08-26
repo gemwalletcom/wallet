@@ -15,7 +15,6 @@ import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
 import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
 import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
-import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.mockDbAsset
 import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInfo
 import com.gemwallet.android.domains.asset.defaultBasic
@@ -42,6 +41,9 @@ import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 import io.mockk.coEvery
@@ -62,6 +64,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.assetDefaultRank
 import uniffi.gemstone.defaultTokenRank
 
@@ -71,6 +74,7 @@ class AssetsRepositoryTest {
     private val assetListDao = mockk<AssetListDao>(relaxed = true)
     private val balancesDao = mockk<BalancesDao>(relaxed = true)
     private val pricesDao = mockk<PricesDao>(relaxed = true)
+    private val priceService = mockk<GemPriceService>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>()
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
     private val streamSubscriptionService = mockk<StreamSubscriptionService>(relaxed = true)
@@ -81,7 +85,7 @@ class AssetsRepositoryTest {
     private fun createSubject() = AssetsRepository(
         assetsDao = assetsDao,
         balancesDao = balancesDao,
-        pricesRepository = PricesRepository(pricesDao, sessionRepository),
+        pricesRepository = PricesRepository(priceService, sessionRepository),
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
@@ -135,22 +139,16 @@ class AssetsRepositoryTest {
 
         val linksSlot = slot<List<DbAssetLink>>()
         val assetSlot = slot<DbAsset>()
-        val priceSlot = slot<DbPrice>()
         val marketSlot = slot<DbAssetMarket>()
 
         coVerify { assetsDao.upsertAssetMetadata(capture(assetSlot), capture(linksSlot), capture(marketSlot)) }
-        coVerify { pricesDao.insert(capture(priceSlot)) }
+        coVerify { priceService.updateAssetPrice("solana", match { it.decodeJson<AssetPrice>().price == 100.0 }, Currency.EUR.toJson()) }
 
         assertEquals("solana", assetSlot.captured.id)
         assertEquals(false, assetSlot.captured.isSwapEnabled)
         assertEquals(1, linksSlot.captured.size)
         assertEquals("website", linksSlot.captured.single().name)
         assertEquals("https://bitcoin.org", linksSlot.captured.single().url)
-
-        assertEquals("solana", priceSlot.captured.assetId)
-        assertEquals(50.0, priceSlot.captured.value ?: 0.0, 0.0)
-        assertEquals(100.0, priceSlot.captured.usdValue ?: 0.0, 0.0)
-        assertEquals(Currency.EUR, priceSlot.captured.currency)
 
         assertEquals("solana", marketSlot.captured.assetId)
         assertEquals(500.0, marketSlot.captured.marketCap ?: 0.0, 0.0)
@@ -161,24 +159,17 @@ class AssetsRepositoryTest {
     }
 
     @Test
-    fun saveAssetMetadata_storesZeroWhenResponseHasNoUsablePrice() = runBlocking {
+    fun saveAssetMetadata_passesMissingPriceAsNull() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
         coEvery { sessionRepository.getCurrentCurrency() } returns Currency.USD
-        every { pricesDao.getRates(Currency.USD) } returns flowOf(null)
 
         val subject = createSubject()
         listOf(null, mockPrice(price = 0.0)).forEach { price ->
             subject.saveAssetMetadata(mockAssetFull(asset = mockAssetSolana(), price = price))
         }
 
-        val prices = mutableListOf<DbPrice>()
-        coVerify(exactly = 2) { pricesDao.insert(capture(prices)) }
-        prices.forEach { price ->
-            assertEquals("solana", price.assetId)
-            assertEquals(0.0, price.value)
-            assertEquals(0.0, price.usdValue)
-            assertEquals(0.0, price.dayChanged)
-        }
+        coVerify(exactly = 1) { priceService.updateAssetPrice("solana", null, Currency.USD.toJson()) }
+        coVerify(exactly = 1) { priceService.updateAssetPrice("solana", match { it.decodeJson<AssetPrice>().price == 0.0 }, Currency.USD.toJson()) }
     }
 
 

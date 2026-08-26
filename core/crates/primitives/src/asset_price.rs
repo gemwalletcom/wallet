@@ -26,6 +26,10 @@ impl AssetPrice {
             updated_at,
         }
     }
+
+    pub fn empty(asset_id: AssetId) -> Self {
+        Self::new(asset_id, 0.0, 0.0, Utc::now())
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

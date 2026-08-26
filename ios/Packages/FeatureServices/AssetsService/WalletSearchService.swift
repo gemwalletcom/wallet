@@ -4,6 +4,7 @@ import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import GemstonePrimitives
 import Preferences
+import PriceService
 import Primitives
 import Store
 
@@ -12,7 +13,7 @@ public struct WalletSearchService: Sendable {
     private let searchStore: SearchStore
     private let perpetualStore: PerpetualStore
     private let assetListStore: AssetListStore
-    private let priceStore: PriceStore
+    private let priceService: PriceService
     private let preferences: Preferences
     private let searchProvider: any GemAssetsServiceProtocol
 
@@ -21,7 +22,7 @@ public struct WalletSearchService: Sendable {
         searchStore: SearchStore,
         perpetualStore: PerpetualStore,
         assetListStore: AssetListStore,
-        priceStore: PriceStore,
+        priceService: PriceService,
         preferences: Preferences,
         searchProvider: any GemAssetsServiceProtocol,
     ) {
@@ -29,7 +30,7 @@ public struct WalletSearchService: Sendable {
         self.searchStore = searchStore
         self.perpetualStore = perpetualStore
         self.assetListStore = assetListStore
-        self.priceStore = priceStore
+        self.priceService = priceService
         self.preferences = preferences
         self.searchProvider = searchProvider
     }
@@ -43,7 +44,7 @@ public struct WalletSearchService: Sendable {
         let assets = try await searchResult.assets + networkAssets
 
         let searchKey = scope.searchKey(query: query)
-        try store(assets: assets, wallet: wallet, searchKey: searchKey)
+        try await store(assets: assets, wallet: wallet, searchKey: searchKey)
         try await store(perpetuals: searchResult.perpetuals, searchKey: searchKey)
         if scope.isAll {
             try await store(lists: searchResult.lists, searchKey: searchKey)
@@ -54,9 +55,9 @@ public struct WalletSearchService: Sendable {
 // MARK: - Private
 
 private extension WalletSearchService {
-    func store(assets: [AssetBasic], wallet: Wallet, searchKey: String) throws {
+    func store(assets: [AssetBasic], wallet: Wallet, searchKey: String) async throws {
         try assetsService.addAssets(assets: assets)
-        try priceStore.updatePrices(prices: prices(from: assets), currency: preferences.currency)
+        try await priceService.updatePrices(prices(from: assets), currency: preferences.currency)
         try assetsService.addBalancesIfMissing(walletId: wallet.id, assetIds: assets.map(\.asset.id))
         try searchStore.add(type: .asset, query: searchKey, ids: assets.map(\.asset.id.identifier))
     }

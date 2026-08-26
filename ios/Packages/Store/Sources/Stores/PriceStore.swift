@@ -11,10 +11,6 @@ public struct PriceStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func updatePrice(price: AssetPrice, currency: String) throws {
-        try updatePrices(prices: [price], currency: currency)
-    }
-
     public func getRate(currency: String) throws -> FiatRateRecord {
         try db.read { db in
             guard let rate = try FiatRateRecord.filter(key: currency).fetchOne(db) else {
@@ -24,19 +20,17 @@ public struct PriceStore: Sendable {
         }
     }
 
-    public func updatePrices(prices: [AssetPrice], currency: String) throws {
-        let rate = try getRate(currency: currency)
+    public func updatePrices(_ updates: [PriceUpdate]) throws {
         try db.write { db in
-            for assetPrice in prices {
-                let convertedPrice = assetPrice.price * rate.rate
-                _ = try assetPrice.record(fiatPrice: convertedPrice).upsertAndFetch(
+            for update in updates {
+                _ = try update.record.upsertAndFetch(
                     db,
                     onConflict: [],
                     doUpdate: { _ in [
-                        PriceRecord.Columns.price.set(to: convertedPrice),
-                        PriceRecord.Columns.priceUsd.set(to: assetPrice.price),
-                        PriceRecord.Columns.priceChangePercentage24h.set(to: assetPrice.priceChangePercentage24h),
-                        PriceRecord.Columns.updatedAt.set(to: Date()),
+                        PriceRecord.Columns.price.set(to: update.price),
+                        PriceRecord.Columns.priceUsd.set(to: update.priceUsd),
+                        PriceRecord.Columns.priceChangePercentage24h.set(to: update.priceChangePercentage24h),
+                        PriceRecord.Columns.updatedAt.set(to: update.updatedAt),
                         PriceRecord.Columns.marketCap.noOverwrite,
                         PriceRecord.Columns.marketCapFdv.noOverwrite,
                         PriceRecord.Columns.marketCapRank.noOverwrite,
@@ -103,12 +97,11 @@ public struct PriceStore: Sendable {
     }
 
     @discardableResult
-    public func updateCurrency(currency: String) throws -> Int {
-        let rate = try getRate(currency: currency)
-        return try db.write { db in
+    public func convertPrices(rate: Double) throws -> Int {
+        try db.write { db in
             try PriceRecord.updateAll(db, [
                 PriceRecord.Columns.price
-                    .set(to: PriceRecord.Columns.priceUsd * rate.rate),
+                    .set(to: PriceRecord.Columns.priceUsd * rate),
             ])
         }
     }

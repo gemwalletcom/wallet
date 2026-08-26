@@ -94,7 +94,12 @@ struct ServicesFactory {
         let gemApiClient = Gemstone.GemApiClient(provider: nativeProvider, baseUrl: Constants.apiURL.absoluteString)
         let gemStaticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
         let chartService = ChartService(service: Gemstone.GemChartService(api: gemApiClient))
-        let marketService = MarketService(service: Gemstone.GemPriceService(api: gemApiClient))
+        let gemPriceService = Gemstone.GemPriceService(
+            api: gemApiClient,
+            store: GemstonePriceStore(priceStore: storeManager.priceStore, fiatRateStore: storeManager.fiatRateStore),
+        )
+        let marketService = MarketService(service: gemPriceService)
+        let priceService = PriceService(priceStore: storeManager.priceStore, service: gemPriceService)
         let gemAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
         let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient, store: gemAssetStore)
         let gemTransactionsService = Gemstone.GemTransactionsService(
@@ -117,7 +122,7 @@ struct ServicesFactory {
         let assetsService = AssetsService(
             assetStore: storeManager.assetStore,
             balanceStore: storeManager.balanceStore,
-            priceStore: storeManager.priceStore,
+            priceService: priceService,
             chainServiceFactory: chainServiceFactory,
             assetsProvider: gemAssetsService,
         )
@@ -177,15 +182,11 @@ struct ServicesFactory {
             pushNotificationService: pushNotificationEnablerService,
         )
         let navigationPresenter = NavigationPresenter()
-        let priceService = PriceService(
-            priceStore: storeManager.priceStore,
-            fiatRateStore: storeManager.fiatRateStore,
-        )
         let portfolioService = PortfolioService(apiService: Gemstone.GemPortfolioService(api: gemDeviceApiClient), assetStore: storeManager.assetStore)
         let perpetualService = Self.makePerpetualService(
             perpetualStore: storeManager.perpetualStore,
             assetStore: storeManager.assetStore,
-            priceStore: storeManager.priceStore,
+            priceService: priceService,
             balanceStore: storeManager.balanceStore,
             nodeProvider: nodeProvider,
             requestInterceptor: nodeAuthProvider,
@@ -314,7 +315,7 @@ struct ServicesFactory {
             searchStore: storeManager.searchStore,
             perpetualStore: storeManager.perpetualStore,
             assetListStore: storeManager.assetListStore,
-            priceStore: storeManager.priceStore,
+            priceService: priceService,
             preferences: preferences,
             searchProvider: gemAssetsService,
         )
@@ -578,7 +579,7 @@ extension ServicesFactory {
     private static func makePerpetualService(
         perpetualStore: PerpetualStore,
         assetStore: AssetStore,
-        priceStore: PriceStore,
+        priceService: PriceService,
         balanceStore: BalanceStore,
         nodeProvider: any NodeURLFetchable,
         requestInterceptor: any RequestInterceptable,
@@ -587,7 +588,7 @@ extension ServicesFactory {
         PerpetualService(
             store: perpetualStore,
             assetStore: assetStore,
-            priceStore: priceStore,
+            priceService: priceService,
             balanceStore: balanceStore,
             provider: PerpetualProviderFactory(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor).createProvider(),
             preferences: preferences,

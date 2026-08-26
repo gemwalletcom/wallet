@@ -37,12 +37,12 @@ struct CurrencySceneViewModelTests {
     @Test
     func setNewCurrency() async throws {
         let priceService: PriceService = .mock()
-        try priceService.addRates([FiatRate(symbol: .ars, rate: 1200)])
+        try await priceService.addRates([FiatRate(symbol: .ars, rate: 1200)], currency: Currency.ars.rawValue)
         let usdCurrencyStorage = MockCurrencyStorage()
         let deviceService = DeviceServiceMock()
         let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: priceService, deviceService: deviceService)
 
-        try viewModel.setCurrency(.ars)
+        try await viewModel.setCurrency(.ars)
         await viewModel.updateDevice()
 
         #expect(usdCurrencyStorage.currency == Currency.ars.id)

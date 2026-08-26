@@ -45,7 +45,7 @@ struct AssetsServicePersistenceTests {
         let service = AssetsService.mock(
             assetStore: assetStore,
             balanceStore: balanceStore,
-            priceStore: priceStore,
+            priceService: .mock(db: db),
             assetsProvider: GemAssetsServiceMock(assetResult: assetFull),
         )
 
@@ -81,15 +81,12 @@ struct AssetsServicePersistenceTests {
 
         try assetStore.add(assets: [.mock(asset: asset)])
         try fiatRateStore.add([.mock(symbol: .usd, rate: 1)])
-        try priceStore.updatePrice(
-            price: .mock(assetId: asset.id, price: 100, priceChangePercentage24h: 10),
-            currency: Currency.usd.rawValue,
-        )
+        try priceStore.updatePrices([.mock(assetId: asset.id, price: 100, priceChangePercentage24h: 10)])
 
         let service = AssetsService.mock(
             assetStore: assetStore,
             balanceStore: balanceStore,
-            priceStore: priceStore,
+            priceService: .mock(db: db),
             assetsProvider: GemAssetsServiceMock(assetResult: .mock(asset: asset, price: price)),
         )
 
