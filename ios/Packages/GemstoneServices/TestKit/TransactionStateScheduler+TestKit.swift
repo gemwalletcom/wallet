@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemNftService
+import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
 import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
@@ -12,7 +14,7 @@ public extension TransactionStateScheduler {
         transactionStore: TransactionStore = .mock(),
         gatewayService: GatewayService = .mock(),
         stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
-        nftService: NFTService = .mock(),
+        nftService: any GemNftServiceProtocol = GemNftService.mock(),
     ) -> TransactionStateScheduler {
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: transactionStore,

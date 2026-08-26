@@ -15,6 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "GemAPI", path: "../../Packages/GemAPI"),
@@ -31,6 +32,7 @@ let package = Package(
         .target(
             name: "FiatConnect",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "Formatters",
                 "GemAPI",

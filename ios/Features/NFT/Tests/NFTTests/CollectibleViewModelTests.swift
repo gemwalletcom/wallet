@@ -1,3 +1,4 @@
+import class Gemstone.GemNftService
 import class Gemstone.GemExplorerService
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -134,7 +135,7 @@ extension CollectibleViewModel {
             wallet: wallet,
             assetData: assetData,
             avatarService: AvatarService(store: WalletStore.mock()),
-            nftService: .mock(),
+            nftService: GemNftService.mock(),
             explorerService: explorerService,
             isPresentingSelectedAssetInput: .constant(.none),
         )

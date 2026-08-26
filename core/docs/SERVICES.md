@@ -69,8 +69,8 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | `DiscoverAssetsService` | `GemAssetDiscoveryService` | Done | Wrapper removed; view models call the Core service directly |
 | `EarnService` | `GemStakeService` | Done | Wrapper removed; `sync_earn` and `get_earn_data` on the Core service, APR read from `GemStakeStore`; Android has no earn UI yet |
 | `ExplorerService` | `GemExplorerService` | Done | Moved to Core with the selected-explorer preference; both apps call the Core service directly (legacy selection migrated once) |
-| [`FiatService`](../../ios/Packages/GemstoneServices/Sources) | `GemFiatService` | Done | Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
-| [`NFTService`](../../ios/Packages/GemstoneServices/Sources) | `GemNftService` | Done | |
+| `FiatService` | `GemFiatService` | Done | Wrapper removed; view models and buy/sell operations call the Core service directly; Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
+| `NFTService` | `GemNftService` | Done | Wrapper removed; view models call the Core service directly |
 | `InAppNotificationService` | `GemNotificationService` | Done | Wrapper removed; view models call the Core service directly |
 | [`PerpetualService`](../../ios/Packages/GemstoneServices/Sources) | `GemPerpetualService` | Done | |
 | [`PriceAlertService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceAlertService` | Done | |
@@ -100,7 +100,7 @@ Store adapters and the thin app services are being consolidated so both apps loo
 - **iOS `Packages/GemstoneServices`** — the thin app-side services that wrap the Core services (`BalanceService.swift`, `FiatService.swift`, …), one file per service, tests under `Tests/`. The migrated `FeatureServices` move here as they are wired to `GemstoneStore`; wrappers that only forward calls (for example `AssetDiscoveryService`, `InAppNotificationService`, `MarketService`, `ChartService`) are removed and callers use the Core service directly; a wrapper stays only when it combines Core calls with app-side stores or files, or maps bridged JSON to typed models for several call sites.
 - **Android** — the same split in Android's patterns: store adapters in one package (`data/repositories/.../gemstone`, one file per store) and the coordinators/repositories stay thin wrappers over the Core services.
 
-Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: all migrated feature services moved (Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets, Balance, Earn, TransactionState, Perpetual); Stake and Node moved too; `Blockchain`, `ChainService` and `Signer` packages folded in (`Sources/Gateway`, `Sources/Signer`); pure-forwarding wrappers removed (AssetDiscovery, InAppNotification, Market, Chart, Stake, Earn, AddAsset).
+Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: all migrated feature services moved (Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets, Balance, Earn, TransactionState, Perpetual); Stake and Node moved too; `Blockchain`, `ChainService` and `Signer` packages folded in (`Sources/Gateway`, `Sources/Signer`); pure-forwarding wrappers removed (AssetDiscovery, InAppNotification, Market, Chart, Stake, Earn, AddAsset, ServiceStatus, WalletSetup, NFT, Fiat).
 
 ## Conventions
 

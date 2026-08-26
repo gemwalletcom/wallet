@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemNftService
 import GemstoneServicesTestKit
 import Foundation
 import struct Gemstone.GemTransactionStateResult
@@ -113,7 +114,7 @@ struct TransactionStateServiceTests {
                     updatedBalances()
                 },
                 stakeService: GemStakeServiceMock(),
-                nftService: .mock(),
+                nftService: GemNftService.mock(),
             )
 
             try await postProcessingService.process(wallet: wallet, transaction: transaction)
@@ -138,9 +139,7 @@ struct TransactionStateServiceTests {
             transactionStore: .mock(),
             balanceUpdater: BalanceUpdaterMock(),
             stakeService: GemStakeServiceMock(),
-            nftService: .mock(
-                service: GemNftServiceMock(assets: [nftData], store: GemstoneNftStore(store: nftStore)),
-            ),
+            nftService: GemNftServiceMock(assets: [nftData], store: GemstoneNftStore(store: nftStore)),
         )
 
         try await postProcessingService.process(
@@ -198,7 +197,7 @@ private extension TransactionStateServiceTests {
             transactionStore: store,
             balanceUpdater: balanceUpdater,
             stakeService: GemStakeServiceMock(),
-            nftService: .mock(),
+            nftService: GemNftService.mock(),
         )
         let service = TransactionStateService(
             transactionStore: store,

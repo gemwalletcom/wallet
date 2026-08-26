@@ -19,6 +19,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Localization", path: "../../Packages/Localization"),
         .package(name: "Style", path: "../../Packages/Style"),
@@ -40,6 +41,7 @@ let package = Package(
         .target(
             name: "WalletTab",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "Localization",
                 "Style",
@@ -60,6 +62,7 @@ let package = Package(
         .target(
             name: "WalletTabTestKit",
             dependencies: [
+                "Gemstone",
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),

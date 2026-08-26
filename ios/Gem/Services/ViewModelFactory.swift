@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemFiatServiceProtocol
 import ActivityService
 import GemstoneServices
 import Assets
@@ -40,7 +41,7 @@ public struct ViewModelFactory: Sendable {
     let addressNameService: AddressNameService
     let activityService: ActivityService
     let toastPresenter: ToastPresenter
-    let fiatService: FiatService
+    let fiatService: any GemFiatServiceProtocol
     let assetsService: AssetsService
     let assetSearchService: AssetSearchService
     let priceAlertService: PriceAlertService
@@ -151,7 +152,6 @@ public struct ViewModelFactory: Sendable {
             input: input,
             wallet: wallet,
             service: amountService,
-            fiatService: fiatService,
             onTransferAction: onTransferAction,
         )
     }

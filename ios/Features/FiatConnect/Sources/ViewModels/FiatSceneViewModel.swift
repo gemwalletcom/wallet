@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemFiatServiceProtocol
 import GemstoneServices
 import BigInt
 import Components
@@ -17,7 +18,7 @@ import Validators
 @MainActor
 @Observable
 public final class FiatSceneViewModel {
-    let fiatService: FiatService
+    let fiatService: any GemFiatServiceProtocol
     private let wallet: Wallet
     private let assetsEnabler: any AssetsEnabler
     private let assetAddress: AssetAddress
@@ -40,7 +41,7 @@ public final class FiatSceneViewModel {
     let sellViewModel: FiatOperationViewModel
 
     public init(
-        fiatService: FiatService,
+        fiatService: any GemFiatServiceProtocol,
         currencyFormatter: CurrencyFormatter = CurrencyFormatter(currencyCode: Currency.usd.rawValue),
         assetAddress: AssetAddress,
         wallet: Wallet,
@@ -233,7 +234,7 @@ extension FiatSceneViewModel {
             urlState = .loading
 
             do {
-                guard let url = try await fiatService.getQuoteUrl(walletId: wallet.id, quoteId: selectedQuote.id).redirectUrl.asURL else {
+                guard let url = try await FiatQuoteUrl(fiatService.getQuoteUrl(walletId: wallet.id.id, quoteId: selectedQuote.id)).redirectUrl.asURL else {
                     urlState = .noData
                     return
                 }

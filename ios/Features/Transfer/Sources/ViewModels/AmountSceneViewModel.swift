@@ -21,7 +21,6 @@ import Validators
 public final class AmountSceneViewModel {
     private let wallet: Wallet
     private let onTransferAction: TransferDataAction
-    let fiatService: FiatService
 
     private let formatter = ValueFormatter(style: .full)
     private let amountFormatter = ValueFormatter.auto
@@ -47,13 +46,11 @@ public final class AmountSceneViewModel {
         input: AmountInput,
         wallet: Wallet,
         service: AmountService,
-        fiatService: FiatService,
         preferences: Preferences = .standard,
         onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
         self.onTransferAction = onTransferAction
-        self.fiatService = fiatService
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
         provider = .make(from: input, wallet: wallet, service: service)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))

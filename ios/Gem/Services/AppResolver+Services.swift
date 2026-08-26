@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemFiatServiceProtocol
+import protocol Gemstone.GemNftServiceProtocol
 import ActivityService
 import GemstoneServices
 import AppService
@@ -50,7 +52,7 @@ extension AppResolver {
         let gemAssetsService: any GemAssetsServiceProtocol
         let explorerService: any GemExplorerServiceProtocol
         let gatewayService: GatewayService
-        let nftService: NFTService
+        let nftService: any GemNftServiceProtocol
         let avatarService: AvatarService
         let swapService: SwapService
         let releaseAlertService: ReleaseAlertService
@@ -73,7 +75,7 @@ extension AppResolver {
         let appLifecycleService: AppLifecycleService
         let inAppNotificationService: any GemNotificationServiceProtocol
         let portfolioService: PortfolioService
-        let fiatService: FiatService
+        let fiatService: any GemFiatServiceProtocol
         let contactService: ContactService
         let supportChatService: SupportChatService
     }

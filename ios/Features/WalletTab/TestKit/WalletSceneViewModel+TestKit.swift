@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemNftService
 import GemstoneServicesTestKit
 import Foundation
 import PreferencesTestKit
@@ -16,7 +17,7 @@ public extension WalletSceneViewModel {
             balanceService: .mock(),
             assetsEnabler: .mock(),
             bannerService: .mock(),
-            nftService: .mock(),
+            nftService: GemNftService.mock(),
             observablePreferences: .mock(),
             wallet: wallet,
             isPresentingSelectedAssetInput: .constant(.none),

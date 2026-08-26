@@ -11,14 +11,6 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 
-public extension NFTService {
-    static func mock(
-        service: any GemNftServiceProtocol = GemNftService.mock(),
-    ) -> NFTService {
-        NFTService(service: service)
-    }
-}
-
 public extension GemNftService {
     static func mock(nftStore: NFTStore = .mock()) -> GemNftService {
         GemNftService(

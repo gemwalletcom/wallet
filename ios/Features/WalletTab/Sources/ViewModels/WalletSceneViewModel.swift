@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
 import Components
 import Formatters
@@ -54,7 +55,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         balanceService: BalanceService,
         assetsEnabler: any AssetsEnabler,
         bannerService: BannerService,
-        nftService: NFTService,
+        nftService: any GemNftServiceProtocol,
         observablePreferences: ObservablePreferences,
         wallet: Wallet,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,

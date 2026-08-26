@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNftServiceProtocol
 import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
 import Primitives
@@ -9,13 +10,13 @@ public struct TransactionPostProcessingService: Sendable {
     private let transactionStore: TransactionStore
     private let balanceUpdater: any BalanceUpdater
     private let stakeService: any GemStakeServiceProtocol
-    private let nftService: NFTService
+    private let nftService: any GemNftServiceProtocol
 
     public init(
         transactionStore: TransactionStore,
         balanceUpdater: any BalanceUpdater,
         stakeService: any GemStakeServiceProtocol,
-        nftService: NFTService,
+        nftService: any GemNftServiceProtocol,
     ) {
         self.transactionStore = transactionStore
         self.balanceUpdater = balanceUpdater
@@ -48,7 +49,7 @@ public struct TransactionPostProcessingService: Sendable {
                 }
             }
         case .transferNFT:
-            try await nftService.updateAssets(wallet: wallet)
+            _ = try await nftService.sync(walletId: wallet.id.id)
         default:
             break
         }

@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemFiatServiceProtocol
+import protocol Gemstone.GemNftServiceProtocol
 import ActivityService
 import GemstoneServices
 import AppService
@@ -138,7 +140,7 @@ struct ServicesFactory {
         )
         let stakeService = gemStakeService
         let gemNftService = Gemstone.GemNftService(api: gemDeviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
-        let nftService = NFTService(service: gemNftService)
+        let nftService = gemNftService
         let transactionsService = TransactionsService(
             service: gemTransactionsService,
             transactionStore: storeManager.transactionStore,
@@ -190,7 +192,7 @@ struct ServicesFactory {
             assets: gemAssetsService,
             store: GemstoneFiatStore(store: storeManager.fiatTransactionStore),
         )
-        let fiatService = FiatService(service: gemFiatService)
+        let fiatService = gemFiatService
         let supportTypingState = SupportTypingState()
         let gemSupportStore = GemstoneSupportStore(store: storeManager.supportChatStore)
         let supportChatService = SupportChatService(
@@ -479,7 +481,7 @@ extension ServicesFactory {
         transactionStore: TransactionStore,
         gatewayService: GatewayService,
         stakeService: any GemStakeServiceProtocol,
-        nftService: NFTService,
+        nftService: any GemNftServiceProtocol,
         balanceService: BalanceService,
     ) -> TransactionStateScheduler {
         let postProcessingService = TransactionPostProcessingService(

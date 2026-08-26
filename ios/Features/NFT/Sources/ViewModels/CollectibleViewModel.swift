@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -21,7 +22,7 @@ public final class CollectibleViewModel {
     private let explorerService: any GemExplorerServiceProtocol
 
     let assetData: NFTAssetData
-    let nftService: NFTService
+    let nftService: any GemNftServiceProtocol
 
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingToast: ToastMessage?
@@ -34,7 +35,7 @@ public final class CollectibleViewModel {
         wallet: Wallet,
         assetData: NFTAssetData,
         avatarService: AvatarService,
-        nftService: NFTService,
+        nftService: any GemNftServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
@@ -283,7 +284,7 @@ extension CollectibleViewModel {
     func onSelectRefresh() {
         Task {
             do {
-                try await nftService.refreshAsset(wallet: wallet, assetId: assetData.asset.id)
+                try await nftService.refreshAsset(walletId: wallet.id.id, assetId: assetData.asset.id.identifier)
                 isPresentingToast = .success(Localized.Common.refresh)
             } catch {
                 debugLog("Refresh nft asset error: \(error)")

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNftServiceProtocol
 import Components
 import Foundation
 import Localization
@@ -12,7 +13,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class CollectionsViewModel: CollectionsViewable, Sendable {
-    private let nftService: NFTService
+    private let nftService: any GemNftServiceProtocol
 
     public let query: ObservableQuery<NFTRequest>
 
@@ -21,7 +22,7 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     public let wallet: Wallet
 
     public init(
-        nftService: NFTService,
+        nftService: any GemNftServiceProtocol,
         wallet: Wallet,
     ) {
         self.nftService = nftService
@@ -62,7 +63,7 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
 
     public func fetch() async {
         do {
-            let count = try await nftService.updateAssets(wallet: wallet)
+            let count = try await nftService.sync(walletId: wallet.id.id)
             debugLog("update nfts: \(count)")
         } catch {
             debugLog("update nfts error: \(error)")

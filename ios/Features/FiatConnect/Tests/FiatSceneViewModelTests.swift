@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
+import protocol Gemstone.GemFiatServiceProtocol
 import GemstoneServicesTestKit
 import BigInt
 @testable import FiatConnect
@@ -14,7 +16,7 @@ import Testing
 @MainActor
 final class FiatSceneViewModelTests {
     private static func mock(
-        fiatService: FiatService = .mock(),
+        fiatService: any GemFiatServiceProtocol = GemFiatServiceMock(),
         currencyFormatter: CurrencyFormatter = .init(locale: Locale.US, currencyCode: Currency.usd.rawValue),
         assetAddress: AssetAddress = .mock(),
         wallet: Wallet = .mock(),
