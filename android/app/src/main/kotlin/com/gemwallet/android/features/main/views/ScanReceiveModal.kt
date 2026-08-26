@@ -14,6 +14,7 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.presents.views.SelectReceiveScreen
 import com.gemwallet.android.features.receive.presents.ReceiveScreen
+import com.gemwallet.android.ui.components.PortraitOrientationLock
 import com.gemwallet.android.ui.components.QrCodeRequest
 import com.gemwallet.android.ui.components.ScanReceiveMode
 import com.gemwallet.android.ui.components.ScanReceiveSwitcher
@@ -34,6 +35,8 @@ fun ScanReceiveModal(
         shape = RectangleShape,
         dragHandle = null,
     ) {
+        PortraitOrientationLock()
+
         var mode by rememberSaveable { mutableStateOf(ScanReceiveMode.Scan) }
         var receiveAssetId by rememberSaveable { mutableStateOf<String?>(null) }
         var isReceivePresented by rememberSaveable { mutableStateOf(false) }
