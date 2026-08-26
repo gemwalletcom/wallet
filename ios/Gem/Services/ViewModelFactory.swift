@@ -7,7 +7,6 @@ import AssetsService
 import BalanceService
 import ChainService
 import EarnService
-import EventPresenterService
 import FiatConnect
 import FiatService
 import Foundation
@@ -50,7 +49,7 @@ public struct ViewModelFactory: Sendable {
     let transactionStateScheduler: TransactionStateScheduler
     let addressNameService: AddressNameService
     let activityService: ActivityService
-    let eventPresenterService: EventPresenterService
+    let toastPresenter: ToastPresenter
     let fiatService: FiatService
     let assetsService: AssetsService
     let assetSearchService: AssetSearchService
@@ -123,7 +122,7 @@ public struct ViewModelFactory: Sendable {
                 transactionStateScheduler: transactionStateScheduler,
                 addressNameService: addressNameService,
                 activityService: activityService,
-                eventPresenterService: eventPresenterService,
+                toastPresenter: toastPresenter,
                 chain: data.chain,
             ),
             onComplete: onComplete,

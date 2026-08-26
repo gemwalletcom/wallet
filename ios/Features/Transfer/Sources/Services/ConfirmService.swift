@@ -4,11 +4,11 @@ import ActivityService
 import AddressNameService
 import Blockchain
 import ChainService
-import EventPresenterService
 import ExplorerService
 import GemstonePrimitives
 import Keystore
 import Primitives
+import PrimitivesComponents
 
 public struct ConfirmService: Sendable {
     private let metadataProvider: any TransferMetadataProvidable
@@ -16,7 +16,7 @@ public struct ConfirmService: Sendable {
     private let simulationService: ConfirmSimulationService
     private let transferExecutor: any TransferExecutable
     private let activityService: ActivityService
-    private let eventPresenterService: EventPresenterService
+    private let toastPresenter: ToastPresenter
     private let keystore: any Keystore
     private let chainService: any ChainServiceable
     private let explorerService: any ExplorerLinkFetchable
@@ -28,7 +28,7 @@ public struct ConfirmService: Sendable {
         simulationService: ConfirmSimulationService,
         transferExecutor: any TransferExecutable,
         activityService: ActivityService,
-        eventPresenterService: EventPresenterService,
+        toastPresenter: ToastPresenter,
         keystore: any Keystore,
         chainService: any ChainServiceable,
         explorerService: any ExplorerLinkFetchable,
@@ -39,7 +39,7 @@ public struct ConfirmService: Sendable {
         self.simulationService = simulationService
         self.transferExecutor = transferExecutor
         self.activityService = activityService
-        self.eventPresenterService = eventPresenterService
+        self.toastPresenter = toastPresenter
         self.keystore = keystore
         self.chainService = chainService
         self.explorerService = explorerService
@@ -85,7 +85,7 @@ public struct ConfirmService: Sendable {
             delegate: request.delegate,
         )
         try await transferExecutor.execute(input: input)
-        await eventPresenterService.present(.transfer(request.data))
+        await toastPresenter.present(.transfer(for: request.data.type))
         if let recent = request.data.type.recentActivityData {
             updateRecent(data: recent, walletId: request.wallet.id)
         }

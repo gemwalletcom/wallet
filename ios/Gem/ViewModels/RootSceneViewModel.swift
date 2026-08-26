@@ -4,13 +4,13 @@ import AppService
 import AvatarService
 import Components
 import DeviceService
-import EventPresenterService
 import Foundation
 import Localization
 import LockManager
 import Onboarding
 import Preferences
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 import TransactionsService
 import TransactionStateService
@@ -28,7 +28,7 @@ final class RootSceneViewModel {
     private let navigationHandler: NavigationHandler
     private let releaseAlertService: ReleaseAlertService
     private let rateService: RateService
-    private let eventPresenterService: EventPresenterService
+    private let toastPresenter: ToastPresenter
     private let deviceService: any DeviceServiceable
 
     let observablePreferences: ObservablePreferences
@@ -46,8 +46,8 @@ final class RootSceneViewModel {
     var updateVersionAlertMessage: AlertMessage?
 
     var isPresentingToastMessage: ToastMessage? {
-        get { eventPresenterService.toastPresenter.toastMessage }
-        set { eventPresenterService.toastPresenter.toastMessage = newValue }
+        get { toastPresenter.toastMessage }
+        set { toastPresenter.toastMessage = newValue }
     }
 
     var isPresentingConnectorError: String? {
@@ -87,7 +87,7 @@ final class RootSceneViewModel {
         nameService: any NameServiceable,
         releaseAlertService: ReleaseAlertService,
         rateService: RateService,
-        eventPresenterService: EventPresenterService,
+        toastPresenter: ToastPresenter,
         avatarService: AvatarService,
         deviceService: any DeviceServiceable,
     ) {
@@ -105,7 +105,7 @@ final class RootSceneViewModel {
         self.nameService = nameService
         self.releaseAlertService = releaseAlertService
         self.rateService = rateService
-        self.eventPresenterService = eventPresenterService
+        self.toastPresenter = toastPresenter
         self.avatarService = avatarService
         self.deviceService = deviceService
     }
