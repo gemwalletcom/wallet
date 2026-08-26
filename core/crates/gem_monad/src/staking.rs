@@ -8,7 +8,7 @@ use gem_evm::rpc::{EthereumClient, EvmFeeCalculator, EvmStakingClient};
 use gem_evm::transaction_params::TransactionParams;
 use num_bigint::BigInt;
 use num_traits::Zero;
-use primitives::{AssetBalance, AssetId, Balance, Chain, DelegationBase, DelegationValidator, StakeType, TransactionFee, TransactionLoadInput};
+use primitives::{AssetBalance, AssetId, Balance, Chain, DelegationBase, DelegationValidator, StakeType};
 
 use crate::constants::{STAKING_LENS_CONTRACT, VALIDATOR_NAMES};
 use crate::encode::{decode_apys, decode_balance, decode_delegations, decode_validators, encode_apys, encode_balance, encode_delegations, encode_stake, encode_validators};
@@ -87,11 +87,7 @@ impl<C: Client + Clone> EvmStakingClient for MonadStakingClient<C> {
 }
 
 #[async_trait]
-impl<C: Client + Clone> EvmFeeCalculator for MonadStakingClient<C> {
-    async fn calculate_fee(&self, input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
-        self.client.calculate_fee(input, params, gas_limit).await
-    }
-}
+impl<C: Client + Clone> EvmFeeCalculator for MonadStakingClient<C> {}
 
 #[cfg(test)]
 mod tests {
