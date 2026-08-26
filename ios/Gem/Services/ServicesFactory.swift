@@ -214,7 +214,11 @@ struct ServicesFactory {
             ),
         )
         let supportTypingState = SupportTypingState()
-        let supportChatService = SupportChatService(store: storeManager.supportChatStore, provider: Gemstone.GemSupportService(api: gemDeviceApiClient), typing: supportTypingState)
+        let supportChatService = SupportChatService(
+            store: storeManager.supportChatStore,
+            provider: Gemstone.GemSupportService(api: gemDeviceApiClient, store: GemstoneSupportStore(store: storeManager.supportChatStore)),
+            typing: supportTypingState,
+        )
         let streamEventService = StreamEventService(
             walletStore: storeManager.walletStore,
             notificationStore: storeManager.inAppNotificationStore,

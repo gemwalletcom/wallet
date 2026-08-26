@@ -8,6 +8,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemSupportService
+import uniffi.gemstone.GemSupportStore
+import com.gemwallet.android.data.repositories.support.GemstoneSupportStore
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -17,6 +19,10 @@ object SupportChatModule {
     @Provides
     @Singleton
     fun provideSupportTypingState(): SupportTypingState = SupportTypingState()
+
+    @Provides
+    @Singleton
+    fun provideGemSupportStore(supportMessagesDao: SupportMessagesDao): GemSupportStore = GemstoneSupportStore(supportMessagesDao)
 
     @Provides
     @Singleton

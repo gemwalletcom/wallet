@@ -49,7 +49,7 @@ pub use rewards::GemRewardsService;
 pub use scan::GemScanService;
 pub use stake::{GemStakeService, GemStakeStore};
 pub use subscription::{GemSubscriptionService, GemWalletStore};
-pub use support::GemSupportService;
+pub use support::{GemSupportService, GemSupportStore};
 pub use transaction_state::{GemTransactionStateService, GemTransactionStateStore};
 pub use transactions::{GemTransactionStore, GemTransactionsService};
 pub use wallet_configuration::{GemWalletConfigurationService, GemWalletConfigurationStore};

@@ -201,24 +201,15 @@ public actor GemWalletConfigurationServiceMock: GemWalletConfigurationServicePro
 }
 
 public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked Sendable {
-    private let messages: [Primitives.SupportMessage]
+    public init() {}
 
-    public init(messages: [Primitives.SupportMessage] = []) {
-        self.messages = messages
-    }
+    public func syncMessages(fromTimestamp _: UInt64) async throws {}
 
-    public func getMessages(fromTimestamp _: UInt64) async throws -> [Gemstone.SupportMessage] {
-        try messages.map { try $0.json() }
-    }
+    public func sendText(content _: String) async throws {}
 
-    public func sendMessage(input: Gemstone.SupportMessageInput) async throws -> Gemstone.SupportMessage {
-        let content = try Primitives.SupportMessageInput(input).content
-        return try Primitives.SupportMessage(id: UUID().uuidString, content: content, sender: .user, status: .sent, createdAt: .now, images: []).json()
-    }
+    public func sendImage(image _: Data, fileName _: String, mimeType _: String) async throws {}
 
-    public func sendImage(image _: Data, fileName _: String, mimeType _: String) async throws -> Gemstone.SupportMessage {
-        try Primitives.SupportMessage(id: UUID().uuidString, content: "", sender: .user, status: .sent, createdAt: .now, images: []).json()
-    }
+    public func retryMessage(message _: Gemstone.SupportMessage) async throws {}
 }
 
 public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked Sendable {

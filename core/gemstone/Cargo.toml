@@ -61,6 +61,7 @@ base64 = { workspace = true }
 uniffi.workspace = true
 
 chrono = { workspace = true }
+uuid = { workspace = true }
 
 serde.workspace = true
 serde_json.workspace = true

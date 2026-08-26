@@ -23,6 +23,7 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemPriceAlertService`](../gemstone/src/services/price_alert/mod.rs) | [`GemPriceAlertStore`](../gemstone/src/services/price_alert/store.rs) | [Swift](../../ios/Packages/FeatureServices/PriceAlertService/GemstonePriceAlertStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/pricealerts/GemstonePriceAlertStore.kt) | Done | Alerts sync; enabled flag via `GemPreferencesService` |
 | [`GemStakeService`](../gemstone/src/services/stake/mod.rs) | [`GemStakeStore`](../gemstone/src/services/stake/store.rs) | [Swift](../../ios/Packages/ChainServices/StakeService/GemstoneStakeStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/stake/GemstoneStakeStore.kt) | Done | Validators and delegations sync |
 | [`GemSubscriptionService`](../gemstone/src/services/subscription/mod.rs) | [`GemWalletStore`](../gemstone/src/services/subscription/store.rs) | [Swift](../../ios/Packages/FeatureServices/DeviceService/GemstoneWalletStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/wallets/GemstoneWalletStore.kt) | Done | Wallet subscription changes |
+| [`GemSupportService`](../gemstone/src/services/support/mod.rs) | [`GemSupportStore`](../gemstone/src/services/support/store.rs) | [Swift](../../ios/Packages/FeatureServices/SupportChatService/GemstoneSupportStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/support/GemstoneSupportStore.kt) | Done | Message sync, pending/failed delivery of text and images |
 | [`GemTransactionStateService`](../gemstone/src/services/transaction_state/mod.rs) | [`GemTransactionStateStore`](../gemstone/src/services/transaction_state/store.rs) | [Swift](../../ios/Packages/FeatureServices/TransactionStateService/GemstoneTransactionStateStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/transactions/GemstoneTransactionStateStore.kt) | Done | Pending transaction status updates |
 | [`GemTransactionsService`](../gemstone/src/services/transactions/mod.rs) | [`GemTransactionStore`](../gemstone/src/services/transactions/store.rs) | [Swift](../../ios/Packages/FeatureServices/TransactionsService/GemstoneTransactionStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/transactions/GemstoneTransactionStore.kt) | Done | Transaction history sync |
 | [`GemWalletConfigurationService`](../gemstone/src/services/wallet_configuration/mod.rs) | [`GemWalletConfigurationStore`](../gemstone/src/services/wallet_configuration/store.rs) | [Swift](../../ios/Packages/FeatureServices/AppService/GemstoneWalletConfigurationStore.swift) | [Kotlin](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/wallet_import/GemstoneWalletConfigurationStore.kt) | Done | Initial wallet configuration sync, multi-signature banners |
@@ -34,7 +35,6 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemPortfolioService`](../gemstone/src/services/portfolio/mod.rs) | — | — | — | Done | Portfolio |
 | [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals |
 | [`GemScanService`](../gemstone/src/services/scan/mod.rs) | — | — | — | Done | Transaction scanning |
-| [`GemSupportService`](../gemstone/src/services/support/mod.rs) | — | — | — | Done | Support chat |
 
 ## App services (iOS is the reference)
 
@@ -71,7 +71,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`RewardsService`](../../ios/Packages/FeatureServices/RewardsService) | `GemRewardsService` | Done | |
 | [`ServiceStatusService`](../../ios/Packages/FeatureServices/ServiceStatusService) | `GemServiceStatus` | Done | Thin wrapper over the Core client |
 | [`StreamService`](../../ios/Packages/FeatureServices/StreamService) | — | Review | WebSocket subscriptions, see [DEVICE_WEBSOCKETS.md](DEVICE_WEBSOCKETS.md) |
-| [`SupportChatService`](../../ios/Packages/FeatureServices/SupportChatService) | `GemSupportService` | Review | |
+| [`SupportChatService`](../../ios/Packages/FeatureServices/SupportChatService) | `GemSupportService` | Done | Typing state and image files stay app-side |
 | [`SwapService`](../../ios/Packages/FeatureServices/SwapService) | — | Review | Swapper lives in Core; app wrapper to review |
 | [`TransactionsService`](../../ios/Packages/FeatureServices/TransactionsService) | `GemTransactionsService` | Done | |
 | [`TransactionStateService`](../../ios/Packages/FeatureServices/TransactionStateService) | `GemTransactionStateService` | Done | |

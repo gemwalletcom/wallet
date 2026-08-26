@@ -4267,6 +4267,7 @@ dependencies = [
  "swapper",
  "tempfile",
  "uniffi",
+ "uuid",
  "yielder",
  "zeroize",
 ]

@@ -35,18 +35,20 @@ public struct SupportChatService: Sendable {
     }
 
     public func syncMessages(fromTimestamp: Int) async throws {
-        try await store.addMessages(provider.getMessages(fromTimestamp: UInt64(fromTimestamp)).map { try SupportMessage($0) })
+        try await provider.syncMessages(fromTimestamp: UInt64(fromTimestamp))
     }
 
     public func sendMessage(_ content: SupportMessageContent) async throws {
-        let message = SupportMessage.pending(content)
-        try store.addMessages([message])
-        await deliver(message, content: content)
+        switch content {
+        case let .text(text):
+            try await provider.sendText(content: text)
+        case let .image(attachment):
+            try await provider.sendImage(image: attachment.data, fileName: attachment.fileName, mimeType: attachment.mimeType)
+        }
     }
 
     public func retryMessage(_ message: SupportMessage) async throws {
-        try store.addMessages([message.with(status: .sending)])
-        await deliver(message, content: .text(message.content))
+        try await provider.retryMessage(message: message.json())
     }
 
     public func imageFile(for url: URL) async throws -> URL {
@@ -59,27 +61,5 @@ public struct SupportChatService: Sendable {
         let file = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
         try data.write(to: file)
         return file
-    }
-}
-
-// MARK: - Private
-
-private extension SupportChatService {
-    func deliver(_ message: SupportMessage, content: SupportMessageContent) async {
-        do {
-            let sent = try await send(content)
-            try store.replace(id: message.id, with: sent)
-        } catch {
-            try? store.addMessages([message.with(status: .failed)])
-        }
-    }
-
-    func send(_ content: SupportMessageContent) async throws -> SupportMessage {
-        switch content {
-        case let .text(text):
-            try await SupportMessage(provider.sendMessage(input: SupportMessageInput(content: text).json()))
-        case let .image(attachment):
-            try await SupportMessage(provider.sendImage(image: attachment.data, fileName: attachment.fileName, mimeType: attachment.mimeType))
-        }
     }
 }
