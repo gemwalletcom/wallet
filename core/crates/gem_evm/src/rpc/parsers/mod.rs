@@ -15,8 +15,8 @@ use crate::ethereum_address_checksum;
 use primitives::{AssetId, Chain, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionType};
 
 use self::{
-    across::AcrossParser, mayan::MayanParser, okx::OkxParser, pancakeswap::PancakeSwapParser, staking::MonadStakingParser, staking::SmartChainStakingParser,
-    universal_router::UniversalRouterParser, yo::YoParser,
+    across::AcrossParser, mayan::MayanParser, okx::OkxParser, pancakeswap::PancakeSwapParser, staking::SmartChainStakingParser, universal_router::UniversalRouterParser,
+    yo::YoParser,
 };
 
 pub const EVENT_WORD_SIZE: usize = 64;
@@ -29,6 +29,10 @@ pub struct ParseContext<'a> {
 }
 
 impl ParseContext<'_> {
+    pub fn is_to(&self, address: &str) -> bool {
+        self.is_to_any(&[address])
+    }
+
     pub fn is_to_any(&self, addresses: &[&str]) -> bool {
         self.transaction
             .to
@@ -71,9 +75,8 @@ pub fn ethereum_value_from_log_data(data: &str, start: usize, end: usize) -> Opt
 pub struct ProtocolParsers;
 
 impl ProtocolParsers {
-    fn default_parsers() -> [&'static dyn ProtocolParser; 8] {
+    fn default_parsers() -> [&'static dyn ProtocolParser; 7] {
         [
-            &MonadStakingParser,
             &SmartChainStakingParser,
             &AcrossParser,
             &MayanParser,

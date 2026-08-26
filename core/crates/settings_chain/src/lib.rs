@@ -17,6 +17,7 @@ use gem_everstake::EverstakeStakingClient;
 use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
+use gem_monad::MonadStakingClient;
 use gem_near::rpc::{NearClient, NearIndexer, NearProvider};
 use gem_polkadot::rpc::{PolkadotClient, PolkadotIndexer, PolkadotProvider};
 use gem_solana::rpc::{SolanaClient, SolanaIndexer, SolanaProvider};
@@ -94,6 +95,7 @@ impl ProviderFactory {
                                 asset_balances,
                                 Box::new(EverstakeStakingClient::new(client, config.everstake_url.clone())),
                             ),
+                            EVMChain::Monad => EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(MonadStakingClient::new(client))),
                             _ => EthereumProvider::new(client, transactions, asset_balances),
                         })
                     } else {
@@ -101,6 +103,7 @@ impl ProviderFactory {
                             EVMChain::Ethereum => {
                                 EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, config.everstake_url.clone())))
                             }
+                            EVMChain::Monad => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(MonadStakingClient::new(client))),
                             _ => EthereumProvider::new_rpc_only(client),
                         })
                     }

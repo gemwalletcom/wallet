@@ -56,7 +56,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let params = match &input.input_type {
             TransactionInputType::Stake(_, stake_type) => match self.chain {
-                EVMChain::SmartChain | EVMChain::Monad => get_transaction_params(self.chain, &input)?,
+                EVMChain::SmartChain => get_transaction_params(self.chain, &input)?,
                 _ => self.provider.encode_stake(stake_type, &input.value_as_bigint()?)?,
             },
             _ => get_transaction_params(self.chain, &input)?,

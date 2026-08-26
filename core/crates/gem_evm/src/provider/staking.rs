@@ -15,7 +15,6 @@ impl<C: Client + Clone> ChainStaking for EthereumProvider<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
         match self.chain {
             EVMChain::SmartChain => self.get_smartchain_staking_apy().await,
-            EVMChain::Monad => self.get_monad_staking_apy().await,
             _ => self.provider.get_staking_apy().await,
         }
     }
@@ -23,7 +22,6 @@ impl<C: Client + Clone> ChainStaking for EthereumProvider<C> {
     async fn get_staking_validators(&self, apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
         match self.chain {
             EVMChain::SmartChain => self.get_smartchain_validators(apy.unwrap_or(0.0)).await,
-            EVMChain::Monad => self.get_monad_validators().await,
             _ => self.provider.get_staking_validators(apy).await,
         }
     }
@@ -31,7 +29,6 @@ impl<C: Client + Clone> ChainStaking for EthereumProvider<C> {
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
         match self.chain {
             EVMChain::SmartChain => self.get_smartchain_delegations(&address).await,
-            EVMChain::Monad => self.get_monad_delegations(&address).await,
             _ => self.provider.get_staking_delegations(&address).await,
         }
     }
@@ -39,7 +36,7 @@ impl<C: Client + Clone> ChainStaking for EthereumProvider<C> {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
-    use crate::provider::testkit::{TEST_MONAD_ADDRESS, TEST_SMARTCHAIN_STAKING_ADDRESS, create_monad_test_client, create_smartchain_test_client};
+    use crate::provider::testkit::{TEST_SMARTCHAIN_STAKING_ADDRESS, create_smartchain_test_client};
     use chain_traits::ChainStaking;
     use primitives::Chain;
 
@@ -89,29 +86,6 @@ mod chain_integration_tests {
         println!("SmartChain APY: {}", apy);
         assert!(apy > 0.1, "Max APY should be greater than 0.1%, got: {}", apy);
 
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_monad_get_staking_delegations() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_monad_test_client();
-        let delegations = client.get_staking_delegations(TEST_MONAD_ADDRESS.to_string()).await?;
-
-        assert!(!delegations.is_empty());
-
-        println!("Monad Delegations count: {}", delegations.len());
-        println!("Monad Delegations: {:?}", delegations);
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_monad_get_staking_apy() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_monad_test_client();
-        let apy = client.get_staking_apy().await?.unwrap();
-
-        println!("Monad APY: {}", apy);
-        assert!(apy > 0.0);
         Ok(())
     }
 }
