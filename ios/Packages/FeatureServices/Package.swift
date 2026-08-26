@@ -357,6 +357,8 @@ let package = Package(
         .target(
             name: "DiscoverAssetsService",
             dependencies: [
+                "Store",
+                "GemstonePrimitives",
                 "Primitives",
                 "BalanceService",
                 "AssetsService",

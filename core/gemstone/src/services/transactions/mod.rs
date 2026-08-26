@@ -52,8 +52,4 @@ impl GemTransactionsService {
         self.address_store.save_address_names(response.address_names).await?;
         self.store.set_sync_timestamp(wallet_id, asset_id, timestamp).await
     }
-
-    pub async fn get_assets_list(&self, wallet_id: String, from_timestamp: u64) -> Result<Vec<String>, GemApiError> {
-        Ok(self.api.client.get_assets_list(wallet_id, from_timestamp).await?)
-    }
 }

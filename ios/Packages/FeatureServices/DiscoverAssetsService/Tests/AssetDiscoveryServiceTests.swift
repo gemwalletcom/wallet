@@ -78,7 +78,6 @@ struct AssetDiscoveryServiceTests {
         #expect(preferences.completeInitialLoadAssets)
         #expect(preferences.completeInitialLoadTransactions)
         #expect(preferences.completeInitialLoadNFTs)
-        #expect(preferences.assetsTimestamp > 0)
         #expect(initialSavedTransactions.map(\.id.hash) == [initialTransaction.id.hash])
         #expect(initialSavedNFTs.map(\.collection.id) == [initialNFT.collection.id])
         #expect(initialSavedNFTs.flatMap(\.assets).map(\.id) == initialNFT.assets.map(\.id))

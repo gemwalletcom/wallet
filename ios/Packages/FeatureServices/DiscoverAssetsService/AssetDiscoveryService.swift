@@ -1,31 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AssetsService
-import BalanceService
 import Foundation
-import protocol Gemstone.GemTransactionsServiceProtocol
+import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import NFTService
 import Preferences
 import Primitives
 import TransactionsService
 
 public struct AssetDiscoveryService: AssetDiscoverable {
-    private let assetsListService: any GemTransactionsServiceProtocol
-    private let assetService: AssetsService
-    private let assetsEnabler: any AssetsEnabler
+    private let discovery: any GemAssetDiscoveryServiceProtocol
     private let transactionsService: TransactionsService
     private let nftService: NFTService
 
     public init(
-        assetsListService: any GemTransactionsServiceProtocol,
-        assetService: AssetsService,
-        assetsEnabler: any AssetsEnabler,
+        discovery: any GemAssetDiscoveryServiceProtocol,
         transactionsService: TransactionsService,
         nftService: NFTService,
     ) {
-        self.assetsListService = assetsListService
-        self.assetService = assetService
-        self.assetsEnabler = assetsEnabler
+        self.discovery = discovery
         self.transactionsService = transactionsService
         self.nftService = nftService
     }
@@ -40,14 +32,8 @@ public struct AssetDiscoveryService: AssetDiscoverable {
     }
 
     private func discoverAssets(wallet: Wallet, preferences: WalletPreferences) async throws {
-        let assetIds = try await assetsListService.getAssetsList(walletId: wallet.id.id, fromTimestamp: UInt64(preferences.assetsTimestamp)).compactMap { try? AssetId(id: $0) }
-        if assetIds.isNotEmpty {
-            try await assetService.prefetchAssets(assetIds: assetIds)
-            try await assetsEnabler.enableAssets(wallet: wallet, assetIds: assetIds, enabled: true)
-        }
-
+        _ = try await discovery.discover(walletId: wallet.id.id)
         preferences.completeInitialLoadAssets = true
-        preferences.assetsTimestamp = Int(Date.now.timeIntervalSince1970)
     }
 
     private func discoverTransactions(wallet: Wallet, preferences: WalletPreferences) async throws {

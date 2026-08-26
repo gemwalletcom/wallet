@@ -101,13 +101,8 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
 
     private let lock = NSLock()
     private var onSync: Sync
-    private let assetsList: [Primitives.AssetId]
 
-    public init(
-        assetsList: [Primitives.AssetId] = [],
-        onSync: @escaping Sync = { _, _ in },
-    ) {
-        self.assetsList = assetsList
+    public init(onSync: @escaping Sync = { _, _ in }) {
         self.onSync = onSync
     }
 
@@ -117,10 +112,6 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
 
     public func sync(walletId: String, assetId: Gemstone.AssetId?) async throws {
         try await lock.withLock { onSync }(walletId, assetId)
-    }
-
-    public func getAssetsList(walletId _: String, fromTimestamp _: UInt64) async throws -> [String] {
-        assetsList.map(\.identifier)
     }
 
 }
@@ -303,4 +294,12 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     public func syncMarkets(chain _: Gemstone.Chain) async throws {}
 
     public func syncPositions(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}
+}
+
+public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtocol, @unchecked Sendable {
+    public init() {}
+
+    public func discover(walletId _: String) async throws -> [Gemstone.AssetId] {
+        []
+    }
 }

@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.wallet_import.coordinators.GetAvailableAssetIds
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
@@ -8,17 +7,14 @@ import com.gemwallet.android.application.transactions.coordinators.SyncTransacti
 import com.gemwallet.android.cases.banners.AddBanner
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.nft.SyncNfts
-import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.coordinators.wallet_import.SyncWalletConfigurationImpl
 import com.gemwallet.android.data.coordinators.wallet_import.services.ImportWalletService
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemTransactionsService
+import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemWalletConfigurationService
 import javax.inject.Singleton
 
@@ -26,13 +22,6 @@ import javax.inject.Singleton
 @Module
 object WalletImportModule {
 
-    @Provides
-    @Singleton
-    fun provideGetAvailableAssetIds(
-        transactionsService: GemTransactionsService,
-    ): GetAvailableAssetIds = GetAvailableAssetIds { walletId ->
-        transactionsService.getAssetsList(walletId = walletId, fromTimestamp = 0u)
-    }
 
     @Provides
     @Singleton
@@ -49,19 +38,13 @@ object WalletImportModule {
     @Provides
     @Singleton
     fun provideImportWalletService(
-        sessionRepository: SessionRepository,
-        getAvailableAssetIds: GetAvailableAssetIds,
-        searchTokensCase: SearchTokensCase,
-        assetsRepository: AssetsRepository,
+        discoveryService: GemAssetDiscoveryService,
         syncDevice: SyncDevice,
         syncTransactions: SyncTransactions,
         syncNfts: SyncNfts,
         walletConfigurationSync: SyncWalletConfiguration,
     ): ImportWalletService = ImportWalletService(
-        sessionRepository = sessionRepository,
-        getAvailableAssetIds = getAvailableAssetIds,
-        searchTokensCase = searchTokensCase,
-        assetsRepository = assetsRepository,
+        discoveryService = discoveryService,
         syncDevice = syncDevice,
         syncTransactions = syncTransactions,
         syncNfts = syncNfts,

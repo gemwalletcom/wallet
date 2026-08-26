@@ -67,6 +67,13 @@ import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
+import com.gemwallet.android.data.coordinators.asset.GemstoneAssetDiscoveryStore
+import com.gemwallet.android.data.repositories.wallets.GemstoneWalletStore
+import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.data.service.store.WalletPreferencesFactory
+import dagger.Lazy
+import uniffi.gemstone.GemAssetDiscoveryService
+import uniffi.gemstone.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -225,6 +232,21 @@ object AssetModule {
         streamSubscriptionService = streamSubscriptionService,
         prefetchAssets = prefetchAssets,
         sessionRepository = sessionRepository,
+    )
+
+    @Provides
+    @Singleton
+    fun provideGemAssetDiscoveryService(
+        apiClient: GemDeviceApiClient,
+        assetsService: GemAssetsService,
+        walletsRepository: Lazy<WalletsRepository>,
+        walletPreferencesFactory: WalletPreferencesFactory,
+        enableAsset: EnableAsset,
+    ): GemAssetDiscoveryService = GemAssetDiscoveryService(
+        apiClient,
+        assetsService,
+        GemstoneWalletStore(walletsRepository),
+        GemstoneAssetDiscoveryStore(walletPreferencesFactory, enableAsset),
     )
 
     @Provides

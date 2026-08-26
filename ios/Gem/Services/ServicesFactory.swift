@@ -247,9 +247,12 @@ struct ServicesFactory {
             priceUpdater: streamSubscriptionService,
         )
         let assetDiscoveryService = AssetDiscoveryService(
-            assetsListService: gemTransactionsService,
-            assetService: assetsService,
-            assetsEnabler: assetsEnabler,
+            discovery: Gemstone.GemAssetDiscoveryService(
+                api: gemDeviceApiClient,
+                assets: gemAssetsService,
+                walletStore: gemWalletStore,
+                store: GemstoneAssetDiscoveryStore(walletStore: storeManager.walletStore, assetsEnabler: assetsEnabler),
+            ),
             transactionsService: transactionsService,
             nftService: nftService,
         )

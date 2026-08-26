@@ -1,3 +1,4 @@
+pub mod asset_discovery;
 pub mod assets;
 pub mod auth;
 pub mod balance;
@@ -23,6 +24,7 @@ pub mod transaction_state;
 pub mod transactions;
 pub mod wallet_configuration;
 
+pub use asset_discovery::{GemAssetDiscoveryService, GemAssetDiscoveryStore};
 pub use assets::{GemAssetStore, GemAssetsService};
 pub use auth::GemAuthService;
 pub use balance::{GemBalanceService, GemBalanceStore};
