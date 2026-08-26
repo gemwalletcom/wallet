@@ -98,4 +98,4 @@ class TokensRepository (
     }
 }
 
-fun listPriorityQuery(listId: String) = "::list:$listId"
+fun listPriorityQuery(listId: String) = "tag:$listId"

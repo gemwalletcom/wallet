@@ -37,7 +37,7 @@ struct WalletNavigationView: View {
     @Environment(\.perpetualService) private var perpetualService
     @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
     @Environment(\.activityService) private var activityService
-    @Environment(\.walletSearchService) private var walletSearchService
+    @Environment(\.searchService) private var searchService
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nftService) private var nftService
@@ -58,7 +58,7 @@ struct WalletNavigationView: View {
                 WalletSearchScene(
                     model: WalletSearchSceneViewModel(
                         wallet: model.wallet,
-                        searchService: walletSearchService,
+                        searchService: searchService,
                         activityService: activityService,
                         assetsEnabler: assetsEnabler,
                         perpetualService: perpetualService,

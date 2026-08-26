@@ -31,7 +31,12 @@ import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemFiatStore
+import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
+import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemSearchStore
+import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemPortfolioService
@@ -154,6 +159,16 @@ object GatewayModule {
         bannerStore: GemBannerStore,
         store: GemWalletConfigurationStore,
     ): GemWalletConfigurationService = GemWalletConfigurationService(apiClient, bannerStore, store)
+
+    @Provides
+    @Singleton
+    fun provideGemSearchService(
+        assetsService: GemAssetsService,
+        assetStore: GemAssetStore,
+        priceService: GemPriceService,
+        perpetualStore: GemstonePerpetualStore,
+        searchStore: GemSearchStore,
+    ): GemSearchService = GemSearchService(assetsService, assetStore, priceService, perpetualStore, searchStore)
 
     @Provides
     @Singleton

@@ -2,6 +2,8 @@
 
 import GemstoneServices
 import GemstoneServicesTestKit
+import protocol Gemstone.GemSearchServiceProtocol
+import GemstonePrimitivesTestKit
 import Preferences
 import PreferencesTestKit
 import Primitives
@@ -12,7 +14,7 @@ public extension WalletSearchSceneViewModel {
     @MainActor
     static func mock(
         wallet: Wallet = .mock(),
-        searchService: WalletSearchService = .mock(),
+        searchService: any GemSearchServiceProtocol = GemSearchServiceMock(),
         activityService: ActivityService = .mock(),
         assetsEnabler: any AssetsEnabler = .mock(),
         perpetualService: PerpetualService = .mock(),

@@ -3,6 +3,7 @@
 import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemRewardsServiceProtocol
+import protocol Gemstone.GemSearchServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemBannerServiceProtocol
@@ -72,8 +73,7 @@ extension AppResolver {
         let toastPresenter: ToastPresenter
         let viewModelFactory: ViewModelFactory
         let rewardsService: any GemRewardsServiceProtocol
-        let walletSearchService: WalletSearchService
-        let assetSearchService: AssetSearchService
+        let searchService: any GemSearchServiceProtocol
         let appLifecycleService: AppLifecycleService
         let inAppNotificationService: any GemNotificationServiceProtocol
         let portfolioService: any GemPortfolioServiceProtocol

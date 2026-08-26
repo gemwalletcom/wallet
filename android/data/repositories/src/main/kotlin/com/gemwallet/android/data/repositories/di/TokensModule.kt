@@ -20,6 +20,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemSearchService
+import uniffi.gemstone.GemSearchStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneSearchStore
+import com.gemwallet.android.data.repositories.session.SessionRepository
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -51,14 +55,15 @@ object TokensModule {
 
     @Provides
     @Singleton
+    fun provideGemSearchStore(searchDao: SearchDao, assetListDao: AssetListDao): GemSearchStore = GemstoneSearchStore(searchDao, assetListDao)
+
+    @Provides
+    @Singleton
     fun provideWalletSearchTokens(
         tokensRepository: TokensRepository,
-        gemSearch: GemSearch,
-        perpetualRepository: PerpetualRepository,
-        searchDao: SearchDao,
-        assetListDao: AssetListDao,
-        gateway: GemGateway,
-    ): WalletSearchTokens = WalletSearchTokens(tokensRepository, gemSearch, perpetualRepository, searchDao, assetListDao, TokenService(gateway))
+        searchService: GemSearchService,
+        sessionRepository: SessionRepository,
+    ): WalletSearchTokens = WalletSearchTokens(tokensRepository, searchService, sessionRepository)
 
     @Provides
     @Singleton

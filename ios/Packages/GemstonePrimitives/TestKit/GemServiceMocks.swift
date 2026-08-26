@@ -475,3 +475,19 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
 
     public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
 }
+
+public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Sendable {
+    private let assets: [Primitives.AssetBasic]
+
+    public init(assets: [Primitives.AssetBasic] = []) {
+        self.assets = assets
+    }
+
+    public func search(wallet _: Gemstone.Wallet, query _: String, scope _: GemSearchScope, currency _: Gemstone.Currency) async throws -> Bool {
+        !assets.isEmpty
+    }
+
+    public func searchAssets(wallet _: Gemstone.Wallet, query _: String, currency _: Gemstone.Currency) async throws -> [Gemstone.AssetBasic] {
+        try assets.map { try $0.json() }
+    }
+}

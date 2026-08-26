@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Components
+import protocol Gemstone.GemSearchServiceProtocol
+import GemstoneServices
 import Foundation
 import GemstonePrimitives
 import Localization
@@ -19,7 +20,7 @@ public final class SelectAssetViewModel {
     let preferences: Preferences
     let selectType: SelectAssetType
     let flow: SelectAssetFlow
-    let searchService: AssetSearchService
+    let searchService: any GemSearchServiceProtocol
     let assetsEnabler: any AssetsEnabler
     let priceAlertService: PriceAlertService
     let activityService: ActivityService
@@ -48,7 +49,7 @@ public final class SelectAssetViewModel {
         preferences: Preferences = Preferences.standard,
         wallet: Wallet,
         selectType: SelectAssetType,
-        searchService: AssetSearchService,
+        searchService: any GemSearchServiceProtocol,
         assetsEnabler: any AssetsEnabler,
         priceAlertService: PriceAlertService,
         activityService: ActivityService,
@@ -281,7 +282,7 @@ extension SelectAssetViewModel {
 
     private func searchAssets(query: String) async {
         do {
-            let assets = try await searchService.searchAssets(wallet: wallet, query: query)
+            let assets = try await searchService.searchAssets(wallet: wallet, query: query, currency: preferences.currency)
             state = .data(assets)
         } catch {
             handle(error: error)

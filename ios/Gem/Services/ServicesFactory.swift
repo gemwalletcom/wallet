@@ -290,19 +290,12 @@ struct ServicesFactory {
             walletConnectorPresenter: presenter,
             walletSessionService: walletSessionService,
         )
-        let walletSearchService = WalletSearchService(
-            assetsService: gemAssetsService,
-            assetStore: storeManager.assetStore,
-            searchStore: storeManager.searchStore,
-            perpetualStore: storeManager.perpetualStore,
-            assetListStore: storeManager.assetListStore,
-            priceService: priceService,
-            preferences: preferences,
-        )
-        let assetSearchService = AssetSearchService(
-            assetsService: gemAssetsService,
-            assetStore: storeManager.assetStore,
-            searchStore: storeManager.searchStore,
+        let searchService = Gemstone.GemSearchService(
+            assets: gemAssetsService,
+            assetStore: gemAssetStore,
+            price: gemPriceService,
+            perpetualStore: gemPerpetualStore,
+            store: GemstoneSearchStore(store: storeManager.searchStore, assetListStore: storeManager.assetListStore),
         )
         let inAppNotificationService = Gemstone.GemNotificationService(
             api: gemDeviceApiClient,
@@ -360,9 +353,8 @@ struct ServicesFactory {
             fiatService: fiatService,
             assetsService: gemAssetsService,
             assetStore: storeManager.assetStore,
-            assetSearchService: assetSearchService,
             priceAlertService: priceAlertService,
-            walletSearchService: walletSearchService,
+            searchService: searchService,
             perpetualService: perpetualService,
         )
 
@@ -410,8 +402,7 @@ struct ServicesFactory {
             toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,
             rewardsService: rewardsService,
-            walletSearchService: walletSearchService,
-            assetSearchService: assetSearchService,
+            searchService: searchService,
             appLifecycleService: appLifecycleService,
             inAppNotificationService: inAppNotificationService,
             portfolioService: portfolioService,

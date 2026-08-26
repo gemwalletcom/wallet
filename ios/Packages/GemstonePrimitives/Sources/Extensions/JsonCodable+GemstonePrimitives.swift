@@ -31,6 +31,7 @@ extension Primitives.ApprovalData: JsonCodable {}
 extension Primitives.Asset: JsonCodable {}
 extension Primitives.AssetBasic: JsonCodable {}
 extension Primitives.AssetFull: JsonCodable {}
+extension Primitives.AssetList: JsonCodable {}
 extension Primitives.AssetMarket: JsonCodable {}
 extension Primitives.AssetPrice: JsonCodable {}
 extension Primitives.AssetType: JsonCodable {}

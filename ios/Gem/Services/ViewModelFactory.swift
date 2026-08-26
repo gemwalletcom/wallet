@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
+import protocol Gemstone.GemSearchServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
@@ -48,9 +49,8 @@ public struct ViewModelFactory: Sendable {
     let fiatService: any GemFiatServiceProtocol
     let assetsService: any GemAssetsServiceProtocol
     let assetStore: AssetStore
-    let assetSearchService: AssetSearchService
     let priceAlertService: PriceAlertService
-    let walletSearchService: WalletSearchService
+    let searchService: any GemSearchServiceProtocol
     let perpetualService: PerpetualService
 
     @MainActor
@@ -63,7 +63,7 @@ public struct ViewModelFactory: Sendable {
         SelectAssetViewModel(
             wallet: wallet,
             selectType: selectType,
-            searchService: assetSearchService,
+            searchService: searchService,
             assetsEnabler: assetsEnabler,
             priceAlertService: priceAlertService,
             activityService: activityService,
@@ -83,7 +83,7 @@ public struct ViewModelFactory: Sendable {
             wallet: wallet,
             assetsEnabler: assetsEnabler,
             preferences: Preferences.standard,
-            searchService: walletSearchService,
+            searchService: searchService,
             perpetualService: perpetualService,
             activityService: activityService,
             request: request,

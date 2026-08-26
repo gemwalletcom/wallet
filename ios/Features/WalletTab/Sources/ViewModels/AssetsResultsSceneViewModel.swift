@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Components
+import protocol Gemstone.GemSearchServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Foundation
 import Localization
 import Preferences
@@ -18,7 +20,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
 
     let assetsEnabler: any AssetsEnabler
     private let preferences: Preferences
-    private let searchService: WalletSearchService
+    private let searchService: any GemSearchServiceProtocol
     let perpetualService: PerpetualService
     private let activityService: ActivityService
     let wallet: Wallet
@@ -38,7 +40,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         wallet: Wallet,
         assetsEnabler: any AssetsEnabler,
         preferences: Preferences,
-        searchService: WalletSearchService,
+        searchService: any GemSearchServiceProtocol,
         perpetualService: PerpetualService,
         activityService: ActivityService,
         request: WalletSearchRequest,
@@ -125,6 +127,7 @@ extension AssetsResultsSceneViewModel {
                 wallet: wallet,
                 query: searchQuery.request.searchBy,
                 scope: searchQuery.request.scope,
+                currency: preferences.currency,
             )
             state = .data(true)
         } catch {

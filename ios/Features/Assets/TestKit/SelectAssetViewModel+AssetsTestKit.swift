@@ -5,6 +5,7 @@ import GemstoneServicesTestKit
 import GemstoneServices
 import Components
 import Foundation
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -21,7 +22,7 @@ public extension SelectAssetViewModel {
         let model = SelectAssetViewModel(
             wallet: wallet,
             selectType: selectType,
-            searchService: .mock(),
+            searchService: GemSearchServiceMock(),
             assetsEnabler: assetsEnabler,
             priceAlertService: .mock(),
             activityService: .mock(),

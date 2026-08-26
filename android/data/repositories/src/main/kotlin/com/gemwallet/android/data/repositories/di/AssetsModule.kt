@@ -27,6 +27,7 @@ import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
 import com.gemwallet.android.data.services.gemapi.http.GemDeviceRequestSigner
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
 import uniffi.gemstone.GemApiClient
+import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetsService
 import com.gemwallet.android.data.repositories.gemstone.GemstoneBalanceStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
@@ -197,14 +198,20 @@ object AssetsModule {
 
     @Provides
     @Singleton
+    fun provideGemAssetStore(
+        assetsDao: AssetsDao,
+        availabilityService: AssetsAvailabilityService,
+    ): GemAssetStore = GemstoneAssetStore(assetsDao, availabilityService)
+
+    @Provides
+    @Singleton
     fun provideGemAssetsService(
         apiClient: GemApiClient,
         gateway: GemGateway,
-        assetsDao: AssetsDao,
-        availabilityService: AssetsAvailabilityService,
+        assetStore: GemAssetStore,
         priceService: GemPriceService,
         preferencesService: GemPreferencesService,
-    ): GemAssetsService = GemAssetsService(apiClient, gateway, GemstoneAssetStore(assetsDao, availabilityService), priceService, preferencesService)
+    ): GemAssetsService = GemAssetsService(apiClient, gateway, assetStore, priceService, preferencesService)
 
     @Provides
     @Singleton

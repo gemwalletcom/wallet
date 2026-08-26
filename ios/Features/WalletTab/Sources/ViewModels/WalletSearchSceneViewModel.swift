@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Components
+import protocol Gemstone.GemSearchServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Foundation
 import Localization
 import NFT
@@ -16,7 +18,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class WalletSearchSceneViewModel: Sendable, AssetActions, PerpetualPinActions {
-    private let searchService: WalletSearchService
+    private let searchService: any GemSearchServiceProtocol
     private let activityService: ActivityService
     let assetsEnabler: any AssetsEnabler
     let perpetualService: PerpetualService
@@ -46,7 +48,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
 
     public init(
         wallet: Wallet,
-        searchService: WalletSearchService,
+        searchService: any GemSearchServiceProtocol,
         activityService: ActivityService,
         assetsEnabler: any AssetsEnabler,
         perpetualService: PerpetualService,
@@ -285,7 +287,7 @@ extension WalletSearchSceneViewModel {
     private func search(query: String) async {
         state = .loading
         do {
-            try await searchService.search(wallet: wallet, query: query)
+            try await searchService.search(wallet: wallet, query: query, scope: .all, currency: preferences.preferences.currency)
             state = .data(true)
         } catch {
             state.setError(error)
