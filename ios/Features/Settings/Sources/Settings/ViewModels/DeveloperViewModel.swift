@@ -132,7 +132,7 @@ public final class DeveloperViewModel {
 
     func clearPrices() {
         performAction {
-            try priceStore.clear()
+            _ = try priceStore.clear()
         }
     }
 

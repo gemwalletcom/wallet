@@ -3,7 +3,7 @@
 import Foundation
 import enum Gemstone.GemServiceError
 
-extension GemServiceError: LocalizedError {
+extension GemServiceError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .Api(msg), let .Gateway(msg), let .Store(msg), let .Status(msg), let .Core(msg), let .Platform(msg): msg
