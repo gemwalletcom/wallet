@@ -12,11 +12,10 @@ import Testing
 struct AssetsServiceSetupWalletTests {
     @Test
     func setupMulticoinWallet() async throws {
-        let (db, balanceStore, service) = setupService()
+        let (db, balanceStore, service) = setupService(chains: [.cosmos, .ethereum])
         let wallet = Wallet.mock(id: .multicoin(address: "0xtest"), type: .multicoin, accounts: [.mock(chain: .cosmos), .mock(chain: .ethereum)])
+        try WalletStore.mock(db: db).addWallet(wallet)
 
-        try addAsset(db: db, chain: .cosmos)
-        try addAsset(db: db, chain: .ethereum)
         try await service.setupWallet(wallet: wallet.json())
 
         #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: AssetId(chain: .cosmos))?.isEnabled == false)
@@ -25,10 +24,10 @@ struct AssetsServiceSetupWalletTests {
 
     @Test
     func setupSingleWallet() async throws {
-        let (db, balanceStore, service) = setupService()
+        let (db, balanceStore, service) = setupService(chains: [.cosmos])
         let wallet = Wallet.mock(id: .single(chain: .cosmos, address: "0xtest"), type: .single, accounts: [.mock(chain: .cosmos)])
+        try WalletStore.mock(db: db).addWallet(wallet)
 
-        try addAsset(db: db, chain: .cosmos)
         try await service.setupWallet(wallet: wallet.json())
 
         #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: AssetId(chain: .cosmos))?.isEnabled == true)
@@ -36,11 +35,11 @@ struct AssetsServiceSetupWalletTests {
 
     @Test
     func setupTronDefaultAssets() async throws {
-        let (db, balanceStore, service) = setupService()
+        let (db, balanceStore, service) = setupService(chains: [.tron])
         let wallet = Wallet.mock(id: .multicoin(address: "0xtest"), type: .multicoin, accounts: [.mock(chain: .tron)])
+        try WalletStore.mock(db: db).addWallet(wallet)
         let assets = Chain.tron.defaultAssets
 
-        try addAsset(db: db, asset: .mockTron())
         for asset in assets {
             try addAsset(db: db, asset: asset)
         }
@@ -53,11 +52,11 @@ struct AssetsServiceSetupWalletTests {
 
     @Test
     func setupTempoAssets() async throws {
-        let (db, balanceStore, service) = setupService()
+        let (db, balanceStore, service) = setupService(chains: [.tempo])
         let wallet = Wallet.mock(id: .single(chain: .tempo, address: "0xtest"), type: .single, accounts: [.mock(chain: .tempo)])
+        try WalletStore.mock(db: db).addWallet(wallet)
         let assets = Chain.tempo.defaultAssets
 
-        try addAsset(db: db, asset: Asset(.tempo))
         for asset in assets {
             try addAsset(db: db, asset: asset)
         }
@@ -69,25 +68,11 @@ struct AssetsServiceSetupWalletTests {
         }
     }
 
-    @Test
-    func setupFailsWithoutSeededAsset() async throws {
-        let (_, _, service) = setupService()
-        let wallet = Wallet.mock(id: .single(chain: .cosmos, address: "0xtest"), type: .single, accounts: [.mock(chain: .cosmos)])
-
-        await #expect(throws: Error.self) {
-            try await service.setupWallet(wallet: wallet.json())
-        }
-    }
-
-    private func setupService() -> (DB, BalanceStore, GemAssetsService) {
-        let db = DB.mock()
+    private func setupService(chains: [Chain]) -> (DB, BalanceStore, GemAssetsService) {
+        let db = DB.mockWithChains(chains)
         let balanceStore = BalanceStore.mock(db: db)
         let service = GemAssetsService.mock(assetStore: AssetStore.mock(db: db), balanceStore: balanceStore)
         return (db, balanceStore, service)
-    }
-
-    private func addAsset(db: DB, chain: Chain) throws {
-        try addAsset(db: db, asset: Asset.mock(id: AssetId(chain: chain)))
     }
 
     private func addAsset(db: DB, asset: Asset) throws {

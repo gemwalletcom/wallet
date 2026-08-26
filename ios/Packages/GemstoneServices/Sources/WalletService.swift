@@ -59,6 +59,7 @@ public struct WalletService: Sendable {
         WalletPreferences(walletId: wallet.id).clear()
         if !hasWallets {
             preferences.preferences.clear()
+            preferences.preferences.invalidateSubscriptions()
         }
     }
 

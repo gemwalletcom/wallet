@@ -42,8 +42,6 @@ let package = Package(
                 "Primitives",
                 "Store",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
-                "GemAPI",
-                .product(name: "GemAPIDevice", package: "GemAPI"),
                 "Preferences",
                 .product(name: "WebSocketClient", package: "SwiftHTTPClient"),
             ],

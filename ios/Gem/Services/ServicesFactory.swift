@@ -14,7 +14,6 @@ import ConnectionStatusService
 import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
 import GemAPI
-import GemAPIDevice
 import Gemstone
 import GemstonePrimitives
 import Keystore
@@ -457,16 +456,6 @@ extension ServicesFactory {
             baseUrl: Constants.apiURL.absoluteString,
             devicePrivateKey: privateKey,
         )
-    }
-
-    private static func makeRequestSigner(securePreferences: SecurePreferences) -> DeviceRequestSigner? {
-        do {
-            let keyPair = try DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
-            return try DeviceRequestSigner(privateKey: keyPair.privateKey)
-        } catch {
-            debugLog("makeRequestSigner error: \(error)")
-            return nil
-        }
     }
 
     private static func makeDeviceObserverService(

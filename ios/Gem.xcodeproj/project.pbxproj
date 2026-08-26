@@ -67,7 +67,6 @@
 		C35DA07C2A9C3B4B008CCEFA /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = C35DA07B2A9C3B4B008CCEFA /* Settings */; };
 		C366790A2A0B7E5800F1D74D /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36679092A0B7E5800F1D74D /* Environment.swift */; };
 		C36679162A119C6200F1D74D /* GemAPI in Frameworks */ = {isa = PBXBuildFile; productRef = C36679152A119C6200F1D74D /* GemAPI */; };
-		C36679202F41000000F1D74D /* GemAPIDevice in Frameworks */ = {isa = PBXBuildFile; productRef = C366791F2F41000000F1D74D /* GemAPIDevice */; };
 		C366791D2A18623800F1D74D /* QRScanner in Frameworks */ = {isa = PBXBuildFile; productRef = C366791C2A18623800F1D74D /* QRScanner */; };
 		C3A7CB7C29CA5F7000431341 /* Store in Frameworks */ = {isa = PBXBuildFile; productRef = C3A7CB7B29CA5F7000431341 /* Store */; };
 		C3CF3B7B29A98C7B00E96586 /* Primitives in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3B7A29A98C7B00E96586 /* Primitives */; };
@@ -270,6 +269,7 @@
 		D8D5C1D02E6CAC16007628A1 /* Errors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
 		D8D83C822CECF90A0083AA53 /* Swap */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Swap; sourceTree = "<group>"; };
 		D8EFE3EA2BAB580300608363 /* GemstonePrimitives */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemstonePrimitives; sourceTree = "<group>"; };
+		F1A7B80E2F0C000000FIAT02 /* GemstoneServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemstoneServices; sourceTree = "<group>"; };
 		D9F015752F10654000000001 /* InAppNotifications */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = InAppNotifications; sourceTree = "<group>"; };
 		DBA467CA776E4FE56A659D9C /* ConfirmTransferNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmTransferNavigationView.swift; sourceTree = "<group>"; };
 		DF486B6D2BBE320800B95732 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -318,7 +318,6 @@
 				C3A7CB7C29CA5F7000431341 /* Store in Frameworks */,
 				D829BF422CBDD65A00DEB2E8 /* MarketInsight in Frameworks */,
 				C36679162A119C6200F1D74D /* GemAPI in Frameworks */,
-				C36679202F41000000F1D74D /* GemAPIDevice in Frameworks */,
 				D896B57E2E2EE2D300ADE083 /* Perpetuals in Frameworks */,
 				D85AD29D2CD337BE0010DEF8 /* SwapService in Frameworks */,
 				C3CF3B7B29A98C7B00E96586 /* Primitives in Frameworks */,
@@ -628,6 +627,7 @@
 				D87316542E3AF1F000C11634 /* FeatureServices */,
 				D87316552E3AF1F000C11634 /* SystemServices */,
 				D87316B62E3AF2FA00C11634 /* Gemstone */,
+				F1A7B80E2F0C000000FIAT02 /* GemstoneServices */,
 				A1B2C3D42F400000000000A2 /* NativeProviderService */,
 			);
 			path = Packages;
@@ -766,7 +766,6 @@
 				C3CF3BDA29BBE45D00E96586 /* Style */,
 				C3A7CB7B29CA5F7000431341 /* Store */,
 				C36679152A119C6200F1D74D /* GemAPI */,
-				C366791F2F41000000F1D74D /* GemAPIDevice */,
 				C366791C2A18623800F1D74D /* QRScanner */,
 				C35DA07B2A9C3B4B008CCEFA /* Settings */,
 				D8D203D22AE0818C00261CA2 /* SwiftHTTPClient */,
@@ -1860,10 +1859,6 @@
 		C36679152A119C6200F1D74D /* GemAPI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = GemAPI;
-		};
-		C366791F2F41000000F1D74D /* GemAPIDevice */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = GemAPIDevice;
 		};
 		C366791C2A18623800F1D74D /* QRScanner */ = {
 			isa = XCSwiftPackageProductDependency;
