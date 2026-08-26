@@ -2,6 +2,8 @@
 
 import AssetsService
 import Foundation
+import class Gemstone.GemAssetsService
+import protocol Gemstone.GemAssetsServiceProtocol
 import Preferences
 import PreferencesTestKit
 import Store
@@ -15,6 +17,7 @@ public extension WalletSearchService {
         assetListStore: AssetListStore = .mock(),
         priceStore: PriceStore = .mock(),
         preferences: Preferences = .mock(),
+        searchProvider: any GemAssetsServiceProtocol = GemAssetsService.mock(),
     ) -> WalletSearchService {
         WalletSearchService(
             assetsService: assetsService,
@@ -23,6 +26,7 @@ public extension WalletSearchService {
             assetListStore: assetListStore,
             priceStore: priceStore,
             preferences: preferences,
+            searchProvider: searchProvider,
         )
     }
 }

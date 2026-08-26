@@ -123,7 +123,6 @@ private extension GemAPITests {
 
         let session = URLSession(configuration: configuration)
         return GemAPIService(
-            provider: Provider<GemAPI>(session: session),
             deviceProvider: Provider<GemDeviceAPI>(session: session),
             walletRequestPreflight: walletRequestPreflight,
         )

@@ -46,7 +46,7 @@ struct AssetsServicePersistenceTests {
             assetStore: assetStore,
             balanceStore: balanceStore,
             priceStore: priceStore,
-            assetsProvider: GemAPIAssetsServiceMock(assetResult: assetFull),
+            assetsProvider: GemAssetsServiceMock(assetResult: assetFull),
         )
 
         try await service.updateAsset(assetId: asset.id, currency: Currency.eur.rawValue)
@@ -90,7 +90,7 @@ struct AssetsServicePersistenceTests {
             assetStore: assetStore,
             balanceStore: balanceStore,
             priceStore: priceStore,
-            assetsProvider: GemAPIAssetsServiceMock(assetResult: .mock(asset: asset, price: price)),
+            assetsProvider: GemAssetsServiceMock(assetResult: .mock(asset: asset, price: price)),
         )
 
         try await service.updateAsset(assetId: asset.id, currency: Currency.usd.rawValue)

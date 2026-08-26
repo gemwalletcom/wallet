@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
+import protocol Gemstone.GemAssetsServiceProtocol
+import GemstonePrimitives
 import Preferences
 import Primitives
 import Store
@@ -13,7 +14,7 @@ public struct WalletSearchService: Sendable {
     private let assetListStore: AssetListStore
     private let priceStore: PriceStore
     private let preferences: Preferences
-    private let searchProvider: any GemAPISearchService
+    private let searchProvider: any GemAssetsServiceProtocol
 
     public init(
         assetsService: AssetsService,
@@ -22,7 +23,7 @@ public struct WalletSearchService: Sendable {
         assetListStore: AssetListStore,
         priceStore: PriceStore,
         preferences: Preferences,
-        searchProvider: any GemAPISearchService = GemAPIService.shared,
+        searchProvider: any GemAssetsServiceProtocol,
     ) {
         self.assetsService = assetsService
         self.searchStore = searchStore
@@ -38,7 +39,7 @@ public struct WalletSearchService: Sendable {
         let chains = scope.isAll ? (scopeChains.isEmpty ? Chain.allCases : scopeChains) : []
 
         async let networkAssets = assetsService.searchNetworkAsset(tokenId: query, chains: chains)
-        async let searchResult = searchProvider.search(query: query, chains: scopeChains, tags: [scope.apiTag].compactMap(\.self))
+        async let searchResult = try SearchResponse(searchProvider.search(query: query, chains: scopeChains.map(\.rawValue), tags: [scope.apiTag].compactMap(\.self)))
         let assets = try await searchResult.assets + networkAssets
 
         let searchKey = scope.searchKey(query: query)

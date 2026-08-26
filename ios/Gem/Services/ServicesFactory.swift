@@ -63,7 +63,6 @@ struct ServicesFactory {
         } else {
             nil
         }
-        let provider = Provider<GemAPI>()
         let deviceProvider = Provider<GemDeviceAPI>(options: ProviderOptions(baseUrl: nil, requestInterceptor: interceptor))
         let deviceAPIService = GemDeviceService(deviceProvider: deviceProvider)
 
@@ -77,7 +76,6 @@ struct ServicesFactory {
             securePreferences: securePreferences,
         )
         let apiService = GemAPIService(
-            provider: provider,
             deviceProvider: deviceProvider,
             walletRequestPreflight: {
                 try await deviceService.synchronizeIfNeeded()
@@ -103,6 +101,7 @@ struct ServicesFactory {
         let chartService = ChartService(service: Gemstone.GemChartService(api: gemApiClient))
         let marketService = MarketService(service: Gemstone.GemPriceService(api: gemApiClient))
         let staticAssetsService = Gemstone.GemStaticAssetsService(api: gemStaticApiClient)
+        let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient)
         let gemScanService = Self.makeScanService(provider: nativeProvider, securePreferences: securePreferences)
         let gatewayService = GatewayService(provider: nativeProvider)
         let paymentService = PaymentService(provider: nativeProvider)
@@ -119,6 +118,7 @@ struct ServicesFactory {
             balanceStore: storeManager.balanceStore,
             priceStore: storeManager.priceStore,
             chainServiceFactory: chainServiceFactory,
+            assetsProvider: gemAssetsService,
         )
 
         let walletSessionService = WalletSessionService(
@@ -263,6 +263,7 @@ struct ServicesFactory {
 
         let onStartService = OnstartService(
             assetListService: apiService,
+            assetsProvider: gemAssetsService,
             assetsService: assetsService,
             assetStore: storeManager.assetStore,
             nodeStore: storeManager.nodeStore,
@@ -271,6 +272,7 @@ struct ServicesFactory {
         )
         let onstartAsyncService = Self.makeOnstartAsyncService(
             apiService: apiService,
+            assetsProvider: gemAssetsService,
             nodeService: nodeService,
             preferences: preferences,
             assetsService: assetsService,
@@ -313,6 +315,7 @@ struct ServicesFactory {
             assetListStore: storeManager.assetListStore,
             priceStore: storeManager.priceStore,
             preferences: preferences,
+            searchProvider: gemAssetsService,
         )
         let assetSearchService = AssetSearchService(
             assetsService: assetsService,
@@ -528,6 +531,7 @@ extension ServicesFactory {
 
     private static func makeOnstartAsyncService(
         apiService: GemAPIService,
+        assetsProvider: any Gemstone.GemAssetsServiceProtocol,
         nodeService: NodeService,
         preferences: Preferences,
         assetsService: AssetsService,
@@ -537,6 +541,7 @@ extension ServicesFactory {
     ) -> OnstartAsyncService {
         let importAssetsService = ImportAssetsService(
             assetListService: apiService,
+            assetsProvider: assetsProvider,
             assetsService: assetsService,
             assetStore: assetsService.assetStore,
             preferences: preferences,

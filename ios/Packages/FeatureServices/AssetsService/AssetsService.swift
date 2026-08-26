@@ -3,7 +3,7 @@
 import Blockchain
 import ChainService
 import Foundation
-import GemAPI
+import protocol Gemstone.GemAssetsServiceProtocol
 import GemstonePrimitives
 import Primitives
 import Store
@@ -12,7 +12,7 @@ public final class AssetsService: Sendable {
     public let assetStore: AssetStore
     let balanceStore: BalanceStore
     let priceStore: PriceStore
-    let assetsProvider: any GemAPIAssetsService
+    let assetsProvider: any GemAssetsServiceProtocol
     let chainServiceFactory: any ChainServiceFactorable
 
     public init(
@@ -20,7 +20,7 @@ public final class AssetsService: Sendable {
         balanceStore: BalanceStore,
         priceStore: PriceStore,
         chainServiceFactory: any ChainServiceFactorable,
-        assetsProvider: any GemAPIAssetsService = GemAPIService.shared,
+        assetsProvider: any GemAssetsServiceProtocol,
     ) {
         self.assetStore = assetStore
         self.balanceStore = balanceStore
@@ -135,19 +135,19 @@ public final class AssetsService: Sendable {
     }
 
     public func getAsset(assetId: AssetId) async throws -> AssetFull {
-        try await assetsProvider
-            .getAsset(assetId: assetId)
+        try await AssetFull(assetsProvider.getAsset(assetId: assetId.identifier))
     }
 
     public func getAssets(assetIds: [AssetId]) async throws -> [AssetBasic] {
         try await assetsProvider
-            .getAssets(assetIds: assetIds)
+            .getAssets(assetIds: assetIds.ids, currency: nil)
+            .map { try AssetBasic($0) }
     }
 
     // search
 
     public func searchAssets(query: String, chains: [Chain]) async throws -> [AssetBasic] {
-        async let apiAssets = assetsProvider.getSearchAssets(query: query, chains: chains)
+        async let apiAssets = assetsProvider.searchAssets(query: query, chains: chains.map(\.rawValue)).map { try AssetBasic($0) }
         async let networkAssets = searchNetworkAsset(tokenId: query, chains: chains.isEmpty ? Chain.allCases : chains)
         return try await apiAssets + networkAssets
     }

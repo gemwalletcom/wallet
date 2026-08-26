@@ -43,9 +43,9 @@ struct ImportAssetsServiceTests {
         try assetStore.setAssetIsBuyable(for: [ethereum.identifier], value: false)
         try assetStore.setAssetIsSellable(for: [ethereum.identifier], value: false)
         let service = ImportAssetsService.mock(
-            assetListService: GemAPIAssetsListServiceMock(
-                buyableFiatAssetsResult: FiatAssets(version: 7, assetIds: [ethereum.identifier]),
-                sellableFiatAssetsResult: FiatAssets(version: 9, assetIds: [ethereum.identifier]),
+            assetsProvider: GemAssetsServiceMock(
+                buyableFiatAssets: FiatAssets(version: 7, assetIds: [ethereum.identifier]),
+                sellableFiatAssets: FiatAssets(version: 9, assetIds: [ethereum.identifier]),
             ),
             assetsService: .mock(assetStore: assetStore),
             assetStore: assetStore,

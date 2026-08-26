@@ -4,8 +4,8 @@ import AssetsService
 import ChainService
 import ChainServiceTestKit
 import Foundation
-import GemAPI
-import GemAPITestKit
+import class Gemstone.GemAssetsService
+import protocol Gemstone.GemAssetsServiceProtocol
 import Primitives
 import Store
 import StoreTestKit
@@ -16,7 +16,7 @@ public extension AssetsService {
         balanceStore: BalanceStore = .mock(),
         priceStore: PriceStore = .mock(),
         chainServiceFactory: any ChainServiceFactorable = ChainServiceFactoryMock(),
-        assetsProvider: any GemAPIAssetsService = GemAPIAssetsServiceMock(),
+        assetsProvider: any GemAssetsServiceProtocol = GemAssetsService.mock(),
     ) -> AssetsService {
         AssetsService(
             assetStore: assetStore,

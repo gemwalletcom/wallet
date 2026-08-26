@@ -131,7 +131,7 @@ struct ConfirmServiceTests {
 
         let fetchedState = await ConfirmSimulationService(
             addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(assetsProvider: GemAPIAssetsServiceMock(assetsResult: [.mock(asset: dust)])),
+            assetsService: .mock(assetsProvider: GemAssetsServiceMock(assetsResult: [.mock(asset: dust)])),
         ).updateState(
             data: TransferData.mock(type: .transfer(.mock())),
             simulation: simulation,

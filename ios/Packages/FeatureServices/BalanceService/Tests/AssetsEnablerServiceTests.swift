@@ -4,6 +4,7 @@ import AssetsServiceTestKit
 import BalanceService
 import BalanceServiceTestKit
 import Foundation
+import protocol Gemstone.GemAssetsServiceProtocol
 import GemAPI
 import GemAPITestKit
 import PriceServiceTestKit
@@ -84,13 +85,13 @@ struct AssetsEnablerServiceTests {
         #expect(metadata?.isBalanceEnabled == true)
     }
 
-    private var providerReturningUnknownAsset: GemAPIAssetsServiceMock {
-        GemAPIAssetsServiceMock(assetsResult: [.mock(asset: .mock(id: unknownAssetId))])
+    private var providerReturningUnknownAsset: GemAssetsServiceMock {
+        GemAssetsServiceMock(assetsResult: [.mock(asset: .mock(id: unknownAssetId))])
     }
 
     private func makeService(
         db: DB,
-        assetsProvider: any GemAPIAssetsService = GemAPIAssetsServiceMock(),
+        assetsProvider: any GemAssetsServiceProtocol = GemAssetsServiceMock(),
     ) -> AssetsEnablerService {
         AssetsEnablerService(
             assetsService: .mock(

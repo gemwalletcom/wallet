@@ -2,6 +2,8 @@
 
 import Foundation
 import GemAPI
+import protocol Gemstone.GemAssetsServiceProtocol
+import GemstonePrimitives
 import GemstonePrimitives
 import Preferences
 import Primitives
@@ -9,17 +11,20 @@ import Store
 
 public struct ImportAssetsService: Sendable {
     let assetListService: any GemAPIAssetsListService
+    let assetsProvider: any GemAssetsServiceProtocol
     let assetsService: AssetsService
     let assetStore: AssetStore
     let preferences: Preferences
 
     public init(
         assetListService: any GemAPIAssetsListService,
+        assetsProvider: any GemAssetsServiceProtocol,
         assetsService: AssetsService,
         assetStore: AssetStore,
         preferences: Preferences,
     ) {
         self.assetListService = assetListService
+        self.assetsProvider = assetsProvider
         self.assetsService = assetsService
         self.assetStore = assetStore
         self.preferences = preferences
@@ -63,8 +68,8 @@ public struct ImportAssetsService: Sendable {
     }
 
     public func updateFiatAssets() async throws {
-        async let getBuyAssets = try assetListService.getBuyableFiatAssets()
-        async let getSellAssets = try assetListService.getSellableFiatAssets()
+        async let getBuyAssets = try FiatAssets(assetsProvider.getFiatAssets(quoteType: FiatQuoteType.buy.json()))
+        async let getSellAssets = try FiatAssets(assetsProvider.getFiatAssets(quoteType: FiatQuoteType.sell.json()))
 
         let (buyAssets, sellAssets) = try await (getBuyAssets, getSellAssets)
 
@@ -79,7 +84,7 @@ public struct ImportAssetsService: Sendable {
     }
 
     public func updateSwapAssets() async throws {
-        let assets = try await assetListService.getSwapAssets()
+        let assets = try await FiatAssets(assetsProvider.getSwapAssets())
 
         try await assetsService.prefetchAssets(assetIds: assets.assetIds.compactMap { try? AssetId(id: $0) })
         try assetStore.setAssetIsSwappable(for: assets.assetIds, value: true)

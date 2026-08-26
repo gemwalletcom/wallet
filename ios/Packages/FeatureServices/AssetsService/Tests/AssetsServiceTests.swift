@@ -36,7 +36,7 @@ struct AssetsServiceTests {
         chainService.tokenData[tokenId] = nodeAsset
         let service = AssetsService.mock(
             chainServiceFactory: ChainServiceFactoryMock(chainService: chainService),
-            assetsProvider: GemAPIAssetsServiceMock(searchAssetsResult: apiAssets),
+            assetsProvider: GemAssetsServiceMock(searchAssetsResult: apiAssets),
         )
         return try await service.searchAssets(query: tokenId, chains: chains)
     }
