@@ -1,29 +1,19 @@
 import Foundation
+import class Gemstone.GemMnemonic
 @testable import Keystore
 import KeystoreTestKit
 import Primitives
 import Testing
 
 struct LocalKeystoreTests {
-    let chains: [Chain] = [.ethereum, .solana]
-
-    @Test
-    func testCreateWallet() throws {
-        let keystore = LocalKeystore.mock()
-        let createdWords = try keystore.createWallet()
-        #expect(createdWords.count == 12)
-    }
-
     @Test
     func testImportWallet() async {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
-            let words = try keystore.createWallet()
-            let wallet = try await keystore.importWallet(
+            let words = try GemMnemonic().generate(wordCount: 12)
+            let wallet = try keystore.importWallet(
                 name: "test",
                 type: .phrase(words: words, chains: [.ethereum]),
-                isWalletsEmpty: true,
-                source: .import,
             )
 
             #expect(wallet.accounts.count == 1)
@@ -35,11 +25,9 @@ struct LocalKeystoreTests {
     func importSolanaWallet() async {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
-            let wallet = try await keystore.importWallet(
+            let wallet = try keystore.importWallet(
                 name: "Solana Wallet",
                 type: .phrase(words: LocalKeystore.words, chains: [.solana]),
-                isWalletsEmpty: true,
-                source: .import,
             )
 
             #expect(wallet.accounts.count == 1)
@@ -54,11 +42,9 @@ struct LocalKeystoreTests {
             let keystore = LocalKeystore.mock()
             let chains: [Chain] = [.ethereum, .smartChain, .blast]
 
-            let wallet = try await keystore.importWallet(
+            let wallet = try keystore.importWallet(
                 name: "test",
                 type: .phrase(words: LocalKeystore.words, chains: chains),
-                isWalletsEmpty: true,
-                source: .import,
             )
 
             #expect(wallet.accounts == chains.map {
@@ -75,22 +61,18 @@ struct LocalKeystoreTests {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
             let hex = "0xb9095df5360714a69bc86ca92f6191e60355f206909982a8409f7b8358cf41b0"
-            let wallet = try await keystore.importWallet(
+            let wallet = try keystore.importWallet(
                 name: "Test Solana",
                 type: .privateKey(text: hex, chain: .solana),
-                isWalletsEmpty: true,
-                source: .import,
             )
 
             let exported = try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: .solana)
             #expect(exported == "DTJi5pMtSKZHdkLX4wxwvjGjf2xwXx1LSuuUZhugYWDV")
 
             let keystore2 = LocalKeystore.mock()
-            let wallet2 = try await keystore2.importWallet(
+            let wallet2 = try keystore2.importWallet(
                 name: "Test Solana 2",
                 type: .privateKey(text: exported, chain: .solana),
-                isWalletsEmpty: true,
-                source: .import,
             )
             let exportedKey = try await keystore2.getPrivateKeyEncoded(wallet: wallet2, chain: .solana)
             #expect(exportedKey == exported)
@@ -102,11 +84,9 @@ struct LocalKeystoreTests {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
             let hex = "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e"
-            let wallet = try await keystore.importWallet(
+            let wallet = try keystore.importWallet(
                 name: "Test Ethereum",
                 type: .privateKey(text: hex, chain: .ethereum),
-                isWalletsEmpty: true,
-                source: .import,
             )
 
             let exported = try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: .ethereum)
@@ -119,11 +99,9 @@ struct LocalKeystoreTests {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
             let chains = AssetConfiguration.allChains
-            let wallet = try await keystore.importWallet(
+            let wallet = try keystore.importWallet(
                 name: "test",
                 type: .phrase(words: LocalKeystore.words, chains: chains),
-                isWalletsEmpty: true,
-                source: .import,
             )
 
             #expect(wallet.accounts.count == chains.count)
@@ -216,184 +194,6 @@ struct LocalKeystoreTests {
 
                 #expect(derivedAddress == expected, "\(chain) failed to match address")
             }
-        }
-    }
-
-    @Test
-    func setupChainsAddsMissingChains() async {
-        await #expect(throws: Never.self) {
-            let keystore = LocalKeystore.mock()
-            let ethWallet = try await keystore.importWallet(
-                name: "ETH only",
-                type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-                isWalletsEmpty: true,
-                source: .import,
-            )
-            let solWallet = try await keystore.importWallet(
-                name: "SOL only",
-                type: .phrase(words: LocalKeystore.words, chains: [.solana]),
-                isWalletsEmpty: false,
-                source: .import,
-            )
-            let updated = try keystore.setupChains(
-                chains: chains,
-                for: [ethWallet, solWallet],
-            )
-
-            #expect(updated.count == 2)
-
-            for wallet in updated {
-                #expect(wallet.accounts.map(\.chain).asSet() == chains.asSet())
-            }
-        }
-    }
-
-    @Test
-    func setupChainsSkipsWalletsWithoutV4Keystore() async throws {
-        let mockPassword = MockKeystorePassword()
-        let keystore = LocalKeystore.mock(keystorePassword: mockPassword)
-        let wallet = try await keystore.importWallet(
-            name: "ETH only",
-            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            isWalletsEmpty: true,
-            source: .import,
-        )
-        try await keystore.deleteKey(for: wallet)
-        let passwordReadsBefore = mockPassword.getPasswordCallsCount
-
-        let result = try keystore.setupChains(chains: chains, for: [wallet])
-
-        #expect(result.isEmpty)
-        #expect(mockPassword.getPasswordCallsCount == passwordReadsBefore, "a wallet without a v4 keystore must not trigger a password read")
-    }
-
-    @Test
-    func setupChainsContinuesAfterWalletFailure() async throws {
-        let context = try LocalKeystore.mockContext()
-        defer { try? FileManager.default.removeItem(at: context.baseDir) }
-
-        let ethWallet = try await context.keystore.importWallet(
-            name: "ETH only",
-            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            isWalletsEmpty: false,
-            source: .import,
-        )
-        let solWallet = try await context.keystore.importWallet(
-            name: "SOL only",
-            type: .phrase(words: context.keystore.createWallet(), chains: [.solana]),
-            isWalletsEmpty: false,
-            source: .import,
-        )
-        try Data("{}".utf8).write(to: v4URL(for: ethWallet, in: context.baseDir))
-
-        let updated = try context.keystore.setupChains(
-            chains: chains,
-            for: [ethWallet, solWallet],
-        )
-
-        let wallet = try #require(updated.first)
-        #expect(updated.count == 1)
-        #expect(wallet.id == solWallet.id)
-        #expect(wallet.accounts.map(\.chain).asSet() == chains.asSet())
-    }
-
-    @Test
-    func setupChainsSkipsMissingV4KeystoreWithoutReadingPassword() async throws {
-        let context = try LocalKeystore.mockContext()
-        defer { try? FileManager.default.removeItem(at: context.baseDir) }
-
-        let wallet = try await context.keystore.importWallet(
-            name: "ETH only",
-            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            isWalletsEmpty: false,
-            source: .import,
-        )
-        try FileManager.default.removeItem(at: v4URL(for: wallet, in: context.baseDir))
-        let passwordReads = context.password.getPasswordCallsCount
-
-        let updated = try context.keystore.setupChains(
-            chains: chains,
-            for: [wallet],
-        )
-
-        #expect(updated.isEmpty)
-        #expect(context.password.getPasswordCallsCount == passwordReads)
-    }
-
-    @Test
-    func setupChainsAddNoMissingChains() async {
-        await #expect(throws: Never.self) {
-            let keystore = LocalKeystore.mock()
-            let wallet = try await keystore.importWallet(
-                name: "Complete wallet",
-                type: .phrase(words: LocalKeystore.words, chains: chains),
-                isWalletsEmpty: true,
-                source: .import,
-            )
-
-            let result = try keystore.setupChains(
-                chains: chains,
-                for: [wallet],
-            )
-
-            #expect(result.isEmpty)
-        }
-    }
-
-    @Test
-    func passwordCreatedOnFirstImport() async throws {
-        let mockPassword = MockKeystorePassword()
-        let keystore = LocalKeystore.mock(keystorePassword: mockPassword)
-
-        #expect(try mockPassword.getPassword().isEmpty)
-
-        _ = try await keystore.importWallet(
-            name: "First Wallet",
-            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            isWalletsEmpty: true,
-            source: .import,
-        )
-
-        #expect(try mockPassword.getPassword().count == 64)
-    }
-
-    private func v4URL(for wallet: Wallet, in baseDir: URL) -> URL {
-        baseDir.appending(path: "\(wallet.keystoreId).json")
-    }
-
-    @Test
-    func concurrentImportAndDelete() async throws {
-        let keystore = LocalKeystore.mock(keystorePassword: MockKeystorePassword(memoryPassword: LocalKeystore.password))
-
-        let wallets = try await withThrowingTaskGroup(of: Primitives.Wallet.self) { group in
-            for index in 0 ..< 5 {
-                group.addTask {
-                    try await keystore.importWallet(
-                        name: "Wallet \(index)",
-                        type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-                        isWalletsEmpty: false,
-                        source: .import,
-                    )
-                }
-            }
-
-            var wallets: [Primitives.Wallet] = []
-            for try await wallet in group {
-                wallets.append(wallet)
-            }
-            return wallets
-        }
-
-        let importedWallets = wallets
-        #expect(importedWallets.count == 5)
-
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            for wallet in importedWallets {
-                group.addTask {
-                    try await keystore.deleteKey(for: wallet)
-                }
-            }
-            try await group.waitForAll()
         }
     }
 }

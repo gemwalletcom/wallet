@@ -5,7 +5,7 @@ use std::sync::Arc;
 use primitives::{Wallet, WalletId};
 
 use crate::services::error::GemServiceError;
-use crate::services::subscription::GemWalletStore;
+use crate::services::wallet::GemWalletStore;
 
 pub use store::GemWalletSessionStore;
 

@@ -8,7 +8,6 @@ import Primitives
 import Store
 import Style
 import SwiftUI
-import WalletService
 
 @main
 struct GemApp: App {

@@ -1,49 +1,46 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AvatarService
+import GemstoneServices
 import Foundation
+import class Gemstone.GemWalletService
+import class Gemstone.GemWalletSessionService
 import Keystore
 import KeystoreTestKit
 import Preferences
+import Primitives
 import PreferencesTestKit
 import Store
 import StoreTestKit
-import WalletService
-import GemstoneServices
-import GemstoneServicesTestKit
 
 public extension WalletService {
-    static func mock(
-        keystore: any Keystore = LocalKeystore.mock(),
-        walletStore: WalletStore = .mock(),
-        preferences: ObservablePreferences = .mock(),
-    ) -> WalletService {
-        mock(
-            keystore: keystore,
-            walletStore: walletStore,
-            preferences: preferences,
-            walletSessionService: WalletSessionService.mock(store: walletStore, preferences: preferences),
-        )
+    func mockWallets() throws -> [Wallet] {
+        try mockWalletStore.getWallets()
     }
 
     static func mock(
-        keystore: any Keystore = LocalKeystore.mock(),
+        keystore: LocalKeystore = LocalKeystore.mock(),
         walletStore: WalletStore = .mock(),
         preferences: ObservablePreferences = .mock(),
-        walletSessionService: any WalletSessionManageable,
     ) -> WalletService {
-        WalletService(
+        let gemWalletStore = GemstoneWalletStore(store: walletStore)
+        let session = GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: preferences), wallets: gemWalletStore)
+        return WalletService(
+            service: GemWalletService(
+                keystore: keystore.gemKeystore,
+                password: GemstoneKeystorePassword(keystore: keystore),
+                store: gemWalletStore,
+                session: session,
+                deviceStore: GemstoneDeviceStore(preferences: preferences.preferences),
+            ),
             keystore: keystore,
             walletStore: walletStore,
             preferences: preferences,
             avatarService: AvatarService(store: walletStore),
-            walletSessionService: walletSessionService,
         )
     }
 
     static func mock(isAcceptedTerms: Bool) -> Self {
         .mock(
-            keystore: KeystoreMock(),
             preferences: .mock(
                 preferences: .mock(
                     defaults: .mockWithValues(values: ["is_accepted_terms": isAcceptedTerms]),

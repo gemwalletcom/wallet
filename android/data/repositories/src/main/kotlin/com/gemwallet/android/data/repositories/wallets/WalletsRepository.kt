@@ -22,6 +22,8 @@ interface WalletsRepository {
         source: WalletSource
     ): Wallet
 
+    suspend fun addWallet(wallet: Wallet): Wallet
+
     suspend fun updateWallet(wallet: Wallet)
 
     suspend fun updateAccounts(wallet: Wallet)

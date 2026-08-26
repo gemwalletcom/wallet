@@ -107,6 +107,8 @@ class WalletsRepositoryImpl @Inject constructor(
         return putWallet(wallet)
     }
 
+    override suspend fun addWallet(wallet: Wallet): Wallet = putWallet(wallet)
+
     override suspend fun updateWallet(wallet: Wallet) {
         walletsDao.update(wallet.toRecord())
     }

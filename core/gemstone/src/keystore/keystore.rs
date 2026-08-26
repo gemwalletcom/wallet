@@ -127,6 +127,10 @@ impl GemKeystore {
         Ok(self.inner.delete(&keystore_id)?)
     }
 
+    pub fn exists(&self, keystore_id: String) -> bool {
+        matches!(self.inner.get_meta(&keystore_id), Ok(Some(_)))
+    }
+
     pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
         GemChainSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }

@@ -1,7 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemImportType
+import GemstonePrimitives
 import Keystore
+import Primitives
 
 public struct LocalKeystoreMockContext {
     public let keystore: LocalKeystore
@@ -42,5 +45,25 @@ public extension LocalKeystore {
             baseDir: baseDir,
             password: keystorePassword,
         )
+    }
+}
+
+public extension LocalKeystore {
+    func importWallet(name: String, type: KeystoreImportType) throws -> Primitives.Wallet {
+        switch type {
+        case let .address(address, chain):
+            return Primitives.Wallet.makeView(name: name, chain: chain, address: address)
+        case let .phrase(words, chains):
+            return try importWallet(name: name, import: .multicoinPhrase(words: words, chains: chains.map(\.rawValue)))
+        case let .single(words, chain):
+            return try importWallet(name: name, import: .singlePhrase(words: words, chain: chain.rawValue))
+        case let .privateKey(text, chain):
+            return try importWallet(name: name, import: .privateKey(value: text, chain: chain.rawValue))
+        }
+    }
+
+    private func importWallet(name: String, import: GemImportType) throws -> Primitives.Wallet {
+        let password = try keystorePassword(createIfMissing: true)
+        return try gemKeystore.createStore(import: `import`, password: password).mapToWallet(name: name, source: .import)
     }
 }

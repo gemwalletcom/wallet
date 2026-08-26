@@ -52,7 +52,7 @@ public struct SetupWalletScene: View {
             )
         }
         .bindQuery(model.query)
-        .onChange(of: model.nameInput, model.onChangeWalletName)
+        .onChange(of: model.nameInput) { Task { await model.onChangeWalletName() } }
         .navigationTitle(model.title)
     }
 }

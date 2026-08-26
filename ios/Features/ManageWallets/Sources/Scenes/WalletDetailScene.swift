@@ -96,7 +96,7 @@ public struct WalletDetailScene: View {
         .background(Colors.grayBackground)
         .frame(maxWidth: .infinity)
         .bindQuery(model.walletQuery)
-        .onChange(of: model.nameInput, model.onChangeWalletName)
+        .onChange(of: model.nameInput) { Task { await model.onChangeWalletName() } }
         .navigationTitle(model.title)
         .alert(
             Localized.Common.deleteConfirmation(model.name),

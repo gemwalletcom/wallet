@@ -7,7 +7,7 @@ import Primitives
 import PrimitivesComponents
 import Store
 import Style
-import WalletService
+import GemstoneServices
 
 @MainActor
 @Observable
@@ -61,9 +61,9 @@ public final class SetupWalletViewModel: Sendable {
         onCompleteAction(wallet)
     }
 
-    func onChangeWalletName() {
+    func onChangeWalletName() async {
         do {
-            try walletService.rename(walletId: wallet.id, newName: nameInput)
+            try await walletService.rename(walletId: wallet.id, newName: nameInput)
         } catch {
             debugLog("Rename wallet error: \(error)")
         }

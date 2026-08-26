@@ -1,5 +1,5 @@
 import class Gemstone.GemExplorerService
-import AvatarService
+import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitivesTestKit
 import Formatters

@@ -16,8 +16,8 @@ pub use store::GemAssetDiscoveryStore;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::balance::GemBalanceService;
 use crate::services::nft::GemNftService;
-use crate::services::subscription::GemWalletStore;
 use crate::services::transactions::GemTransactionsService;
+use crate::services::wallet::GemWalletStore;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetDiscoveryService {

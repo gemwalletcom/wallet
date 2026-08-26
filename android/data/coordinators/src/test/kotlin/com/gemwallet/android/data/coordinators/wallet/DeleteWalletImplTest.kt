@@ -21,6 +21,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import uniffi.gemstone.GemWalletService
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -36,11 +37,14 @@ class DeleteWalletImplTest {
         every { create(any()) } returns walletPreferences
     }
 
+    private val walletService = mockk<GemWalletService>()
+
     private val delete = DeleteWalletImpl(
         sessionRepository,
         walletsRepository,
         deleteKeyStoreOperator,
         walletPreferencesFactory,
+        walletService,
     )
 
     @Before
@@ -63,7 +67,7 @@ class DeleteWalletImplTest {
         delete.deleteWallet(wallet.id, onBoard = {}, onComplete = {})
 
         verify { deleteKeyStoreOperator(wallet) }
-        coVerify(exactly = 0) { walletsRepository.removeWallet(any()) }
+        coVerify(exactly = 0) { walletService.deleteWallet(any()) }
         verify(exactly = 0) { walletPreferences.clear() }
     }
 
@@ -71,14 +75,13 @@ class DeleteWalletImplTest {
     fun clearsWalletPreferencesWhenWalletDeleted() = runTest {
         val wallet = mockWallet(id = "wallet-1", type = WalletType.Multicoin)
         every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
-        every { walletsRepository.getAll() } returns flowOf(emptyList())
-        every { sessionRepository.session() } returns MutableStateFlow<Session?>(null)
         every { deleteKeyStoreOperator(wallet) } returns true
-        coEvery { walletsRepository.removeWallet(wallet.id) } returns true
+        coEvery { walletService.deleteWallet(any()) } returns false
 
         delete.deleteWallet(wallet.id, onBoard = {}, onComplete = {})
 
-        coVerify { walletsRepository.removeWallet(wallet.id) }
+        coVerify { walletService.deleteWallet(any()) }
+        coVerify { sessionRepository.reset() }
         verify { walletPreferencesFactory.create(wallet.id.id) }
         verify { walletPreferences.clear() }
     }

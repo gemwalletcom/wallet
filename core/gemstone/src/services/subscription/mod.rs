@@ -1,10 +1,9 @@
 pub mod rules;
-pub mod store;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-pub use store::GemWalletStore;
+use crate::services::wallet::GemWalletStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 

@@ -21,11 +21,9 @@ struct KeystoreBenchmarkTests {
                 try await keystore.deleteKey(for: wallet)
             }
             let start = clock.now
-            wallet = try await keystore.importWallet(
+            wallet = try keystore.importWallet(
                 name: "Benchmark",
                 type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-                isWalletsEmpty: false,
-                source: .import,
             )
             if index > 0 {
                 encryptDurations.append(clock.now - start)

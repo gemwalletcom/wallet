@@ -3,7 +3,7 @@
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import WalletService
+import GemstoneServices
 
 public struct ImportWalletNavigationStack: View {
     @State private var model: ImportWalletViewModel

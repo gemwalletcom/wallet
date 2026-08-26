@@ -13,9 +13,9 @@ use crate::services::notification::GemNotificationStore;
 use crate::services::perpetual::GemPerpetualService;
 use crate::services::price::GemPriceService;
 use crate::services::price_alert::GemPriceAlertService;
-use crate::services::subscription::GemWalletStore;
 use crate::services::support::GemSupportStore;
 use crate::services::transactions::GemTransactionsService;
+use crate::services::wallet::GemWalletStore;
 
 #[derive(uniffi::Object)]
 pub struct GemStreamService {

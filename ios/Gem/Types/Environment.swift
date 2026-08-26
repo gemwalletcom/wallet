@@ -3,7 +3,6 @@
 import ActivityService
 import AppService
 import GemstoneServices
-import AvatarService
 import ConnectionsService
 import ConnectionStatusService
 import Foundation
@@ -20,7 +19,6 @@ import Store
 import StreamService
 import SwiftUI
 import WalletConnector
-import WalletService
 
 extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation

@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import AppService
-import AvatarService
-import Components
 import GemstoneServices
+import Components
 import Foundation
 import Localization
 import LockManager
@@ -13,7 +12,6 @@ import Primitives
 import PrimitivesComponents
 import SwiftUI
 import WalletConnector
-import WalletService
 
 @Observable
 @MainActor

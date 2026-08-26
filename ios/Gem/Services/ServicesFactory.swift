@@ -3,7 +3,6 @@
 import ActivityService
 import GemstoneServices
 import AppService
-import AvatarService
 import ConnectionsService
 import ConnectionStatusService
 import Foundation
@@ -24,7 +23,6 @@ import SwiftHTTPClient
 import Transfer
 import WalletConnector
 import WalletConnectorService
-import WalletService
 import WebSocketClient
 
 struct ServicesFactory {
@@ -40,11 +38,12 @@ struct ServicesFactory {
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, securePreferences: securePreferences)
 
         let gemWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
+        let gemDeviceStore = GemstoneDeviceStore()
         let gemDeviceService = Gemstone.GemDeviceService(
             api: deviceRegistrationClient,
             subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, store: gemWalletStore),
             walletStore: gemWalletStore,
-            store: GemstoneDeviceStore(),
+            store: gemDeviceStore,
         )
         let deviceService = DeviceService(
             deviceProvider: gemDeviceService,
@@ -107,16 +106,23 @@ struct ServicesFactory {
             assetsProvider: gemAssetsService,
         )
 
+        let gemWalletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: storages.observablePreferences), wallets: gemWalletStore)
         let walletSessionService = WalletSessionService(
-            service: Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: storages.observablePreferences), wallets: gemWalletStore),
+            service: gemWalletSessionService,
             walletStore: storeManager.walletStore,
         )
         let walletService = WalletService(
+            service: Gemstone.GemWalletService(
+                keystore: storages.keystore.gemKeystore,
+                password: GemstoneKeystorePassword(keystore: storages.keystore),
+                store: gemWalletStore,
+                session: gemWalletSessionService,
+                deviceStore: gemDeviceStore,
+            ),
             keystore: storages.keystore,
             walletStore: storeManager.walletStore,
             preferences: storages.observablePreferences,
             avatarService: avatarService,
-            walletSessionService: walletSessionService,
         )
         let gemBalanceService = gatewayService.balanceService(
             walletStore: gemWalletStore,

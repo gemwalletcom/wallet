@@ -9,6 +9,6 @@ extension AppResolver {
     struct Storages {
         let db: DB = .init()
         let observablePreferences: ObservablePreferences = .default
-        let keystore: any Keystore = LocalKeystore()
+        let keystore = LocalKeystore()
     }
 }

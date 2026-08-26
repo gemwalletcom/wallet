@@ -7,7 +7,6 @@ import Preferences
 import Primitives
 import Store
 import UIKit
-import WalletService
 
 /// OnstartService runs services before the app starts.
 /// See OnstartAsyncService for any background tasks to run after start
@@ -58,7 +57,7 @@ public struct OnstartService: Sendable {
             debugLog("v3 keystore migration could not enumerate wallets: \(error)")
         }
         do {
-            try walletService.setup(chains: AssetConfiguration.allChains)
+            try await walletService.setup(chains: AssetConfiguration.allChains)
         } catch {
             debugLog("wallet chains setup error: \(error)")
         }

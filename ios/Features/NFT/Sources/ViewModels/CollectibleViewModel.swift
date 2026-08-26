@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AvatarService
+import GemstoneServices
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
@@ -8,7 +8,6 @@ import GemstonePrimitives
 import ImageGalleryService
 import InfoSheet
 import Localization
-import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style

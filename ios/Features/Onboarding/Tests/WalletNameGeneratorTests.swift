@@ -4,8 +4,8 @@ import Foundation
 @testable import Onboarding
 import Primitives
 import Testing
-import WalletService
-import WalletServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 
 struct WalletNameGeneratorTests {
     @Test

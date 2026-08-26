@@ -8,7 +8,7 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import WalletService
+import GemstoneServices
 
 @Observable
 @MainActor
@@ -86,8 +86,8 @@ public final class WalletDetailViewModel {
 // MARK: - Business Logic
 
 extension WalletDetailViewModel {
-    func rename(name: String) throws {
-        try walletService.rename(walletId: wallet.id, newName: name)
+    func rename(name: String) async throws {
+        try await walletService.rename(walletId: wallet.id, newName: name)
     }
 
     func getMnemonicWords() async throws -> [String] {
@@ -111,9 +111,9 @@ extension WalletDetailViewModel {
 // MARK: - Actions
 
 extension WalletDetailViewModel {
-    func onChangeWalletName() {
+    func onChangeWalletName() async {
         do {
-            try rename(name: nameInput)
+            try await rename(name: nameInput)
         } catch {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
         }

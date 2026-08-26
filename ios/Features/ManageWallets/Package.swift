@@ -15,6 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Preferences", path: "../../Packages/Preferences"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -39,7 +40,6 @@ let package = Package(
                 "Components",
                 "PrimitivesComponents",
                 "Store",
-                .product(name: "WalletService", package: "FeatureServices"),
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Onboarding",
             ],
@@ -48,11 +48,12 @@ let package = Package(
         .testTarget(
             name: "ManageWalletsTests",
             dependencies: [
+                "Preferences",
+                .product(name: "PreferencesTestKit", package: "Preferences"),
                 "ManageWallets",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "WalletServiceTestKit", package: "FeatureServices"),
-                .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "StoreTestKit", package: "Store"),
             ],
         ),

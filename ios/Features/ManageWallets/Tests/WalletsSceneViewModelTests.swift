@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import ManageWallets
+import PreferencesTestKit
+import Preferences
 import Primitives
 import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 import SwiftUI
 import Testing
-import WalletService
-import WalletServiceTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 
@@ -21,8 +21,9 @@ struct WalletsSceneViewModelTests {
             try walletStore.addWallet(.mock(id: .multicoin(address: address)))
         }
 
-        let walletSessionService = WalletSessionService.mock(store: walletStore)
-        let service = WalletService.mock(walletStore: walletStore, walletSessionService: walletSessionService)
+        let preferences = ObservablePreferences.mock()
+        let walletSessionService = WalletSessionService.mock(store: walletStore, preferences: preferences)
+        let service = WalletService.mock(walletStore: walletStore, preferences: preferences)
         walletSessionService.setCurrent(walletId: .multicoin(address: "0x1"))
 
         let model = WalletsSceneViewModel.mock(walletService: service, walletSessionService: walletSessionService)

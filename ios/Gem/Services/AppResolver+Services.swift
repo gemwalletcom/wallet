@@ -3,7 +3,6 @@
 import ActivityService
 import GemstoneServices
 import AppService
-import AvatarService
 import ConnectionsService
 import ConnectionStatusService
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -19,7 +18,6 @@ import protocol Gemstone.GemServiceStatusProtocol
 import StreamService
 import SwapService
 import WalletConnector
-import WalletService
 
 extension AppResolver {
     struct Services {

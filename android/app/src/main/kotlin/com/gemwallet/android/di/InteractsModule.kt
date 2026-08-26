@@ -4,7 +4,6 @@ import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.SecurityStore
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
-import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.blockchain.operators.CreateAccountOperator
 import com.gemwallet.android.blockchain.operators.CreateWalletOperator
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
@@ -12,7 +11,6 @@ import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.MigrateKeystoreOperator
 import com.gemwallet.android.blockchain.operators.StorePhraseOperator
 import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
-import com.gemwallet.android.blockchain.operators.gemstone.GemAddAccountsOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemCreateAccountOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemCreateWalletOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemDeleteKeyStoreOperator
@@ -55,12 +53,6 @@ object InteractsModule {
     fun provideCreateAccountInteract(
         @ApplicationContext context: Context,
     ): CreateAccountOperator = GemCreateAccountOperator(context.dataDir.toString())
-
-    @Singleton
-    @Provides
-    fun provideAddAccountsInteract(
-        @ApplicationContext context: Context,
-    ): AddAccountsOperator = GemAddAccountsOperator(context.dataDir.toString())
 
     @Singleton
     @Provides

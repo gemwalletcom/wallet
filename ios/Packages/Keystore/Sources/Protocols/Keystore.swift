@@ -9,11 +9,7 @@ import Primitives
 internal import SwiftUI
 
 public protocol Keystore: Sendable {
-    func createWallet() throws -> [String]
-    func previewImport(type: KeystoreImportType) async throws -> WalletImport
-    @discardableResult
-    func importWallet(name: String, type: KeystoreImportType, isWalletsEmpty: Bool, source: WalletSource) async throws -> Wallet
-    func setupChains(chains: [Chain], for wallets: [Wallet]) throws -> [Wallet]
+    func keystorePassword(createIfMissing: Bool) throws -> Data
     /// Migrates pending v3 keystores to v4, reading the password at most once; returns per-wallet failures.
     func migrateV3Keystores(for wallets: [Wallet]) async throws -> [KeystoreMigrationFailure]
     func deleteKey(for wallet: Wallet) async throws

@@ -3,7 +3,7 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import WalletService
+import GemstoneServices
 
 public struct ImportWalletTypeViewModel {
     let walletService: WalletService

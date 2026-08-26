@@ -1,7 +1,5 @@
 package com.gemwallet.android.services
 
-import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.available
@@ -23,19 +21,20 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.assetDefaultRank
 
 class CheckAccountsServiceTest {
     private val walletsRepository = mockk<WalletsRepository>(relaxed = true)
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
-    private val addAccountsOperator = mockk<AddAccountsOperator>(relaxed = true)
-    private val passwordStore = mockk<PasswordStore>(relaxed = true)
+    private val walletService = mockk<GemWalletService> {
+        coEvery { setupChains(any()) } returns emptyList()
+    }
 
     private val subject = CheckAccountsService(
         walletsRepository = walletsRepository,
         assetsRepository = assetsRepository,
-        addAccountsOperator = addAccountsOperator,
-        passwordStore = passwordStore,
+        walletService = walletService,
     )
 
     @Before
@@ -76,8 +75,7 @@ class CheckAccountsServiceTest {
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 1) { assetsRepository.invalidateDefault(wallet) }
         coVerify(exactly = 1) { assetsRepository.ensureDefaultAssets(wallet) }
-        verify(exactly = 0) { passwordStore.getPassword(any()) }
-        coVerify(exactly = 0) { addAccountsOperator(any(), any(), any()) }
+        coVerify(exactly = 1) { walletService.setupChains(any()) }
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
         coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
     }
@@ -105,8 +103,7 @@ class CheckAccountsServiceTest {
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 0) { assetsRepository.invalidateDefault(any()) }
         coVerify(exactly = 1) { assetsRepository.ensureDefaultAssets(wallet) }
-        verify(exactly = 0) { passwordStore.getPassword(any()) }
-        coVerify(exactly = 0) { addAccountsOperator(any(), any(), any()) }
+        coVerify(exactly = 1) { walletService.setupChains(any()) }
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
         coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
     }

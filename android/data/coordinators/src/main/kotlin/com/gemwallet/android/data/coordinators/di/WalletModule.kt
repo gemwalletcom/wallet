@@ -29,6 +29,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemWalletService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -60,10 +61,10 @@ object WalletModule {
     @Provides
     @Singleton
     fun provideSetWalletName(
-        walletsRepository: WalletsRepository,
+        walletService: GemWalletService,
         renameWalletAddresses: RenameWalletAddresses,
     ): SetWalletName {
-        return SetWalletNameImpl(walletsRepository, renameWalletAddresses)
+        return SetWalletNameImpl(walletService, renameWalletAddresses)
     }
 
     @Provides
@@ -94,15 +95,17 @@ object WalletModule {
         walletsRepository: WalletsRepository,
         deleteKeyStoreOperator: DeleteKeyStoreOperator,
         walletPreferencesFactory: WalletPreferencesFactory,
+        walletService: GemWalletService,
     ): DeleteWallet {
-        return DeleteWalletImpl(sessionRepository, walletsRepository, deleteKeyStoreOperator, walletPreferencesFactory)
+        return DeleteWalletImpl(sessionRepository, walletsRepository, deleteKeyStoreOperator, walletPreferencesFactory, walletService)
     }
 
     @Provides
     fun provideToggleWalletPin(
         walletsRepository: WalletsRepository,
+        walletService: GemWalletService,
     ): ToggleWalletPin {
-        return ToggleWalletPinImpl(walletsRepository)
+        return ToggleWalletPinImpl(walletsRepository, walletService)
     }
 
     @Provides

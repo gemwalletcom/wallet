@@ -9,7 +9,8 @@ use primitives::Device;
 pub use store::GemDeviceStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
-use crate::services::subscription::{GemSubscriptionService, GemWalletStore};
+use crate::services::subscription::GemSubscriptionService;
+use crate::services::wallet::GemWalletStore;
 
 #[derive(uniffi::Object)]
 pub struct GemDeviceService {

@@ -8,7 +8,6 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import WalletService
 import GemstoneServices
 
 @Observable
@@ -228,7 +227,7 @@ extension ImportWalletSceneViewModel {
     }
 
     private func importWallet(name: String, keystoreType: KeystoreImportType) async throws {
-        let result = try await walletService.loadOrCreateWallet(name: name, type: keystoreType, source: .import)
+        let result = try await walletService.importWallet(name: name, type: keystoreType, source: .import)
 
         switch result {
         case let .new(wallet):

@@ -10,20 +10,9 @@ import PrimitivesTestKit
 
 public struct KeystoreMock: Keystore {
     public init() {}
-    public func createWallet() -> [String] {
-        LocalKeystore.words
-    }
 
-    public func previewImport(type _: KeystoreImportType) -> WalletImport {
-        WalletImport(walletId: .mock(), walletType: .multicoin, accounts: [])
-    }
-
-    public func importWallet(name _: String, type _: KeystoreImportType, isWalletsEmpty _: Bool, source _: WalletSource) throws -> Wallet {
-        .mock()
-    }
-
-    public func setupChains(chains _: [Primitives.Chain], for _: [Primitives.Wallet]) throws -> [Wallet] {
-        [.mock()]
+    public func keystorePassword(createIfMissing _: Bool) throws -> Data {
+        Data()
     }
 
     public func migrateV3Keystores(for _: [Primitives.Wallet]) throws -> [KeystoreMigrationFailure] {

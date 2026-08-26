@@ -1,13 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AvatarService
+import GemstoneServices
 import Foundation
 import enum Keystore.KeystoreImportType
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import WalletService
-import GemstoneServices
 
 @Observable
 @MainActor

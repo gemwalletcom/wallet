@@ -1,7 +1,5 @@
 package com.gemwallet.android.services
 
-import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.domains.asset.defaultAssetRank
@@ -12,6 +10,9 @@ import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+import com.gemwallet.android.serializer.decodeJson
+import uniffi.gemstone.GemWalletService
+import com.wallet.core.primitives.Wallet
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,13 +20,15 @@ import javax.inject.Singleton
 class CheckAccountsService @Inject constructor(
     private val walletsRepository: WalletsRepository,
     private val assetsRepository: AssetsRepository,
-    private val addAccountsOperator: AddAccountsOperator,
-    private val passwordStore: PasswordStore,
+    private val walletService: GemWalletService,
 ) {
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
         // TODO: Remove after legacy native assets with stale rank = 0 have been repaired.
         assetsRepository.updateNativeAssetRanks()
 
+        val updatedWallets = walletService.setupChains(Chain.available().map { it.string })
+            .map { it.decodeJson<Wallet>() }
+            .associateBy { it.id }
         val wallets = walletsRepository.getAll().firstOrNull() ?: emptyList()
 
         wallets.forEach { wallet ->
@@ -41,22 +44,10 @@ class CheckAccountsService @Inject constructor(
                 return@forEach
             }
 
-            val newChains = Chain.available().filterNot(accountChains::contains)
-
-            // Backfill new chains via add_accounts, skips gracefully if the v4 keystore isn't ready (e.g. migration pending) and retries next launch.
-            val newAccounts = if (newChains.isNotEmpty()) {
-                runCatching { addAccountsOperator(wallet, newChains, passwordStore.getPassword(wallet.id.id)) }.getOrNull()
-            } else {
-                null
-            }
-            if (newAccounts != null) {
-                val newWallet = wallet.copy(accounts = wallet.accounts + newAccounts)
-                walletsRepository.updateWallet(newWallet)
-                walletsRepository.updateAccounts(newWallet)
-                if (newAccounts.isNotEmpty()) {
-                    assetsRepository.invalidateDefault(newWallet)
-                }
-                assetsRepository.ensureDefaultAssets(newWallet)
+            val updatedWallet = updatedWallets[wallet.id]
+            if (updatedWallet != null) {
+                assetsRepository.invalidateDefault(updatedWallet)
+                assetsRepository.ensureDefaultAssets(updatedWallet)
                 return@forEach
             }
 

@@ -2,10 +2,10 @@
 
 import Primitives
 
-internal import Gemstone
+public import enum Gemstone.GemWalletImportType
 
-extension KeystoreImportType {
-    var gemWalletImport: GemImportType? {
+public extension KeystoreImportType {
+    var walletImport: GemWalletImportType {
         switch self {
         case let .phrase(words, chains):
             .multicoinPhrase(words: words, chains: chains.map(\.rawValue))
@@ -13,8 +13,8 @@ extension KeystoreImportType {
             .singlePhrase(words: words, chain: chain.rawValue)
         case let .privateKey(text, chain):
             .privateKey(value: text, chain: chain.rawValue)
-        case .address:
-            nil
+        case let .address(address, chain):
+            .address(address: address, chain: chain.rawValue)
         }
     }
 }

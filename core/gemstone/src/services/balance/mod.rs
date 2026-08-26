@@ -15,7 +15,7 @@ pub use store::GemBalanceStore;
 use crate::gateway::GemGateway;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::price::GemPriceService;
-use crate::services::subscription::GemWalletStore;
+use crate::services::wallet::GemWalletStore;
 use rules::{BalanceKind, BalanceRequest};
 
 #[derive(uniffi::Object)]

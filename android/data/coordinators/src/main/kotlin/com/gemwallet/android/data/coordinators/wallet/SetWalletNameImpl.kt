@@ -2,18 +2,16 @@ package com.gemwallet.android.data.coordinators.wallet
 
 import com.gemwallet.android.application.wallet.coordinators.SetWalletName
 import com.gemwallet.android.cases.addresses.RenameWalletAddresses
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.wallet.core.primitives.WalletId
-import kotlinx.coroutines.flow.firstOrNull
+import uniffi.gemstone.GemWalletService
 
 class SetWalletNameImpl(
-    private val walletsRepository: WalletsRepository,
+    private val walletService: GemWalletService,
     private val renameWalletAddresses: RenameWalletAddresses,
 ) : SetWalletName {
 
     override suspend fun setWalletName(walletId: WalletId, name: String) {
-        val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return
-        walletsRepository.updateWallet(wallet.copy(name = name))
+        walletService.rename(walletId.id, name)
         renameWalletAddresses.rename(walletId, name)
     }
 }

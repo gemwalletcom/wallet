@@ -3,7 +3,7 @@
 import Foundation
 import Localization
 import Primitives
-import WalletService
+import GemstoneServices
 
 struct WalletNameGenerator {
     private let type: ImportWalletType

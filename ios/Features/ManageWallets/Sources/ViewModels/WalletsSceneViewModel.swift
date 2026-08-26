@@ -5,7 +5,6 @@ import Preferences
 import Primitives
 import Store
 import SwiftUI
-import WalletService
 import GemstoneServices
 
 @Observable
@@ -75,11 +74,11 @@ extension WalletsSceneViewModel {
         try await service.delete(wallet)
     }
 
-    private func pin(_ wallet: Wallet) throws {
+    private func pin(_ wallet: Wallet) async throws {
         if wallet.isPinned {
-            try service.unpin(wallet: wallet)
+            try await service.unpin(wallet: wallet)
         } else {
-            try service.pin(wallet: wallet)
+            try await service.pin(wallet: wallet)
         }
     }
 }
@@ -115,9 +114,9 @@ extension WalletsSceneViewModel {
         walletDelete = wallet
     }
 
-    func onPin(wallet: Wallet) {
+    func onPin(wallet: Wallet) async {
         do {
-            try pin(wallet)
+            try await pin(wallet)
         } catch {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
         }

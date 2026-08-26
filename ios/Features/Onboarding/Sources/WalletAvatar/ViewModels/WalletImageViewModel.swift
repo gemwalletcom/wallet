@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AvatarService
+import GemstoneServices
 import Components
 import Foundation
 import Localization

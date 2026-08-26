@@ -4,7 +4,7 @@ import GemstonePrimitives
 import Primitives
 
 public final class LocalKeystore: Keystore, @unchecked Sendable {
-    let gemKeystore: GemKeystore
+    public let gemKeystore: GemKeystore
     private let keystoreURL: URL
     private let keystorePassword: KeystorePassword
     private let queue = DispatchQueue(label: "com.gemwallet.keystore", qos: .userInitiated)
@@ -32,92 +32,17 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         self.keystorePassword = keystorePassword
     }
 
-    public func createWallet() throws -> [String] {
-        try Mnemonic.generateWords(wordCount: 12)
-    }
-
-    public func previewImport(type: KeystoreImportType) async throws -> WalletImport {
-        if case let .address(address, chain) = type {
-            return WalletImport(
-                walletId: .view(chain: chain, address: address),
-                walletType: .view,
-                accounts: [
-                    Account(
-                        chain: chain,
-                        address: address,
-                        derivationPath: .empty,
-                        extendedPublicKey: "",
-                    ),
-                ],
-            )
-        }
-        guard let importType = type.gemWalletImport else {
-            throw AnyError("Unsupported keystore import type")
-        }
-        return try await queue.asyncTask { [gemKeystore] in
-            try gemKeystore.previewImport(import: importType).mapToPreview()
-        }
-    }
-
-    public func importWallet(
-        name: String,
-        type: KeystoreImportType,
-        isWalletsEmpty: Bool,
-        source: WalletSource,
-    ) async throws -> Primitives.Wallet {
-        let password = try await getOrCreatePassword(createPasswordIfNone: isWalletsEmpty)
-
-        return try await queue.asyncTask { [gemKeystore] in
-            switch type {
-            case let .address(address, chain):
-                return Wallet.makeView(name: name, chain: chain, address: address)
-            case .phrase,
-                 .single,
-                 .privateKey:
-                guard let importType = type.gemWalletImport else {
-                    throw AnyError("Unsupported keystore import type")
-                }
-                return try withV4Password(password) { passwordBytes in
-                    try gemKeystore
-                        .createStore(import: importType, password: passwordBytes)
-                        .mapToWallet(name: name, source: source)
-                }
-            }
-        }
-    }
-
-    public func setupChains(chains: [Primitives.Chain], for wallets: [Primitives.Wallet]) throws -> [Primitives.Wallet] {
-        let filteredWallets = wallets.filter {
-            let enabled = Set($0.accounts.map(\.chain)).intersection(chains).map(\.self)
-            let missing = Set(chains).subtracting(enabled)
-            return missing.isNotEmpty && v4KeystoreExists($0.keystoreId)
-        }
-        guard filteredWallets.isNotEmpty else {
-            return []
-        }
-
+    public func keystorePassword(createIfMissing: Bool) throws -> Data {
         let password = try keystorePassword.getPassword()
-
-        return try withV4Password(password) { passwordBytes in
-            filteredWallets.prefix(25).compactMap { wallet -> Primitives.Wallet? in
-                let existingChains = wallet.accounts.map(\.chain)
-                let newChains = chains.asSet().subtracting(existingChains.asSet()).asArray()
-
-                do {
-                    let accounts = try queue.sync {
-                        try gemKeystore.addAccounts(
-                            keystoreId: wallet.keystoreId,
-                            password: passwordBytes,
-                            chains: newChains.map(\.rawValue),
-                        )
-                    }
-                    return try wallet.adding(accounts: accounts.map { try $0.mapToAccount() })
-                } catch {
-                    debugLog("wallet chains setup failed for \(wallet.id.id): \(error)")
-                    return nil
-                }
-            }
+        if password.isNotEmpty {
+            return try password.v4KeystorePasswordBytes()
         }
+        guard createIfMissing else {
+            throw AnyError("Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.")
+        }
+        let newPassword = try SecureRandom.generateKey(length: 32).hex
+        try keystorePassword.setPassword(newPassword, authentication: .none)
+        return try newPassword.v4KeystorePasswordBytes()
     }
 
     public func migrateV3Keystores(for wallets: [Primitives.Wallet]) async throws -> [KeystoreMigrationFailure] {
@@ -230,11 +155,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         try keystorePassword.getPassword()
     }
 
-    private func v4KeystoreExists(_ keystoreId: String) -> Bool {
-        let url = keystoreURL.appendingPathComponent("\(keystoreId).json")
-        return FileManager.default.fileExists(atPath: url.path)
-    }
-
     private func pendingV3Migrations(for wallets: [Primitives.Wallet]) -> [(wallet: Primitives.Wallet, v3URL: URL)] {
         wallets.compactMap { wallet in
             switch wallet.type {
@@ -291,18 +211,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
             }
         }
         return nil
-    }
-
-    @MainActor
-    private func getOrCreatePassword(createPasswordIfNone: Bool) throws -> String {
-        let password = try keystorePassword.getPassword()
-
-        guard password.isEmpty, createPasswordIfNone else {
-            return password
-        }
-        let newPassword = try SecureRandom.generateKey(length: 32).hex
-        try keystorePassword.setPassword(newPassword, authentication: .none)
-        return newPassword
     }
 }
 

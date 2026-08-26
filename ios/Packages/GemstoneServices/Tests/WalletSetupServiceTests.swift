@@ -7,7 +7,7 @@ import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 import Testing
-@testable import WalletService
+@testable import GemstoneServices
 
 struct WalletSetupServiceTests {
     @Test

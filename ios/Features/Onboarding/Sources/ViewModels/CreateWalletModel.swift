@@ -1,13 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AvatarService
+import GemstoneServices
 import Foundation
 import GemstonePrimitives
 import Preferences
 import Primitives
 import SwiftUI
-import WalletService
-import GemstoneServices
 
 @Observable
 @MainActor
@@ -58,7 +56,7 @@ extension CreateWalletModel {
     }
 
     func createWallet(words: [String]) async throws -> Wallet {
-        let result = try await walletService.loadOrCreateWallet(
+        let result = try await walletService.importWallet(
             name: WalletNameGenerator(type: .multicoin, walletService: walletService).name,
             type: .phrase(words: words, chains: AssetConfiguration.allChains),
             source: .create,
