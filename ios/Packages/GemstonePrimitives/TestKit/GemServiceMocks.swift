@@ -259,7 +259,7 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
     }
 
     public func getAddressNames(requests: [Gemstone.ChainAddress]) async throws -> [Gemstone.AddressName] {
-        if let error { throw error }
+        if error != nil { return [] }
         let requested = try requests.map { try Primitives.ChainAddress($0) }
         return try addressNames
             .filter { name in requested.contains { $0.chain == name.chain && $0.address == name.address } }

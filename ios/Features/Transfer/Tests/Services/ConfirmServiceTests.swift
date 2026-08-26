@@ -146,7 +146,7 @@ struct ConfirmServiceTests {
         let service = ConfirmSimulationService(
             addressNameService: .mock(
                 addressStore: .mock(),
-                apiService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
+                service: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
             ),
             assetsService: .mock(),
         )

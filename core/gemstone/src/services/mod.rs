@@ -26,7 +26,7 @@ pub use chart::GemChartService;
 pub use config::GemConfigService;
 pub use device::GemDeviceService;
 pub use fiat::GemFiatService;
-pub use name::GemNameService;
+pub use name::{GemAddressStore, GemNameService};
 pub use nft::GemNftService;
 pub use notification::{GemNotificationService, GemNotificationStore};
 pub use portfolio::GemPortfolioService;

@@ -281,8 +281,8 @@ struct ServicesFactory {
             perpetualService: perpetualService,
         )
 
-        let gemNameService = Gemstone.GemNameService(api: gemDeviceApiClient)
-        let addressNameService = AddressNameService(addressStore: storeManager.addressStore, apiService: gemNameService)
+        let gemNameService = Gemstone.GemNameService(api: gemDeviceApiClient, store: GemstoneAddressStore(store: storeManager.addressStore))
+        let addressNameService = AddressNameService(addressStore: storeManager.addressStore, service: gemNameService)
         let activityService = ActivityService(store: storeManager.recentActivityStore)
         let authService = AuthService(apiService: Gemstone.GemAuthService(api: gemDeviceApiClient), keystore: storages.keystore)
         let rewardsService = RewardsService(apiService: Gemstone.GemRewardsService(api: gemDeviceApiClient), authService: authService)

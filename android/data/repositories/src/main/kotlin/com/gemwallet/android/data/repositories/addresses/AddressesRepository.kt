@@ -32,19 +32,8 @@ class AddressesRepository(
     override fun getAddressNameFlow(chain: Chain, address: String): Flow<AddressName?> =
         addressesDao.getFlow(chain, address).map { it?.toDTO() }
 
-    override suspend fun getAddressNames(requests: List<ChainAddress>): List<AddressName> {
-        if (requests.isEmpty()) return emptyList()
-        val cached = requests.mapNotNull { addressesDao.get(it.chain, it.address)?.toDTO() }
-        val cachedKeys = cached.map { ChainAddress(it.chain, it.address) }.toSet()
-        val missing = requests.filterNot { cachedKeys.contains(it) }
-        val remote = if (missing.isEmpty()) {
-            emptyList()
-        } else {
-            runCatching { nameService.getAddressNames(missing.map { it.toJson() }).map { it.decodeJson<AddressName>() } }.getOrDefault(emptyList())
-        }
-        runCatching { saveAddressNames(remote) }
-        return cached + remote
-    }
+    override suspend fun getAddressNames(requests: List<ChainAddress>): List<AddressName> =
+        nameService.getAddressNames(requests.map { it.toJson() }).map { it.decodeJson<AddressName>() }
 
     override suspend fun rename(walletId: WalletId, name: String) {
         addressesDao.updateName(walletId.id, name)

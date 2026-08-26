@@ -10,8 +10,8 @@ import StoreTestKit
 public extension AddressNameService {
     static func mock(
         addressStore: AddressStore = .mock(),
-        apiService: any GemNameServiceProtocol = GemNameServiceMock(),
+        service: any GemNameServiceProtocol = GemNameServiceMock(),
     ) -> AddressNameService {
-        AddressNameService(addressStore: addressStore, apiService: apiService)
+        AddressNameService(addressStore: addressStore, service: service)
     }
 }
