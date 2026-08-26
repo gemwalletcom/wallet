@@ -16,12 +16,12 @@ struct PriceAlertServiceTests {
     @Test
     func enableAlertRequestsPermissionsAndEnablesAlerts() async throws {
         let store = try createStore()
-        let apiService = GemPriceAlertServiceMock()
+        let coreService = GemPriceAlertServiceMock()
         let pushNotificationService = PushNotificationEnablerMock()
         let deviceService = DeviceServiceMock()
         let service = PriceAlertService.mock(
             store: store,
-            apiService: apiService,
+            service: coreService,
             deviceService: deviceService,
             pushNotificationService: pushNotificationService,
         )
@@ -29,7 +29,7 @@ struct PriceAlertServiceTests {
         try await service.enable(priceAlert: .mock(assetId: .mock(.bitcoin)))
 
         #expect(pushNotificationService.didRequestPermissions)
-        #expect(try apiService.isEnabled())
+        #expect(try coreService.isEnabled())
         #expect(try store.getPriceAlerts().count == 1)
         #expect(await deviceService.updateCalls == 1)
     }
@@ -40,7 +40,7 @@ struct PriceAlertServiceTests {
         let deviceService = DeviceServiceMock()
         let service = PriceAlertService.mock(
             store: store,
-            apiService: GemPriceAlertServiceMock(enabled: true),
+            service: GemPriceAlertServiceMock(enabled: true),
             deviceService: deviceService,
         )
 

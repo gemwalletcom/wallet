@@ -174,7 +174,7 @@ struct ServicesFactory {
             pushNotificationService: pushNotificationEnablerService,
         )
         let navigationPresenter = NavigationPresenter()
-        let portfolioService = PortfolioService(apiService: Gemstone.GemPortfolioService(api: gemDeviceApiClient), assetStore: storeManager.assetStore)
+        let portfolioService = PortfolioService(service: Gemstone.GemPortfolioService(api: gemDeviceApiClient), assetStore: storeManager.assetStore)
         let gemPerpetualStore = GemstonePerpetualStore(store: storeManager.perpetualStore, assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
         let gemPerpetualService = gatewayService.perpetualService(price: gemPriceService, store: gemPerpetualStore)
         let perpetualService = PerpetualService(
@@ -193,7 +193,7 @@ struct ServicesFactory {
         )
         let gemPriceAlertService = Gemstone.GemPriceAlertService(api: gemDeviceApiClient, preferences: preferencesService, store: GemstonePriceAlertStore(store: storeManager.priceAlertStore))
         let priceAlertService = Self.makePriceAlertService(
-            apiService: gemPriceAlertService,
+            service: gemPriceAlertService,
             priceAlertStore: storeManager.priceAlertStore,
             deviceService: deviceService,
             priceUpdater: streamSubscriptionService,
@@ -204,7 +204,7 @@ struct ServicesFactory {
             assets: gemAssetsService,
             store: GemstoneFiatStore(store: storeManager.fiatTransactionStore),
         )
-        let fiatService = FiatService(apiService: gemFiatService)
+        let fiatService = FiatService(service: gemFiatService)
         let supportTypingState = SupportTypingState()
         let gemSupportStore = GemstoneSupportStore(store: storeManager.supportChatStore)
         let supportChatService = SupportChatService(
@@ -303,8 +303,8 @@ struct ServicesFactory {
         let gemNameService = Gemstone.GemNameService(api: gemDeviceApiClient, store: GemstoneAddressStore(store: storeManager.addressStore))
         let addressNameService = AddressNameService(addressStore: storeManager.addressStore, service: gemNameService)
         let activityService = ActivityService(store: storeManager.recentActivityStore)
-        let authService = AuthService(apiService: Gemstone.GemAuthService(api: gemDeviceApiClient), keystore: storages.keystore)
-        let rewardsService = RewardsService(apiService: Gemstone.GemRewardsService(api: gemDeviceApiClient), authService: authService)
+        let authService = AuthService(service: Gemstone.GemAuthService(api: gemDeviceApiClient), keystore: storages.keystore)
+        let rewardsService = RewardsService(service: Gemstone.GemRewardsService(api: gemDeviceApiClient), authService: authService)
         let toastPresenter = ToastPresenter()
         let navigationHandler = NavigationHandler(
             navigationState: navigation,
@@ -519,7 +519,7 @@ extension ServicesFactory {
     }
 
     private static func makePriceAlertService(
-        apiService: any Gemstone.GemPriceAlertServiceProtocol,
+        service: any Gemstone.GemPriceAlertServiceProtocol,
         priceAlertStore: PriceAlertStore,
         deviceService: any DeviceServiceable,
         priceUpdater: any PriceUpdater,
@@ -527,7 +527,7 @@ extension ServicesFactory {
     ) -> PriceAlertService {
         PriceAlertService(
             store: priceAlertStore,
-            apiService: apiService,
+            service: service,
             deviceService: deviceService,
             priceUpdater: priceUpdater,
             pushNotificationService: PushNotificationEnablerService(preferences: preferences),

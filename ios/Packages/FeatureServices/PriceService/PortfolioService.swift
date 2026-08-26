@@ -7,11 +7,11 @@ import Primitives
 import Store
 
 public struct PortfolioService: Sendable {
-    private let apiService: any GemPortfolioServiceProtocol
+    private let service: any GemPortfolioServiceProtocol
     private let assetStore: AssetStore
 
-    public init(apiService: any GemPortfolioServiceProtocol, assetStore: AssetStore) {
-        self.apiService = apiService
+    public init(service: any GemPortfolioServiceProtocol, assetStore: AssetStore) {
+        self.service = service
         self.assetStore = assetStore
     }
 
@@ -19,6 +19,6 @@ public struct PortfolioService: Sendable {
         let assets = try assetStore.getAssetsData(walletId: walletId, filters: [.enabledBalance, .hasBalance])
         let portfolioAssets = assets.map { PortfolioAsset(assetId: $0.asset.id, value: String($0.balance.total)) }
         let request = PortfolioAssetsRequest(assets: portfolioAssets)
-        return try await PortfolioAssets(apiService.getAssets(period: period.json(), request: request.json()))
+        return try await PortfolioAssets(service.getAssets(period: period.json(), request: request.json()))
     }
 }

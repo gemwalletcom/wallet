@@ -11,20 +11,20 @@ public protocol FiatQuoting: Sendable {
 }
 
 public struct FiatService: Sendable {
-    private let apiService: any GemFiatServiceProtocol
+    private let service: any GemFiatServiceProtocol
 
-    public init(apiService: any GemFiatServiceProtocol) {
-        self.apiService = apiService
+    public init(service: any GemFiatServiceProtocol) {
+        self.service = service
     }
 
     public func updateTransactions(walletId: WalletId) async throws {
-        try await apiService.syncTransactions(walletId: walletId.id)
+        try await service.syncTransactions(walletId: walletId.id)
     }
 }
 
 extension FiatService: FiatQuoting {
     public func getQuotes(walletId: WalletId, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote] {
-        try await apiService.getQuotes(
+        try await service.getQuotes(
             walletId: walletId.id,
             quoteType: type.json(),
             assetId: assetId.identifier,
@@ -34,6 +34,6 @@ extension FiatService: FiatQuoting {
     }
 
     public func getQuoteUrl(walletId: WalletId, quoteId: String) async throws -> FiatQuoteUrl {
-        try await FiatQuoteUrl(apiService.getQuoteUrl(walletId: walletId.id, quoteId: quoteId))
+        try await FiatQuoteUrl(service.getQuoteUrl(walletId: walletId.id, quoteId: quoteId))
     }
 }

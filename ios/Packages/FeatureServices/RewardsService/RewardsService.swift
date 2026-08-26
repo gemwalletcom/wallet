@@ -15,37 +15,37 @@ public protocol RewardsServiceable: Sendable {
 }
 
 public struct RewardsService: RewardsServiceable, Sendable {
-    private let apiService: any GemRewardsServiceProtocol
+    private let service: any GemRewardsServiceProtocol
     private let authService: AuthServiceable
 
     public init(
-        apiService: any GemRewardsServiceProtocol,
+        service: any GemRewardsServiceProtocol,
         authService: AuthServiceable,
     ) {
-        self.apiService = apiService
+        self.service = service
         self.authService = authService
     }
 
     public func getRewards(wallet: Wallet) async throws -> Rewards {
-        try await Rewards(apiService.getRewards(walletId: wallet.id.id))
+        try await Rewards(service.getRewards(walletId: wallet.id.id))
     }
 
     public func useReferralCode(wallet: Wallet, referralCode: String) async throws {
         let auth = try await authService.getAuthPayload(wallet: wallet)
-        try await apiService.useReferralCode(walletId: wallet.id.id, auth: auth.json(), code: referralCode)
+        try await service.useReferralCode(walletId: wallet.id.id, auth: auth.json(), code: referralCode)
     }
 
     public func createReferral(wallet: Wallet, code: String) async throws -> Rewards {
         let auth = try await authService.getAuthPayload(wallet: wallet)
-        return try await Rewards(apiService.createReferral(walletId: wallet.id.id, auth: auth.json(), code: code))
+        return try await Rewards(service.createReferral(walletId: wallet.id.id, auth: auth.json(), code: code))
     }
 
     public func generateReferralLink(code: String) -> URL {
-        URL(string: apiService.referralLink(code: code))!
+        URL(string: service.referralLink(code: code))!
     }
 
     public func redeem(wallet: Wallet, redemptionId: String) async throws -> RedemptionResult {
         let auth = try await authService.getAuthPayload(wallet: wallet)
-        return try await RedemptionResult(apiService.redeem(walletId: wallet.id.id, auth: auth.json(), redemptionId: redemptionId))
+        return try await RedemptionResult(service.redeem(walletId: wallet.id.id, auth: auth.json(), redemptionId: redemptionId))
     }
 }

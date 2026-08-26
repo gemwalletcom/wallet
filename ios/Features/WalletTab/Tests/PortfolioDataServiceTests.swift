@@ -22,7 +22,7 @@ struct PortfolioDataServiceTests {
         try FiatRateStore(db: db).add([FiatRate(symbol: .eur, rate: Double(rate))])
 
         let service = PortfolioDataService.mock(
-            portfolioService: .mock(apiService: GemPortfolioServiceMock(
+            portfolioService: .mock(service: GemPortfolioServiceMock(
                 allTimeHigh: .mock(date: date, value: 100),
                 allTimeLow: .mock(date: date, value: 20),
             )),

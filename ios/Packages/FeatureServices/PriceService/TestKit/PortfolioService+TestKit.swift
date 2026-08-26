@@ -10,11 +10,11 @@ import StoreTestKit
 
 public extension PortfolioService {
     static func mock(
-        apiService: any GemPortfolioServiceProtocol = GemPortfolioServiceMock(),
+        service: any GemPortfolioServiceProtocol = GemPortfolioServiceMock(),
         assetStore: AssetStore = .mock(),
     ) -> PortfolioService {
         PortfolioService(
-            apiService: apiService,
+            service: service,
             assetStore: assetStore,
         )
     }

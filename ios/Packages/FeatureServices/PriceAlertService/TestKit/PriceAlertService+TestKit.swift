@@ -16,14 +16,14 @@ import StoreTestKit
 public extension PriceAlertService {
     static func mock(
         store: PriceAlertStore = .mock(),
-        apiService: any GemPriceAlertServiceProtocol = GemPriceAlertServiceMock(),
+        service: any GemPriceAlertServiceProtocol = GemPriceAlertServiceMock(),
         deviceService: any DeviceServiceable = DeviceServiceMock(),
         priceUpdater: any PriceUpdater = .mock(),
         pushNotificationService: any PushNotificationEnabler = PushNotificationEnablerMock(),
     ) -> PriceAlertService {
         PriceAlertService(
             store: store,
-            apiService: apiService,
+            service: service,
             deviceService: deviceService,
             priceUpdater: priceUpdater,
             pushNotificationService: pushNotificationService,

@@ -13,16 +13,16 @@ public protocol AuthServiceable: Sendable {
 }
 
 public struct AuthService: AuthServiceable, Sendable {
-    private let apiService: any GemAuthServiceProtocol
+    private let service: any GemAuthServiceProtocol
     private let keystore: any Keystore
     private let securePreferences: SecurePreferences
 
     public init(
-        apiService: any GemAuthServiceProtocol,
+        service: any GemAuthServiceProtocol,
         keystore: any Keystore,
         securePreferences: SecurePreferences = SecurePreferences(),
     ) {
-        self.apiService = apiService
+        self.service = service
         self.keystore = keystore
         self.securePreferences = securePreferences
     }
@@ -32,7 +32,7 @@ public struct AuthService: AuthServiceable, Sendable {
         let chain = Chain.ethereum
         let account = try wallet.account(for: chain)
 
-        let nonce = try await apiService.getNonce()
+        let nonce = try await service.getNonce()
         let authNonce = try AuthNonce(nonce)
         let authMessage = Gemstone.createAuthMessage(address: account.address, authNonce: nonce)
         let signature = try await keystore.signAuthMessageHash(wallet: wallet, chain: chain, hash: Data(authMessage.hash))

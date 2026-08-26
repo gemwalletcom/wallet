@@ -6,6 +6,6 @@ import GemstonePrimitivesTestKit
 
 public extension FiatService {
     static func mock() -> FiatService {
-        FiatService(apiService: GemFiatServiceMock())
+        FiatService(service: GemFiatServiceMock())
     }
 }
