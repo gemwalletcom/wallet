@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.assets
 
-import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
@@ -73,7 +72,6 @@ class AssetsRepositoryTest {
     private val balancesDao = mockk<BalancesDao>(relaxed = true)
     private val pricesDao = mockk<PricesDao>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>()
-    private val balancesService = mockk<BalancesService>(relaxed = true)
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
     private val streamSubscriptionService = mockk<StreamSubscriptionService>(relaxed = true)
     private val updateBalances = mockk<UpdateBalances>(relaxed = true)
@@ -85,7 +83,6 @@ class AssetsRepositoryTest {
         balancesDao = balancesDao,
         pricesRepository = PricesRepository(pricesDao, sessionRepository),
         sessionRepository = sessionRepository,
-        balancesService = balancesService,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
         availabilityService = AssetsAvailabilityService(assetsDao),

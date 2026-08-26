@@ -117,6 +117,8 @@ let package = Package(
         .target(
             name: "BalanceService",
             dependencies: [
+                "Gemstone",
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Primitives",
                 "Store",
                 .product(name: "ChainService", package: "ChainServices"),

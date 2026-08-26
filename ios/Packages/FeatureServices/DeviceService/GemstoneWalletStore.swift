@@ -17,4 +17,8 @@ public final class GemstoneWalletStore: GemWalletStore, @unchecked Sendable {
     public func getWallets() async throws -> [Gemstone.Wallet] {
         try store.getWallets().map { try $0.json() }
     }
+
+    public func getWallet(walletId: String) async throws -> Gemstone.Wallet? {
+        try store.getWallet(id: WalletId.from(id: walletId)).map { try $0.json() }
+    }
 }

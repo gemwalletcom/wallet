@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import typealias Gemstone.Asset
 import typealias Gemstone.AssetBasic
 import typealias Gemstone.AssetId
 import protocol Gemstone.GemAssetStore
@@ -19,6 +20,10 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
 
     public func getAssetIds(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
         try assetStore.getAssets(for: assetIds).map(\.id.identifier)
+    }
+
+    public func getAssets(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.Asset] {
+        try assetStore.getAssets(for: assetIds).map { try $0.json() }
     }
 
     public func addAssets(assets: [Gemstone.AssetBasic]) async throws {

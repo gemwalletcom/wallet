@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.assets
 
 import android.util.Log
-import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -71,7 +70,6 @@ class AssetsRepository @Inject constructor(
     private val balancesDao: BalancesDao,
     private val pricesRepository: PricesRepository,
     private val sessionRepository: SessionRepository,
-    private val balancesService: BalancesService,
     private val searchTokensCase: SearchTokensCase,
     private val streamSubscriptionService: StreamSubscriptionService,
     private val availabilityService: AssetsAvailabilityService,
@@ -263,8 +261,9 @@ class AssetsRepository @Inject constructor(
             async {
                 if (assets[account.chain.string] == null) {
                     add(wallet.id.id, asset, false)
-                    val balances = updateBalances.updateBalances(wallet.id.id, account, emptyList()).firstOrNull()
-                    if ((balances?.totalAmount ?: 0.0) > 0.0) {
+                    updateBalances.updateBalances(wallet.id.id, listOf(account.chain.string))
+                    val totalAmount = balancesDao.getByAsset(wallet.id.id, account.chain.string)?.totalAmount ?: 0.0
+                    if (totalAmount > 0.0) {
                         linkAssetToWallet(wallet.id.id, asset.id, true)
                     }
                 }
@@ -391,25 +390,12 @@ class AssetsRepository @Inject constructor(
             .flowOn(Dispatchers.IO)
     }
 
-    private suspend fun List<AssetInfo>.refreshBalances(): List<Deferred<List<AssetBalance>>> = withContext(Dispatchers.IO) {
+    private suspend fun List<AssetInfo>.refreshBalances(): List<Deferred<Unit>> = withContext(Dispatchers.IO) {
         groupBy { it.walletId }
-            .mapValues { wallet ->
-                val walletId = wallet.key ?: return@mapValues null
-                wallet.value.groupBy { it.asset.chain }
-                    .mapKeys { it.value.firstOrNull()?.owner }
-                    .mapValues { entry -> entry.value.map { it.asset } }
-                    .mapNotNull { entry ->
-                        val account: Account = entry.key ?: return@mapNotNull null
-                        if (entry.value.isEmpty()) {
-                            return@mapNotNull null
-                        }
-                        async {
-                            updateBalances.updateBalances(walletId.id, account, entry.value)
-                        }
-                    }
+            .mapNotNull { (walletId, assetInfos) ->
+                walletId ?: return@mapNotNull null
+                async { updateBalances.updateBalances(walletId.id, assetInfos.map { it.asset.id.toIdentifier() }) }
             }
-            .mapNotNull { it.value }
-            .flatten()
     }
 }
 

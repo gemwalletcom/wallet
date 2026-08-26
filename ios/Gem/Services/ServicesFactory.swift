@@ -95,10 +95,8 @@ struct ServicesFactory {
         let gemStaticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
         let chartService = ChartService(service: Gemstone.GemChartService(api: gemApiClient))
         let marketService = MarketService(service: Gemstone.GemPriceService(api: gemApiClient))
-        let gemAssetsService = Gemstone.GemAssetsService(
-            api: gemApiClient,
-            store: GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore),
-        )
+        let gemAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
+        let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient, store: gemAssetStore)
         let gemTransactionsService = Gemstone.GemTransactionsService(
             api: gemDeviceApiClient,
             assets: gemAssetsService,
@@ -137,8 +135,11 @@ struct ServicesFactory {
         )
         let balanceService = BalanceService(
             balanceStore: storeManager.balanceStore,
-            assetsService: assetsService,
-            chainServiceFactory: chainServiceFactory,
+            service: gatewayService.balanceService(
+                walletStore: GemstoneWalletStore(store: storeManager.walletStore),
+                assetStore: gemAssetStore,
+                store: GemstoneBalanceStore(store: storeManager.balanceStore),
+            ),
         )
         let earnService = EarnService(
             store: storeManager.stakeStore,

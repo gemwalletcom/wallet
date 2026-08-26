@@ -2,11 +2,13 @@ package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
+import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetBasic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,6 +20,10 @@ class GemstoneAssetStore(
 
     override suspend fun getAssetIds(assetIds: List<String>): List<String> = withContext(Dispatchers.IO) {
         assetsDao.getAssetIds(assetIds)
+    }
+
+    override suspend fun getAssets(assetIds: List<String>): List<String> = withContext(Dispatchers.IO) {
+        assetsDao.getAssetsByIds(assetIds).toDTO().map { it.toJson() }
     }
 
     override suspend fun addAssets(assets: List<String>) = withContext(Dispatchers.IO) {

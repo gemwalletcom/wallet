@@ -298,3 +298,9 @@ public final class GemTransactionStateServiceMock: GemTransactionStateServicePro
         try await update(walletId, transaction)
     }
 }
+
+public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked Sendable {
+    public init() {}
+
+    public func update(walletId _: String, assetIds _: [Gemstone.AssetId]) async throws {}
+}

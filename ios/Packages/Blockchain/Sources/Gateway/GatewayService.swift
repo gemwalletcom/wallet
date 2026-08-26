@@ -29,6 +29,10 @@ public actor GatewayService: Sendable {
         GemTransactionStateService(gateway: gateway, store: store)
     }
 
+    public nonisolated func balanceService(walletStore: any GemWalletStore, assetStore: any GemAssetStore, store: any GemBalanceStore) -> GemBalanceService {
+        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store)
+    }
+
     public nonisolated func confirmService(
         simulation: TransactionSimulationService,
         scanner: GemScanService,

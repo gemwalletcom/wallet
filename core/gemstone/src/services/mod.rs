@@ -1,5 +1,6 @@
 pub mod assets;
 pub mod auth;
+pub mod balance;
 pub mod banner;
 pub mod chart;
 pub mod config;
@@ -23,6 +24,7 @@ pub mod wallet_configuration;
 
 pub use assets::{GemAssetStore, GemAssetsService};
 pub use auth::GemAuthService;
+pub use balance::{GemBalanceService, GemBalanceStore};
 pub use banner::{GemBannerService, GemBannerStore};
 pub use chart::GemChartService;
 pub use config::GemConfigService;

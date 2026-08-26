@@ -5,7 +5,6 @@ import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
-import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.nft.SyncNfts
@@ -34,6 +33,10 @@ import com.gemwallet.android.data.services.gemapi.http.GemDeviceRequestSigner
 import com.gemwallet.android.data.repositories.assets.GemstoneAssetStore
 import uniffi.gemstone.GemApiClient
 import uniffi.gemstone.GemAssetsService
+import com.gemwallet.android.data.repositories.assets.GemstoneBalanceStore
+import com.gemwallet.android.data.repositories.wallets.GemstoneWalletStore
+import dagger.Lazy
+import uniffi.gemstone.GemBalanceService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -52,7 +55,6 @@ object AssetsModule {
         balancesDao: BalancesDao,
         pricesRepository: PricesRepository,
         sessionRepository: SessionRepository,
-        balancesService: BalancesService,
         searchTokensCase: SearchTokensCase,
         streamSubscriptionService: StreamSubscriptionService,
         availabilityService: AssetsAvailabilityService,
@@ -63,7 +65,6 @@ object AssetsModule {
         balancesDao = balancesDao,
         pricesRepository = pricesRepository,
         sessionRepository = sessionRepository,
-        balancesService = balancesService,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
         availabilityService = availabilityService,
@@ -71,25 +72,26 @@ object AssetsModule {
         updateBalances = updateBalances,
     )
 
+
     @Provides
     @Singleton
-    fun provideBalanceRemoteSource(
+    fun provideGemBalanceService(
         gateway: GemGateway,
-    ): BalancesService = BalancesService(
-        gateway = gateway,
+        walletsRepository: Lazy<WalletsRepository>,
+        assetsDao: AssetsDao,
+        balancesDao: BalancesDao,
+    ): GemBalanceService = GemBalanceService(
+        gateway,
+        GemstoneWalletStore(walletsRepository),
+        GemstoneAssetStore(assetsDao),
+        GemstoneBalanceStore(balancesDao),
     )
 
     @Provides
     @Singleton
     fun provideUpdateBalances(
-        balancesDao: BalancesDao,
-        balancesService: BalancesService,
-        assetsDao: AssetsDao,
-    ): UpdateBalances = UpdateBalances(
-        balancesDao = balancesDao,
-        balancesService = balancesService,
-        assetsDao = assetsDao,
-    )
+        balanceService: GemBalanceService,
+    ): UpdateBalances = UpdateBalances(balanceService)
 
     @Provides
     @Singleton
