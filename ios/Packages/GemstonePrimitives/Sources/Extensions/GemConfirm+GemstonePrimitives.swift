@@ -42,32 +42,3 @@ public extension FeeSelection {
         }
     }
 }
-
-public extension Gemstone.ScanTransactionPayload {
-    func map() throws -> Primitives.ScanTransactionPayload {
-        try Primitives.ScanTransactionPayload(
-            origin: origin.map(),
-            target: target.map(),
-            website: website,
-            type: transactionType.map(),
-        )
-    }
-}
-
-public extension Gemstone.ScanAddressTarget {
-    func map() throws -> Primitives.ScanAddressTarget {
-        try Primitives.ScanAddressTarget(
-            assetId: AssetId(id: assetId),
-            address: address,
-        )
-    }
-}
-
-public extension Primitives.ScanTransaction {
-    func map() -> Gemstone.ScanTransaction {
-        Gemstone.ScanTransaction(
-            isMalicious: isMalicious,
-            isMemoRequired: isMemoRequired,
-        )
-    }
-}

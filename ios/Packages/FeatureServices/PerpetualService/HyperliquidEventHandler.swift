@@ -2,8 +2,6 @@
 
 import Foundation
 import struct Gemstone.GemHyperliquidOpenOrder
-import struct Gemstone.GemPerpetualBalance
-import struct Gemstone.GemPerpetualPosition
 import class Gemstone.Hyperliquid
 import Primitives
 
@@ -22,17 +20,21 @@ public actor HyperliquidEventHandler {
 
     public func handle(_ data: Data, walletId: WalletId, mode: PerpetualAccountMode) async {
         do {
-            switch try hyperliquid.parseWebsocketData(data: data, mode: mode.map()) {
+            switch try hyperliquid.parseWebsocketData(data: data, mode: mode.json()) {
             case let .accountState(balance, newPositions):
-                try handleAccountState(walletId: walletId, balance: balance, newPositions: newPositions)
+                try handleAccountState(
+                    walletId: walletId,
+                    balance: balance.map { try Primitives.PerpetualBalance($0) },
+                    newPositions: newPositions.map { try Primitives.PerpetualPosition($0) },
+                )
             case let .spotState(balance):
-                try updateBalance(walletId: walletId, balance: balance)
+                try updateBalance(walletId: walletId, balance: Primitives.PerpetualBalance(balance))
             case let .openOrders(orders):
                 try handleOpenOrders(walletId: walletId, orders: orders)
             case let .candle(candle):
-                await chartService.yield(candle.map())
+                try await chartService.yield(Primitives.ChartCandleUpdate(candle))
             case let .marketData(market):
-                try perpetualService.updateMarket(market)
+                try perpetualService.updateMarket(Primitives.PerpetualMarketData(market))
             case let .marketPrices(prices):
                 try perpetualService.updatePrices(prices)
             case let .subscriptionResponse(subscriptionType):
@@ -51,17 +53,17 @@ public actor HyperliquidEventHandler {
 
     private func handleAccountState(
         walletId: WalletId,
-        balance: GemPerpetualBalance?,
-        newPositions: [GemPerpetualPosition],
+        balance: Primitives.PerpetualBalance?,
+        newPositions: [Primitives.PerpetualPosition],
     ) throws {
         let diff = try hyperliquid.diffClearinghousePositions(
-            newPositions: newPositions,
-            existingPositions: perpetualService.getHypercorePositions(walletId: walletId),
+            newPositions: newPositions.map { try $0.json() },
+            existingPositions: perpetualService.getHypercorePositions(walletId: walletId).map { try $0.json() },
         )
 
         try perpetualService.diffPositions(
             deleteIds: diff.deletePositionIds,
-            positions: diff.positions,
+            positions: diff.positions.map { try Primitives.PerpetualPosition($0) },
             walletId: walletId,
         )
         if let balance {
@@ -69,18 +71,18 @@ public actor HyperliquidEventHandler {
         }
     }
 
-    private func updateBalance(walletId: WalletId, balance: GemPerpetualBalance) throws {
+    private func updateBalance(walletId: WalletId, balance: Primitives.PerpetualBalance) throws {
         try perpetualService.updateBalance(walletId: walletId, balance: balance)
     }
 
     private func handleOpenOrders(walletId: WalletId, orders: [GemHyperliquidOpenOrder]) throws {
         let diff = try hyperliquid.diffOpenOrdersPositions(
             orders: orders,
-            existingPositions: perpetualService.getHypercorePositions(walletId: walletId),
+            existingPositions: perpetualService.getHypercorePositions(walletId: walletId).map { try $0.json() },
         )
         try perpetualService.diffPositions(
             deleteIds: diff.deletePositionIds,
-            positions: diff.positions,
+            positions: diff.positions.map { try Primitives.PerpetualPosition($0) },
             walletId: walletId,
         )
     }

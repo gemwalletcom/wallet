@@ -21,8 +21,8 @@ public extension Gemstone.TransactionUpdate {
                 return .confirmationEtaSeconds(seconds)
             }
         }
-        return TransactionChanges(
-            state: state.map(),
+        return try TransactionChanges(
+            state: Primitives.TransactionState(state),
             changes: changes,
         )
     }

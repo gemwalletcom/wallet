@@ -1,6 +1,6 @@
 package com.gemwallet.android.ext
 
-import com.gemwallet.android.domains.asset.toDTO
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -16,11 +16,7 @@ import java.math.BigInteger
 
 private val chainAssetCache: Map<Chain, ChainAsset> by lazy {
     Chain.entries.associateWith { chain ->
-        val wrapper = uniffi.gemstone.chainAssetWrapper(chain.string)
-        ChainAsset(
-            asset = wrapper.asset.toDTO(),
-            networkName = wrapper.networkName,
-        )
+        uniffi.gemstone.chainAssetWrapper(chain.string).decodeJson()
     }
 }
 

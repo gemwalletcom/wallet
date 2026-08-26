@@ -18,7 +18,7 @@ public extension GemBalance {
             reserved: BigInt.from(string: reserved),
             withdrawable: BigInt.from(string: withdrawable),
             earn: BigInt.from(string: earn),
-            metadata: metadata?.map(),
+            metadata: metadata.map { try Primitives.BalanceMetadata($0) },
         )
     }
 }

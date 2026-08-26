@@ -2,10 +2,14 @@ use crate::address::checksum_address;
 use crate::models::*;
 use chrono::{DateTime, Utc};
 use num_bigint::BigInt;
+use primitives::ApplicationMetadata;
 use primitives::contract_call_data::ContractCallData;
+use primitives::nft::NFTAsset;
+use primitives::solana_nft::SolanaNftStandard;
+use primitives::solana_token_program::SolanaTokenProgramId;
 use primitives::{
     AccountDataType, Asset, AssetId, Chain, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualProvider,
-    PerpetualType, Resource, SignerInput, StakeType, TransactionChange, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionMetadata,
+    PerpetualType, SignerInput, StakeType, TransactionChange, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionMetadata,
     TransactionPerpetualMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate, TransferDataExtra,
     TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UInt64,
     perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData},
@@ -22,6 +26,11 @@ pub type GemPerpetualReduceData = PerpetualReduceData;
 pub type GemFeeOption = FeeOption;
 pub type GemTransferDataOutputType = TransferDataOutputType;
 pub type GemTransferDataOutputAction = TransferDataOutputAction;
+#[uniffi::remote(Enum)]
+pub enum PerpetualProvider {
+    Hypercore,
+}
+
 pub type GemTransactionPerpetualMetadata = TransactionPerpetualMetadata;
 pub type GemTransactionMetadata = TransactionMetadata;
 pub type GemTransactionState = TransactionState;
@@ -32,74 +41,15 @@ pub type GemTronVote = TronVote;
 pub type GemTronUnfreeze = TronUnfreeze;
 pub type GemTronStakeData = TronStakeData;
 
-#[uniffi::remote(Record)]
-pub struct TronVote {
-    pub validator: String,
-    pub count: u64,
-}
-
-#[uniffi::remote(Record)]
-pub struct TronUnfreeze {
-    pub resource: Resource,
-    pub amount: u64,
-}
-
-#[uniffi::remote(Enum)]
-pub enum TronStakeData {
-    Votes(Vec<TronVote>),
-    Unfreeze(Vec<TronUnfreeze>),
-}
-
-#[uniffi::remote(Enum)]
-pub enum PerpetualDirection {
-    Short,
-    Long,
-}
-
-#[uniffi::remote(Enum)]
-pub enum PerpetualProvider {
-    Hypercore,
-}
-
 #[uniffi::remote(Enum)]
 pub enum FeeOption {
     TokenAccountCreation,
 }
 
 #[uniffi::remote(Enum)]
-pub enum TransferDataOutputType {
-    EncodedTransaction,
-    Signature,
-}
-
-#[uniffi::remote(Enum)]
-pub enum TransferDataOutputAction {
-    Sign,
-    Send,
-}
-
-#[uniffi::remote(Record)]
-pub struct TransactionPerpetualMetadata {
-    pub pnl: f64,
-    pub price: f64,
-    pub direction: PerpetualDirection,
-    pub is_liquidation: Option<bool>,
-    pub provider: Option<PerpetualProvider>,
-}
-
-#[uniffi::remote(Enum)]
 pub enum TransactionMetadata {
     Perpetual(TransactionPerpetualMetadata),
     Swap(TransactionSwapMetadata),
-}
-
-#[uniffi::remote(Enum)]
-pub enum TransactionState {
-    Pending,
-    Confirmed,
-    InTransit,
-    Failed,
-    Reverted,
 }
 
 #[uniffi::remote(Enum)]
@@ -117,34 +67,7 @@ pub struct TransactionUpdate {
     pub changes: Vec<TransactionChange>,
 }
 
-#[uniffi::remote(Enum)]
-pub enum TransactionType {
-    Transfer,
-    TransferNFT,
-    Swap,
-    TokenApproval,
-    StakeDelegate,
-    StakeUndelegate,
-    StakeRewards,
-    StakeRedelegate,
-    StakeWithdraw,
-    StakeFreeze,
-    StakeUnfreeze,
-    AssetActivation,
-    SmartContractCall,
-    PerpetualOpenPosition,
-    PerpetualClosePosition,
-    PerpetualModifyPosition,
-    EarnDeposit,
-    EarnWithdraw,
-}
-
 pub type GemAccountDataType = AccountDataType;
-
-#[uniffi::remote(Enum)]
-pub enum GemAccountDataType {
-    Activate,
-}
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemTransactionStateRequest {
@@ -177,32 +100,7 @@ pub struct GemHyperliquidOrder {
 
 pub type GemContractCallData = ContractCallData;
 
-#[uniffi::remote(Record)]
-pub struct GemContractCallData {
-    pub contract_address: String,
-    pub call_data: String,
-    pub approval: Option<GemApprovalData>,
-    pub gas_limit: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Enum)]
-pub enum GemStakeType {
-    Delegate { validator: GemDelegationValidator },
-    Undelegate { delegation: GemDelegation },
-    Redelegate { delegation: GemDelegation, to_validator: GemDelegationValidator },
-    WithdrawRewards { validators: Vec<GemDelegationValidator> },
-    Withdraw { delegation: GemDelegation },
-    Freeze { resource: GemResource },
-    Unfreeze { resource: GemResource },
-}
-
 pub type GemEarnType = EarnType;
-
-#[uniffi::remote(Enum)]
-pub enum GemEarnType {
-    Deposit(GemDelegationValidator),
-    Withdraw(GemDelegation),
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
 pub struct GemTransferDataExtra {
@@ -296,7 +194,7 @@ pub enum GemTransactionInputType {
     },
     Stake {
         asset: GemAsset,
-        stake_type: GemStakeType,
+        stake_type: StakeType,
     },
     TokenApprove {
         asset: GemAsset,
@@ -304,12 +202,12 @@ pub enum GemTransactionInputType {
     },
     Generic {
         asset: GemAsset,
-        metadata: GemApplicationMetadata,
+        metadata: ApplicationMetadata,
         extra: GemTransferDataExtra,
     },
     TransferNft {
         asset: GemAsset,
-        nft_asset: GemNFTAsset,
+        nft_asset: NFTAsset,
     },
     Account {
         asset: GemAsset,
@@ -361,7 +259,7 @@ impl GemTransactionInputType {
         }
     }
 
-    pub fn stake_type(&self) -> Result<&GemStakeType, String> {
+    pub fn stake_type(&self) -> Result<&StakeType, String> {
         match self {
             Self::Stake { stake_type, .. } => Ok(stake_type),
             _ => Err("Expected Stake".to_string()),
@@ -428,8 +326,8 @@ pub enum GemTransactionLoadMetadata {
     Solana {
         sender_token_address: Option<String>,
         recipient_token_address: Option<String>,
-        token_program: Option<GemSolanaTokenProgramId>,
-        nft: Option<GemSolanaNftStandard>,
+        token_program: Option<SolanaTokenProgramId>,
+        nft: Option<SolanaNftStandard>,
         block_hash: String,
         references: Vec<String>,
     },
@@ -570,10 +468,7 @@ impl From<TransactionInputType> for GemTransactionInputType {
             TransactionInputType::Transfer(asset) => GemTransactionInputType::Transfer { asset },
             TransactionInputType::Deposit(asset) => GemTransactionInputType::Deposit { asset },
             TransactionInputType::Swap(from_asset, to_asset, swap_data) => GemTransactionInputType::Swap { from_asset, to_asset, swap_data },
-            TransactionInputType::Stake(asset, stake_type) => GemTransactionInputType::Stake {
-                asset,
-                stake_type: stake_type.into(),
-            },
+            TransactionInputType::Stake(asset, stake_type) => GemTransactionInputType::Stake { asset, stake_type },
             TransactionInputType::TokenApprove(asset, approval_data) => GemTransactionInputType::TokenApprove { asset, approval_data },
             TransactionInputType::Generic(asset, metadata, extra) => GemTransactionInputType::Generic {
                 asset,
@@ -584,37 +479,6 @@ impl From<TransactionInputType> for GemTransactionInputType {
             TransactionInputType::Account(asset, account_type) => GemTransactionInputType::Account { asset, account_type },
             TransactionInputType::Perpetual(asset, perpetual_type) => GemTransactionInputType::Perpetual { asset, perpetual_type },
             TransactionInputType::Earn(asset, earn_type, data) => GemTransactionInputType::Earn { asset, earn_type, data },
-        }
-    }
-}
-
-impl From<GemStakeType> for StakeType {
-    fn from(value: GemStakeType) -> Self {
-        match value {
-            GemStakeType::Delegate { validator } => StakeType::Stake(validator),
-            GemStakeType::Undelegate { delegation } => StakeType::Unstake(delegation),
-            GemStakeType::Redelegate { delegation, to_validator } => StakeType::Redelegate(primitives::RedelegateData { delegation, to_validator }),
-            GemStakeType::WithdrawRewards { validators } => StakeType::Rewards(validators.into_iter().collect()),
-            GemStakeType::Withdraw { delegation } => StakeType::Withdraw(delegation),
-            GemStakeType::Freeze { resource } => StakeType::Freeze(resource),
-            GemStakeType::Unfreeze { resource } => StakeType::Unfreeze(resource),
-        }
-    }
-}
-
-impl From<StakeType> for GemStakeType {
-    fn from(value: StakeType) -> Self {
-        match value {
-            StakeType::Stake(validator) => GemStakeType::Delegate { validator },
-            StakeType::Unstake(delegation) => GemStakeType::Undelegate { delegation },
-            StakeType::Redelegate(data) => GemStakeType::Redelegate {
-                delegation: data.delegation,
-                to_validator: data.to_validator,
-            },
-            StakeType::Rewards(validators) => GemStakeType::WithdrawRewards { validators },
-            StakeType::Withdraw(delegation) => GemStakeType::Withdraw { delegation },
-            StakeType::Freeze(resource) => GemStakeType::Freeze { resource },
-            StakeType::Unfreeze(resource) => GemStakeType::Unfreeze { resource },
         }
     }
 }
@@ -751,7 +615,7 @@ impl From<GemTransactionInputType> for TransactionInputType {
                     data: swap_data.data,
                 },
             ),
-            GemTransactionInputType::Stake { asset, stake_type } => TransactionInputType::Stake(asset, stake_type.into()),
+            GemTransactionInputType::Stake { asset, stake_type } => TransactionInputType::Stake(asset, stake_type),
             GemTransactionInputType::TokenApprove { asset, approval_data } => TransactionInputType::TokenApprove(
                 asset,
                 GemApprovalData {

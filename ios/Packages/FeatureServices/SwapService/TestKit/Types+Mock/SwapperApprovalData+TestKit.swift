@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemApprovalData
+import Primitives
 
-public extension GemApprovalData {
-    static func mock() -> GemApprovalData {
-        GemApprovalData(
+public extension Primitives.ApprovalData {
+    static func mock() -> Primitives.ApprovalData {
+        Primitives.ApprovalData(
             token: "0x",
             spender: "0x",
             value: "1000000000000000000",

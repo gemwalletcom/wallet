@@ -3,48 +3,9 @@
 import Gemstone
 import Primitives
 
-public extension GemApplicationMetadata {
-    func map() -> ApplicationMetadata {
-        ApplicationMetadata(
-            name: name,
-            description: description,
-            url: url,
-            icon: icon,
-            source: source.map(),
-        )
-    }
-}
-
-public extension ApplicationMetadata {
-    func map() -> GemApplicationMetadata {
-        GemApplicationMetadata(
-            name: name,
-            description: description,
-            url: url,
-            icon: icon,
-            source: source.map(),
-        )
-    }
-
+public extension Primitives.ApplicationMetadata {
     var shortName: String {
-        Gemstone.applicationMetadataShortName(metadata: map())
-    }
-}
-
-private extension GemApplicationMetadataSource {
-    func map() -> ApplicationMetadataSource {
-        switch self {
-        case .walletConnect: .walletConnect
-        case .payment: .payment
-        }
-    }
-}
-
-private extension ApplicationMetadataSource {
-    func map() -> GemApplicationMetadataSource {
-        switch self {
-        case .walletConnect: .walletConnect
-        case .payment: .payment
-        }
+        guard let metadata = try? json() else { return name }
+        return Gemstone.applicationMetadataShortName(metadata: metadata)
     }
 }

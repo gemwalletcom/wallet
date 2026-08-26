@@ -1,10 +1,10 @@
 package com.gemwallet.android.domains.stake
 
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeProviderType
-import uniffi.gemstone.GemDelegationValidator
-import uniffi.gemstone.GemStakeProviderType
+import uniffi.gemstone.DelegationValidator as GemDelegationValidator
 
 fun inactiveStakeValidator(chain: Chain, id: String, name: String): DelegationValidator {
     return DelegationValidator(
@@ -18,14 +18,4 @@ fun inactiveStakeValidator(chain: Chain, id: String, name: String): DelegationVa
     )
 }
 
-fun DelegationValidator.toGem(chain: uniffi.gemstone.Chain): GemDelegationValidator {
-    return GemDelegationValidator(
-        chain = chain,
-        id = id,
-        name = name,
-        isActive = isActive,
-        commission = commission,
-        apr = apr,
-        providerType = GemStakeProviderType.STAKE, // TODO: Fix on earn
-    )
-}
+fun DelegationValidator.toGem(): GemDelegationValidator = toJson()

@@ -8,13 +8,7 @@ public extension Gemstone.TransactionMetadata {
     func mapToAnyCodableValue() -> AnyCodableValue? {
         switch self {
         case let .perpetual(perpetualMetadata):
-            .encode(TransactionPerpetualMetadata(
-                pnl: perpetualMetadata.pnl,
-                price: perpetualMetadata.price,
-                direction: perpetualMetadata.direction.map(),
-                isLiquidation: perpetualMetadata.isLiquidation,
-                provider: perpetualMetadata.provider?.map(),
-            ))
+            (try? Primitives.TransactionPerpetualMetadata(perpetualMetadata)).flatMap(AnyCodableValue.encode)
         case let .swap(swapMetadata):
             (try? swapMetadata.map()).flatMap(AnyCodableValue.encode)
         }

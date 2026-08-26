@@ -1,5 +1,6 @@
 use crate::config::swap_config::get_swap_config;
 use primitives::swap::SwapQuoteDataType;
+
 pub use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
 pub use swapper::SwapperProvider;
 
@@ -11,72 +12,6 @@ pub type GemSwapProviderData = SwapProviderData;
 pub type GemSwapQuote = SwapQuote;
 pub type GemSwapQuoteData = SwapQuoteData;
 pub type GemSwapQuoteDataType = SwapQuoteDataType;
-
-#[uniffi::remote(Record)]
-pub struct GemApprovalData {
-    pub token: String,
-    pub spender: String,
-    pub value: String,
-    pub is_unlimited: bool,
-}
-
-#[uniffi::remote(Enum)]
-pub enum GemSwapQuoteDataType {
-    Contract,
-    Transfer,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemSwapData {
-    pub quote: GemSwapQuote,
-    pub data: GemSwapQuoteData,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemSwapQuote {
-    pub from_address: String,
-    pub from_value: String,
-    pub min_from_value: Option<String>,
-    pub to_address: String,
-    pub to_value: String,
-    pub provider_data: GemSwapProviderData,
-    pub slippage_bps: u32,
-    pub eta_in_seconds: Option<u32>,
-    pub use_max_amount: Option<bool>,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemSwapQuoteData {
-    pub to: String,
-    pub data_type: GemSwapQuoteDataType,
-    pub value: String,
-    pub data: String,
-    pub memo: Option<String>,
-    pub approval: Option<GemApprovalData>,
-    pub gas_limit: Option<String>,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemSwapProviderData {
-    pub provider: SwapperProvider,
-    pub name: String,
-    pub protocol_name: String,
-}
-
-#[uniffi::remote(Enum)]
-pub enum GemSwapPriceImpactType {
-    Positive,
-    Low,
-    Medium,
-    High,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemSwapPriceImpact {
-    pub percentage: f64,
-    pub impact_type: GemSwapPriceImpactType,
-    pub is_high: bool,
-}
 
 #[uniffi::export]
 pub fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64) -> Option<SwapPriceImpact> {

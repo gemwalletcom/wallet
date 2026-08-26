@@ -12,27 +12,28 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.SignerParams
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
-import uniffi.gemstone.transactionMetadataBlockNumber
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.swap.ApprovalData
+import java.math.BigInteger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmServiceInterface
-import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemSignedTransaction
+import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemstoneException
-import java.math.BigInteger
+import uniffi.gemstone.transactionMetadataBlockNumber
 
 class ConfirmTransactionImpl(
     private val passwordStore: PasswordStore,
@@ -58,7 +59,7 @@ class ConfirmTransactionImpl(
         }
 
         signedTransactions.forEach { signedTransaction ->
-            val approval = signerParams.input.approvalData(signedTransaction.transactionType.toPrimitives())
+            val approval = signerParams.input.approvalData(signedTransaction.transactionType.decodeJson())
             if (approval != null && approval.value.toBigIntegerOrNull() == null) {
                 throw ConfirmError.TransactionIncorrect
             }
@@ -87,7 +88,7 @@ class ConfirmTransactionImpl(
     ) {
         for ((index, transactionHash) in hashes.withIndex()) {
             val isFinalTransaction = index == signedTransactions.lastIndex
-            val transactionType = signedTransactions[index].transactionType.toPrimitives()
+            val transactionType = signedTransactions[index].transactionType.decodeJson<TransactionType>()
             val approval = signerParams.input.approvalData(transactionType)
             val approvalAmount = approval?.let {
                 it.value.toBigIntegerOrNull() ?: throw ConfirmError.TransactionIncorrect

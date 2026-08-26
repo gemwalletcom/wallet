@@ -1,15 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemPerpetualBalance
-import struct Gemstone.GemPerpetualMarketData
-import struct Gemstone.GemPerpetualPosition
 import Primitives
 
 public protocol HyperliquidPerpetualServiceable: PerpetualServiceable {
     func accountMode(walletId: WalletId, address: String) async -> PerpetualAccountMode
-    func getHypercorePositions(walletId: WalletId) throws -> [GemPerpetualPosition]
-    func updateBalance(walletId: WalletId, balance: GemPerpetualBalance) throws
-    func diffPositions(deleteIds: [String], positions: [GemPerpetualPosition], walletId: WalletId) throws
-    func updateMarket(_ market: GemPerpetualMarketData) throws
+    func getHypercorePositions(walletId: WalletId) throws -> [Primitives.PerpetualPosition]
+    func updateBalance(walletId: WalletId, balance: Primitives.PerpetualBalance) throws
+    func diffPositions(deleteIds: [String], positions: [Primitives.PerpetualPosition], walletId: WalletId) throws
+    func updateMarket(_ market: Primitives.PerpetualMarketData) throws
     func updatePrices(_ prices: [String: Double]) throws
 }

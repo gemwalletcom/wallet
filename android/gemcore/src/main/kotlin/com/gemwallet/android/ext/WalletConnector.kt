@@ -1,38 +1,10 @@
 package com.gemwallet.android.ext
 
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
-import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemApplicationMetadata
-import uniffi.gemstone.GemApplicationMetadataSource
 import uniffi.gemstone.applicationMetadataShortName
-
-fun ApplicationMetadata.toGem() = GemApplicationMetadata(
-    name = name,
-    description = description,
-    url = url,
-    icon = icon,
-    source = source.toGem(),
-)
-
-fun GemApplicationMetadata.toPrimitives() = ApplicationMetadata(
-    name = name,
-    description = description,
-    url = url,
-    icon = icon,
-    source = source.toPrimitives(),
-)
-
-fun ApplicationMetadataSource.toGem() = when (this) {
-    ApplicationMetadataSource.WalletConnect -> GemApplicationMetadataSource.WALLET_CONNECT
-    ApplicationMetadataSource.Payment -> GemApplicationMetadataSource.PAYMENT
-}
-
-fun GemApplicationMetadataSource.toPrimitives() = when (this) {
-    GemApplicationMetadataSource.WALLET_CONNECT -> ApplicationMetadataSource.WalletConnect
-    GemApplicationMetadataSource.PAYMENT -> ApplicationMetadataSource.Payment
-}
 
 fun Account.toGem() = uniffi.gemstone.Account(
     chain = chain.string,
@@ -52,7 +24,7 @@ fun uniffi.gemstone.Account.toPrimitives(): Account? {
 }
 
 val ApplicationMetadata.shortName: String
-    get() = applicationMetadataShortName(toGem())
+    get() = applicationMetadataShortName(toJson())
 
 fun List<String>?.walletConnectIcon(): String {
     return this?.firstOrNull { it.endsWith("png", ignoreCase = true) || it.endsWith("jpg", ignoreCase = true) }

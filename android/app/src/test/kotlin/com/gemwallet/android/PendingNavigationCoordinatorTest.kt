@@ -2,7 +2,11 @@ package com.gemwallet.android
 
 import android.content.Intent
 import com.gemwallet.android.model.PushNotificationField
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
+import com.wallet.core.primitives.Payment
+import com.wallet.core.primitives.PaymentLink
+import com.wallet.core.primitives.PaymentLinkSolanaPayInner
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -19,8 +23,6 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.Deeplink
-import uniffi.gemstone.GemPayment
-import uniffi.gemstone.GemPaymentLink
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
 import uniffi.gemstone.urlAction
@@ -96,9 +98,10 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_paymentLink_showsLoadingUntilNavigationIsPrepared() = runTest {
         val uri = "solana:https%3A%2F%2Fexample.com%2Fpay"
-        val payment = GemPayment.Link(GemPaymentLink.SolanaPay("https://example.com/pay"))
+        val payment: Payment = Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
+        val paymentJson = payment.toJson()
         val release = CompletableDeferred<Unit>()
-        every { urlAction(uri) } returns UrlAction.Payment(payment)
+        every { urlAction(uri) } returns UrlAction.Payment(paymentJson)
         coEvery { paymentNavigation.routes(any()) } coAnswers {
             release.await()
             emptyList()

@@ -7,9 +7,11 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.toModel
+import com.gemwallet.android.serializer.decodeJson
+import com.wallet.core.primitives.swap.SwapQuoteData
+import java.math.BigInteger
 import kotlinx.coroutines.flow.firstOrNull
 import uniffi.gemstone.SwapperQuote
-import java.math.BigInteger
 
 class BuildSwapConfirmParamsImpl(
     private val sessionRepository: SessionRepository,
@@ -24,7 +26,7 @@ class BuildSwapConfirmParamsImpl(
         val wallet = sessionRepository.session().firstOrNull()?.wallet ?: return null
 
         val swapData = try {
-            getSwapQuoteData(quote, wallet)
+            getSwapQuoteData(quote, wallet).decodeJson<SwapQuoteData>()
         } catch (_: Throwable) {
             throw SwapNoQuoteException()
         }
@@ -44,7 +46,7 @@ class BuildSwapConfirmParamsImpl(
             protocolId = quote.data.provider.protocolId,
             toAddress = swapData.to,
             value = swapData.value,
-            approval = swapData.approval?.toModel(),
+            approval = swapData.approval,
             gasLimit = swapData.gasLimit?.toBigIntegerOrNull(),
             useMaxAmount = quote.request.options.useMaxAmount,
             etaInSeconds = quote.etaInSeconds,

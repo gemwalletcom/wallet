@@ -6,7 +6,6 @@ import Foundation
 import enum Gemstone.FetchQuoteData
 import class Gemstone.GemSwapper
 import protocol Gemstone.GemSwapperProtocol
-import struct Gemstone.GemSwapQuoteData
 import func Gemstone.getDefaultSlippage
 import struct Gemstone.Permit2ApprovalData
 import struct Gemstone.SwapperOptions
@@ -67,10 +66,10 @@ public final class SwapService: Sendable, SwappableChainsProvider {
         return quotes
     }
 
-    public func getQuoteData(_ request: SwapperQuote, data: FetchQuoteData) async throws -> GemSwapQuoteData {
+    public func getQuoteData(_ request: SwapperQuote, data: FetchQuoteData) async throws -> Primitives.SwapQuoteData {
         let quoteData = try await swapper.getQuoteData(quote: request, data: data)
         try Task.checkCancellation()
-        return quoteData
+        return try Primitives.SwapQuoteData(quoteData)
     }
 
     public func getPermit2Approval(quote: SwapperQuote) async throws -> Permit2ApprovalData? {

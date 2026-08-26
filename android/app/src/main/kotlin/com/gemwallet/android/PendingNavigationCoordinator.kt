@@ -4,7 +4,10 @@ import android.content.Intent
 import androidx.annotation.VisibleForTesting
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Payment
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,8 +15,6 @@ import kotlinx.coroutines.flow.update
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
 import uniffi.gemstone.urlAction
-import javax.inject.Inject
-import javax.inject.Singleton
 
 internal sealed interface PendingNavigation {
 
@@ -58,7 +59,7 @@ class PendingNavigationCoordinator @Inject constructor(
     suspend fun buildRoutes(walletConnect: WalletConnectHandler): Boolean {
         val pending = _pendingNavigation.value as? PendingNavigation.Input ?: return true
         val action = pending.code?.let(::urlAction)
-        val loading = if (action is UrlAction.Payment && action.payment.toPrimitives() is Payment.Link) {
+        val loading = if (action is UrlAction.Payment && action.payment.decodeJson<Payment>() is Payment.Link) {
             PendingNavigation.Loading(pending).also { replace(pending, it) }
         } else {
             null
@@ -88,7 +89,7 @@ class PendingNavigationCoordinator @Inject constructor(
             emptyList()
         }
         is UrlAction.Deeplink -> listOfNotNull(action.deeplink.toRoute())
-        is UrlAction.Payment -> paymentNavigation.routes(action.payment.toPrimitives())
+        is UrlAction.Payment -> paymentNavigation.routes(action.payment.decodeJson())
     }
 
     private fun replace(pending: PendingNavigation, replacement: PendingNavigation?) {

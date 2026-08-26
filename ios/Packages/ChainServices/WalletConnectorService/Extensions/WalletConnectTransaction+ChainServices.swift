@@ -10,23 +10,24 @@ import GemstonePrimitives
 import Primitives
 
 extension WalletConnectTransaction {
-    func map() -> WalletConnectorTransaction {
+    func map() throws -> WalletConnectorTransaction {
         switch self {
-        case let .ethereum(data, kind): .ethereum(data.map(), kind.map())
-        case let .solana(data, outputType, transactionType): .solana(data.transaction, outputType.map(), transactionType.map())
-        case let .sui(data, outputType): .sui(data.transaction, outputType.map())
-        case let .ton(data, outputType): .ton(data, outputType.map())
-        case let .tron(data, outputType): .tron(data, outputType.map())
+        case let .ethereum(data, kind): try .ethereum(data.map(), kind.map())
+        case let .solana(data, outputType, transactionType):
+            try .solana(data.transaction, Primitives.TransferDataOutputType(outputType), Primitives.TransactionType(transactionType))
+        case let .sui(data, outputType): try .sui(data.transaction, Primitives.TransferDataOutputType(outputType))
+        case let .ton(data, outputType): try .ton(data, Primitives.TransferDataOutputType(outputType))
+        case let .tron(data, outputType): try .tron(data, Primitives.TransferDataOutputType(outputType))
         }
     }
 }
 
 extension EvmTransactionKind {
-    func map() -> WalletConnectorEVMTransactionKind {
+    func map() throws -> WalletConnectorEVMTransactionKind {
         switch self {
         case .transfer: .transfer
         case .contractCall: .contractCall
-        case let .tokenApproval(approval): .tokenApproval(approval.map())
+        case let .tokenApproval(approval): try .tokenApproval(Primitives.ApprovalData(approval))
         }
     }
 }

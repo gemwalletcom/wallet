@@ -6,9 +6,11 @@ import Primitives
 import Signer
 
 public struct TransactionSignerMock: TransactionSigning {
+    public static let transferType = (try? Primitives.TransactionType.transfer.json()) ?? ""
+
     public let signedTransactions: [GemSignedTransaction]
 
-    public init(signedTransactions: [GemSignedTransaction] = [GemSignedTransaction(data: "signed_data", transactionType: .transfer)]) {
+    public init(signedTransactions: [GemSignedTransaction] = [GemSignedTransaction(data: "signed_data", transactionType: TransactionSignerMock.transferType)]) {
         self.signedTransactions = signedTransactions
     }
 
@@ -19,5 +21,11 @@ public struct TransactionSignerMock: TransactionSigning {
         wallet _: Wallet,
     ) throws -> [GemSignedTransaction] {
         signedTransactions
+    }
+}
+
+public extension GemSignedTransaction {
+    init(data: String, type: Primitives.TransactionType) {
+        self.init(data: data, transactionType: (try? type.json()) ?? "")
     }
 }

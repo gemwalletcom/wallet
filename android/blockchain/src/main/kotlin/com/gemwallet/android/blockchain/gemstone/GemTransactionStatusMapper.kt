@@ -3,6 +3,7 @@ package com.gemwallet.android.blockchain.gemstone
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.HashChanges
 import com.gemwallet.android.model.TransactionChanges
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
@@ -12,21 +13,9 @@ import uniffi.gemstone.TransactionMetadata
 import uniffi.gemstone.TransactionUpdate
 import uniffi.gemstone.TransactionState as GemTransactionState
 
-internal fun GemTransactionState.toPrimitives(): TransactionState = when (this) {
-    GemTransactionState.PENDING -> TransactionState.Pending
-    GemTransactionState.CONFIRMED -> TransactionState.Confirmed
-    GemTransactionState.FAILED -> TransactionState.Failed
-    GemTransactionState.REVERTED -> TransactionState.Reverted
-    GemTransactionState.IN_TRANSIT -> TransactionState.InTransit
-}
+internal fun GemTransactionState.toPrimitives(): TransactionState = decodeJson<TransactionState>()
 
-internal fun TransactionState.toGem(): GemTransactionState = when (this) {
-    TransactionState.Pending -> GemTransactionState.PENDING
-    TransactionState.Confirmed -> GemTransactionState.CONFIRMED
-    TransactionState.Failed -> GemTransactionState.FAILED
-    TransactionState.Reverted -> GemTransactionState.REVERTED
-    TransactionState.InTransit -> GemTransactionState.IN_TRANSIT
-}
+internal fun TransactionState.toGem(): GemTransactionState = toJson()
 
 internal fun TransactionUpdate.toPrimitives(): TransactionChanges {
     val fee = changes.firstNotNullOfOrNull { it as? TransactionChange.NetworkFee }

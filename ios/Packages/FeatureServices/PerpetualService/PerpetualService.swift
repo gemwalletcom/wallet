@@ -2,9 +2,6 @@
 
 import Formatters
 import Foundation
-import struct Gemstone.GemPerpetualBalance
-import struct Gemstone.GemPerpetualMarketData
-import struct Gemstone.GemPerpetualPosition
 import GemstonePrimitives
 import Preferences
 import Primitives
@@ -162,19 +159,19 @@ extension PerpetualService: HyperliquidPerpetualServiceable {
         }
     }
 
-    public func getHypercorePositions(walletId: WalletId) throws -> [GemPerpetualPosition] {
-        try store.getPositions(walletId: walletId, provider: .hypercore).map { $0.map() }
+    public func getHypercorePositions(walletId: WalletId) throws -> [Primitives.PerpetualPosition] {
+        try store.getPositions(walletId: walletId, provider: .hypercore)
     }
 
-    public func updateBalance(walletId: WalletId, balance: GemPerpetualBalance) throws {
-        try syncProviderBalances(walletId: walletId, balance: balance.map())
+    public func updateBalance(walletId: WalletId, balance: Primitives.PerpetualBalance) throws {
+        try syncProviderBalances(walletId: walletId, balance: balance)
     }
 
-    public func diffPositions(deleteIds: [String], positions: [GemPerpetualPosition], walletId: WalletId) throws {
-        try store.diffPositions(deleteIds: deleteIds, positions: positions.map { try $0.map() }, walletId: walletId)
+    public func diffPositions(deleteIds: [String], positions: [Primitives.PerpetualPosition], walletId: WalletId) throws {
+        try store.diffPositions(deleteIds: deleteIds, positions: positions, walletId: walletId)
     }
 
-    public func updateMarket(_ market: GemPerpetualMarketData) throws {
+    public func updateMarket(_ market: Primitives.PerpetualMarketData) throws {
         try store.updateMarket(
             coin: market.coin,
             price: market.price,

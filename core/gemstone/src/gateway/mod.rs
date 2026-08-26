@@ -158,7 +158,7 @@ impl GemGateway {
             .await
     }
 
-    pub async fn get_perpetual_portfolio(&self, chain: Chain, address: String) -> Result<GemPerpetualPortfolio, GatewayError> {
+    pub async fn get_perpetual_portfolio(&self, chain: Chain, address: String) -> Result<primitives::portfolio::PerpetualPortfolio, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_perpetual_portfolio(address).await }).await
     }
 

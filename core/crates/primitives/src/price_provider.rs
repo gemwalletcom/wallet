@@ -2,10 +2,11 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
+#[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum PriceProvider {
+    #[default]
     Coingecko,
     Pyth,
     Jupiter,

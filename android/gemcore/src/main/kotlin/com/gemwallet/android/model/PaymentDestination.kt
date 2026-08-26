@@ -3,6 +3,7 @@ package com.gemwallet.android.model
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PaymentRequest
@@ -26,7 +27,7 @@ sealed interface PaymentDestination {
 
     companion object {
         fun from(request: PaymentRequest, assets: List<AssetInfo>): PaymentDestination =
-            when (val destination = paymentDestination(request.toGem(), assets.map { it.toPaymentWalletAsset() })) {
+            when (val destination = paymentDestination(request.toJson(), assets.map { it.toPaymentWalletAsset() })) {
                 is GemPaymentDestination.Confirm -> destination.transfer.toTransferParams(assets)?.let(::Confirm) ?: Unsupported
                 is GemPaymentDestination.Recipient -> destination.assetId.toAssetId()?.let { Recipient(it, request) } ?: Unsupported
                 is GemPaymentDestination.SelectAsset -> SelectAsset(request, destination.chains.mapNotNull { chain -> Chain.entries.firstOrNull { it.string == chain } })
@@ -34,7 +35,7 @@ sealed interface PaymentDestination {
             }
 
         fun transfer(request: PaymentRequest, assetInfo: AssetInfo): Transfer =
-            when (val destination = paymentTransferDestination(request.toGem(), assetInfo.toPaymentWalletAsset())) {
+            when (val destination = paymentTransferDestination(request.toJson(), assetInfo.toPaymentWalletAsset())) {
                 is GemPaymentDestination.Confirm -> destination.transfer.toTransferParams(listOf(assetInfo))?.let(::Confirm) ?: Unsupported
                 is GemPaymentDestination.Recipient -> Recipient(assetInfo.asset.id, request)
                 is GemPaymentDestination.SelectAsset -> Unsupported

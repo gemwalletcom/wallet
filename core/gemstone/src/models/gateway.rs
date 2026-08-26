@@ -4,14 +4,6 @@ use primitives::{BroadcastOptions, FeeRate, GasPriceType, TransactionInputType, 
 
 pub type GemUTXO = UTXO;
 
-#[uniffi::remote(Record)]
-pub struct GemUTXO {
-    pub transaction_id: String,
-    pub vout: i32,
-    pub value: String,
-    pub address: String,
-}
-
 pub type GemBroadcastOptions = BroadcastOptions;
 
 #[uniffi::remote(Record)]

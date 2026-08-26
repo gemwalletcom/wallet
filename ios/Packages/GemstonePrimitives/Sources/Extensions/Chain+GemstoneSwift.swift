@@ -6,15 +6,11 @@ import Gemstone
 import func Gemstone.chainAssetWrapper
 import Primitives
 
-private let chainAssets: [Primitives.Chain: ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
-    let wrapper = chainAssetWrapper(chain: chain.rawValue)
-    guard let asset = try? wrapper.asset.map() else {
+private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
+    guard let chainAsset = try? Primitives.ChainAsset(chainAssetWrapper(chain: chain.rawValue)) else {
         preconditionFailure("Invalid chain asset for \(chain)")
     }
-    result[chain] = ChainAsset(
-        asset: asset,
-        networkName: wrapper.networkName,
-    )
+    result[chain] = chainAsset
 }
 
 public extension Gemstone.Chain {
@@ -137,7 +133,7 @@ public extension Primitives.Chain {
         }
     }
 
-    func defaultAsset(type: AssetType) -> Asset {
+    func defaultAsset(type: Primitives.AssetType) -> Asset {
         guard let asset = defaultAssets.first(where: { $0.type == type }) else {
             preconditionFailure("Missing \(type) default asset for \(self)")
         }
@@ -165,7 +161,7 @@ public extension Primitives.Chain {
 }
 
 private extension Primitives.Chain {
-    var chainAsset: ChainAsset {
+    var chainAsset: Primitives.ChainAsset {
         guard let asset = chainAssets[self] else {
             preconditionFailure("Missing chain asset for \(self)")
         }

@@ -67,9 +67,9 @@ public extension GatewayService {
 // MARK: - Account
 
 extension GatewayService {
-    func utxos(chain: Primitives.Chain, address: String) async throws -> [UTXO] {
+    func utxos(chain: Primitives.Chain, address: String) async throws -> [Primitives.UTXO] {
         try await gateway.getUtxos(chain: chain.rawValue, address: address).map {
-            try $0.map()
+            try Primitives.UTXO($0)
         }
     }
 }
@@ -123,68 +123,69 @@ public extension GatewayService {
 // MARK: - Staking
 
 public extension GatewayService {
-    func validators(chain: Primitives.Chain, apy: Double) async throws -> [DelegationValidator] {
+    func validators(chain: Primitives.Chain, apy: Double) async throws -> [Primitives.DelegationValidator] {
         try await gateway.getStakingValidators(chain: chain.rawValue, apy: apy)
-            .map { try $0.map() }
+            .map { try Primitives.DelegationValidator($0) }
     }
 
-    func delegationValidators(chain: Primitives.Chain, address: String) async throws -> [DelegationValidator] {
+    func delegationValidators(chain: Primitives.Chain, address: String) async throws -> [Primitives.DelegationValidator] {
         try await gateway.getStakingDelegationValidators(chain: chain.rawValue, address: address)
-            .map { try $0.map() }
+            .map { try Primitives.DelegationValidator($0) }
     }
 
-    func delegations(chain: Primitives.Chain, address: String) async throws -> [DelegationBase] {
+    func delegations(chain: Primitives.Chain, address: String) async throws -> [Primitives.DelegationBase] {
         try await gateway.getStakingDelegations(chain: chain.rawValue, address: address)
-            .map { try $0.map() }
+            .map { try Primitives.DelegationBase($0) }
     }
 }
 
 // MARK: - Earn
 
 public extension GatewayService {
-    func earnProviders(assetId: Primitives.AssetId) throws -> [DelegationValidator] {
-        try gateway.getEarnProviders(assetId: assetId.identifier).map { try $0.map() }
+    func earnProviders(assetId: Primitives.AssetId) throws -> [Primitives.DelegationValidator] {
+        try gateway.getEarnProviders(assetId: assetId.identifier).map { try Primitives.DelegationValidator($0) }
     }
 
-    func earnPositions(address: String, assetId: Primitives.AssetId) async throws -> [DelegationBase] {
-        try await gateway.getEarnPositions(address: address, assetId: assetId.identifier).map { try $0.map() }
+    func earnPositions(address: String, assetId: Primitives.AssetId) async throws -> [Primitives.DelegationBase] {
+        try await gateway.getEarnPositions(address: address, assetId: assetId.identifier).map { try Primitives.DelegationBase($0) }
     }
 
     func getEarnData(
         assetId: Primitives.AssetId,
         address: String,
         value: String,
-        earnType: EarnType,
-    ) async throws -> ContractCallData {
-        try await gateway.getEarnData(assetId: assetId.identifier, address: address, value: value, earnType: earnType.map())
-            .map()
+        earnType: Primitives.EarnType,
+    ) async throws -> Primitives.ContractCallData {
+        try await Primitives.ContractCallData(
+            gateway.getEarnData(assetId: assetId.identifier, address: address, value: value, earnType: earnType.json()),
+        )
     }
 }
 
 // MARK: - Perpetual
 
 public extension GatewayService {
-    func getPositions(chain: Primitives.Chain, address: String) async throws -> PerpetualPositionsSummary {
-        try await gateway.getPositions(chain: chain.rawValue, address: address).map()
+    func getPositions(chain: Primitives.Chain, address: String) async throws -> Primitives.PerpetualPositionsSummary {
+        try await Primitives.PerpetualPositionsSummary(gateway.getPositions(chain: chain.rawValue, address: address))
     }
 
-    func getPerpetualAccountMode(chain: Primitives.Chain, address: String) async throws -> PerpetualAccountMode {
-        try await gateway.getPerpetualAccountMode(chain: chain.rawValue, address: address).map()
+    func getPerpetualAccountMode(chain: Primitives.Chain, address: String) async throws -> Primitives.PerpetualAccountMode {
+        try await Primitives.PerpetualAccountMode(gateway.getPerpetualAccountMode(chain: chain.rawValue, address: address))
     }
 
-    func getPerpetualsData(chain: Primitives.Chain) async throws -> [PerpetualData] {
+    func getPerpetualsData(chain: Primitives.Chain) async throws -> [Primitives.PerpetualData] {
         try await gateway.getPerpetualsData(chain: chain.rawValue).map {
-            try $0.map()
+            try Primitives.PerpetualData($0)
         }
     }
 
-    func getPerpetualCandlesticks(chain: Primitives.Chain, symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick] {
+    func getPerpetualCandlesticks(chain: Primitives.Chain, symbol: String, period: ChartPeriod) async throws -> [Primitives.ChartCandleStick] {
         try await gateway.getPerpetualCandlesticks(chain: chain.rawValue, symbol: symbol, period: period.rawValue).map {
-            $0.map()
+            try Primitives.ChartCandleStick($0)
         }
     }
 
-    func getPerpetualPortfolio(chain: Primitives.Chain, address: String) async throws -> PerpetualPortfolio {
-        try await gateway.getPerpetualPortfolio(chain: chain.rawValue, address: address).map()
+    func getPerpetualPortfolio(chain: Primitives.Chain, address: String) async throws -> Primitives.PerpetualPortfolio {
+        try await Primitives.PerpetualPortfolio(gateway.getPerpetualPortfolio(chain: chain.rawValue, address: address))
     }
 }

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.GemSwapQuoteData
 import struct Gemstone.SwapperQuote
 import Primitives
+import PrimitivesTestKit
 import SwapService
 
 public extension SwapQuoteDataProvider {
@@ -19,13 +19,13 @@ public extension SwapQuoteDataProvidable where Self == SwapQuoteDataProviderMock
 }
 
 public struct SwapQuoteDataProviderMock: SwapQuoteDataProvidable {
-    public let quoteData: GemSwapQuoteData
+    public let quoteData: Primitives.SwapQuoteData
 
-    public init(quoteData: GemSwapQuoteData = .mock()) {
+    public init(quoteData: Primitives.SwapQuoteData = .mock()) {
         self.quoteData = quoteData
     }
 
-    public func fetchQuoteData(wallet _: Wallet, quote _: SwapperQuote) async throws -> GemSwapQuoteData {
+    public func fetchQuoteData(wallet _: Wallet, quote _: SwapperQuote) async throws -> Primitives.SwapQuoteData {
         quoteData
     }
 }

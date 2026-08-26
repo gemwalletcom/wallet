@@ -2,6 +2,7 @@
 
 import BigInt
 import Gemstone
+import GemstonePrimitives
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -12,14 +13,14 @@ struct PaymentTransferTests {
     func transactionUsesDecodedTransfer() throws {
         let asset = Asset.mockSolanaUSDC()
         let recipient = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
-        let transaction = Self.paymentTransaction(
+        let transaction = try Self.paymentTransaction(
             memo: "payment-memo",
-            request: GemPaymentRequest(
+            request: Primitives.PaymentRequest(
                 address: recipient,
                 amount: .atomicValue("19000000"),
                 memo: "payment-memo",
                 references: nil,
-                assetId: asset.id.identifier,
+                assetId: asset.id,
             ),
         )
 
@@ -40,14 +41,14 @@ struct PaymentTransferTests {
     func transactionWithoutMemoConfirms() throws {
         let asset = Asset.mockSolanaUSDC()
         let recipient = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
-        let transaction = Self.paymentTransaction(
+        let transaction = try Self.paymentTransaction(
             memo: nil,
-            request: GemPaymentRequest(
+            request: Primitives.PaymentRequest(
                 address: recipient,
                 amount: .atomicValue("19000000"),
                 memo: nil,
                 references: nil,
-                assetId: asset.id.identifier,
+                assetId: asset.id,
             ),
         )
 
@@ -66,14 +67,14 @@ struct PaymentTransferTests {
     @Test
     func transactionWithMismatchedAssetFallsBack() throws {
         let asset = Asset.mockSolanaUSDC()
-        let transaction = Self.paymentTransaction(
+        let transaction = try Self.paymentTransaction(
             memo: "payment-memo",
-            request: GemPaymentRequest(
+            request: Primitives.PaymentRequest(
                 address: "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n",
                 amount: .atomicValue("19000000"),
                 memo: "payment-memo",
                 references: nil,
-                assetId: Primitives.Chain.solana.assetId.identifier,
+                assetId: Primitives.Chain.solana.assetId,
             ),
         )
 
@@ -193,20 +194,20 @@ struct PaymentTransferTests {
 
     private static let xrpAddress = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
 
-    private static func paymentTransaction(memo: String?, request: GemPaymentRequest?) -> GemPaymentTransaction {
-        GemPaymentTransaction(
-            merchant: GemApplicationMetadata(
+    private static func paymentTransaction(memo: String?, request: Primitives.PaymentRequest?) throws -> GemPaymentTransaction {
+        try GemPaymentTransaction(
+            merchant: Primitives.ApplicationMetadata(
                 name: "Merchant",
                 description: "Payment",
                 url: "https://example.com",
                 icon: "https://example.com/icon.png",
                 source: .payment,
-            ),
+            ).json(),
             account: Gemstone.ChainAddress(chain: Primitives.Chain.solana.rawValue, address: "account"),
             transaction: "encoded-transaction",
-            transactionType: .transfer,
+            transactionType: Primitives.TransactionType.transfer.json(),
             memo: memo,
-            request: request,
+            request: request.map { try $0.json() },
         )
     }
 }

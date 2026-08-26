@@ -1,13 +1,16 @@
 package com.gemwallet.android.data.repositories.perpetual
 
 import android.util.Log
-import com.gemwallet.android.blockchain.gemstone.toDTO
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.PerpetualAccountMode
+import com.wallet.core.primitives.PerpetualBalance
+import com.wallet.core.primitives.PerpetualMarketData
+import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.channels.BufferOverflow
@@ -16,8 +19,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import uniffi.gemstone.GemHyperliquidOpenOrder
 import uniffi.gemstone.GemHyperliquidSocketMessage
-import uniffi.gemstone.GemPerpetualBalance
-import uniffi.gemstone.GemPerpetualPosition
+import uniffi.gemstone.PerpetualBalance as GemPerpetualBalance
+import uniffi.gemstone.PerpetualPosition as GemPerpetualPosition
 import uniffi.gemstone.Hyperliquid
 
 class HyperliquidEventHandler(
@@ -40,8 +43,8 @@ class HyperliquidEventHandler(
                 is GemHyperliquidSocketMessage.AccountState -> handleAccountState(walletId, message.balance, message.positions)
                 is GemHyperliquidSocketMessage.SpotState -> putBalance(walletId, message.balance)
                 is GemHyperliquidSocketMessage.OpenOrders -> handleOpenOrders(walletId, message.orders)
-                is GemHyperliquidSocketMessage.Candle -> chartFlow.emit(message.candle.toDTO())
-                is GemHyperliquidSocketMessage.MarketData -> perpetualRepository.updateMarket(message.market.toDTO())
+                is GemHyperliquidSocketMessage.Candle -> chartFlow.emit(message.candle.decodeJson())
+                is GemHyperliquidSocketMessage.MarketData -> perpetualRepository.updateMarket(message.market.decodeJson())
                 is GemHyperliquidSocketMessage.MarketPrices -> handleMarketPrices(message.prices)
                 is GemHyperliquidSocketMessage.SubscriptionResponse -> Log.d(TAG, "Subscription response: ${message.subscriptionType}")
                 is GemHyperliquidSocketMessage.Error -> Log.e(TAG, "Error message: ${message.message}")
@@ -56,18 +59,18 @@ class HyperliquidEventHandler(
         positions: List<GemPerpetualPosition>,
     ) {
         val diff = hyperliquid.diffClearinghousePositions(positions, getProviderPositions(walletId))
-        perpetualRepository.applyPositionsDiff(walletId, diff.deletePositionIds, diff.positions.mapNotNull { it.toDTO() })
+        perpetualRepository.applyPositionsDiff(walletId, diff.deletePositionIds, diff.positions.map { it.decodeJson() })
         balance?.let { putBalance(walletId, it) }
     }
 
     private suspend fun putBalance(walletId: WalletId, balance: GemPerpetualBalance) {
         perpetualRepository.putAsset(HypercoreUSDC)
-        perpetualRepository.putBalance(walletId, HypercoreUSDC, balance.toDTO())
+        perpetualRepository.putBalance(walletId, HypercoreUSDC, balance.decodeJson())
     }
 
     private suspend fun handleOpenOrders(walletId: WalletId, orders: List<GemHyperliquidOpenOrder>) {
         val diff = hyperliquid.diffOpenOrdersPositions(orders, getProviderPositions(walletId))
-        perpetualRepository.applyPositionsDiff(walletId, diff.deletePositionIds, diff.positions.mapNotNull { it.toDTO() })
+        perpetualRepository.applyPositionsDiff(walletId, diff.deletePositionIds, diff.positions.map { it.decodeJson() })
     }
 
     private suspend fun handleMarketPrices(prices: Map<String, Double>) {

@@ -44,7 +44,7 @@ class PaymentTransferTest {
     private val usdc = mockAssetInfo(asset = mockAssetSolanaUSDC())
 
     private fun decode(url: String): PaymentRequest =
-        requireNotNull(paymentDecodeUrl(url).toPrimitives().request) { "not a payment request: $url" }
+        requireNotNull(paymentDecodeUrl(url).toPayment().request) { "not a payment request: $url" }
 
     private fun destination(assetInfo: AssetInfo, url: String): PaymentDestination.Transfer =
         PaymentDestination.transfer(decode(url), assetInfo)

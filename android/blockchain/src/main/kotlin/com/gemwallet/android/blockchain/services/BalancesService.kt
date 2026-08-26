@@ -3,6 +3,7 @@ package com.gemwallet.android.blockchain.services
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BalanceMetadata
@@ -20,15 +21,7 @@ class BalancesService(
                 asset = account.chain.asset(),
                 available = result.balance.available,
                 reserved = result.balance.reserved,
-                metadata = result.balance.metadata?.let {
-                    BalanceMetadata(
-                        votes = it.votes,
-                        energyAvailable = it.energyAvailable,
-                        energyTotal = it.energyTotal,
-                        bandwidthAvailable = it.bandwidthAvailable,
-                        bandwidthTotal = it.bandwidthTotal,
-                    )
-                },
+                metadata = result.balance.metadata?.decodeJson(),
                 isActive = result.isActive,
             )
             balance
@@ -50,15 +43,7 @@ class BalancesService(
                 staked = result.balance.staked,
                 pending = result.balance.pending,
                 rewards = result.balance.rewards,
-                metadata = result.balance.metadata?.let {
-                    BalanceMetadata(
-                        votes = it.votes,
-                        energyAvailable = it.energyAvailable,
-                        energyTotal = it.energyTotal,
-                        bandwidthAvailable = it.bandwidthAvailable,
-                        bandwidthTotal = it.bandwidthTotal,
-                    )
-                },
+                metadata = result.balance.metadata?.decodeJson(),
             )
         } catch (_: GatewayException) {
             null

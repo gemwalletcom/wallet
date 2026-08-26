@@ -44,7 +44,7 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
                 fee: result.fee.map(),
                 metadata: result.metadata,
             ),
-            scanResult: result.scan.map { try $0.map() },
+            scanResult: result.scan.map { try Primitives.ScanTransaction($0) },
             simulation: result.simulation.map { try Primitives.SimulationResult($0) },
         )
     }

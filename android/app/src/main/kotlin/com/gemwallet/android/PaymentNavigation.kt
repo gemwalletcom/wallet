@@ -11,18 +11,22 @@ import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.model.toPaymentWalletAsset
 import com.gemwallet.android.model.toTransferParams
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
+import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Payment
 import com.wallet.core.primitives.PaymentLink
 import com.wallet.core.primitives.PaymentRequest
+import com.wallet.core.primitives.TransactionType
+import java.math.BigInteger
+import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import uniffi.gemstone.ChainAddress
 import uniffi.gemstone.PaymentServiceInterface
 import uniffi.gemstone.paymentDecodedTransfer
-import java.math.BigInteger
-import javax.inject.Inject
 
 class PaymentNavigation @Inject constructor(
     private val getSelectAssetsInfo: GetSelectAssetsInfo,
@@ -48,14 +52,15 @@ class PaymentNavigation @Inject constructor(
         val assets = getSelectAssetsInfo().first()
         val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
         val payment = paymentService.load(
-            link.toGem(),
+            link.toJson(),
             accounts.map { ChainAddress(chain = it.chain.string, address = it.address) },
         )
         val account = accounts.firstOrNull {
             it.chain.string == payment.account.chain && it.address == payment.account.address
         } ?: return emptyList()
         val transfer = payment.request?.let { request ->
-            assets.firstOrNull { it.asset.id.toIdentifier() == request.assetId }
+            val decoded = request.decodeJson<PaymentRequest>()
+            assets.firstOrNull { it.asset.id == decoded.assetId }
                 ?.let { paymentDecodedTransfer(request, it.toPaymentWalletAsset())?.toTransferParams(assets) }
         } ?: ConfirmParams.Builder(account.chain.asset(), account, BigInteger.ZERO)
             .transfer(DestinationAddress(""), payment.memo)
@@ -67,10 +72,10 @@ class PaymentNavigation @Inject constructor(
             memo = transfer.memo,
             inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
             isSendable = true,
-            metadata = payment.merchant.toPrimitives(),
+            metadata = payment.merchant.decodeJson(),
             data = payment.transaction,
             gasLimit = null,
-            decodedTransactionType = payment.transactionType.toPrimitives(),
+            decodedTransactionType = payment.transactionType.decodeJson(),
         )
         return listOfNotNull(params.pack()?.let(::ConfirmRoute))
     }

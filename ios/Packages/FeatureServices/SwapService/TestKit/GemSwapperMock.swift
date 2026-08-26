@@ -1,10 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Gemstone
+import GemstonePrimitives
+import Primitives
 import typealias Gemstone.AssetId
 import typealias Gemstone.Chain
 import enum Gemstone.FetchQuoteData
 import protocol Gemstone.GemSwapperProtocol
-import struct Gemstone.GemSwapQuoteData
 import struct Gemstone.Permit2ApprovalData
 import struct Gemstone.SwapperAssetList
 import enum Gemstone.SwapperProvider
@@ -17,7 +19,7 @@ public final class GemSwapperMock: GemSwapperProtocol {
     private let permit2ForQuote: Permit2ApprovalData
     private let quotes: [SwapperQuote]
     private let quoteByProvider: SwapperQuote
-    private let quoteData: GemSwapQuoteData
+    private let quoteData: Primitives.SwapQuoteData
     private let providers: [SwapperProviderType]
     private let chains: [Chain]
     private let swapAssetList: SwapperAssetList
@@ -29,7 +31,7 @@ public final class GemSwapperMock: GemSwapperProtocol {
         permit2ForQuote: Permit2ApprovalData = .mock(),
         quotes: [SwapperQuote] = [.mock()],
         quoteByProvider: SwapperQuote = .mock(),
-        quoteData: GemSwapQuoteData = .mock(),
+        quoteData: Primitives.SwapQuoteData = .mock(),
         providers: [SwapperProviderType] = [.mock()],
         chains: [Chain] = ["ethereum"],
         swapAssetList: SwapperAssetList = .mock(),
@@ -67,8 +69,8 @@ public final class GemSwapperMock: GemSwapperProtocol {
         quoteByProvider
     }
 
-    public func getQuoteData(quote _: SwapperQuote, data _: FetchQuoteData) async throws -> GemSwapQuoteData {
-        quoteData
+    public func getQuoteData(quote _: SwapperQuote, data _: FetchQuoteData) async throws -> Gemstone.SwapQuoteData {
+        try quoteData.json()
     }
 
     public func getProviders() -> [SwapperProviderType] {

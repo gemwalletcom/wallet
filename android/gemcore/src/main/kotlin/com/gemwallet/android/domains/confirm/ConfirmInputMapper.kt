@@ -7,13 +7,16 @@ import com.gemwallet.android.math.hex
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.toModel
+import com.gemwallet.android.serializer.decodeJson
+import com.wallet.core.primitives.ApplicationMetadata
+import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.TransferDataOutputAction
+import com.wallet.core.primitives.TransferDataOutputType
+import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
 import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemTransactionInputType
-import uniffi.gemstone.TransferDataOutputAction
-import uniffi.gemstone.TransferDataOutputType
-import java.nio.ByteBuffer
-import java.nio.charset.CharacterCodingException
 
 fun ConfirmParams.toConfirmInput(): GemConfirmInput = GemConfirmInput(
     inputType = toDto(),
@@ -47,15 +50,15 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
                 destination = DestinationAddress(destination?.address.orEmpty(), destination?.name),
                 memo = memo,
                 useMaxAmount = useMax,
-                inputType = when (extra.outputType) {
-                    TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-                    TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
+                inputType = when (extra.outputType.decodeJson<TransferDataOutputType>()) {
+                    TransferDataOutputType.Signature -> ConfirmParams.TransferParams.InputType.Signature
+                    TransferDataOutputType.EncodedTransaction -> ConfirmParams.TransferParams.InputType.EncodeTransaction
                 },
-                isSendable = extra.outputAction == TransferDataOutputAction.SEND,
-                metadata = inputType.metadata.toPrimitives(),
+                isSendable = extra.outputAction.decodeJson<TransferDataOutputAction>() == TransferDataOutputAction.Send,
+                metadata = inputType.metadata.decodeJson(),
                 data = extra.data.toGenericData(),
                 gasLimit = extra.gasLimit,
-                decodedTransactionType = extra.transactionType.toPrimitives(),
+                decodedTransactionType = extra.transactionType.decodeJson(),
                 approval = extra.approval?.toModel(),
             )
         }

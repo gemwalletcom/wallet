@@ -1,7 +1,7 @@
 package com.gemwallet.android.application.swap.coordinators
 
 import com.wallet.core.primitives.Wallet
-import uniffi.gemstone.GemSwapQuoteData
+import uniffi.gemstone.SwapQuoteData as GemSwapQuoteData
 import uniffi.gemstone.SwapperQuote
 
 interface GetSwapQuoteData {

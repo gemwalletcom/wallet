@@ -26,12 +26,3 @@ pub struct GemBalance {
     pub withdrawable: GemBigUint,
     pub metadata: Option<GemBalanceMetadata>,
 }
-
-#[uniffi::remote(Record)]
-pub struct GemBalanceMetadata {
-    pub votes: u32,
-    pub energy_available: u32,
-    pub energy_total: u32,
-    pub bandwidth_available: u32,
-    pub bandwidth_total: u32,
-}

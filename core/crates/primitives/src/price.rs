@@ -10,7 +10,9 @@ pub struct Price {
     pub price: f64,
     pub price_change_percentage_24h: f64,
     pub updated_at: DateTime<Utc>,
+    // Not exported to the platforms: they never set it, so it defaults on the way in.
     #[typeshare(skip)]
+    #[serde(default)]
     pub provider: PriceProvider,
 }
 

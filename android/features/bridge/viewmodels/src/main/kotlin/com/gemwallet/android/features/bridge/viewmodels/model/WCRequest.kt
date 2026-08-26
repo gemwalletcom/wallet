@@ -25,6 +25,8 @@ import com.wallet.core.primitives.SimulationWarning
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.swap.ApprovalData
 import uniffi.gemstone.EvmTransactionKind
+import com.gemwallet.android.serializer.decodeJson
+import com.wallet.core.primitives.TransferDataOutputType as PrimitiveOutputType
 import uniffi.gemstone.TransferDataOutputType
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
@@ -259,9 +261,9 @@ private fun buildEncodedTransactionParams(
     metadata = request.appMetadata,
     data = encodedTransaction,
     gasLimit = null,
-    inputType = when (outputType) {
-        TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-        TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
+    inputType = when (outputType.decodeJson<PrimitiveOutputType>()) {
+        PrimitiveOutputType.EncodedTransaction -> ConfirmParams.TransferParams.InputType.EncodeTransaction
+        PrimitiveOutputType.Signature -> ConfirmParams.TransferParams.InputType.Signature
     },
     destination = DestinationAddress(""),
     amount = BigInteger.ZERO,

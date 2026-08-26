@@ -45,14 +45,14 @@ public final class SetPriceAlertViewModel {
         assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
     }
 
-    func percentageSuggestions(for price: Price?) -> [PercentageSuggestion] {
+    func percentageSuggestions(for price: Primitives.Price?) -> [PercentageSuggestion] {
         guard let currentPrice = price?.price else { return [] }
         return priceAlertFormatter.percentageSuggestions(price: currentPrice).map {
             PercentageSuggestion(value: $0.asInt)
         }
     }
 
-    func priceSuggestions(for price: Price?) -> [PriceSuggestion] {
+    func priceSuggestions(for price: Primitives.Price?) -> [PriceSuggestion] {
         guard let currentPrice = price?.price else { return [] }
         return priceAlertFormatter.roundedValues(price: currentPrice, byPercent: suggestionOffsetPercent).map {
             PriceSuggestion(
@@ -117,7 +117,7 @@ public final class SetPriceAlertViewModel {
         state.type = type
     }
 
-    func setAlertDirection(for price: Price?) {
+    func setAlertDirection(for price: Primitives.Price?) {
         switch state.type {
         case .price:
             state.alertDirection = priceAlertDirection(

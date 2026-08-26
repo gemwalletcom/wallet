@@ -1,23 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.EvmTransactionKind
-import struct Gemstone.GemApprovalData
+import GemstonePrimitives
 import Primitives
 import Testing
 @testable import WalletConnectorService
 
 struct WalletConnectorTransactionTests {
     @Test
-    func evmTransactionKindData() {
+    func evmTransactionKindData() throws {
         let approval = ApprovalData(token: "token", spender: "spender", value: "100", isUnlimited: false)
-        let approvalKind = EvmTransactionKind.tokenApproval(approval: GemApprovalData(
-            token: approval.token,
-            spender: approval.spender,
-            value: approval.value,
-            isUnlimited: approval.isUnlimited,
-        )).map()
-        let transferKind = EvmTransactionKind.transfer.map()
-        let contractCallKind = EvmTransactionKind.contractCall.map()
+        let approvalKind = try EvmTransactionKind.tokenApproval(approval: approval.json()).map()
+        let transferKind = try EvmTransactionKind.transfer.map()
+        let contractCallKind = try EvmTransactionKind.contractCall.map()
 
         #expect(transferKind.transactionType == .transfer)
         #expect(transferKind.approvalData == nil)

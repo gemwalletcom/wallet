@@ -1,37 +1,37 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.toGem
-import uniffi.gemstone.GemSwapData
-import uniffi.gemstone.GemSwapProviderData
-import uniffi.gemstone.GemSwapQuote
-import uniffi.gemstone.GemSwapQuoteData
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.SwapProvider
+import com.wallet.core.primitives.swap.SwapData
+import com.wallet.core.primitives.swap.SwapProviderData
+import com.wallet.core.primitives.swap.SwapQuote
+import com.wallet.core.primitives.swap.SwapQuoteData
+import uniffi.gemstone.SwapData as GemSwapData
 
-fun ConfirmParams.SwapParams.toGem(): GemSwapData {
-    return GemSwapData(
-        quote = GemSwapQuote(
-            fromAddress = from.address,
-            toAddress = toAddress,
-            fromValue = fromAmount.toString(),
-            minFromValue = minFromAmount?.toString(),
-            toValue = toAmount.toString(),
-            providerData = GemSwapProviderData(
-                provider = providerId,
-                protocolName = protocolId,
-                name = providerName,
-            ),
-            slippageBps = slippageBps,
-            etaInSeconds = etaInSeconds,
-            useMaxAmount = this@toGem.useMaxAmount
+fun ConfirmParams.SwapParams.toGem(): GemSwapData = SwapData(
+    quote = SwapQuote(
+        fromAddress = from.address,
+        toAddress = toAddress,
+        fromValue = fromAmount.toString(),
+        minFromValue = minFromAmount?.toString(),
+        toValue = toAmount.toString(),
+        providerData = SwapProviderData(
+            provider = SwapProvider.entries.first { it.string == providerId.name.lowercase() },
+            protocolName = protocolId,
+            name = providerName,
         ),
-        data = GemSwapQuoteData(
-            to = toAddress,
-            data = swapData,
-            approval = approval?.toGem(),
-            value = value,
-            gasLimit = gasLimit?.toString(),
-            dataType = dataType,
-            memo = memo()
-        )
-    )
-}
+        slippageBps = slippageBps,
+        etaInSeconds = etaInSeconds,
+        useMaxAmount = useMaxAmount,
+    ),
+    data = SwapQuoteData(
+        to = toAddress,
+        data = swapData,
+        approval = approval,
+        value = value,
+        gasLimit = gasLimit?.toString(),
+        dataType = dataType,
+        memo = memo(),
+    ),
+).toJson()

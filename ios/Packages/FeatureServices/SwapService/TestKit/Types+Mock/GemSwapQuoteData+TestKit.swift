@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemSwapQuoteData
+import Primitives
 
-public extension GemSwapQuoteData {
-    static func mock() -> GemSwapQuoteData {
-        GemSwapQuoteData(
+public extension Primitives.SwapQuoteData {
+    static func mock() -> Primitives.SwapQuoteData {
+        Primitives.SwapQuoteData(
             to: "0x",
             dataType: .contract,
             value: "0",

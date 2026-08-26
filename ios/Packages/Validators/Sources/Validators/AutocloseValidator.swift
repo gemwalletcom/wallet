@@ -6,14 +6,18 @@ import GemstonePrimitives
 import Primitives
 
 public struct AutocloseValidator: TextValidator {
-    private let validator: GemstonePrimitives.AutocloseValidator
+    private let type: TpslType
+    private let direction: PerpetualDirection
+    private let marketPrice: Double
 
     public init(
         type: TpslType,
         direction: PerpetualDirection,
         marketPrice: Double,
     ) {
-        validator = GemstonePrimitives.AutocloseValidator(type: type, direction: direction, marketPrice: marketPrice)
+        self.type = type
+        self.direction = direction
+        self.marketPrice = marketPrice
     }
 
     public func validate(_ text: String) throws {
@@ -27,6 +31,7 @@ public struct AutocloseValidator: TextValidator {
             throw TransferError.invalidAmount
         }
 
+        let validator = try GemstonePrimitives.AutocloseValidator(type: type, direction: direction, marketPrice: marketPrice)
         switch validator.validate(price) {
         case .valid:
             break

@@ -3,7 +3,7 @@ package com.gemwallet.android.data.repositories.perpetual
 import android.util.Log
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
-import uniffi.gemstone.GemPerpetualAccountMode
+import uniffi.gemstone.PerpetualAccountMode as GemPerpetualAccountMode
 import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.HyperliquidSubscriptions
 

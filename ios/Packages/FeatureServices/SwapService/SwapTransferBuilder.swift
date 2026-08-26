@@ -2,7 +2,6 @@
 
 import BigInt
 import Foundation
-import struct Gemstone.GemSwapQuoteData
 import struct Gemstone.SwapperQuote
 import Primitives
 
@@ -12,7 +11,7 @@ public struct SwapTransferDataFactory: Sendable {
         fromAsset: Asset,
         toAsset: Asset,
         quote: Gemstone.SwapperQuote,
-        quoteData: Gemstone.GemSwapQuoteData,
+        quoteData: Primitives.SwapQuoteData,
     ) throws -> TransferData {
         let recipient = try Recipient(
             name: .none,
@@ -21,7 +20,7 @@ public struct SwapTransferDataFactory: Sendable {
         )
         let result = try SwapData(
             quote: quote.map(),
-            data: quoteData.map(),
+            data: quoteData,
         )
         let value = BigInt(stringLiteral: quote.request.value)
 

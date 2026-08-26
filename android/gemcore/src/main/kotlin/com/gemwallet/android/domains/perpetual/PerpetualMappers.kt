@@ -2,6 +2,7 @@ package com.gemwallet.android.domains.perpetual
 
 import com.gemwallet.android.domains.asset.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.CancelOrderData
 import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.PerpetualConfirmData
@@ -16,11 +17,11 @@ import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.TPSLOrderData
 import com.wallet.core.primitives.TpslType
-import uniffi.gemstone.GemPerpetualAccountMode
-import uniffi.gemstone.GemPerpetualMarginType
-import uniffi.gemstone.GemPerpetualOrderType
-import uniffi.gemstone.GemPerpetualPosition
-import uniffi.gemstone.GemPerpetualTriggerOrder
+import uniffi.gemstone.PerpetualAccountMode as GemPerpetualAccountMode
+import uniffi.gemstone.PerpetualMarginType as GemPerpetualMarginType
+import uniffi.gemstone.PerpetualOrderType as GemPerpetualOrderType
+import uniffi.gemstone.PerpetualPosition as GemPerpetualPosition
+import uniffi.gemstone.PerpetualTriggerOrder as GemPerpetualTriggerOrder
 import uniffi.gemstone.CancelOrderData as GemCancelOrderData
 import uniffi.gemstone.PerpetualConfirmData as GemPerpetualConfirmData
 import uniffi.gemstone.PerpetualDirection as GemPerpetualDirection
@@ -79,54 +80,22 @@ fun CancelOrderData.toGem(): GemCancelOrderData = GemCancelOrderData(
     orderId = orderId.toULong(),
 )
 
-fun PerpetualPosition.toGem(): GemPerpetualPosition = GemPerpetualPosition(
-    id = id,
-    perpetualId = perpetualId.toIdentifier(),
-    assetId = assetId.toIdentifier(),
-    size = size,
-    sizeValue = sizeValue,
-    leverage = leverage,
-    entryPrice = entryPrice,
-    liquidationPrice = liquidationPrice,
-    marginType = marginType.toGem(),
-    direction = direction.toGem(),
-    marginAmount = marginAmount,
-    takeProfit = takeProfit?.toGem(),
-    stopLoss = stopLoss?.toGem(),
-    pnl = pnl,
-    funding = funding,
-)
+fun PerpetualPosition.toGem(): GemPerpetualPosition = toJson()
 
-fun PerpetualAccountMode.toGem(): GemPerpetualAccountMode = when (this) {
-    PerpetualAccountMode.Standard -> GemPerpetualAccountMode.STANDARD
-    PerpetualAccountMode.Unified -> GemPerpetualAccountMode.UNIFIED
-}
+fun PerpetualAccountMode.toGem(): GemPerpetualAccountMode = toJson()
 
-fun PerpetualTriggerOrder.toGem(): GemPerpetualTriggerOrder = GemPerpetualTriggerOrder(
-    price = price,
-    orderType = order_type.toGem(),
-    orderId = order_id,
-)
+fun PerpetualTriggerOrder.toGem(): GemPerpetualTriggerOrder = toJson()
 
-fun PerpetualOrderType.toGem(): GemPerpetualOrderType = when (this) {
-    PerpetualOrderType.Market -> GemPerpetualOrderType.MARKET
-    PerpetualOrderType.Limit -> GemPerpetualOrderType.LIMIT
-}
+fun PerpetualOrderType.toGem(): GemPerpetualOrderType = toJson()
 
-fun PerpetualDirection.toGem(): GemPerpetualDirection = when (this) {
-    PerpetualDirection.Long -> GemPerpetualDirection.LONG
-    PerpetualDirection.Short -> GemPerpetualDirection.SHORT
-}
+fun PerpetualDirection.toGem(): GemPerpetualDirection = toJson()
 
 fun TpslType.toGem(): GemTpslType = when (this) {
     TpslType.TakeProfit -> GemTpslType.TAKE_PROFIT
     TpslType.StopLoss -> GemTpslType.STOP_LOSS
 }
 
-fun PerpetualMarginType.toGem(): GemPerpetualMarginType = when (this) {
-    PerpetualMarginType.Cross -> GemPerpetualMarginType.CROSS
-    PerpetualMarginType.Isolated -> GemPerpetualMarginType.ISOLATED
-}
+fun PerpetualMarginType.toGem(): GemPerpetualMarginType = toJson()
 
 fun PerpetualType.toGem(): GemPerpetualType = when (this) {
     is PerpetualType.Open -> GemPerpetualType.Open(v1 = content.toGem())

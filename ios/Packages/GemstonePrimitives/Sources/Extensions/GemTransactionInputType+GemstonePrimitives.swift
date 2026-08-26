@@ -31,21 +31,21 @@ public extension GemTransactionInputType {
         case let .deposit(asset):
             try TransferDataType.deposit(asset.map())
         case let .swap(fromAsset, toAsset, gemSwapData):
-            try TransferDataType.swap(fromAsset.map(), toAsset.map(), gemSwapData.map())
+            try TransferDataType.swap(fromAsset.map(), toAsset.map(), Primitives.SwapData(gemSwapData))
         case let .transferNft(_, nftAsset):
-            try TransferDataType.transferNft(nftAsset.map())
+            try TransferDataType.transferNft(Primitives.NFTAsset(nftAsset))
         case let .stake(asset, type):
-            try TransferDataType.stake(asset.map(), type.map())
+            try TransferDataType.stake(asset.map(), Primitives.StakeType(type))
         case let .tokenApprove(asset, approvalData):
-            try TransferDataType.tokenApprove(asset.map(), approvalData.map())
+            try TransferDataType.tokenApprove(asset.map(), Primitives.ApprovalData(approvalData))
         case let .generic(asset, metadata, extra):
-            try TransferDataType.generic(asset: asset.map(), metadata: metadata.map(), extra: extra.map())
+            try TransferDataType.generic(asset: asset.map(), metadata: Primitives.ApplicationMetadata(metadata), extra: extra.map())
         case let .account(asset, accountType):
-            try TransferDataType.account(asset.map(), accountType.map())
+            try TransferDataType.account(asset.map(), Primitives.AccountDataType(accountType))
         case let .perpetual(asset: asset, perpetualType: perpetualType):
             try TransferDataType.perpetual(asset.map(), perpetualType.map())
         case let .earn(asset, earnType, data):
-            try TransferDataType.earn(asset.map(), earnType.map(), data.map())
+            try TransferDataType.earn(asset.map(), Primitives.EarnType(earnType), Primitives.ContractCallData(data))
         case let .withdrawal(asset):
             try TransferDataType.withdrawal(asset.map())
         }
@@ -56,30 +56,30 @@ public extension TransferDataType {
     func map() throws -> GemTransactionInputType {
         switch self {
         case let .transfer(asset):
-            return .transfer(asset: asset.map())
+            return try .transfer(asset: asset.map())
         case let .deposit(asset):
-            return .deposit(asset: asset.map())
+            return try .deposit(asset: asset.map())
         case let .swap(fromAsset, toAsset, swapData):
-            return try .swap(fromAsset: fromAsset.map(), toAsset: toAsset.map(), swapData: swapData.map())
+            return try .swap(fromAsset: fromAsset.map(), toAsset: toAsset.map(), swapData: swapData.json())
         case let .transferNft(nftAsset):
-            return .transferNft(asset: Asset(nftAsset.chain).map(), nftAsset: nftAsset.map())
+            return try .transferNft(asset: Asset(nftAsset.chain).map(), nftAsset: nftAsset.json())
         case let .stake(asset, stakeType):
-            return .stake(asset: asset.map(), stakeType: stakeType.map())
+            return try .stake(asset: asset.map(), stakeType: stakeType.json())
         case let .tokenApprove(asset, approvalData):
-            return .tokenApprove(asset: asset.map(), approvalData: approvalData.map())
+            return try .tokenApprove(asset: asset.map(), approvalData: approvalData.json())
         case let .generic(asset, metadata, extra):
-            return .generic(asset: asset.map(), metadata: metadata.map(), extra: extra.map())
+            return try .generic(asset: asset.map(), metadata: metadata.json(), extra: extra.map())
         case let .withdrawal(asset):
             if asset.chain == .hyperCore {
-                return .withdrawal(asset: asset.map())
+                return try .withdrawal(asset: asset.map())
             }
             throw AnyError("Unsupported transaction type: \(self)")
         case let .account(asset, accountData):
-            return .account(asset: asset.map(), accountType: accountData.map())
+            return try .account(asset: asset.map(), accountType: accountData.json())
         case let .perpetual(asset, perpetualType):
-            return .perpetual(asset: asset.map(), perpetualType: perpetualType.map())
+            return try .perpetual(asset: asset.map(), perpetualType: perpetualType.map())
         case let .earn(asset, earnType, data):
-            return .earn(asset: asset.map(), earnType: earnType.map(), data: data.map())
+            return try .earn(asset: asset.map(), earnType: earnType.json(), data: data.json())
         }
     }
 }

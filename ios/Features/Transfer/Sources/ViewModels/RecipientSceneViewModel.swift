@@ -217,7 +217,7 @@ extension RecipientSceneViewModel {
     }
 
     private func handleAddressScan(_ string: String) throws {
-        switch try PaymentURLDecoder.decode(string) {
+        switch try Primitives.Payment.decode(string) {
         case let .request(payment):
             try handle(payment: payment)
         case .link:

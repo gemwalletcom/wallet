@@ -1,6 +1,6 @@
 package com.gemwallet.android.blockchain.services
 
-import com.gemwallet.android.blockchain.gemstone.toDTO
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
@@ -19,7 +19,7 @@ class PerpetualService(
         } catch (_: Throwable) {
             return emptyList()
         }
-        return response.mapNotNull { it.toDTO() }
+        return response.map { it.decodeJson() }
     }
 
     suspend fun getPositions(chain: Chain = Chain.HyperCore, address: String): PerpetualPositionsSummary? {
@@ -28,17 +28,17 @@ class PerpetualService(
         } catch (_: Throwable) {
             return null
         }
-        return response.toDTO()
+        return response.decodeJson()
     }
 
     suspend fun getAccountMode(chain: Chain = Chain.HyperCore, address: String): PerpetualAccountMode {
-        return gateway.getPerpetualAccountMode(chain.string, address).toDTO()
+        return gateway.getPerpetualAccountMode(chain.string, address).decodeJson()
     }
 
     suspend fun getCandleSticks(chain: Chain = Chain.HyperCore, symbol: String, period: ChartPeriod): List<ChartCandleStick> {
-        return gateway.getPerpetualCandlesticks(chain.string, symbol, period.string).map { it.toDTO() }
+        return gateway.getPerpetualCandlesticks(chain.string, symbol, period.string).map { it.decodeJson() }
     }
 
     suspend fun getPortfolio(chain: Chain = Chain.HyperCore, address: String): PerpetualPortfolio =
-        gateway.getPerpetualPortfolio(chain.string, address).toDTO()
+        gateway.getPerpetualPortfolio(chain.string, address).decodeJson()
 }

@@ -9,11 +9,11 @@ use crate::GemstoneError;
 use crate::fee::custom_gas_price;
 use crate::gateway::GemGateway;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
-use crate::models::scan::{GemScanTransaction, GemScanTransactionPayload};
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput, GemTransactionLoadMetadata};
 use crate::transaction_simulation::TransactionSimulationService;
 use num_bigint::BigInt;
 use primitives::{Account, ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, SimulationResult, TransactionPreloadInput};
+use primitives::{ScanTransaction, ScanTransactionPayload};
 
 pub type GemAccount = Account;
 
@@ -63,7 +63,7 @@ pub struct GemConfirmData {
     pub selected_priority: String,
     pub fee_rates: Vec<GemFeeRate>,
     pub metadata: GemTransactionLoadMetadata,
-    pub scan: Option<GemScanTransaction>,
+    pub scan: Option<ScanTransaction>,
     pub simulation: Option<SimulationResult>,
 }
 
@@ -92,7 +92,7 @@ impl std::error::Error for GemConfirmError {}
 #[uniffi::export(with_foreign)]
 #[async_trait]
 pub trait GemConfirmScanner: Send + Sync {
-    async fn scan_transaction(&self, payload: GemScanTransactionPayload) -> Option<GemScanTransaction>;
+    async fn scan_transaction(&self, payload: ScanTransactionPayload) -> Option<ScanTransaction>;
 }
 
 #[derive(uniffi::Object)]
@@ -251,7 +251,7 @@ async fn sleep(duration: Duration) {
     let _ = receiver.await;
 }
 
-fn validate_scan(scan: Option<&GemScanTransaction>, memo: Option<&str>, symbol: &str) -> Result<(), GemConfirmError> {
+fn validate_scan(scan: Option<&ScanTransaction>, memo: Option<&str>, symbol: &str) -> Result<(), GemConfirmError> {
     let Some(scan) = scan else {
         return Ok(());
     };
@@ -264,10 +264,10 @@ fn validate_scan(scan: Option<&GemScanTransaction>, memo: Option<&str>, symbol: 
     Ok(())
 }
 
-fn scan_payload(input: GemTransactionPreloadInput) -> Option<GemScanTransactionPayload> {
+fn scan_payload(input: GemTransactionPreloadInput) -> Option<ScanTransactionPayload> {
     let input: TransactionPreloadInput = input.into();
     let scan_type = input.scan_type()?;
-    Some(GemScanTransactionPayload {
+    Some(ScanTransactionPayload {
         origin: ScanAddressTarget {
             asset_id: input.input_type.get_asset().id.clone(),
             address: input.sender_address.clone(),
@@ -366,15 +366,15 @@ mod tests {
 
     #[test]
     fn test_validate_scan() {
-        let safe = GemScanTransaction {
+        let safe = ScanTransaction {
             is_malicious: false,
             is_memo_required: false,
         };
-        let malicious = GemScanTransaction {
+        let malicious = ScanTransaction {
             is_malicious: true,
             is_memo_required: false,
         };
-        let memo_required = GemScanTransaction {
+        let memo_required = ScanTransaction {
             is_malicious: false,
             is_memo_required: true,
         };

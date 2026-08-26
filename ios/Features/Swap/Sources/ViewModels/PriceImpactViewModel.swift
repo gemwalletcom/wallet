@@ -79,7 +79,7 @@ extension PriceImpactViewModel {
             return nil
         }
 
-        return GemstonePrimitives.calculateSwapPriceImpact(payFiatValue: fromValue, receiveFiatValue: toValue)
+        return try? Primitives.SwapPriceImpact.calculate(payFiatValue: fromValue, receiveFiatValue: toValue)
     }
 
     private func getSwapAmount(value: String, decimals: Int) -> Double? {

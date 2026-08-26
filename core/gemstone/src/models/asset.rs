@@ -5,31 +5,6 @@ pub type GemAssetType = AssetType;
 pub type GemChainAsset = ChainAsset;
 
 #[uniffi::remote(Record)]
-pub struct GemChainAsset {
-    pub asset: GemAsset,
-    pub network_name: String,
-}
-
-#[allow(non_camel_case_types)]
-#[uniffi::remote(Enum)]
-pub enum GemAssetType {
-    NATIVE,
-    ERC20,
-    BEP20,
-    SPL,
-    SPL2022,
-    TRC20,
-    TIP20,
-    TOKEN,
-    IBC,
-    JETTON,
-    SYNTH,
-    ASA,
-    PERPETUAL,
-    SPOT,
-}
-
-#[uniffi::remote(Record)]
 pub struct GemAsset {
     pub id: AssetId,
     pub chain: Chain,

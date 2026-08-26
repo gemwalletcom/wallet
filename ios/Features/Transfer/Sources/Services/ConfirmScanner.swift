@@ -14,9 +14,9 @@ public final class ConfirmScanner: GemConfirmScanner {
     }
 
     public func scanTransaction(payload: Gemstone.ScanTransactionPayload) async -> Gemstone.ScanTransaction? {
-        guard let payload = try? payload.map() else {
+        guard let payload = try? Primitives.ScanTransactionPayload(payload) else {
             return nil
         }
-        return await scanService.getScanTransaction(payload: payload)?.map()
+        return try? await scanService.getScanTransaction(payload: payload)?.json()
     }
 }

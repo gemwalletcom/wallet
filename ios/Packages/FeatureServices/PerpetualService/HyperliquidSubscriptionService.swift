@@ -23,7 +23,7 @@ public actor HyperliquidSubscriptionService {
     }
 
     public func connected(address: String, mode: PerpetualAccountMode) async throws {
-        try await send(subscriptions.connected(address: address, mode: mode.map()))
+        try await send(subscriptions.connected(address: address, mode: mode.json()))
     }
 
     public func disconnected() {

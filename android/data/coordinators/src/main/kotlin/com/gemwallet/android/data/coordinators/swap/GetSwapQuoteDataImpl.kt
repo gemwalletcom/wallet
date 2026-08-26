@@ -9,7 +9,7 @@ import com.gemwallet.android.math.fromHex
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.Config
 import uniffi.gemstone.FetchQuoteData
-import uniffi.gemstone.GemSwapQuoteData
+import uniffi.gemstone.SwapQuoteData as GemSwapQuoteData
 import uniffi.gemstone.GemSwapper
 import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.Permit2Data

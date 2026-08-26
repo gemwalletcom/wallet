@@ -14,11 +14,14 @@ import com.gemwallet.android.ext.type
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
 import com.gemwallet.android.serializer.BigIntegerSerializer
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.serializer.packRouteString
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.serializer.unpackRoutePayload
 import com.gemwallet.android.serializer.unpackRouteString
 import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.AccountDataType
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -27,24 +30,24 @@ import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.PerpetualType
+import com.wallet.core.primitives.RedelegateData
 import com.wallet.core.primitives.Resource
+import com.wallet.core.primitives.StakeType
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.TransferDataOutputAction as PrimitiveOutputAction
+import com.wallet.core.primitives.TransferDataOutputType as PrimitiveOutputType
 import com.wallet.core.primitives.swap.ApprovalData
+import com.wallet.core.primitives.swap.SwapQuoteDataType
+import java.math.BigInteger
 import kotlinx.serialization.Serializable
-import uniffi.gemstone.GemAccountDataType
-import uniffi.gemstone.GemApprovalData
-import uniffi.gemstone.confirmInputDecode
-import uniffi.gemstone.confirmInputEncode
-import uniffi.gemstone.GemResource
-import uniffi.gemstone.GemStakeType
-import uniffi.gemstone.GemSwapQuoteDataType
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransactionInputType.*
 import uniffi.gemstone.GemTransferDataExtra
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.TransferDataOutputAction
 import uniffi.gemstone.TransferDataOutputType
-import java.math.BigInteger
+import uniffi.gemstone.confirmInputDecode
+import uniffi.gemstone.confirmInputEncode
 
 @Serializable
 sealed class ConfirmParams() {
@@ -203,7 +206,7 @@ sealed class ConfirmParams() {
             override fun toDto(): GemTransactionInputType {
                 return Generic(
                     asset = asset.toGem(),
-                    metadata = metadata.toGem(),
+                    metadata = metadata.toJson(),
                     extra = GemTransferDataExtra(
                         gasLimit = gasLimit,
                         gasPrice = null,
@@ -216,16 +219,16 @@ sealed class ConfirmParams() {
                             data.toByteArray()
                         },
                         outputType = when (inputType) {
-                            InputType.Signature -> TransferDataOutputType.SIGNATURE
-                            InputType.EncodeTransaction -> TransferDataOutputType.ENCODED_TRANSACTION
-                        },
+                            InputType.Signature -> PrimitiveOutputType.Signature
+                            InputType.EncodeTransaction -> PrimitiveOutputType.EncodedTransaction
+                        }.toJson(),
                         outputAction = when (inputType) {
-                            InputType.Signature -> TransferDataOutputAction.SIGN
-                            InputType.EncodeTransaction -> TransferDataOutputAction.SEND
-                        },
-                        transactionType = decodedTransactionType.toGem(),
+                            InputType.Signature -> PrimitiveOutputAction.Sign
+                            InputType.EncodeTransaction -> PrimitiveOutputAction.Send
+                        }.toJson(),
+                        transactionType = decodedTransactionType.toJson(),
                         to = destination().address,
-                        approval = approval?.toGem(),
+                        approval = approval?.toJson(),
                     ),
                 )
             }
@@ -329,7 +332,7 @@ sealed class ConfirmParams() {
                 isUnlimited = true,
             )
 
-        override fun toDto(): GemTransactionInputType = TokenApprove(asset.toGem(), approval.toGem())
+        override fun toDto(): GemTransactionInputType = TokenApprove(asset.toGem(), approval.toJson())
 
         override val amount: BigInteger
             get() = BigInteger.ZERO
@@ -360,7 +363,7 @@ sealed class ConfirmParams() {
         val approval: ApprovalData? = null,
         val slippageBps: UInt,
         val etaInSeconds: UInt?,
-        val dataType: GemSwapQuoteDataType,
+        val dataType: SwapQuoteDataType,
         @Serializable(BigIntegerSerializer::class) val gasLimit: BigInteger? = null,
         override val useMaxAmount: Boolean = false,
     ) : ConfirmParams() {
@@ -402,7 +405,7 @@ sealed class ConfirmParams() {
             get() = false
 
         override fun toDto(): GemTransactionInputType =
-            Account(asset.toGem(), GemAccountDataType.ACTIVATE)
+            Account(asset.toGem(), AccountDataType.Activate.toJson())
 
         override fun destination(): DestinationAddress {
             return DestinationAddress(from.address)
@@ -450,7 +453,7 @@ sealed class ConfirmParams() {
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
-                stakeType = GemStakeType.Delegate(validator.toGem(asset.chain.string))
+                stakeType = (StakeType.Stake(validator) as StakeType).toJson()
             )
 
             override fun destination(): DestinationAddress {
@@ -473,7 +476,7 @@ sealed class ConfirmParams() {
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
-                stakeType = GemStakeType.Withdraw(delegation.toGem(asset.chain.string))
+                stakeType = (StakeType.Withdraw(delegation) as StakeType).toJson()
             )
 
             override fun destination(): DestinationAddress {
@@ -496,9 +499,7 @@ sealed class ConfirmParams() {
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
-                stakeType = GemStakeType.Undelegate(
-                    delegation = delegation.toGem(asset.chain.string),
-                )
+                stakeType = (StakeType.Unstake(delegation) as StakeType).toJson()
             )
 
             override fun destination(): DestinationAddress {
@@ -524,10 +525,7 @@ sealed class ConfirmParams() {
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
-                stakeType = GemStakeType.Redelegate(
-                    delegation = delegation.toGem(asset.chain.string),
-                    toValidator = destinationValidator.toGem(asset.chain.string)
-                )
+                stakeType = (StakeType.Redelegate(RedelegateData(delegation, destinationValidator)) as StakeType).toJson()
             )
 
             override fun destination(): DestinationAddress {
@@ -550,9 +548,7 @@ sealed class ConfirmParams() {
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
-                stakeType = GemStakeType.WithdrawRewards(
-                    validators = validators.map { it.toGem(asset.chain.string) }
-                )
+                stakeType = (StakeType.Rewards(validators) as StakeType).toJson()
             )
 
             override fun destination(): DestinationAddress {
@@ -573,12 +569,7 @@ sealed class ConfirmParams() {
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
-                stakeType = GemStakeType.Freeze(
-                    resource = when (resource) {
-                        Resource.Energy -> GemResource.ENERGY
-                        Resource.Bandwidth -> GemResource.BANDWIDTH
-                    }
-                )
+                stakeType = (StakeType.Freeze(resource) as StakeType).toJson()
             )
 
             override fun destination(): DestinationAddress {
@@ -601,12 +592,7 @@ sealed class ConfirmParams() {
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
-                stakeType = GemStakeType.Unfreeze(
-                    resource = when (resource) {
-                        Resource.Energy -> GemResource.ENERGY
-                        Resource.Bandwidth -> GemResource.BANDWIDTH
-                    }
-                )
+                stakeType = (StakeType.Unfreeze(resource) as StakeType).toJson()
             )
 
             override fun destination(): DestinationAddress {
@@ -698,20 +684,4 @@ sealed class ConfirmParams() {
     }
 }
 
-fun GemApprovalData.toModel(): ApprovalData {
-    return ApprovalData(
-        token = this.token,
-        spender = this.spender,
-        value = this.value,
-        isUnlimited = this.isUnlimited,
-    )
-}
-
-fun ApprovalData.toGem(): GemApprovalData {
-    return GemApprovalData(
-        token = token,
-        spender = spender,
-        value = value,
-        isUnlimited = isUnlimited,
-    )
-}
+fun uniffi.gemstone.ApprovalData.toModel(): ApprovalData = decodeJson<ApprovalData>()

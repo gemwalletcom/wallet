@@ -18,7 +18,7 @@ public extension TransactionSwapStateRequest {
     func map() throws -> GemTransactionSwapStateRequest {
         try GemTransactionSwapStateRequest(
             transaction: transaction.map(),
-            state: state.map(),
+            state: state.json(),
             swapProvider: swapProvider.map(),
             destinationChain: destinationChain.rawValue,
         )

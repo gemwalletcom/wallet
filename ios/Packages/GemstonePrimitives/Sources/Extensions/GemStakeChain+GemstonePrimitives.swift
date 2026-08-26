@@ -5,7 +5,7 @@ import Foundation
 import Gemstone
 import Primitives
 
-public extension StakeChain {
+public extension Primitives.StakeChain {
     func map() -> GemStakeChain {
         switch self {
         case .cosmos: .cosmos

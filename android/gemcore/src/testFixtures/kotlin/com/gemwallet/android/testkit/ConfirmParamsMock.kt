@@ -4,7 +4,7 @@ import com.gemwallet.android.model.ConfirmParams
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.swap.ApprovalData
-import uniffi.gemstone.GemSwapQuoteDataType
+import com.wallet.core.primitives.swap.SwapQuoteDataType
 import uniffi.gemstone.SwapperProvider
 import java.math.BigInteger
 
@@ -35,6 +35,6 @@ fun mockSwapParams(
     approval = approval,
     slippageBps = 50u,
     etaInSeconds = null,
-    dataType = GemSwapQuoteDataType.TRANSFER,
+    dataType = SwapQuoteDataType.Transfer,
     useMaxAmount = useMaxAmount,
 )

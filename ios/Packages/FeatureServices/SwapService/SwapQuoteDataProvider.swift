@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.GemSwapQuoteData
 import struct Gemstone.SwapperQuote
 import Keystore
 import Primitives
 
 public protocol SwapQuoteDataProvidable: Sendable {
-    func fetchQuoteData(wallet: Wallet, quote: SwapperQuote) async throws -> GemSwapQuoteData
+    func fetchQuoteData(wallet: Wallet, quote: SwapperQuote) async throws -> Primitives.SwapQuoteData
 }
 
 public struct SwapQuoteDataProvider: SwapQuoteDataProvidable {
@@ -19,7 +18,7 @@ public struct SwapQuoteDataProvider: SwapQuoteDataProvidable {
         self.swapService = swapService
     }
 
-    public func fetchQuoteData(wallet: Wallet, quote: SwapperQuote) async throws -> GemSwapQuoteData {
+    public func fetchQuoteData(wallet: Wallet, quote: SwapperQuote) async throws -> Primitives.SwapQuoteData {
         switch try await swapService.getPermit2Approval(quote: quote) {
         case .none:
             return try await swapService.getQuoteData(quote, data: .none)

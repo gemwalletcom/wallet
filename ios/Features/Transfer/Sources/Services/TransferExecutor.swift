@@ -85,7 +85,7 @@ extension TransferExecutor {
                 transactionData: input.transactionData,
                 amount: input.amount,
                 hash: hash,
-                transactionType: transactions[index].transactionType.map(),
+                transactionType: Primitives.TransactionType(transactions[index].transactionType),
                 simulation: input.simulation,
             )
             let assetIds = assetIdsToEnable(for: transaction)

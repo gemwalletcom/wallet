@@ -9,10 +9,11 @@ import Testing
 
 final class SignerInputTests {
     @Test
-    func transferDataExtraMapPreservesTransactionType() {
+    func transferDataExtraMapPreservesTransactionType() throws {
         let extra = TransferDataExtra(to: "", transactionType: Primitives.TransactionType.tokenApproval)
 
-        #expect(extra.map().transactionType == Gemstone.TransactionType.tokenApproval)
+        let mapped = try Primitives.TransactionType(extra.map().transactionType)
+        #expect(mapped == Primitives.TransactionType.tokenApproval)
     }
 
     @Test
@@ -38,7 +39,7 @@ final class SignerInputTests {
             Issue.record("Expected swap input type")
             return
         }
-        #expect(mappedSwapData.data.gasLimit == "500000")
+        #expect(try Primitives.SwapData(mappedSwapData).data.gasLimit == "500000")
     }
 }
 

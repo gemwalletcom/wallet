@@ -7,7 +7,7 @@ import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.buildAssetRatePair
-import com.gemwallet.android.domains.swap.toPrimitives
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
@@ -71,7 +71,7 @@ object SwapDetailsUIModelFactory {
 
     fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
         return create(input) { payFiatValue, receiveFiatValue ->
-            calculateSwapPriceImpact(payFiatValue, receiveFiatValue)?.toPrimitives()
+            calculateSwapPriceImpact(payFiatValue, receiveFiatValue)?.decodeJson()
         }
     }
 

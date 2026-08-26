@@ -4,11 +4,11 @@
 import Primitives
 import Testing
 
-final class PaymentURLDecoderTests {
+final class PaymentDecodeTests {
     @Test
     func decodeRequest() throws {
         #expect(
-            try PaymentURLDecoder.decode("0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326")
+            try Primitives.Payment.decode("0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326")
                 == .request(PaymentRequest(
                     address: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326",
                     amount: .none,
@@ -19,7 +19,7 @@ final class PaymentURLDecoderTests {
         )
 
         #expect(
-            try PaymentURLDecoder.decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5?amount=0.266232&memo=order7&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny")
+            try Primitives.Payment.decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5?amount=0.266232&memo=order7&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny")
                 == .request(PaymentRequest(
                     address: "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5",
                     amount: .exactValue("0.266232"),
@@ -33,7 +33,7 @@ final class PaymentURLDecoderTests {
     @Test
     func decodeLink() throws {
         #expect(
-            try PaymentURLDecoder.decode("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1")
+            try Primitives.Payment.decode("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1")
                 == .link(.solanaPay(PaymentLinkSolanaPayInner(url: "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1"))),
         )
     }
@@ -41,10 +41,10 @@ final class PaymentURLDecoderTests {
     @Test
     func decodeUnsupported() throws {
         #expect(throws: (any Error).self) {
-            try PaymentURLDecoder.decode("https://pay.walletconnect.com/?pid=pay_123")
+            try Primitives.Payment.decode("https://pay.walletconnect.com/?pid=pay_123")
         }
         #expect(throws: (any Error).self) {
-            try PaymentURLDecoder.decode("WIFI:S:MyNet;T:WPA;P:secret;;")
+            try Primitives.Payment.decode("WIFI:S:MyNet;T:WPA;P:secret;;")
         }
     }
 }

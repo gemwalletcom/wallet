@@ -13,8 +13,8 @@ public enum PaymentDestinationBuilder {
         case recipient(RecipientData)
     }
 
-    public static func transfer(payment: PaymentRequest, asset: Asset) throws -> TransferDestination {
-        switch Gemstone.paymentTransferDestination(request: payment.map(), asset: asset.paymentWalletAsset) {
+    public static func transfer(payment: Primitives.PaymentRequest, asset: Asset) throws -> TransferDestination {
+        switch try Gemstone.paymentTransferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
             return try .confirm(transferData(transfer: transfer, asset: asset))
         case .recipient:
@@ -24,8 +24,8 @@ public enum PaymentDestinationBuilder {
         }
     }
 
-    public static func build(payment: PaymentRequest, assets: [AssetData]) throws -> PaymentDestination {
-        switch Gemstone.paymentDestination(request: payment.map(), assets: assets.map { $0.asset.paymentWalletAsset }) {
+    public static func build(payment: Primitives.PaymentRequest, assets: [AssetData]) throws -> PaymentDestination {
+        switch try Gemstone.paymentDestination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
         case let .confirm(transfer):
             guard let assetData = assetData(for: transfer.assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)
@@ -50,15 +50,17 @@ public enum PaymentDestinationBuilder {
     }
 
     public static func build(transaction: GemPaymentTransaction, asset: Asset) throws -> PaymentDestination {
-        let type = TransferDataType.generic(
+        let type = try TransferDataType.generic(
             asset: asset,
-            metadata: transaction.merchant.map(),
+            metadata: Primitives.ApplicationMetadata(transaction.merchant),
             extra: TransferDataExtra(
-                to: transaction.request.map { asset.chain.checksumAddress($0.address) } ?? "",
+                to: transaction.request
+                    .map { try Primitives.PaymentRequest($0).address }
+                    .map { asset.chain.checksumAddress($0) } ?? "",
                 data: Data(transaction.transaction.utf8),
                 outputType: .encodedTransaction,
                 outputAction: .send,
-                transactionType: transaction.transactionType.map(),
+                transactionType: Primitives.TransactionType(transaction.transactionType),
             ),
         )
         let transfer = transaction.request.flatMap {
@@ -100,7 +102,7 @@ public enum PaymentDestinationBuilder {
         )
     }
 
-    private static func recipientData(for payment: PaymentRequest, chain: Primitives.Chain? = nil) -> RecipientData {
+    private static func recipientData(for payment: Primitives.PaymentRequest, chain: Primitives.Chain? = nil) -> RecipientData {
         let address = chain.map { $0.checksumAddress(payment.address) } ?? payment.address
         return RecipientData(
             recipient: Recipient(name: .none, address: address, memo: payment.memo, references: payment.references ?? []),
