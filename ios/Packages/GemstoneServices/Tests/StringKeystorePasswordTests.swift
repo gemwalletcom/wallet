@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-@testable import Keystore
+@testable import GemstoneServices
 import Testing
 
 struct StringKeystorePasswordTests {

@@ -9,7 +9,6 @@ import Foundation
 import class Gemstone.GemConfirmService
 import GemstonePrimitives
 import InfoSheet
-import KeystoreTestKit
 import Localization
 import Primitives
 import PrimitivesComponents

@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Keystore
+import GemstoneServices
 import LocalAuthentication
 import Localization
 import Observation

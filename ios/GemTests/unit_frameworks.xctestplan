@@ -79,13 +79,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Packages\/Keystore",
-        "identifier": "KeystoreTests",
-        "name": "KeystoreTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Packages\/Store",
         "identifier": "StoreTests",
         "name": "StoreTests"

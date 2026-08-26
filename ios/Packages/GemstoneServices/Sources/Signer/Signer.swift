@@ -3,7 +3,6 @@
 internal import class Gemstone.MessageSigner
 internal import struct Gemstone.SignMessage
 import Foundation
-import Keystore
 import Primitives
 
 public struct Signer: Sendable {

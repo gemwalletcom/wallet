@@ -7,7 +7,6 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import class Gemstone.MessageSigner
 import GemstonePrimitives
-import Keystore
 import Localization
 import Primitives
 import PrimitivesComponents

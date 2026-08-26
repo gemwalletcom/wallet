@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import Keystore
+import GemstoneServices
 import Localization
 import Preferences
 import Store

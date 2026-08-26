@@ -3,9 +3,8 @@
 import Components
 import Foundation
 import GemstonePrimitives
-import Keystore
-import Localization
 import GemstoneServices
+import Localization
 import Primitives
 import PrimitivesComponents
 import Store

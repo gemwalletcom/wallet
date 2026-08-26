@@ -15,10 +15,10 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "Style", path: "../../Packages/Style"),
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "Localization", path: "../../Packages/Localization"),
-        .package(name: "Keystore", path: "../../Packages/Keystore"),
     ],
     targets: [
         .target(
@@ -27,7 +27,7 @@ let package = Package(
                 "Style",
                 "Components",
                 "Localization",
-                "Keystore",
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
             ],
             path: "Sources",
         ),

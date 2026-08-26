@@ -6,8 +6,7 @@ import BigInt
 import protocol Gemstone.GemSwapperProtocol
 import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote
-import Keystore
-import KeystoreTestKit
+import GemstoneServices
 import Preferences
 import PreferencesTestKit
 import Primitives
@@ -15,7 +14,6 @@ import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 @testable import Swap
-import GemstoneServices
 import Testing
 
 @MainActor

@@ -32,7 +32,6 @@ let package = Package(
         .package(name: "InfoSheet", path: "../InfoSheet"),
         .package(name: "QRScanner", path: "../QRScanner"),
         .package(name: "Recents", path: "../Recents"),
-        .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "GemAPI", path: "../../Packages/GemAPI"),
     ],

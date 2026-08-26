@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Keystore
+import GemstoneServices
 @testable import LockManager
 import SwiftUI
 

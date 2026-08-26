@@ -3,7 +3,7 @@
 import Foundation
 import enum Gemstone.GemImportType
 import GemstonePrimitives
-import Keystore
+import GemstoneServices
 import Primitives
 
 public struct LocalKeystoreMockContext {

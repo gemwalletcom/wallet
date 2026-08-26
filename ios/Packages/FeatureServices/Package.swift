@@ -26,9 +26,7 @@ let package = Package(
         .package(name: "Preferences", path: "../Preferences"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Gemstone", path: "../Gemstone"),
-        .package(name: "Keystore", path: "../Keystore"),
         .package(name: "SwiftHTTPClient", path: "../SwiftHTTPClient"),
-        .package(name: "NativeProviderService", path: "../NativeProviderService"),
         .package(name: "SystemServices", path: "../SystemServices"),
     ],
     targets: [

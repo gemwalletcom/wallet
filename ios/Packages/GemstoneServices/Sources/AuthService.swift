@@ -4,7 +4,6 @@ import Foundation
 import protocol Gemstone.GemAuthServiceProtocol
 import func Gemstone.createAuthMessage
 import GemstonePrimitives
-import Keystore
 import Preferences
 import Primitives
 

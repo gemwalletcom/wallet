@@ -4,7 +4,6 @@ import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Foundation
 import struct Gemstone.SignMessage
-import KeystoreTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit

@@ -3,7 +3,6 @@
 import Foundation
 import protocol Gemstone.GemKeystorePassword
 import typealias Gemstone.WalletId
-import Keystore
 import Store
 
 public final class GemstoneKeystorePassword: GemKeystorePassword, @unchecked Sendable {

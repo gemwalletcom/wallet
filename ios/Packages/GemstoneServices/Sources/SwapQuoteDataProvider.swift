@@ -2,7 +2,6 @@
 
 import Foundation
 import struct Gemstone.SwapperQuote
-import Keystore
 import Primitives
 
 public protocol SwapQuoteDataProvidable: Sendable {

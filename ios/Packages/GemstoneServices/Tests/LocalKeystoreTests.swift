@@ -1,7 +1,7 @@
 import Foundation
 import class Gemstone.GemMnemonic
-@testable import Keystore
-import KeystoreTestKit
+@testable import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import Testing
 

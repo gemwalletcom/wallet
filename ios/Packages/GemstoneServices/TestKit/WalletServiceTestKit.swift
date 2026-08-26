@@ -4,8 +4,6 @@ import GemstoneServices
 import Foundation
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
-import Keystore
-import KeystoreTestKit
 import Preferences
 import Primitives
 import PreferencesTestKit

@@ -1,4 +1,4 @@
-@testable import Keystore
+@testable import GemstoneServices
 import Testing
 
 final class MnemonicTests {

@@ -1,8 +1,8 @@
 import Components
 import Foundation
 import GemstonePrimitives
-import enum Keystore.KeystoreImportType
-import enum Keystore.Mnemonic
+import enum GemstoneServices.KeystoreImportType
+import enum GemstoneServices.Mnemonic
 import Localization
 import Primitives
 import PrimitivesComponents

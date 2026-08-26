@@ -12,7 +12,6 @@ import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import class Gemstone.GemConfirmService
-import Keystore
 import Preferences
 import Primitives
 import PrimitivesComponents

@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Keystore
-import KeystoreTestKit
+import GemstoneServicesTestKit
 import Observation
 import Preferences
 import PreferencesTestKit
@@ -10,7 +9,6 @@ import Store
 import StoreTestKit
 import Testing
 @testable import GemstoneServices
-import GemstoneServicesTestKit
 
 struct WalletServiceTests {
     @Test

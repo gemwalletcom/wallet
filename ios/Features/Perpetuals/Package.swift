@@ -25,7 +25,6 @@ let package = Package(
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "Style", path: "../../Packages/Style"),
         .package(name: "Localization", path: "../../Packages/Localization"),
-        .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "Formatters", path: "../../Packages/Formatters"),

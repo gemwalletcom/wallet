@@ -4,7 +4,6 @@ import Store
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitives
-import Keystore
 import Primitives
 import PrimitivesComponents
 

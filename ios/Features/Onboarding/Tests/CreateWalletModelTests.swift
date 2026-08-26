@@ -1,16 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Primitives
-import Keystore
-import KeystoreTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 @testable import Onboarding
 import Preferences
 import Store
 import StoreTestKit
 import Testing
-import GemstoneServicesTestKit
 import GemstonePrimitives
-import GemstoneServices
 
 @MainActor
 struct CreateWalletModelTests {

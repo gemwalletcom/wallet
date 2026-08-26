@@ -7,7 +7,6 @@ import struct Gemstone.Permit2Data
 import func Gemstone.permit2DataToEip712Json
 import struct Gemstone.Permit2Detail
 import struct Gemstone.PermitSingle
-import Keystore
 import Primitives
 
 protocol Permit2DataProvidable: Sendable {

@@ -2,7 +2,6 @@
 
 public import struct Gemstone.GemSignedTransaction
 import GemstonePrimitives
-import Keystore
 import Primitives
 
 public struct TransactionSigner: TransactionSigning {

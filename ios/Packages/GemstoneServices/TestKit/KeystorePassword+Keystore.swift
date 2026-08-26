@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Keystore
+import GemstoneServices
 import LocalAuthentication
 
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {

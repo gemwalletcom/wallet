@@ -6,7 +6,6 @@ import BigInt
 import Foundation
 import GemstonePrimitivesTestKit
 import GemAPITestKit
-import KeystoreTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit

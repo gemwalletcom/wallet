@@ -4,7 +4,7 @@ public import struct Gemstone.GemSignedTransaction
 public import class Gemstone.MessageSigner
 public import GemstonePrimitives
 import Foundation
-import Keystore
+import GemstoneServices
 import Primitives
 import PrimitivesTestKit
 

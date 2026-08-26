@@ -2,7 +2,7 @@
 
 import GemstoneServices
 import Foundation
-import enum Keystore.KeystoreImportType
+import enum GemstoneServices.KeystoreImportType
 import Primitives
 import PrimitivesComponents
 import SwiftUI

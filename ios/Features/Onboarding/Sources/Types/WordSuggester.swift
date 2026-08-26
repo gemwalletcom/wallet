@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Keystore
+import GemstoneServices
 
 struct WordSuggester {
     func wordSuggestionCalculate(value: String) -> [String] {

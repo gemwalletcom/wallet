@@ -3,7 +3,6 @@
 import Foundation
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
-import Keystore
 import Preferences
 import Primitives
 import Store

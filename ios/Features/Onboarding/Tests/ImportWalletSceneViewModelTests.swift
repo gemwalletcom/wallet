@@ -2,16 +2,14 @@
 
 import PreferencesTestKit
 import Preferences
-import Keystore
-import KeystoreTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 @testable import Onboarding
 import Primitives
 import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-import GemstoneServices
-import GemstoneServicesTestKit
 
 @MainActor
 struct ImportWalletSceneViewModelTests {

@@ -2,8 +2,8 @@
 
 import Foundation
 import GemstonePrimitives
-@testable import Keystore
-import KeystoreTestKit
+@testable import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing

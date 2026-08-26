@@ -7,7 +7,6 @@ import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import class Gemstone.GemConfirmService
-import Keystore
 import Primitives
 import PrimitivesComponents
 
