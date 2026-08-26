@@ -13,6 +13,7 @@ use primitives::{
     TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
+use primitives::{BannerEvent, BannerState};
 use primitives::{ChartPeriod, Charts};
 
 macro_rules! json_bridge {
@@ -43,6 +44,8 @@ json_bridge!(
     Asset,
     AssetType,
     BalanceMetadata,
+    BannerEvent,
+    BannerState,
     CancelOrderData,
     ChainAsset,
     ChartCandleStick,

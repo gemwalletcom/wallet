@@ -30,6 +30,8 @@ extension Primitives.ApprovalData: JsonCodable {}
 extension Primitives.Asset: JsonCodable {}
 extension Primitives.AssetType: JsonCodable {}
 extension Primitives.BalanceMetadata: JsonCodable {}
+extension Primitives.BannerEvent: JsonCodable {}
+extension Primitives.BannerState: JsonCodable {}
 extension Primitives.CancelOrderData: JsonCodable {}
 extension Primitives.ChainAsset: JsonCodable {}
 extension Primitives.ChartCandleStick: JsonCodable {}

@@ -14,6 +14,7 @@ import com.gemwallet.android.domains.asset.isStakeable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.NotificationsAvailable
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.model.getStakedAmount
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
@@ -28,6 +29,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemBannerContext
+import uniffi.gemstone.GemBannerService
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -36,20 +39,30 @@ class BannersRepository(
     private val bannersDao: BannersDao,
     private val userConfig: UserConfig,
     private val notificationsAvailable: NotificationsAvailable,
+    private val bannerService: GemBannerService,
 ) : GetBannersCase, CancelBannerCase, HasMultiSign, AddBanner {
 
     override suspend fun getActiveBanners(wallet: Wallet?, asset: Asset?): List<Banner> = withContext(Dispatchers.IO) {
         val assetInfo = asset?.id?.let { assetRepository.getAssetInfo(it).firstOrNull() }
-        val generatedBanner = generateBanners(wallet, assetInfo)
+        val generated = bannerService.activeEvents(
+            walletId = wallet?.id?.id,
+            assetId = asset?.id?.toIdentifier(),
+            context = bannerContext(wallet, assetInfo),
+        ).map { event ->
+            Banner(
+                wallet = wallet,
+                asset = assetInfo?.asset,
+                chain = null,
+                state = BannerState.Active,
+                event = event.decodeJson(),
+            )
+        }
 
-        val banners = bannersDao.getBanner(
+        bannersDao.getBanner(
             walletId = wallet?.id?.id ?: "",
             assetId = asset?.id?.toIdentifier() ?: "",
             chain = asset?.id?.chain,
-        ).map { it.toDTO(wallet, asset) } + generatedBanner
-        banners.filterNotNull().mapNotNull { banner ->
-            if (isBannerAvailable(wallet, asset, banner.event)) banner else null
-        }
+        ).mapNotNull { it.toDTO(wallet, asset) } + generated
     }
 
     override suspend fun cancelBanner(banner: Banner) = withContext(Dispatchers.IO) {
@@ -73,42 +86,15 @@ class BannersRepository(
         bannersDao.saveBanner(banner)
     }
 
-    private fun generateBanners(wallet: Wallet?, assetInfo: AssetInfo?): Banner? {
-        val event = when {
-            wallet == null && assetInfo == null -> BannerEvent.EnableNotifications
-//            asset?.id?.chain?.getReserveBalance()?.let { it != BigInteger.ZERO } == true -> BannerEvent.AccountActivation
-            assetInfo?.let { it.asset.isStakeable && it.balance.balance.getStakedAmount() <= BigInteger.ZERO } ?: false -> BannerEvent.Stake
-            assetInfo?.balance?.isActive == false -> BannerEvent.ActivateAsset
-            else -> return null
-        }
-        return Banner(
-            wallet = wallet,
-            asset = assetInfo?.asset,
-            chain = null,
-            state = when (event) {
-                BannerEvent.Stake,
-                BannerEvent.AccountActivation,
-                BannerEvent.EnableNotifications,
-                BannerEvent.AccountBlockedMultiSignature -> BannerState.Active
-                BannerEvent.ActivateAsset -> BannerState.AlwaysActive
-                BannerEvent.Onboarding,
-                BannerEvent.TradePerpetuals,
-                BannerEvent.SuspiciousAsset -> throw IllegalArgumentException() // TODO: HyperCore
-            },
-            event = event,
-        )
-    }
-
-    private suspend fun isBannerAvailable(wallet: Wallet?, asset: Asset?, event: BannerEvent): Boolean {
-        if (event == BannerEvent.EnableNotifications && !notificationsAvailable) {
-            return false
-        }
-        if (event == BannerEvent.EnableNotifications && userConfig.getLaunchNumber() < 3) {
-            return false
-        }
-        val dbBanner = bannersDao.getBanner(wallet?.id?.id ?: "", asset?.id?.toIdentifier() ?: "", asset?.id?.chain?.string, event)
-        return dbBanner == null || dbBanner.state != BannerState.Cancelled
-    }
+    private suspend fun bannerContext(wallet: Wallet?, assetInfo: AssetInfo?) = GemBannerContext(
+        hasWallet = wallet != null,
+        hasAsset = assetInfo != null,
+        isStakeable = assetInfo?.asset?.isStakeable == true,
+        hasStakeBalance = (assetInfo?.balance?.balance?.getStakedAmount() ?: BigInteger.ZERO) > BigInteger.ZERO,
+        isAssetActivated = assetInfo?.balance?.isActive != false,
+        notificationsAvailable = notificationsAvailable,
+        launchCount = userConfig.getLaunchNumber().toUInt(),
+    )
 
     override fun hasMultiSign(wallet: Wallet): Flow<Boolean> {
         return bannersDao.getMultisign(wallet.id.id).mapLatest { it.isNotEmpty() }

@@ -170,6 +170,7 @@ struct ServicesFactory {
         let bannerSetupService = BannerSetupService(store: storeManager.bannerStore, preferences: preferences)
         let bannerService = BannerService(
             store: storeManager.bannerStore,
+            service: Gemstone.GemBannerService(store: GemstoneBannerStore(store: storeManager.bannerStore)),
             pushNotificationService: pushNotificationEnablerService,
         )
         let navigationPresenter = NavigationPresenter()

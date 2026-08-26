@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BannerService
+import class Gemstone.GemBannerService
 import NotificationService
 import NotificationServiceTestKit
 import Store
@@ -13,6 +14,7 @@ public extension BannerService {
     ) -> Self {
         BannerService(
             store: store,
+            service: GemBannerService(store: GemstoneBannerStore(store: store)),
             pushNotificationService: pushNotificationService,
         )
     }

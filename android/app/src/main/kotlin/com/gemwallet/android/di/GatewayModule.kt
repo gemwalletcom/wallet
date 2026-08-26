@@ -111,6 +111,7 @@ object GatewayModule {
     fun provideGemStaticApiClient(alienProvider: AlienProvider): GemStaticApiClient =
         GemStaticApiClient(alienProvider, Constants.ASSETS_URL)
 
+
     @Provides
     @Singleton
     fun provideGemChartService(apiClient: GemstoneApiClient): GemChartService = GemChartService(apiClient)

@@ -145,6 +145,8 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
+                "Gemstone",
+                "GemstonePrimitives",
                 "NotificationService",
                 "Preferences",
             ],

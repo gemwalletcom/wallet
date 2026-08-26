@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemBannerService
+import GemstonePrimitives
 import NotificationService
 import Primitives
 import Store
@@ -8,23 +10,25 @@ import UIKit
 
 public struct BannerService: Sendable {
     private let store: BannerStore
+    private let service: GemBannerService
     private let pushNotificationService: PushNotificationEnablerService
 
     public init(
         store: BannerStore,
+        service: GemBannerService,
         pushNotificationService: PushNotificationEnablerService,
     ) {
         self.store = store
+        self.service = service
         self.pushNotificationService = pushNotificationService
     }
 
     public func handleAction(_ action: BannerAction) async throws {
         let canClose = switch action.type {
         case let .event(event):
-            switch event {
-            case .enableNotifications:
+            if service.closesOnAction(event: try event.json()) {
                 try await pushNotificationService.requestPermissionsOrOpenSettings()
-            case .stake, .activateAsset, .suspiciousAsset, .onboarding, .accountActivation, .accountBlockedMultiSignature, .tradePerpetuals:
+            } else {
                 false
             }
         case .closeBanner: true

@@ -89,6 +89,8 @@ pub mod total_fiat_value;
 pub use self::total_fiat_value::TotalFiatValue;
 pub mod balance_calculator;
 pub use self::balance_calculator::BalanceCalculator;
+pub mod banner;
+pub use self::banner::{Banner, BannerEvent, BannerState};
 pub mod total_value_type;
 pub use self::total_value_type::TotalValueType;
 pub mod asset_price_info;
