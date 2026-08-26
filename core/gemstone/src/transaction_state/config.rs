@@ -1,4 +1,4 @@
-use primitives::{Chain, JobConfiguration};
+use primitives::{Chain, JobConfiguration, swap_transaction_timeout};
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
 pub struct GemJobConfiguration {
@@ -37,4 +37,15 @@ impl GemJobConfiguration {
 #[uniffi::export]
 pub fn transaction_state_config(chain: Chain) -> GemJobConfiguration {
     JobConfiguration::transaction_state(chain).into()
+}
+
+/// How long a transaction may stay unresolved before the clients give up on it.
+///
+/// `StatusProvider` already applies this when a status lookup succeeds; the
+/// clients need it too, so a transaction whose status endpoint stays unreachable
+/// does not poll forever. Pass the swap destination chain when the transaction is
+/// in transit across chains, otherwise omit it.
+#[uniffi::export]
+pub fn transaction_timeout_ms(chain: Chain, destination_chain: Option<Chain>) -> u64 {
+    swap_transaction_timeout(chain, destination_chain.unwrap_or(chain))
 }

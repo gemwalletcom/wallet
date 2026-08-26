@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.transactions
 
-import android.text.format.DateUtils
 import com.gemwallet.android.blockchain.model.ServiceUnavailable
 import com.gemwallet.android.blockchain.services.TransactionStatusService
 import com.gemwallet.android.data.service.store.database.TransactionsDao
@@ -17,7 +16,7 @@ import com.wallet.core.primitives.TransactionSwapStateRequest
 import com.wallet.core.primitives.TransactionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.Config
+import uniffi.gemstone.transactionTimeoutMs
 
 class TransactionStateService(
     private val transactionsDao: TransactionsDao,
@@ -121,16 +120,12 @@ class TransactionStateService(
 
     internal fun transactionTimeout(transaction: DbTransaction): Long {
         val chain = transaction.assetId.chain
-        val sourceTimeout = Config().getChainConfig(chain.string).transactionTimeout.toLong()
-        if (transaction.state != TransactionState.InTransit) {
-            return sourceTimeout
+        val destinationChain = if (transaction.state == TransactionState.InTransit) {
+            getTransactionSwapMetadata(transaction.type, transaction.metadata)?.toAsset?.chain
+        } else {
+            null
         }
-        val destinationChain = getTransactionSwapMetadata(transaction.type, transaction.metadata)?.toAsset?.chain ?: chain
-        if (destinationChain == chain) {
-            return sourceTimeout
-        }
-        val destinationTimeout = Config().getChainConfig(destinationChain.string).transactionTimeout.toLong()
-        return ((sourceTimeout + destinationTimeout) * 3).coerceAtLeast(DateUtils.DAY_IN_MILLIS)
+        return transactionTimeoutMs(chain.string, destinationChain?.string).toLong()
     }
 
     private suspend fun updateTransaction(transaction: DbTransactionExtended): DbTransactionExtended? = withContext(Dispatchers.IO) {

@@ -2,6 +2,7 @@
 
 import Blockchain
 import Foundation
+import func Gemstone.transactionTimeoutMs
 import Primitives
 import Store
 
@@ -54,11 +55,29 @@ public struct TransactionStateService: Sendable {
             let stateChanges = try await fetchStateChanges(for: transaction)
             return try saveStateChanges(stateChanges, for: transaction)
         } catch {
+            // Gemstone applies the timeout when a status lookup succeeds. A lookup that
+            // keeps failing never reaches that, so apply the same rule here rather than
+            // retrying forever.
+            if hasTimedOut(transaction), let result = try? saveStateChanges(TransactionChanges(state: .failed), for: transaction) {
+                return result
+            }
             return TransactionStateUpdateResult(
                 transactionId: transaction.id,
                 status: .retry(error: String(describing: error)),
             )
         }
+    }
+
+    private func hasTimedOut(_ transaction: Transaction) -> Bool {
+        guard !transaction.state.isCompleted else { return false }
+        let destinationChain: Primitives.Chain? = transaction.state == .inTransit
+            ? transaction.metadata?.decode(TransactionSwapMetadata.self)?.toAsset.chain
+            : nil
+        let timeoutMs = transactionTimeoutMs(
+            chain: transaction.assetId.chain.rawValue,
+            destinationChain: destinationChain?.rawValue,
+        )
+        return Date().timeIntervalSince(transaction.createdAt) * 1000 > Double(timeoutMs)
     }
 
     func transactionWallet(walletId: WalletId, transactionId: TransactionId) throws -> TransactionWallet? {
