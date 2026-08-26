@@ -33,7 +33,7 @@ class GemstoneTransactionStateStore(
         transactionsDao.insert(transactions.map { it.decodeJson<Transaction>().toRecord(WalletId(walletId)) })
 
     private suspend fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
-        val wallet = walletsRepository.get().getWallet(WalletId(record.walletId)).firstOrNull() ?: return null
+        val wallet = walletsRepository.get().getWallet(record.walletId).firstOrNull() ?: return null
         return GemPendingTransaction(wallet = wallet.toJson(), transaction = record.toDTO().toJson())
     }
 

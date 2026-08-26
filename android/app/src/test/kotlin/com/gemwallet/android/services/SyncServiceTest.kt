@@ -1,53 +1,44 @@
 package com.gemwallet.android.services
 
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.serializer.toJson
-import com.wallet.core.primitives.ConfigResponse
-import com.wallet.core.primitives.ConfigVersions
-import com.wallet.core.primitives.SwapConfig
+import android.util.Log
 import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockkStatic
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import okio.IOException
 import org.junit.Test
-import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemAppStartFailure
+import uniffi.gemstone.GemAppStartService
+import uniffi.gemstone.GemAppStartStep
 
 class SyncServiceTest {
-
-    private val getRemoteConfig = mockk<GetRemoteConfig>()
-    private val assetsService = mockk<GemAssetsService>(relaxed = true)
+    private val appStartService = mockk<GemAppStartService>()
     private val syncDevice = mockk<SyncDevice>(relaxed = true)
-
     private val subject = SyncService(
-        getRemoteConfig = getRemoteConfig,
-        assetsService = assetsService,
+        appStartService = appStartService,
         syncDevice = syncDevice,
     )
 
     @Test
-    fun sync_passesConfigVersionsToAssetsSync() = runBlocking {
-        val versions = ConfigVersions(fiatOnRampAssets = 1, fiatOffRampAssets = 2, swapAssets = 3)
-        coEvery { getRemoteConfig.getRemoteConfig() } returns ConfigResponse(
-            releases = emptyList(),
-            versions = versions,
-            swap = SwapConfig(enabledProviders = emptyList()),
-        )
+    fun sync_runsAppStartThenSyncsDevice() = runBlocking {
+        coEvery { appStartService.run() } returns emptyList()
 
         subject.sync()
 
-        coVerify { assetsService.syncAvailability(versions.toJson()) }
-        coVerify { syncDevice.syncDevice() }
+        coVerify(exactly = 1) { appStartService.run() }
+        coVerify(exactly = 1) { syncDevice.syncDevice() }
     }
 
     @Test
-    fun sync_skipsAssetSyncWhenConfigFails() = runBlocking {
-        coEvery { getRemoteConfig.getRemoteConfig() } throws IOException("offline")
+    fun sync_syncsDeviceEvenWhenAppStartStepsFail() = runBlocking {
+        mockkStatic(Log::class)
+        every { Log.e(any(), any()) } returns 0
+        coEvery { appStartService.run() } returns listOf(GemAppStartFailure(GemAppStartStep.UPDATE_CONFIG, "offline"))
 
         subject.sync()
 
-        coVerify(exactly = 0) { assetsService.syncAvailability(any()) }
-        coVerify { syncDevice.syncDevice() }
+        coVerify(exactly = 1) { syncDevice.syncDevice() }
     }
 }
