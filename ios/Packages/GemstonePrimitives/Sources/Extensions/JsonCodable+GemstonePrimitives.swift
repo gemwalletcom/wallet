@@ -77,6 +77,7 @@ extension Primitives.NFTImages: JsonCodable {}
 extension Primitives.NFTResource: JsonCodable {}
 extension Primitives.NFTType: JsonCodable {}
 extension Primitives.NameRecord: JsonCodable {}
+extension Primitives.Node: JsonCodable {}
 extension Primitives.Payment: JsonCodable {}
 extension Primitives.PaymentAmount: JsonCodable {}
 extension Primitives.PaymentLink: JsonCodable {}

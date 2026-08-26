@@ -41,8 +41,8 @@ public final class ChainSettingsSceneViewModel {
 
         self.chain = chain
 
-        defaultNodes = NodeService.defaultNodes(chain: chain)
-        selectedNode = nodeService.getNodeSelected(chain: chain)
+        defaultNodes = (try? nodeService.defaultNodes(chain: chain)) ?? []
+        selectedNode = chain.defaultChainNode
         explorers = ExplorerService.explorers(chain: chain)
         selectedExplorer = explorerService.get(chain: chain) ?? explorers.first
     }
@@ -89,7 +89,8 @@ extension ChainSettingsSceneViewModel {
     func fetch() async {
         do {
             clear()
-            try fetchNodes()
+            try await fetchNodes()
+            selectedNode = try await nodeService.getNodeSelected(chain: chain)
             await fetchNodesStates()
         } catch {
             // TODO: - handle error
@@ -103,12 +104,14 @@ extension ChainSettingsSceneViewModel {
     }
 
     func onSelectNode(_ node: ChainNode) {
-        do {
-            selectedNode = node
-            try nodeService.setNodeSelected(chain: chain, node: selectedNode.node)
-        } catch {
-            // TODO: - handle error
-            debugLog("chain settings scene: on chain select error \(error)")
+        selectedNode = node
+        Task {
+            do {
+                try await nodeService.setNodeSelected(chain: chain, node: node.node)
+            } catch {
+                // TODO: - handle error
+                debugLog("chain settings scene: on chain select error \(error)")
+            }
         }
     }
 
@@ -128,11 +131,13 @@ extension ChainSettingsSceneViewModel {
     }
 
     func onDeleteNode() {
-        do {
-            try delete()
-        } catch {
-            // TODO: - handle error
-            debugLog("chain settings scene: on delete error \(error)")
+        Task {
+            do {
+                try await delete()
+            } catch {
+                // TODO: - handle error
+                debugLog("chain settings scene: on delete error \(error)")
+            }
         }
     }
 }
@@ -140,8 +145,8 @@ extension ChainSettingsSceneViewModel {
 // MARK: - Private
 
 extension ChainSettingsSceneViewModel {
-    private func fetchNodes() throws {
-        nodes = try nodeService.nodes(for: chain)
+    private func fetchNodes() async throws {
+        nodes = try await nodeService.nodes(for: chain)
     }
 
     private func clear() {
@@ -162,15 +167,11 @@ extension ChainSettingsSceneViewModel {
         }
     }
 
-    private func delete() throws {
+    private func delete() async throws {
         guard let nodeDelete else { return }
-        try nodeService.delete(chain: chain, node: nodeDelete.node)
-
-        // select default, if selected node deleted
-        if nodeDelete == selectedNode {
-            selectedNode = nodeService.getNodeSelected(chain: chain)
-        }
-        try fetchNodes()
+        try await nodeService.delete(chain: chain, node: nodeDelete.node)
+        selectedNode = try await nodeService.getNodeSelected(chain: chain)
+        try await fetchNodes()
     }
 
     private func fetchNodeStatusState(for node: ChainNode) async -> NodeStatusState {

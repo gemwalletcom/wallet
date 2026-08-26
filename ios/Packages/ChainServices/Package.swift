@@ -61,6 +61,8 @@ let package = Package(
                 "Primitives",
                 "Store",
                 "ChainService",
+                "Gemstone",
+                "GemstonePrimitives",
             ],
             path: "NodeService",
             exclude: ["TestKit", "Tests"],

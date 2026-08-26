@@ -1,0 +1,186 @@
+pub mod error;
+pub mod rules;
+pub mod store;
+
+use std::sync::Arc;
+
+use primitives::Chain;
+use primitives::node::{Node, NodeState};
+use primitives::node_config::{self, NodePriority, NodeRegion};
+
+pub use error::GemNodeError;
+pub use store::GemNodeStore;
+
+#[derive(uniffi::Object)]
+pub struct GemNodeService {
+    store: Arc<dyn GemNodeStore>,
+}
+
+#[uniffi::export]
+impl GemNodeService {
+    #[uniffi::constructor]
+    pub fn new(store: Arc<dyn GemNodeStore>) -> Self {
+        Self { store }
+    }
+
+    pub fn get_default_nodes(&self, chain: Chain) -> Vec<Node> {
+        default_nodes(chain)
+    }
+
+    pub async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemNodeError> {
+        let stored = self.store.get_nodes(chain).await?;
+        Ok(rules::merge_nodes(default_nodes(chain), stored))
+    }
+
+    pub async fn get_selected_node(&self, chain: Chain) -> Result<Node, GemNodeError> {
+        let selected_url = self.store.get_selected_url(chain).await?;
+        let nodes = self.get_nodes(chain).await?;
+        Ok(selected_url
+            .and_then(|url| nodes.into_iter().find(|node| node.url == url))
+            .unwrap_or_else(|| region_node(chain, NodeRegion::Us)))
+    }
+
+    pub async fn get_node_url(&self, chain: Chain) -> Result<String, GemNodeError> {
+        Ok(self.get_selected_node(chain).await?.url)
+    }
+
+    pub async fn set_selected_node(&self, chain: Chain, url: String) -> Result<(), GemNodeError> {
+        self.store.set_selected_url(chain, url).await
+    }
+
+    pub async fn add_node(&self, chain: Chain, url: String) -> Result<(), GemNodeError> {
+        self.store
+            .add_node(
+                chain,
+                Node {
+                    url,
+                    status: NodeState::Active,
+                    priority: 0,
+                },
+            )
+            .await
+    }
+
+    pub async fn delete_node(&self, chain: Chain, url: String) -> Result<(), GemNodeError> {
+        if rules::is_default_node(&url, &default_nodes(chain)) {
+            return Ok(());
+        }
+        self.store.delete_node(chain, url.clone()).await?;
+        if self.store.get_selected_url(chain).await? == Some(url) {
+            self.store.clear_selected_url(chain).await?;
+        }
+        Ok(())
+    }
+}
+
+fn region_node(chain: Chain, region: NodeRegion) -> Node {
+    Node {
+        url: region.url(chain),
+        status: NodeState::Active,
+        priority: region.priority(),
+    }
+}
+
+fn config_node(node: node_config::Node) -> Node {
+    let (status, priority) = match node.priority {
+        NodePriority::High => (NodeState::Active, 3),
+        NodePriority::Medium => (NodeState::Active, 2),
+        NodePriority::Low => (NodeState::Active, 1),
+        NodePriority::Inactive => (NodeState::Inactive, 0),
+    };
+    Node { url: node.url, status, priority }
+}
+
+fn default_nodes(chain: Chain) -> Vec<Node> {
+    NodeRegion::all()
+        .into_iter()
+        .map(|region| region_node(chain, region))
+        .chain(node_config::get_nodes_for_chain(chain).into_iter().map(config_node))
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::rules::*;
+    use super::*;
+    use std::sync::Mutex;
+
+    #[derive(Default)]
+    struct MemoryStore {
+        nodes: Mutex<Vec<Node>>,
+        selected: Mutex<Option<String>>,
+    }
+
+    #[async_trait::async_trait]
+    impl GemNodeStore for MemoryStore {
+        async fn get_nodes(&self, _chain: Chain) -> Result<Vec<Node>, GemNodeError> {
+            Ok(self.nodes.lock().unwrap().clone())
+        }
+        async fn add_node(&self, _chain: Chain, node: Node) -> Result<(), GemNodeError> {
+            self.nodes.lock().unwrap().push(node);
+            Ok(())
+        }
+        async fn delete_node(&self, _chain: Chain, url: String) -> Result<(), GemNodeError> {
+            self.nodes.lock().unwrap().retain(|node| node.url != url);
+            Ok(())
+        }
+        async fn get_selected_url(&self, _chain: Chain) -> Result<Option<String>, GemNodeError> {
+            Ok(self.selected.lock().unwrap().clone())
+        }
+        async fn set_selected_url(&self, _chain: Chain, url: String) -> Result<(), GemNodeError> {
+            *self.selected.lock().unwrap() = Some(url);
+            Ok(())
+        }
+        async fn clear_selected_url(&self, _chain: Chain) -> Result<(), GemNodeError> {
+            *self.selected.lock().unwrap() = None;
+            Ok(())
+        }
+    }
+
+    fn node(url: &str) -> Node {
+        Node {
+            url: url.to_string(),
+            status: NodeState::Active,
+            priority: 0,
+        }
+    }
+
+    #[test]
+    fn test_merge_nodes_keeps_defaults_first_and_dedupes() {
+        let merged = merge_nodes(vec![node("a"), node("b")], vec![node("b"), node("c")]);
+        assert_eq!(merged.iter().map(|node| node.url.as_str()).collect::<Vec<_>>(), vec!["a", "b", "c"]);
+        assert!(is_default_node("a", &[node("a")]));
+        assert!(!is_default_node("c", &[node("a")]));
+    }
+
+    #[test]
+    fn test_selected_node_falls_back_to_us_region() {
+        futures::executor::block_on(async {
+            let store = Arc::new(MemoryStore::default());
+            let service = GemNodeService::new(store.clone());
+
+            assert_eq!(service.get_node_url(Chain::Ethereum).await.unwrap(), NodeRegion::Us.url(Chain::Ethereum));
+
+            service.set_selected_node(Chain::Ethereum, "https://unknown.example".into()).await.unwrap();
+            assert_eq!(service.get_node_url(Chain::Ethereum).await.unwrap(), NodeRegion::Us.url(Chain::Ethereum));
+        });
+    }
+
+    #[test]
+    fn test_delete_node_keeps_defaults_and_clears_selection() {
+        futures::executor::block_on(async {
+            let store = Arc::new(MemoryStore::default());
+            let service = GemNodeService::new(store.clone());
+            let default_url = NodeRegion::Eu.url(Chain::Ethereum);
+
+            service.add_node(Chain::Ethereum, "https://custom.example".into()).await.unwrap();
+            service.set_selected_node(Chain::Ethereum, "https://custom.example".into()).await.unwrap();
+            service.delete_node(Chain::Ethereum, "https://custom.example".into()).await.unwrap();
+            service.delete_node(Chain::Ethereum, default_url.clone()).await.unwrap();
+
+            assert!(store.selected.lock().unwrap().is_none());
+            assert!(!service.get_nodes(Chain::Ethereum).await.unwrap().iter().any(|node| node.url == "https://custom.example"));
+            assert!(service.get_nodes(Chain::Ethereum).await.unwrap().iter().any(|node| node.url == default_url));
+        });
+    }
+}

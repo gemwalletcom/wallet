@@ -9,43 +9,45 @@ import Testing
 
 struct NodeServiceTests {
     @Test
-    func getNodeSelectedReturnsDefaultWhenNotSet() {
-        #expect(NodeService.mock().getNodeSelected(chain: .ethereum).node.url == Chain.ethereum.defaultChainNode.node.url)
+    func getNodeSelectedReturnsDefaultWhenNotSet() async throws {
+        #expect(try await NodeService.mock().getNodeSelected(chain: .ethereum).node.url == Chain.ethereum.defaultChainNode.node.url)
     }
 
     @Test
-    func setNodeSelectedPersistsNode() throws {
+    func switchNode() async throws {
         let service = NodeService.mock(nodeStore: .mock(db: .mockWithChains([.ethereum])))
 
-        try service.setNodeSelected(chain: .ethereum, node: Chain.ethereum.chainNode(region: .asia).node)
+        try await service.setNodeSelected(chain: .ethereum, node: Chain.ethereum.chainNode(region: .asia).node)
+        #expect(try await service.getNodeSelected(chain: .ethereum).node.url == Chain.ethereum.chainNode(region: .asia).node.url)
 
-        #expect(service.getNodeSelected(chain: .ethereum).node.url == Chain.ethereum.chainNode(region: .asia).node.url)
+        try await service.setNodeSelected(chain: .ethereum, node: Chain.ethereum.chainNode(region: .eu).node)
+        #expect(try await service.getNodeSelected(chain: .ethereum).node.url == Chain.ethereum.chainNode(region: .eu).node.url)
     }
 
     @Test
-    func switchNode() throws {
+    func deletingSelectedCustomNodeFallsBackToDefault() async throws {
         let service = NodeService.mock(nodeStore: .mock(db: .mockWithChains([.ethereum])))
+        let custom = Node(url: "https://custom.example", status: .active, priority: 0)
 
-        try service.setNodeSelected(chain: .ethereum, node: Chain.ethereum.chainNode(region: .asia).node)
-        #expect(service.getNodeSelected(chain: .ethereum).node.url == Chain.ethereum.chainNode(region: .asia).node.url)
+        try await service.addNode(chain: .ethereum, url: custom.url)
+        try await service.setNodeSelected(chain: .ethereum, node: custom)
+        try await service.delete(chain: .ethereum, node: custom)
 
-        try service.setNodeSelected(chain: .ethereum, node: Chain.ethereum.chainNode(region: .eu).node)
-        #expect(service.getNodeSelected(chain: .ethereum).node.url == Chain.ethereum.chainNode(region: .eu).node.url)
+        #expect(try await service.getNodeSelected(chain: .ethereum).node.url == Chain.ethereum.defaultChainNode.node.url)
+        #expect(try await service.nodes(for: .ethereum).contains { $0.node.url == custom.url } == false)
     }
 
     @Test
-    func nodeURLFetchableReturnsSelectedUrl() throws {
+    func nodeURLFetchableReturnsSelectedUrl() async throws {
         let service = NodeService.mock(nodeStore: .mock(db: .mockWithChains([.ethereum])))
 
-        try service.setNodeSelected(chain: .ethereum, node: Chain.ethereum.chainNode(region: .asia).node)
+        try await service.setNodeSelected(chain: .ethereum, node: Chain.ethereum.chainNode(region: .asia).node)
 
         #expect(service.node(for: .ethereum) == Chain.ethereum.chainNode(region: .asia).node.url.asURL)
     }
 
     @Test
     func nodeURLFetchableReturnsDefaultWhenNotSet() {
-        let service = NodeService.mock()
-
-        #expect(service.node(for: .ethereum) == Chain.ethereum.defaultBaseUrl)
+        #expect(NodeService.mock().node(for: .ethereum) == Chain.ethereum.defaultBaseUrl)
     }
 }

@@ -2,6 +2,7 @@ use primitives::asset_balance::BalanceMetadata;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
 use primitives::currency::Currency;
 use primitives::name::NameRecord;
+use primitives::node::Node;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
 use primitives::perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
@@ -95,6 +96,7 @@ json_bridge!(
     NFTAttribute,
     NFTAttributeType,
     NFTData,
+    Node,
     NFTImages,
     NFTResource,
     NFTType,

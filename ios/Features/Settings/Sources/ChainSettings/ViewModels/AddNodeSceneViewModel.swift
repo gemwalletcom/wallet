@@ -16,7 +16,6 @@ import Validators
 final class AddNodeSceneViewModel {
     private let nodeService: NodeService
     private let chainServiceFactory: ChainServiceFactory
-    private let addNodeService: AddNodeService
 
     let chain: Chain
 
@@ -30,7 +29,6 @@ final class AddNodeSceneViewModel {
         self.chain = chain
         self.nodeService = nodeService
         self.chainServiceFactory = chainServiceFactory
-        addNodeService = AddNodeService(nodeStore: nodeService.nodeStore)
     }
 
     var title: String {
@@ -92,14 +90,13 @@ extension AddNodeSceneViewModel {
         fetchTrigger = AddNodeFetchTrigger(url: text, isImmediate: isImmediate)
     }
 
-    func importFoundNode() throws {
+    func importFoundNode() async throws {
         guard case let .data(model) = state else {
             throw AnyError("Unknown result")
         }
 
         // TODO: - implement disable after user selects "import node button", we can't use state: StateViewType<ImportNodeResult> progress
-        let node = Node(url: model.url.absoluteString, status: .active, priority: 5)
-        try addNodeService.addNode(ChainNodes(chain: chain.rawValue, nodes: [node]))
+        try await nodeService.addNode(chain: chain, url: model.url.absoluteString)
 
         // TODO: - implement correct way of selection node
         /*

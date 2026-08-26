@@ -72,10 +72,7 @@ class NetworksViewModel @Inject constructor(
     }
 
     fun onSelectedChain(chain: Chain) {
-        val defaultNodeUrls = config
-            .getNodes()[chain.string]
-            .orEmpty()
-            .mapTo(linkedSetOf()) { it.url }
+        val defaultNodeUrls = getNodesCase.getDefaultNodes(chain).mapTo(linkedSetOf()) { it.url }
         val gemNodeFlags = config.getNodeRegions().associate { region ->
             config.getNodeUrl(chain.string, region) to config.getNodeRegionFlag(region)
         }

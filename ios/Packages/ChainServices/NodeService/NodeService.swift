@@ -2,55 +2,46 @@
 
 import ChainService
 import Foundation
-import class Gemstone.Config
+import protocol Gemstone.GemNodeServiceProtocol
 import GemstonePrimitives
 import Primitives
 import Store
 
 public final class NodeService: Sendable {
     public let nodeStore: NodeStore
+    private let service: any GemNodeServiceProtocol
 
     public init(
         nodeStore: NodeStore,
+        service: any GemNodeServiceProtocol,
     ) {
         self.nodeStore = nodeStore
+        self.service = service
     }
 
-    public func getNodeSelected(chain: Chain) -> ChainNode {
-        guard
-            let url = try? nodeStore.selectedNodeUrl(chain: chain),
-            let node = try? nodes(for: chain).first(where: { $0.node.url == url })
-        else {
-            return chain.defaultChainNode
-        }
-        return node
+    public func defaultNodes(chain: Chain) throws -> [ChainNode] {
+        try service.getDefaultNodes(chain: chain.rawValue).map { try ChainNode(chain: chain.rawValue, node: Primitives.Node($0)) }
     }
 
-    public func setNodeSelected(chain: Chain, node: Primitives.Node) throws {
-        try nodeStore.setNodeSelected(chain: chain, url: node.url)
+    public func getNodeSelected(chain: Chain) async throws -> ChainNode {
+        let node = try await service.getSelectedNode(chain: chain.rawValue)
+        return try ChainNode(chain: chain.rawValue, node: Primitives.Node(node))
     }
 
-    public func delete(chain: Chain, node: Primitives.Node) throws {
-        try nodeStore.deleteNode(chain: chain, url: node.url)
-        try nodeStore.deleteNodeSelected(chain: chain)
+    public func setNodeSelected(chain: Chain, node: Primitives.Node) async throws {
+        try await service.setSelectedNode(chain: chain.rawValue, url: node.url)
     }
 
-    public func nodes(for chain: Chain) throws -> [ChainNode] {
-        let nodes = try nodeStore.nodes(chain: chain)
-        return (NodeURL.regions.map { chain.chainNode(region: $0) } + nodes).unique()
+    public func addNode(chain: Chain, url: String) async throws {
+        try await service.addNode(chain: chain.rawValue, url: url)
     }
 
-    func update(chain _: Chain, force _: Bool = false) throws {
-        // TODO: - implement later
-        /*
-         guard !requestedChains.contains(chain) else { return }
-         let nodes = try nodeStore.nodeRecords(chain: chain)
-         requestedChains.insert(chain)
-          */
+    public func delete(chain: Chain, node: Primitives.Node) async throws {
+        try await service.deleteNode(chain: chain.rawValue, url: node.url)
     }
 
-    public func importDefaultNodes() throws {
-        try AddNodeService(nodeStore: nodeStore).addNodes()
+    public func nodes(for chain: Chain) async throws -> [ChainNode] {
+        try await service.getNodes(chain: chain.rawValue).map { try ChainNode(chain: chain.rawValue, node: Primitives.Node($0)) }
     }
 }
 
@@ -68,11 +59,6 @@ extension NodeService: NodeURLFetchable {
 // MARK: - Static
 
 public extension NodeService {
-    static func defaultNodes(chain: Chain) -> [ChainNode] {
-        let nodes = Config.shared.getNodes()[chain.rawValue] ?? []
-        return nodes.map { ChainNode(chain: chain.rawValue, node: $0.node) }
-    }
-
     static func isValid(networkId: String, for chain: Chain) -> Bool {
         ChainConfig.config(chain: chain).networkId == networkId
     }

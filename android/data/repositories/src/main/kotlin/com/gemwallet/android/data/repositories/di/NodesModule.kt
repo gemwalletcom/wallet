@@ -10,6 +10,7 @@ import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetBlockExplorerCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
+import com.gemwallet.android.data.repositories.nodes.GemstoneNodeStore
 import com.gemwallet.android.data.repositories.nodes.NodesRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.NodesDao
@@ -18,8 +19,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
 import javax.inject.Singleton
 import uniffi.gemstone.Config
+import uniffi.gemstone.GemNodeService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -31,18 +34,27 @@ object NodesModule {
 
     @Provides
     @Singleton
-    fun provideNodesRepository(
-        @ApplicationContext context: Context,
+    @Named("node")
+    fun provideNodeConfigStore(@ApplicationContext context: Context): ConfigStore = ConfigStore(
+        context.getSharedPreferences("node-config", Context.MODE_PRIVATE)
+    )
+
+    @Provides
+    @Singleton
+    fun provideNodeService(
         nodesDao: NodesDao,
+        @Named("node") configStore: ConfigStore,
+    ): GemNodeService = GemNodeService(GemstoneNodeStore(nodesDao, configStore))
+
+    @Provides
+    @Singleton
+    fun provideNodesRepository(
+        nodeService: GemNodeService,
+        @Named("node") configStore: ConfigStore,
         config: Config,
     ): NodesRepository = NodesRepository(
-        nodesDao = nodesDao,
-        configStore = ConfigStore(
-            context.getSharedPreferences(
-                "node-config",
-                Context.MODE_PRIVATE
-            )
-        ),
+        nodeService = nodeService,
+        configStore = configStore,
         config = config,
     )
 

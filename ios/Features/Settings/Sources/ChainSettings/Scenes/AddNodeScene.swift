@@ -133,11 +133,13 @@ extension AddNodeScene {
     }
 
     private func onSelectImport() {
-        do {
-            try model.importFoundNode()
-            onDismiss?()
-        } catch {
-            model.isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+        Task {
+            do {
+                try await model.importFoundNode()
+                onDismiss?()
+            } catch {
+                model.isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            }
         }
     }
 

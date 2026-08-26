@@ -15,10 +15,7 @@ pub mod validators;
 pub mod wallet_connect;
 
 use crate::config::chain::ChainConfig;
-use primitives::{
-    Chain, StakeChain,
-    node_config::{self, Node, NodeRegion},
-};
+use primitives::{Chain, StakeChain, node_config::NodeRegion};
 use std::{collections::HashMap, str::FromStr};
 
 use {
@@ -110,15 +107,6 @@ impl Config {
 
     fn get_wallet_connect_config(&self) -> WalletConnectConfig {
         get_wallet_connect_config()
-    }
-
-    fn get_nodes(&self) -> HashMap<String, Vec<Node>> {
-        node_config::get_nodes()
-    }
-
-    fn get_nodes_for_chain(&self, chain: &str) -> Vec<Node> {
-        let chain = Chain::from_str(chain).unwrap();
-        node_config::get_nodes_for_chain(chain)
     }
 
     fn get_node_base_url(&self, region: NodeRegion) -> String {

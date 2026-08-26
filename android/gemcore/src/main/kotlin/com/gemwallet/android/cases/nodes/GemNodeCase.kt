@@ -18,6 +18,3 @@ fun getGemNodeUrl(chain: Chain, region: NodeRegion = NodeRegion.US) = config.get
 
 fun getGemNode(chain: Chain, region: NodeRegion = NodeRegion.US) = region.toNode(chain)
 
-fun getGemNodes(chain: Chain): List<Node> = config.getNodeRegions().map { getGemNode(chain, it) }
-
-fun getGemNodeUrls(chain: Chain): Set<String> = getGemNodes(chain).mapTo(linkedSetOf(), Node::url)

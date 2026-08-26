@@ -55,7 +55,10 @@ struct ServicesFactory {
     func makeServices(storages: AppResolver.Storages, navigation: NavigationStateManager) -> AppResolver.Services {
         let storeManager = StoreManager(db: storages.db)
         let securePreferences = SecurePreferences()
-        let nodeService = NodeService(nodeStore: storeManager.nodeStore)
+        let nodeService = NodeService(
+            nodeStore: storeManager.nodeStore,
+            service: GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore)),
+        )
         let nodeAuthProvider = NodeAuthTokenProvider(securePreferences: securePreferences)
         let nativeProvider = NativeProvider(nodeProvider: nodeService, requestInterceptor: nodeAuthProvider)
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, securePreferences: securePreferences)
@@ -553,7 +556,6 @@ extension ServicesFactory {
             runners: [
                 ConfigUpdateRunner(configService: configService),
                 BannerSetupRunner(bannerSetupService: bannerSetupService),
-                NodeImportRunner(nodeService: nodeService),
                 AssetsUpdateRunner(
                     configService: configService,
                     importAssetsService: importAssetsService,
