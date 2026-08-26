@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
-import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.assets.RecentAssetsService
@@ -19,8 +18,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
-import uniffi.gemstone.broadcastDelayMilliseconds
-import uniffi.gemstone.broadcastOptions
 import uniffi.gemstone.transactionMetadataBlockNumber
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransactionState
@@ -29,8 +26,9 @@ import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.swap.ApprovalData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemConfirmException
+import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemSignedTransaction
 import uniffi.gemstone.GemstoneException
@@ -39,7 +37,7 @@ import java.math.BigInteger
 class ConfirmTransactionImpl(
     private val passwordStore: PasswordStore,
     private val signTransactionOperator: GemSignTransactionOperator,
-    private val broadcastService: BroadcastService,
+    private val confirmService: GemConfirmServiceInterface,
     private val createTransactionsCase: CreateTransaction,
     private val recentAssetsService: RecentAssetsService,
 ) : ConfirmTransaction {
@@ -59,20 +57,41 @@ class ConfirmTransactionImpl(
             return signedTransactions.first().data
         }
 
-        val broadcastOptions = broadcastOptions(account.chain.string, signerParams.input.toDto())
-        var lastHash = ""
-        for ((index, signedTransaction) in signedTransactions.withIndex()) {
+        signedTransactions.forEach { signedTransaction ->
+            val approval = signerParams.input.approvalData(signedTransaction.transactionType.toPrimitives())
+            if (approval != null && approval.value.toBigIntegerOrNull() == null) {
+                throw ConfirmError.TransactionIncorrect
+            }
+        }
+
+        val hashes = try {
+            confirmService.broadcast(signerParams.input.toDto(), signedTransactions)
+        } catch (error: GemConfirmException.Broadcast) {
+            addTransactions(error.hashes, signedTransactions, signerParams, session, assetInfo, account, transactionAssetId)
+            throw error
+        }
+        addTransactions(hashes, signedTransactions, signerParams, session, assetInfo, account, transactionAssetId)
+        scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
+
+        return hashes.last()
+    }
+
+    private suspend fun addTransactions(
+        hashes: List<String>,
+        signedTransactions: List<GemSignedTransaction>,
+        signerParams: SignerParams,
+        session: Session,
+        assetInfo: AssetInfo,
+        account: Account,
+        transactionAssetId: AssetId?,
+    ) {
+        for ((index, transactionHash) in hashes.withIndex()) {
             val isFinalTransaction = index == signedTransactions.lastIndex
-            val transactionType = signedTransaction.transactionType.toPrimitives()
+            val transactionType = signedTransactions[index].transactionType.toPrimitives()
             val approval = signerParams.input.approvalData(transactionType)
             val approvalAmount = approval?.let {
                 it.value.toBigIntegerOrNull() ?: throw ConfirmError.TransactionIncorrect
             }
-            val transactionHash = broadcastService.send(
-                account = account,
-                signedMessage = signedTransaction.data.toByteArray(),
-                options = broadcastOptions,
-            )
             addTransaction(
                 transactionHash = transactionHash,
                 signerParams = signerParams,
@@ -85,15 +104,7 @@ class ConfirmTransactionImpl(
                 approvalAmount = approvalAmount,
                 isFinalTransaction = isFinalTransaction,
             )
-            if (!isFinalTransaction) {
-                delay(broadcastDelayMilliseconds(account.chain.string).toLong())
-            } else {
-                lastHash = transactionHash
-                scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
-            }
         }
-
-        return lastHash
     }
 
     private suspend fun sign(

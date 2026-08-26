@@ -2,7 +2,6 @@ package com.gemwallet.android.di
 
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
 import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
-import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
@@ -24,14 +23,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 object DataModule {
-
-    @Provides
-    @Singleton
-    fun providesBroadcastProxy(
-        gateway: GemGateway,
-    ): BroadcastService = BroadcastService(
-        gateway = gateway,
-    )
 
     @Provides
     @Singleton

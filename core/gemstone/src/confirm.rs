@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +10,7 @@ use crate::fee::custom_gas_price;
 use crate::gateway::GemGateway;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::scan::{GemScanTransaction, GemScanTransactionPayload};
-use crate::models::transaction::{GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput, GemTransactionLoadMetadata};
+use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput, GemTransactionLoadMetadata};
 use crate::transaction_simulation::TransactionSimulationService;
 use num_bigint::BigInt;
 use primitives::{Account, ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, SimulationResult, TransactionPreloadInput};
@@ -72,6 +73,7 @@ pub enum GemConfirmError {
     ScanMemoRequired { symbol: String },
     FeeRatesMissing,
     Load { msg: String },
+    Broadcast { hashes: Vec<String>, msg: String },
 }
 
 impl std::fmt::Display for GemConfirmError {
@@ -80,7 +82,7 @@ impl std::fmt::Display for GemConfirmError {
             Self::ScanMalicious => write!(f, "transaction flagged as malicious"),
             Self::ScanMemoRequired { symbol } => write!(f, "{symbol} transfer requires a memo"),
             Self::FeeRatesMissing => write!(f, "fee rates not found"),
-            Self::Load { msg } => write!(f, "{msg}"),
+            Self::Load { msg } | Self::Broadcast { msg, .. } => write!(f, "{msg}"),
         }
     }
 }
@@ -170,6 +172,27 @@ impl GemConfirmService {
             simulation,
         })
     }
+
+    pub async fn broadcast(&self, input_type: GemTransactionInputType, transactions: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
+        let chain = input_type.asset().id.chain;
+        let options = broadcast_options(chain, &input_type);
+        let delay = broadcast_delay_milliseconds(chain);
+        let mut hashes: Vec<String> = Vec::with_capacity(transactions.len());
+
+        for (index, transaction) in transactions.iter().enumerate() {
+            match self.gateway.transaction_broadcast(chain, transaction.data.clone(), options.clone()).await {
+                Ok(hash) => hashes.push(hash),
+                Err(error) => {
+                    return Err(GemConfirmError::Broadcast { hashes, msg: error.to_string() });
+                }
+            }
+            if index < transactions.len() - 1 && delay > 0 {
+                sleep(Duration::from_millis(delay)).await;
+            }
+        }
+
+        Ok(hashes)
+    }
 }
 
 impl GemConfirmService {
@@ -193,16 +216,14 @@ impl GemConfirmService {
     }
 }
 
-#[uniffi::export]
-pub fn broadcast_options(chain: Chain, input_type: &GemTransactionInputType) -> GemBroadcastOptions {
+fn broadcast_options(chain: Chain, input_type: &GemTransactionInputType) -> GemBroadcastOptions {
     match (chain, input_type) {
         (Chain::Solana, GemTransactionInputType::Swap { .. } | GemTransactionInputType::Generic { .. }) => GemBroadcastOptions { skip_preflight: true },
         _ => GemBroadcastOptions { skip_preflight: false },
     }
 }
 
-#[uniffi::export]
-pub fn broadcast_delay_milliseconds(chain: Chain) -> u64 {
+fn broadcast_delay_milliseconds(chain: Chain) -> u64 {
     match chain.chain_type() {
         ChainType::Ethereum | ChainType::HyperCore => 0,
         ChainType::Solana
@@ -219,6 +240,15 @@ pub fn broadcast_delay_milliseconds(chain: Chain) -> u64 {
         | ChainType::Polkadot
         | ChainType::Cardano => 500,
     }
+}
+
+async fn sleep(duration: Duration) {
+    let (sender, receiver) = futures::channel::oneshot::channel();
+    std::thread::spawn(move || {
+        std::thread::sleep(duration);
+        let _ = sender.send(());
+    });
+    let _ = receiver.await;
 }
 
 fn validate_scan(scan: Option<&GemScanTransaction>, memo: Option<&str>, symbol: &str) -> Result<(), GemConfirmError> {
@@ -265,9 +295,7 @@ fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSelection) -> 
                 .find(|rate| rate.priority == FeePriority::Normal.as_ref())
                 .or_else(|| rates.first())
                 .ok_or(GemConfirmError::FeeRatesMissing)?;
-            let gas_price = gas_price
-                .parse::<BigInt>()
-                .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+            let gas_price = gas_price.parse::<BigInt>().map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
             Ok(GemFeeRate {
                 priority: base.priority.clone(),
                 gas_price_type: custom_gas_price(base.gas_price_type.clone(), gas_price),
@@ -285,9 +313,7 @@ mod tests {
     fn rate(priority: &str, gas_price: &str) -> GemFeeRate {
         GemFeeRate {
             priority: priority.to_string(),
-            gas_price_type: GemGasPriceType::Regular {
-                gas_price: gas_price.to_string(),
-            },
+            gas_price_type: GemGasPriceType::Regular { gas_price: gas_price.to_string() },
         }
     }
 

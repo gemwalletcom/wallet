@@ -3787,7 +3787,7 @@ dependencies = [
 
 [[package]]
 name = "gem_everstake"
-version = "2.114.10"
+version = "2.114.11"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",

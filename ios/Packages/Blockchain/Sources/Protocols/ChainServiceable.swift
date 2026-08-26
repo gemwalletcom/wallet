@@ -18,7 +18,6 @@ public protocol ChainServiceable: ChainFeeRateFetchable {
 
     func preload(input: TransactionPreloadInput) async throws -> GemTransactionLoadMetadata
     func load(input: TransactionInput) async throws -> TransactionData
-    func broadcast(data: String, options: BroadcastOptions) async throws -> String
     func transactionState(for request: TransactionStateRequest) async throws -> TransactionChanges
 
     func getChainID() async throws -> String

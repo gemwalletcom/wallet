@@ -3,8 +3,9 @@
 import BalanceService
 import Blockchain
 import Foundation
-import func Gemstone.broadcastDelayMilliseconds
-import func Gemstone.broadcastOptions
+import enum Gemstone.GemConfirmError
+import protocol Gemstone.GemConfirmServiceProtocol
+import struct Gemstone.GemSignedTransaction
 import GemstonePrimitives
 import Primitives
 import Signer
@@ -20,18 +21,18 @@ public struct TransferExecutor: TransferExecutable {
     private static let hyperCoreOrderIdPrefix = "order:"
 
     private let signer: any TransactionSigning
-    private let chainService: any ChainServiceable
+    private let confirmService: any GemConfirmServiceProtocol
     private let assetsEnabler: any AssetsEnabler
     private let transactionStateScheduler: TransactionStateScheduler
 
     public init(
         signer: any TransactionSigning,
-        chainService: any ChainServiceable,
+        confirmService: any GemConfirmServiceProtocol,
         assetsEnabler: any AssetsEnabler,
         transactionStateScheduler: TransactionStateScheduler,
     ) {
         self.signer = signer
-        self.chainService = chainService
+        self.confirmService = confirmService
         self.assetsEnabler = assetsEnabler
         self.transactionStateScheduler = transactionStateScheduler
     }
@@ -44,19 +45,13 @@ public struct TransferExecutor: TransferExecutable {
             wallet: input.wallet,
         )
 
-        for (index, signedTransaction) in signedTransactions.enumerated() {
-            switch input.data.type.outputAction {
-            case .sign:
+        switch input.data.type.outputAction {
+        case .sign:
+            for signedTransaction in signedTransactions {
                 input.delegate?(.success(signedTransaction.data))
-            case .send:
-                try await send(
-                    input: input,
-                    data: signedTransaction.data,
-                    transactionType: signedTransaction.transactionType.map(),
-                    transactionIndex: index,
-                    totalTransactions: signedTransactions.count,
-                )
             }
+        case .send:
+            try await broadcast(input: input, transactions: signedTransactions)
         }
     }
 }
@@ -64,50 +59,50 @@ public struct TransferExecutor: TransferExecutable {
 // MARK: - Private
 
 extension TransferExecutor {
-    private func send(
-        input: TransferConfirmationInput,
-        data: String,
-        transactionType: TransactionType,
-        transactionIndex: Int,
-        totalTransactions: Int,
-    ) async throws {
-        let options = try broadcastOptions(chain: input.data.chain.rawValue, inputType: input.data.type.map())
-        let hash = try await chainService.broadcast(data: data, options: BroadcastOptions(skipPreflight: options.skipPreflight))
-
-        debugLog("TransferExecutor broadcast response hash \(hash)")
-
-        input.delegate?(.success(hash))
-
-        let transaction = try TransactionFactory.makePendingTransaction(
-            wallet: input.wallet,
-            transferData: input.data,
-            transactionData: input.transactionData,
-            amount: input.amount,
-            hash: hash,
-            transactionType: transactionType,
-            simulation: input.simulation,
-        )
-        let assetIds = assetIdsToEnable(for: transaction)
-        let transactions = pendingTransactions(
-            for: transaction,
-            transferData: input.data,
-            transactionIndex: transactionIndex,
-            totalTransactions: totalTransactions,
-        )
-
-        try transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: transactions)
-        Task {
-            do {
-                try await assetsEnabler.enableAssets(wallet: input.wallet, assetIds: assetIds, enabled: true)
-            } catch {
-                debugLog("TransferExecutor post-transfer asset update error: \(error)")
+    private func broadcast(input: TransferConfirmationInput, transactions: [GemSignedTransaction]) async throws {
+        let hashes: [String]
+        do {
+            hashes = try await confirmService.broadcast(inputType: input.data.type.map(), transactions: transactions)
+        } catch let error as GemConfirmError {
+            if case let .Broadcast(broadcasted, msg) = error {
+                try record(input: input, hashes: broadcasted, transactions: transactions)
+                throw AnyError(msg)
             }
+            throw error
         }
+        try record(input: input, hashes: hashes, transactions: transactions)
+    }
 
-        if transactionIndex < totalTransactions - 1 {
-            let delay = broadcastDelayMilliseconds(chain: input.data.chain.rawValue)
-            if delay > 0 {
-                try await Task.sleep(for: .milliseconds(Int(delay)))
+    private func record(input: TransferConfirmationInput, hashes: [String], transactions: [GemSignedTransaction]) throws {
+        for (index, hash) in hashes.enumerated() {
+            debugLog("TransferExecutor broadcast response hash \(hash)")
+
+            input.delegate?(.success(hash))
+
+            let transaction = try TransactionFactory.makePendingTransaction(
+                wallet: input.wallet,
+                transferData: input.data,
+                transactionData: input.transactionData,
+                amount: input.amount,
+                hash: hash,
+                transactionType: transactions[index].transactionType.map(),
+                simulation: input.simulation,
+            )
+            let assetIds = assetIdsToEnable(for: transaction)
+            let pending = pendingTransactions(
+                for: transaction,
+                transferData: input.data,
+                transactionIndex: index,
+                totalTransactions: transactions.count,
+            )
+
+            try transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: pending)
+            Task {
+                do {
+                    try await assetsEnabler.enableAssets(wallet: input.wallet, assetIds: assetIds, enabled: true)
+                } catch {
+                    debugLog("TransferExecutor post-transfer asset update error: \(error)")
+                }
             }
         }
     }

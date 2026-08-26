@@ -14,7 +14,6 @@ public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     public var coinBalances: [String: AssetBalance] = [:]
     public var tokenBalances: [String: [AssetBalance]] = [:]
     public var stakeBalance: AssetBalance?
-    public var broadcastResponses: [String] = []
     public var fee: Fee = .init(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero, feeAssetId: Asset.mock().id)
     public var feeRates: [FeeRate] = []
     public var chainID: String?
@@ -48,10 +47,6 @@ public extension ChainServiceMock {
 
     func getEarnBalance(for _: String, tokenIds _: [AssetId]) async throws -> [AssetBalance] {
         []
-    }
-
-    func broadcast(data _: String, options _: BroadcastOptions) async throws -> String {
-        broadcastResponses.removeFirst()
     }
 
     func getFee(asset _: Asset, input _: FeeInput) async throws -> Fee {

@@ -85,15 +85,11 @@ pub fn payment_decoded_transfer(request: &GemPaymentRequest, asset: GemPaymentWa
 
 fn transfer_destination(asset: &GemPaymentWalletAsset, request: &GemPaymentRequest) -> GemPaymentDestination {
     if requires_memo(asset.asset_id.chain, request) {
-        return GemPaymentDestination::Recipient {
-            asset_id: asset.asset_id.clone(),
-        };
+        return GemPaymentDestination::Recipient { asset_id: asset.asset_id.clone() };
     }
     match confirm_transfer(asset, request) {
         Some(transfer) => GemPaymentDestination::Confirm { transfer },
-        None => GemPaymentDestination::Recipient {
-            asset_id: asset.asset_id.clone(),
-        },
+        None => GemPaymentDestination::Recipient { asset_id: asset.asset_id.clone() },
     }
 }
 
@@ -251,7 +247,10 @@ mod tests {
         }
 
         let unknown_token = request(SOLANA_ADDRESS, None, None, Some(AssetId::from_token(Chain::Solana, "11111111111111111111111111111111")));
-        assert_eq!(payment_destination(&unknown_token, vec![bitcoin, ethereum, solana_usdc]), GemPaymentDestination::Unsupported);
+        assert_eq!(
+            payment_destination(&unknown_token, vec![bitcoin, ethereum, solana_usdc]),
+            GemPaymentDestination::Unsupported
+        );
     }
 
     #[test]

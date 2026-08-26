@@ -49,7 +49,7 @@ public enum ConfirmServiceFactory {
             ),
             transferExecutor: TransferExecutor(
                 signer: TransactionSigner(keystore: keystore),
-                chainService: chainService,
+                confirmService: gemConfirmService,
                 assetsEnabler: assetsEnabler,
                 transactionStateScheduler: transactionStateScheduler,
             ),

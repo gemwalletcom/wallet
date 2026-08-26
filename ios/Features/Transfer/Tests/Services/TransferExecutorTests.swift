@@ -3,7 +3,12 @@
 import Blockchain
 import BlockchainTestKit
 import ChainServiceTestKit
+import struct Gemstone.GemConfirmData
+import struct Gemstone.GemConfirmInput
+import struct Gemstone.GemConfirmLoadOptions
+import protocol Gemstone.GemConfirmServiceProtocol
 import struct Gemstone.GemSignedTransaction
+import enum Gemstone.GemTransactionInputType
 import Primitives
 import PrimitivesTestKit
 import Signer
@@ -86,7 +91,7 @@ struct TransferExecutorTests {
                 GemSignedTransaction(data: "primary_order", transactionType: .perpetualOpenPosition),
                 GemSignedTransaction(data: "position_tpsl", transactionType: .perpetualOpenPosition),
             ]),
-            chainService: ChainServiceMock.mock(broadcastResponses: ["action:1", "order:413978262893", "action:2"]),
+            confirmService: GemConfirmServiceMock(hashes: ["action:1", "order:413978262893", "action:2"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
@@ -126,7 +131,7 @@ struct TransferExecutorTests {
                 GemSignedTransaction(data: "approval_tx", transactionType: .tokenApproval),
                 GemSignedTransaction(data: "swap_tx", transactionType: .swap),
             ]),
-            chainService: ChainServiceMock.mock(broadcastResponses: ["hash0", "hash1"]),
+            confirmService: GemConfirmServiceMock(hashes: ["hash0", "hash1"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
@@ -169,7 +174,7 @@ struct TransferExecutorTests {
             signer: TransactionSignerMock(signedTransactions: [
                 GemSignedTransaction(data: "approval_tx", transactionType: .tokenApproval),
             ]),
-            chainService: ChainServiceMock.mock(broadcastResponses: ["approval-hash"]),
+            confirmService: GemConfirmServiceMock(hashes: ["approval-hash"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
@@ -212,7 +217,7 @@ struct TransferExecutorTests {
                 GemSignedTransaction(data: "approve_agent", transactionType: .swap),
                 GemSignedTransaction(data: "place_order", transactionType: .swap),
             ]),
-            chainService: ChainServiceMock.mock(broadcastResponses: [
+            confirmService: GemConfirmServiceMock(hashes: [
                 "action:1",
                 "action:2",
                 "order:413978262893",
@@ -257,7 +262,7 @@ struct TransferExecutorTests {
                 GemSignedTransaction(data: "undelegate", transactionType: .stakeUndelegate),
                 GemSignedTransaction(data: "withdraw", transactionType: .stakeUndelegate),
             ]),
-            chainService: ChainServiceMock.mock(broadcastResponses: [
+            confirmService: GemConfirmServiceMock(hashes: [
                 "action:tokenDelegate:3001423:unstake:1780078264488",
                 "action:cWithdraw:3001423:1780078264489",
             ]),
@@ -285,7 +290,7 @@ struct TransferExecutorTests {
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
             signer: TransactionSignerMock(signedTransactions: [GemSignedTransaction(data: "tx", transactionType: .transfer)]),
-            chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
+            confirmService: GemConfirmServiceMock(hashes: ["hash"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
@@ -311,7 +316,7 @@ struct TransferExecutorTests {
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
             signer: TransactionSignerMock(signedTransactions: [GemSignedTransaction(data: "modify_tx", transactionType: .perpetualModifyPosition)]),
-            chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
+            confirmService: GemConfirmServiceMock(hashes: ["hash"]),
             assetsEnabler: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
@@ -331,10 +336,18 @@ struct TransferExecutorTests {
     }
 }
 
-extension ChainServiceMock {
-    static func mock(broadcastResponses: [String]) -> ChainServiceMock {
-        let mock = ChainServiceMock()
-        mock.broadcastResponses = broadcastResponses
-        return mock
+private final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked Sendable {
+    private let hashes: [String]
+
+    init(hashes: [String]) {
+        self.hashes = hashes
+    }
+
+    func broadcast(inputType _: GemTransactionInputType, transactions: [GemSignedTransaction]) async throws -> [String] {
+        Array(hashes.prefix(transactions.count))
+    }
+
+    func load(input _: GemConfirmInput, options _: GemConfirmLoadOptions) async throws -> GemConfirmData {
+        throw AnyError("not supported")
     }
 }

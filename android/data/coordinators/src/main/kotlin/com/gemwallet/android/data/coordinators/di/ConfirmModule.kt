@@ -5,7 +5,7 @@ import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProper
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
 import com.gemwallet.android.application.confirm.coordinators.GetFeeAssets
-import com.gemwallet.android.blockchain.services.BroadcastService
+import uniffi.gemstone.GemConfirmServiceInterface
 import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.transactions.CreateTransaction
@@ -43,13 +43,13 @@ object ConfirmModule {
     fun provideConfirmTransaction(
         passwordStore: PasswordStore,
         signTransactionOperator: GemSignTransactionOperator,
-        broadcastService: BroadcastService,
+        confirmService: GemConfirmServiceInterface,
         createTransactionsCase: CreateTransaction,
         recentAssetsService: RecentAssetsService,
     ): ConfirmTransaction = ConfirmTransactionImpl(
         passwordStore,
         signTransactionOperator,
-        broadcastService,
+        confirmService,
         createTransactionsCase,
         recentAssetsService,
     )
