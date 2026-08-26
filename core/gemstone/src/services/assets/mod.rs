@@ -6,7 +6,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, WalletId};
+use primitives::{AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, Wallet, WalletId};
 
 pub use model::AssetList;
 pub use store::GemAssetStore;
@@ -84,6 +84,12 @@ impl GemAssetsService {
 
     pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         self.store.add_missing_balances(wallet_id, asset_ids).await
+    }
+
+    pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
+        let (enabled, disabled) = rules::default_balances(&wallet);
+        self.store.add_balances(wallet.id.clone(), enabled, true).await?;
+        self.store.add_balances(wallet.id, disabled, false).await
     }
 
     pub async fn get_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemApiError> {

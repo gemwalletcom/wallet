@@ -47,6 +47,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import dagger.Lazy
+import uniffi.gemstone.GemAssetsService
+import com.gemwallet.android.serializer.toJson
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -69,6 +72,8 @@ class AssetsRepositoryTest {
     private val scope = CoroutineScope(Job())
     private val sessionFlow = MutableStateFlow<com.gemwallet.android.model.Session?>(null)
 
+    private val assetsService = mockk<GemAssetsService>(relaxed = true)
+
     private fun createSubject() = AssetsRepository(
         assetsDao = assetsDao,
         balancesDao = balancesDao,
@@ -79,6 +84,7 @@ class AssetsRepositoryTest {
         availabilityService = AssetsAvailabilityService(assetsDao),
         currencyRatesService = CurrencyRatesService(pricesDao),
         updateBalances = updateBalances,
+        assetsService = Lazy { assetsService },
         scope = scope,
     )
 
@@ -356,7 +362,7 @@ class AssetsRepositoryTest {
     }
 
     @Test
-    fun createAssets_keepsStoredAssetPropertiesForExistingRows() = runBlocking {
+    fun createAssets_delegatesDefaultBalancesToCoreAndSubscribesEnabledAssets() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
         val wallet = mockWallet(
             type = WalletType.Multicoin,
@@ -366,17 +372,8 @@ class AssetsRepositoryTest {
         val subject = createSubject()
         subject.createAssets(wallet)
 
-        coVerify(exactly = 0) { assetsDao.updateBasicAssets(any()) }
-        coVerify(exactly = 0) { assetsDao.upsert(any()) }
-        coVerify { assetsDao.insert(match<DbAsset> { it.id == "bitcoin" }) }
-        coVerify { assetsDao.insert(match<DbAsset> { it.id == "tron" }) }
-        coVerify {
-            assetsDao.setWalletAssetVisibility(
-                walletId = wallet.id.id,
-                assetId = "bitcoin",
-                isVisible = true,
-            )
-        }
+        coVerify(exactly = 1) { assetsService.setupWallet(wallet.toJson()) }
+        coVerify { streamSubscriptionService.addAssetIds(listOf(Chain.Bitcoin.asset().id, Chain.Tron.asset().id)) }
     }
 
     @Test

@@ -67,6 +67,7 @@ object AssetsModule {
         availabilityService: AssetsAvailabilityService,
         currencyRatesService: CurrencyRatesService,
         updateBalances: UpdateBalances,
+        assetsService: Lazy<GemAssetsService>,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
         balancesDao = balancesDao,
@@ -77,6 +78,7 @@ object AssetsModule {
         availabilityService = availabilityService,
         currencyRatesService = currencyRatesService,
         updateBalances = updateBalances,
+        assetsService = assetsService,
     )
 
 

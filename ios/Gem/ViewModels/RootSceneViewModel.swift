@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemAssetsServiceProtocol
 import AppService
 import GemstoneServices
 import Components
@@ -27,7 +29,7 @@ final class RootSceneViewModel {
     private let deviceService: any DeviceServiceable
 
     let observablePreferences: ObservablePreferences
-    let walletSetupService: WalletSetupService
+    let assetsService: any GemAssetsServiceProtocol
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
     let nameService: any NameServiceable
@@ -78,7 +80,7 @@ final class RootSceneViewModel {
         lockWindowManager: any LockWindowManageable,
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
-        walletSetupService: WalletSetupService,
+        assetsService: any GemAssetsServiceProtocol,
         nameService: any NameServiceable,
         releaseAlertService: ReleaseAlertService,
         rateService: RateService,
@@ -96,7 +98,7 @@ final class RootSceneViewModel {
         lockManager = lockWindowManager
         self.walletService = walletService
         self.walletSessionService = walletSessionService
-        self.walletSetupService = walletSetupService
+        self.assetsService = assetsService
         self.nameService = nameService
         self.releaseAlertService = releaseAlertService
         self.rateService = rateService
@@ -163,12 +165,12 @@ extension RootSceneViewModel {
 extension RootSceneViewModel {
     private func setup(wallet: Wallet) {
         onstartWalletService.setup(wallet: wallet)
-        do {
-            try walletSetupService.setup(wallet: wallet)
-        } catch {
-            debugLog("RootSceneViewModel setupWallet error: \(error)")
-        }
         Task {
+            do {
+                try await assetsService.setupWallet(wallet: wallet.json())
+            } catch {
+                debugLog("RootSceneViewModel setupWallet error: \(error)")
+            }
             await appLifecycleService.updateWalletConnections()
         }
     }

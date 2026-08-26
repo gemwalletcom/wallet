@@ -244,7 +244,6 @@ struct ServicesFactory {
             walletStore: gemWalletStore,
             store: GemstoneAssetDiscoveryStore(),
         )
-        let walletSetupService = WalletSetupService(balanceService: balanceService)
 
         let gemConfigService = Gemstone.GemConfigService(api: gemApiClient, preferences: preferencesService)
         let configService = ConfigService(service: gemConfigService)
@@ -398,7 +397,7 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
             assetsEnabler: assetsEnabler,
             assetDiscoveryService: assetDiscoveryService,
-            walletSetupService: walletSetupService,
+            gemAssetsService: gemAssetsService,
             explorerService: explorerService,
             gatewayService: gatewayService,
             nftService: nftService,

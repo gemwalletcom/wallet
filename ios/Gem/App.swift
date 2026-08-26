@@ -33,7 +33,7 @@ struct GemApp: App {
                     lockWindowManager: LockWindowManager(lockModel: LockSceneViewModel()),
                     walletService: resolver.services.walletService,
                     walletSessionService: resolver.services.walletSessionService,
-                    walletSetupService: resolver.services.walletSetupService,
+                    assetsService: resolver.services.gemAssetsService,
                     nameService: resolver.services.nameService,
                     releaseAlertService: resolver.services.releaseAlertService,
                     rateService: resolver.services.rateService,

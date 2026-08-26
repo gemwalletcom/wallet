@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -36,5 +37,15 @@ class GemstoneAssetStoreTest {
         assertEquals(present.id.toIdentifier(), balanceSlot.captured.assetId)
         assertEquals(walletId.id, balanceSlot.captured.walletId)
         assertEquals(false, balanceSlot.captured.isVisible)
+    }
+
+    @Test
+    fun addBalances_insertsDefaultAssetRowAndVisibility() = runBlocking {
+        val walletId = mockWalletId()
+
+        subject.addBalances(walletId.id, listOf("bitcoin"), true)
+
+        coVerify { assetsDao.insert(match<DbAsset> { it.id == "bitcoin" }) }
+        coVerify { assetsDao.setWalletAssetVisibility(walletId.id, "bitcoin", true) }
     }
 }

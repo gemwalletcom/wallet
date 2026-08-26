@@ -73,6 +73,8 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
 
     public func addMissingBalances(walletId _: String, assetIds _: [Gemstone.AssetId]) async throws {}
 
+    public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
+
     public func syncAvailability(versions _: Gemstone.ConfigVersions) async throws {}
 
     public func syncAsset(assetId: Gemstone.AssetId, currency: Gemstone.Currency) async throws -> Gemstone.AssetFull {

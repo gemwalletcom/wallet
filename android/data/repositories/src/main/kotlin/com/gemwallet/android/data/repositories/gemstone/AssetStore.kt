@@ -7,6 +7,10 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinkRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
+import com.gemwallet.android.domains.asset.defaultAssets
+import com.gemwallet.android.domains.asset.defaultBasic
+import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetBasic
@@ -41,6 +45,15 @@ class GemstoneAssetStore(
             links = assetFull.links.toAssetLinkRecord(assetFull.asset.id),
             market = null,
         )
+    }
+
+    override suspend fun addBalances(walletId: String, assetIds: List<String>, enabled: Boolean) = withContext(Dispatchers.IO) {
+        for (identifier in assetIds) {
+            val assetId = identifier.toAssetId() ?: continue
+            val asset = if (assetId.tokenId == null) assetId.chain.asset() else assetId.chain.defaultAssets.firstOrNull { it.id == assetId } ?: continue
+            assetsDao.insert(asset.defaultBasic.toRecord())
+            assetsDao.setWalletAssetVisibility(walletId, identifier, enabled)
+        }
     }
 
     override suspend fun setBuyableAssets(assetIds: List<String>) = availabilityService.updateBuyAvailable(assetIds)

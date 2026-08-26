@@ -50,6 +50,14 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
         try assetStore.setAssetIsSwappable(for: assetIds, value: true)
     }
 
+    public func addBalances(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
+        try balanceStore.addBalance(
+            assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
+            isEnabled: enabled,
+            for: WalletId.from(id: walletId),
+        )
+    }
+
     public func addMissingBalances(walletId: String, assetIds: [Gemstone.AssetId]) async throws {
         try balanceStore.addBalance(
             assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
