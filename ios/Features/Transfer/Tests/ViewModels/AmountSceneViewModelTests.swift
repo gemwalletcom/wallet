@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import EarnServiceTestKit
-import FiatServiceTestKit
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store

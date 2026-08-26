@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import FiatService
+import GemstoneServices
 import Foundation
 import GemstonePrimitivesTestKit
 

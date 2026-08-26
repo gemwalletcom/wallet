@@ -146,7 +146,7 @@
 		DF93C4EE2C969F4F00204ABD /* Gemstone in Frameworks */ = {isa = PBXBuildFile; productRef = DF93C4ED2C969F4F00204ABD /* Gemstone */; };
 		E1B4C7052E85A00000YIELD1 /* EarnService in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C7062E85A00000YIELD1 /* EarnService */; };
 		E1B4C7092E85B00000EARN02 /* Stake in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C70A2E85B00000EARN03 /* Stake */; };
-		F1A7B80C2F0C000000FIAT01 /* FiatService in Frameworks */ = {isa = PBXBuildFile; productRef = F1A7B80D2F0C000000FIAT01 /* FiatService */; };
+		F1A7B80C2F0C000000FIAT01 /* GemstoneServices in Frameworks */ = {isa = PBXBuildFile; productRef = F1A7B80D2F0C000000FIAT01 /* GemstoneServices */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -251,6 +251,7 @@
 		C370289B2A9C3B0E009AE123 /* Settings */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Settings; sourceTree = "<group>"; };
 		C3CF3B7329A98C3400E96586 /* Blockchain */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Blockchain; sourceTree = "<group>"; };
 		C3A1B2C3D4E5F60718293A4C /* GemstoneStore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemstoneStore; sourceTree = "<group>"; };
+		C3A1B2C3D4E5F60718293A4E /* GemstoneServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemstoneServices; sourceTree = "<group>"; };
 		C3CF3B7529A98C5D00E96586 /* Primitives */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Primitives; sourceTree = "<group>"; };
 		C3CF3B8629AC2B5500E96586 /* Components */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Components; sourceTree = "<group>"; };
 		C3CF3BA529B5262100E96586 /* Keystore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Keystore; sourceTree = "<group>"; };
@@ -346,7 +347,7 @@
 				D8F5B86F2CCD639A0007E615 /* StakeService in Frameworks */,
 				E1B4C7052E85A00000YIELD1 /* EarnService in Frameworks */,
 				E1B4C7092E85B00000EARN02 /* Stake in Frameworks */,
-				F1A7B80C2F0C000000FIAT01 /* FiatService in Frameworks */,
+				F1A7B80C2F0C000000FIAT01 /* GemstoneServices in Frameworks */,
 				D829BF512CBF2C4900DEB2E8 /* NotificationService in Frameworks */,
 				8349F1472D5E4FF4003A0A93 /* ManageWallets in Frameworks */,
 				8361BB612D3FE5F2008D89CF /* Transactions in Frameworks */,
@@ -671,6 +672,7 @@
 				C3CF3BA529B5262100E96586 /* Keystore */,
 				C3CF3B7329A98C3400E96586 /* Blockchain */,
 				C3A1B2C3D4E5F60718293A4C /* GemstoneStore */,
+				C3A1B2C3D4E5F60718293A4E /* GemstoneServices */,
 				C3CF3B7529A98C5D00E96586 /* Primitives */,
 				C3CF3BD929BBE40300E96586 /* Style */,
 				C3CF3B8629AC2B5500E96586 /* Components */,
@@ -842,7 +844,7 @@
 				D8F5B86E2CCD639A0007E615 /* StakeService */,
 				E1B4C7062E85A00000YIELD1 /* EarnService */,
 				E1B4C70A2E85B00000EARN03 /* Stake */,
-				F1A7B80D2F0C000000FIAT01 /* FiatService */,
+				F1A7B80D2F0C000000FIAT01 /* GemstoneServices */,
 				D85AD29C2CD337BE0010DEF8 /* SwapService */,
 				D85AD2A52CD7017E0010DEF8 /* NativeProviderService */,
 				D8D83C832CECFA610083AA53 /* Swap */,
@@ -2313,9 +2315,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Stake;
 		};
-		F1A7B80D2F0C000000FIAT01 /* FiatService */ = {
+		F1A7B80D2F0C000000FIAT01 /* GemstoneServices */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = FiatService;
+			productName = GemstoneServices;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

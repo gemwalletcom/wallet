@@ -25,6 +25,7 @@ let package = Package(
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
+        .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
     ],
     targets: [
         .target(
@@ -39,7 +40,7 @@ let package = Package(
                 "GemstonePrimitives",
                 "Store",
                 "PrimitivesComponents",
-                .product(name: "FiatService", package: "FeatureServices"),
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "BalanceService", package: "FeatureServices"),
             ],
             path: "Sources",
@@ -49,7 +50,7 @@ let package = Package(
             dependencies: [
                 "FiatConnect",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "FiatServiceTestKit", package: "FeatureServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "BalanceServiceTestKit", package: "FeatureServices"),
             ],
             path: "Tests",

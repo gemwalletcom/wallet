@@ -2,7 +2,7 @@
 
 import BigInt
 import Components
-import FiatService
+import GemstoneServices
 import Formatters
 import Foundation
 import GemstoneFormatters

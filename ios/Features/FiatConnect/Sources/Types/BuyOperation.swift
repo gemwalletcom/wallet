@@ -3,7 +3,7 @@
 import BigInt
 import Formatters
 import Foundation
-import FiatService
+import GemstoneServices
 import GemstonePrimitives
 import Localization
 import Primitives

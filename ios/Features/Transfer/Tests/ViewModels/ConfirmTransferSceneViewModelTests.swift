@@ -10,7 +10,7 @@ import BlockchainTestKit
 import ChainService
 import ChainServiceTestKit
 import Components
-import FiatServiceTestKit
+import GemstoneServicesTestKit
 import Foundation
 import class Gemstone.GemConfirmService
 import GemstonePrimitives

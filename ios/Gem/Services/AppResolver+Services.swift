@@ -14,7 +14,7 @@ import ContactService
 import DeviceService
 import DiscoverAssetsService
 import ExplorerService
-import FiatService
+import GemstoneServices
 import Foundation
 import NFTService
 import NodeService

@@ -3,8 +3,8 @@
 import BalanceServiceTestKit
 import BigInt
 @testable import FiatConnect
-import FiatService
-import FiatServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Formatters
 import Foundation
 import Primitives

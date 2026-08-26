@@ -8,7 +8,7 @@ import BalanceService
 import ChainService
 import EarnService
 import FiatConnect
-import FiatService
+import GemstoneServices
 import Foundation
 import class Gemstone.GemConfirmService
 import Keystore

@@ -17,7 +17,7 @@ import DeviceService
 import DiscoverAssetsService
 import EarnService
 import ExplorerService
-import FiatService
+import GemstoneServices
 import Foundation
 import GemAPI
 import GemAPIDevice
