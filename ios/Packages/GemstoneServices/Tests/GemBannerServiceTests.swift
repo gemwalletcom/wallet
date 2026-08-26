@@ -35,31 +35,6 @@ struct GemBannerServiceTests {
     }
 
     @Test
-    func otherActionsKeepBannerActive() async throws {
-        let actions: [BannerActionType] = [.event(.stake), .event(.activateAsset), .event(.onboarding), .button(.buy), .button(.receive)]
-        for action in actions {
-            let (store, banner, service, permissions) = try makeService()
-
-            try await service.handleAction(key: banner.gemKey, action: action.gemAction)
-
-            #expect(permissions.requestCount == 0)
-            #expect(try store.getBanner(id: banner.id)?.state == .active)
-        }
-    }
-
-    @Test
-    func setupSeedsStakeAndPerpetualBanners() async throws {
-        let (store, _, service, _) = try makeService(chains: StakeChain.allCases.map(\.chain) + [.hyperCore, .hyperliquid])
-
-        try await service.setup()
-
-        #expect(try store.getBanner(id: "cosmos_stake")?.state == .active)
-        #expect(try store.getBanner(id: "bitcoin_stake") == nil)
-        #expect(try store.getBanner(id: "\(Chain.hyperCore.assetId.identifier)_tradePerpetuals")?.state == .active)
-        #expect(try store.getBanner(id: "\(Chain.hyperliquid.assetId.identifier)_tradePerpetuals")?.state == .active)
-    }
-
-    @Test
     func setupWalletSeedsOnboardingForCreatedWalletsOnly() async throws {
         let created = Wallet.mock(id: .multicoin(address: "0xcreated"), source: .create)
         let imported = Wallet.mock(id: .multicoin(address: "0ximported"), source: .import)

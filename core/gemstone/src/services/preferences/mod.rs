@@ -16,6 +16,8 @@ const BUY_ASSETS_VERSION: &str = "buy_assets_version";
 const SELL_ASSETS_VERSION: &str = "sell_assets_version";
 const SWAP_ASSETS_VERSION: &str = "swap_assets_version";
 const EXPLORER_NAME: &str = "explorer_name";
+const PERPETUAL_MARKETS_UPDATED_AT: &str = "perpetual_markets_updated_at";
+const PERPETUAL_PRICES_UPDATED_AT: &str = "perpetual_prices_updated_at";
 
 #[derive(uniffi::Object)]
 pub struct GemPreferencesService {
@@ -47,6 +49,33 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn get_perpetual_markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
+        self.get_timestamp(PERPETUAL_MARKETS_UPDATED_AT)
+    }
+
+    pub fn set_perpetual_markets_updated_at(&self, timestamp: Option<i64>) -> Result<(), GemServiceError> {
+        self.set_timestamp(PERPETUAL_MARKETS_UPDATED_AT, timestamp)
+    }
+
+    pub fn get_perpetual_prices_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
+        self.get_timestamp(PERPETUAL_PRICES_UPDATED_AT)
+    }
+
+    pub fn set_perpetual_prices_updated_at(&self, timestamp: Option<i64>) -> Result<(), GemServiceError> {
+        self.set_timestamp(PERPETUAL_PRICES_UPDATED_AT, timestamp)
+    }
+
+    fn get_timestamp(&self, key: &str) -> Result<Option<i64>, GemServiceError> {
+        Ok(self.store.get(key.to_string())?.and_then(|value| value.parse().ok()))
+    }
+
+    fn set_timestamp(&self, key: &str, timestamp: Option<i64>) -> Result<(), GemServiceError> {
+        match timestamp {
+            Some(timestamp) => self.store.set(key.to_string(), timestamp.to_string()),
+            None => self.store.remove(key.to_string()),
+        }
+    }
+
     pub fn get_assets_version(&self, list: AssetList) -> Result<Option<String>, GemServiceError> {
         self.store.get(assets_version_key(list).to_string())
     }

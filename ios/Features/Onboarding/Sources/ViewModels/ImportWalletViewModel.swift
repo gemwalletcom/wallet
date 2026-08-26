@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
 import GemstoneServices
 import Foundation
 import enum GemstoneServices.KeystoreImportType
@@ -13,7 +14,7 @@ public final class ImportWalletViewModel {
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
     let avatarService: AvatarService
-    let nameService: any NameServiceable
+    let nameService: any GemNameServiceProtocol
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
@@ -22,7 +23,7 @@ public final class ImportWalletViewModel {
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
         avatarService: AvatarService,
-        nameService: any NameServiceable,
+        nameService: any GemNameServiceProtocol,
         onComplete: VoidAction,
     ) {
         self.walletService = walletService

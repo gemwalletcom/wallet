@@ -50,7 +50,7 @@ public struct PerpetualEnablerService: Sendable {
 
     private func clearMarkets() async {
         do {
-            try service.clearMarkets()
+            try await service.clearMarkets()
         } catch {
             debugLog("PerpetualEnablerService clearMarkets error: \(error)")
         }

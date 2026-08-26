@@ -24,7 +24,7 @@ public enum ConfirmServiceFactory {
         transactionStateScheduler: TransactionStateScheduler,
         nameService: any GemNameServiceProtocol,
         addressStore: AddressStore,
-        activityService: ActivityService,
+        recentActivityStore: RecentActivityStore,
         toastPresenter: ToastPresenter,
         chain: Chain,
     ) -> ConfirmService {
@@ -52,7 +52,7 @@ public enum ConfirmServiceFactory {
                 assetsEnabler: assetsEnabler,
                 transactionStateScheduler: transactionStateScheduler,
             ),
-            activityService: activityService,
+            recentActivityStore: recentActivityStore,
             toastPresenter: toastPresenter,
             keystore: keystore,
             chainService: chainService,

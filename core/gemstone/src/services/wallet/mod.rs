@@ -150,6 +150,10 @@ impl GemWalletService {
         self.store.set_pinned(wallet_id, pinned).await
     }
 
+    pub async fn set_image_url(&self, wallet_id: WalletId, image_url: Option<String>) -> Result<(), GemServiceError> {
+        self.store.set_image_url(wallet_id, image_url).await
+    }
+
     pub async fn rename(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError> {
         self.store.rename(wallet_id, name).await
     }

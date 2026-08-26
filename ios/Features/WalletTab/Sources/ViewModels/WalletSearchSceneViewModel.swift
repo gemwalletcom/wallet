@@ -19,7 +19,7 @@ import SwiftUI
 @MainActor
 public final class WalletSearchSceneViewModel: Sendable, AssetActions, PerpetualPinActions {
     private let searchService: any GemSearchServiceProtocol
-    private let activityService: ActivityService
+    private let recentActivityStore: RecentActivityStore
     let assetsEnabler: any AssetsEnabler
     let perpetualService: PerpetualService
     private let preferences: ObservablePreferences
@@ -49,7 +49,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     public init(
         wallet: Wallet,
         searchService: any GemSearchServiceProtocol,
-        activityService: ActivityService,
+        recentActivityStore: RecentActivityStore,
         assetsEnabler: any AssetsEnabler,
         perpetualService: PerpetualService,
         preferences: ObservablePreferences = .default,
@@ -59,7 +59,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     ) {
         self.wallet = wallet
         self.searchService = searchService
-        self.activityService = activityService
+        self.recentActivityStore = recentActivityStore
         self.assetsEnabler = assetsEnabler
         self.perpetualService = perpetualService
         self.preferences = preferences
@@ -79,7 +79,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         recentModel = RecentAssetsModel(
             walletId: wallet.id,
             types: WalletSearchModel.recentActivityTypes,
-            activityService: activityService,
+            recentActivityStore: recentActivityStore,
         )
     }
 
@@ -272,7 +272,7 @@ extension WalletSearchSceneViewModel {
 extension WalletSearchSceneViewModel {
     private func updateRecent(_ asset: Asset) {
         do {
-            try activityService.updateRecent(data: .search(asset), walletId: wallet.id)
+            try recentActivityStore.add(.search(asset), walletId: wallet.id)
         } catch {
             debugLog("UpdateRecent error: \(error)")
         }

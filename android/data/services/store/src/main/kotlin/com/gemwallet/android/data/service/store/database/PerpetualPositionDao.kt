@@ -25,6 +25,9 @@ interface PerpetualPositionDao {
         upsertPositions(items)
     }
 
+    @Query("DELETE FROM perpetuals_positions")
+    suspend fun deleteAll()
+
     @Query("DELETE FROM perpetuals_positions WHERE walletId = :walletId AND id IN (:ids)")
     suspend fun deleteByIds(walletId: String, ids: List<String>)
 

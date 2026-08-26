@@ -1,3 +1,4 @@
+pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
@@ -22,6 +23,10 @@ impl GemNameService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemAddressStore>) -> Self {
         Self { api, store }
+    }
+
+    pub fn can_resolve_name(&self, name: String) -> bool {
+        rules::can_resolve_name(&name)
     }
 
     pub async fn resolve(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {

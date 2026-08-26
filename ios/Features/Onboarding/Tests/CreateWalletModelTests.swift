@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
 import Primitives
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -18,7 +19,7 @@ struct CreateWalletModelTests {
         let model = CreateWalletModel(
             walletService: .mock(walletStore: walletStore),
             walletSessionService: WalletSessionService.mock(store: walletStore),
-            avatarService: .init(store: walletStore),
+            avatarService: .init(service: GemWalletServiceMock()),
             onComplete: nil,
         )
 
@@ -38,7 +39,7 @@ struct CreateWalletModelTests {
         let model = CreateWalletModel(
             walletService: .mock(),
             walletSessionService: WalletSessionService.mock(),
-            avatarService: .init(store: .mock()),
+            avatarService: .init(service: GemWalletServiceMock()),
             onComplete: nil,
         )
 

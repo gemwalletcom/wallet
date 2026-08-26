@@ -102,10 +102,12 @@ public final class WalletImageViewModel: Sendable {
     }
 
     public func onRemoveAvatar() {
-        do {
-            try avatarService.remove(for: wallet)
-        } catch {
-            debugLog("Setting default avatar error: \(error)")
+        Task {
+            do {
+                try await avatarService.remove(for: wallet)
+            } catch {
+                debugLog("Setting default avatar error: \(error)")
+            }
         }
     }
 
@@ -122,13 +124,15 @@ public final class WalletImageViewModel: Sendable {
     }
 
     private func setImage(_ image: UIImage) {
-        do {
-            guard let data = image.compress() else {
-                throw AnyError("Compression image failed")
+        Task {
+            do {
+                guard let data = image.compress() else {
+                    throw AnyError("Compression image failed")
+                }
+                try await avatarService.save(data: data, for: wallet)
+            } catch {
+                debugLog("Set image error: \(error)")
             }
-            try avatarService.save(data: data, for: wallet)
-        } catch {
-            debugLog("Set image error: \(error)")
         }
     }
 }

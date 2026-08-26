@@ -23,7 +23,7 @@ public final class SelectAssetViewModel {
     let searchService: any GemSearchServiceProtocol
     let assetsEnabler: any AssetsEnabler
     let priceAlertService: PriceAlertService
-    let activityService: ActivityService
+    let recentActivityStore: RecentActivityStore
 
     public let wallet: Wallet
 
@@ -52,7 +52,7 @@ public final class SelectAssetViewModel {
         searchService: any GemSearchServiceProtocol,
         assetsEnabler: any AssetsEnabler,
         priceAlertService: PriceAlertService,
-        activityService: ActivityService,
+        recentActivityStore: RecentActivityStore,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
     ) {
@@ -62,7 +62,7 @@ public final class SelectAssetViewModel {
         self.searchService = searchService
         self.assetsEnabler = assetsEnabler
         self.priceAlertService = priceAlertService
-        self.activityService = activityService
+        self.recentActivityStore = recentActivityStore
         flow = selectType.flow
         onSelectAssetAction = selectAssetAction
 
@@ -80,7 +80,7 @@ public final class SelectAssetViewModel {
             walletId: wallet.id,
             types: selectType.recentActivityTypes,
             filters: filter.defaultFilters,
-            activityService: activityService,
+            recentActivityStore: recentActivityStore,
         )
     }
 
@@ -159,7 +159,7 @@ extension SelectAssetViewModel {
     public func updateRecent(assetId: AssetId) {
         guard let data = selectType.recentActivityData(assetId: assetId) else { return }
         do {
-            try activityService.updateRecent(data: data, walletId: wallet.id)
+            try recentActivityStore.add(data, walletId: wallet.id)
         } catch {
             debugLog("Failed to update recent activity: \(error)")
         }

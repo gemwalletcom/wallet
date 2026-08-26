@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
@@ -41,7 +42,7 @@ public final class ManageContactViewModel {
     private let mode: Mode
 
     let contactId: String
-    let nameService: any NameServiceable
+    let nameService: any GemNameServiceProtocol
 
     var nameInputModel: InputValidationViewModel
     var description: String = ""
@@ -54,7 +55,7 @@ public final class ManageContactViewModel {
 
     public init(
         service: ContactService,
-        nameService: any NameServiceable,
+        nameService: any GemNameServiceProtocol,
         mode: Mode,
     ) {
         self.service = service

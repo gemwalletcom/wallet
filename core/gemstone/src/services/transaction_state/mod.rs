@@ -8,7 +8,7 @@ use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use primitives::{Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
 
-pub use model::{GemTransactionStateResult, GemTransactionStateUpdate};
+pub use model::{GemPendingTransaction, GemTransactionStateResult, GemTransactionStateUpdate};
 pub use store::GemTransactionStateStore;
 
 use crate::gateway::GemGateway;
@@ -24,6 +24,18 @@ impl GemTransactionStateService {
     #[uniffi::constructor]
     pub fn new(gateway: Arc<GemGateway>, store: Arc<dyn GemTransactionStateStore>) -> Self {
         Self { gateway, store }
+    }
+
+    pub async fn pending_transactions(&self) -> Result<Vec<GemPendingTransaction>, GemServiceError> {
+        self.store.get_pending_transactions().await
+    }
+
+    pub async fn get_transaction(&self, wallet_id: WalletId, transaction_id: TransactionId) -> Result<Option<GemPendingTransaction>, GemServiceError> {
+        self.store.get_transaction(wallet_id, transaction_id).await
+    }
+
+    pub async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
+        self.store.add_transactions(wallet_id, transactions).await
     }
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
@@ -106,6 +118,18 @@ mod tests {
 
     #[async_trait::async_trait]
     impl GemTransactionStateStore for MemoryStore {
+        async fn get_pending_transactions(&self) -> Result<Vec<GemPendingTransaction>, GemServiceError> {
+            Ok(Vec::new())
+        }
+
+        async fn get_transaction(&self, _wallet_id: WalletId, _transaction_id: TransactionId) -> Result<Option<GemPendingTransaction>, GemServiceError> {
+            Ok(None)
+        }
+
+        async fn add_transactions(&self, _wallet_id: WalletId, _transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
+            Ok(())
+        }
+
         async fn get_state(&self, _wallet_id: WalletId, transaction_id: TransactionId) -> Result<Option<TransactionState>, GemServiceError> {
             Ok(self.states.lock().unwrap().iter().find(|(id, _)| *id == transaction_id).map(|(_, state)| *state))
         }

@@ -19,7 +19,7 @@ struct TransactionStateJob: Job {
     func run() async -> JobStatus {
         let transactionWallet = await context.transactionWallet()
         let result = await service.update(walletId: transactionWallet.wallet.id, transaction: transactionWallet.transaction)
-        guard let currentTransactionWallet = try? service.transactionWallet(
+        guard let currentTransactionWallet = try? await service.transactionWallet(
             walletId: transactionWallet.wallet.id,
             transactionId: result.transactionId,
         ) else {

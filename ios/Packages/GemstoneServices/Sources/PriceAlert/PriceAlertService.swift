@@ -4,23 +4,19 @@ import Foundation
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstonePrimitives
 import Primitives
-import Store
 
 public struct PriceAlertService: Sendable {
-    private let store: PriceAlertStore
     private let service: any GemPriceAlertServiceProtocol
     private let deviceService: any DeviceServiceable
     private let priceUpdater: any PriceUpdater
     private let pushNotificationService: any PushNotificationEnabler
 
     public init(
-        store: PriceAlertStore,
         service: any GemPriceAlertServiceProtocol,
         deviceService: any DeviceServiceable,
         priceUpdater: any PriceUpdater,
         pushNotificationService: any PushNotificationEnabler,
     ) {
-        self.store = store
         self.service = service
         self.deviceService = deviceService
         self.priceUpdater = priceUpdater
@@ -51,7 +47,6 @@ public struct PriceAlertService: Sendable {
     }
 
     public func add(priceAlert: PriceAlert) async throws {
-        try store.addPriceAlerts([priceAlert])
         try await add(priceAlerts: [priceAlert])
         try await priceUpdater.addPrices(assetIds: [priceAlert.assetId])
     }
@@ -74,7 +69,6 @@ public struct PriceAlertService: Sendable {
     }
 
     public func delete(priceAlerts: [PriceAlert]) async throws {
-        try store.deletePriceAlerts(priceAlerts.ids)
         try await service.deletePriceAlerts(alerts: priceAlerts.map { try $0.json() })
     }
 }

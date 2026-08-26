@@ -5,25 +5,24 @@ import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 import Preferences
 import Primitives
-import Store
 
 public struct WalletService: Sendable {
     private let service: any GemWalletServiceProtocol
     private let keystore: any Keystore
-    let walletStore: WalletStore
+    private let walletSessionService: any WalletSessionManageable
     private let avatarService: AvatarService
     private let preferences: ObservablePreferences
 
     public init(
         service: any GemWalletServiceProtocol,
         keystore: any Keystore,
-        walletStore: WalletStore,
+        walletSessionService: any WalletSessionManageable,
         preferences: ObservablePreferences,
         avatarService: AvatarService,
     ) {
         self.service = service
         self.keystore = keystore
-        self.walletStore = walletStore
+        self.walletSessionService = walletSessionService
         self.preferences = preferences
         self.avatarService = avatarService
     }
@@ -32,8 +31,8 @@ public struct WalletService: Sendable {
         preferences.isAcceptTermsCompleted
     }
 
-    public func nextWalletIndex() throws -> Int {
-        try walletStore.nextWalletIndex()
+    public func nextWalletIndex() async throws -> Int {
+        Int(try await service.nextWalletIndex())
     }
 
     public func acceptTerms() {
@@ -54,7 +53,7 @@ public struct WalletService: Sendable {
     public func delete(_ wallet: Wallet) async throws {
         try await keystore.deleteKey(for: wallet)
         let hasWallets = try await service.deleteWallet(wallet: wallet.json())
-        try avatarService.remove(for: wallet)
+        try await avatarService.remove(for: wallet)
         WalletPreferences(walletId: wallet.id).clear()
         if !hasWallets {
             preferences.preferences.clear()
@@ -67,7 +66,7 @@ public struct WalletService: Sendable {
     }
 
     public func migrateV3Keystores() async throws {
-        let wallets = try walletStore.getWallets()
+        let wallets = try walletSessionService.getWallets()
         let failures = try await keystore.migrateV3Keystores(for: wallets)
         for failure in failures {
             debugLog("v3 keystore migration failed for \(failure.walletId.id): \(failure.error)")
@@ -90,8 +89,8 @@ public struct WalletService: Sendable {
         try await keystore.getMnemonic(wallet: wallet)
     }
 
-    package var mockWalletStore: WalletStore {
-        walletStore
+    package func mockWallets() throws -> [Wallet] {
+        try walletSessionService.getWallets()
     }
 
     public func getPrivateKeyEncoded(wallet: Primitives.Wallet, chain: Chain) async throws -> String {

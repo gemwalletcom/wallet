@@ -12,7 +12,7 @@ public final class RecentAssetsModel {
     private static let sectionLimit: Int = 10
 
     private let walletId: WalletId
-    private let activityService: ActivityService
+    private let recentActivityStore: RecentActivityStore
 
     public let query: ObservableQuery<RecentActivityRequest>
     public var isPresenting: Bool = false
@@ -21,10 +21,10 @@ public final class RecentAssetsModel {
         walletId: WalletId,
         types: [RecentActivityType],
         filters: [AssetsRequestFilter] = [],
-        activityService: ActivityService,
+        recentActivityStore: RecentActivityStore,
     ) {
         self.walletId = walletId
-        self.activityService = activityService
+        self.recentActivityStore = recentActivityStore
         query = ObservableQuery(
             RecentActivityRequest(
                 walletId: walletId,
@@ -45,7 +45,7 @@ public final class RecentAssetsModel {
             walletId: walletId,
             types: query.request.types,
             filters: query.request.filters,
-            activityService: activityService,
+            recentActivityStore: recentActivityStore,
             onSelect: onSelect,
         )
     }

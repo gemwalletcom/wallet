@@ -57,7 +57,7 @@ extension CreateWalletModel {
 
     func createWallet(words: [String]) async throws -> Wallet {
         let result = try await walletService.importWallet(
-            name: WalletNameGenerator(type: .multicoin, walletService: walletService).name,
+            name: await WalletNameGenerator(type: .multicoin, walletService: walletService).name(),
             type: .phrase(words: words, chains: AssetConfiguration.allChains),
             source: .create,
         )

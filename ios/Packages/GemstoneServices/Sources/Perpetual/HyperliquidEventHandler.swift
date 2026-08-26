@@ -22,21 +22,21 @@ public actor HyperliquidEventHandler {
         do {
             switch try hyperliquid.parseWebsocketData(data: data, mode: mode.json()) {
             case let .accountState(balance, newPositions):
-                try handleAccountState(
+                try await handleAccountState(
                     walletId: walletId,
                     balance: balance.map { try Primitives.PerpetualBalance($0) },
                     newPositions: newPositions.map { try Primitives.PerpetualPosition($0) },
                 )
             case let .spotState(balance):
-                try updateBalance(walletId: walletId, balance: Primitives.PerpetualBalance(balance))
+                try await perpetualService.updateBalance(walletId: walletId, balance: Primitives.PerpetualBalance(balance))
             case let .openOrders(orders):
-                try handleOpenOrders(walletId: walletId, orders: orders)
+                try await handleOpenOrders(walletId: walletId, orders: orders)
             case let .candle(candle):
                 try await chartService.yield(Primitives.ChartCandleUpdate(candle))
             case let .marketData(market):
-                try perpetualService.updateMarket(Primitives.PerpetualMarketData(market))
+                try await perpetualService.updateMarket(Primitives.PerpetualMarketData(market))
             case let .marketPrices(prices):
-                try perpetualService.updatePrices(prices)
+                try await perpetualService.updatePrices(prices)
             case let .subscriptionResponse(subscriptionType):
                 debugLog("HyperliquidEventHandler: subscription response - \(subscriptionType)")
             case let .error(message):
@@ -55,35 +55,30 @@ public actor HyperliquidEventHandler {
         walletId: WalletId,
         balance: Primitives.PerpetualBalance?,
         newPositions: [Primitives.PerpetualPosition],
-    ) throws {
-        let diff = try hyperliquid.diffClearinghousePositions(
+    ) async throws {
+        let diff = try await hyperliquid.diffClearinghousePositions(
             newPositions: newPositions.map { try $0.json() },
             existingPositions: perpetualService.getHypercorePositions(walletId: walletId).map { try $0.json() },
         )
-
-        try perpetualService.diffPositions(
-            deleteIds: diff.deletePositionIds,
-            positions: diff.positions.map { try Primitives.PerpetualPosition($0) },
+        try await perpetualService.updatePositions(
             walletId: walletId,
+            positions: diff.positions.map { try Primitives.PerpetualPosition($0) },
+            deleteIds: diff.deletePositionIds,
         )
         if let balance {
-            try updateBalance(walletId: walletId, balance: balance)
+            try await perpetualService.updateBalance(walletId: walletId, balance: balance)
         }
     }
 
-    private func updateBalance(walletId: WalletId, balance: Primitives.PerpetualBalance) throws {
-        try perpetualService.updateBalance(walletId: walletId, balance: balance)
-    }
-
-    private func handleOpenOrders(walletId: WalletId, orders: [GemHyperliquidOpenOrder]) throws {
-        let diff = try hyperliquid.diffOpenOrdersPositions(
+    private func handleOpenOrders(walletId: WalletId, orders: [GemHyperliquidOpenOrder]) async throws {
+        let diff = try await hyperliquid.diffOpenOrdersPositions(
             orders: orders,
             existingPositions: perpetualService.getHypercorePositions(walletId: walletId).map { try $0.json() },
         )
-        try perpetualService.diffPositions(
-            deleteIds: diff.deletePositionIds,
-            positions: diff.positions.map { try Primitives.PerpetualPosition($0) },
+        try await perpetualService.updatePositions(
             walletId: walletId,
+            positions: diff.positions.map { try Primitives.PerpetualPosition($0) },
+            deleteIds: diff.deletePositionIds,
         )
     }
 }

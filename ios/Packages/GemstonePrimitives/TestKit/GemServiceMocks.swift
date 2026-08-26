@@ -281,6 +281,7 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
     private let addressNames: [Primitives.AddressName]
     private let nameRecord: Primitives.NameRecord?
     private let error: Error?
+    public private(set) var resolvedNames: [String] = []
 
     public init(addressNames: [Primitives.AddressName] = [], nameRecord: Primitives.NameRecord? = nil, error: Error? = nil) {
         self.addressNames = addressNames
@@ -288,9 +289,14 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         self.error = error
     }
 
-    public func resolve(name _: String, chain _: String) async throws -> Gemstone.NameRecord? {
+    public func resolve(name: String, chain _: String) async throws -> Gemstone.NameRecord? {
+        resolvedNames.append(name)
         if let error { throw error }
         return try nameRecord?.json()
+    }
+
+    public func canResolveName(name: String) -> Bool {
+        name.split(separator: ".").count >= 2
     }
 
     public func getAddressNames(requests: [Gemstone.ChainAddress]) async throws -> [Gemstone.AddressName] {
@@ -353,14 +359,28 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 }
 
 public final class GemTransactionStateServiceMock: GemTransactionStateServiceProtocol, @unchecked Sendable {
+    private let store: (any GemTransactionStateStore)?
     private let update: @Sendable (String, Gemstone.Transaction) async throws -> GemTransactionStateResult?
 
-    public init(update: @escaping @Sendable (String, Gemstone.Transaction) async throws -> GemTransactionStateResult?) {
+    public init(store: (any GemTransactionStateStore)? = nil, update: @escaping @Sendable (String, Gemstone.Transaction) async throws -> GemTransactionStateResult?) {
+        self.store = store
         self.update = update
     }
 
     public func update(walletId: String, transaction: Gemstone.Transaction) async throws -> GemTransactionStateResult? {
         try await update(walletId, transaction)
+    }
+
+    public func pendingTransactions() async throws -> [GemPendingTransaction] {
+        try await store?.getPendingTransactions() ?? []
+    }
+
+    public func getTransaction(walletId: Gemstone.WalletId, transactionId: Gemstone.TransactionId) async throws -> GemPendingTransaction? {
+        try await store?.getTransaction(walletId: walletId, transactionId: transactionId)
+    }
+
+    public func addTransactions(walletId: Gemstone.WalletId, transactions: [Gemstone.Transaction]) async throws {
+        try await store?.addTransactions(walletId: walletId, transactions: transactions)
     }
 }
 
@@ -381,11 +401,43 @@ public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked 
 }
 
 public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchecked Sendable {
-    public init() {}
+    public private(set) var syncMarketsCount = 0
+    public private(set) var clearMarketsCount = 0
+    private var updatedAt: Int64?
 
-    public func syncMarkets(chain _: Gemstone.Chain) async throws {}
+    public init(marketsUpdatedAt: Int64? = nil) {
+        updatedAt = marketsUpdatedAt
+    }
+
+    public func marketsUpdatedAt() throws -> Int64? {
+        updatedAt
+    }
+
+    public func syncMarkets(chain _: Gemstone.Chain) async throws {
+        syncMarketsCount += 1
+        updatedAt = Int64(Date().timeIntervalSince1970)
+    }
+
+    public func clearMarkets() async throws {
+        clearMarketsCount += 1
+        updatedAt = nil
+    }
 
     public func syncPositions(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}
+
+    public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
+
+    public func getPositions(walletId _: String, chain _: Gemstone.Chain) async throws -> [Gemstone.PerpetualPosition] {
+        []
+    }
+
+    public func updatePositions(walletId _: String, positions _: [Gemstone.PerpetualPosition], deleteIds _: [String]) async throws {}
+
+    public func updateBalance(walletId _: String, balance _: Gemstone.PerpetualBalance) async throws {}
+
+    public func updateMarket(market _: Gemstone.PerpetualMarketData) async throws {}
+
+    public func updatePrices(prices _: [String: Double]) async throws {}
 }
 
 public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtocol, @unchecked Sendable {
@@ -490,4 +542,34 @@ public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Se
     public func searchAssets(wallet _: Gemstone.Wallet, query _: String, currency _: Gemstone.Currency) async throws -> [Gemstone.AssetBasic] {
         try assets.map { try $0.json() }
     }
+}
+
+public final class GemWalletServiceMock: GemWalletServiceProtocol, @unchecked Sendable {
+    public private(set) var imageUrls: [String: String?] = [:]
+
+    public init() {}
+
+    public func createWallet() throws -> [String] { [] }
+
+    public func deleteWallet(wallet _: Gemstone.Wallet) async throws -> Bool { false }
+
+    public func importWallet(name _: String, import _: GemWalletImportType, source _: GemWalletSource) async throws -> GemWalletImportResult {
+        throw AnyError("not stubbed")
+    }
+
+    public func nextWalletIndex() async throws -> Int32 { 1 }
+
+    public func previewImport(import _: GemWalletImportType) throws -> GemWalletImport {
+        throw AnyError("not stubbed")
+    }
+
+    public func rename(walletId _: Gemstone.WalletId, name _: String) async throws {}
+
+    public func setImageUrl(walletId: Gemstone.WalletId, imageUrl: String?) async throws {
+        imageUrls[walletId] = imageUrl
+    }
+
+    public func setPinned(walletId _: Gemstone.WalletId, pinned _: Bool) async throws {}
+
+    public func setupChains(chains _: [Gemstone.Chain]) async throws -> [Gemstone.Wallet] { [] }
 }

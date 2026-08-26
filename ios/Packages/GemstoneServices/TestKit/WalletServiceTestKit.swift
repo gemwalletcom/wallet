@@ -11,10 +11,6 @@ import Store
 import StoreTestKit
 
 public extension WalletService {
-    func mockWallets() throws -> [Wallet] {
-        try mockWalletStore.getWallets()
-    }
-
     static func mock(
         keystore: LocalKeystore = LocalKeystore.mock(),
         walletStore: WalletStore = .mock(),
@@ -22,18 +18,19 @@ public extension WalletService {
     ) -> WalletService {
         let gemWalletStore = GemstoneWalletStore(store: walletStore)
         let session = GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: preferences), wallets: gemWalletStore)
+        let gemWalletService = GemWalletService(
+            keystore: keystore.gemKeystore,
+            password: GemstoneKeystorePassword(keystore: keystore, walletStore: walletStore),
+            store: gemWalletStore,
+            session: session,
+            deviceStore: GemstoneDeviceStore(preferences: preferences.preferences),
+        )
         return WalletService(
-            service: GemWalletService(
-                keystore: keystore.gemKeystore,
-                password: GemstoneKeystorePassword(keystore: keystore, walletStore: walletStore),
-                store: gemWalletStore,
-                session: session,
-                deviceStore: GemstoneDeviceStore(preferences: preferences.preferences),
-            ),
+            service: gemWalletService,
             keystore: keystore,
-            walletStore: walletStore,
+            walletSessionService: WalletSessionService(service: session, walletStore: walletStore),
             preferences: preferences,
-            avatarService: AvatarService(store: walletStore),
+            avatarService: AvatarService(service: gemWalletService),
         )
     }
 

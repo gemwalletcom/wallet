@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
@@ -18,7 +19,7 @@ public final class ContactsViewModel {
     }
 
     let service: ContactService
-    let nameService: any NameServiceable
+    let nameService: any GemNameServiceProtocol
     let mode: Mode
 
     public let query: ObservableQuery<ContactsRequest>
@@ -30,7 +31,7 @@ public final class ContactsViewModel {
 
     public init(
         service: ContactService,
-        nameService: any NameServiceable,
+        nameService: any GemNameServiceProtocol,
         mode: Mode = .list,
     ) {
         self.service = service

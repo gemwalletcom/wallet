@@ -4,7 +4,6 @@ import Foundation
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstonePrimitives
 import Primitives
-import Store
 
 struct TransactionStateUpdateResult {
     let transactionId: TransactionId
@@ -12,16 +11,13 @@ struct TransactionStateUpdateResult {
 }
 
 public struct TransactionStateService: Sendable {
-    private let transactionStore: TransactionStore
     private let postProcessingService: TransactionPostProcessingService
     private let service: any GemTransactionStateServiceProtocol
 
     public init(
-        transactionStore: TransactionStore,
         service: any GemTransactionStateServiceProtocol,
         postProcessingService: TransactionPostProcessingService,
     ) {
-        self.transactionStore = transactionStore
         self.service = service
         self.postProcessingService = postProcessingService
     }
@@ -44,8 +40,17 @@ public struct TransactionStateService: Sendable {
         }
     }
 
-    func transactionWallet(walletId: WalletId, transactionId: TransactionId) throws -> TransactionWallet? {
-        try transactionStore.getTransactionWallet(walletId: walletId, transactionId: transactionId)
+    func transactionWallet(walletId: WalletId, transactionId: TransactionId) async throws -> TransactionWallet? {
+        try await service.getTransaction(walletId: walletId.id, transactionId: transactionId.json())
+            .map { try TransactionWallet(transaction: Transaction($0.transaction), wallet: Wallet($0.wallet)) }
+    }
+
+    func pendingTransactions() async throws -> [TransactionWallet] {
+        try await service.pendingTransactions().map { try TransactionWallet(transaction: Transaction($0.transaction), wallet: Wallet($0.wallet)) }
+    }
+
+    func addTransactions(wallet: Wallet, transactions: [Transaction]) async throws {
+        try await service.addTransactions(walletId: wallet.id.id, transactions: transactions.map { try $0.json() })
     }
 
     func process(_ transactionWallet: TransactionWallet) async throws {

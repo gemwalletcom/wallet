@@ -109,6 +109,9 @@ interface TransactionsDao {
     @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
     fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>
 
+    @Query("SELECT * FROM transactions WHERE state IN (:states)")
+    fun getTransactionsByStates(states: List<TransactionState>): List<DbTransaction>
+
     @Query("SELECT state FROM transactions WHERE id = :id AND walletId = :walletId")
     fun getTransactionState(id: TransactionId, walletId: WalletId): TransactionState?
 

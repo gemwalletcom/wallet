@@ -2,37 +2,28 @@
 
 import Foundation
 import Primitives
-import Store
 
 public struct TransactionStateScheduler: Sendable {
-    private let transactionStore: TransactionStore
     private let service: TransactionStateService
     private let runner: JobRunner = .init()
 
-    public init(
-        transactionStore: TransactionStore,
-        service: TransactionStateService,
-    ) {
-        self.transactionStore = transactionStore
+    public init(service: TransactionStateService) {
         self.service = service
     }
 
     public func setup() {
-        if let transactionWallets = try? transactionStore.getTransactionWallets(states: [.pending, .inTransit]) {
-            scheduleUpdate(for: transactionWallets)
+        Task {
+            if let transactionWallets = try? await service.pendingTransactions() {
+                scheduleUpdate(for: transactionWallets)
+            }
         }
     }
 
-    public func addTransactions(wallet: Wallet, transactions: [Transaction]) throws {
-        try transactionStore.addTransactions(
-            walletId: wallet.id,
-            transactions: transactions,
-        )
+    public func addTransactions(wallet: Wallet, transactions: [Transaction]) async throws {
+        try await service.addTransactions(wallet: wallet, transactions: transactions)
         scheduleUpdate(for: transactions.map { TransactionWallet(transaction: $0, wallet: wallet) })
     }
 }
-
-// MARK: - Private
 
 extension TransactionStateScheduler {
     private func scheduleUpdate(for transactionWallets: [TransactionWallet]) {

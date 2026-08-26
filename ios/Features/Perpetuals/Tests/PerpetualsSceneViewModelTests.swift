@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Store
+import StoreTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 @testable import Perpetuals
@@ -25,13 +27,13 @@ extension PerpetualsSceneViewModel {
         wallet: Wallet = .mock(),
         perpetualService: PerpetualServiceable = PerpetualService.mock(),
         observerService: any PerpetualObservable = PerpetualObserverMock(),
-        activityService: ActivityService = .mock(),
+        recentActivityStore: RecentActivityStore = .mock(),
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(
             wallet: wallet,
             perpetualService: perpetualService,
             observerService: observerService,
-            activityService: activityService,
+            recentActivityStore: recentActivityStore,
         )
     }
 }

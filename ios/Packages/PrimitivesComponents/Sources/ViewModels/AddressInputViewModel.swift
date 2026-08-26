@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -23,7 +24,7 @@ public final class AddressInputViewModel {
 
     public init(
         chain: Chain,
-        nameService: any NameServiceable,
+        nameService: any GemNameServiceProtocol,
         placeholder: String,
         validators: [any TextValidator] = [],
     ) {

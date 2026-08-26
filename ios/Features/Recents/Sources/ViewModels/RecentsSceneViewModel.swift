@@ -12,7 +12,7 @@ import Store
 @Observable
 @MainActor
 public final class RecentsSceneViewModel {
-    private let activityService: ActivityService
+    private let recentActivityStore: RecentActivityStore
     private let walletId: WalletId
 
     public let query: ObservableQuery<RecentActivityRequest>
@@ -28,11 +28,11 @@ public final class RecentsSceneViewModel {
         walletId: WalletId,
         types: [RecentActivityType],
         filters: [AssetsRequestFilter] = [],
-        activityService: ActivityService,
+        recentActivityStore: RecentActivityStore,
         onSelect: @escaping (Asset) -> Void,
     ) {
         self.walletId = walletId
-        self.activityService = activityService
+        self.recentActivityStore = recentActivityStore
         query = ObservableQuery(RecentActivityRequest(walletId: walletId, limit: .max, types: types, filters: filters), initialValue: [])
         self.onSelect = onSelect
     }
@@ -80,7 +80,7 @@ public final class RecentsSceneViewModel {
 extension RecentsSceneViewModel {
     func onSelectClear() {
         do {
-            try activityService.clearRecent(walletId: walletId, types: query.request.types)
+            try recentActivityStore.clear(walletId: walletId, types: query.request.types)
         } catch {
             debugLog("RecentsSceneViewModel clear error: \(error)")
         }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -40,7 +41,7 @@ public final class RecipientSceneViewModel {
         wallet: Wallet,
         asset: Asset,
         walletSessionService: any WalletSessionManageable,
-        nameService: any NameServiceable,
+        nameService: any GemNameServiceProtocol,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
         recipient: RecipientData? = .none,

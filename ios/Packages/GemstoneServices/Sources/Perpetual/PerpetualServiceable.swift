@@ -6,9 +6,9 @@ import Primitives
 public protocol PerpetualServiceable: Sendable {
     var marketsUpdatedAt: Date? { get }
     func updateMarkets() async throws
-    func clearMarkets() throws
+    func clearMarkets() async throws
     func candlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick]
     func portfolio(address: String) async throws -> PerpetualPortfolio
-    func setPinned(_ isPinned: Bool, perpetualId: PerpetualId) throws
+    func setPinned(_ isPinned: Bool, perpetualId: PerpetualId) async throws
     func getPositions(walletId: WalletId, address: String) async throws
 }

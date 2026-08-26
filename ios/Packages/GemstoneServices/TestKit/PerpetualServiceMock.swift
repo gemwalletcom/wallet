@@ -11,7 +11,7 @@ public struct PerpetualServiceMock: PerpetualServiceable {
 
     public func updateMarkets() async throws {}
 
-    public func clearMarkets() throws {}
+    public func clearMarkets() async throws {}
 
     public func candlesticks(symbol _: String, period _: ChartPeriod) async throws -> [ChartCandleStick] {
         []
@@ -21,7 +21,7 @@ public struct PerpetualServiceMock: PerpetualServiceable {
         PerpetualPortfolio(day: nil, week: nil, month: nil, allTime: nil, accountSummary: nil)
     }
 
-    public func setPinned(_: Bool, perpetualId _: PerpetualId) throws {}
+    public func setPinned(_: Bool, perpetualId _: PerpetualId) async throws {}
 
     public func getPositions(walletId _: WalletId, address _: String) async throws {}
 }
@@ -33,15 +33,15 @@ extension PerpetualServiceMock: HyperliquidPerpetualServiceable {
         .standard
     }
 
-    public func getHypercorePositions(walletId _: WalletId) throws -> [Primitives.PerpetualPosition] {
+    public func getHypercorePositions(walletId _: WalletId) async throws -> [Primitives.PerpetualPosition] {
         []
     }
 
-    public func updateBalance(walletId _: WalletId, balance _: Primitives.PerpetualBalance) throws {}
+    public func updateBalance(walletId _: WalletId, balance _: Primitives.PerpetualBalance) async throws {}
 
-    public func diffPositions(deleteIds _: [String], positions _: [Primitives.PerpetualPosition], walletId _: WalletId) throws {}
+    public func updatePositions(walletId _: WalletId, positions _: [Primitives.PerpetualPosition], deleteIds _: [String]) async throws {}
 
-    public func updateMarket(_: Primitives.PerpetualMarketData) throws {}
+    public func updateMarket(_: Primitives.PerpetualMarketData) async throws {}
 
-    public func updatePrices(_: [String: Double]) throws {}
+    public func updatePrices(_: [String: Double]) async throws {}
 }

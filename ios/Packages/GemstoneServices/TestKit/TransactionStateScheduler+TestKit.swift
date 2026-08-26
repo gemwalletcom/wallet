@@ -17,19 +17,14 @@ public extension TransactionStateScheduler {
         nftService: any GemNftServiceProtocol = GemNftService.mock(),
     ) -> TransactionStateScheduler {
         let postProcessingService = TransactionPostProcessingService(
-            transactionStore: transactionStore,
             balanceService: GemBalanceServiceMock(),
             stakeService: stakeService,
             nftService: nftService,
         )
         let service = TransactionStateService(
-            transactionStore: transactionStore,
             service: gatewayService.transactionStateService(store: GemstoneTransactionStateStore(store: transactionStore)),
             postProcessingService: postProcessingService,
         )
-        return TransactionStateScheduler(
-            transactionStore: transactionStore,
-            service: service,
-        )
+        return TransactionStateScheduler(service: service)
     }
 }

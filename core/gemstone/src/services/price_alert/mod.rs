@@ -53,10 +53,12 @@ impl GemPriceAlertService {
     }
 
     pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
+        self.store.update(alerts.clone(), Vec::new()).await?;
         Ok(self.api.client.add_price_alerts(alerts).await.map_err(GemApiError::from)?)
     }
 
     pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
+        self.store.update(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await?;
         Ok(self.api.client.delete_price_alerts(alerts).await.map_err(GemApiError::from)?)
     }
 

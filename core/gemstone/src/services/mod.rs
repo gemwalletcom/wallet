@@ -65,7 +65,7 @@ pub use stake::{GemStakeService, GemStakeStore};
 pub use stream::GemStreamService;
 pub use subscription::GemSubscriptionService;
 pub use support::{GemSupportService, GemSupportStore};
-pub use transaction_state::{GemTransactionStateService, GemTransactionStateStore};
+pub use transaction_state::{GemPendingTransaction, GemTransactionStateService, GemTransactionStateStore};
 pub use transactions::{GemTransactionStore, GemTransactionsService};
 pub use wallet::{GemKeystorePassword, GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletSource, GemWalletStore};
 pub use wallet_configuration::{GemWalletConfigurationService, GemWalletConfigurationStore};

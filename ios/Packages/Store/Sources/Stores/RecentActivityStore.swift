@@ -11,6 +11,10 @@ public struct RecentActivityStore: Sendable {
         self.db = db.dbQueue
     }
 
+    public func add(_ data: RecentActivityData, walletId: WalletId) throws {
+        try add(assetId: data.assetId, toAssetId: data.toAssetId, walletId: walletId, type: data.type)
+    }
+
     public func add(
         assetId: AssetId,
         toAssetId: AssetId?,

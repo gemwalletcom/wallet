@@ -1,37 +1,35 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemWalletServiceProtocol
 import LocalStore
 import Primitives
-import Store
 
 public struct AvatarService: Sendable {
-    private let store: WalletStore
+    private let service: any GemWalletServiceProtocol
     private let localStore = LocalStore()
 
-    public init(store: WalletStore) {
-        self.store = store
+    public init(service: any GemWalletServiceProtocol) {
+        self.service = service
     }
 
-    // MARK: - Store
-
-    public func save(data: Data, for wallet: Wallet) throws {
+    public func save(data: Data, for wallet: Wallet) async throws {
         let imageUrl = try localStore.store(data, id: UUID().uuidString, documentType: "png")
         if let previous = wallet.imageUrl {
             try localStore.remove(previous)
         }
-        try store.setWalletAvatar(wallet.id, path: imageUrl)
+        try await service.setImageUrl(walletId: wallet.id.id, imageUrl: imageUrl)
     }
 
     public func save(url: URL, for wallet: Wallet) async throws {
         let (data, _) = try await URLSession.shared.data(from: url)
-        try save(data: data, for: wallet)
+        try await save(data: data, for: wallet)
     }
 
-    public func remove(for wallet: Wallet) throws {
+    public func remove(for wallet: Wallet) async throws {
         if let previous = wallet.imageUrl {
             try localStore.remove(previous)
         }
-        try store.setWalletAvatar(wallet.id, path: nil)
+        try await service.setImageUrl(walletId: wallet.id.id, imageUrl: nil)
     }
 }

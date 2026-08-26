@@ -8,12 +8,35 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
+import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.data.service.store.database.entities.DbTransaction
+import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.wallet.core.primitives.Transaction
+import dagger.Lazy
+import kotlinx.coroutines.flow.firstOrNull
+import uniffi.gemstone.GemPendingTransaction
 import uniffi.gemstone.GemTransactionStateStore
 import uniffi.gemstone.GemTransactionStateUpdate
 
 class GemstoneTransactionStateStore(
     private val transactionsDao: TransactionsDao,
+    private val walletsRepository: Lazy<WalletsRepository>,
 ) : GemTransactionStateStore {
+    override suspend fun getPendingTransactions(): List<GemPendingTransaction> =
+        transactionsDao.getTransactionsByStates(listOf(TransactionState.Pending, TransactionState.InTransit))
+            .mapNotNull { pendingTransaction(it) }
+
+    override suspend fun getTransaction(walletId: String, transactionId: String): GemPendingTransaction? =
+        transactionsDao.getTransaction(transactionId.decodeJson(), WalletId(walletId))?.let { pendingTransaction(it) }
+
+    override suspend fun addTransactions(walletId: String, transactions: List<String>) =
+        transactionsDao.insert(transactions.map { it.decodeJson<Transaction>().toRecord(WalletId(walletId)) })
+
+    private suspend fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
+        val wallet = walletsRepository.get().getWallet(WalletId(record.walletId)).firstOrNull() ?: return null
+        return GemPendingTransaction(wallet = wallet.toJson(), transaction = record.toDTO().toJson())
+    }
+
 
     override suspend fun getState(walletId: String, transactionId: String): String? =
         transactionsDao.getTransactionState(transactionId.decodeJson(), WalletId(walletId))?.toJson()

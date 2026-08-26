@@ -30,8 +30,6 @@ public final class Preferences: @unchecked Sendable {
         static let isWalletConnectActivated = "is_walletconnect_activated"
         static let chartPeriod = "chart_period"
         static let perpetualChartPeriod = "perpetual_chart_period"
-        static let perpetualsMarketsUpdatedAt = "perpetual_markets_updated_at"
-        static let perpetualPricesUpdatedAt = "perpetual_prices_updated_at"
         static let isPerpetualEnabled = "is_perpetual_enabled"
         static let perpetualLeverage = "perpetual_leverage"
         static let perpetualTakeProfit = "perpetual_take_profit"
@@ -100,12 +98,6 @@ public final class Preferences: @unchecked Sendable {
     @ConfigurableDefaults(key: Keys.perpetualChartPeriod, defaultValue: ChartPeriod.day.rawValue)
     private var perpetualChartPeriodRawValue: String
 
-    @ConfigurableDefaults(key: Keys.perpetualsMarketsUpdatedAt, defaultValue: nil)
-    public var perpetualMarketsUpdatedAt: Date?
-
-    @ConfigurableDefaults(key: Keys.perpetualPricesUpdatedAt, defaultValue: nil)
-    public var perpetualPricesUpdatedAt: Date?
-
     @ConfigurableDefaults(key: Keys.isPerpetualEnabled, defaultValue: false)
     public var isPerpetualEnabled: Bool
 
@@ -158,8 +150,6 @@ public final class Preferences: @unchecked Sendable {
         configure(\._isWalletConnectActivated, key: Keys.isWalletConnectActivated, defaultValue: nil)
         configure(\._chartPeriodRawValue, key: Keys.chartPeriod, defaultValue: ChartPeriod.day.rawValue)
         configure(\._perpetualChartPeriodRawValue, key: Keys.perpetualChartPeriod, defaultValue: ChartPeriod.day.rawValue)
-        configure(\._perpetualMarketsUpdatedAt, key: Keys.perpetualsMarketsUpdatedAt, defaultValue: nil)
-        configure(\._perpetualPricesUpdatedAt, key: Keys.perpetualPricesUpdatedAt, defaultValue: nil)
         configure(\._isPerpetualEnabled, key: Keys.isPerpetualEnabled, defaultValue: false)
         configure(\._perpetualLeverage, key: Keys.perpetualLeverage, defaultValue: 0)
         configure(\._perpetualTakeProfit, key: Keys.perpetualTakeProfit, defaultValue: 0)

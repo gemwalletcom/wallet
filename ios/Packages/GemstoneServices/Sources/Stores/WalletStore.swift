@@ -39,6 +39,10 @@ public final class GemstoneWalletStore: GemWalletStore, @unchecked Sendable {
         try store.pinWallet(Primitives.WalletId.from(id: walletId), value: pinned)
     }
 
+    public func setImageUrl(walletId: Gemstone.WalletId, imageUrl: String?) async throws {
+        try store.setWalletAvatar(Primitives.WalletId.from(id: walletId), path: imageUrl)
+    }
+
     public func rename(walletId: Gemstone.WalletId, name: String) async throws {
         try store.renameWallet(Primitives.WalletId.from(id: walletId), name: name)
     }

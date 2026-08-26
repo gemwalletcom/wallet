@@ -31,6 +31,8 @@ class GemstoneWalletStore(
 
     override suspend fun rename(walletId: String, name: String) = updateWallet(walletId) { it.copy(name = name) }
 
+    override suspend fun setImageUrl(walletId: String, imageUrl: String?) = updateWallet(walletId) { it.copy(imageUrl = imageUrl) }
+
     private suspend fun updateWallet(walletId: String, transform: (Wallet) -> Wallet) {
         val wallet = walletsRepository.get().getWallet(WalletId(walletId)).firstOrNull() ?: return
         walletsRepository.get().updateWallet(transform(wallet))

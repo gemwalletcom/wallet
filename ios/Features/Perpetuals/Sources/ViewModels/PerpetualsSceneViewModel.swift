@@ -18,7 +18,7 @@ final class PerpetualsSceneViewModel {
 
     private let observerService: any PerpetualObservable
     let perpetualService: PerpetualServiceable
-    let activityService: ActivityService
+    let recentActivityStore: RecentActivityStore
 
     let wallet: Wallet
 
@@ -51,7 +51,7 @@ final class PerpetualsSceneViewModel {
         wallet: Wallet,
         perpetualService: PerpetualServiceable,
         observerService: any PerpetualObservable,
-        activityService: ActivityService,
+        recentActivityStore: RecentActivityStore,
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
         onSelectPortfolio: (() -> Void)? = nil,
@@ -59,14 +59,14 @@ final class PerpetualsSceneViewModel {
         self.wallet = wallet
         self.perpetualService = perpetualService
         self.observerService = observerService
-        self.activityService = activityService
+        self.recentActivityStore = recentActivityStore
         self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, searchQuery: ""), initialValue: [])
         perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
         walletBalanceQuery = ObservableQuery(PerpetualWalletBalanceRequest(walletId: wallet.id), initialValue: .zero)
-        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], activityService: activityService)
+        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], recentActivityStore: recentActivityStore)
     }
 
     var navigationTitle: String {
@@ -176,10 +176,12 @@ extension PerpetualsSceneViewModel {
     }
 
     func onPinPerpetual(_ perpetualData: PerpetualData) {
-        do {
-            try perpetualService.setPinned(!perpetualData.metadata.isPinned, perpetualId: perpetualData.perpetual.id)
-        } catch {
-            debugLog("PerpetualsSceneViewModel pin perpetual error: \(error)")
+        Task {
+            do {
+                try await perpetualService.setPinned(!perpetualData.metadata.isPinned, perpetualId: perpetualData.perpetual.id)
+            } catch {
+                debugLog("PerpetualsSceneViewModel pin perpetual error: \(error)")
+            }
         }
     }
 
@@ -202,8 +204,8 @@ extension PerpetualsSceneViewModel {
     func onSelectPerpetual(asset: Asset) {
         onSelectAsset?(asset)
         do {
-            try activityService.updateRecent(
-                data: RecentActivityData(type: .perpetual, assetId: asset.id, toAssetId: nil),
+            try recentActivityStore.add(
+                RecentActivityData(type: .perpetual, assetId: asset.id, toAssetId: nil),
                 walletId: wallet.id,
             )
         } catch {

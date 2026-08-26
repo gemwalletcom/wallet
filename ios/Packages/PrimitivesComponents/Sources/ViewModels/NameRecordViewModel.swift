@@ -1,17 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemNameServiceProtocol
+import GemstonePrimitives
 import Primitives
 
 @Observable
 @MainActor
 public final class NameRecordViewModel {
-    private let nameService: any NameServiceable
+    private let nameService: any GemNameServiceProtocol
     private var resolveTask: Task<Void, Never>?
 
     public var state: NameRecordState = .none
 
-    public init(nameService: any NameServiceable) {
+    public init(nameService: any GemNameServiceProtocol) {
         self.nameService = nameService
     }
 
@@ -27,7 +29,7 @@ public final class NameRecordViewModel {
         resolveTask = Task {
             do {
                 try await Task.sleep(for: .debounce)
-                if let record = try await nameService.getName(name: name, chain: chain.rawValue) {
+                if let record = try await nameService.resolve(name: name, chain: chain) {
                     state = .complete(record)
                 } else {
                     state = .error

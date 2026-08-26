@@ -56,11 +56,13 @@ protocol PerpetualPinActions: AnyObject {
 extension PerpetualPinActions {
     func onSelectPinPerpetual(_ perpetualData: PerpetualData) {
         let pinned = !perpetualData.metadata.isPinned
-        do {
-            try perpetualService.setPinned(pinned, perpetualId: perpetualData.perpetual.id)
-            isPresentingToastMessage = .pin(perpetualData.perpetual.name, pinned: pinned)
-        } catch {
-            debugLog("\(Self.self) pin perpetual error: \(error)")
+        Task {
+            do {
+                try await perpetualService.setPinned(pinned, perpetualId: perpetualData.perpetual.id)
+                isPresentingToastMessage = .pin(perpetualData.perpetual.name, pinned: pinned)
+            } catch {
+                debugLog("\(Self.self) pin perpetual error: \(error)")
+            }
         }
     }
 }

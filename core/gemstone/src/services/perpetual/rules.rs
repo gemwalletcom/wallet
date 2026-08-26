@@ -12,6 +12,10 @@ pub fn provider(chain: Chain) -> PerpetualProvider {
     }
 }
 
+pub fn prices_outdated(updated_at: Option<i64>, now: i64, interval_seconds: u32) -> bool {
+    updated_at.is_none_or(|updated_at| now - updated_at >= i64::from(interval_seconds))
+}
+
 pub fn stale_position_ids(existing_ids: Vec<String>, positions: &[PerpetualPosition]) -> Vec<String> {
     let current: HashSet<&str> = positions.iter().map(|position| position.id.as_str()).collect();
     existing_ids.into_iter().filter(|id| !current.contains(id.as_str())).collect()
@@ -67,5 +71,12 @@ mod tests {
 
         assert_eq!(price.asset_id.chain, Chain::HyperCore);
         assert_eq!(price.price, 1.0);
+    }
+
+    #[test]
+    fn test_prices_outdated() {
+        assert!(prices_outdated(None, 100, 5));
+        assert!(prices_outdated(Some(95), 100, 5));
+        assert!(!prices_outdated(Some(97), 100, 5));
     }
 }

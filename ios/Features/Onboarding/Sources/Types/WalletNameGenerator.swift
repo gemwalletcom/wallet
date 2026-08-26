@@ -14,10 +14,10 @@ struct WalletNameGenerator {
         self.walletService = walletService
     }
 
-    var name: String {
+    func name() async -> String {
         name(
             type: type,
-            index: (try? walletService.nextWalletIndex()) ?? .zero,
+            index: (try? await walletService.nextWalletIndex()) ?? .zero,
         )
     }
 

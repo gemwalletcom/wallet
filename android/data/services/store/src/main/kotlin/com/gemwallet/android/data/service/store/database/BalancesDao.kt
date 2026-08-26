@@ -22,6 +22,9 @@ interface BalancesDao {
     @Update
     fun update(balance: DbBalance)
 
+    @Query("DELETE FROM balances WHERE asset_id = :assetId")
+    fun deleteByAssetId(assetId: String)
+
     @Query("SELECT * FROM balances WHERE wallet_id = :walletId AND asset_id = :assetId")
     fun getByAsset(walletId: String, assetId: String): DbBalance?
 

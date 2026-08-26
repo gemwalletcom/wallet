@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -42,7 +43,7 @@ public final class ManageContactAddressViewModel {
 
     public init(
         contactId: String,
-        nameService: any NameServiceable,
+        nameService: any GemNameServiceProtocol,
         mode: Mode,
         onComplete: @escaping (ContactAddress) -> Void,
     ) {

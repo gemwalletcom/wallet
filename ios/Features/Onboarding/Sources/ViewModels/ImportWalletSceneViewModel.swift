@@ -1,3 +1,4 @@
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -33,7 +34,7 @@ final class ImportWalletSceneViewModel {
     init(
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
-        nameService: any NameServiceable,
+        nameService: any GemNameServiceProtocol,
         type: ImportWalletType,
         onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?,
     ) {
@@ -186,12 +187,11 @@ extension ImportWalletSceneViewModel {
 extension ImportWalletSceneViewModel {
     private func importWallet() async throws {
         let trimmedInput = input.trim()
-        let recipient: RecipientImport = {
-            if let result = nameRecordViewModel?.state.result {
-                return RecipientImport(name: result.name, address: result.address)
-            }
-            return RecipientImport(name: WalletNameGenerator(type: type, walletService: walletService).name, address: trimmedInput)
-        }()
+        let recipient: RecipientImport = if let result = nameRecordViewModel?.state.result {
+            RecipientImport(name: result.name, address: result.address)
+        } else {
+            RecipientImport(name: await WalletNameGenerator(type: type, walletService: walletService).name(), address: trimmedInput)
+        }
         switch importType {
         case .phrase:
             let words = trimmedInput.split(separator: " ").map { String($0) }

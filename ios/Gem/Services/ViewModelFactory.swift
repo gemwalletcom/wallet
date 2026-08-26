@@ -36,7 +36,7 @@ public struct ViewModelFactory: Sendable {
     let stakeService: any GemStakeServiceProtocol
     let explorerService: any GemExplorerServiceProtocol
     let amountService: AmountService
-    let nameService: any NameServiceable
+    let nameService: any GemNameServiceProtocol
     let balanceService: any GemBalanceServiceProtocol
     let balanceStore: BalanceStore
     let addressStore: AddressStore
@@ -44,7 +44,7 @@ public struct ViewModelFactory: Sendable {
     let priceStore: PriceStore
     let transactionStateScheduler: TransactionStateScheduler
     let gemNameService: any GemNameServiceProtocol
-    let activityService: ActivityService
+    let recentActivityStore: RecentActivityStore
     let toastPresenter: ToastPresenter
     let fiatService: any GemFiatServiceProtocol
     let assetsService: any GemAssetsServiceProtocol
@@ -66,7 +66,7 @@ public struct ViewModelFactory: Sendable {
             searchService: searchService,
             assetsEnabler: assetsEnabler,
             priceAlertService: priceAlertService,
-            activityService: activityService,
+            recentActivityStore: recentActivityStore,
             selectAssetAction: selectAssetAction,
             chains: chains,
         )
@@ -85,7 +85,7 @@ public struct ViewModelFactory: Sendable {
             preferences: Preferences.standard,
             searchService: searchService,
             perpetualService: perpetualService,
-            activityService: activityService,
+            recentActivityStore: recentActivityStore,
             request: request,
             title: title,
             onSelectAsset: onSelectAsset,
@@ -120,7 +120,7 @@ public struct ViewModelFactory: Sendable {
                 transactionStateScheduler: transactionStateScheduler,
                 nameService: gemNameService,
                 addressStore: addressStore,
-                activityService: activityService,
+                recentActivityStore: recentActivityStore,
                 toastPresenter: toastPresenter,
                 chain: data.chain,
             ),

@@ -11,7 +11,7 @@ struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.assetsService) private var assetsService
-    @Environment(\.activityService) private var activityService
+    @Environment(\.recentActivityStore) private var recentActivityStore
 
     @State private var navigationPath = NavigationPath()
 
@@ -134,7 +134,7 @@ struct SelectedAssetNavigationStack: View {
 extension SelectedAssetNavigationStack {
     private func updateRecent() {
         if let data = input.type.recentActivityData(assetId: input.asset.id) {
-            try? activityService.updateRecent(data: data, walletId: wallet.id)
+            try? recentActivityStore.add(data, walletId: wallet.id)
         }
     }
 }

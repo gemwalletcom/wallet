@@ -15,6 +15,8 @@ import com.gemwallet.android.data.repositories.transactions.TransactionsReposito
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -59,8 +61,9 @@ object TransactionsModule {
     @Provides
     fun provideTransactionStateService(
         transactionsDao: TransactionsDao,
+        walletsRepository: Lazy<WalletsRepository>,
         gateway: GemGateway,
-    ): GemTransactionStateService = GemTransactionStateService(gateway, GemstoneTransactionStateStore(transactionsDao))
+    ): GemTransactionStateService = GemTransactionStateService(gateway, GemstoneTransactionStateStore(transactionsDao, walletsRepository))
 
     @Singleton
     @Provides

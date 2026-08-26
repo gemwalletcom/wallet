@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
 import Components
 import Formatters
 import Primitives
@@ -152,7 +153,7 @@ extension RecipientSceneViewModel {
             wallet: wallet,
             asset: asset,
             walletSessionService: WalletSessionService.mock(),
-            nameService: .mock(),
+            nameService: GemNameServiceMock(nameRecord: .mock()),
             type: type,
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,

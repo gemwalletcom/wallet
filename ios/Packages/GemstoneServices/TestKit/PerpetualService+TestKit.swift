@@ -11,19 +11,10 @@ import StoreTestKit
 
 public extension PerpetualService {
     static func mock(
-        db: DB = .mock(),
         provider: PerpetualProvidable = PerpetualProviderMock(),
         service: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
-        preferences: Preferences = .mock(),
     ) -> PerpetualService {
-        PerpetualService(
-            store: PerpetualStore(db: db),
-            perpetualStore: GemstonePerpetualStore(store: PerpetualStore(db: db), assetStore: AssetStore(db: db), balanceStore: BalanceStore(db: db)),
-            balanceStore: BalanceStore(db: db),
-            provider: provider,
-            service: service,
-            preferences: preferences,
-        )
+        PerpetualService(provider: provider, service: service)
     }
 }
 

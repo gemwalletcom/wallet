@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
 import protocol Gemstone.GemAppStartServiceProtocol
 import AppService
@@ -32,7 +33,7 @@ final class RootSceneViewModel {
     let observablePreferences: ObservablePreferences
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
-    let nameService: any NameServiceable
+    let nameService: any GemNameServiceProtocol
     let avatarService: AvatarService
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
@@ -81,7 +82,7 @@ final class RootSceneViewModel {
         lockWindowManager: any LockWindowManageable,
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
-        nameService: any NameServiceable,
+        nameService: any GemNameServiceProtocol,
         releaseAlertService: ReleaseAlertService,
         rateService: RateService,
         toastPresenter: ToastPresenter,

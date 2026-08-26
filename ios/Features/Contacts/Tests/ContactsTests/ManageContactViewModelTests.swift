@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 @testable import Contacts
 import GemstoneServices
@@ -38,7 +39,7 @@ struct ManageContactViewModelTests {
 
 extension ManageContactViewModel {
     static func mock(
-        nameService: any NameServiceable = .mock(),
+        nameService: any GemNameServiceProtocol = GemNameServiceMock(nameRecord: .mock()),
         mode: Mode,
     ) -> ManageContactViewModel {
         ManageContactViewModel(

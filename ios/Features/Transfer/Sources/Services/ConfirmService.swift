@@ -12,7 +12,7 @@ public struct ConfirmService: Sendable {
     private let inputProvider: ConfirmTransferInputProvider
     private let simulationService: ConfirmSimulationService
     private let transferExecutor: any TransferExecutable
-    private let activityService: ActivityService
+    private let recentActivityStore: RecentActivityStore
     private let toastPresenter: ToastPresenter
     private let keystore: any Keystore
     private let chainService: any ChainServiceable
@@ -24,7 +24,7 @@ public struct ConfirmService: Sendable {
         inputProvider: ConfirmTransferInputProvider,
         simulationService: ConfirmSimulationService,
         transferExecutor: any TransferExecutable,
-        activityService: ActivityService,
+        recentActivityStore: RecentActivityStore,
         toastPresenter: ToastPresenter,
         keystore: any Keystore,
         chainService: any ChainServiceable,
@@ -35,7 +35,7 @@ public struct ConfirmService: Sendable {
         self.inputProvider = inputProvider
         self.simulationService = simulationService
         self.transferExecutor = transferExecutor
-        self.activityService = activityService
+        self.recentActivityStore = recentActivityStore
         self.toastPresenter = toastPresenter
         self.keystore = keystore
         self.chainService = chainService
@@ -110,7 +110,7 @@ public struct ConfirmService: Sendable {
 private extension ConfirmService {
     func updateRecent(data: RecentActivityData, walletId: WalletId) {
         do {
-            try activityService.updateRecent(data: data, walletId: walletId)
+            try recentActivityStore.add(data, walletId: walletId)
         } catch {
             debugLog("Failed to update recent activity: \(error)")
         }

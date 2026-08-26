@@ -107,7 +107,6 @@ struct TransactionStateServiceTests {
         )
         try await confirmation("updates balances") { updatedBalances in
             let postProcessingService = TransactionPostProcessingService(
-                transactionStore: .mock(),
                 balanceService: GemBalanceServiceMock { walletId, assetIds in
                     #expect(walletId == wallet.id.id)
                     #expect(assetIds == [fromAsset.identifier, toAsset.identifier])
@@ -136,7 +135,6 @@ struct TransactionStateServiceTests {
             assets: [.mock(id: assetId, collectionId: collectionId, chain: .ethereum)],
         )
         let postProcessingService = TransactionPostProcessingService(
-            transactionStore: .mock(),
             balanceService: GemBalanceServiceMock(),
             stakeService: GemStakeServiceMock(),
             nftService: GemNftServiceMock(assets: [nftData], store: GemstoneNftStore(store: nftStore)),
@@ -194,14 +192,12 @@ private extension TransactionStateServiceTests {
         try store.addTransactions(walletId: walletId, transactions: [transaction])
 
         let postProcessingService = TransactionPostProcessingService(
-            transactionStore: store,
             balanceService: balanceService,
             stakeService: GemStakeServiceMock(),
             nftService: GemNftService.mock(),
         )
         let service = TransactionStateService(
-            transactionStore: store,
-            service: GemTransactionStateServiceMock { walletId, transaction in
+            service: GemTransactionStateServiceMock(store: GemstoneTransactionStateStore(store: store)) { walletId, transaction in
                 try await update(store, WalletId.from(id: walletId), Transaction(transaction))
             },
             postProcessingService: postProcessingService,

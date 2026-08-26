@@ -24,6 +24,7 @@ import com.wallet.core.primitives.Chain
 import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPriceService
 import dagger.Module
 import dagger.Provides
@@ -53,7 +54,8 @@ object PerpetualModule {
         gateway: GemGateway,
         priceService: GemPriceService,
         perpetualStore: GemstonePerpetualStore,
-    ): GemPerpetualService = GemPerpetualService(gateway, priceService, perpetualStore)
+        preferencesService: GemPreferencesService,
+    ): GemPerpetualService = GemPerpetualService(gateway, priceService, perpetualStore, preferencesService)
 
     @Provides
     @Singleton

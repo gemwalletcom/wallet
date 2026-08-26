@@ -2,6 +2,7 @@
 
 import Foundation
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -68,12 +69,6 @@ struct AddressInputViewModelTests {
     }
 }
 
-private struct NameServiceMock: NameServiceable {
-    func getName(name _: String, chain _: String) async throws -> NameRecord? {
-        .mock()
-    }
-}
-
 extension AddressInputViewModel {
     static func mock(
         chain: Chain = .ethereum,
@@ -81,7 +76,7 @@ extension AddressInputViewModel {
     ) -> AddressInputViewModel {
         AddressInputViewModel(
             chain: chain,
-            nameService: NameServiceMock(),
+            nameService: GemNameServiceMock(nameRecord: .mock()),
             placeholder: "Address",
             validators: validators,
         )

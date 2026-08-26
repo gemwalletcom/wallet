@@ -5,21 +5,17 @@ import protocol Gemstone.GemNftServiceProtocol
 import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
 import Primitives
-import Store
 
 public struct TransactionPostProcessingService: Sendable {
-    private let transactionStore: TransactionStore
     private let balanceService: any GemBalanceServiceProtocol
     private let stakeService: any GemStakeServiceProtocol
     private let nftService: any GemNftServiceProtocol
 
     public init(
-        transactionStore: TransactionStore,
         balanceService: any GemBalanceServiceProtocol,
         stakeService: any GemStakeServiceProtocol,
         nftService: any GemNftServiceProtocol,
     ) {
-        self.transactionStore = transactionStore
         self.balanceService = balanceService
         self.stakeService = stakeService
         self.nftService = nftService

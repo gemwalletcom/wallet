@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
+import protocol Gemstone.GemNameServiceProtocol
 import PreferencesTestKit
 import Preferences
 import GemstoneServices
@@ -47,16 +49,16 @@ struct ImportWalletSceneViewModelTests {
 
     @Test
     func resolvesNameOnlyForAddressImport() async throws {
-        let nameService = MockNameService()
+        let nameService = GemNameServiceMock(nameRecord: .mock())
         let model = ImportWalletSceneViewModel.mock(nameService: nameService)
 
         try await enterName(in: model, importType: .privateKey)
 
-        #expect(await nameService.requests.isEmpty)
+        #expect(nameService.resolvedNames.isEmpty)
 
         try await enterName(in: model, importType: .address)
 
-        #expect(await nameService.requests == ["vitalik.eth"])
+        #expect(nameService.resolvedNames == ["vitalik.eth"])
     }
 
     private func enterName(in model: ImportWalletSceneViewModel, importType: WalletImportType) async throws {
@@ -71,7 +73,7 @@ private extension ImportWalletSceneViewModel {
     static func mock(
         walletService: WalletService? = nil,
         walletSessionService: (any WalletSessionManageable)? = nil,
-        nameService: any NameServiceable = MockNameService(),
+        nameService: any GemNameServiceProtocol = GemNameServiceMock(nameRecord: .mock()),
     ) -> ImportWalletSceneViewModel {
         let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
         let preferences = ObservablePreferences.mock()

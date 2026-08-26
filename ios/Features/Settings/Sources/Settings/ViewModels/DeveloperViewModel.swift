@@ -137,8 +137,13 @@ public final class DeveloperViewModel {
     }
 
     func clearPerpetuals() {
-        performAction {
-            try perpetualService.clearMarkets()
+        Task {
+            do {
+                try await perpetualService.clearMarkets()
+                showSuccess()
+            } catch {
+                debugLog("Developer action error: \(error)")
+            }
         }
     }
 

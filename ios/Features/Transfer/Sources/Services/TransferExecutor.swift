@@ -62,15 +62,15 @@ extension TransferExecutor {
             hashes = try await confirmService.broadcast(inputType: input.data.type.map(), transactions: transactions)
         } catch let error as GemConfirmError {
             if case let .Broadcast(broadcasted, msg) = error {
-                try record(input: input, hashes: broadcasted, transactions: transactions)
+                try await record(input: input, hashes: broadcasted, transactions: transactions)
                 throw AnyError(msg)
             }
             throw error
         }
-        try record(input: input, hashes: hashes, transactions: transactions)
+        try await record(input: input, hashes: hashes, transactions: transactions)
     }
 
-    private func record(input: TransferConfirmationInput, hashes: [String], transactions: [GemSignedTransaction]) throws {
+    private func record(input: TransferConfirmationInput, hashes: [String], transactions: [GemSignedTransaction]) async throws {
         for (index, hash) in hashes.enumerated() {
             debugLog("TransferExecutor broadcast response hash \(hash)")
 
@@ -93,7 +93,7 @@ extension TransferExecutor {
                 totalTransactions: transactions.count,
             )
 
-            try transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: pending)
+            try await transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: pending)
             Task {
                 do {
                     try await assetsEnabler.enableAssets(wallet: input.wallet, assetIds: assetIds, enabled: true)

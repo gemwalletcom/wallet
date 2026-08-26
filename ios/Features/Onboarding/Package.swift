@@ -15,6 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Preferences", path: "../../Packages/Preferences"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
@@ -32,6 +33,7 @@ let package = Package(
         .target(
             name: "Onboarding",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "GemstonePrimitives",
                 "Components",
@@ -49,6 +51,7 @@ let package = Package(
         .testTarget(
             name: "OnboardingTest",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Preferences",
                 .product(name: "PreferencesTestKit", package: "Preferences"),
                 "Onboarding",
