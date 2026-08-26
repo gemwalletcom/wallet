@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstoneServices
-import BalanceService
 import Components
 import FiatConnect
 import GemstonePrimitives

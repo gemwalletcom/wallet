@@ -7,8 +7,6 @@ import ConnectionStatusService
 import GemstoneServices
 import GemstoneServicesTestKit
 import Foundation
-import PerpetualService
-import PerpetualServiceTestKit
 import Preferences
 import PreferencesTestKit
 import StreamService

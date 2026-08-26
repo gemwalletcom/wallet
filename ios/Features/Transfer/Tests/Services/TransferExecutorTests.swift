@@ -16,8 +16,8 @@ import SignerTestKit
 import Store
 import StoreTestKit
 import Testing
-import TransactionStateService
-import TransactionStateServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 @testable import Transfer
 
 struct TransferExecutorTests {

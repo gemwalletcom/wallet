@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import PerpetualService
+import GemstoneServices
 import Primitives
 
 public struct PerpetualServiceMock: PerpetualServiceable {

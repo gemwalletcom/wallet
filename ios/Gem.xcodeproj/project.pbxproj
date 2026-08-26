@@ -27,7 +27,6 @@
 		8352C8D52D393E05000DEDD9 /* ExplorerService in Frameworks */ = {isa = PBXBuildFile; productRef = 8352C8D42D393E05000DEDD9 /* ExplorerService */; };
 		8358DBBD2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */; };
 		8358DBBF2EA6AE59007A4DC7 /* PerpetualNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */; };
-		8361BB5F2D3FDE73008D89CF /* BalanceService in Frameworks */ = {isa = PBXBuildFile; productRef = 8361BB5E2D3FDE73008D89CF /* BalanceService */; };
 		8361BB612D3FE5F2008D89CF /* Transactions in Frameworks */ = {isa = PBXBuildFile; productRef = 8361BB602D3FE5F2008D89CF /* Transactions */; };
 		836281B02DEF34DC00CA5C75 /* Assets in Frameworks */ = {isa = PBXBuildFile; productRef = 836281AF2DEF34DC00CA5C75 /* Assets */; };
 		837A1E6D2D0B096600733AC1 /* WalletConnectorNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837A1E6C2D0B096600733AC1 /* WalletConnectorNavigationStack.swift */; };
@@ -37,7 +36,6 @@
 		83B08BDD2D0B4B1E00CA1B33 /* AppResolver+Services.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B08BDC2D0B4B1E00CA1B33 /* AppResolver+Services.swift */; };
 		83B57FAB2CFF92670009319F /* AppResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B57FAA2CFF92670009319F /* AppResolver.swift */; };
 		83B6C2102D5E3F2600F9DF8A /* WalletTab in Frameworks */ = {isa = PBXBuildFile; productRef = 83B6C20F2D5E3F2600F9DF8A /* WalletTab */; };
-		83D0114F2EFB6341009274B8 /* TransactionStateService in Frameworks */ = {isa = PBXBuildFile; productRef = 83D0114E2EFB6341009274B8 /* TransactionStateService */; };
 		83D6808B2CCA90D900B45089 /* InfoSheet in Frameworks */ = {isa = PBXBuildFile; productRef = 83D6808A2CCA90D900B45089 /* InfoSheet */; };
 		83E041582D0AFCB10031D4BC /* RootScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E041572D0AFCB10031D4BC /* RootScene.swift */; };
 		83E0415A2D0AFCB80031D4BC /* RootSceneViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E041592D0AFCB80031D4BC /* RootSceneViewModel.swift */; };
@@ -84,7 +82,6 @@
 		C3CF3BA729B5317300E96586 /* Keystore in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3BA629B5317300E96586 /* Keystore */; };
 		C3CF3BDB29BBE45D00E96586 /* Style in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3BDA29BBE45D00E96586 /* Style */; };
 		C3D1C4E22A2A9485006E8EEA /* Signer in Frameworks */ = {isa = PBXBuildFile; productRef = C3D1C4E12A2A9485006E8EEA /* Signer */; };
-		D80312AF2E2EE3E1005A5C77 /* PerpetualService in Frameworks */ = {isa = PBXBuildFile; productRef = D80312AE2E2EE3E1005A5C77 /* PerpetualService */; };
 		D807004A2BBB1FB600ED770B /* SettingsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80700492BBB1FB600ED770B /* SettingsNavigationView.swift */; };
 		D807004C2BBB26DD00ED770B /* TransactionsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D807004B2BBB26DD00ED770B /* TransactionsNavigationView.swift */; };
 		D807004E2BBB283400ED770B /* WalletNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D807004D2BBB283400ED770B /* WalletNavigationView.swift */; };
@@ -134,7 +131,6 @@
 		DF1167112BC36240000F8C8C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DF486B6D2BBE320800B95732 /* PrivacyInfo.xcprivacy */; };
 		DF8421EE2C1526ED003F558C /* GemstonePrimitives in Frameworks */ = {isa = PBXBuildFile; productRef = DF8421ED2C1526ED003F558C /* GemstonePrimitives */; };
 		DF93C4EE2C969F4F00204ABD /* Gemstone in Frameworks */ = {isa = PBXBuildFile; productRef = DF93C4ED2C969F4F00204ABD /* Gemstone */; };
-		E1B4C7052E85A00000YIELD1 /* EarnService in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C7062E85A00000YIELD1 /* EarnService */; };
 		E1B4C7092E85B00000EARN02 /* Stake in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C70A2E85B00000EARN03 /* Stake */; };
 		F1A7B80C2F0C000000FIAT01 /* GemstoneServices in Frameworks */ = {isa = PBXBuildFile; productRef = F1A7B80D2F0C000000FIAT01 /* GemstoneServices */; };
 /* End PBXBuildFile section */
@@ -317,13 +313,11 @@
 				833809D02D273E450055D91F /* WalletConnectorService in Frameworks */,
 				C3D1C4E22A2A9485006E8EEA /* Signer in Frameworks */,
 				D85AD2A62CD7017E0010DEF8 /* NativeProviderService in Frameworks */,
-				D80312AF2E2EE3E1005A5C77 /* PerpetualService in Frameworks */,
 				AA0000032F26000000000002 /* ConnectionsService in Frameworks */,
 				D8D83C842CECFA610083AA53 /* Swap in Frameworks */,
 				8342EA032DB67EE3001B3780 /* WalletService in Frameworks */,
 				B6STREAM02F5000000000001 /* StreamService in Frameworks */,
 				839C794B2D1C42A500E32072 /* PrimitivesComponents in Frameworks */,
-				83D0114F2EFB6341009274B8 /* TransactionStateService in Frameworks */,
 				D8D203D32AE0818C00261CA2 /* SwiftHTTPClient in Frameworks */,
 				B60C6C352E68848900899BAC /* Support in Frameworks */,
 				834EC80A2D7F1FCD00D8FA39 /* WalletSessionService in Frameworks */,
@@ -332,7 +326,6 @@
 				8327CBF12DF9E088000BF1E1 /* Validators in Frameworks */,
 				DF8421EE2C1526ED003F558C /* GemstonePrimitives in Frameworks */,
 				D8F5B86F2CCD639A0007E615 /* StakeService in Frameworks */,
-				E1B4C7052E85A00000YIELD1 /* EarnService in Frameworks */,
 				E1B4C7092E85B00000EARN02 /* Stake in Frameworks */,
 				F1A7B80C2F0C000000FIAT01 /* GemstoneServices in Frameworks */,
 				8349F1472D5E4FF4003A0A93 /* ManageWallets in Frameworks */,
@@ -364,7 +357,6 @@
 				834B381A2D1D85E2009D58D4 /* LockManager in Frameworks */,
 				B66AFC6C2DDB260A0082C026 /* AppService in Frameworks */,
 				0FF1CEBA22E20000000000C2 /* ConnectionStatusService in Frameworks */,
-				8361BB5F2D3FDE73008D89CF /* BalanceService in Frameworks */,
 				833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */,
 				B604C2E82F3F538000CBAFDC /* Contacts in Frameworks */,
 				D9F015752F10654000000003 /* InAppNotifications in Frameworks */,
@@ -818,7 +810,6 @@
 				83D6808A2CCA90D900B45089 /* InfoSheet */,
 				D8F5B85F2CCA008E0007E615 /* ChainService */,
 				D8F5B86E2CCD639A0007E615 /* StakeService */,
-				E1B4C7062E85A00000YIELD1 /* EarnService */,
 				E1B4C70A2E85B00000EARN03 /* Stake */,
 				F1A7B80D2F0C000000FIAT01 /* GemstoneServices */,
 				D85AD29C2CD337BE0010DEF8 /* SwapService */,
@@ -836,7 +827,6 @@
 				83EB5E2F2D2ECF00006A7CFB /* Onboarding */,
 				8352C8D42D393E05000DEDD9 /* ExplorerService */,
 				074168392D3AFDBB00AC26A4 /* NFT */,
-				8361BB5E2D3FDE73008D89CF /* BalanceService */,
 				8361BB602D3FE5F2008D89CF /* Transactions */,
 				B66DEDAF2D49F0EA00309D53 /* ImageGalleryService */,
 				83B6C20F2D5E3F2600F9DF8A /* WalletTab */,
@@ -850,9 +840,7 @@
 				8327CBF02DF9E088000BF1E1 /* Validators */,
 				83EF67E42E005F48009C690F /* Formatters */,
 				D896B57D2E2EE2D300ADE083 /* Perpetuals */,
-				D80312AE2E2EE3E1005A5C77 /* PerpetualService */,
 				B60C6C342E68848900899BAC /* Support */,
-				83D0114E2EFB6341009274B8 /* TransactionStateService */,
 				AA0000022F26000000000002 /* ConnectionsService */,
 			);
 			productName = wallet;
@@ -871,9 +859,7 @@
 			);
 			dependencies = (
 				D869D93B2E358A9C0025A94D /* PBXTargetDependency */,
-				D869D9412E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9432E358A9C0025A94D /* PBXTargetDependency */,
-				D869D9472E358A9C0025A94D /* PBXTargetDependency */,
 				D869D94D2E358A9C0025A94D /* PBXTargetDependency */,
 				D869D94F2E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9512E358A9C0025A94D /* PBXTargetDependency */,
@@ -1202,17 +1188,9 @@
 			isa = PBXTargetDependency;
 			productRef = D869D93A2E358A9C0025A94D /* WalletServiceTestKit */;
 		};
-		D869D9412E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D9402E358A9C0025A94D /* TransactionStateServiceTestKit */;
-		};
 		D869D9432E358A9C0025A94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			productRef = D869D9422E358A9C0025A94D /* GemstoneServicesTestKit */;
-		};
-		D869D9472E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D9462E358A9C0025A94D /* BalanceServiceTestKit */;
 		};
 		D869D94D2E358A9C0025A94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1862,10 +1840,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = ExplorerService;
 		};
-		8361BB5E2D3FDE73008D89CF /* BalanceService */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = BalanceService;
-		};
 		8361BB602D3FE5F2008D89CF /* Transactions */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Transactions;
@@ -1885,10 +1859,6 @@
 		83B6C20F2D5E3F2600F9DF8A /* WalletTab */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WalletTab;
-		};
-		83D0114E2EFB6341009274B8 /* TransactionStateService */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = TransactionStateService;
 		};
 		83D6808A2CCA90D900B45089 /* InfoSheet */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2014,10 +1984,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Signer;
 		};
-		D80312AE2E2EE3E1005A5C77 /* PerpetualService */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = PerpetualService;
-		};
 		D829BF2C2CBDBC5300DEB2E8 /* Localization */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Localization;
@@ -2042,17 +2008,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = WalletServiceTestKit;
 		};
-		D869D9402E358A9C0025A94D /* TransactionStateServiceTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = TransactionStateServiceTestKit;
-		};
 		D869D9422E358A9C0025A94D /* GemstoneServicesTestKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = GemstoneServicesTestKit;
-		};
-		D869D9462E358A9C0025A94D /* BalanceServiceTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = BalanceServiceTestKit;
 		};
 		D869D94C2E358A9C0025A94D /* WalletConnectorServiceTestKit */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2173,10 +2131,6 @@
 		DF93C4ED2C969F4F00204ABD /* Gemstone */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Gemstone;
-		};
-		E1B4C7062E85A00000YIELD1 /* EarnService */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = EarnService;
 		};
 		E1B4C70A2E85B00000EARN03 /* Stake */ = {
 			isa = XCSwiftPackageProductDependency;

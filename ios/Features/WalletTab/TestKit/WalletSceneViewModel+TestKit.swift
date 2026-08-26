@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceServiceTestKit
 import GemstoneServicesTestKit
 import Foundation
 import PreferencesTestKit

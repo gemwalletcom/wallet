@@ -3,8 +3,7 @@
 import ActivityServiceTestKit
 @testable import Assets
 import GemstoneServicesTestKit
-import BalanceService
-import BalanceServiceTestKit
+import GemstoneServices
 import Components
 import Foundation
 import Primitives

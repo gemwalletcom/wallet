@@ -4,7 +4,7 @@ import ActivityService
 import Components
 import Foundation
 import Localization
-import PerpetualService
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Recents

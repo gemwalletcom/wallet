@@ -2,8 +2,8 @@
 
 @testable import AppService
 import Foundation
-import PerpetualService
-import PerpetualServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Preferences
 import PreferencesTestKit
 import Primitives

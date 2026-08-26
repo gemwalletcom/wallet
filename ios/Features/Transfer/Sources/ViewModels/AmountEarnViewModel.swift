@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import EarnService
+import GemstoneServices
 import Foundation
 import Localization
 import Primitives

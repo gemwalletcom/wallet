@@ -248,13 +248,6 @@
     {
       "target": {
         "containerPath": "container:Packages\/FeatureServices",
-        "identifier": "BalanceServiceTests",
-        "name": "BalanceServiceTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Packages\/FeatureServices",
         "identifier": "StreamServiceTests",
         "name": "StreamServiceTests"
       }
@@ -309,20 +302,6 @@
         "containerPath": "container:Packages\/ChainServices",
         "identifier": "NodeServiceTests",
         "name": "NodeServiceTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Packages\/FeatureServices",
-        "identifier": "TransactionStateServiceTests",
-        "name": "TransactionStateServiceTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Packages\/FeatureServices",
-        "identifier": "PerpetualServiceTests",
-        "name": "PerpetualServiceTests"
       }
     },
     {

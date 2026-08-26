@@ -3,7 +3,6 @@
 import ActivityServiceTestKit
 import GemstoneServicesTestKit
 import GemstoneServices
-import BalanceServiceTestKit
 import BigInt
 import BlockchainTestKit
 import ChainServiceTestKit
@@ -18,7 +17,6 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-import TransactionStateServiceTestKit
 @testable import Transfer
 
 struct ConfirmServiceTests {

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemPerpetualSubscription
-@testable import PerpetualService
+@testable import GemstoneServices
 import Primitives
 
 public actor PerpetualObserverMock: PerpetualObservable {

@@ -2,7 +2,7 @@ import Components
 import Formatters
 import InfoSheet
 import Localization
-import PerpetualService
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style

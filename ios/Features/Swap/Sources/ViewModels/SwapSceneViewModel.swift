@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
+import GemstoneServices
 import BigInt
 import Components
 import Formatters
@@ -11,7 +11,6 @@ import struct Gemstone.SwapperQuote
 import GemstonePrimitives
 import Localization
 import Preferences
-import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Store

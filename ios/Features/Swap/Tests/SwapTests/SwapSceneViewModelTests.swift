@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceServiceTestKit
+import GemstoneServicesTestKit
 import BigInt
 import ChainServiceTestKit
 import protocol Gemstone.GemSwapperProtocol
@@ -10,7 +10,6 @@ import Keystore
 import KeystoreTestKit
 import Preferences
 import PreferencesTestKit
-import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store

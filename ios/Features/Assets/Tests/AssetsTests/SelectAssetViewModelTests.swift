@@ -2,7 +2,7 @@
 
 @testable import Assets
 import AssetsTestKit
-import BalanceServiceTestKit
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing

@@ -4,7 +4,6 @@ import ConnectionsService
 import ConnectionStatusService
 import GemstoneServices
 import Foundation
-import PerpetualService
 import Preferences
 import Primitives
 import StreamService

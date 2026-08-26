@@ -1,23 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceServiceTestKit
-import EarnService
-import EarnServiceTestKit
+import GemstoneServicesTestKit
 import Foundation
 import struct Gemstone.GemTransactionStateResult
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneStore
-import GemstoneServices
-import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import StakeServiceTestKit
 import Store
 import StoreTestKit
 import Testing
-@testable import TransactionStateService
-import TransactionStateServiceTestKit
+@testable import GemstoneServices
 
 struct TransactionStateServiceTests {
     @Test

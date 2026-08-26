@@ -1,9 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
-import EarnService
 import Foundation
-import GemstoneServices
 import Primitives
 import StakeService
 import Store

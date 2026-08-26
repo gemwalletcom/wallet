@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import EarnService
+import GemstoneServices
 
 public struct AmountService: Sendable {
     let earnDataProvider: any EarnDataProvidable

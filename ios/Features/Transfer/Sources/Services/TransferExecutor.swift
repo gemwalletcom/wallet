@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
+import GemstoneServices
 import Blockchain
 import Foundation
 import enum Gemstone.GemConfirmError
@@ -9,7 +9,6 @@ import struct Gemstone.GemSignedTransaction
 import GemstonePrimitives
 import Primitives
 import Signer
-import TransactionStateService
 
 public protocol TransferExecutable: Sendable {
     func execute(input: TransferConfirmationInput) async throws

@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
+import GemstoneServices
 import Components
 import Foundation
 import GemstonePrimitives
@@ -8,7 +8,6 @@ import Localization
 import Preferences
 import Primitives
 import PrimitivesComponents
-import GemstoneServices
 import Style
 
 @Observable

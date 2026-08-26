@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
-import BalanceService
+import GemstoneServices
 import ChainService
 import Localization
 import Primitives

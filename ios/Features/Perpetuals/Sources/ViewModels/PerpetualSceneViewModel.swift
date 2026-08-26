@@ -7,13 +7,12 @@ import Foundation
 import GemstonePrimitives
 import InfoSheet
 import Localization
-import PerpetualService
+import GemstoneServices
 import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import GemstoneServices
 
 @Observable
 @MainActor

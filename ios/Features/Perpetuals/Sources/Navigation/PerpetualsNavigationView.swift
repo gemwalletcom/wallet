@@ -1,6 +1,6 @@
 import ActivityService
 import Components
-import PerpetualService
+import GemstoneServices
 import Primitives
 import Store
 import Style

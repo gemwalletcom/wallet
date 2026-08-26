@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-@testable import PerpetualService
+@testable import GemstoneServices
 import Primitives
 import Testing
 import WebSocketClientTestKit

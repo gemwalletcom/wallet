@@ -1,11 +1,10 @@
 import Components
 import Perpetuals
-import PerpetualService
+import GemstoneServices
 import Primitives
 import Store
 import Style
 import SwiftUI
-import GemstoneServices
 import WalletTab
 
 public struct PerpetualNavigationView: View {

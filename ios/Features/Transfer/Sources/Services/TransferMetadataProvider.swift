@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
-import Foundation
 import GemstoneServices
+import Foundation
 import Primitives
 
 public protocol TransferMetadataProvidable: Sendable {

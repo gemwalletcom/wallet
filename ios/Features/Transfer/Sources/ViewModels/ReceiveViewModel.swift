@@ -1,5 +1,4 @@
 import GemstoneServices
-import BalanceService
 import Components
 import Foundation
 import GemstonePrimitives

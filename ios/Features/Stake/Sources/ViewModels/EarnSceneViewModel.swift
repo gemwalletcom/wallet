@@ -2,7 +2,7 @@
 
 import BigInt
 import Components
-import EarnService
+import GemstoneServices
 import Foundation
 import Localization
 import Primitives

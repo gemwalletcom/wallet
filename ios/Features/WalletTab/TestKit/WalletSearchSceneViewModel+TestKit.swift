@@ -4,10 +4,6 @@ import ActivityService
 import ActivityServiceTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
-import BalanceService
-import BalanceServiceTestKit
-import PerpetualService
-import PerpetualServiceTestKit
 import Preferences
 import PreferencesTestKit
 import Primitives

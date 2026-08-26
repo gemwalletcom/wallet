@@ -2,7 +2,6 @@
 
 import ActivityService
 import GemstoneServices
-import BalanceService
 import ChainService
 import ExplorerService
 import Foundation
@@ -11,7 +10,6 @@ import Keystore
 import Primitives
 import PrimitivesComponents
 import Signer
-import TransactionStateService
 
 public enum ConfirmServiceFactory {
     public static func create(

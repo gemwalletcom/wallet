@@ -3,8 +3,8 @@
 import ActivityService
 import ActivityServiceTestKit
 @testable import Perpetuals
-import PerpetualService
-import PerpetualServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import PerpetualsTestKit
 import Primitives
 import PrimitivesTestKit

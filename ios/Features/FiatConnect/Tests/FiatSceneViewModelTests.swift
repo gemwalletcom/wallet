@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceServiceTestKit
+import GemstoneServicesTestKit
 import BigInt
 @testable import FiatConnect
 import GemstoneServices
-import GemstoneServicesTestKit
 import Formatters
 import Foundation
 import Primitives

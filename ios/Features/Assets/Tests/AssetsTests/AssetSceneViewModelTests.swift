@@ -2,7 +2,6 @@
 
 @testable import Assets
 import GemstoneServicesTestKit
-import BalanceServiceTestKit
 import BigInt
 import Primitives
 import PrimitivesTestKit

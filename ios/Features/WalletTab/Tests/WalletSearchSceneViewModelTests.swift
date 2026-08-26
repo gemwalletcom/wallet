@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceServiceTestKit
+import GemstoneServicesTestKit
 import NFT
 import PreferencesTestKit
 import Primitives

@@ -12,7 +12,6 @@ import Preferences
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import TransactionStateService
 import WalletConnector
 import WalletService
 import WalletSessionService

@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
+import GemstoneServices
 import Foundation
 import func Gemstone.walletAssetIsEnabled
 import GemstonePrimitives

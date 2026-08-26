@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import EarnService
+import GemstoneServices
 import Primitives
 import PrimitivesTestKit
 

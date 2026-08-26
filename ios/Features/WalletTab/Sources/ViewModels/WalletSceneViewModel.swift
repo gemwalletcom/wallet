@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
 import GemstoneServices
 import Components
 import Formatters

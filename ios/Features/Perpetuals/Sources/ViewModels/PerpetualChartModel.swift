@@ -4,7 +4,7 @@ import Components
 import Foundation
 import enum Gemstone.GemPerpetualSubscription
 import Localization
-import PerpetualService
+import GemstoneServices
 import Preferences
 import Primitives
 import Style

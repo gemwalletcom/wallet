@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import PerpetualServiceTestKit
+import GemstoneServicesTestKit
 import Preferences
 import PreferencesTestKit
 import GemstoneServices
-import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import WalletTab

@@ -5,7 +5,7 @@ import Primitives
 import Signer
 import Style
 import SwiftUI
-import TransactionStateService
+import GemstoneServices
 import Transfer
 import WalletConnector
 

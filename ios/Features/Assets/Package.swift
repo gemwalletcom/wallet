@@ -57,7 +57,6 @@ let package = Package(
                 "Recents",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "ExplorerService", package: "ChainServices"),
-                .product(name: "BalanceService", package: "FeatureServices"),
                 .product(name: "ChainService", package: "ChainServices"),
                 .product(name: "ActivityService", package: "FeatureServices"),
             ],
@@ -67,7 +66,6 @@ let package = Package(
             name: "AssetsTestKit",
             dependencies: [
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "BalanceServiceTestKit", package: "FeatureServices"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
                 "Components",
@@ -81,7 +79,6 @@ let package = Package(
                 .product(name: "GemstoneStore", package: "GemstoneStore"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
-                .product(name: "BalanceServiceTestKit", package: "FeatureServices"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "StoreTestKit", package: "Store"),
                 "Store",
