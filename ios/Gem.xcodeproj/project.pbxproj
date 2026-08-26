@@ -13,6 +13,8 @@
 		0FF1CEBA22E20000000000B2 /* View+ConnectionStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FF1CEBA22E20000000000B1 /* View+ConnectionStatusBanner.swift */; };
 		830FDA452C224316003DA605 /* NavigationStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830FDA442C224316003DA605 /* NavigationStateManager.swift */; };
 		830FDA482C22EEC4003DA605 /* TabItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830FDA472C22EEC4003DA605 /* TabItem.swift */; };
+		AA47CAC09D0AC65D3D64A4FA /* ScanReceiveMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0150BA747AD051F9EB4A128F /* ScanReceiveMode.swift */; };
+		E455D7A3E682DD0EC11936FF /* ScanReceiveSheetType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA80709C57FFF2BBBEAE7C3E /* ScanReceiveSheetType.swift */; };
 		8327CBF12DF9E088000BF1E1 /* Validators in Frameworks */ = {isa = PBXBuildFile; productRef = 8327CBF02DF9E088000BF1E1 /* Validators */; };
 		832AD1A72DEF9AED00096469 /* Assets in Frameworks */ = {isa = PBXBuildFile; productRef = 832AD1A62DEF9AED00096469 /* Assets */; };
 		833809D02D273E450055D91F /* WalletConnectorService in Frameworks */ = {isa = PBXBuildFile; productRef = 83385DDD2D27147900D76803 /* WalletConnectorService */; };
@@ -73,6 +75,10 @@
 		D807004A2BBB1FB600ED770B /* SettingsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80700492BBB1FB600ED770B /* SettingsNavigationView.swift */; };
 		D807004C2BBB26DD00ED770B /* TransactionsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D807004B2BBB26DD00ED770B /* TransactionsNavigationView.swift */; };
 		D807004E2BBB283400ED770B /* WalletNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D807004D2BBB283400ED770B /* WalletNavigationView.swift */; };
+		F02557C19C03CD9DA036C0B5 /* ScanReceiveNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */; };
+		BD953F7FE9F1DB860BBB3737 /* ScanReceiveSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB63698068D10CFB743007B3 /* ScanReceiveSheet.swift */; };
+		AD9CF68E48644ED7CA027260 /* ScanReceiveViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DC0640249B8491C060667E4 /* ScanReceiveViewModel.swift */; };
+		EB83CFFC3CFF5942DFFE272A /* ScanReceiveModeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 622C2DC81529966AD806581E /* ScanReceiveModeViewModel.swift */; };
 		D829BF2D2CBDBC5300DEB2E8 /* Localization in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF2C2CBDBC5300DEB2E8 /* Localization */; };
 		D829BF422CBDD65A00DEB2E8 /* MarketInsight in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF412CBDD65A00DEB2E8 /* MarketInsight */; };
 		D829BF452CBDD9F700DEB2E8 /* FiatConnect in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF442CBDD9F700DEB2E8 /* FiatConnect */; };
@@ -172,6 +178,8 @@
 		0FF1CEBA22E20000000000B1 /* View+ConnectionStatusBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+ConnectionStatusBanner.swift"; sourceTree = "<group>"; };
 		830FDA442C224316003DA605 /* NavigationStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStateManager.swift; sourceTree = "<group>"; };
 		830FDA472C22EEC4003DA605 /* TabItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItem.swift; sourceTree = "<group>"; };
+		0150BA747AD051F9EB4A128F /* ScanReceiveMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveMode.swift; sourceTree = "<group>"; };
+		FA80709C57FFF2BBBEAE7C3E /* ScanReceiveSheetType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveSheetType.swift; sourceTree = "<group>"; };
 		8311A89A2DF9D35D00598C43 /* Validators */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Validators; sourceTree = "<group>"; };
 		832F57E92D36A6D50066024D /* Preferences */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Preferences; sourceTree = "<group>"; };
 		833931A32D2D54060063BB6A /* PriceAlerts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PriceAlerts; sourceTree = "<group>"; };
@@ -228,6 +236,10 @@
 		D80700492BBB1FB600ED770B /* SettingsNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsNavigationView.swift; sourceTree = "<group>"; };
 		D807004B2BBB26DD00ED770B /* TransactionsNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsNavigationView.swift; sourceTree = "<group>"; };
 		D807004D2BBB283400ED770B /* WalletNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletNavigationView.swift; sourceTree = "<group>"; };
+		B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveNavigationStack.swift; sourceTree = "<group>"; };
+		DB63698068D10CFB743007B3 /* ScanReceiveSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveSheet.swift; sourceTree = "<group>"; };
+		5DC0640249B8491C060667E4 /* ScanReceiveViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveViewModel.swift; sourceTree = "<group>"; };
+		622C2DC81529966AD806581E /* ScanReceiveModeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveModeViewModel.swift; sourceTree = "<group>"; };
 		D829BF2B2CBDB82600DEB2E8 /* Localization */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Localization; sourceTree = "<group>"; };
 		D829BF402CBDD64D00DEB2E8 /* MarketInsight */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = MarketInsight; sourceTree = "<group>"; };
 		D829BF432CBDD9D200DEB2E8 /* FiatConnect */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = FiatConnect; sourceTree = "<group>"; };
@@ -384,6 +396,8 @@
 			isa = PBXGroup;
 			children = (
 				D807004D2BBB283400ED770B /* WalletNavigationView.swift */,
+				B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */,
+				DB63698068D10CFB743007B3 /* ScanReceiveSheet.swift */,
 			);
 			path = Wallet;
 			sourceTree = "<group>";
@@ -460,6 +474,8 @@
 			children = (
 				C36679092A0B7E5800F1D74D /* Environment.swift */,
 				830FDA472C22EEC4003DA605 /* TabItem.swift */,
+				0150BA747AD051F9EB4A128F /* ScanReceiveMode.swift */,
+				FA80709C57FFF2BBBEAE7C3E /* ScanReceiveSheetType.swift */,
 				D8D5C1D02E6CAC16007628A1 /* Errors.swift */,
 			);
 			path = Types;
@@ -502,6 +518,8 @@
 			children = (
 				D8B738D32C59643D004EF083 /* MainTabViewModel.swift */,
 				83E041592D0AFCB80031D4BC /* RootSceneViewModel.swift */,
+				5DC0640249B8491C060667E4 /* ScanReceiveViewModel.swift */,
+				622C2DC81529966AD806581E /* ScanReceiveModeViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -1031,6 +1049,8 @@
 				830FDA422C2236B6003DA605 /* MainTabView.swift in Sources */,
 				0FF1CEBA22E20000000000B2 /* View+ConnectionStatusBanner.swift in Sources */,
 				830FDA482C22EEC4003DA605 /* TabItem.swift in Sources */,
+				AA47CAC09D0AC65D3D64A4FA /* ScanReceiveMode.swift in Sources */,
+				E455D7A3E682DD0EC11936FF /* ScanReceiveSheetType.swift in Sources */,
 				B6B86A102D702E7C00D31D65 /* SwapNavigationView.swift in Sources */,
 				D89CD7A92CC70C7C007A2BAC /* SelectedAssetNavigationStack.swift in Sources */,
 				D8C4A3B22EA6B00000C26819 /* RecipientNavigationView.swift in Sources */,
@@ -1043,6 +1063,10 @@
 				D891DD412D3F359F00241222 /* CollectionsSceneNavigationView.swift in Sources */,
 				83B08BDB2D0B4AE200CA1B33 /* AppResolver+Storages.swift in Sources */,
 				D807004E2BBB283400ED770B /* WalletNavigationView.swift in Sources */,
+				F02557C19C03CD9DA036C0B5 /* ScanReceiveNavigationStack.swift in Sources */,
+				BD953F7FE9F1DB860BBB3737 /* ScanReceiveSheet.swift in Sources */,
+				AD9CF68E48644ED7CA027260 /* ScanReceiveViewModel.swift in Sources */,
+				EB83CFFC3CFF5942DFFE272A /* ScanReceiveModeViewModel.swift in Sources */,
 				D8BAC9592BD0CDC8001608BC /* SelectAssetSceneNavigationStack.swift in Sources */,
 				8358DBBF2EA6AE59007A4DC7 /* PerpetualNavigationView.swift in Sources */,
 				D8BAC95B2BD0D1DB001608BC /* AddAssetNavigationStack.swift in Sources */,

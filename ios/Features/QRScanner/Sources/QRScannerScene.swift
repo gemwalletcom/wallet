@@ -4,7 +4,7 @@ import Components
 import PhotosUI
 import SwiftUI
 
-struct QRScannerScene: View {
+public struct QRScannerScene: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
 
@@ -12,12 +12,12 @@ struct QRScannerScene: View {
 
     private let action: (String) -> Void
 
-    init(resources: QRScannerResources, action: @escaping ((String) -> Void)) {
+    public init(resources: QRScannerResources, action: @escaping (String) -> Void) {
         self.action = action
         _model = State(initialValue: QRScannerSceneViewModel(scannerState: .idle, imageState: .empty, resources: resources))
     }
 
-    var body: some View {
+    public var body: some View {
         ZStack {
             switch model.scannerState {
             case .idle, .scanning:
@@ -59,13 +59,6 @@ struct QRScannerScene: View {
                 photosPicker {
                     Image(systemName: imageName)
                         .bold()
-                }
-            }
-            ToolbarItem(placement: .cancellationAction) {
-                Button {
-                    dismiss()
-                } label: {
-                    Text(model.resources.dismissText)
                 }
             }
         }

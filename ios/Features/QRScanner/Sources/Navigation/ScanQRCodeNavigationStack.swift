@@ -5,12 +5,13 @@ import Style
 import SwiftUI
 
 public struct ScanQRCodeNavigationStack: View {
-    private let resources: any QRScannerResources
+    @Environment(\.dismiss) private var dismiss
+
+    private let resources = QRScanResources()
 
     let action: (String) -> Void
 
     public init(action: @escaping (String) -> Void) {
-        resources = QRScanResources()
         self.action = action
     }
 
@@ -19,6 +20,13 @@ public struct ScanQRCodeNavigationStack: View {
             QRScannerScene(resources: resources, action: action)
                 .navigationTitle(Localized.Wallet.scanQrCode)
                 .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(resources.dismissText) {
+                            dismiss()
+                        }
+                    }
+                }
         }
     }
 }
