@@ -11,8 +11,6 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-import WalletSessionService
-import WalletSessionServiceTestKit
 
 struct AppLifecycleServiceTests {
     @Test

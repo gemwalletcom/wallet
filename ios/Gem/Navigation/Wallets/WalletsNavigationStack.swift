@@ -6,7 +6,7 @@ import Onboarding
 import Primitives
 import Style
 import SwiftUI
-import WalletSessionService
+import GemstoneServices
 
 struct WalletsNavigationStack: View {
     @Environment(\.walletService) private var walletService

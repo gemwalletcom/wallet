@@ -20,7 +20,6 @@ import StreamService
 import SwapService
 import WalletConnector
 import WalletService
-import WalletSessionService
 
 extension AppResolver {
     struct Services {

@@ -66,7 +66,6 @@ let package = Package(
                 "Swap",
                 "Perpetuals",
 
-                .product(name: "WalletSessionService", package: "FeatureServices"),
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "ActivityService", package: "FeatureServices"),
             ],
@@ -93,8 +92,6 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "SwapServiceTestKit", package: "FeatureServices"),
                 .product(name: "KeystoreTestKit", package: "Keystore"),
-                .product(name: "WalletSessionService", package: "FeatureServices"),
-                .product(name: "WalletSessionServiceTestKit", package: "FeatureServices"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),

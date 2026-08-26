@@ -11,8 +11,8 @@ import StoreTestKit
 import Testing
 @testable import WalletService
 import WalletServiceTestKit
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 
 struct WalletServiceTests {
     @Test

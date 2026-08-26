@@ -21,7 +21,6 @@ import StreamService
 import SwiftUI
 import WalletConnector
 import WalletService
-import WalletSessionService
 
 extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation

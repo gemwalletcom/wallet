@@ -14,7 +14,6 @@ import PrimitivesComponents
 import SwiftUI
 import WalletConnector
 import WalletService
-import WalletSessionService
 
 @Observable
 @MainActor

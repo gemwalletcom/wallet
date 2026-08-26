@@ -11,8 +11,6 @@ import Preferences
 import PreferencesTestKit
 import StreamService
 import StreamServiceTestKit
-import WalletSessionService
-import WalletSessionServiceTestKit
 
 public extension AppLifecycleService {
     static func mock(

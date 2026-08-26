@@ -7,8 +7,8 @@ import PrimitivesTestKit
 @testable import StreamService
 import StreamServiceTestKit
 import Testing
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import WebSocketClientTestKit
 
 struct StreamSubscriptionServiceTests {

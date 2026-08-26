@@ -13,7 +13,6 @@ import Store
 import Support
 import SwiftUI
 import WalletConnector
-import WalletSessionService
 
 struct SettingsNavigationView: View {
     @Environment(\.navigationState) private var navigationState

@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Preferences
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Primitives
 import Store
 
 public struct WalletSessionService: WalletSessionManageable {
+    private let service: any GemWalletSessionServiceProtocol
     private let walletStore: WalletStore
-    private let preferences: ObservablePreferences
 
     public init(
+        service: any GemWalletSessionServiceProtocol,
         walletStore: WalletStore,
-        preferences: ObservablePreferences,
     ) {
+        self.service = service
         self.walletStore = walletStore
-        self.preferences = preferences
     }
 
     public var currentWallet: Wallet? {
@@ -23,12 +23,12 @@ public struct WalletSessionService: WalletSessionManageable {
     }
 
     public var currentWalletId: Primitives.WalletId? {
-        guard let id = preferences.currentWalletId else { return nil }
+        guard let id = try? service.getCurrentWalletId() else { return nil }
         return try? WalletId.from(id: id)
     }
 
     public func setCurrent(walletId: WalletId?) {
-        preferences.currentWalletId = walletId?.id
+        try? service.setCurrentWalletId(walletId: walletId?.id)
     }
 
     public func getWallets() throws -> [Wallet] {

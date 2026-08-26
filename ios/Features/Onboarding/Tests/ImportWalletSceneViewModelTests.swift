@@ -10,8 +10,8 @@ import StoreTestKit
 import Testing
 import WalletService
 import WalletServiceTestKit
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 
 @MainActor
 struct ImportWalletSceneViewModelTests {

@@ -6,7 +6,7 @@ import Keystore
 import Preferences
 import Primitives
 import Store
-import WalletSessionService
+import GemstoneServices
 
 public struct WalletService: Sendable {
     private let keystore: any Keystore

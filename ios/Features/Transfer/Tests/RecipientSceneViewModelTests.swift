@@ -6,8 +6,8 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 
 @MainActor
 struct RecipientSceneViewModelTests {

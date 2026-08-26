@@ -11,7 +11,6 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import WalletSessionService
 
 public typealias RecipientDataAction = ((RecipientData) -> Void)?
 

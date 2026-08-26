@@ -5,8 +5,8 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-@testable import WalletSessionService
-import WalletSessionServiceTestKit
+@testable import GemstoneServices
+import GemstoneServicesTestKit
 
 struct WalletSessionServiceTests {
     @Test

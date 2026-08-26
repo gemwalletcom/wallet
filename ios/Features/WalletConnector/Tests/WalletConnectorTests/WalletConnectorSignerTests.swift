@@ -11,8 +11,8 @@ import Testing
 @testable import WalletConnector
 import WalletConnectorService
 import WalletConnectSign
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 
 struct WalletConnectorSignerTests {
     @Test

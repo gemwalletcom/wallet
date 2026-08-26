@@ -23,7 +23,6 @@
 		8342EA032DB67EE3001B3780 /* WalletService in Frameworks */ = {isa = PBXBuildFile; productRef = 8342EA022DB67EE3001B3780 /* WalletService */; };
 		8349F1472D5E4FF4003A0A93 /* ManageWallets in Frameworks */ = {isa = PBXBuildFile; productRef = 8349F1462D5E4FF4003A0A93 /* ManageWallets */; };
 		834B381A2D1D85E2009D58D4 /* LockManager in Frameworks */ = {isa = PBXBuildFile; productRef = 834B38192D1D85E2009D58D4 /* LockManager */; };
-		834EC80A2D7F1FCD00D8FA39 /* WalletSessionService in Frameworks */ = {isa = PBXBuildFile; productRef = 834EC8092D7F1FCD00D8FA39 /* WalletSessionService */; };
 		8358DBBD2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */; };
 		8358DBBF2EA6AE59007A4DC7 /* PerpetualNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */; };
 		8361BB612D3FE5F2008D89CF /* Transactions in Frameworks */ = {isa = PBXBuildFile; productRef = 8361BB602D3FE5F2008D89CF /* Transactions */; };
@@ -308,7 +307,6 @@
 				839C794B2D1C42A500E32072 /* PrimitivesComponents in Frameworks */,
 				D8D203D32AE0818C00261CA2 /* SwiftHTTPClient in Frameworks */,
 				B60C6C352E68848900899BAC /* Support in Frameworks */,
-				834EC80A2D7F1FCD00D8FA39 /* WalletSessionService in Frameworks */,
 				C3CF3B8829AC2C0800E96586 /* Components in Frameworks */,
 				D829BF2D2CBDBC5300DEB2E8 /* Localization in Frameworks */,
 				8327CBF12DF9E088000BF1E1 /* Validators in Frameworks */,
@@ -803,7 +801,6 @@
 				83B6C20F2D5E3F2600F9DF8A /* WalletTab */,
 				8349F1462D5E4FF4003A0A93 /* ManageWallets */,
 				B617D60A2D5B75F0001697A6 /* AvatarService */,
-				834EC8092D7F1FCD00D8FA39 /* WalletSessionService */,
 				8342EA022DB67EE3001B3780 /* WalletService */,
 				B66AFC6B2DDB260A0082C026 /* AppService */,
 				0FF1CEBA22E20000000000C1 /* ConnectionStatusService */,
@@ -1782,10 +1779,6 @@
 		834B38192D1D85E2009D58D4 /* LockManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LockManager;
-		};
-		834EC8092D7F1FCD00D8FA39 /* WalletSessionService */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = WalletSessionService;
 		};
 		8361BB602D3FE5F2008D89CF /* Transactions */ = {
 			isa = XCSwiftPackageProductDependency;

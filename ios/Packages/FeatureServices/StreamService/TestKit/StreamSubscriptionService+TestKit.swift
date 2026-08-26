@@ -4,8 +4,6 @@ import Foundation
 import GemstoneServices
 import GemstoneServicesTestKit
 import StreamService
-import WalletSessionService
-import WalletSessionServiceTestKit
 import WebSocketClient
 import WebSocketClientTestKit
 

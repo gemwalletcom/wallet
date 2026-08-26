@@ -29,6 +29,7 @@ pub mod support;
 pub mod transaction_state;
 pub mod transactions;
 pub mod wallet_configuration;
+pub mod wallet_session;
 
 pub use app_update::GemAppUpdateService;
 pub use asset_discovery::{GemAssetDiscoveryService, GemAssetDiscoveryStore, GemDiscoveryStep};
@@ -61,3 +62,4 @@ pub use support::{GemSupportService, GemSupportStore};
 pub use transaction_state::{GemTransactionStateService, GemTransactionStateStore};
 pub use transactions::{GemTransactionStore, GemTransactionsService};
 pub use wallet_configuration::{GemWalletConfigurationService, GemWalletConfigurationStore};
+pub use wallet_session::{GemWalletSessionService, GemWalletSessionStore};

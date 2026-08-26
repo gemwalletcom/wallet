@@ -3,7 +3,6 @@
 import Foundation
 import GemstoneServices
 import Primitives
-import WalletSessionService
 import WebSocketClient
 
 public actor StreamSubscriptionService: Sendable {

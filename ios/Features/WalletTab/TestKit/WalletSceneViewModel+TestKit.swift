@@ -5,8 +5,7 @@ import Foundation
 import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
 import GemstonePrimitivesTestKit
 import WalletTab
 

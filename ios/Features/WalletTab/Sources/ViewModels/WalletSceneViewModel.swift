@@ -15,7 +15,6 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import WalletSessionService
 
 @Observable
 @MainActor

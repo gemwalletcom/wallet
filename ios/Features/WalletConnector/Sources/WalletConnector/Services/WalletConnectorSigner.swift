@@ -11,7 +11,7 @@ import Primitives
 import Store
 import WalletConnectorService
 import WalletConnectSign
-import WalletSessionService
+import GemstoneServices
 
 public final class WalletConnectorSigner: WalletConnectorSignable {
     private let connectionsStore: ConnectionsStore

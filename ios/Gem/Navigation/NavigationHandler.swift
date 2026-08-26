@@ -12,7 +12,6 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 import WalletConnector
-import WalletSessionService
 
 @Observable
 final class NavigationHandler: Sendable {

@@ -8,7 +8,6 @@ import Preferences
 import Primitives
 import StreamService
 import SwiftUI
-import WalletSessionService
 
 public actor AppLifecycleService: Sendable {
     private let preferences: Preferences

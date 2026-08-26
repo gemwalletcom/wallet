@@ -20,7 +20,6 @@ import SwiftUI
 import Transfer
 import WalletConnector
 import WalletConnectorService
-import WalletSessionService
 import WalletTab
 
 public struct ViewModelFactory: Sendable {

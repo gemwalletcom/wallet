@@ -7,8 +7,8 @@ import Preferences
 import StoreTestKit
 import Testing
 import WalletServiceTestKit
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 
 @MainActor
 struct CreateWalletModelTests {

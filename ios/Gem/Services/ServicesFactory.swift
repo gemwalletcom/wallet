@@ -25,7 +25,6 @@ import Transfer
 import WalletConnector
 import WalletConnectorService
 import WalletService
-import WalletSessionService
 import WebSocketClient
 
 struct ServicesFactory {
@@ -109,8 +108,8 @@ struct ServicesFactory {
         )
 
         let walletSessionService = WalletSessionService(
+            service: Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: storages.observablePreferences), wallets: gemWalletStore),
             walletStore: storeManager.walletStore,
-            preferences: storages.observablePreferences,
         )
         let walletService = WalletService(
             keystore: storages.keystore,

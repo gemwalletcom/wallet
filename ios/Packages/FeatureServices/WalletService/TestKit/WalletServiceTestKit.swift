@@ -9,8 +9,8 @@ import PreferencesTestKit
 import Store
 import StoreTestKit
 import WalletService
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 
 public extension WalletService {
     static func mock(
