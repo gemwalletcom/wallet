@@ -1,19 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Foundation
+import protocol Gemstone.GemBannerServiceProtocol
 import Primitives
 
 public struct BannerSetupRunner: AsyncRunnable {
     public let id = "banner_setup"
 
-    private let bannerSetupService: BannerSetupService
+    private let bannerService: any GemBannerServiceProtocol
 
-    public init(bannerSetupService: BannerSetupService) {
-        self.bannerSetupService = bannerSetupService
+    public init(bannerService: any GemBannerServiceProtocol) {
+        self.bannerService = bannerService
     }
 
     public func run() async throws {
-        try bannerSetupService.setup()
+        try await bannerService.setup()
     }
 }

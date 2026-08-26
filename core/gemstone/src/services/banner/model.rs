@@ -19,6 +19,13 @@ pub struct GemBannerKey {
     pub event: BannerEvent,
 }
 
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemBannerAction {
+    Event { event: BannerEvent },
+    Button,
+    Close,
+}
+
 #[uniffi::export]
 pub fn banner_identifier(key: GemBannerKey) -> String {
     [

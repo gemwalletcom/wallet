@@ -25,6 +25,7 @@ struct SettingsNavigationView: View {
     @Environment(\.priceStore) private var priceStore
     @Environment(\.explorerService) private var explorerService
     @Environment(\.bannerService) private var bannerService
+    @Environment(\.bannerStore) private var bannerStore
     @Environment(\.connectionsService) private var connectionsService
     @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.walletSessionService) private var walletSessionService
@@ -148,7 +149,7 @@ struct SettingsNavigationView: View {
                 transactionStore: transactionStore,
                 assetStore: assetStore,
                 stakeStore: stakeStore,
-                bannerService: bannerService,
+                bannerStore: bannerStore,
                 priceStore: priceStore,
                 perpetualService: perpetualService,
             ))

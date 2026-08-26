@@ -3,6 +3,7 @@
 import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
@@ -27,7 +28,7 @@ extension AppResolver {
     struct Services {
         // Environment-level services
         let balanceService: any GemBalanceServiceProtocol
-        let bannerService: BannerService
+        let bannerService: any GemBannerServiceProtocol
         let chainServiceFactory: ChainServiceFactory
         let connectionsService: ConnectionsService
         let connectionStatusObserver: ConnectionStatusObserver

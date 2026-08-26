@@ -3,6 +3,7 @@
 import Components
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -24,7 +25,7 @@ public final class AssetSceneViewModel: Sendable {
     private let assetsService: any GemAssetsServiceProtocol
     private let transactionsService: any GemTransactionsServiceProtocol
     private let priceUpdater: any PriceUpdater
-    private let bannerService: BannerService
+    private let bannerService: any GemBannerServiceProtocol
 
     private let preferences: ObservablePreferences = .default
 
@@ -48,7 +49,7 @@ public final class AssetSceneViewModel: Sendable {
         transactionsService: any GemTransactionsServiceProtocol,
         priceUpdater: any PriceUpdater,
         priceAlertService: PriceAlertService,
-        bannerService: BannerService,
+        bannerService: any GemBannerServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         input: AssetSceneInput,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
@@ -390,7 +391,7 @@ public extension AssetSceneViewModel {
                  .accountBlockedMultiSignature,
                  .onboarding:
                 Task {
-                    try await bannerService.handleAction(action)
+                    try await bannerService.handleAction(key: action.banner.gemKey, action: action.type.gemAction)
                 }
             case .suspiciousAsset: break
             case .tradePerpetuals:
@@ -404,7 +405,7 @@ public extension AssetSceneViewModel {
             }
         case .closeBanner:
             Task {
-                try await bannerService.handleAction(action)
+                try await bannerService.handleAction(key: action.banner.gemKey, action: action.type.gemAction)
             }
         }
         onSelect(url: action.url)

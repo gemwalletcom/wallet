@@ -23,14 +23,18 @@ class GemstoneBannerStore(
         )?.state?.toJson()
 
     override suspend fun setState(key: GemBannerKey, state: BannerState) {
-        bannersDao.saveBanner(
-            DbBanner(
-                walletId = key.walletId.orEmpty(),
-                assetId = key.assetId.orEmpty(),
-                chain = key.chain?.let { chain -> Chain.entries.firstOrNull { it.string == chain } },
-                event = key.event.decodeJson<BannerEvent>(),
-                state = state.decodeJson(),
-            )
-        )
+        bannersDao.saveBanner(key.toRecord(state))
     }
+
+    override suspend fun addBanners(keys: List<GemBannerKey>, state: BannerState) {
+        keys.filter { getState(it) == null }.forEach { bannersDao.saveBanner(it.toRecord(state)) }
+    }
+
+    private fun GemBannerKey.toRecord(state: BannerState) = DbBanner(
+        walletId = walletId.orEmpty(),
+        assetId = assetId.orEmpty(),
+        chain = chain?.let { chain -> Chain.entries.firstOrNull { it.string == chain } },
+        event = event.decodeJson<BannerEvent>(),
+        state = state.decodeJson(),
+    )
 }

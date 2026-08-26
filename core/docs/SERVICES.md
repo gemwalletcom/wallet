@@ -62,7 +62,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`AuthService`](../../ios/Packages/GemstoneServices/Sources) | `GemAuthService` | Done | |
 | [`AvatarService`](../../ios/Packages/FeatureServices/AvatarService) | — | App-only | Image files |
 | `BalanceService` | `GemBalanceService` | Done | Wrapper removed; view models call `update` on the Core service and read `BalanceStore` directly |
-| [`BannerService`](../../ios/Packages/GemstoneServices/Sources) | `GemBannerService` | Done | |
+| `BannerService` | `GemBannerService` | Done | Wrapper removed; banner seeding (`setup`, `setup_wallet`), action handling and closing live in Core, the app provides `GemNotificationPermissions` |
 | [`ConnectionsService`](../../ios/Packages/FeatureServices/ConnectionsService) | — | App-only | WalletConnect SDK sessions |
 | [`ConnectionStatusService`](../../ios/Packages/FeatureServices/ConnectionStatusService) | — | App-only | Connectivity |
 | [`ContactService`](../../ios/Packages/GemstoneServices/Sources) | `GemContactService` | Done | Avatar files stay app-side; Android: `ContactsRepository` |

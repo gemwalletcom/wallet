@@ -13,7 +13,11 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import android.content.Context
+import com.gemwallet.android.data.repositories.gemstone.GemstoneNotificationPermissions
+import dagger.hilt.android.qualifiers.ApplicationContext
 import uniffi.gemstone.GemBannerService
+import uniffi.gemstone.GemNotificationPermissions
 import uniffi.gemstone.GemBannerStore
 import javax.inject.Singleton
 
@@ -26,7 +30,13 @@ object BannersModule {
 
     @Provides
     @Singleton
-    fun provideGemBannerService(store: GemBannerStore): GemBannerService = GemBannerService(store)
+    fun provideGemNotificationPermissions(@ApplicationContext context: Context): GemNotificationPermissions =
+        GemstoneNotificationPermissions(context)
+
+    @Provides
+    @Singleton
+    fun provideGemBannerService(store: GemBannerStore, permissions: GemNotificationPermissions): GemBannerService =
+        GemBannerService(store, permissions)
 
     @Provides
     @Singleton

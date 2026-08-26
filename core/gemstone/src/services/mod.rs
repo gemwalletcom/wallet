@@ -38,7 +38,7 @@ pub use asset_discovery::{GemAssetDiscoveryService, GemAssetDiscoveryStore, GemD
 pub use assets::{GemAssetStore, GemAssetsService};
 pub use auth::GemAuthService;
 pub use balance::{GemBalanceService, GemBalanceStore};
-pub use banner::{GemBannerService, GemBannerStore};
+pub use banner::{GemBannerAction, GemBannerService, GemBannerStore, GemNotificationPermissions};
 pub use chart::GemChartService;
 pub use config::GemConfigService;
 pub use contact::{GemContactService, GemContactStore};

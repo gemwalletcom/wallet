@@ -444,3 +444,30 @@ public extension GemExplorerService {
         GemExplorerService(preferences: GemPreferencesService(store: GemPreferencesStoreMock()))
     }
 }
+
+public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Sendable {
+    public private(set) var closedKeys: [GemBannerKey] = []
+    public private(set) var handledActions: [GemBannerAction] = []
+
+    public init() {}
+
+    public func activeEvents(walletId _: Gemstone.WalletId?, assetId _: Gemstone.AssetId?, context _: GemBannerContext) async throws -> [Gemstone.BannerEvent] {
+        []
+    }
+
+    public func close(key: GemBannerKey) async throws {
+        closedKeys.append(key)
+    }
+
+    public func closesOnAction(event _: Gemstone.BannerEvent) -> Bool {
+        false
+    }
+
+    public func handleAction(key _: GemBannerKey, action: GemBannerAction) async throws {
+        handledActions.append(action)
+    }
+
+    public func setup() async throws {}
+
+    public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
+}

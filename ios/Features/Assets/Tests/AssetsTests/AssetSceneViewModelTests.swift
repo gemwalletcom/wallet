@@ -108,7 +108,7 @@ extension AssetSceneViewModel {
             transactionsService: GemTransactionsServiceMock(),
             priceUpdater: .mock(),
             priceAlertService: .mock(),
-            bannerService: .mock(),
+            bannerService: GemBannerServiceMock(),
             explorerService: GemExplorerServiceMock(),
             input: AssetSceneInput(
                 wallet: .mock(),

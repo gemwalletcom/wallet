@@ -1,23 +1,25 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
+import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemWalletConfigurationServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Primitives
 
 public final class OnstartWalletService: Sendable {
     private let deviceService: any DeviceServiceable
-    private let bannerSetupService: BannerSetupService
+    private let bannerService: any GemBannerServiceProtocol
     private let walletConfigurationService: any GemWalletConfigurationServiceProtocol
     private let pushNotificationEnablerService: PushNotificationEnablerService
 
     public init(
         deviceService: any DeviceServiceable,
-        bannerSetupService: BannerSetupService,
+        bannerService: any GemBannerServiceProtocol,
         walletConfigurationService: any GemWalletConfigurationServiceProtocol,
         pushNotificationEnablerService: PushNotificationEnablerService,
     ) {
         self.deviceService = deviceService
-        self.bannerSetupService = bannerSetupService
+        self.bannerService = bannerService
         self.walletConfigurationService = walletConfigurationService
         self.pushNotificationEnablerService = pushNotificationEnablerService
     }
@@ -25,7 +27,7 @@ public final class OnstartWalletService: Sendable {
     @discardableResult
     public func setup(wallet: Wallet) -> Task<Void, Never> {
         Task {
-            try? bannerSetupService.setupWallet(wallet: wallet)
+            try? await bannerService.setupWallet(wallet: wallet.json())
             try? await walletConfigurationService.sync(walletId: wallet.id.id)
         }
     }

@@ -145,11 +145,9 @@ struct ServicesFactory {
 
         let preferences = storages.observablePreferences.preferences
         let pushNotificationEnablerService = PushNotificationEnablerService(preferences: preferences)
-        let bannerSetupService = BannerSetupService(store: storeManager.bannerStore, preferences: preferences)
-        let bannerService = BannerService(
-            store: storeManager.bannerStore,
-            service: Gemstone.GemBannerService(store: GemstoneBannerStore(store: storeManager.bannerStore)),
-            pushNotificationService: pushNotificationEnablerService,
+        let bannerService = Gemstone.GemBannerService(
+            store: GemstoneBannerStore(store: storeManager.bannerStore),
+            permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
         )
         let navigationPresenter = NavigationPresenter()
         let portfolioService = Gemstone.GemPortfolioService(api: gemDeviceApiClient, store: GemstonePortfolioStore(assetStore: storeManager.assetStore))
@@ -256,13 +254,13 @@ struct ServicesFactory {
             nodeService: nodeService,
             preferences: preferences,
             assetStore: storeManager.assetStore,
-            bannerSetupService: bannerSetupService,
+            bannerService: bannerService,
             configService: configService,
             swappableChainsProvider: swapService,
         )
         let onstartWalletService = OnstartWalletService(
             deviceService: deviceService,
-            bannerSetupService: bannerSetupService,
+            bannerService: bannerService,
             walletConfigurationService: Gemstone.GemWalletConfigurationService(
                 api: gemDeviceApiClient,
                 banners: GemstoneBannerStore(store: storeManager.bannerStore),
@@ -525,14 +523,14 @@ extension ServicesFactory {
         nodeService: NodeService,
         preferences: Preferences,
         assetStore: AssetStore,
-        bannerSetupService: BannerSetupService,
+        bannerService: any GemBannerServiceProtocol,
         configService: ConfigService,
         swappableChainsProvider: any SwappableChainsProvider,
     ) -> OnstartAsyncService {
         return OnstartAsyncService(
             runners: [
                 ConfigUpdateRunner(configService: configService),
-                BannerSetupRunner(bannerSetupService: bannerSetupService),
+                BannerSetupRunner(bannerService: bannerService),
                 AssetsUpdateRunner(
                     configService: configService,
                     assetsProvider: assetsProvider,

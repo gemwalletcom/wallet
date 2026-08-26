@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBannerServiceProtocol
+import struct Gemstone.GemBannerKey
+import GemstonePrimitives
 import GemstoneServices
 import Components
 import Foundation
@@ -14,13 +17,13 @@ public final class NotificationsViewModel {
     private let deviceService: any DeviceServiceable
     private let preferences: Preferences
     private let pushNotificationService: PushNotificationEnablerService
-    private let bannerService: BannerService
+    private let bannerService: any GemBannerServiceProtocol
 
     var isEnabled: Bool
 
     public init(
         deviceService: any DeviceServiceable,
-        bannerService: BannerService,
+        bannerService: any GemBannerServiceProtocol,
         preferences: Preferences = .standard,
     ) {
         self.deviceService = deviceService
@@ -51,7 +54,7 @@ extension NotificationsViewModel {
         case true:
             self.isEnabled = try await requestPermissionsOrOpenSettings()
             if isEnabled {
-                try bannerService.closeBanner(id: BannerEvent.enableNotifications.rawValue)
+                try await bannerService.close(key: GemBannerKey(walletId: nil, assetId: nil, chain: nil, event: BannerEvent.enableNotifications.json()))
             }
         case false:
             preferences.isPushNotificationsEnabled = isEnabled

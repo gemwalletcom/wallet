@@ -19,7 +19,7 @@ public final class DeveloperViewModel {
     private let transactionStore: TransactionStore
     private let assetStore: AssetStore
     private let stakeStore: StakeStore
-    private let bannerService: BannerService
+    private let bannerStore: BannerStore
     private let priceStore: PriceStore
     private let perpetualService: PerpetualService
 
@@ -30,7 +30,7 @@ public final class DeveloperViewModel {
         transactionStore: TransactionStore,
         assetStore: AssetStore,
         stakeStore: StakeStore,
-        bannerService: BannerService,
+        bannerStore: BannerStore,
         priceStore: PriceStore,
         perpetualService: PerpetualService,
     ) {
@@ -38,7 +38,7 @@ public final class DeveloperViewModel {
         self.transactionStore = transactionStore
         self.assetStore = assetStore
         self.stakeStore = stakeStore
-        self.bannerService = bannerService
+        self.bannerStore = bannerStore
         self.priceStore = priceStore
         self.perpetualService = perpetualService
     }
@@ -120,13 +120,13 @@ public final class DeveloperViewModel {
 
     func clearBanners() {
         performAction {
-            try bannerService.clearBanners()
+            _ = try bannerStore.clear()
         }
     }
 
     func activateAllCancelledBanners() {
         performAction {
-            try bannerService.activateAllCancelledBanners()
+            _ = try bannerStore.updateStates(from: .cancelled, to: .active)
         }
     }
 

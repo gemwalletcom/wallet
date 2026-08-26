@@ -126,11 +126,11 @@ struct BannerViewModel {
     }
 
     var action: BannerAction {
-        BannerAction(id: banner.id, type: .event(banner.event), url: url)
+        BannerAction(banner: banner, type: .event(banner.event), url: url)
     }
 
     var closeAction: BannerAction {
-        BannerAction(id: banner.id, type: .closeBanner, url: nil)
+        BannerAction(banner: banner, type: .closeBanner, url: nil)
     }
 
     var url: URL? {

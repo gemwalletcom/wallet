@@ -29,6 +29,6 @@ struct BannerButtonViewModel: Identifiable {
     }
 
     var action: BannerAction {
-        BannerAction(id: banner.id, type: .button(button), url: nil)
+        BannerAction(banner: banner, type: .button(button), url: nil)
     }
 }

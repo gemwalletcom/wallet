@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import AppService
-import GemstoneServices
-import GemstoneServicesTestKit
 import Foundation
+import protocol Gemstone.GemBannerServiceProtocol
+import GemstonePrimitivesTestKit
 
 public extension BannerSetupRunner {
     static func mock(
-        bannerSetupService: BannerSetupService = .mock(),
+        bannerService: any GemBannerServiceProtocol = GemBannerServiceMock(),
     ) -> BannerSetupRunner {
-        BannerSetupRunner(bannerSetupService: bannerSetupService)
+        BannerSetupRunner(bannerService: bannerService)
     }
 }

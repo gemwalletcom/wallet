@@ -1,25 +1,48 @@
 pub mod model;
+pub mod permissions;
 pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::{AssetId, BannerEvent, BannerState, WalletId};
+use primitives::{AssetId, BannerEvent, BannerState, Wallet, WalletId};
 
-pub use model::{GemBannerContext, GemBannerKey};
+pub use model::{GemBannerAction, GemBannerContext, GemBannerKey};
+pub use permissions::GemNotificationPermissions;
 pub use store::GemBannerStore;
 
 #[derive(uniffi::Object)]
 pub struct GemBannerService {
     store: Arc<dyn GemBannerStore>,
+    permissions: Arc<dyn GemNotificationPermissions>,
 }
 
 #[uniffi::export]
 impl GemBannerService {
     #[uniffi::constructor]
-    pub fn new(store: Arc<dyn GemBannerStore>) -> Self {
-        Self { store }
+    pub fn new(store: Arc<dyn GemBannerStore>, permissions: Arc<dyn GemNotificationPermissions>) -> Self {
+        Self { store, permissions }
+    }
+
+    pub async fn setup(&self) -> Result<(), GemServiceError> {
+        self.store.add_banners(rules::setup_keys(), BannerState::Active).await
+    }
+
+    pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
+        self.store.add_banners(rules::wallet_setup_keys(&wallet), BannerState::Active).await
+    }
+
+    pub async fn handle_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
+        let closes = match action {
+            GemBannerAction::Event { event } => rules::closes_on_action(event) && self.permissions.request_permissions_or_open_settings().await?,
+            GemBannerAction::Close => true,
+            GemBannerAction::Button => false,
+        };
+        if closes {
+            self.close(key).await?;
+        }
+        Ok(())
     }
 
     pub async fn active_events(&self, wallet_id: Option<WalletId>, asset_id: Option<AssetId>, context: GemBannerContext) -> Result<Vec<BannerEvent>, GemServiceError> {

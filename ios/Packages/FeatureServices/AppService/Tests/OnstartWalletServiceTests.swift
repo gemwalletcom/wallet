@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import AppService
+import class Gemstone.GemBannerService
+import Foundation
 import GemstoneServices
 import GemstoneServicesTestKit
-import Foundation
 import GemstonePrimitivesTestKit
 import Preferences
 import PreferencesTestKit
@@ -24,7 +25,7 @@ struct OnstartWalletServiceTests {
         let walletConfigurationService = GemWalletConfigurationServiceMock()
         let service = OnstartWalletService(
             deviceService: DeviceServiceMock(),
-            bannerSetupService: BannerSetupService(store: bannerStore, preferences: preferences),
+            bannerService: GemBannerService(store: GemstoneBannerStore(store: bannerStore), permissions: NotificationPermissionsMock()),
             walletConfigurationService: walletConfigurationService,
             pushNotificationEnablerService: PushNotificationEnablerService(preferences: preferences),
         )

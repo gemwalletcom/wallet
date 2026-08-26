@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
 import Components
@@ -24,7 +25,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     private let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
     let balanceService: any GemBalanceServiceProtocol
     let assetsEnabler: any AssetsEnabler
-    private let bannerService: BannerService
+    private let bannerService: any GemBannerServiceProtocol
     private let balanceCalculator = BalanceCalculator()
 
     let observablePreferences: ObservablePreferences
@@ -55,7 +56,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         assetDiscoveryService: any GemAssetDiscoveryServiceProtocol,
         balanceService: any GemBalanceServiceProtocol,
         assetsEnabler: any AssetsEnabler,
-        bannerService: BannerService,
+        bannerService: any GemBannerServiceProtocol,
         nftService: any GemNftServiceProtocol,
         observablePreferences: ObservablePreferences,
         wallet: Wallet,
@@ -221,7 +222,7 @@ public extension WalletSceneViewModel {
     }
 
     internal func onCloseBanner(banner: Banner) {
-        bannerService.onClose(banner)
+        Task { try await bannerService.close(key: banner.gemKey) }
     }
 
     internal func onSelectWatchWalletInfo() {
@@ -311,6 +312,6 @@ extension WalletSceneViewModel {
     }
 
     private func handleBanner(action: BannerAction) async throws {
-        try await bannerService.handleAction(action)
+        try await bannerService.handleAction(key: action.banner.gemKey, action: action.type.gemAction)
     }
 }
