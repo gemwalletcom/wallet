@@ -66,7 +66,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`EarnService`](../../ios/Packages/GemstoneServices/Sources) | `GemStakeService` | Done | Earn positions sync via `sync_earn`; Android has no earn UI yet |
 | [`FiatService`](../../ios/Packages/GemstoneServices/Sources) | `GemFiatService` | Done | Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
 | [`NFTService`](../../ios/Packages/GemstoneServices/Sources) | `GemNftService` | Done | |
-| [`NotificationService`](../../ios/Packages/GemstoneServices/Sources) | `GemNotificationService` | Done | |
+| `InAppNotificationService` | `GemNotificationService` | Done | Wrapper removed; view models call the Core service directly |
 | [`PerpetualService`](../../ios/Packages/GemstoneServices/Sources) | `GemPerpetualService` | Done | |
 | [`PriceAlertService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceAlertService` | Done | |
 | [`PriceService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceService` | Done | |
@@ -94,7 +94,7 @@ Store adapters and the thin app services are being consolidated so both apps loo
 - **iOS `Packages/GemstoneServices`** — the thin app-side services that wrap the Core services (`BalanceService.swift`, `FiatService.swift`, …), one file per service, tests under `Tests/`. The migrated `FeatureServices` move here as they are wired to `GemstoneStore`; wrappers that add nothing over the Core service (for example `AssetDiscoveryService`) are removed and callers use the Core service directly.
 - **Android** — the same split in Android's patterns: store adapters in one package (`data/repositories/.../gemstone`, one file per store) and the coordinators/repositories stay thin wrappers over the Core services.
 
-Status: GemstoneStore — done on both apps (iOS package `GemstoneStore`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: all migrated feature services moved (Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets, Balance, Earn, TransactionState, Perpetual); Stake and Node moved too; wrapper removal next.
+Status: GemstoneStore — done on both apps (iOS package `GemstoneStore`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: all migrated feature services moved (Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets, Balance, Earn, TransactionState, Perpetual); Stake and Node moved too; wrapper removal in progress (AssetDiscovery, InAppNotification, Market, Chart removed).
 
 ## Conventions
 

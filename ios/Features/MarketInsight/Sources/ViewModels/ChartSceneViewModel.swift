@@ -3,6 +3,8 @@
 import Components
 import Formatters
 import Foundation
+import protocol Gemstone.GemChartServiceProtocol
+import GemstonePrimitives
 import InfoSheet
 import Localization
 import Preferences
@@ -15,7 +17,7 @@ import SwiftUI
 @MainActor
 @Observable
 public final class ChartSceneViewModel: ChartListViewable {
-    private let service: ChartService
+    private let service: any GemChartServiceProtocol
     private let priceService: PriceService
     private let preferences: Preferences
 
@@ -53,7 +55,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     }
 
     public init(
-        service: ChartService,
+        service: any GemChartServiceProtocol,
         priceService: PriceService,
         assetModel: AssetViewModel,
         priceAlertService: PriceAlertService,
@@ -84,10 +86,7 @@ public extension ChartSceneViewModel {
     func fetch() async {
         chartState = .loading
         do {
-            let values = try await service.getCharts(
-                assetId: assetModel.asset.id,
-                period: selectedPeriod,
-            )
+            let values = try await Primitives.Charts(service.getCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.json()))
             if let market = values.market {
                 try await priceService.updateMarketPrice(assetId: assetModel.asset.id, market: market, currency: preferences.currency)
             }

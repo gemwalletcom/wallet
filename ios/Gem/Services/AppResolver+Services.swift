@@ -9,6 +9,9 @@ import ConnectionsService
 import ConnectionStatusService
 import ExplorerService
 import Foundation
+import protocol Gemstone.GemChartServiceProtocol
+import protocol Gemstone.GemPriceServiceProtocol
+import protocol Gemstone.GemNotificationServiceProtocol
 import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import Primitives
 import PrimitivesComponents
@@ -37,8 +40,8 @@ extension AppResolver {
         let streamObserverService: StreamObserverService
         let streamSubscriptionService: StreamSubscriptionService
         let priceService: PriceService
-        let chartService: ChartService
-        let marketService: MarketService
+        let chartService: any GemChartServiceProtocol
+        let marketService: any GemPriceServiceProtocol
         let stakeService: StakeService
         let transactionsService: TransactionsService
         let transactionStateScheduler: TransactionStateScheduler
@@ -69,7 +72,7 @@ extension AppResolver {
         let walletSearchService: WalletSearchService
         let assetSearchService: AssetSearchService
         let appLifecycleService: AppLifecycleService
-        let inAppNotificationService: InAppNotificationService
+        let inAppNotificationService: any GemNotificationServiceProtocol
         let portfolioService: PortfolioService
         let fiatService: FiatService
         let contactService: ContactService

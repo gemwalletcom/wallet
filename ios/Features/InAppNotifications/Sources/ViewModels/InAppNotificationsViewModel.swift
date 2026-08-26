@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import protocol Gemstone.GemNotificationServiceProtocol
 import Localization
 import GemstoneServices
 import Primitives
@@ -12,7 +13,7 @@ import UIKit
 @Observable
 @MainActor
 public final class InAppNotificationsViewModel {
-    private let notificationService: InAppNotificationService
+    private let notificationService: any GemNotificationServiceProtocol
     private let wallet: Wallet
 
     public let query: ObservableQuery<InAppNotificationsRequest>
@@ -22,7 +23,7 @@ public final class InAppNotificationsViewModel {
 
     public init(
         wallet: Wallet,
-        notificationService: InAppNotificationService,
+        notificationService: any GemNotificationServiceProtocol,
     ) {
         self.wallet = wallet
         self.notificationService = notificationService
@@ -55,7 +56,7 @@ public final class InAppNotificationsViewModel {
 public extension InAppNotificationsViewModel {
     func fetch() async {
         do {
-            try await notificationService.update(walletId: wallet.id)
+            try await notificationService.sync(walletId: wallet.id.id)
             if hasUnreadNotifications {
                 await markAsRead()
             }
@@ -66,7 +67,7 @@ public extension InAppNotificationsViewModel {
 
     private func markAsRead() async {
         do {
-            try await notificationService.markNotificationsRead()
+            try await notificationService.markRead()
         } catch {
             debugLog("markAsRead error: \(error)")
         }

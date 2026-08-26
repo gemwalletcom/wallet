@@ -8,6 +8,9 @@ import ChainService
 import ConnectionsService
 import ConnectionStatusService
 import Foundation
+import protocol Gemstone.GemChartServiceProtocol
+import protocol Gemstone.GemPriceServiceProtocol
+import protocol Gemstone.GemNotificationServiceProtocol
 import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import GRDB
 import Primitives
@@ -24,8 +27,8 @@ extension EnvironmentValues {
     @Entry var nodeService: NodeService = AppResolver.main.services.nodeService
     @Entry var serviceStatusService: any ServiceStatusServiceable = AppResolver.main.services.serviceStatusService
     @Entry var priceService: PriceService = AppResolver.main.services.priceService
-    @Entry var chartService: ChartService = AppResolver.main.services.chartService
-    @Entry var marketService: MarketService = AppResolver.main.services.marketService
+    @Entry var chartService: any GemChartServiceProtocol = AppResolver.main.services.chartService
+    @Entry var marketService: any GemPriceServiceProtocol = AppResolver.main.services.marketService
     @Entry var streamSubscriptionService: StreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
     @Entry var assetsEnabler: any AssetsEnabler = AppResolver.main.services.assetsEnabler
     @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
@@ -54,7 +57,7 @@ extension EnvironmentValues {
     @Entry var viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory
     @Entry var rewardsService: RewardsService = AppResolver.main.services.rewardsService
     @Entry var walletSearchService: WalletSearchService = AppResolver.main.services.walletSearchService
-    @Entry var inAppNotificationService: InAppNotificationService = AppResolver.main.services.inAppNotificationService
+    @Entry var inAppNotificationService: any GemNotificationServiceProtocol = AppResolver.main.services.inAppNotificationService
     @Entry var portfolioService: PortfolioService = AppResolver.main.services.portfolioService
     @Entry var contactService: ContactService = AppResolver.main.services.contactService
     @Entry var supportChatService: SupportChatService = AppResolver.main.services.supportChatService

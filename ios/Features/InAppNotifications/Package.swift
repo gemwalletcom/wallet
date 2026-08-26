@@ -22,6 +22,7 @@ let package = Package(
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
     ],
     targets: [

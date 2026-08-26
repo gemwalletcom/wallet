@@ -74,12 +74,12 @@ struct ServicesFactory {
         )
         let gemApiClient = Gemstone.GemApiClient(provider: nativeProvider, baseUrl: Constants.apiURL.absoluteString)
         let gemStaticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
-        let chartService = ChartService(service: Gemstone.GemChartService(api: gemApiClient))
+        let chartService = Gemstone.GemChartService(api: gemApiClient)
         let gemPriceService = Gemstone.GemPriceService(
             api: gemApiClient,
             store: GemstonePriceStore(priceStore: storeManager.priceStore, fiatRateStore: storeManager.fiatRateStore),
         )
-        let marketService = MarketService(service: gemPriceService)
+        let marketService = gemPriceService
         let priceService = PriceService(priceStore: storeManager.priceStore, service: gemPriceService)
         let gemAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
         let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient, store: gemAssetStore, price: gemPriceService, preferences: preferencesService)
@@ -307,11 +307,9 @@ struct ServicesFactory {
             assetsService: assetsService,
             searchStore: storeManager.searchStore,
         )
-        let inAppNotificationService = InAppNotificationService(
-            service: Gemstone.GemNotificationService(
-                api: gemDeviceApiClient,
-                store: GemstoneNotificationStore(store: storeManager.inAppNotificationStore),
-            ),
+        let inAppNotificationService = Gemstone.GemNotificationService(
+            api: gemDeviceApiClient,
+            store: GemstoneNotificationStore(store: storeManager.inAppNotificationStore),
         )
 
         let contactService = ContactService(

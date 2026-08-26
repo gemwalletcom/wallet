@@ -3,6 +3,8 @@
 import GemstoneServices
 import Components
 import Foundation
+import protocol Gemstone.GemPriceServiceProtocol
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 
@@ -11,11 +13,11 @@ import PrimitivesComponents
 public final class MarketsSceneViewModel: Sendable {
     var state: StateViewType<MarketsViewModel> = .noData
 
-    let service: MarketService
+    let service: any GemPriceServiceProtocol
     let assetsService: AssetsService
 
     public init(
-        service: MarketService,
+        service: any GemPriceServiceProtocol,
         assetsService: AssetsService,
     ) {
         self.service = service
@@ -25,7 +27,7 @@ public final class MarketsSceneViewModel: Sendable {
     func fetch() async {
         state = .loading
         do {
-            let markets = try await service.getMarkets()
+            let markets = try await Markets(service.getMarkets())
             let assets = [markets.assets.gainers, markets.assets.losers, markets.assets.trending]
                 .compactMap(\.self)
                 .flatMap(\.self)
