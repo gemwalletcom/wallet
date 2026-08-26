@@ -9,7 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemNodeAuthConfig
-import uniffi.gemstone.GemPreferences
+import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.nodeAuthConfig
 import uniffi.gemstone.GemDeviceService
 import com.gemwallet.android.serializer.decodeJson
@@ -18,7 +18,7 @@ import com.gemwallet.android.serializer.toJson
 class NodeAuthTokenService(
     private val deviceService: GemDeviceService,
     private val isDeviceRegistered: IsDeviceRegistered,
-    private val preferences: GemPreferences,
+    private val preferences: GemPreferencesStore,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
     private val currentTimeSeconds: () -> ULong = { (System.currentTimeMillis() / 1_000).toULong() },
     private val config: GemNodeAuthConfig = nodeAuthConfig(),

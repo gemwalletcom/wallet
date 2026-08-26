@@ -8,6 +8,7 @@ import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.ext.userMessage
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.CheckAccountsService
+import com.gemwallet.android.data.repositories.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.services.MigrateV3KeystoreService
 import com.gemwallet.android.services.SyncService
 import com.wallet.core.primitives.Appearance
@@ -34,6 +35,7 @@ class MainViewModel @Inject constructor(
     private val bridgesRepository: BridgesRepository,
     private val syncService: SyncService,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
+    private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
     private val checkAccountsService: CheckAccountsService,
     private val lockTimer: LockTimer,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
@@ -102,6 +104,7 @@ class MainViewModel @Inject constructor(
     internal fun maintain() {
         viewModelScope.launch(Dispatchers.IO) { syncService.sync() }
         viewModelScope.launch(Dispatchers.IO) {
+            migratePriceAlertsPreference()
             migrateV3KeystoreService()
             checkAccountsService()
         }

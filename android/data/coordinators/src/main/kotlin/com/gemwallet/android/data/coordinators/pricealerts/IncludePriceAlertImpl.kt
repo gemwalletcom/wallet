@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
 import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAlert
-import com.gemwallet.android.cases.device.SyncDevice
+import com.gemwallet.android.application.pricealerts.coordinators.SetPriceAlertsEnabled
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.wallet.core.primitives.AssetId
@@ -10,7 +10,6 @@ import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.firstOrNull
 import uniffi.gemstone.GemPriceAlertService
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -19,7 +18,7 @@ class IncludePriceAlertImpl(
     private val priceAlertService: GemPriceAlertService,
     private val sessionRepository: SessionRepository,
     private val priceAlertRepository: PriceAlertRepository,
-    private val syncDevice: SyncDevice,
+    private val setPriceAlertsEnabled: SetPriceAlertsEnabled,
 ) : IncludePriceAlert {
 
     override suspend fun invoke(
@@ -50,13 +49,8 @@ class IncludePriceAlertImpl(
     }
 
     private suspend fun enablePriceAlertsIfNeeded() {
-        if (priceAlertRepository.isPriceAlertsEnabled().firstOrNull() == true) {
-            return
-        }
-
-        priceAlertRepository.togglePriceAlerts(true)
         try {
-            syncDevice.syncDevice()
+            setPriceAlertsEnabled(true)
         } catch (_: Exception) {
             currentCoroutineContext().ensureActive()
         }

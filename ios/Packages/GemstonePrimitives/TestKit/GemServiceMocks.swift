@@ -82,8 +82,38 @@ public final class GemSubscriptionServiceMock: GemSubscriptionServiceProtocol, @
     }
 }
 
+public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @unchecked Sendable {
+    private let lock = NSLock()
+    private var priceAlertsEnabled: Bool
+
+    public init(priceAlertsEnabled: Bool = false) {
+        self.priceAlertsEnabled = priceAlertsEnabled
+    }
+
+    public func isPriceAlertsEnabled() throws -> Bool {
+        lock.withLock { priceAlertsEnabled }
+    }
+
+    public func setPriceAlertsEnabled(enabled: Bool) throws {
+        lock.withLock { priceAlertsEnabled = enabled }
+    }
+}
+
 public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unchecked Sendable {
-    public init() {}
+    private let lock = NSLock()
+    private var enabled: Bool
+
+    public init(enabled: Bool = false) {
+        self.enabled = enabled
+    }
+
+    public func isEnabled() throws -> Bool {
+        lock.withLock { enabled }
+    }
+
+    public func setEnabled(enabled: Bool) throws {
+        lock.withLock { self.enabled = enabled }
+    }
 
     public func sync(assetId _: String?) async throws {}
 

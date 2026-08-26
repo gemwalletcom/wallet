@@ -13,12 +13,11 @@ import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAle
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.coordinators.pricealerts.ExcludePriceAlertImpl
 import com.gemwallet.android.data.coordinators.pricealerts.GetAssetPriceAlertStateImpl
-import com.gemwallet.android.data.coordinators.pricealerts.GetPriceAlertsEnabledImpl
 import com.gemwallet.android.data.coordinators.pricealerts.GetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.HasAssetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.IncludePriceAlertImpl
 import com.gemwallet.android.data.coordinators.pricealerts.SetAssetPriceAlertEnabledImpl
-import com.gemwallet.android.data.coordinators.pricealerts.SetPriceAlertsEnabledImpl
+import com.gemwallet.android.data.coordinators.pricealerts.PriceAlertsEnabledCoordinator
 import com.gemwallet.android.data.coordinators.pricealerts.SyncAssetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.UpdatePriceAlertsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -40,13 +39,13 @@ object PriceAlertModule {
         priceAlertService: GemPriceAlertService,
         priceAlertRepository: PriceAlertRepository,
         sessionRepository: SessionRepository,
-        syncDevice: SyncDevice,
+        setPriceAlertsEnabled: SetPriceAlertsEnabled,
     ): IncludePriceAlert {
         return IncludePriceAlertImpl(
             priceAlertService = priceAlertService,
             priceAlertRepository = priceAlertRepository,
             sessionRepository = sessionRepository,
-            syncDevice = syncDevice,
+            setPriceAlertsEnabled = setPriceAlertsEnabled,
         )
     }
 
@@ -64,25 +63,16 @@ object PriceAlertModule {
 
     @Provides
     @Singleton
-    fun provideGetPriceAlertsEnabled(
-        priceAlertRepository: PriceAlertRepository,
-    ): GetPriceAlertsEnabled {
-        return GetPriceAlertsEnabledImpl(
-            priceAlertRepository = priceAlertRepository,
-        )
-    }
+    fun providePriceAlertsEnabledCoordinator(
+        priceAlertService: GemPriceAlertService,
+        syncDevice: SyncDevice,
+    ): PriceAlertsEnabledCoordinator = PriceAlertsEnabledCoordinator(priceAlertService, syncDevice)
 
     @Provides
-    @Singleton
-    fun provideSetPriceAlertsEnabled(
-        priceAlertRepository: PriceAlertRepository,
-        syncDevice: SyncDevice,
-    ): SetPriceAlertsEnabled {
-        return SetPriceAlertsEnabledImpl(
-            priceAlertRepository = priceAlertRepository,
-            syncDevice = syncDevice,
-        )
-    }
+    fun provideGetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): GetPriceAlertsEnabled = coordinator
+
+    @Provides
+    fun provideSetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): SetPriceAlertsEnabled = coordinator
 
     @Provides
     @Singleton

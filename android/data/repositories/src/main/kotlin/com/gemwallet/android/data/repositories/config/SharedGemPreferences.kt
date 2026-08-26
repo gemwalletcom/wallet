@@ -2,11 +2,11 @@ package com.gemwallet.android.data.repositories.config
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import uniffi.gemstone.GemPreferences
+import uniffi.gemstone.GemPreferencesStore
 
 class SharedGemPreferences(
     private val sharedPreferences: SharedPreferences
-) : GemPreferences {
+) : GemPreferencesStore {
 
     override fun get(key: String): String? {
         return sharedPreferences.getString(key, null)

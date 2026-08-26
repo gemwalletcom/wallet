@@ -37,12 +37,20 @@ public final class PriceAlertsSceneViewModel: Sendable {
         Localized.Settings.enableValue("")
     }
 
+    @ObservationIgnored
     var isPriceAlertsEnabled: Bool {
         get {
-            preferences.isPriceAlertsEnabled
+            access(keyPath: \.isPriceAlertsEnabled)
+            return (try? priceAlertService.isEnabled()) ?? false
         }
         set {
-            preferences.isPriceAlertsEnabled = newValue
+            withMutation(keyPath: \.isPriceAlertsEnabled) {
+                do {
+                    try priceAlertService.setEnabled(newValue)
+                } catch {
+                    debugLog("setPriceAlertsEnabled error: \(error)")
+                }
+            }
         }
     }
 

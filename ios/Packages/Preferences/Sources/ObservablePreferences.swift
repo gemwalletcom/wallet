@@ -31,19 +31,6 @@ public final class ObservablePreferences: Sendable {
     }
 
     @ObservationIgnored
-    public var isPriceAlertsEnabled: Bool {
-        get {
-            access(keyPath: \.isPriceAlertsEnabled)
-            return preferences.isPriceAlertsEnabled
-        }
-        set {
-            withMutation(keyPath: \.isPriceAlertsEnabled) {
-                preferences.isPriceAlertsEnabled = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored
     public var isDeveloperEnabled: Bool {
         get {
             access(keyPath: \.isDeveloperEnabled)

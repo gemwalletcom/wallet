@@ -1,10 +1,5 @@
 package com.gemwallet.android.data.repositories.pricealerts
 
-import android.content.Context
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.preferencesDataStore
-import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
@@ -20,28 +15,12 @@ import kotlinx.coroutines.flow.mapLatest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PriceAlertRepositoryImpl(
-    private val context: Context,
     private val priceAlertsDao: PriceAlertsDao,
-    private val configStore: ConfigStore,
 ) : PriceAlertRepository {
-
-    private val Context.dataStore by preferencesDataStore(name = "price_alerts")
-
-    override suspend fun togglePriceAlerts(enabled: Boolean) {
-        context.dataStore.edit { preferences -> preferences[Key.isPriceAlertsEnabled] = enabled }
-    }
 
     override suspend fun hasAssetPriceAlerts(assetId: AssetId): Boolean {
         return priceAlertsDao.hasAssetPriceAlerts(assetId.toIdentifier())
     }
-
-    override fun isPriceAlertsEnabled(): Flow<Boolean> = context.dataStore.data
-        .map { preferences ->
-            if (preferences[Key.isPriceAlertsEnabled] == null) { // TODO: Migration
-                togglePriceAlerts(configStore.getBoolean("price_alerts_enabled"))
-            }
-            preferences[Key.isPriceAlertsEnabled] == true
-        }
 
     override suspend fun getPriceAlert(priceAlertId: Int): PriceAlertInfo? {
         return priceAlertsDao.getPriceAlert(priceAlertId)?.toDTO()
@@ -83,8 +62,4 @@ class PriceAlertRepositoryImpl(
         priceAlertsDao.enabled(priceAlertId, true)
     }
 
-
-    private object Key {
-        val isPriceAlertsEnabled = booleanPreferencesKey("price_alerts_enabled")
-    }
 }

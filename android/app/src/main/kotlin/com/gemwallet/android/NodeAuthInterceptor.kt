@@ -4,11 +4,11 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
 import uniffi.gemstone.Config
-import uniffi.gemstone.GemPreferences
+import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.NodeRegion
 
 class NodeAuthInterceptor(
-    private val preferences: GemPreferences,
+    private val preferences: GemPreferencesStore,
     private val nodesDomain: String = Config().getNodeBaseUrl(NodeRegion.US).toHttpUrl().host,
     private val currentTimeSeconds: () -> ULong = { (System.currentTimeMillis() / 1_000).toULong() },
 ) : Interceptor {

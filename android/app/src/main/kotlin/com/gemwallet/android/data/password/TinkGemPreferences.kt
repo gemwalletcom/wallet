@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.password
 
 import android.content.Context
-import uniffi.gemstone.GemPreferences
+import uniffi.gemstone.GemPreferencesStore
 
 internal const val GEM_PREFERENCES_FILE_NAME = "gem_secure_preferences"
 private const val GEM_PREFERENCES_NAMESPACE = "gateway_secure_preferences"
@@ -20,7 +20,7 @@ private val GEM_PREFERENCES_STORE_CONFIG = TinkStoreConfig(
 class TinkGemPreferences private constructor(
     private val encryptedStore: SecureStringStore,
     private val legacyStore: SecureStringStore,
-) : GemPreferences {
+) : GemPreferencesStore {
 
     constructor(context: Context) : this(
         encryptedStore = TinkEncryptedKeyValueStore.create(

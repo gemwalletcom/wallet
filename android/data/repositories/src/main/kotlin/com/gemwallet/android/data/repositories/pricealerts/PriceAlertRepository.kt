@@ -6,10 +6,6 @@ import com.wallet.core.primitives.PriceAlert
 import kotlinx.coroutines.flow.Flow
 
 interface PriceAlertRepository {
-    fun isPriceAlertsEnabled(): Flow<Boolean>
-
-    suspend fun togglePriceAlerts(enabled: Boolean)
-
     suspend fun hasAssetPriceAlerts(assetId: AssetId): Boolean
 
     suspend fun getSamePriceAlert(priceAlert: PriceAlert): PriceAlertInfo?

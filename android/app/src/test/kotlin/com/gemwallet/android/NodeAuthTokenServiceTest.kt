@@ -12,12 +12,12 @@ import kotlinx.coroutines.test.runTest
 import uniffi.gemstone.GemDeviceService
 import org.junit.Test
 import uniffi.gemstone.GemNodeAuthConfig
-import uniffi.gemstone.GemPreferences
+import uniffi.gemstone.GemPreferencesStore
 
 class NodeAuthTokenServiceTest {
     private val deviceService = mockk<GemDeviceService>()
     private val isDeviceRegistered = mockk<IsDeviceRegistered>()
-    private val preferences = mockk<GemPreferences>(relaxed = true)
+    private val preferences = mockk<GemPreferencesStore>(relaxed = true)
     private val config = GemNodeAuthConfig(checkIntervalSeconds = 60u, refreshThresholdSeconds = 300u)
 
     @Test

@@ -22,18 +22,19 @@ use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_xrp::rpc::XrpClient;
 use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_cosmos::CosmosChain};
 
-use super::{GatewayError, GemPreferences, PreferencesWrapper};
+use super::{GatewayError, PreferencesWrapper};
 use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
 use crate::network::JsonRpcClient;
+use crate::services::preferences::GemPreferencesStore;
 
 pub struct ChainClientFactory {
     alien: Arc<dyn AlienProvider>,
-    preferences: Arc<dyn GemPreferences>,
-    secure_preferences: Arc<dyn GemPreferences>,
+    preferences: Arc<dyn GemPreferencesStore>,
+    secure_preferences: Arc<dyn GemPreferencesStore>,
 }
 
 impl ChainClientFactory {
-    pub fn new(alien: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferences>, secure_preferences: Arc<dyn GemPreferences>) -> Self {
+    pub fn new(alien: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemPreferencesStore>) -> Self {
         Self {
             alien,
             preferences,

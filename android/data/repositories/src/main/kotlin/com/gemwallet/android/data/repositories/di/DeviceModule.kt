@@ -12,7 +12,6 @@ import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.device.DeviceObserverService
 import com.gemwallet.android.data.repositories.device.DeviceRepository
 import com.gemwallet.android.data.repositories.device.GemstoneDeviceStore
-import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.wallets.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
@@ -26,6 +25,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSubscriptionService
 import javax.inject.Named
 import javax.inject.Singleton
@@ -64,7 +64,7 @@ object DeviceModule {
         deviceService: GemDeviceService,
         deviceStore: GemstoneDeviceStore,
         getDeviceId: GetDeviceId,
-        priceAlertRepository: PriceAlertRepository,
+        preferencesService: GemPreferencesService,
         getCurrentCurrency: GetCurrentCurrency,
         notificationsAvailable: NotificationsAvailable,
     ): DeviceRepository {
@@ -78,7 +78,7 @@ object DeviceModule {
             platformStore = buildInfo.platformStore,
             notificationsAvailable = notificationsAvailable,
             versionName = buildInfo.versionName,
-            priceAlertRepository = priceAlertRepository,
+            preferencesService = preferencesService,
             getCurrentCurrency = getCurrentCurrency,
         )
     }

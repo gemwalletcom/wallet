@@ -14,7 +14,6 @@ import com.gemwallet.android.cases.device.RequestPushToken
 import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
@@ -32,6 +31,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemPreferencesService
 import java.util.Locale
 
 class DeviceRepository(
@@ -44,7 +44,7 @@ class DeviceRepository(
     private val notificationsAvailable: NotificationsAvailable,
     private val versionName: String,
     private val getDeviceId: GetDeviceId,
-    private val priceAlertRepository: PriceAlertRepository,
+    private val preferencesService: GemPreferencesService,
     private val getCurrentCurrency: GetCurrentCurrency,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : SwitchPushEnabled,
@@ -130,7 +130,7 @@ class DeviceRepository(
             token = pushToken,
             locale = getDeviceLocale(Locale.getDefault()),
             isPushEnabled = pushEnabled,
-            isPriceAlertsEnabled = priceAlertRepository.isPriceAlertsEnabled().firstOrNull(),
+            isPriceAlertsEnabled = preferencesService.isPriceAlertsEnabled(),
             version = versionName,
             currency = getCurrentCurrency.getCurrentCurrency(),
             subscriptionsVersion = 0,

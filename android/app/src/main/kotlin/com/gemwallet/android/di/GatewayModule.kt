@@ -41,7 +41,7 @@ import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemApiClient as GemstoneApiClient
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemStaticApiClient
-import uniffi.gemstone.GemPreferences
+import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.PaymentService
 import uniffi.gemstone.PaymentServiceInterface
 import uniffi.gemstone.GemServiceStatus
@@ -56,14 +56,14 @@ object GatewayModule {
 
     @Singleton
     @Provides
-    fun provideGemPreferences(@ApplicationContext context: Context): GemPreferences = TinkGemPreferences(context)
+    fun provideGemPreferencesStore(@ApplicationContext context: Context): GemPreferencesStore = TinkGemPreferences(context)
 
     @Singleton
     @Provides
     fun provideNodeAuthTokenService(
         deviceService: GemDeviceService,
         isDeviceRegistered: IsDeviceRegistered,
-        preferences: GemPreferences,
+        preferences: GemPreferencesStore,
     ): NodeAuthTokenService = NodeAuthTokenService(deviceService, isDeviceRegistered, preferences)
 
     @Singleton
@@ -87,7 +87,7 @@ object GatewayModule {
     @Singleton
     fun provideGateway(
         alienProvider: AlienProvider,
-        securePreferences: GemPreferences,
+        securePreferences: GemPreferencesStore,
         @ApplicationContext context: Context,
     ): GemGateway {
         return GemGateway(
@@ -188,7 +188,7 @@ object GatewayModule {
 
     @Singleton
     @Provides
-    fun provideNodeAuthInterceptor(preferences: GemPreferences): NodeAuthInterceptor = NodeAuthInterceptor(preferences)
+    fun provideNodeAuthInterceptor(preferences: GemPreferencesStore): NodeAuthInterceptor = NodeAuthInterceptor(preferences)
 
     @Provides
     @Singleton

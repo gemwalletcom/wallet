@@ -10,10 +10,10 @@ import okhttp3.Request
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import uniffi.gemstone.GemPreferences
+import uniffi.gemstone.GemPreferencesStore
 
 class NodeAuthInterceptorTest {
-    private val preferences = mockk<GemPreferences>()
+    private val preferences = mockk<GemPreferencesStore>()
 
     @Test
     fun interceptAddsValidTokenOnlyToGemNodes() {

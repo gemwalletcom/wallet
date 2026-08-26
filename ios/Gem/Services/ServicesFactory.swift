@@ -55,6 +55,7 @@ struct ServicesFactory {
     func makeServices(storages: AppResolver.Storages, navigation: NavigationStateManager) -> AppResolver.Services {
         let storeManager = StoreManager(db: storages.db)
         let securePreferences = SecurePreferences()
+        let preferencesService = Gemstone.GemPreferencesService(store: GemstonePreferences(namespace: "gemstone_"))
         let nodeService = NodeService(
             nodeStore: storeManager.nodeStore,
             service: GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore)),
@@ -72,6 +73,7 @@ struct ServicesFactory {
         )
         let deviceService = DeviceService(
             deviceProvider: gemDeviceService,
+            preferencesService: preferencesService,
             securePreferences: securePreferences,
         )
         let gemDeviceApiClient = Self.makeDeviceApiClient(
@@ -198,7 +200,7 @@ struct ServicesFactory {
             webSocket: webSocket,
         )
         let priceAlertService = Self.makePriceAlertService(
-            apiService: Gemstone.GemPriceAlertService(api: gemDeviceApiClient, store: GemstonePriceAlertStore(store: storeManager.priceAlertStore)),
+            apiService: Gemstone.GemPriceAlertService(api: gemDeviceApiClient, preferences: preferencesService, store: GemstonePriceAlertStore(store: storeManager.priceAlertStore)),
             priceAlertStore: storeManager.priceAlertStore,
             deviceService: deviceService,
             priceUpdater: streamSubscriptionService,
@@ -272,6 +274,7 @@ struct ServicesFactory {
             assetStore: storeManager.assetStore,
             nodeStore: storeManager.nodeStore,
             preferences: preferences,
+            preferencesService: preferencesService,
             walletService: walletService,
         )
         let onstartAsyncService = Self.makeOnstartAsyncService(
@@ -521,7 +524,6 @@ extension ServicesFactory {
             apiService: apiService,
             deviceService: deviceService,
             priceUpdater: priceUpdater,
-            preferences: preferences,
             pushNotificationService: PushNotificationEnablerService(preferences: preferences),
         )
     }

@@ -4,8 +4,6 @@ import DeviceServiceTestKit
 import Foundation
 import GemstonePrimitivesTestKit
 import NotificationServiceTestKit
-import Preferences
-import PreferencesTestKit
 @testable import PriceAlertService
 import PriceAlertServiceTestKit
 import Primitives
@@ -18,20 +16,20 @@ struct PriceAlertServiceTests {
     @Test
     func enableAlertRequestsPermissionsAndEnablesAlerts() async throws {
         let store = try createStore()
-        let preferences = Preferences.mock()
+        let apiService = GemPriceAlertServiceMock()
         let pushNotificationService = PushNotificationEnablerMock()
         let deviceService = DeviceServiceMock()
         let service = PriceAlertService.mock(
             store: store,
+            apiService: apiService,
             deviceService: deviceService,
-            preferences: preferences,
             pushNotificationService: pushNotificationService,
         )
 
         try await service.enable(priceAlert: .mock(assetId: .mock(.bitcoin)))
 
         #expect(pushNotificationService.didRequestPermissions)
-        #expect(preferences.isPriceAlertsEnabled)
+        #expect(try apiService.isEnabled())
         #expect(try store.getPriceAlerts().count == 1)
         #expect(await deviceService.updateCalls == 1)
     }
@@ -39,13 +37,11 @@ struct PriceAlertServiceTests {
     @Test
     func enableAlertSyncsDeviceWhenPriceAlertsAlreadyEnabled() async throws {
         let store = try createStore()
-        let preferences = Preferences.mock()
-        preferences.isPriceAlertsEnabled = true
         let deviceService = DeviceServiceMock()
         let service = PriceAlertService.mock(
             store: store,
+            apiService: GemPriceAlertServiceMock(enabled: true),
             deviceService: deviceService,
-            preferences: preferences,
         )
 
         try await service.enable(priceAlert: .mock(assetId: .mock(.bitcoin)))

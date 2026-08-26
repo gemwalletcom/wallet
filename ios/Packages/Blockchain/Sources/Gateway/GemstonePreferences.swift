@@ -3,11 +3,11 @@
 import Foundation
 import Gemstone
 
-final class GemstonePreferences: GemPreferences, @unchecked Sendable {
+public final class GemstonePreferences: GemPreferencesStore, @unchecked Sendable {
     private let userDefaults: UserDefaults
     private let namespace: String
 
-    init(
+    public init(
         namespace: String,
         userDefaults: UserDefaults = .standard,
     ) {
@@ -15,15 +15,15 @@ final class GemstonePreferences: GemPreferences, @unchecked Sendable {
         self.userDefaults = userDefaults
     }
 
-    func get(key: String) throws -> String? {
+    public func get(key: String) throws -> String? {
         userDefaults.string(forKey: namespace + key)
     }
 
-    func set(key: String, value: String) throws {
+    public func set(key: String, value: String) throws {
         userDefaults.set(value, forKey: namespace + key)
     }
 
-    func remove(key: String) throws {
+    public func remove(key: String) throws {
         userDefaults.removeObject(forKey: namespace + key)
     }
 }

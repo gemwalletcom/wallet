@@ -7,6 +7,7 @@ use std::sync::Arc;
 use primitives::{AssetId, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::services::preferences::GemPreferencesService;
 
 pub use error::GemPriceAlertError;
 pub use store::GemPriceAlertStore;
@@ -14,14 +15,23 @@ pub use store::GemPriceAlertStore;
 #[derive(uniffi::Object)]
 pub struct GemPriceAlertService {
     api: Arc<GemDeviceApiClient>,
+    preferences: Arc<GemPreferencesService>,
     store: Arc<dyn GemPriceAlertStore>,
 }
 
 #[uniffi::export]
 impl GemPriceAlertService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemPriceAlertStore>) -> Self {
-        Self { api, store }
+    pub fn new(api: Arc<GemDeviceApiClient>, preferences: Arc<GemPreferencesService>, store: Arc<dyn GemPriceAlertStore>) -> Self {
+        Self { api, preferences, store }
+    }
+
+    pub fn is_enabled(&self) -> Result<bool, GemPriceAlertError> {
+        Ok(self.preferences.is_price_alerts_enabled()?)
+    }
+
+    pub fn set_enabled(&self, enabled: bool) -> Result<(), GemPriceAlertError> {
+        Ok(self.preferences.set_price_alerts_enabled(enabled)?)
     }
 
     pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemPriceAlertError> {

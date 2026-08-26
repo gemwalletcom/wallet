@@ -86,9 +86,6 @@ public final class Preferences: @unchecked Sendable {
     @ConfigurableDefaults(key: Keys.isPushNotificationsEnabled, defaultValue: false)
     public var isPushNotificationsEnabled: Bool
 
-    @ConfigurableDefaults(key: Keys.isPriceAlertsEnabled, defaultValue: false)
-    public var isPriceAlertsEnabled: Bool
-
     @ConfigurableDefaults(key: Keys.isSubscriptionsEnabled, defaultValue: true)
     public var isSubscriptionsEnabled: Bool
 
@@ -171,7 +168,6 @@ public final class Preferences: @unchecked Sendable {
         configure(\._pushedSubscriptions, key: Keys.pushedSubscriptions, defaultValue: nil)
         configure(\._currentWalletId, key: Keys.currentWalletId, defaultValue: nil)
         configure(\._isPushNotificationsEnabled, key: Keys.isPushNotificationsEnabled, defaultValue: false)
-        configure(\._isPriceAlertsEnabled, key: Keys.isPriceAlertsEnabled, defaultValue: false)
         configure(\._isSubscriptionsEnabled, key: Keys.isSubscriptionsEnabled, defaultValue: true)
         configure(\._rateApplicationShown, key: Keys.rateApplicationShown, defaultValue: false)
         configure(\._authenticationLockOption, key: Keys.authenticationLockOption, defaultValue: 0)
@@ -190,6 +186,12 @@ public final class Preferences: @unchecked Sendable {
         configure(\._perpetualStopLoss, key: Keys.perpetualStopLoss, defaultValue: 0)
         configure(\._isDeviceRegistered, key: Keys.isDeviceRegistered, defaultValue: false)
         configure(\._appearanceRawValue, key: Keys.appearance, defaultValue: Appearance.system.rawValue)
+    }
+
+    public func removeLegacyPriceAlertsEnabled() -> Bool? {
+        let enabled = defaults.object(forKey: Keys.isPriceAlertsEnabled) as? Bool
+        defaults.removeObject(forKey: Keys.isPriceAlertsEnabled)
+        return enabled
     }
 
     public func incrementLaunchesCount() {

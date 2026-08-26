@@ -7,8 +7,6 @@ import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstonePrimitivesTestKit
 import NotificationService
 import NotificationServiceTestKit
-import Preferences
-import PreferencesTestKit
 import PriceAlertService
 import PriceService
 import PriceServiceTestKit
@@ -21,7 +19,6 @@ public extension PriceAlertService {
         apiService: any GemPriceAlertServiceProtocol = GemPriceAlertServiceMock(),
         deviceService: any DeviceServiceable = DeviceServiceMock(),
         priceUpdater: any PriceUpdater = .mock(),
-        preferences: Preferences = .mock(),
         pushNotificationService: any PushNotificationEnabler = PushNotificationEnablerMock(),
     ) -> PriceAlertService {
         PriceAlertService(
@@ -29,7 +26,6 @@ public extension PriceAlertService {
             apiService: apiService,
             deviceService: deviceService,
             priceUpdater: priceUpdater,
-            preferences: preferences,
             pushNotificationService: pushNotificationService,
         )
     }

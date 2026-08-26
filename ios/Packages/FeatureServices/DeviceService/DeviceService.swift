@@ -14,6 +14,7 @@ public struct DeviceService: DeviceServiceable {
     private static let nodeAuthTokenRefreshThreshold = UInt64(nodeAuthConfiguration.refreshThresholdSeconds)
 
     private let deviceProvider: any GemDeviceServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let preferences: Preferences
     private let securePreferences: SecurePreferences
     private let syncCoordinator: DeviceSyncCoordinator
@@ -21,10 +22,12 @@ public struct DeviceService: DeviceServiceable {
 
     public init(
         deviceProvider: any GemDeviceServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
         preferences: Preferences = .standard,
         securePreferences: SecurePreferences = SecurePreferences(),
     ) {
         self.deviceProvider = deviceProvider
+        self.preferencesService = preferencesService
         self.preferences = preferences
         self.securePreferences = securePreferences
         syncCoordinator = DeviceSyncCoordinator()
@@ -103,7 +106,7 @@ public struct DeviceService: DeviceServiceable {
             version: Bundle.main.releaseVersionNumber,
             currency: try Currency(id: preferences.currency),
             isPushEnabled: preferences.isPushNotificationsEnabled,
-            isPriceAlertsEnabled: preferences.isPriceAlertsEnabled,
+            isPriceAlertsEnabled: try preferencesService.isPriceAlertsEnabled(),
             subscriptionsVersion: 0,
         )
     }

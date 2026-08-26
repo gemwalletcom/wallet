@@ -1,15 +1,9 @@
-use super::GatewayError;
 use std::sync::Arc;
 
-#[uniffi::export(with_foreign)]
-pub trait GemPreferences: Send + Sync {
-    fn get(&self, key: String) -> Result<Option<String>, GatewayError>;
-    fn set(&self, key: String, value: String) -> Result<(), GatewayError>;
-    fn remove(&self, key: String) -> Result<(), GatewayError>;
-}
+use crate::services::preferences::GemPreferencesStore;
 
 pub(crate) struct PreferencesWrapper {
-    pub(crate) preferences: Arc<dyn GemPreferences>,
+    pub(crate) preferences: Arc<dyn GemPreferencesStore>,
 }
 
 impl primitives::Preferences for PreferencesWrapper {
@@ -31,16 +25,16 @@ impl primitives::Preferences for PreferencesWrapper {
 pub struct EmptyPreferences;
 
 #[cfg(test)]
-impl GemPreferences for EmptyPreferences {
-    fn get(&self, _key: String) -> Result<Option<String>, GatewayError> {
+impl GemPreferencesStore for EmptyPreferences {
+    fn get(&self, _key: String) -> Result<Option<String>, crate::services::preferences::GemPreferencesError> {
         Ok(None)
     }
 
-    fn set(&self, _key: String, _value: String) -> Result<(), GatewayError> {
+    fn set(&self, _key: String, _value: String) -> Result<(), crate::services::preferences::GemPreferencesError> {
         Ok(())
     }
 
-    fn remove(&self, _key: String) -> Result<(), GatewayError> {
+    fn remove(&self, _key: String) -> Result<(), crate::services::preferences::GemPreferencesError> {
         Ok(())
     }
 }

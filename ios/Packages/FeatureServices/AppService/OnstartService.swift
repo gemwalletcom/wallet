@@ -3,6 +3,7 @@
 import AssetsService
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
 import NodeService
 import Preferences
 import Primitives
@@ -18,6 +19,7 @@ public struct OnstartService: Sendable {
     private let assetStore: AssetStore
     private let nodeStore: NodeStore
     private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let walletService: WalletService
 
     public init(
@@ -26,6 +28,7 @@ public struct OnstartService: Sendable {
         assetStore: AssetStore,
         nodeStore: NodeStore,
         preferences: Preferences,
+        preferencesService: any GemPreferencesServiceProtocol,
         walletService: WalletService,
     ) {
         self.assetsProvider = assetsProvider
@@ -33,6 +36,7 @@ public struct OnstartService: Sendable {
         self.assetStore = assetStore
         self.nodeStore = nodeStore
         self.preferences = preferences
+        self.preferencesService = preferencesService
         self.walletService = walletService
     }
 
@@ -43,6 +47,7 @@ public struct OnstartService: Sendable {
         do {
             try excludeDirectoriesFromBackup()
             try migrateAssets()
+            try migratePriceAlertsPreference()
             configureDefaultCurrency()
         } catch {
             debugLog("configure error: \(error)")
@@ -78,6 +83,11 @@ extension OnstartService {
             assetStore: assetStore,
             preferences: preferences,
         ).migrate()
+    }
+
+    private func migratePriceAlertsPreference() throws {
+        guard let enabled = preferences.removeLegacyPriceAlertsEnabled() else { return }
+        try preferencesService.setPriceAlertsEnabled(enabled: enabled)
     }
 
     private func configureDefaultCurrency() {

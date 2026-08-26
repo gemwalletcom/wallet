@@ -1,4 +1,5 @@
 use crate::api::GemApiError;
+use crate::services::preferences::GemPreferencesError;
 
 #[derive(Debug, uniffi::Error)]
 pub enum GemPriceAlertError {
@@ -15,6 +16,12 @@ impl std::fmt::Display for GemPriceAlertError {
 }
 
 impl std::error::Error for GemPriceAlertError {}
+
+impl From<GemPreferencesError> for GemPriceAlertError {
+    fn from(error: GemPreferencesError) -> Self {
+        Self::Store { msg: error.to_string() }
+    }
+}
 
 impl From<GemApiError> for GemPriceAlertError {
     fn from(error: GemApiError) -> Self {

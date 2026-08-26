@@ -109,6 +109,7 @@ private extension DeviceServiceTests {
     ) -> DeviceService {
         DeviceService(
             deviceProvider: deviceProvider,
+            preferencesService: GemPreferencesServiceMock(),
             preferences: preferences,
             securePreferences: securePreferences,
         )

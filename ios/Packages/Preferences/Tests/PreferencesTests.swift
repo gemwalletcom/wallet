@@ -7,6 +7,19 @@ import Primitives
 import Testing
 
 struct PreferencesTests {
+    @Test
+    func removeLegacyPriceAlertsEnabledReturnsValueOnce() {
+        let defaults = UserDefaults(suiteName: #function)!
+        defaults.removePersistentDomain(forName: #function)
+        let preferences = Preferences(defaults: defaults)
+
+        #expect(preferences.removeLegacyPriceAlertsEnabled() == nil)
+
+        defaults.set(true, forKey: Preferences.Keys.isPriceAlertsEnabled)
+        #expect(preferences.removeLegacyPriceAlertsEnabled() == true)
+        #expect(preferences.removeLegacyPriceAlertsEnabled() == nil)
+    }
+
     private let preferences: Preferences = .mock()
 
     @Test
@@ -26,7 +39,6 @@ struct PreferencesTests {
         #expect(preferences.currentWalletId == nil)
         #expect(preferences.isSubscriptionsEnabled)
         #expect(!preferences.isPushNotificationsEnabled)
-        #expect(!preferences.isPriceAlertsEnabled)
         #expect(!preferences.rateApplicationShown)
         #expect(!preferences.isDeveloperEnabled)
         #expect(!preferences.isHideBalanceEnabled)
@@ -95,8 +107,6 @@ struct PreferencesTests {
         preferences.isPushNotificationsEnabled = true
         #expect(preferences.isPushNotificationsEnabled)
 
-        preferences.isPriceAlertsEnabled = true
-        #expect(preferences.isPriceAlertsEnabled)
 
         preferences.rateApplicationShown = true
         #expect(preferences.rateApplicationShown)
@@ -141,7 +151,6 @@ struct PreferencesTests {
         preferences.currentWalletId = "wallet123"
         preferences.isSubscriptionsEnabled = false
         preferences.isPushNotificationsEnabled = true
-        preferences.isPriceAlertsEnabled = true
         preferences.rateApplicationShown = true
         preferences.isDeveloperEnabled = true
         preferences.isHideBalanceEnabled = true
@@ -164,7 +173,6 @@ struct PreferencesTests {
         #expect(preferences.currentWalletId == "wallet123")
         #expect(!preferences.isSubscriptionsEnabled)
         #expect(preferences.isPushNotificationsEnabled)
-        #expect(preferences.isPriceAlertsEnabled)
         #expect(preferences.rateApplicationShown)
         #expect(preferences.isDeveloperEnabled)
         #expect(preferences.isHideBalanceEnabled)
@@ -188,7 +196,6 @@ struct PreferencesTests {
         #expect(preferences.currentWalletId == nil)
         #expect(preferences.isSubscriptionsEnabled)
         #expect(!preferences.isPushNotificationsEnabled)
-        #expect(!preferences.isPriceAlertsEnabled)
         #expect(!preferences.rateApplicationShown)
         #expect(!preferences.isDeveloperEnabled)
         #expect(!preferences.isHideBalanceEnabled)
