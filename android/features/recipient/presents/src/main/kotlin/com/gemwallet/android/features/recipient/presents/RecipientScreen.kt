@@ -34,6 +34,7 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeScannerModal
+import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.keyboardAsState
@@ -92,6 +93,10 @@ fun RecipientScreen(
 
             QrCodeScannerModal(
                 isVisible = scan != QrScanField.None,
+                scanType = when (scan) {
+                    QrScanField.Memo -> QRScanType.Memo
+                    else -> QRScanType.Address
+                },
                 onDismissRequest = { scan = QrScanField.None },
                 onResult = {
                     viewModel.setQrData(currentState.type, scan, it, confirmAction)

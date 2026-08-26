@@ -9,13 +9,17 @@ import android.util.Size
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.camera.core.ExperimentalGetImage
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -54,8 +58,12 @@ import coil3.request.ImageRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.alpha70
 import com.gemwallet.android.ui.theme.defaultPadding
+import com.gemwallet.android.ui.theme.padding16
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.wallet.core.primitives.QRScanType
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -74,10 +82,14 @@ import kotlin.math.min
 
 private val QR_ANALYSIS_RESOLUTION = Size(1280, 720)
 private const val SCAN_FROM_GALLERY_TAG = "scanFromGallery"
+private const val FINDER_SCALE = 0.7f
+private val HINT_SPACING = 24.dp
+private val HINT_HORIZONTAL_PADDING = 32.dp
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun QrCodeRequest(
+    scanType: QRScanType,
     onCancel: () -> Unit,
     onResult: (String) -> Unit,
 ) {
@@ -111,6 +123,7 @@ fun QrCodeRequest(
         )
     } else {
         QRScannerScene(
+            scanType = scanType,
             isCameraGranted = cameraPermissionState.status.isGranted,
             onGrantPermission = { showPermissionRequest = true },
             onCancel = onCancel,
@@ -122,6 +135,7 @@ fun QrCodeRequest(
 @androidx.annotation.OptIn(ExperimentalGetImage::class)
 @Composable
 fun QRScannerScene(
+    scanType: QRScanType,
     isCameraGranted: Boolean,
     onGrantPermission: () -> Unit,
     onCancel: () -> Unit,
@@ -198,6 +212,7 @@ fun QRScannerScene(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             QRScanner(listener = onResult)
+            ScannerHint(hint = stringResource(id = scanType.hintRes()))
             if (imageUri != null) {
                 Box(
                     modifier = Modifier
@@ -247,7 +262,7 @@ fun QRScannerScene(
                                 .defaultPadding()
                                 .background(Color.Black, MaterialTheme.shapes.medium)
                                 .defaultPadding(),
-                            text = "Image doesn't contains qr code or data",
+                            text = stringResource(id = R.string.errors_decoding_qr),
                             color = Color.White,
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W300)
@@ -368,12 +383,44 @@ private class QRCodeAnalyzer(
     }
 }
 
+@StringRes
+private fun QRScanType.hintRes(): Int = when (this) {
+    QRScanType.Universal -> R.string.wallet_scan_hint
+    QRScanType.WalletConnect -> R.string.wallet_connect_title
+    QRScanType.Address -> R.string.wallet_scan_hint_address
+    QRScanType.Memo -> R.string.transfer_memo
+    QRScanType.NodeUrl -> R.string.wallet_scan_hint_node
+    QRScanType.TokenContract -> R.string.wallet_import_contract_address_field
+    QRScanType.SecretPhrase -> R.string.common_secret_phrase
+    QRScanType.PrivateKey -> R.string.common_private_key
+}
+
+@Composable
+private fun ScannerHint(hint: String) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val frameSize = minOf(maxWidth, maxHeight)
+        val topInset = maxHeight / 2 + frameSize * FINDER_SCALE / 2 + HINT_SPACING
+        Text(
+            text = hint,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier
+                .padding(top = topInset)
+                .align(Alignment.TopCenter)
+                .padding(horizontal = HINT_HORIZONTAL_PADDING)
+                .background(Color.Black.copy(alpha = alpha50), RoundedCornerShape(percent = 50))
+                .padding(horizontal = padding16, vertical = paddingSmall),
+        )
+    }
+}
+
 @Composable
 private fun FinderView() {
     Canvas(modifier = Modifier.fillMaxSize()) {
         val halfFullWidth = size.width / 2f
         val halfFullHeight = size.height / 2f
-        val rectSize = min(size.width, size.height) * 0.7f
+        val rectSize = min(size.width, size.height) * FINDER_SCALE
         val rectHalfSize = rectSize / 2f
         val viewFrameSize = (rectHalfSize / 2f)
 

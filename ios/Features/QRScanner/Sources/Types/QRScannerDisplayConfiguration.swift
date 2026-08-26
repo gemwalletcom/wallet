@@ -14,6 +14,9 @@ struct QRScannerDisplayConfiguration {
 
     let dimmedViewOpacity: CGFloat
 
+    let captionColor: Color
+    let captionSpacing: CGFloat
+
     init(
         dimmedViewOpacity: CGFloat,
         squareScale: CGFloat,
@@ -22,6 +25,8 @@ struct QRScannerDisplayConfiguration {
         lineWidth: CGFloat,
         overlayColor: Color,
         bracketColor: Color,
+        captionColor: Color,
+        captionSpacing: CGFloat,
     ) {
         self.dimmedViewOpacity = dimmedViewOpacity
         self.squareScale = squareScale
@@ -30,6 +35,8 @@ struct QRScannerDisplayConfiguration {
         self.lineWidth = lineWidth
         self.overlayColor = overlayColor
         self.bracketColor = bracketColor
+        self.captionColor = captionColor
+        self.captionSpacing = captionSpacing
     }
 }
 
@@ -42,5 +49,7 @@ extension QRScannerDisplayConfiguration {
         lineWidth: 4,
         overlayColor: .black,
         bracketColor: .white,
+        captionColor: .white,
+        captionSpacing: 24,
     )
 }

@@ -61,7 +61,7 @@ public struct ConnectionsScene: View {
             ConnectionScene(model: model.connectionSceneModel(connection: connection))
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(action: model.onHandleScan(_:))
+            ScanQRCodeNavigationStack(scanType: .walletConnect, action: model.onHandleScan(_:))
         }
         .toolbarInfoButton(url: model.docsUrl)
         .alertSheet($model.isPresentingAlertMessage)

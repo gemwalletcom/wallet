@@ -223,7 +223,7 @@ struct WalletNavigationView: View {
                 ),
             )
         }
-        .scanQRCodeSheet(isPresented: $model.isPresentingScanner, action: onScan)
+        .scanQRCodeSheet(isPresented: $model.isPresentingScanner, scanType: .universal, action: onScan)
         .sheet(item: $model.isPresentingSheet) { sheet in
             Group {
                 switch sheet {

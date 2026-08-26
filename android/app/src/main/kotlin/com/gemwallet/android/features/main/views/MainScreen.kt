@@ -50,6 +50,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
 import com.gemwallet.android.ui.components.QrCodeScannerModal
+import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.navigation.WalletNavigator
@@ -74,6 +75,7 @@ fun MainScreen(
 
     QrCodeScannerModal(
         isVisible = isPresentingScanner,
+        scanType = QRScanType.Universal,
         onDismissRequest = { isPresentingScanner = false },
         onResult = { code ->
             isPresentingScanner = false

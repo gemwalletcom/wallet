@@ -124,6 +124,13 @@ public final class RecipientSceneViewModel {
             }
             .filter(\.values.isNotEmpty)
     }
+
+    public func scanType(for field: RecipientScene.Field) -> QRScanType {
+        switch field {
+        case .address: .address
+        case .memo: .memo
+        }
+    }
 }
 
 // MARK: - Actions

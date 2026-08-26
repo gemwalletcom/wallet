@@ -25,6 +25,7 @@ import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.QrCodeScannerModal
+import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -116,6 +117,7 @@ fun ConnectionsScene(
 
     QrCodeScannerModal(
         isVisible = scannerShowed,
+        scanType = QRScanType.WalletConnect,
         onDismissRequest = { scannerShowed = false },
         onResult = {
             viewModel.addPairing(it, onSuccess = {}, onError = {})

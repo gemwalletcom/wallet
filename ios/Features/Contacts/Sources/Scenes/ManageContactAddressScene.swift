@@ -45,7 +45,7 @@ public struct ManageContactAddressScene: View {
             focusedField = .address
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(action: onScan)
+            ScanQRCodeNavigationStack(scanType: .address, action: onScan)
         }
         .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
             ChainSelectorView(

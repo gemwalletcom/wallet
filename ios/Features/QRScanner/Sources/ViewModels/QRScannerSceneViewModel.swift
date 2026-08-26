@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Localization
+import Primitives
 import PhotosUI
 import SwiftUI
 
@@ -12,15 +14,30 @@ final class QRScannerSceneViewModel {
     var isScannerReady: Bool = false
 
     let resources: QRScannerResources
+    let scanType: QRScanType
 
-    init(scannerState: QRScannerState, imageState: ImageState, resources: QRScannerResources) {
+    init(scannerState: QRScannerState, imageState: ImageState, resources: QRScannerResources, scanType: QRScanType) {
         self.scannerState = scannerState
         self.imageState = imageState
         self.resources = resources
+        self.scanType = scanType
     }
 
     var overlayConfig: QRScannerDisplayConfiguration {
         .default
+    }
+
+    var hint: String {
+        switch scanType {
+        case .universal: Localized.Wallet.scanHint
+        case .walletConnect: Localized.WalletConnect.title
+        case .address: Localized.Wallet.scanHintAddress
+        case .memo: Localized.Transfer.memo
+        case .nodeUrl: Localized.Wallet.scanHintNode
+        case .tokenContract: Localized.Wallet.Import.contractAddressField
+        case .secretPhrase: Localized.Common.secretPhrase
+        case .privateKey: Localized.Common.privateKey
+        }
     }
 
     var isScanning: Bool {
