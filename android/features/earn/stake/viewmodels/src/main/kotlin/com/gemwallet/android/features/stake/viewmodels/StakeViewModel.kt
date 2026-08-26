@@ -16,7 +16,6 @@ import com.gemwallet.android.ext.claimAllAvailable
 import com.gemwallet.android.ext.canClaimRewards
 import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toGemStakeChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
@@ -72,7 +71,7 @@ class StakeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val stakeInfoUrl = assetInfo
-        .mapLatest { it?.stakeChain?.let { chain -> AppUrl.docs(DocsUrl.Staking(chain.toGemStakeChain())) } }
+        .mapLatest { it?.stakeChain?.let { chain -> AppUrl.docs(DocsUrl.Staking(chain.string)) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val session = sessionRepository.session()

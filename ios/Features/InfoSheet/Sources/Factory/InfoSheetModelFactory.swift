@@ -150,7 +150,7 @@ public enum InfoSheetModelFactory {
                 title: Localized.Info.stakeFrozenRequiredTitle,
                 description: Localized.Info.stakeFrozenRequiredDescription,
                 image: .image(Images.Logo.logo),
-                button: .url(AppUrl.docs(.staking(.tron))),
+                button: .url(AppUrl.docs(.staking(StakeChain.tron.rawValue))),
             )
         case .fundingApr:
             return InfoSheetModel(

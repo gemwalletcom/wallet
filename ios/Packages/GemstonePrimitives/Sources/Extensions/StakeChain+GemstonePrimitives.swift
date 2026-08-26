@@ -1,29 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import class Gemstone.Config
 import Foundation
-import Gemstone
 import Primitives
 
 public extension Primitives.StakeChain {
-    func map() -> GemStakeChain {
-        switch self {
-        case .cosmos: .cosmos
-        case .osmosis: .osmosis
-        case .injective: .injective
-        case .sei: .sei
-        case .celestia: .celestia
-        case .ethereum: .ethereum
-        case .solana: .solana
-        case .sui: .sui
-        case .smartChain: .smartChain
-        case .tron: .tron
-        case .aptos: .aptos
-        case .hyperCore: .hyperCore
-        case .monad: .monad
-        }
-    }
-
     var lockTime: TimeInterval {
         Double(Config.shared.getStakeConfig(chain: rawValue).timeLock)
     }

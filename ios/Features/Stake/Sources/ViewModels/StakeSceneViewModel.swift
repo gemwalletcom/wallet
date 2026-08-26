@@ -60,7 +60,7 @@ public final class StakeSceneViewModel {
     }
 
     public var stakeInfoUrl: URL {
-        AppUrl.docs(.staking(chain.map()))
+        AppUrl.docs(.staking(chain.rawValue))
     }
 
     var title: String {
