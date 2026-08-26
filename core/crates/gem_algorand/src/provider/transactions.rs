@@ -70,7 +70,7 @@ mod chain_integration_tests {
             .await?
             .unwrap();
 
-        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+        assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         Ok(())
     }
 }

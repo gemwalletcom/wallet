@@ -68,7 +68,7 @@ mod chain_integration_tests {
         let client = create_sui_test_client();
         let latest_block = client.get_block_latest_number().await?;
         let transactions = client.get_transactions_by_block(latest_block - 1).await?;
-        let transaction_id = transactions.first().ok_or("No Sui transaction found in latest checkpoint")?.hash.clone();
+        let transaction_id = transactions.first().ok_or("No Sui transaction found in latest checkpoint")?.hash().to_string();
         let request = TransactionStateRequest::mock_with_id(transaction_id);
         let status = client.get_transaction_status(request).await?;
 
@@ -90,7 +90,7 @@ mod chain_integration_tests {
         for block in (latest_block.saturating_sub(20)..latest_block).rev() {
             let transactions = client.get_transactions_by_block(block).await?;
             for block_transaction in transactions {
-                let hash = block_transaction.hash;
+                let hash = block_transaction.hash().to_string();
                 if let Some(mapped) = ChainTransaction::get_transaction_by_hash(&client, TransactionIdRequest::new(primitives::Chain::Sui, hash.clone(), None)).await? {
                     transaction = Some(mapped);
                     transaction_id = Some(hash);
@@ -108,7 +108,7 @@ mod chain_integration_tests {
 
         println!("Mappable Sui transaction in block {}: {}", transaction_block, transaction_id);
 
-        assert_eq!(transaction.hash, transaction_id);
+        assert_eq!(transaction.hash(), transaction_id);
         Ok(())
     }
 }

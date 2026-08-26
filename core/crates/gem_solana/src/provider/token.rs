@@ -73,8 +73,8 @@ mod chain_integration_tests {
 
         let asset = client.get_token_data(usdc_mint.clone()).await?;
 
-        assert_eq!(asset.chain, Chain::Solana);
-        assert_eq!(asset.token_id, Some(usdc_mint));
+        assert_eq!(asset.chain(), Chain::Solana);
+        assert_eq!(asset.token_id(), Some(usdc_mint.as_str()));
         assert_eq!(asset.symbol, "USDC");
         assert_eq!(asset.name, "USD Coin");
         assert_eq!(asset.decimals, 6);
@@ -90,8 +90,8 @@ mod chain_integration_tests {
 
         let asset = client.get_token_data(spl2022_mint.clone()).await?;
 
-        assert_eq!(asset.chain, Chain::Solana);
-        assert_eq!(asset.token_id, Some(spl2022_mint));
+        assert_eq!(asset.chain(), Chain::Solana);
+        assert_eq!(asset.token_id(), Some(spl2022_mint.as_str()));
         assert_eq!(asset.symbol, "PYUSD");
         assert_eq!(asset.name, "PayPal USD");
         assert_eq!(asset.decimals, 6);

@@ -42,8 +42,8 @@ mod tests {
 
         assert_eq!(asset.symbol, "USDC");
         assert_eq!(asset.decimals, 8);
-        assert_eq!(asset.chain, primitives::Chain::HyperCore);
+        assert_eq!(asset.chain(), primitives::Chain::HyperCore);
         assert_eq!(asset.asset_type, AssetType::TOKEN);
-        assert_eq!(asset.token_id, Some(USDC_TOKEN_ID.to_string()));
+        assert_eq!(asset.token_id(), Some(USDC_TOKEN_ID));
     }
 }

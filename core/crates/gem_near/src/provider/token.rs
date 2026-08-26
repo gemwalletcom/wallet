@@ -31,7 +31,7 @@ mod chain_integration_tests {
         let client = create_near_test_client();
         let asset = client.get_token_data(NEAR_USDT_TOKEN_ID.to_string()).await?;
 
-        assert_eq!(asset.token_id.as_deref(), Some(NEAR_USDT_TOKEN_ID));
+        assert_eq!(asset.token_id().as_deref(), Some(NEAR_USDT_TOKEN_ID));
         assert_eq!(asset.symbol, "USDt");
         assert_eq!(asset.decimals, 6);
         assert_eq!(asset.asset_type, AssetType::TOKEN);
