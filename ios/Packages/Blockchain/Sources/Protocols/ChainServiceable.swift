@@ -11,11 +11,6 @@ public protocol ChainFeeRateFetchable: Sendable {
 }
 
 public protocol ChainServiceable: ChainFeeRateFetchable {
-    func coinBalance(for address: String) async throws -> AssetBalance
-    func tokenBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance]
-    func getStakeBalance(for address: String) async throws -> AssetBalance?
-    func getEarnBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance]
-
     func preload(input: TransactionPreloadInput) async throws -> GemTransactionLoadMetadata
     func load(input: TransactionInput) async throws -> TransactionData
 
@@ -41,9 +36,6 @@ public extension ChainFeeRateFetchable {
 }
 
 public extension ChainServiceable {
-    func getEarnBalance(for _: String, tokenIds _: [AssetId]) async throws -> [AssetBalance] {
-        []
-    }
 
     func getValidators(apr _: Double) async throws -> [DelegationValidator] {
         []

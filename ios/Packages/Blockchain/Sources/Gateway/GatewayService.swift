@@ -41,29 +41,6 @@ public actor GatewayService: Sendable {
     }
 }
 
-// MARK: - Balances
-
-public extension GatewayService {
-    func coinBalance(chain: Primitives.Chain, address: String) async throws -> AssetBalance {
-        try await gateway.getBalanceCoin(chain: chain.rawValue, address: address).map()
-    }
-
-    func tokenBalance(chain: Primitives.Chain, address: String, tokenIds: [Primitives.AssetId]) async throws -> [AssetBalance] {
-        try await gateway
-            .getBalanceTokens(chain: chain.rawValue, address: address, tokenIds: tokenIds.compactMap(\.tokenId))
-            .map { try $0.map() }
-    }
-
-    func getStakeBalance(chain: Primitives.Chain, address: String) async throws -> AssetBalance? {
-        try await gateway.getBalanceStaking(chain: chain.rawValue, address: address)?.map()
-    }
-
-    func getEarnBalance(chain: Primitives.Chain, address: String, tokenIds: [Primitives.AssetId]) async throws -> [AssetBalance] {
-        try await gateway.getBalanceEarn(chain: chain.rawValue, address: address, tokenIds: tokenIds.compactMap(\.tokenId))
-            .map { try $0.map() }
-    }
-}
-
 // MARK: - Transactions
 
 public extension GatewayService {

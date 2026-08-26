@@ -22,21 +22,6 @@ struct GatewayChainService {
 }
 
 extension GatewayChainService: ChainServiceable {
-    func coinBalance(for address: String) async throws -> AssetBalance {
-        try await gateway.coinBalance(chain: chain, address: address)
-    }
-
-    func tokenBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance] {
-        try await gateway.tokenBalance(chain: chain, address: address, tokenIds: tokenIds)
-    }
-
-    func getStakeBalance(for address: String) async throws -> AssetBalance? {
-        try await gateway.getStakeBalance(chain: chain, address: address)
-    }
-
-    func getEarnBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance] {
-        try await gateway.getEarnBalance(chain: chain, address: address, tokenIds: tokenIds)
-    }
 
     func feeRates(type: TransferDataType) async throws -> [FeeRate] {
         try await gateway.feeRates(chain: chain, input: type)
@@ -49,7 +34,6 @@ extension GatewayChainService: ChainServiceable {
     func load(input: TransactionInput) async throws -> TransactionData {
         try await gateway.transactionLoad(chain: chain, input: input.map())
     }
-
 
     func getChainID() async throws -> String {
         try await gateway.chainId(chain: chain)

@@ -11,9 +11,6 @@ public import GemstonePrimitives
 
 public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     // Injected data
-    public var coinBalances: [String: AssetBalance] = [:]
-    public var tokenBalances: [String: [AssetBalance]] = [:]
-    public var stakeBalance: AssetBalance?
     public var fee: Fee = .init(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero, feeAssetId: Asset.mock().id)
     public var feeRates: [FeeRate] = []
     public var chainID: String?
@@ -32,21 +29,6 @@ public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
 }
 
 public extension ChainServiceMock {
-    func coinBalance(for address: String) async throws -> AssetBalance {
-        coinBalances[address] ?? .init(assetId: AssetId(chain: .ethereum, tokenId: nil), balance: .zero)
-    }
-
-    func tokenBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance] {
-        tokenBalances[address] ?? tokenIds.map { AssetBalance(assetId: $0, balance: .zero) }
-    }
-
-    func getStakeBalance(for _: String) async throws -> AssetBalance? {
-        stakeBalance
-    }
-
-    func getEarnBalance(for _: String, tokenIds _: [AssetId]) async throws -> [AssetBalance] {
-        []
-    }
 
     func getFee(asset _: Asset, input _: FeeInput) async throws -> Fee {
         fee
@@ -104,7 +86,6 @@ public extension ChainServiceMock {
     func preload(input _: TransactionPreloadInput) async throws -> GemTransactionLoadMetadata {
         transactionPreload
     }
-
 
     func getNodeStatus(url _: String) async throws -> NodeStatus {
         nodeStatus

@@ -19,7 +19,7 @@ use std::sync::Arc;
 use swapper::swapper::GemSwapper as Swapper;
 use yielder::Yielder;
 
-use primitives::{AssetId, Chain, ChartPeriod, Transaction, TransactionUpdate};
+use primitives::{AssetBalance, AssetId, Chain, ChartPeriod, Transaction, TransactionUpdate};
 
 #[derive(uniffi::Object)]
 pub struct GemGateway {
@@ -35,6 +35,23 @@ impl std::fmt::Debug for GemGateway {
 }
 
 impl GemGateway {
+    pub async fn get_balance_coin(&self, chain: Chain, address: String) -> Result<AssetBalance, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_balance_coin(address).await }).await
+    }
+
+    pub async fn get_balance_tokens(&self, chain: Chain, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_balance_tokens(address, token_ids).await })
+            .await
+    }
+
+    pub async fn get_balance_staking(&self, chain: Chain, address: String) -> Result<Option<AssetBalance>, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_balance_staking(address).await }).await
+    }
+
+    pub async fn get_balance_earn(&self, chain: Chain, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, GatewayError> {
+        Ok(self.yielder.get_balance(chain, &address, &token_ids).await)
+    }
+
     pub async fn get_transaction_update(&self, transaction: Transaction) -> Result<TransactionUpdate, GatewayError> {
         Ok(self.status_provider.get_update(&transaction).await?)
     }
@@ -64,19 +81,6 @@ impl GemGateway {
             yielder,
             status_provider,
         }
-    }
-
-    pub async fn get_balance_coin(&self, chain: Chain, address: String) -> Result<GemAssetBalance, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_balance_coin(address).await }).await
-    }
-
-    pub async fn get_balance_tokens(&self, chain: Chain, address: String, token_ids: Vec<String>) -> Result<Vec<GemAssetBalance>, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_balance_tokens(address, token_ids).await })
-            .await
-    }
-
-    pub async fn get_balance_staking(&self, chain: Chain, address: String) -> Result<Option<GemAssetBalance>, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_balance_staking(address).await }).await
     }
 
     pub async fn get_staking_validators(&self, chain: Chain, apy: Option<f64>) -> Result<Vec<GemDelegationValidator>, GatewayError> {
@@ -164,10 +168,6 @@ impl GemGateway {
 
     pub async fn get_is_token_address(&self, chain: Chain, token_id: String) -> Result<bool, GatewayError> {
         Ok(self.chain_factory.create(chain).await?.get_is_token_address(&token_id))
-    }
-
-    pub async fn get_balance_earn(&self, chain: Chain, address: String, token_ids: Vec<String>) -> Result<Vec<GemAssetBalance>, GatewayError> {
-        Ok(self.yielder.get_balance(chain, &address, &token_ids).await)
     }
 
     pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GatewayError> {
