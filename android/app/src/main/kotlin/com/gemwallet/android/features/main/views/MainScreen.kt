@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -69,7 +70,7 @@ fun MainScreen(
     val pendingCount by viewModel.pendingTxCount.collectAsStateWithLifecycle()
     val assetsViewModel: AssetsViewModel = hiltViewModel()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
-    var isPresentingScanner by remember { mutableStateOf(false) }
+    var isPresentingScanner by rememberSaveable { mutableStateOf(false) }
 
     ScanReceiveModal(
         isVisible = isPresentingScanner,
