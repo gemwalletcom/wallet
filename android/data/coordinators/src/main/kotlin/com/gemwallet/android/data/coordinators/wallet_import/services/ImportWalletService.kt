@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
+import com.gemwallet.android.application.wallet_import.coordinators.SetupWallet
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
 import com.gemwallet.android.cases.device.SyncDevice
@@ -25,7 +25,7 @@ class ImportWalletService(
     private val discoveryService: GemAssetDiscoveryService,
     private val sessionRepository: SessionRepository,
     private val syncDevice: SyncDevice,
-    private val walletConfigurationSync: SyncWalletConfiguration,
+    private val setupWallet: SetupWallet,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }),
 ) : SyncWalletImport, GetImportWalletState {
 
@@ -45,7 +45,7 @@ class ImportWalletService(
     private suspend fun syncWallet(wallet: Wallet) {
         syncDevice.syncDevice()
         supervisorScope {
-            launch { walletConfigurationSync.sync(wallet.id) }
+            launch { setupWallet.setup(wallet) }
             launch { discoverAssets(wallet) }
         }
     }

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
-import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
+import com.gemwallet.android.application.wallet_import.coordinators.SetupWallet
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.testkit.mockWallet
 import io.mockk.coEvery
@@ -26,7 +26,7 @@ class ImportWalletServiceTest {
         coEvery { getCurrentCurrency() } returns Currency.USD
     }
     private val syncDevice = mockk<SyncDevice>(relaxed = true)
-    private val walletConfigurationSync = mockk<SyncWalletConfiguration>(relaxed = true)
+    private val setupWallet = mockk<SetupWallet>(relaxed = true)
 
     @Test
     fun sync_discoversAssets() = runTest {
@@ -49,7 +49,7 @@ class ImportWalletServiceTest {
 
         coVerifyOrder {
             syncDevice.syncDevice()
-            walletConfigurationSync.sync(wallet.id)
+            setupWallet.setup(wallet)
         }
     }
 
@@ -57,7 +57,7 @@ class ImportWalletServiceTest {
         discoveryService = discoveryService,
         sessionRepository = sessionRepository,
         syncDevice = syncDevice,
-        walletConfigurationSync = walletConfigurationSync,
+        setupWallet = setupWallet,
         scope = this,
     )
 }

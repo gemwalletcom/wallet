@@ -210,7 +210,8 @@ struct ServicesFactory {
         )
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
         ExplorerPreferencesMigration(service: explorerService).migrate()
-        let swapService = SwapService(nodeProvider: nodeProvider)
+        let gemSwapper = GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider))
+        let swapService = SwapService(swapper: gemSwapper)
 
         let presenter = WalletConnectorPresenter()
         let walletConnectorManager = WalletConnectorManager(presenter: presenter)
@@ -236,7 +237,6 @@ struct ServicesFactory {
         )
 
         let gemConfigService = Gemstone.GemConfigService(api: gemApiClient, preferences: preferencesService)
-        let configService = ConfigService(service: gemConfigService)
         let releaseAlertService = ReleaseAlertService(
             appUpdateService: Gemstone.GemAppUpdateService(config: gemConfigService, preferences: preferencesService),
         )
@@ -249,24 +249,16 @@ struct ServicesFactory {
             preferencesService: preferencesService,
             walletService: walletService,
         )
-        let onstartAsyncService = Self.makeOnstartAsyncService(
-            assetsProvider: gemAssetsService,
-            nodeService: nodeService,
-            preferences: preferences,
-            assetStore: storeManager.assetStore,
-            bannerService: bannerService,
-            configService: configService,
-            swappableChainsProvider: swapService,
-        )
-        let onstartWalletService = OnstartWalletService(
-            deviceService: deviceService,
-            bannerService: bannerService,
-            walletConfigurationService: Gemstone.GemWalletConfigurationService(
+        let appStartService = Gemstone.GemAppStartService(
+            config: gemConfigService,
+            banners: bannerService,
+            assets: gemAssetsService,
+            swapper: gemSwapper,
+            walletConfiguration: Gemstone.GemWalletConfigurationService(
                 api: gemDeviceApiClient,
                 banners: GemstoneBannerStore(store: storeManager.bannerStore),
                 store: GemstoneWalletConfigurationStore(),
             ),
-            pushNotificationEnablerService: pushNotificationEnablerService,
         )
 
         let hyperliquidObserverService = HyperliquidObserverService(
@@ -401,8 +393,8 @@ struct ServicesFactory {
             rateService: rateService,
             deviceObserverService: deviceObserverService,
             onstartService: onStartService,
-            onstartAsyncService: onstartAsyncService,
-            onstartWalletService: onstartWalletService,
+            appStartService: appStartService,
+            pushNotificationEnablerService: pushNotificationEnablerService,
             walletConnectorManager: walletConnectorManager,
             perpetualService: perpetualService,
             hyperliquidObserverService: hyperliquidObserverService,
@@ -517,30 +509,6 @@ extension ServicesFactory {
             ),
         )
     }
-
-    private static func makeOnstartAsyncService(
-        assetsProvider: any Gemstone.GemAssetsServiceProtocol,
-        nodeService: NodeService,
-        preferences: Preferences,
-        assetStore: AssetStore,
-        bannerService: any GemBannerServiceProtocol,
-        configService: ConfigService,
-        swappableChainsProvider: any SwappableChainsProvider,
-    ) -> OnstartAsyncService {
-        return OnstartAsyncService(
-            runners: [
-                ConfigUpdateRunner(configService: configService),
-                BannerSetupRunner(bannerService: bannerService),
-                AssetsUpdateRunner(
-                    configService: configService,
-                    assetsProvider: assetsProvider,
-                    assetStore: assetStore,
-                    swappableChainsProvider: swappableChainsProvider,
-                ),
-            ],
-        )
-    }
-
 
     private static func makeWebSocket(securePreferences: SecurePreferences) -> any WebSocketConnectable {
         let requestProvider = AuthenticatedRequestProvider(securePreferences: securePreferences)

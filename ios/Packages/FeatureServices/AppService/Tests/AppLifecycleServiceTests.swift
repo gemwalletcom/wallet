@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import AppService
+import AppServiceTestKit
 import Foundation
 import GemstoneServices
 import GemstoneServicesTestKit

@@ -2,7 +2,7 @@ use crate::GemstoneError;
 use crate::api::GemApiError;
 use crate::gateway::GatewayError;
 
-#[derive(Debug, uniffi::Error)]
+#[derive(Debug, Clone, uniffi::Error)]
 pub enum GemServiceError {
     Api { msg: String },
     Gateway { msg: String },

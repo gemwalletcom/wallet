@@ -36,7 +36,8 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemAuthService`](../gemstone/src/services/auth/mod.rs) | — | — | — | Done | Wallet auth payloads |
 | [`GemChartService`](../gemstone/src/services/chart/mod.rs) | — | — | — | Done | Price charts |
 | [`GemExplorerService`](../gemstone/src/services/explorer/mod.rs) | — | — | — | Done | Block explorer selection (preference) and transaction/address/token/NFT/validator links |
-| [`GemConfigService`](../gemstone/src/services/config/mod.rs) | — | — | — | Done | Remote config, cached via `GemPreferencesService` |
+| [`GemAppStartService`](../gemstone/src/services/app_start/mod.rs) | — | — | — | Done | App start (`run`) and wallet start (`setup_wallet`) orchestration; each step reports failures without stopping the rest |
+| [`GemConfigService`](../gemstone/src/services/config/mod.rs) | — | — | — | Done | Remote config, cached via `GemPreferencesService`; concurrent updates share one request |
 | [`GemPortfolioService`](../gemstone/src/services/portfolio/mod.rs) | [`GemPortfolioStore`](../gemstone/src/services/portfolio/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/PortfolioStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/PortfolioStore.kt) | Done | Portfolio chart for the wallet's held assets |
 | [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals |
 | [`GemScanService`](../gemstone/src/services/scan/mod.rs) | — | — | — | Done | Transaction scanning |
@@ -52,9 +53,9 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | `AddAssetService` | `GemGateway` | Done | Wrapper removed; the add-asset view model reads token data through `GatewayService` |
 | `AddressNameService` | `GemNameService` | Done | Wrapper removed; callers use the Core service (`addressNames` typed helper) and `AddressStore` |
 | [`AppService/OnstartService`](../../ios/Packages/FeatureServices/AppService/OnstartService.swift) | — | App-only | Preference migrations and bundled asset seeding from the app asset configuration |
-| [`AppService/OnstartAsyncService`](../../ios/Packages/FeatureServices/AppService/OnstartAsyncService.swift) | — | Done | Runs config update, availability sync, banner setup; Android: [`SyncService`](../../android/app/src/main/kotlin/com/gemwallet/android/services/SyncService.kt) |
-| [`AppService/OnstartWalletService`](../../ios/Packages/FeatureServices/AppService/OnstartWalletService.swift) | `GemWalletConfigurationService` | Done | Configuration sync in Core; iOS-only banner seeding and push permission prompt stay app-side |
-| [`AppService/ConfigService`](../../ios/Packages/FeatureServices/AppService/ConfigService.swift) | `GemConfigService` | Done | Thin actor that dedupes concurrent updates |
+| `AppService/OnstartAsyncService` | `GemAppStartService` | Done | Replaced by `GemAppStartService.run()` (config update, banner setup, swappable chains, availability sync); Android [`SyncService`](../../android/app/src/main/kotlin/com/gemwallet/android/services/SyncService.kt) calls the same |
+| `AppService/OnstartWalletService` | `GemAppStartService` | Done | Replaced by `GemAppStartService.setup_wallet()` (default balances, wallet banners, configuration sync) on both apps; the push permission prompt is `PushNotificationEnablerService.requestPermissionsIfNotDetermined` |
+| `AppService/ConfigService` | `GemConfigService` | Done | Wrapper removed; concurrent `update_config` calls are coalesced in Core |
 | [`AppService/ReleaseAlertService`](../../ios/Packages/FeatureServices/AppService/ReleaseAlertService.swift) | `GemAppUpdateService` | Done | Android: [`AppUpdateCoordinator`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/update/AppUpdateCoordinator.kt) |
 | [`AppService/RateService`](../../ios/Packages/FeatureServices/AppService/RateService.swift) | — | App-only | App Store review prompt |
 | [`AppService/AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | — | App-only | Scene phase orchestration of observers |

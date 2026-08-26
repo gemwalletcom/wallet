@@ -29,6 +29,9 @@ import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemFiatStore
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemSwapper
+import uniffi.gemstone.GemBannerService
+import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemPortfolioService
 import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemSupportService
@@ -139,6 +142,16 @@ object GatewayModule {
         bannerStore: GemBannerStore,
         store: GemWalletConfigurationStore,
     ): GemWalletConfigurationService = GemWalletConfigurationService(apiClient, bannerStore, store)
+
+    @Provides
+    @Singleton
+    fun provideGemAppStartService(
+        configService: GemConfigService,
+        bannerService: GemBannerService,
+        assetsService: GemAssetsService,
+        swapper: GemSwapper,
+        walletConfigurationService: GemWalletConfigurationService,
+    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, swapper, walletConfigurationService)
 
 
     @Provides

@@ -37,6 +37,14 @@ public struct PushNotificationEnablerService: PushNotificationEnabler {
         }
     }
 
+    public func requestPermissionsIfNotDetermined() async throws -> Bool {
+        switch try await getNotificationSettingsStatus() {
+        case .notDetermined: try await requestPermissions()
+        case .authorized, .ephemeral, .provisional, .denied: false
+        @unknown default: false
+        }
+    }
+
     public func getNotificationSettingsStatus() async throws -> UNAuthorizationStatus {
         let center = UNUserNotificationCenter.current()
         return await center.notificationSettings().authorizationStatus

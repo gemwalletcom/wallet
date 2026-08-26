@@ -1,21 +1,22 @@
 package com.gemwallet.android.services
 
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
+import android.util.Log
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemAppStartService
 import javax.inject.Inject
 
 class SyncService @Inject constructor(
-    private val getRemoteConfig: GetRemoteConfig,
-    private val assetsService: GemAssetsService,
+    private val appStartService: GemAppStartService,
     private val syncDevice: SyncDevice,
 ) {
     suspend fun sync() {
         withContext(Dispatchers.IO) {
-            runCatching { assetsService.syncAvailability(getRemoteConfig.getRemoteConfig().versions.toJson()) }
+            appStartService.run().forEach { failure ->
+                Log.e("SyncService", "${failure.step} failed: ${failure.message}")
+            }
             runCatching { syncDevice.syncDevice() }
         }
     }

@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
+import com.gemwallet.android.application.wallet_import.coordinators.SetupWallet
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
 import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.data.coordinators.wallet_import.SyncWalletConfigurationImpl
+import com.gemwallet.android.data.coordinators.wallet_import.SetupWalletImpl
 import com.gemwallet.android.data.coordinators.wallet_import.services.ImportWalletService
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -13,7 +13,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAssetDiscoveryService
-import uniffi.gemstone.GemWalletConfigurationService
+import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemWalletConfigurationStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletConfigurationStore
 import javax.inject.Singleton
@@ -31,9 +31,9 @@ object WalletImportModule {
 
     @Provides
     @Singleton
-    fun provideSyncWalletConfiguration(
-        walletConfigurationService: GemWalletConfigurationService,
-    ): SyncWalletConfiguration = SyncWalletConfigurationImpl(walletConfigurationService)
+    fun provideSetupWallet(
+        appStartService: GemAppStartService,
+    ): SetupWallet = SetupWalletImpl(appStartService)
 
     @Provides
     @Singleton
@@ -41,12 +41,12 @@ object WalletImportModule {
         discoveryService: GemAssetDiscoveryService,
         sessionRepository: SessionRepository,
         syncDevice: SyncDevice,
-        walletConfigurationSync: SyncWalletConfiguration,
+        setupWallet: SetupWallet,
     ): ImportWalletService = ImportWalletService(
         discoveryService = discoveryService,
         sessionRepository = sessionRepository,
         syncDevice = syncDevice,
-        walletConfigurationSync = walletConfigurationSync,
+        setupWallet = setupWallet,
     )
 
     @Provides

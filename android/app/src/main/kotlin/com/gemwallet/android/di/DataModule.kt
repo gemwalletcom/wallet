@@ -2,7 +2,6 @@ package com.gemwallet.android.di
 
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.services.SyncService
 import dagger.Module
@@ -11,10 +10,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
+import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.TransactionSimulationService
-import uniffi.gemstone.GemAssetsService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -48,13 +47,11 @@ object DataModule {
     @Singleton
     @Provides
     fun provideSyncService(
-        getRemoteConfig: GetRemoteConfig,
-        assetsService: GemAssetsService,
+        appStartService: GemAppStartService,
         syncDevice: SyncDevice,
     ): SyncService {
         return SyncService(
-            getRemoteConfig = getRemoteConfig,
-            assetsService = assetsService,
+            appStartService = appStartService,
             syncDevice = syncDevice,
         )
     }

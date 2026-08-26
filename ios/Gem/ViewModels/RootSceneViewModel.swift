@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
-import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemAppStartServiceProtocol
 import AppService
 import GemstoneServices
 import Components
@@ -19,7 +19,8 @@ import WalletConnector
 @MainActor
 final class RootSceneViewModel {
     private let onstartService: OnstartService
-    private let onstartWalletService: OnstartWalletService
+    private let appStartService: any GemAppStartServiceProtocol
+    private let pushNotificationEnablerService: PushNotificationEnablerService
     private let transactionStateScheduler: TransactionStateScheduler
     private let appLifecycleService: AppLifecycleService
     private let navigationHandler: NavigationHandler
@@ -29,7 +30,6 @@ final class RootSceneViewModel {
     private let deviceService: any DeviceServiceable
 
     let observablePreferences: ObservablePreferences
-    let assetsService: any GemAssetsServiceProtocol
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
     let nameService: any NameServiceable
@@ -73,14 +73,14 @@ final class RootSceneViewModel {
         observablePreferences: ObservablePreferences,
         walletConnectorPresenter: WalletConnectorPresenter,
         onstartService: OnstartService,
-        onstartWalletService: OnstartWalletService,
+        appStartService: any GemAppStartServiceProtocol,
+        pushNotificationEnablerService: PushNotificationEnablerService,
         transactionStateScheduler: TransactionStateScheduler,
         appLifecycleService: AppLifecycleService,
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
-        assetsService: any GemAssetsServiceProtocol,
         nameService: any NameServiceable,
         releaseAlertService: ReleaseAlertService,
         rateService: RateService,
@@ -91,14 +91,14 @@ final class RootSceneViewModel {
         self.observablePreferences = observablePreferences
         self.walletConnectorPresenter = walletConnectorPresenter
         self.onstartService = onstartService
-        self.onstartWalletService = onstartWalletService
+        self.appStartService = appStartService
+        self.pushNotificationEnablerService = pushNotificationEnablerService
         self.transactionStateScheduler = transactionStateScheduler
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
         lockManager = lockWindowManager
         self.walletService = walletService
         self.walletSessionService = walletSessionService
-        self.assetsService = assetsService
         self.nameService = nameService
         self.releaseAlertService = releaseAlertService
         self.rateService = rateService
@@ -164,10 +164,11 @@ extension RootSceneViewModel {
 
 extension RootSceneViewModel {
     private func setup(wallet: Wallet) {
-        onstartWalletService.setup(wallet: wallet)
         Task {
             do {
-                try await assetsService.setupWallet(wallet: wallet.json())
+                for failure in try await appStartService.setupWallet(wallet: wallet.json()) {
+                    debugLog("wallet start \(failure.step) failed: \(failure.message)")
+                }
             } catch {
                 debugLog("RootSceneViewModel setupWallet error: \(error)")
             }
@@ -213,7 +214,13 @@ extension RootSceneViewModel {
 
     private func requestPushPermissions() {
         Task {
-            await onstartWalletService.requestPushPermissions()
+            do {
+                if try await pushNotificationEnablerService.requestPermissionsIfNotDetermined() {
+                    try await deviceService.update()
+                }
+            } catch {
+                debugLog("requestPushPermissions error: \(error)")
+            }
         }
     }
 }

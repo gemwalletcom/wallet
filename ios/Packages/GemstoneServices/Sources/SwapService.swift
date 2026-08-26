@@ -17,7 +17,7 @@ import NativeProviderService
 import Primitives
 import enum Primitives.Chain
 
-public final class SwapService: Sendable, SwappableChainsProvider {
+public final class SwapService: Sendable {
     private let swapper: GemSwapperProtocol
 
     public init(swapper: GemSwapperProtocol) {
@@ -29,10 +29,6 @@ public final class SwapService: Sendable, SwappableChainsProvider {
         requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
     ) {
         self.init(swapper: GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor)))
-    }
-
-    public func supportedChains() -> [Chain] {
-        swapper.supportedChains().compactMap { Chain(rawValue: $0) }
     }
 
     public func supportedAssets(for assetId: Primitives.AssetId) -> ([Primitives.Chain], [Primitives.AssetId]) {

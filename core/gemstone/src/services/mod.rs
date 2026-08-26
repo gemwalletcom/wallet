@@ -1,3 +1,4 @@
+pub mod app_start;
 pub mod app_update;
 pub mod asset_discovery;
 pub mod assets;
@@ -33,6 +34,7 @@ pub mod wallet_configuration;
 pub mod wallet_connect;
 pub mod wallet_session;
 
+pub use app_start::{GemAppStartFailure, GemAppStartService, GemAppStartStep};
 pub use app_update::GemAppUpdateService;
 pub use asset_discovery::{GemAssetDiscoveryService, GemAssetDiscoveryStore, GemDiscoveryStep};
 pub use assets::{GemAssetStore, GemAssetsService};

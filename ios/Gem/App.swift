@@ -26,14 +26,14 @@ struct GemApp: App {
                     observablePreferences: resolver.storages.observablePreferences,
                     walletConnectorPresenter: resolver.services.walletConnectorManager.presenter,
                     onstartService: resolver.services.onstartService,
-                    onstartWalletService: resolver.services.onstartWalletService,
+                    appStartService: resolver.services.appStartService,
+                    pushNotificationEnablerService: resolver.services.pushNotificationEnablerService,
                     transactionStateScheduler: resolver.services.transactionStateScheduler,
                     appLifecycleService: resolver.services.appLifecycleService,
                     navigationHandler: resolver.services.navigationHandler,
                     lockWindowManager: LockWindowManager(lockModel: LockSceneViewModel()),
                     walletService: resolver.services.walletService,
                     walletSessionService: resolver.services.walletSessionService,
-                    assetsService: resolver.services.gemAssetsService,
                     nameService: resolver.services.nameService,
                     releaseAlertService: resolver.services.releaseAlertService,
                     rateService: resolver.services.rateService,
@@ -53,7 +53,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UIWindowSceneDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         AppResolver.main.services.onstartService.configure()
         Task {
-            await AppResolver.main.services.onstartAsyncService.run()
+            for failure in await AppResolver.main.services.appStartService.run() {
+                debugLog("app start \(failure.step) failed: \(failure.message)")
+            }
         }
         return true
     }

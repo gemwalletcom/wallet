@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
@@ -60,8 +61,8 @@ extension AppResolver {
         let rateService: RateService
         let deviceObserverService: DeviceObserverService
         let onstartService: OnstartService
-        let onstartAsyncService: OnstartAsyncService
-        let onstartWalletService: OnstartWalletService
+        let appStartService: any GemAppStartServiceProtocol
+        let pushNotificationEnablerService: PushNotificationEnablerService
         let walletConnectorManager: WalletConnectorManager
         let perpetualService: PerpetualService
         let hyperliquidObserverService: any PerpetualObservable
