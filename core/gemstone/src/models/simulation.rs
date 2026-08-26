@@ -1,92 +1,16 @@
-use crate::models::custom_types::GemBigInt;
-use primitives::{
-    AssetId, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
-    SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType,
-};
+use primitives::{SimulationPayloadField, SimulationResult};
 
-#[uniffi::remote(Enum)]
-pub enum SimulationSeverity {
-    Low,
-    Warning,
-    Critical,
-}
+pub type GemSimulationResult = SimulationResult;
+pub type GemSimulationPayloadField = SimulationPayloadField;
 
-#[uniffi::remote(Record)]
-pub struct SimulationWarningApproval {
-    pub asset_id: AssetId,
-    pub value: Option<GemBigInt>,
-}
+uniffi::custom_type!(SimulationResult, String, {
+    remote,
+    lower: |value| serde_json::to_string(&value).unwrap_or_default(),
+    try_lift: |value| serde_json::from_str(&value).map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid SimulationResult")),
+});
 
-#[uniffi::remote(Enum)]
-pub enum SimulationWarningType {
-    TokenApproval(SimulationWarningApproval),
-    SuspiciousSpender,
-    ExternallyOwnedSpender,
-    NftCollectionApproval(AssetId),
-    PermitApproval(SimulationWarningApproval),
-    PermitBatchApproval(Option<GemBigInt>),
-    ValidationError,
-}
-
-#[uniffi::remote(Record)]
-pub struct SimulationWarning {
-    pub severity: SimulationSeverity,
-    pub warning: SimulationWarningType,
-    pub message: Option<String>,
-}
-
-#[uniffi::remote(Record)]
-pub struct SimulationBalanceChange {
-    pub asset_id: AssetId,
-    pub value: String,
-    pub decimals: i32,
-    pub name: Option<String>,
-    pub symbol: Option<String>,
-}
-
-#[uniffi::remote(Enum)]
-pub enum SimulationPayloadFieldType {
-    Text,
-    Address,
-    Timestamp,
-}
-
-#[uniffi::remote(Enum)]
-pub enum SimulationPayloadFieldDisplay {
-    Primary,
-    Secondary,
-}
-
-#[uniffi::remote(Enum)]
-pub enum SimulationPayloadFieldKind {
-    Contract,
-    Method,
-    Token,
-    Spender,
-    Value,
-    Custom,
-}
-
-#[uniffi::remote(Record)]
-pub struct SimulationPayloadField {
-    pub kind: SimulationPayloadFieldKind,
-    pub label: Option<String>,
-    pub value: String,
-    pub field_type: SimulationPayloadFieldType,
-    pub display: SimulationPayloadFieldDisplay,
-}
-
-#[uniffi::remote(Record)]
-pub struct SimulationHeader {
-    pub asset_id: AssetId,
-    pub value: String,
-    pub is_unlimited: bool,
-}
-
-#[uniffi::remote(Record)]
-pub struct SimulationResult {
-    pub warnings: Vec<SimulationWarning>,
-    pub balance_changes: Vec<SimulationBalanceChange>,
-    pub payload: Vec<SimulationPayloadField>,
-    pub header: Option<SimulationHeader>,
-}
+uniffi::custom_type!(SimulationPayloadField, String, {
+    remote,
+    lower: |value| serde_json::to_string(&value).unwrap_or_default(),
+    try_lift: |value| serde_json::from_str(&value).map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid SimulationPayloadField")),
+});

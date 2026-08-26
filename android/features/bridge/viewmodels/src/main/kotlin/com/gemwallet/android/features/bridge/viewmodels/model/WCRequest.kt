@@ -17,8 +17,9 @@ import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.MessageSigner
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
-import com.gemwallet.android.blockchain.gemstone.toGem
-import com.gemwallet.android.blockchain.gemstone.toPrimitives
+import com.gemwallet.android.serializer.fromJson
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
 import com.wallet.core.primitives.TransactionType
@@ -68,7 +69,7 @@ sealed class WCRequest(
 
         private val payloadPreview by lazy {
             signer.getOrNull()?.let { signer ->
-                runCatching { signer.payloadPreview(simulation.payload.map { it.toGem() }) }.getOrNull()
+                runCatching { signer.payloadPreview(simulation.payload.map { it.toJson() }) }.getOrNull()
             }
         }
 
@@ -80,14 +81,14 @@ sealed class WCRequest(
 
         override val primaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.primary
-                ?.map { it.toPrimitives() }
+                ?.mapNotNull { it.fromJson<SimulationPayloadField>() }
                 .orEmpty()
                 .withExplorerLinks(chain, explorerName)
         }
 
         override val secondaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.secondary
-                ?.map { it.toPrimitives() }
+                ?.mapNotNull { it.fromJson<SimulationPayloadField>() }
                 .orEmpty()
                 .withExplorerLinks(chain, explorerName)
         }

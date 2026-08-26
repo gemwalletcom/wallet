@@ -3,7 +3,7 @@ package com.gemwallet.android.features.bridge.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.blockchain.gemstone.toPrimitives
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
@@ -26,6 +26,7 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.Wallet
@@ -302,8 +303,8 @@ class WCAuthViewModel @Inject constructor(
         return try {
             signer.payloadPreview(emptyList())?.let { preview ->
                 AuthPayloadPreview(
-                    primaryFields = preview.primary.map { PayloadField(field = it.toPrimitives(), chain = chain) },
-                    secondaryFields = preview.secondary.map { PayloadField(field = it.toPrimitives(), chain = chain) },
+                    primaryFields = preview.primary.map { PayloadField(field = it.decodeJson<SimulationPayloadField>(), chain = chain) },
+                    secondaryFields = preview.secondary.map { PayloadField(field = it.decodeJson<SimulationPayloadField>(), chain = chain) },
                 )
             } ?: AuthPayloadPreview()
         } catch (_: Throwable) {

@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
-import com.gemwallet.android.blockchain.services.TransactionSimulationService
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.TransactionSimulationServiceInterface
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
 import javax.inject.Inject
@@ -52,7 +53,7 @@ class WCRequestViewModel @Inject constructor(
     private val bridgeRepository: BridgesRepository,
     private val passwordStore: PasswordStore,
     private val signMessageOperator: GemSignMessageOperator,
-    private val simulationService: TransactionSimulationService,
+    private val simulationService: TransactionSimulationServiceInterface,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
@@ -201,7 +202,7 @@ class WCRequestViewModel @Inject constructor(
             account = account,
             appMetadata = appMetadata,
             action = action,
-            simulation = simulationService.simulateSignMessage(action.chain, action.signType, action.data, sessionDomain),
+            simulation = simulationService.simulateSignMessage(action.chain, action.signType, action.data, sessionDomain).decodeJson(),
             explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chain),
         )
 
@@ -210,7 +211,7 @@ class WCRequestViewModel @Inject constructor(
             account,
             appMetadata,
             action,
-            simulationService.simulateSendTransaction(action.chain, action.transactionType, action.data),
+            simulationService.simulateSendTransaction(action.chain, action.transactionType, action.data).decodeJson(),
         )
 
         is WalletConnectAction.SignTransaction -> WCRequest.Transaction.SignTransaction(
@@ -218,7 +219,7 @@ class WCRequestViewModel @Inject constructor(
             account,
             appMetadata,
             action,
-            simulationService.simulateSendTransaction(action.chain, action.transactionType, action.data),
+            simulationService.simulateSendTransaction(action.chain, action.transactionType, action.data).decodeJson(),
         )
 
         is WalletConnectAction.SignAllTransactions -> {
@@ -229,7 +230,7 @@ class WCRequestViewModel @Inject constructor(
                 appMetadata = appMetadata,
                 transactionType = action.transactionType,
                 data = data,
-                simulation = simulationService.simulateSendTransaction(action.chain, action.transactionType, data),
+                simulation = simulationService.simulateSendTransaction(action.chain, action.transactionType, data).decodeJson(),
             )
         }
 

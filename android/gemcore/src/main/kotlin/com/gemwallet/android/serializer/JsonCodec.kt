@@ -7,3 +7,5 @@ inline fun <reified T> T.toJson(): String = jsonEncoder.encodeToString(this)
 
 inline fun <reified T> String?.fromJson(): T? =
     this?.let { runCatching { jsonEncoder.decodeFromString<T>(it) }.getOrNull() }
+
+inline fun <reified T> String.decodeJson(): T = jsonEncoder.decodeFromString(this)

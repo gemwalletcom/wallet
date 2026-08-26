@@ -43,14 +43,18 @@ public final class SignMessageSceneViewModel {
         let plainMessage = signer.plainPreview()
         self.plainMessage = plainMessage
         let messageDisplayType: SignMessageDisplayType = {
-            guard let payloadPreview = try? signer.payloadPreview(simulationPayload: payload.simulation.payload.map { $0.map() }) else {
+            do {
+                let simulationPayload = try payload.simulation.payload.map { try $0.jsonString() }
+                guard let preview = try signer.payloadPreview(simulationPayload: simulationPayload) else {
+                    return .text(plainMessage)
+                }
+                return try .payload(
+                    primary: preview.primary.map { try SimulationPayloadField($0) },
+                    secondary: preview.secondary.map { try SimulationPayloadField($0) },
+                )
+            } catch {
                 return .text(plainMessage)
             }
-
-            return .payload(
-                primary: payloadPreview.primary.map { $0.map() },
-                secondary: payloadPreview.secondary.map { $0.map() },
-            )
         }()
         self.messageDisplayType = messageDisplayType
         self.confirmTransferDelegate = confirmTransferDelegate

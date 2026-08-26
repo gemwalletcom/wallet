@@ -28,6 +28,7 @@ import uniffi.gemstone.PaymentServiceInterface
 import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.serviceStatusTimeoutSeconds
 import uniffi.gemstone.TransactionSimulationService
+import uniffi.gemstone.TransactionSimulationServiceInterface
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -117,8 +118,7 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideTransactionSimulationService(
+    fun provideTransactionSimulationServiceInterface(
         service: TransactionSimulationService,
-    ): com.gemwallet.android.blockchain.services.TransactionSimulationService =
-        com.gemwallet.android.blockchain.services.TransactionSimulationService(service)
+    ): TransactionSimulationServiceInterface = service
 }

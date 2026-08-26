@@ -96,9 +96,8 @@ extension WalletConnectorService: WalletConnectorServiceable {
 
 extension WalletConnectorService {
     private func simulateSignMessage(chain: Gemstone.Chain, signType: SignDigestType, data: String, sessionDomain: String) async throws -> Primitives.SimulationResult {
-        try await transactionSimulationService
-            .simulateSignMessage(chain: chain, signType: signType, data: data, sessionDomain: sessionDomain)
-            .map()
+        let simulation = try await transactionSimulationService.simulateSignMessage(chain: chain, signType: signType, data: data, sessionDomain: sessionDomain)
+        return try Primitives.SimulationResult(simulation)
     }
 
     private func simulateSendTransaction(
@@ -106,9 +105,8 @@ extension WalletConnectorService {
         transactionType: WalletConnectTransactionType,
         data: String,
     ) async throws -> Primitives.SimulationResult {
-        try await transactionSimulationService
-            .simulateSendTransaction(chain: chain, transactionType: transactionType, data: data)
-            .map()
+        let simulation = try await transactionSimulationService.simulateSendTransaction(chain: chain, transactionType: transactionType, data: data)
+        return try Primitives.SimulationResult(simulation)
     }
 
     private func handleSessions() async {

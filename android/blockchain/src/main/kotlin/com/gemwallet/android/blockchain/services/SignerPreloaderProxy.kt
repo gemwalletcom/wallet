@@ -1,7 +1,6 @@
 package com.gemwallet.android.blockchain.services
 
 import com.gemwallet.android.blockchain.gemstone.toFee
-import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.gemwallet.android.domains.confirm.toConfirmInput
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.ext.toIdentifier
@@ -9,6 +8,7 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.SignerParams
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.SimulationResult
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +53,7 @@ class SignerPreloaderProxy(
                 selectedData = SignerParams.Data(metadata = result.metadata, fee = fee),
                 feeRates = result.feeRates.filter { it.priority.toFeePriority() != null },
             ),
-            simulation = result.simulation?.toPrimitives(),
+            simulation = result.simulation?.decodeJson(),
         )
     }
 }
