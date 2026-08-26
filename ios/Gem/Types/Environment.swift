@@ -15,7 +15,7 @@ import protocol Gemstone.GemNotificationServiceProtocol
 import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import GRDB
 import Primitives
-import ServiceStatusService
+import protocol Gemstone.GemServiceStatusProtocol
 import Store
 import StreamService
 import SwiftUI
@@ -26,7 +26,7 @@ import WalletSessionService
 extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation
     @Entry var nodeService: NodeService = AppResolver.main.services.nodeService
-    @Entry var serviceStatusService: any ServiceStatusServiceable = AppResolver.main.services.serviceStatusService
+    @Entry var serviceStatusService: any GemServiceStatusProtocol = AppResolver.main.services.serviceStatusService
     @Entry var priceService: PriceService = AppResolver.main.services.priceService
     @Entry var chartService: any GemChartServiceProtocol = AppResolver.main.services.chartService
     @Entry var marketService: any GemPriceServiceProtocol = AppResolver.main.services.marketService

@@ -21,7 +21,6 @@ let package = Package(
         .library(name: "AppService", targets: ["AppService"]),
         .library(name: "AppServiceTestKit", targets: ["AppServiceTestKit"]),
         .library(name: "ConnectionStatusService", targets: ["ConnectionStatusService"]),
-        .library(name: "ServiceStatusService", targets: ["ServiceStatusService"]),
         .library(name: "ActivityService", targets: ["ActivityService"]),
         .library(name: "ActivityServiceTestKit", targets: ["ActivityServiceTestKit"]),
         .library(name: "ConnectionsService", targets: ["ConnectionsService"]),
@@ -187,16 +186,6 @@ let package = Package(
                 .product(name: "ConnectivityServiceTestKit", package: "SystemServices"),
             ],
             path: "AppService/TestKit",
-        ),
-        .target(
-            name: "ServiceStatusService",
-            dependencies: [
-                "Primitives",
-                "Gemstone",
-                "GemstonePrimitives",
-                "NativeProviderService",
-            ],
-            path: "ServiceStatusService",
         ),
         .target(
             name: "ConnectionStatusService",

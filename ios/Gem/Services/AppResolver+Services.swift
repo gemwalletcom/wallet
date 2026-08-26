@@ -15,7 +15,7 @@ import protocol Gemstone.GemNotificationServiceProtocol
 import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import Primitives
 import PrimitivesComponents
-import ServiceStatusService
+import protocol Gemstone.GemServiceStatusProtocol
 import StreamService
 import SwapService
 import WalletConnector
@@ -33,7 +33,7 @@ extension AppResolver {
         let connectionStatusObserver: ConnectionStatusObserver
         let deviceService: DeviceService
         let nodeService: NodeService
-        let serviceStatusService: any ServiceStatusServiceable
+        let serviceStatusService: any GemServiceStatusProtocol
         let navigationHandler: NavigationHandler
         let navigationPresenter: NavigationPresenter
         let priceAlertService: PriceAlertService

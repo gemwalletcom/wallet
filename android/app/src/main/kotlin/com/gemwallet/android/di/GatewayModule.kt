@@ -2,7 +2,6 @@ package com.gemwallet.android.di
 
 import android.content.Context
 import com.gemwallet.android.Constants
-import com.gemwallet.android.blockchain.services.ServiceStatusService
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.repositories.gemstone.GemstonePreferencesStore
@@ -191,11 +190,11 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideServiceStatusService(
+    fun provideGemServiceStatus(
         getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
         @ApplicationContext context: Context,
-    ): ServiceStatusService {
+    ): GemServiceStatus {
         val httpClient = okHttpClient.newBuilder()
             .callTimeout(serviceStatusTimeoutSeconds().toLong(), TimeUnit.SECONDS)
             .build()
@@ -206,7 +205,7 @@ object GatewayModule {
                 networkOfflineMessage = context.getString(UiR.string.errors_network_offline),
             ),
         )
-        return ServiceStatusService(GemServiceStatus(provider))
+        return GemServiceStatus(provider)
     }
 
     @Provides

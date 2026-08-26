@@ -17,7 +17,6 @@ import NativeProviderService
 import Preferences
 import Primitives
 import PrimitivesComponents
-import ServiceStatusService
 import Store
 import StreamService
 import SwapService
@@ -94,7 +93,11 @@ struct ServicesFactory {
         )
         let paymentService = PaymentService(provider: nativeProvider)
         let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
-        let serviceStatusService = ServiceStatusService()
+        let serviceStatusConfiguration = URLSessionConfiguration.default
+        serviceStatusConfiguration.timeoutIntervalForRequest = TimeInterval(serviceStatusTimeoutSeconds())
+        let serviceStatusService = Gemstone.GemServiceStatus(
+            provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration), url: Constants.apiURL),
+        )
         let chainServiceFactory = ChainServiceFactory(gatewayService: gatewayService)
 
         let avatarService = AvatarService(store: storeManager.walletStore)

@@ -74,7 +74,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`PriceAlertService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceAlertService` | Done | |
 | [`PriceService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceService` | Done | |
 | [`RewardsService`](../../ios/Packages/GemstoneServices/Sources) | `GemRewardsService` | Done | |
-| [`ServiceStatusService`](../../ios/Packages/FeatureServices/ServiceStatusService) | `GemServiceStatus` | Done | Thin wrapper over the Core client |
+| `ServiceStatusService` | `GemServiceStatus` | Done | Wrapper removed on both apps; view models use the Core client directly |
 | [`StreamService`](../../ios/Packages/FeatureServices/StreamService) | `GemStreamService` | Done | Event handling in Core; socket connection and subscriptions app-side, see [DEVICE_WEBSOCKETS.md](DEVICE_WEBSOCKETS.md); Android: [`StreamEventHandler`](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/stream/StreamEventHandler.kt) |
 | [`SupportChatService`](../../ios/Packages/GemstoneServices/Sources) | `GemSupportService` | Done | Typing state and image files stay app-side |
 | [`SwapService`](../../ios/Packages/FeatureServices/SwapService) | `GemSwapper` | Done | Thin wrapper on both apps, see [SWAPPER.md](../../docs/SWAPPER.md) |
