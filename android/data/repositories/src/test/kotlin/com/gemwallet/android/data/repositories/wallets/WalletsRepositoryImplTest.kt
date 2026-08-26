@@ -1,7 +1,5 @@
 package com.gemwallet.android.data.repositories.wallets
 
-import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
-import com.gemwallet.android.blockchain.operators.CreateAccountOperator
 import com.gemwallet.android.data.repositories.addresses.AddressesRepository
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
@@ -38,8 +36,6 @@ class WalletsRepositoryImplTest {
     private val accountsDao = mockk<AccountsDao>(relaxed = true)
     private val addressesRepository = mockk<AddressesRepository>(relaxed = true)
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
-    private val createAccount = mockk<CreateAccountOperator>(relaxed = true)
-    private val walletIdGenerator = mockk<WalletIdGenerator>(relaxed = true)
     private val transactionRunner = RecordingStoreTransactionRunner()
 
     private val subject = WalletsRepositoryImpl(
@@ -47,8 +43,6 @@ class WalletsRepositoryImplTest {
         accountsDao = accountsDao,
         addressesRepository = addressesRepository,
         assetsDao = assetsDao,
-        createAccount = createAccount,
-        walletIdGenerator = walletIdGenerator,
         transactionRunner = transactionRunner,
     )
 
@@ -58,9 +52,8 @@ class WalletsRepositoryImplTest {
     }
 
     @Test
-    fun addWatch_insertsNativeAssetBeforeAccount() = runBlocking {
+    fun addWallet_insertsNativeAssetBeforeAccount() = runBlocking {
         stubNativeAssets()
-        every { walletIdGenerator.generateWalletId(WalletType.View, Chain.Ethereum, "0xabc") } returns WalletId("wallet-1")
         every { walletsDao.getById("wallet-1") } returns flowOf(null)
         every { walletsDao.getAll() } returns flowOf(emptyMap())
         coEvery { accountsDao.getByWalletId("wallet-1") } returns emptyList()
@@ -68,7 +61,7 @@ class WalletsRepositoryImplTest {
         coJustRun { assetsDao.insert(any<List<DbAsset>>()) }
         coJustRun { accountsDao.insert(any<List<DbAccount>>()) }
 
-        subject.addWatch("Wallet", "0xabc", Chain.Ethereum)
+        subject.addWallet(mockWallet(id = "wallet-1", type = WalletType.View, accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc"))))
 
         coVerifyOrder {
             walletsDao.insert(any())

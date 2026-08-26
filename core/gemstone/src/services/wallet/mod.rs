@@ -78,16 +78,20 @@ impl GemWalletService {
         if let Some(wallet) = rules::existing_wallet(&wallets, &wallet_id, preview.wallet_type) {
             return Ok(GemWalletImportResult::Existing { wallet });
         }
+        let index = self.store.next_wallet_index().await?;
         let wallet = match import {
-            GemWalletImportType::Address { address, chain } => rules::view_wallet(name, chain, address),
+            GemWalletImportType::Address { address, chain } => Wallet {
+                index,
+                ..rules::view_wallet(name, chain, address)
+            },
             import => {
-                let password = self.password.get_password(wallet_id.clone(), wallets.is_empty())?;
+                let password = self.password.get_password(wallet_id.clone(), true)?;
                 let stored = self.keystore.create_store(keystore_import(import), password)?;
                 Wallet {
                     id: wallet_id,
                     external_id: None,
                     name,
-                    index: 0,
+                    index,
                     wallet_type: stored.wallet_type,
                     accounts: stored.accounts.into_iter().map(rules::account).collect(),
                     is_pinned: false,

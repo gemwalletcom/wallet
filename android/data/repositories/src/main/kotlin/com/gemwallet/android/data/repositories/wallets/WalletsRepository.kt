@@ -1,10 +1,7 @@
 package com.gemwallet.android.data.repositories.wallets
 
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletSource
-import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.flow.Flow
 
 interface WalletsRepository {
@@ -12,15 +9,7 @@ interface WalletsRepository {
 
     fun getAll(): Flow<List<Wallet>>
 
-    suspend fun addWatch(walletName: String, address: String, chain: Chain): Wallet
 
-    suspend fun addControlled(
-        walletName: String,
-        data: String,
-        type: WalletType,
-        chain: Chain?,
-        source: WalletSource
-    ): Wallet
 
     suspend fun addWallet(wallet: Wallet): Wallet
 

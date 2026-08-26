@@ -1,10 +1,8 @@
 package com.gemwallet.android.data.repositories.wallets
 
-import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
 import com.gemwallet.android.blockchain.operators.InvalidPhrase
 import com.gemwallet.android.blockchain.operators.InvalidWords
-import com.gemwallet.android.blockchain.operators.StorePhraseOperator
 import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.wallet.ImportError
@@ -12,22 +10,25 @@ import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.words
 import com.gemwallet.android.math.hex
 import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportResult
+import uniffi.gemstone.GemWalletImportType
+import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemWalletSource
 
 class PhraseAddressImportWalletService(
-    private val walletsRepository: WalletsRepository,
+    private val walletService: GemWalletService,
     private val assetsRepository: AssetsRepository,
     private val sessionRepository: SessionRepository,
-    private val storePhraseOperator: StorePhraseOperator,
     private val phraseValidate: ValidatePhraseOperator,
-    private val passwordStore: PasswordStore,
     private val syncDevice: SyncDevice,
     private val walletImportSync: SyncWalletImport,
 ) : ImportWalletService {
@@ -37,29 +38,47 @@ class PhraseAddressImportWalletService(
         walletName: String,
         data: String
     ): WalletImportResult {
-        val wallet = try {
-            when (importType.walletType) {
-                WalletType.Multicoin -> handlePhrase(importType, walletName, data, WalletSource.Import)
-                WalletType.Single -> handlePhrase(importType, walletName, data, WalletSource.Import)
-                WalletType.View -> handleAddress(importType.chain!!, walletName, data)
-                WalletType.PrivateKey -> handlePrivateKey(importType.chain!!, walletName, data)
+        val chain = importType.chain
+        val import = when (importType.walletType) {
+            WalletType.Multicoin -> GemWalletImportType.MulticoinPhrase(
+                words = validatedWords(data),
+                chains = Chain.entries.filter(Chain.available()::contains).map { it.string },
+            )
+            WalletType.Single -> GemWalletImportType.SinglePhrase(words = validatedWords(data), chain = chain!!.string)
+            WalletType.View -> GemWalletImportType.Address(address = validatedAddress(chain!!, data), chain = chain.string)
+            WalletType.PrivateKey -> GemWalletImportType.PrivateKey(value = decodedPrivateKey(chain!!, data), chain = chain.string)
+        }
+        return when (val result = import(walletName, import, GemWalletSource.IMPORT)) {
+            is GemWalletImportResult.Existing -> WalletImportResult.Existing(result.wallet.decodeJson())
+            is GemWalletImportResult.New -> {
+                val wallet = result.wallet.decodeJson<Wallet>()
+                setupWallet(wallet)
+                walletImportSync.sync(wallet)
+                WalletImportResult.New(wallet)
             }
-        } catch (err: ImportError.DuplicatedWallet) {
-            return WalletImportResult.Existing(err.wallet)
-        } // Other exception handle on call
-
-        setupWallet(wallet)
-        walletImportSync.sync(wallet)
-        return WalletImportResult.New(wallet)
+        }
     }
 
     override suspend fun createWallet(walletName: String, data: String): Wallet {
-        val wallet = handlePhrase(ImportType(WalletType.Multicoin), walletName, data, WalletSource.Create)
-
+        val import = GemWalletImportType.MulticoinPhrase(
+            words = validatedWords(data),
+            chains = Chain.entries.filter(Chain.available()::contains).map { it.string },
+        )
+        val wallet = when (val result = import(walletName, import, GemWalletSource.CREATE)) {
+            is GemWalletImportResult.Existing -> result.wallet.decodeJson<Wallet>()
+            is GemWalletImportResult.New -> result.wallet.decodeJson<Wallet>()
+        }
         setupWallet(wallet)
         syncDevice.syncDevice()
-
         return wallet
+    }
+
+    private suspend fun import(walletName: String, import: GemWalletImportType, source: GemWalletSource): GemWalletImportResult {
+        return try {
+            walletService.importWallet(walletName, import, source)
+        } catch (error: Exception) {
+            throw ImportError.CreateError(error.message ?: "Unknown error")
+        }
     }
 
     private suspend fun setupWallet(wallet: Wallet) {
@@ -67,9 +86,9 @@ class PhraseAddressImportWalletService(
         sessionRepository.setWallet(wallet)
     }
 
-    private suspend fun handlePhrase(importType: ImportType, walletName: String, rawData: String, source: WalletSource): Wallet {
-        val cleanedData = rawData.words().joinToString(" ")
-        val validateResult = phraseValidate(cleanedData)
+    private fun validatedWords(rawData: String): List<String> {
+        val words = rawData.words()
+        val validateResult = phraseValidate(words.joinToString(" "))
         if (validateResult.isFailure || validateResult.getOrNull() != true) {
             val error = validateResult.exceptionOrNull() ?: InvalidPhrase
             throw when (error) {
@@ -77,48 +96,21 @@ class PhraseAddressImportWalletService(
                 else -> ImportError.InvalidationSecretPhrase
             }
         }
-        val wallet = walletsRepository.addControlled(walletName, cleanedData, importType.walletType, importType.chain, source)
-
-        val password = passwordStore.createPassword(wallet.id.id)
-        val storeResult = storePhraseOperator(wallet, cleanedData, password)
-        return if (storeResult.isSuccess) {
-            wallet
-        } else {
-            walletsRepository.removeWallet(wallet.id)
-            throw storeResult.exceptionOrNull() ?: ImportError.CreateError("Unknown error")
-        }
+        return words
     }
 
-    private suspend fun handleAddress(chain: Chain, walletName: String, data: String): Wallet {
+    private fun validatedAddress(chain: Chain, data: String): String {
         if (!chain.isValidAddress(data)) {
             throw ImportError.InvalidAddress
         }
-        return try {
-            walletsRepository.addWatch(walletName, data, chain)
-        } catch (err: ImportError.DuplicatedWallet) {
-            throw err
-        } catch (err: Exception) {
-            throw ImportError.CreateError(err.message ?: "Unknown error")
-        }
+        return data
     }
 
-    private suspend fun handlePrivateKey(chain: Chain, walletName: String, data: String): Wallet {
-        val key = try {
-            val data = decodePrivateKey(chain, data.trim())
-            data.hex
+    private fun decodedPrivateKey(chain: Chain, data: String): String {
+        return try {
+            decodePrivateKey(chain, data.trim()).hex
         } catch (_: Throwable) {
             throw ImportError.InvalidationPrivateKey
-        }
-
-        val wallet = walletsRepository.addControlled(walletName, key, WalletType.PrivateKey, chain, source = WalletSource.Import)
-
-        val password = passwordStore.createPassword(wallet.id.id)
-        val storeResult = storePhraseOperator(wallet, key, password)
-        return if (storeResult.isSuccess) {
-            wallet
-        } else {
-            walletsRepository.removeWallet(wallet.id)
-            throw storeResult.exceptionOrNull() ?: ImportError.CreateError("Unknown error")
         }
     }
 
@@ -127,5 +119,4 @@ class PhraseAddressImportWalletService(
             return uniffi.gemstone.decodePrivateKey(chain = chain.string, value = data)
         }
     }
-
 }

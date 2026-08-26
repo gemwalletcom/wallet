@@ -114,7 +114,7 @@ struct ServicesFactory {
         let walletService = WalletService(
             service: Gemstone.GemWalletService(
                 keystore: storages.keystore.gemKeystore,
-                password: GemstoneKeystorePassword(keystore: storages.keystore),
+                password: GemstoneKeystorePassword(keystore: storages.keystore, walletStore: storeManager.walletStore),
                 store: gemWalletStore,
                 session: gemWalletSessionService,
                 deviceStore: gemDeviceStore,

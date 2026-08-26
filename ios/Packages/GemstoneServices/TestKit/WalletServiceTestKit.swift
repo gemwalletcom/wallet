@@ -27,7 +27,7 @@ public extension WalletService {
         return WalletService(
             service: GemWalletService(
                 keystore: keystore.gemKeystore,
-                password: GemstoneKeystorePassword(keystore: keystore),
+                password: GemstoneKeystorePassword(keystore: keystore, walletStore: walletStore),
                 store: gemWalletStore,
                 session: session,
                 deviceStore: GemstoneDeviceStore(preferences: preferences.preferences),
