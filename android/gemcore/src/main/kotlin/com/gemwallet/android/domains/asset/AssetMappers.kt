@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.asset
 
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -43,6 +44,32 @@ fun Asset.toGem() = GemAsset(
         AssetType.SPOT -> throw IllegalAccessException()
     }
 )
+
+fun GemAsset.toPrimitives(): Asset? {
+    val assetId = id.toAssetId() ?: return null
+    return Asset(
+        id = assetId,
+        name = name,
+        symbol = symbol,
+        decimals = decimals,
+        type = when (assetType) {
+            GemAssetType.NATIVE -> AssetType.NATIVE
+            GemAssetType.ERC20 -> AssetType.ERC20
+            GemAssetType.BEP20 -> AssetType.BEP20
+            GemAssetType.SPL -> AssetType.SPL
+            GemAssetType.SPL2022 -> AssetType.SPL2022
+            GemAssetType.TRC20 -> AssetType.TRC20
+            GemAssetType.TIP20 -> AssetType.TIP20
+            GemAssetType.TOKEN -> AssetType.TOKEN
+            GemAssetType.IBC -> AssetType.IBC
+            GemAssetType.JETTON -> AssetType.JETTON
+            GemAssetType.SYNTH -> AssetType.SYNTH
+            GemAssetType.ASA -> AssetType.ASA
+            GemAssetType.PERPETUAL -> AssetType.PERPETUAL
+            GemAssetType.SPOT -> AssetType.SPOT
+        },
+    )
+}
 
 fun NFTAsset.toGem() = GemNftAsset(
     id = id.toIdentifier(),

@@ -2,6 +2,8 @@
 
 import BigInt
 import Foundation
+import Gemstone
+import Primitives
 
 public struct SignerInput {
     public let type: TransferDataType
@@ -13,7 +15,7 @@ public struct SignerInput {
     public let senderAddress: String
     public let destinationAddress: String
 
-    public let metadata: TransactionLoadMetadata
+    public let metadata: GemTransactionLoadMetadata
 
     public init(
         type: TransferDataType,
@@ -24,7 +26,7 @@ public struct SignerInput {
         memo: String?,
         senderAddress: String,
         destinationAddress: String,
-        metadata: TransactionLoadMetadata = .none,
+        metadata: GemTransactionLoadMetadata = .none,
     ) {
         self.type = type
         self.asset = asset

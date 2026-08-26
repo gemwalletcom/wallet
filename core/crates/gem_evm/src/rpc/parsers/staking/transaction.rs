@@ -5,7 +5,7 @@ use crate::ethereum_address_checksum;
 
 use super::ParseContext;
 
-pub(super) fn make_staking_transaction(context: &ParseContext<'_>, to: &str, transaction_type: TransactionType, value: BigUint) -> Option<PrimitivesTransaction> {
+pub fn make_staking_transaction(context: &ParseContext<'_>, to: &str, transaction_type: TransactionType, value: BigUint) -> Option<PrimitivesTransaction> {
     let from = ethereum_address_checksum(&context.transaction.from).ok()?;
     let contract = context.transaction.to.as_ref().and_then(|to| ethereum_address_checksum(to).ok());
 

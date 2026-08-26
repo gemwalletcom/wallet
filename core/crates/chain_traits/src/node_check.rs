@@ -23,7 +23,7 @@ where
     let recorder = match request {
         NodeCheckRequest::Basic => recorder,
         NodeCheckRequest::Wallet { address, transaction_id } => record_wallet(state, address, transaction_id.as_deref(), recorder).await,
-        NodeCheckRequest::Parser => record_parser_block(state, recorder).await,
+        NodeCheckRequest::Parser => record_parser_blocks(state, recorder).await,
     };
     recorder.finish()
 }
@@ -138,7 +138,7 @@ pub trait ChainNodeStatus: ChainBlockTransactions + ChainState {
         let recorder = match request {
             NodeCheckRequest::Basic => recorder,
             NodeCheckRequest::Wallet { address, transaction_id } => self.get_node_wallet_status(address, transaction_id.as_deref(), block_number, recorder).await,
-            NodeCheckRequest::Parser => record_parser_block(self, recorder).await,
+            NodeCheckRequest::Parser => record_parser_blocks(self, recorder).await,
         };
         recorder.finish()
     }
@@ -169,15 +169,20 @@ where
     }
 }
 
-async fn record_parser_block<T: ChainBlockTransactions + ?Sized>(state: &T, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
+async fn record_parser_blocks<T: ChainBlockTransactions + ?Sized>(state: &T, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
     let Some(latest_block) = recorder.block_number else {
         return recorder;
     };
 
-    let block_number = latest_block.saturating_sub(PARSER_BLOCK_OFFSET);
+    let recorder = recorder
+        .record_timed("block_transactions_latest", async {
+            state.get_transactions_by_block(latest_block).await.map(|transactions| transactions.len())
+        })
+        .await;
+    let stable_block = latest_block.saturating_sub(PARSER_BLOCK_OFFSET);
     recorder
         .record_timed("block_transactions", async {
-            state.get_transactions_by_block(block_number).await.map(|transactions| transactions.len())
+            state.get_transactions_by_block(stable_block).await.map(|transactions| transactions.len())
         })
         .await
 }
@@ -260,8 +265,8 @@ mod tests {
     #[async_trait]
     impl ChainBlockTransactions for TestState {
         async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-            self.block_transaction_calls.fetch_add(1, Ordering::Relaxed);
-            assert_eq!(block, 90);
+            let call = self.block_transaction_calls.fetch_add(1, Ordering::Relaxed);
+            assert_eq!(block, if call == 0 { 100 } else { 90 });
             Ok(Vec::new())
         }
     }
@@ -287,9 +292,13 @@ mod tests {
             report.get("block_transactions").map(|result| &result.status),
             Some(&NodeCheckStatus::Passed { result: "0".to_string() })
         );
-        assert_eq!(report.checks.len(), 3);
+        assert_eq!(
+            report.get("block_transactions_latest").map(|result| &result.status),
+            Some(&NodeCheckStatus::Passed { result: "0".to_string() })
+        );
+        assert_eq!(report.checks.len(), 4);
         assert_eq!(state.latest_block_calls.load(Ordering::Relaxed), 1);
-        assert_eq!(state.block_transaction_calls.load(Ordering::Relaxed), 1);
+        assert_eq!(state.block_transaction_calls.load(Ordering::Relaxed), 2);
     }
 
     #[test]

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 public import struct Gemstone.GemSignedTransaction
+public import GemstonePrimitives
 import Primitives
 import Signer
 

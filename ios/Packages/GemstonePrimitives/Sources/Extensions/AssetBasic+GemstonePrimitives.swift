@@ -42,7 +42,7 @@ public extension AssetBasic {
                 earnApr: .none,
                 hasImage: false,
             ),
-            score: AssetScore(rank: 16),
+            score: AssetScore.defaultValue(assetId: asset.id),
             price: nil,
         )
     }

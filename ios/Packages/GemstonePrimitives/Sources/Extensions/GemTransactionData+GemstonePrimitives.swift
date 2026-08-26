@@ -5,10 +5,10 @@ import Gemstone
 import Primitives
 
 public extension GemTransactionData {
-    func map() throws -> Primitives.TransactionData {
+    func map() throws -> TransactionData {
         try TransactionData(
             fee: fee.map(),
-            metadata: metadata.map(),
+            metadata: metadata,
         )
     }
 }

@@ -149,6 +149,8 @@ coinmarketcap:
   url: "https://pro-api.coinmarketcap.com"
   key:
     secret: ""
+everstake:
+  url: "https://eth-api-b2c.everstake.one"
 
 name:
   max_name_length: 20

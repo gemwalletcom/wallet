@@ -25,7 +25,11 @@ async fn find_transaction_hash<C: Client + Clone>(provider: &EthereumProvider<C>
 
     for offset in 0..search_blocks {
         let block_number = target_block.saturating_sub(offset);
-        let block = provider.get_block(block_number).await.map_err(|error| error.to_string())?;
+        let block = provider
+            .get_block(block_number)
+            .await
+            .map_err(|error| error.to_string())?
+            .ok_or_else(|| format!("block {block_number} not available"))?;
         if let Some(transaction) = block.transactions.first() {
             return Ok(transaction.hash.clone());
         }

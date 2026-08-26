@@ -13,6 +13,7 @@ use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_client::{ReqwestClient, retry_policy};
 use gem_cosmos::rpc::client::CosmosClient;
+use gem_everstake::EverstakeStakingClient;
 use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
@@ -74,31 +75,35 @@ impl ProviderFactory {
                 let client = EthereumClient::new(rpc_client, evm_chain);
                 TempoProvider::new_or_else(client, |client| {
                     let indexer = EVMIndexer::for_chain(
-                        gem_client.clone().with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
-                            chain,
-                            &config.indexers.alchemy.url,
-                            AlchemyApi::JsonRpc,
-                            &config.indexers.alchemy.key,
-                        )),
                         gem_client
                             .clone()
-                            .with_request_timeout(config.indexers.ankr.timeout)
-                            .with_base_url(format!("{}/{}", config.indexers.ankr.url, config.indexers.ankr.key)),
+                            .with_base_url(alchemy_url(chain, &config.indexers.alchemy.url, AlchemyApi::JsonRpc, &config.indexers.alchemy.key)),
+                        gem_client.clone().with_base_url(format!("{}/{}", config.indexers.ankr.url, config.indexers.ankr.key)),
                         config.indexers.blockscout.configure_client(gem_client),
                         config.indexers.blockscout.key,
                         evm_chain,
                     );
-                    let provider = if let Some(indexer) = indexer {
+                    if let Some(indexer) = indexer {
                         let indexer = Arc::new(indexer);
-                        EthereumProvider::new(
-                            client,
-                            Box::new(EVMTransactionsByAddressProvider::new(indexer.clone())),
-                            Box::new(EVMAssetBalanceProvider::new(indexer)),
-                        )
+                        let transactions = Box::new(EVMTransactionsByAddressProvider::new(indexer.clone()));
+                        let asset_balances = Box::new(EVMAssetBalanceProvider::new(indexer));
+                        Box::new(match evm_chain {
+                            EVMChain::Ethereum => EthereumProvider::new_with_provider(
+                                client.clone(),
+                                transactions,
+                                asset_balances,
+                                Box::new(EverstakeStakingClient::new(client, config.everstake_url.clone())),
+                            ),
+                            _ => EthereumProvider::new(client, transactions, asset_balances),
+                        })
                     } else {
-                        EthereumProvider::new_rpc_only(client)
-                    };
-                    Box::new(provider)
+                        Box::new(match evm_chain {
+                            EVMChain::Ethereum => {
+                                EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, config.everstake_url.clone())))
+                            }
+                            _ => EthereumProvider::new_rpc_only(client),
+                        })
+                    }
                 })
             }
             ChainType::Cardano => Box::new(CardanoClient::new(gem_client)),
@@ -137,14 +142,12 @@ impl ProviderFactory {
             )),
             ChainType::Solana => Box::new(SolanaProvider::new(
                 SolanaClient::new(JsonRpcClient::new(gem_client.clone())),
-                Box::new(SolanaIndexer::new(JsonRpcClient::new(
-                    gem_client.with_request_timeout(config.indexers.alchemy.timeout).with_base_url(alchemy_url(
-                        chain,
-                        &config.indexers.alchemy.url,
-                        AlchemyApi::JsonRpc,
-                        &config.indexers.alchemy.key,
-                    )),
-                ))),
+                Box::new(SolanaIndexer::new(JsonRpcClient::new(gem_client.with_base_url(alchemy_url(
+                    chain,
+                    &config.indexers.alchemy.url,
+                    AlchemyApi::JsonRpc,
+                    &config.indexers.alchemy.key,
+                ))))),
             )),
             ChainType::Ton => Box::new(TonClient::new(gem_client)),
             ChainType::Tron => {

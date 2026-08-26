@@ -69,6 +69,7 @@ public struct ConfirmTransferInputProvider: Sendable {
             metadata: metadata,
             input: input,
             feeRates: transactionData.rates,
+            simulation: transactionData.simulation,
         )
     }
 

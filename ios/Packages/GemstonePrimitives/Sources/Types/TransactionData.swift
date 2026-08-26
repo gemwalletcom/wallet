@@ -1,14 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Gemstone
+import Primitives
 
 public struct TransactionData: Sendable {
     public let fee: Fee
-    public let metadata: TransactionLoadMetadata
+    public let metadata: GemTransactionLoadMetadata
 
     public init(
         fee: Fee,
-        metadata: TransactionLoadMetadata = .none,
+        metadata: GemTransactionLoadMetadata = .none,
     ) {
         self.fee = fee
         self.metadata = metadata

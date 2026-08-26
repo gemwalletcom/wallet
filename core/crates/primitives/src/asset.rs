@@ -3,7 +3,7 @@ use std::{collections::HashSet, error::Error};
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::{AssetBasic, AssetProperties, AssetScore, AssetSubtype, Chain, asset_id::AssetId, asset_type::AssetType};
+use crate::{AssetBasic, AssetProperties, AssetScore, Chain, asset_id::AssetId, asset_type::AssetType};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
@@ -142,10 +142,7 @@ impl Asset {
     }
 
     pub fn default_score(&self) -> AssetScore {
-        match self.id.token_subtype() {
-            AssetSubtype::NATIVE => AssetScore::new(self.id.chain.rank()),
-            AssetSubtype::TOKEN => AssetScore::default(),
-        }
+        AssetScore::new(self.id.default_rank())
     }
 
     pub fn from_chain(chain: Chain) -> Asset {
@@ -236,7 +233,10 @@ mod tests {
         let native = Asset::from_chain(Chain::Robinhood).as_basic_primitive();
         let token = Asset::new(AssetId::from_token(Chain::Robinhood, "0x123"), "Token".to_string(), "TKN".to_string(), 18, AssetType::ERC20).as_basic_primitive();
 
+        let known_token = crate::known_assets::SOLANA_USDC.as_basic_primitive();
+
         assert_eq!(native.score.rank, Chain::Robinhood.rank());
         assert_eq!(token.score.rank, AssetScore::default().rank);
+        assert!(known_token.score.rank > crate::asset_score::AssetRank::Trivial.threshold());
     }
 }

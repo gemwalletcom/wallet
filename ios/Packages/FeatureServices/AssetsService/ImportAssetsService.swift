@@ -33,18 +33,22 @@ public struct ImportAssetsService: Sendable {
         let tokenAssets = chains.flatMap(\.defaultAssets)
         let assetIds = chains.map(\.id) + tokenAssets.ids
 
-        let existingAssets = try assetStore.getAssets(for: assetIds)
-        let hasMissingAssets = existingAssets.count != assetIds.count
+        let existingAssetIds = try assetStore.getAssets(for: assetIds).ids.asSet()
+        let missingAssetIds = assetIds.asSet().subtracting(existingAssetIds)
         let isNewVersion = preferences.localAssetsVersion < releaseVersion
 
         #if targetEnvironment(simulator)
         #else
-            guard isNewVersion || hasMissingAssets else { return }
+            guard isNewVersion || missingAssetIds.isNotEmpty else { return }
         #endif
 
-        if hasMissingAssets {
-            let chainAssets = chains.map { AssetBasic.native($0.asset) }
-            let defaultTokenAssets = tokenAssets.map { AssetBasic.seed($0) }
+        if missingAssetIds.isNotEmpty {
+            let chainAssets = chains
+                .filter { missingAssetIds.contains($0.id) }
+                .map { AssetBasic.native($0.asset) }
+            let defaultTokenAssets = tokenAssets
+                .filter { missingAssetIds.contains($0.id.identifier) }
+                .map { AssetBasic.seed($0) }
 
             try assetStore.add(assets: chainAssets)
             try assetStore.insert(assets: defaultTokenAssets)
@@ -66,11 +70,9 @@ public struct ImportAssetsService: Sendable {
 
         let assetIds = (buyAssets.assetIds + sellAssets.assetIds).compactMap { try? AssetId(id: $0) }
 
-        async let prefetchResult = try assetsService.prefetchAssets(assetIds: assetIds)
-        async let setBuyableResult = try assetStore.setAssetIsBuyable(for: buyAssets.assetIds, value: true)
-        async let setSellableResult = try assetStore.setAssetIsSellable(for: sellAssets.assetIds, value: true)
-
-        _ = try await (prefetchResult, setBuyableResult, setSellableResult)
+        try await assetsService.prefetchAssets(assetIds: assetIds)
+        try assetStore.updateBuyableAssets(assetIds: buyAssets.assetIds)
+        try assetStore.updateSellableAssets(assetIds: sellAssets.assetIds)
 
         preferences.fiatOnRampAssetsVersion = Int(buyAssets.version)
         preferences.fiatOffRampAssetsVersion = Int(sellAssets.version)

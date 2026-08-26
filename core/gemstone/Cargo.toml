@@ -28,6 +28,7 @@ gem_ton = { path = "../crates/gem_ton", features = ["rpc", "signer"] }
 gem_tron = { path = "../crates/gem_tron", features = ["rpc", "signer"] }
 gem_evm = { path = "../crates/gem_evm", features = ["rpc", "signer"] }
 gem_optimism = { path = "../crates/gem_optimism", features = ["rpc"] }
+gem_everstake = { path = "../crates/gem_everstake", features = ["rpc"] }
 gem_tempo = { path = "../crates/gem_tempo", features = ["rpc", "signer"] }
 simulation = { path = "../crates/simulation", features = ["rpc"] }
 gem_sui = { path = "../crates/gem_sui", features = ["rpc", "signer"] }
@@ -60,6 +61,7 @@ uniffi.workspace = true
 
 chrono = { workspace = true }
 
+serde.workspace = true
 serde_json.workspace = true
 async-trait.workspace = true
 alloy-primitives.workspace = true

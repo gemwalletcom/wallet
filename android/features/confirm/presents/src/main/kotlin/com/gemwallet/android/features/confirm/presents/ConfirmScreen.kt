@@ -159,7 +159,7 @@ fun ConfirmScreen(
         ) {
             item {
                 when {
-                    isPayment && simulation.headerAsset == null -> Box(
+                    isPayment && simulation.headerAsset == null && state is ConfirmState.Prepare -> Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(0f)

@@ -1,29 +1,27 @@
 package com.gemwallet.android.data.coordinators.swap
 
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.swap.coordinators.GetSwapAssets
 import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.ext.toAssetId
+import com.wallet.core.primitives.ConfigVersions
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 
 class SyncSwapAssetsImpl(
     private val configStore: ConfigStore,
-    private val getRemoteConfig: GetRemoteConfig,
     private val getSwapAssets: GetSwapAssets,
     private val assetsRepository: AssetsRepository,
     private val availabilityService: AssetsAvailabilityService,
     private val prefetchAssets: PrefetchAssets,
 ) : SyncSwapAssets {
 
-    override suspend fun invoke() {
+    override suspend fun invoke(versions: ConfigVersions) {
         try {
-            val remoteVersion = getRemoteConfig.getRemoteConfig().versions.swapAssets
-            if (!shouldSync(remoteVersion)) {
+            if (!shouldSync(versions.swapAssets)) {
                 return
             }
             val swapAssets = getSwapAssets()
@@ -43,7 +41,7 @@ class SyncSwapAssetsImpl(
 
     private fun shouldSync(remoteVersion: Int): Boolean {
         val currentVersion = configStore.getInt(SWAP_ASSETS_VERSION)
-        return currentVersion <= 0 || currentVersion < remoteVersion
+        return currentVersion != remoteVersion
     }
 
     private companion object {

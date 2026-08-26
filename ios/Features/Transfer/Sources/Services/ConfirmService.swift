@@ -6,7 +6,6 @@ import Blockchain
 import ChainService
 import EventPresenterService
 import ExplorerService
-import protocol Gemstone.TransactionSimulationServiceProtocol
 import GemstonePrimitives
 import Keystore
 import Primitives
@@ -15,7 +14,6 @@ public struct ConfirmService: Sendable {
     private let metadataProvider: any TransferMetadataProvidable
     private let inputProvider: ConfirmTransferInputProvider
     private let simulationService: ConfirmSimulationService
-    private let transactionSimulationService: any TransactionSimulationServiceProtocol
     private let transferExecutor: any TransferExecutable
     private let activityService: ActivityService
     private let eventPresenterService: EventPresenterService
@@ -28,7 +26,6 @@ public struct ConfirmService: Sendable {
         metadataProvider: any TransferMetadataProvidable,
         inputProvider: ConfirmTransferInputProvider,
         simulationService: ConfirmSimulationService,
-        transactionSimulationService: any TransactionSimulationServiceProtocol,
         transferExecutor: any TransferExecutable,
         activityService: ActivityService,
         eventPresenterService: EventPresenterService,
@@ -40,7 +37,6 @@ public struct ConfirmService: Sendable {
         self.metadataProvider = metadataProvider
         self.inputProvider = inputProvider
         self.simulationService = simulationService
-        self.transactionSimulationService = transactionSimulationService
         self.transferExecutor = transferExecutor
         self.activityService = activityService
         self.eventPresenterService = eventPresenterService
@@ -59,14 +55,13 @@ public struct ConfirmService: Sendable {
     }
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
-        async let simulationResult = simulation(request: request)
         async let availableFeeAssets = inputProvider.feeAssets(walletId: request.wallet.id, chain: request.data.chain)
         async let preloadResult = preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
 
-        let (preload, simulation, feeAssets) = try await (preloadResult, simulationResult, availableFeeAssets)
+        let (preload, feeAssets) = try await (preloadResult, availableFeeAssets)
         return await ConfirmTransferData(
             preload: preload,
-            simulation: simulationService.updateState(data: request.data, simulation: simulation),
+            simulation: simulationService.updateState(data: request.data, simulation: request.simulation ?? preload.simulation),
             feeAssets: feeAssets,
         )
     }
@@ -80,12 +75,13 @@ public struct ConfirmService: Sendable {
         )
     }
 
-    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount) async throws {
+    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount, simulation: SimulationResult?) async throws {
         let input = TransferConfirmationInput(
             data: request.data,
             wallet: request.wallet,
             transactionData: transactionData,
             amount: amount,
+            simulation: simulation,
             delegate: request.delegate,
         )
         try await transferExecutor.execute(input: input)
@@ -115,20 +111,6 @@ public struct ConfirmService: Sendable {
 // MARK: - Private
 
 private extension ConfirmService {
-    func simulation(request: ConfirmTransferRequest) async throws -> SimulationResult? {
-        if let requestSimulation = request.simulation {
-            requestSimulation
-        } else if request.data.type.applicationMetadata?.source == .payment {
-            try await transactionSimulationService.simulateTransaction(
-                chain: request.data.chain,
-                transaction: request.data.encodedTransaction(),
-                signerAddress: request.wallet.account(for: request.data.chain).address,
-            )
-        } else {
-            nil
-        }
-    }
-
     func updateRecent(data: RecentActivityData, walletId: WalletId) {
         do {
             try activityService.updateRecent(data: data, walletId: walletId)

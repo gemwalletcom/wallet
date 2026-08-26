@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.di
 
 import android.content.Context
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
@@ -103,7 +102,6 @@ object FiatModule {
     @Singleton
     fun provideSyncFiatAssets(
         @FiatConfigStore configStore: ConfigStore,
-        getRemoteConfig: GetRemoteConfig,
         getBuyableFiatAssets: GetBuyableFiatAssets,
         getSellableFiatAssets: GetSellableFiatAssets,
         availabilityService: AssetsAvailabilityService,
@@ -111,7 +109,6 @@ object FiatModule {
     ): SyncFiatAssets {
         return SyncFiatAssetsImpl(
             configStore = configStore,
-            getRemoteConfig = getRemoteConfig,
             getBuyableFiatAssets = getBuyableFiatAssets,
             getSellableFiatAssets = getSellableFiatAssets,
             availabilityService = availabilityService,

@@ -3,6 +3,8 @@
 import BalanceService
 import Blockchain
 import Foundation
+import func Gemstone.broadcastDelayMilliseconds
+import func Gemstone.broadcastOptions
 import GemstonePrimitives
 import Primitives
 import Signer
@@ -69,7 +71,8 @@ extension TransferExecutor {
         transactionIndex: Int,
         totalTransactions: Int,
     ) async throws {
-        let hash = try await chainService.broadcast(data: data, options: broadcastOptions(data: input.data))
+        let options = try broadcastOptions(chain: input.data.chain.rawValue, inputType: input.data.type.map())
+        let hash = try await chainService.broadcast(data: data, options: BroadcastOptions(skipPreflight: options.skipPreflight))
 
         debugLog("TransferExecutor broadcast response hash \(hash)")
 
@@ -82,6 +85,7 @@ extension TransferExecutor {
             amount: input.amount,
             hash: hash,
             transactionType: transactionType,
+            simulation: input.simulation,
         )
         let assetIds = assetIdsToEnable(for: transaction)
         let transactions = pendingTransactions(
@@ -101,11 +105,9 @@ extension TransferExecutor {
         }
 
         if transactionIndex < totalTransactions - 1 {
-            switch input.data.chain.type {
-            case .ethereum, .hyperCore:
-                break
-            default:
-                try await Task.sleep(for: .milliseconds(500))
+            let delay = broadcastDelayMilliseconds(chain: input.data.chain.rawValue)
+            if delay > 0 {
+                try await Task.sleep(for: .milliseconds(Int(delay)))
             }
         }
     }
@@ -144,18 +146,5 @@ extension TransferExecutor {
 
     private func assetIdsToEnable(for transaction: Transaction) -> [AssetId] {
         transaction.assetIds.filter { !Self.ignoredAssetChains.contains($0.chain) }
-    }
-
-    private func broadcastOptions(data: TransferData) -> BroadcastOptions {
-        switch data.chain {
-        case .solana:
-            switch data.type {
-            case .transfer, .deposit, .withdrawal, .transferNft, .stake, .account, .tokenApprove, .perpetual, .earn: BroadcastOptions(
-                    skipPreflight: false,
-                )
-            case .swap, .generic: BroadcastOptions(skipPreflight: true)
-            }
-        default: BroadcastOptions(skipPreflight: false)
-        }
     }
 }

@@ -57,11 +57,11 @@ public struct AssetsUpdateRunner: AsyncRunnable {
     }
 
     private func shouldUpdateFiatAssets(versions: ConfigVersions) -> Bool {
-        versions.fiatOnRampAssets > preferences.fiatOnRampAssetsVersion ||
-            versions.fiatOffRampAssets > preferences.fiatOffRampAssetsVersion
+        versions.fiatOnRampAssets != preferences.fiatOnRampAssetsVersion ||
+            versions.fiatOffRampAssets != preferences.fiatOffRampAssetsVersion
     }
 
     private func shouldUpdateSwapAssets(versions: ConfigVersions) -> Bool {
-        versions.swapAssets > preferences.swapAssetsVersion
+        versions.swapAssets != preferences.swapAssetsVersion
     }
 }

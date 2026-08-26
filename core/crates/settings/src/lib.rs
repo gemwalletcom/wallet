@@ -3,7 +3,7 @@
 use std::{collections::HashMap, env, path::PathBuf, time::Duration};
 
 use config::{Config, ConfigError, Environment, File};
-use gem_client::{DEFAULT_REQUEST_TIMEOUT, RemoteProviderConfig};
+use gem_client::RemoteProviderConfig;
 use serde::Deserialize;
 use serde_serializers::duration;
 
@@ -28,6 +28,7 @@ pub struct Settings {
     pub defi: Defi,
     pub coingecko: CoinGecko,
     pub coinmarketcap: CoinMarketCap,
+    pub everstake: URL,
     pub name: Name,
     pub chains: Chains,
     pub pusher: Pusher,
@@ -60,23 +61,9 @@ pub struct FastNearIndexer {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct RequestSettings {
-    #[serde(deserialize_with = "duration::deserialize")]
-    pub timeout: Duration,
-}
-
-impl Default for RequestSettings {
-    fn default() -> Self {
-        Self { timeout: DEFAULT_REQUEST_TIMEOUT }
-    }
-}
-
-#[derive(Debug, Deserialize, Clone)]
 pub struct ProviderSettings {
     pub url: String,
     pub key: KeySecret,
-    #[serde(default)]
-    pub request: RequestSettings,
 }
 
 impl ProviderSettings {
@@ -84,7 +71,6 @@ impl ProviderSettings {
         RemoteProviderConfig {
             url: self.url.clone(),
             key: self.key.secret.clone(),
-            timeout: self.request.timeout,
         }
     }
 }

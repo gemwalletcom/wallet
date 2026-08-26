@@ -47,7 +47,7 @@ impl<C: Client + Clone> EthereumClient<C> {
         Ok(hex::decode(result)?)
     }
 
-    pub async fn get_block(&self, block_number: u64) -> Result<Block, JsonRpcError> {
+    pub async fn get_block(&self, block_number: u64) -> Result<Option<Block>, JsonRpcError> {
         self.client.request(EthereumRpc::GetBlockByNumber(block_number, true)).await
     }
 

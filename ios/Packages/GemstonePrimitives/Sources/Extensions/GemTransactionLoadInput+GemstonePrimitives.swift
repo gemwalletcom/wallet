@@ -5,7 +5,7 @@ import Gemstone
 import Primitives
 
 public extension GemTransactionLoadInput {
-    static func map(signerInput: Primitives.SignerInput) throws -> GemTransactionLoadInput {
+    static func map(signerInput: SignerInput) throws -> GemTransactionLoadInput {
         try GemTransactionLoadInput(
             inputType: signerInput.type.map(),
             senderAddress: signerInput.senderAddress,
@@ -14,7 +14,7 @@ public extension GemTransactionLoadInput {
             gasPrice: signerInput.fee.gasPriceType.map(),
             memo: signerInput.memo,
             isMaxValue: signerInput.useMaxAmount,
-            metadata: signerInput.metadata.map(),
+            metadata: signerInput.metadata,
         )
     }
 
@@ -28,7 +28,7 @@ public extension GemTransactionLoadInput {
             balance: BigInt.zero, // Would need to be provided from context
             gasPrice: gasPrice.map(),
             memo: memo,
-            metadata: metadata.map(),
+            metadata: metadata,
         )
     }
 }
@@ -43,7 +43,7 @@ public extension TransactionInput {
             gasPrice: gasPrice.map(),
             memo: memo,
             isMaxValue: feeInput.isMaxAmount,
-            metadata: metadata.map(),
+            metadata: metadata,
         )
     }
 }

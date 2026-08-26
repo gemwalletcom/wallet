@@ -6,6 +6,9 @@ import Foundation
 import Primitives
 import PrimitivesTestKit
 
+public import enum Gemstone.GemTransactionLoadMetadata
+public import GemstonePrimitives
+
 public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     // Injected data
     public var coinBalances: [String: AssetBalance] = [:]
@@ -22,7 +25,7 @@ public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     public var tokenData: [String: Asset] = [:]
     public var tokenDataError: (any Error)?
     public var transactionData: TransactionData = .init(fee: Fee(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero, feeAssetId: Asset.mock().id))
-    public var transactionPreload: TransactionLoadMetadata = .none
+    public var transactionPreload: GemTransactionLoadMetadata = .none
     public var transactionState: TransactionChanges = .init(state: .pending, changes: [])
     public var nodeStatus: NodeStatus = .init(chainId: "1", latestBlockNumber: .zero, latency: .from(duration: 1000))
     public var onLoad: (@Sendable (TransactionInput) async -> Void)?
@@ -104,7 +107,7 @@ public extension ChainServiceMock {
         return transactionData
     }
 
-    func preload(input _: TransactionPreloadInput) async throws -> TransactionLoadMetadata {
+    func preload(input _: TransactionPreloadInput) async throws -> GemTransactionLoadMetadata {
         transactionPreload
     }
 

@@ -58,7 +58,6 @@ pub(crate) trait AssetsStore {
     fn get_all_asset_ids(&mut self) -> Result<Vec<String>, diesel::result::Error>;
     fn get_asset_ids_updated_since(&mut self, since: NaiveDateTime) -> Result<Vec<String>, diesel::result::Error>;
     fn get_swap_assets(&mut self) -> Result<Vec<String>, diesel::result::Error>;
-    fn get_swap_assets_version(&mut self) -> Result<i32, diesel::result::Error>;
 }
 
 fn filter_assets(filters: Vec<AssetFilter>) -> crate::schema::assets::BoxedQuery<'static, diesel::pg::Pg> {
@@ -181,9 +180,5 @@ impl AssetsStore for DatabaseClient {
             .select(id)
             .order(rank.desc())
             .load(&mut self.connection)
-    }
-
-    fn get_swap_assets_version(&mut self) -> Result<i32, diesel::result::Error> {
-        Ok((std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() / 3600) as i32)
     }
 }

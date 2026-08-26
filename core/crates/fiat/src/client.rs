@@ -58,10 +58,7 @@ impl FiatClient {
             .database
             .assets()?
             .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsBuyable(true)])?;
-        Ok(FiatAssets {
-            version: assets.clone().len() as u32,
-            asset_ids: assets.into_iter().map(|x| x.asset.id.to_string()).collect::<Vec<String>>(),
-        })
+        Ok(FiatAssets::new(assets.into_iter().map(|x| x.asset.id.to_string()).collect()))
     }
 
     pub async fn get_off_ramp_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
@@ -69,10 +66,7 @@ impl FiatClient {
             .database
             .assets()?
             .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsSellable(true)])?;
-        Ok(FiatAssets {
-            version: assets.clone().len() as u32,
-            asset_ids: assets.into_iter().map(|x| x.asset.id.to_string()).collect::<Vec<String>>(),
-        })
+        Ok(FiatAssets::new(assets.into_iter().map(|x| x.asset.id.to_string()).collect()))
     }
 
     pub async fn get_fiat_providers_countries(&self) -> Result<Vec<FiatProviderCountry>, Box<dyn Error + Send + Sync>> {

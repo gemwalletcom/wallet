@@ -20,8 +20,3 @@ data class SignerParams(
     )
 }
 
-fun GemTransactionLoadMetadata.blockNumber(): String = when (this) {
-    is GemTransactionLoadMetadata.Cardano -> blockNumber.toString()
-    is GemTransactionLoadMetadata.Polkadot -> blockNumber.toString()
-    else -> ""
-}

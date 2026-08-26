@@ -109,8 +109,6 @@ class ConfirmParamsTest {
                 gasLimit = "21000",
                 decodedTransactionType = TransactionType.SmartContractCall,
             ),
-            ConfirmParams.Builder(nativeAsset, nativeAccount, BigInteger.ONE).transfer(destination),
-            ConfirmParams.Builder(tokenAsset, tokenAccount, BigInteger.ONE).transfer(destination),
             ConfirmParams.Builder(nativeAsset, nativeAccount, BigInteger.ONE).deposit(destination),
             ConfirmParams.Builder(nativeAsset, nativeAccount, BigInteger.ONE).withdrawal(destination),
             ConfirmParams.Builder(tokenAsset, tokenAccount).approval("data", "Provider", "contract"),

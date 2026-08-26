@@ -6,7 +6,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.PaymentDestination
-import com.gemwallet.android.model.PaymentTransfer
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -48,7 +47,7 @@ class PaymentTransferTest {
         requireNotNull(paymentDecodeUrl(url).toPrimitives().request) { "not a payment request: $url" }
 
     private fun destination(assetInfo: AssetInfo, url: String): PaymentDestination.Transfer =
-        PaymentTransfer(assetInfo).destination(decode(url))
+        PaymentDestination.transfer(decode(url), assetInfo)
 
     @Test
     fun destination_confirm() {

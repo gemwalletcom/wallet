@@ -3,6 +3,7 @@ package com.gemwallet.android.application.confirm.coordinators
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.SignerParams
+import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.CoroutineScope
 
 interface ConfirmTransaction {
@@ -11,5 +12,6 @@ interface ConfirmTransaction {
         session: Session,
         assetInfo: AssetInfo,
         scope: CoroutineScope,
+        transactionAssetId: AssetId? = null,
     ): String
 }

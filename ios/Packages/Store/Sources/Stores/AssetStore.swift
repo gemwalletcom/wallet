@@ -14,7 +14,7 @@ public struct AssetStore: Sendable {
     public func insert(assets: [AssetBasic]) throws {
         try db.write { db in
             for asset in assets {
-                try asset.asset.record.insert(db, onConflict: .ignore)
+                try asset.record.insert(db, onConflict: .ignore)
             }
         }
     }
@@ -92,6 +92,23 @@ public struct AssetStore: Sendable {
     @discardableResult
     public func setAssetIsStakeable(for assetIds: [String], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isStakeable, value: value)
+    }
+
+    @discardableResult
+    public func updateBuyableAssets(assetIds: [String]) throws -> Int {
+        try updateColumn(column: AssetRecord.Columns.isBuyable, enabledAssetIds: assetIds)
+    }
+
+    @discardableResult
+    public func updateSellableAssets(assetIds: [String]) throws -> Int {
+        try updateColumn(column: AssetRecord.Columns.isSellable, enabledAssetIds: assetIds)
+    }
+
+    private func updateColumn(column: Column, enabledAssetIds: [String]) throws -> Int {
+        try db.write { db in
+            try AssetRecord
+                .updateAll(db, column.set(to: enabledAssetIds.contains(AssetRecord.Columns.id)))
+        }
     }
 
     private func setColumn(for assetIds: [String], column: Column, value: Bool) throws -> Int {

@@ -27,7 +27,6 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.PaymentDestination
-import com.gemwallet.android.model.PaymentTransfer
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -246,7 +245,7 @@ class RecipientViewModel @Inject constructor(
 
         return when (type) {
             is RecipientType.Nft -> PaymentDestination.Recipient(type.assetInfo.asset.id, request.copy(amount = null))
-            is RecipientType.Asset -> PaymentTransfer(type.assetInfo).destination(request)
+            is RecipientType.Asset -> PaymentDestination.transfer(request, type.assetInfo)
         }
     }
 

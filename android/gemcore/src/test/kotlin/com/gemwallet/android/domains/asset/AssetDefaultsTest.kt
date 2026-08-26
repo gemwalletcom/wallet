@@ -58,17 +58,17 @@ class AssetDefaultsTest {
         val asset = mockAssetSolanaUSDC()
         every { assetIsSwapable(asset.id.toIdentifier()) } returns false
         every { Chain.Solana.isStakeSupported() } returns true
-        every { assetDefaultRank(any()) } returns 99
+        every { assetDefaultRank(asset.id.toIdentifier()) } returns 34
 
         val basic = asset.defaultBasic
 
-        assertEquals(15, basic.score.rank)
+        assertEquals(34, basic.score.rank)
         assertTrue(basic.properties.isEnabled)
         assertFalse(basic.properties.isSwapable)
         assertFalse(basic.properties.isStakeable)
         assertFalse(basic.properties.hasImage)
 
-        verify(exactly = 0) { assetDefaultRank(any()) }
+        verify(exactly = 1) { assetDefaultRank(asset.id.toIdentifier()) }
         verify(exactly = 1) { assetIsSwapable(asset.id.toIdentifier()) }
         verify(exactly = 0) { Chain.Solana.isStakeSupported() }
     }

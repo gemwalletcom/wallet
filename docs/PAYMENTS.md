@@ -36,9 +36,11 @@ flowchart TD
     Request -->|"Yes"| Assets{"Matching wallet assets"}
     Assets -->|"None"| Reject
     Assets -->|"Multiple"| Select["Asset selection"]
-    Assets -->|"One, signable amount + memo when supported"| Confirm["Confirmation"]
-    Assets -->|"One, amount or memo missing/unusable"| Recipient["Recipient review"]
+    Assets -->|"One, signable amount + memo when required"| Confirm["Confirmation"]
+    Assets -->|"One, amount or required memo missing/unusable"| Recipient["Recipient review"]
 ```
+
+Routing is decided in Core by [payment_destination](../core/gemstone/src/payment.rs): it matches wallet assets, validates and checksums the address, converts the amount exactly (excess precision is never rounded), and requires a memo only on chains where the QR tag identifies the deposit (Cosmos, TON, XRP, Stellar, Algorand). Solana Pay transfers confirm without a memo.
 
 WalletConnect and Gem deeplinks are routed before payments. Solana transaction links load the merchant and encoded transaction through the payment service before opening confirmation. Confirmation then preloads the transaction and simulates it concurrently using the same transaction simulation service as WalletConnect.
 

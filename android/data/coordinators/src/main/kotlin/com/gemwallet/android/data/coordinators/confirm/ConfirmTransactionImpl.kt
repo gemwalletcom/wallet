@@ -13,13 +13,15 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.SignerParams
-import com.gemwallet.android.model.blockNumber
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
+import uniffi.gemstone.broadcastDelayMilliseconds
+import uniffi.gemstone.broadcastOptions
+import uniffi.gemstone.transactionMetadataBlockNumber
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
@@ -46,6 +48,7 @@ class ConfirmTransactionImpl(
         session: Session,
         assetInfo: AssetInfo,
         scope: CoroutineScope,
+        transactionAssetId: AssetId?,
     ): String {
         val account = assetInfo.owner ?: throw ConfirmError.TransactionIncorrect
 
@@ -56,6 +59,7 @@ class ConfirmTransactionImpl(
             return signedTransactions.first().data
         }
 
+        val broadcastOptions = broadcastOptions(account.chain.string, signerParams.input.toDto())
         var lastHash = ""
         for ((index, signedTransaction) in signedTransactions.withIndex()) {
             val isFinalTransaction = index == signedTransactions.lastIndex
@@ -67,7 +71,7 @@ class ConfirmTransactionImpl(
             val transactionHash = broadcastService.send(
                 account = account,
                 signedMessage = signedTransaction.data.toByteArray(),
-                type = transactionType,
+                options = broadcastOptions,
             )
             addTransaction(
                 transactionHash = transactionHash,
@@ -75,13 +79,14 @@ class ConfirmTransactionImpl(
                 assetInfo = assetInfo,
                 account = account,
                 session = session,
+                transactionAssetId = transactionAssetId,
                 transactionType = transactionType,
                 approval = approval,
                 approvalAmount = approvalAmount,
                 isFinalTransaction = isFinalTransaction,
             )
             if (!isFinalTransaction) {
-                delay(500)
+                delay(broadcastDelayMilliseconds(account.chain.string).toLong())
             } else {
                 lastHash = transactionHash
                 scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
@@ -114,6 +119,7 @@ class ConfirmTransactionImpl(
         assetInfo: AssetInfo,
         account: Account,
         session: Session,
+        transactionAssetId: AssetId?,
         transactionType: TransactionType,
         approval: ApprovalData?,
         approvalAmount: BigInteger?,
@@ -125,14 +131,14 @@ class ConfirmTransactionImpl(
         val memo: String?
         val metadata: String?
         if (approval != null) {
-            assetId = AssetId(signerParams.input.asset.id.chain, approval.token)
+            assetId = transactionAssetId ?: AssetId(signerParams.input.asset.id.chain, approval.token)
             destinationAddress = approval.spender
             amount = requireNotNull(approvalAmount)
             memo = null
             metadata = null
         } else {
             if (!isFinalTransaction) return
-            assetId = assetInfo.id()
+            assetId = transactionAssetId ?: assetInfo.id()
             destinationAddress = signerParams.input.destination()?.address.orEmpty()
             amount = signerParams.finalAmount
             memo = signerParams.input.memo().orEmpty()
@@ -156,7 +162,7 @@ class ConfirmTransactionImpl(
             } else {
                 TransactionDirection.Outgoing
             },
-            blockNumber = signerParams.data().metadata.blockNumber()
+            blockNumber = transactionMetadataBlockNumber(signerParams.data().metadata)
         )
     }
 

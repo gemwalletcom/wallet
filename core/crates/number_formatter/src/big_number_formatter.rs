@@ -69,6 +69,17 @@ impl BigNumberFormatter {
         Self::value_from_amount(&truncated.to_string(), decimals)
     }
 
+    pub fn value_from_amount_exact(amount: &str, decimals: u32) -> Result<BigUint, NumberFormatterError> {
+        let big_decimal = BigDecimal::from_str(amount).map_err(|_| NumberFormatterError::InvalidNumber(amount.to_string()))?;
+        let multiplier = BigDecimal::from(BigInt::from(10).pow(decimals));
+        let scaled_value = big_decimal * multiplier;
+        if !scaled_value.is_integer() {
+            return Err(NumberFormatterError::InvalidNumber(amount.to_string()));
+        }
+        let scaled_string = scaled_value.with_scale(0).to_string();
+        scaled_string.parse::<BigUint>().map_err(|_| NumberFormatterError::ConversionError(scaled_string))
+    }
+
     pub fn value_from_amount_biguint(amount: &str, decimals: u32) -> Result<BigUint, NumberFormatterError> {
         let big_decimal = BigDecimal::from_str(amount).map_err(|_| NumberFormatterError::InvalidNumber(amount.to_string()))?;
         let multiplier = BigInt::from(10).pow(decimals);
@@ -141,6 +152,16 @@ mod tests {
         let result = BigNumberFormatter::value_from_amount("invalid", 3);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), NumberFormatterError::InvalidNumber("invalid".to_string()));
+    }
+
+    #[test]
+    fn test_value_from_amount_exact() {
+        assert_eq!(BigNumberFormatter::value_from_amount_exact("1.123", 3).unwrap(), BigUint::from(1123u32));
+        assert_eq!(BigNumberFormatter::value_from_amount_exact("0.0001", 8).unwrap(), BigUint::from(10000u32));
+        assert_eq!(BigNumberFormatter::value_from_amount_exact("10", 6).unwrap(), BigUint::from(10_000_000u32));
+        assert!(BigNumberFormatter::value_from_amount_exact("0.000000001", 8).is_err());
+        assert!(BigNumberFormatter::value_from_amount_exact("-1", 8).is_err());
+        assert!(BigNumberFormatter::value_from_amount_exact("invalid", 8).is_err());
     }
 
     #[test]

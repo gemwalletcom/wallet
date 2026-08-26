@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.assetDefaultRank
 import func Gemstone.assetIsSwapable
-import func Gemstone.defaultTokenRank
 import Primitives
 
 public extension AssetProperties {
@@ -28,9 +28,6 @@ public extension AssetProperties {
 
 public extension AssetScore {
     static func defaultValue(assetId: AssetId) -> AssetScore {
-        switch assetId.type {
-        case .native: AssetScore.defaultScore(chain: assetId.chain)
-        case .token: AssetScore(rank: Gemstone.defaultTokenRank())
-        }
+        AssetScore(rank: Gemstone.assetDefaultRank(assetId: assetId.identifier))
     }
 }

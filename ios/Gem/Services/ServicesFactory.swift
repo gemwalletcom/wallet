@@ -336,10 +336,14 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
         )
 
+        let gemConfirmService = gatewayService.confirmService(
+            simulation: transactionSimulationService,
+            scanner: ConfirmScanner(scanService: scanService),
+        )
         let viewModelFactory = ViewModelFactory(
             keystore: storages.keystore,
             chainServiceFactory: chainServiceFactory,
-            scanService: scanService,
+            gemConfirmService: gemConfirmService,
             swapService: swapService,
             assetsEnabler: assetsEnabler,
             priceUpdater: streamSubscriptionService,
@@ -354,7 +358,6 @@ struct ServicesFactory {
             addressNameService: addressNameService,
             activityService: activityService,
             eventPresenterService: eventPresenterService,
-            transactionSimulationService: transactionSimulationService,
             fiatService: fiatService,
             assetsService: assetsService,
             assetSearchService: assetSearchService,

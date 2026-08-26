@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use crate::{Asset, AssetId, AssetType, Chain, asset_constants::*};
+use crate::{Asset, AssetId, AssetScore, AssetType, Chain, asset_constants::*};
 
 const USDT_NAME: &str = "Tether";
 const USDT_SYMBOL: &str = "USDT";
@@ -124,3 +124,46 @@ pub static TRON_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tron
 pub static TEMPO_BRIDGED_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_BRIDGED_USDC_TOKEN_ID, "Bridged USDC", "USDC.e", 6, AssetType::TIP20));
 pub static TEMPO_USDT0: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_USDT0_TOKEN_ID, "USDT0", "USDT0", 6, AssetType::TIP20));
 pub static TEMPO_PATHUSD: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_PATHUSD_TOKEN_ID, "pathUSD", "pathUSD", 6, AssetType::TIP20));
+
+pub struct WalletDefaultAsset {
+    pub asset: &'static Asset,
+    pub rank: i32,
+}
+
+pub static WALLET_DEFAULT_ASSETS: LazyLock<Vec<WalletDefaultAsset>> = LazyLock::new(|| {
+    vec![
+        WalletDefaultAsset {
+            asset: &HYPERCORE_PERPETUAL_USDC,
+            rank: AssetScore::default().rank,
+        },
+        WalletDefaultAsset {
+            asset: &HYPERCORE_SPOT_USDC,
+            rank: 32,
+        },
+        WalletDefaultAsset { asset: &SOLANA_USDC, rank: 34 },
+        WalletDefaultAsset { asset: &SOLANA_USDT, rank: 34 },
+        WalletDefaultAsset {
+            asset: &TEMPO_BRIDGED_USDC,
+            rank: 18,
+        },
+        WalletDefaultAsset { asset: &TEMPO_PATHUSD, rank: 16 },
+        WalletDefaultAsset { asset: &TEMPO_USDT0, rank: 26 },
+        WalletDefaultAsset { asset: &TRON_USDT, rank: 33 },
+    ]
+});
+
+pub fn wallet_default_assets(chain: Chain) -> Vec<Asset> {
+    WALLET_DEFAULT_ASSETS
+        .iter()
+        .filter(|default| default.asset.chain == chain)
+        .map(|default| default.asset.clone())
+        .collect()
+}
+
+pub fn default_token_rank(asset_id: &AssetId) -> i32 {
+    WALLET_DEFAULT_ASSETS
+        .iter()
+        .find(|default| default.asset.id == *asset_id)
+        .map(|default| default.rank)
+        .unwrap_or(AssetScore::default().rank)
+}

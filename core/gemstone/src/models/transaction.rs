@@ -10,6 +10,7 @@ use primitives::{
     TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UInt64,
     perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData},
 };
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swap::{GemApprovalData, GemSwapData};
 use swapper::SwapperProvider;
@@ -184,7 +185,7 @@ pub struct GemContractCallData {
     pub gas_limit: Option<String>,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Enum)]
 pub enum GemStakeType {
     Delegate { validator: GemDelegationValidator },
     Undelegate { delegation: GemDelegation },
@@ -203,7 +204,7 @@ pub enum GemEarnType {
     Withdraw(GemDelegation),
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
 pub struct GemTransferDataExtra {
     pub to: String,
     pub gas_limit: Option<String>,
@@ -212,6 +213,7 @@ pub struct GemTransferDataExtra {
     pub output_type: GemTransferDataOutputType,
     pub output_action: GemTransferDataOutputAction,
     pub transaction_type: TransactionType,
+    pub approval: Option<GemApprovalData>,
 }
 
 #[uniffi::remote(Record)]
@@ -278,7 +280,7 @@ pub enum PerpetualType {
     Reduce(PerpetualReduceData),
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemTransactionInputType {
     Transfer {
@@ -631,6 +633,33 @@ impl From<GemTransferDataExtra> for TransferDataExtra {
     }
 }
 
+#[uniffi::export]
+pub fn transaction_metadata_block_number(metadata: &GemTransactionLoadMetadata) -> String {
+    match metadata {
+        GemTransactionLoadMetadata::Polkadot { block_number, .. }
+        | GemTransactionLoadMetadata::Tron { block_number, .. }
+        | GemTransactionLoadMetadata::Xrp { block_number, .. }
+        | GemTransactionLoadMetadata::Cardano { block_number, .. } => block_number.to_string(),
+        _ => "0".to_string(),
+    }
+}
+
+#[uniffi::export]
+pub fn transaction_metadata_sequence(metadata: &GemTransactionLoadMetadata) -> String {
+    match metadata {
+        GemTransactionLoadMetadata::Ton { sequence, .. }
+        | GemTransactionLoadMetadata::Cosmos { sequence, .. }
+        | GemTransactionLoadMetadata::Near { sequence, .. }
+        | GemTransactionLoadMetadata::Stellar { sequence, .. }
+        | GemTransactionLoadMetadata::Xrp { sequence, .. }
+        | GemTransactionLoadMetadata::Algorand { sequence, .. }
+        | GemTransactionLoadMetadata::Aptos { sequence, .. }
+        | GemTransactionLoadMetadata::Polkadot { sequence, .. } => sequence.to_string(),
+        GemTransactionLoadMetadata::Evm { nonce, .. } => nonce.to_string(),
+        _ => "0".to_string(),
+    }
+}
+
 impl From<TransferDataExtra> for GemTransferDataExtra {
     fn from(value: TransferDataExtra) -> Self {
         GemTransferDataExtra {
@@ -641,6 +670,7 @@ impl From<TransferDataExtra> for GemTransferDataExtra {
             output_type: value.output_type,
             output_action: value.output_action,
             transaction_type: value.transaction_type,
+            approval: None,
         }
     }
 }

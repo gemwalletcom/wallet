@@ -3,6 +3,8 @@ package com.gemwallet.android.model
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.toGem
 import com.gemwallet.android.domains.confirm.ConfirmError
+import com.gemwallet.android.domains.confirm.toConfirmInput
+import com.gemwallet.android.domains.confirm.toConfirmParams
 import com.gemwallet.android.domains.confirm.toGem
 import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.domains.stake.toGem
@@ -13,7 +15,9 @@ import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
 import com.gemwallet.android.serializer.BigIntegerSerializer
 import com.gemwallet.android.serializer.packRoutePayload
+import com.gemwallet.android.serializer.packRouteString
 import com.gemwallet.android.serializer.unpackRoutePayload
+import com.gemwallet.android.serializer.unpackRouteString
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Asset
@@ -29,6 +33,8 @@ import com.wallet.core.primitives.swap.ApprovalData
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemAccountDataType
 import uniffi.gemstone.GemApprovalData
+import uniffi.gemstone.confirmInputDecode
+import uniffi.gemstone.confirmInputEncode
 import uniffi.gemstone.GemResource
 import uniffi.gemstone.GemStakeType
 import uniffi.gemstone.GemSwapQuoteDataType
@@ -219,6 +225,7 @@ sealed class ConfirmParams() {
                         },
                         transactionType = decodedTransactionType.toGem(),
                         to = destination().address,
+                        approval = approval?.toGem(),
                     ),
                 )
             }
@@ -639,7 +646,11 @@ sealed class ConfirmParams() {
         }
     }
 
-    fun pack(): String? = packRoutePayload()
+    fun pack(): String? = when (this) {
+        is TransferParams.Native, is TransferParams.Token, is TransferParams.Generic ->
+            runCatching { confirmInputEncode(toConfirmInput()).packRouteString() }.getOrNull() ?: packRoutePayload()
+        else -> packRoutePayload()
+    }
 
     fun getTransactionType() : TransactionType {
         return when (this) {
@@ -681,7 +692,9 @@ sealed class ConfirmParams() {
     }
 
     companion object {
-        fun unpack(input: String): ConfirmParams? = unpackRoutePayload(input)
+        fun unpack(input: String): ConfirmParams? = runCatching {
+            confirmInputDecode(input.unpackRouteString()).toConfirmParams()
+        }.getOrNull() ?: unpackRoutePayload(input)
     }
 }
 

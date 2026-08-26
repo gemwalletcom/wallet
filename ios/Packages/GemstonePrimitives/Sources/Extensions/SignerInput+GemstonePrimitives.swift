@@ -3,7 +3,7 @@
 import Gemstone
 import Primitives
 
-public extension Primitives.SignerInput {
+public extension SignerInput {
     func map() throws -> GemSignerInput {
         try GemSignerInput(
             input: GemTransactionLoadInput.map(signerInput: self),

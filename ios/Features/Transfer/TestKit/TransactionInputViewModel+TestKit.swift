@@ -2,6 +2,7 @@
 
 import BigInt
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit

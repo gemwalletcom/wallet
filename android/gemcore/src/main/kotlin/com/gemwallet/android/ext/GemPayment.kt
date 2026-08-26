@@ -33,6 +33,19 @@ fun GemPaymentLink.toPrimitives(): PaymentLink = when (this) {
     is GemPaymentLink.SolanaPay -> PaymentLink.SolanaPay(PaymentLinkSolanaPayInner(url))
 }
 
+fun PaymentRequest.toGem(): GemPaymentRequest = GemPaymentRequest(
+    address = address,
+    amount = amount?.toGem(),
+    memo = memo,
+    references = references,
+    assetId = assetId?.toIdentifier(),
+)
+
+fun PaymentAmount.toGem(): GemPaymentAmount = when (this) {
+    is PaymentAmount.ExactValue -> GemPaymentAmount.ExactValue(content)
+    is PaymentAmount.AtomicValue -> GemPaymentAmount.AtomicValue(content)
+}
+
 fun PaymentLink.toGem(): GemPaymentLink = when (this) {
     is PaymentLink.SolanaPay -> GemPaymentLink.SolanaPay(content.url)
 }

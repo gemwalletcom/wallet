@@ -28,20 +28,41 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.BroadcastOptions
 import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemSignedTransaction
 import uniffi.gemstone.GemSwapQuoteDataType
 import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.TransactionType as GemTransactionType
+import uniffi.gemstone.broadcastDelayMilliseconds
+import uniffi.gemstone.broadcastOptions
+import uniffi.gemstone.transactionMetadataBlockNumber
 import java.math.BigInteger
 
 class ConfirmTransactionImplTest {
+
+    @Before
+    fun setUp() {
+        mockkStatic("uniffi.gemstone.GemstoneKt")
+        every { broadcastOptions(any(), any()) } returns BroadcastOptions(skipPreflight = false)
+        every { broadcastDelayMilliseconds(any()) } returns 0uL
+        every { transactionMetadataBlockNumber(any()) } returns "0"
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic("uniffi.gemstone.GemstoneKt")
+    }
 
     @Test
     fun signerErrorsMapToConfirmErrors() {
@@ -169,8 +190,8 @@ class ConfirmTransactionImplTest {
         assertEquals(listOf(spender, swapAddress), createdDestinations)
         assertEquals(listOf(approvalValue, fromAmount), createdAmounts)
         assertEquals(listOf(TransactionType.TokenApproval, TransactionType.Swap), createdTypes)
-        coVerify(exactly = 1) { broadcastService.send(account, "approval".toByteArray(), TransactionType.TokenApproval) }
-        coVerify(exactly = 1) { broadcastService.send(account, "swap".toByteArray(), TransactionType.Swap) }
+        coVerify(exactly = 1) { broadcastService.send(account, "approval".toByteArray(), any()) }
+        coVerify(exactly = 1) { broadcastService.send(account, "swap".toByteArray(), any()) }
     }
 
     @Test
@@ -235,7 +256,7 @@ class ConfirmTransactionImplTest {
             coEvery { this@mockk.invoke(wallet, any(), "password") } returns signedTransactions
         }
         val broadcastService = mockk<BroadcastService> {
-            coEvery { send(account, any(), TransactionType.Swap) } returnsMany listOf("action:1", "action:2", "order:3")
+            coEvery { send(account, any(), any()) } returnsMany listOf("action:1", "action:2", "order:3")
         }
         coEvery {
             createTransaction.createTransaction(
@@ -295,6 +316,6 @@ class ConfirmTransactionImplTest {
 
         assertEquals("order:3", result)
         assertEquals(listOf("order:3"), createdHashes)
-        coVerify(exactly = 3) { broadcastService.send(account, any(), TransactionType.Swap) }
+        coVerify(exactly = 3) { broadcastService.send(account, any(), any()) }
     }
 }

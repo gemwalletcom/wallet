@@ -1,4 +1,4 @@
-use primitives::{ConfigResponse, ConfigVersions, SwapConfig, SwapProvider};
+use primitives::{AssetBasic, ConfigResponse, ConfigVersions, FiatAssets, SwapConfig, SwapProvider};
 use std::error::Error;
 use storage::{AssetFilter, AssetsRepository, Database, ReleasesRepository};
 
@@ -16,14 +16,12 @@ impl ConfigClient {
         let fiat_on_ramp_assets = self
             .database
             .assets()?
-            .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsBuyable(true)])?
-            .len() as i32;
+            .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsBuyable(true)])?;
         let fiat_off_ramp_assets = self
             .database
             .assets()?
-            .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsSellable(true)])?
-            .len() as i32;
-        let swap_assets_version = self.database.assets()?.get_swap_assets_version()?;
+            .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsSellable(true)])?;
+        let swap_assets = self.database.assets()?.get_swap_assets()?;
         let releases = self.database.releases()?.get_releases()?;
 
         let releases = releases.into_iter().map(|x| x.as_primitive()).collect();
@@ -31,14 +29,18 @@ impl ConfigClient {
         let response = ConfigResponse {
             releases,
             versions: ConfigVersions {
-                fiat_on_ramp_assets,
-                fiat_off_ramp_assets,
-                swap_assets: swap_assets_version,
+                fiat_on_ramp_assets: Self::version(fiat_on_ramp_assets),
+                fiat_off_ramp_assets: Self::version(fiat_off_ramp_assets),
+                swap_assets: FiatAssets::version(&swap_assets) as i32,
             },
             swap: SwapConfig {
                 enabled_providers: SwapProvider::all().iter().map(|x| x.as_ref().to_string()).collect(),
             },
         };
         Ok(response)
+    }
+
+    fn version(assets: Vec<AssetBasic>) -> i32 {
+        FiatAssets::version(&assets.into_iter().map(|x| x.asset.id.to_string()).collect::<Vec<String>>()) as i32
     }
 }
