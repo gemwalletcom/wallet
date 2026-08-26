@@ -1,3 +1,4 @@
+import class Gemstone.GemExplorerService
 import GemstonePrimitivesTestKit
 import Components
 import Foundation
@@ -50,7 +51,7 @@ struct TransactionSceneViewModelTests {
             ),
             walletId: .mock(),
             preferences: Preferences.standard,
-            explorerService: GemExplorerServiceMock(),
+            explorerService: GemExplorerService.mock(),
             onHeaderAction: { selectedAction = $0 },
         )
 
@@ -72,7 +73,7 @@ struct TransactionSceneViewModelTests {
             ),
             walletId: .mock(),
             preferences: Preferences.standard,
-            explorerService: GemExplorerServiceMock(),
+            explorerService: GemExplorerService.mock(),
         )
 
         #expect(model.onTransactionHeaderTap == nil)
@@ -316,7 +317,7 @@ struct TransactionSceneViewModelTests {
             transaction: transaction,
             walletId: .mock(),
             preferences: Preferences.standard,
-            explorerService: GemExplorerServiceMock(),
+            explorerService: GemExplorerService.mock(),
         )
 
         if case let .participant(item) = modelWithAddresses.item(for: TransactionItem.participant) {
@@ -513,7 +514,7 @@ extension TransactionSceneViewModel {
             ),
             walletId: .mock(),
             preferences: Preferences.standard,
-            explorerService: GemExplorerServiceMock(),
+            explorerService: GemExplorerService.mock(),
         )
     }
 

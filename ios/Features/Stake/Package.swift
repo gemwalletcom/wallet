@@ -55,6 +55,7 @@ let package = Package(
         .target(
             name: "StakeTestKit",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Stake",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
@@ -64,6 +65,7 @@ let package = Package(
         .testTarget(
             name: "StakeTests",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "StakeTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),

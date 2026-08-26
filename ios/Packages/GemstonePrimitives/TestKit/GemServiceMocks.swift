@@ -428,3 +428,9 @@ public final class GemExplorerServiceMock: GemExplorerServiceProtocol, @unchecke
         GemBlockExplorerLink(name: "MockExplorer", link: url)
     }
 }
+
+public extension GemExplorerService {
+    static func mock() -> GemExplorerService {
+        GemExplorerService(preferences: GemPreferencesService(store: GemPreferencesStoreMock()))
+    }
+}

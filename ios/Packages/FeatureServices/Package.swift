@@ -173,6 +173,7 @@ let package = Package(
         .target(
             name: "AppServiceTestKit",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "AppService",
                 "Primitives",
                 .product(name: "GemAPITestKit", package: "GemAPI"),

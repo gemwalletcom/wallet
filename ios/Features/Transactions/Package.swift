@@ -54,6 +54,7 @@ let package = Package(
         .testTarget(
             name: "TransactionsTests",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
                 "Transactions",
