@@ -81,8 +81,8 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`WalletSessionService`](../../ios/Packages/FeatureServices/WalletSessionService) | — | App-only | Current wallet session |
 | [`ChainServices/ChainService`](../../ios/Packages/ChainServices/ChainService) | `GemGateway` | Done | Thin factory over the Core gateway |
 | [`ChainServices/ExplorerService`](../../ios/Packages/ChainServices/ExplorerService) | `Explorer` | Done | Explorer URLs from Core; selected explorer preference app-side |
-| [`ChainServices/NodeService`](../../ios/Packages/ChainServices/NodeService) | `GemNodeService` | Done | |
-| [`ChainServices/StakeService`](../../ios/Packages/ChainServices/StakeService) | `GemStakeService` | Done | |
+| [`NodeService`](../../ios/Packages/GemstoneServices/Sources) | `GemNodeService` | Done | |
+| [`StakeService`](../../ios/Packages/GemstoneServices/Sources) | `GemStakeService` | Done | |
 | [`ChainServices/WalletConnectorService`](../../ios/Packages/ChainServices/WalletConnectorService) | — | App-only | WalletConnect SDK bridge |
 | [`SystemServices`](../../ios/Packages/SystemServices) | — | App-only | Connectivity, image gallery, local store |
 
@@ -94,7 +94,7 @@ Store adapters and the thin app services are being consolidated so both apps loo
 - **iOS `Packages/GemstoneServices`** — the thin app-side services that wrap the Core services (`BalanceService.swift`, `FiatService.swift`, …), one file per service, tests under `Tests/`. The migrated `FeatureServices` move here as they are wired to `GemstoneStore`; wrappers that add nothing over the Core service (for example `AssetDiscoveryService`) are removed and callers use the Core service directly.
 - **Android** — the same split in Android's patterns: store adapters in one package (`data/repositories/.../gemstone`, one file per store) and the coordinators/repositories stay thin wrappers over the Core services.
 
-Status: GemstoneStore — done on both apps (iOS package `GemstoneStore`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: all migrated feature services moved (Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets, Balance, Earn, TransactionState, Perpetual); Stake and Node (ChainServices) next, then wrapper removal.
+Status: GemstoneStore — done on both apps (iOS package `GemstoneStore`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: all migrated feature services moved (Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets, Balance, Earn, TransactionState, Perpetual); Stake and Node moved too; wrapper removal next.
 
 ## Conventions
 

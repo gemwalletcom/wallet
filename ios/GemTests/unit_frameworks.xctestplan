@@ -299,13 +299,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Packages\/ChainServices",
-        "identifier": "NodeServiceTests",
-        "name": "NodeServiceTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Packages\/GemstoneServices",
         "identifier": "GemstoneServicesTests",
         "name": "GemstoneServicesTests"

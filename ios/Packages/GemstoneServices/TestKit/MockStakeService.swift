@@ -2,7 +2,7 @@
 
 import Foundation
 import Primitives
-import StakeService
+import GemstoneServices
 
 public struct MockStakeService: StakeServiceable {
     public let stakeApr: Double?

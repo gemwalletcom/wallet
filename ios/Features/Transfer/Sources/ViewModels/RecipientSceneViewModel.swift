@@ -5,7 +5,7 @@ import Foundation
 import GemstonePrimitives
 import Keystore
 import Localization
-import NodeService
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Store

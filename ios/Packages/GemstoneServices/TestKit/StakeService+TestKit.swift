@@ -3,7 +3,7 @@
 import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitivesTestKit
-import StakeService
+import GemstoneServices
 import Store
 import StoreTestKit
 

@@ -41,9 +41,8 @@ let package = Package(
                 "Components",
                 "GemstonePrimitives",
                 "Localization",
-                .product(name: "StakeService", package: "ChainServices"),
-                .product(name: "ExplorerService", package: "ChainServices"),
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
+                .product(name: "ExplorerService", package: "ChainServices"),
                 "Preferences",
                 "Store",
                 "InfoSheet",
@@ -58,7 +57,7 @@ let package = Package(
             dependencies: [
                 "Stake",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "StakeServiceTestKit", package: "ChainServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
             ],
             path: "TestKit",
         ),
@@ -67,7 +66,7 @@ let package = Package(
             dependencies: [
                 "StakeTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "StakeServiceTestKit", package: "ChainServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 "Stake",
             ],
             path: "Tests",

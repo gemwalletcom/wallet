@@ -4,7 +4,7 @@ import Blockchain
 import ChainService
 import Components
 import Localization
-import NodeService
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style

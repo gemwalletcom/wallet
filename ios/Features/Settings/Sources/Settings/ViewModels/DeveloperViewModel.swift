@@ -9,7 +9,6 @@ import Localization
 import Preferences
 import Primitives
 import PrimitivesComponents
-import StakeService
 import SwiftUI
 
 @Observable

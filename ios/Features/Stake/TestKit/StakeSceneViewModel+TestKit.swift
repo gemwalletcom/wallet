@@ -3,8 +3,8 @@
 import Primitives
 import PrimitivesTestKit
 @testable import Stake
-import StakeService
-import StakeServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 
 public extension StakeSceneViewModel {
     static func mock(

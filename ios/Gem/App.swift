@@ -3,7 +3,6 @@
 import AppService
 import GemstoneServices
 import LockManager
-import NodeService
 import Preferences
 import Primitives
 import Store

@@ -14,8 +14,6 @@ import GemstonePrimitives
 import InfoSheet
 import KeystoreTestKit
 import Localization
-import NodeService
-import NodeServiceTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit

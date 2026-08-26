@@ -8,7 +8,6 @@ import GemstonePrimitivesTestKit
 import GemstoneStore
 import Primitives
 import PrimitivesTestKit
-import StakeServiceTestKit
 import Store
 import StoreTestKit
 import Testing

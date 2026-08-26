@@ -5,7 +5,7 @@ import ExplorerService
 import Formatters
 import Foundation
 import Localization
-import NodeService
+import GemstoneServices
 import Primitives
 
 @Observable

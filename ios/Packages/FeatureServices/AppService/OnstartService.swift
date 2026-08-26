@@ -3,7 +3,6 @@
 import GemstoneServices
 import Foundation
 import protocol Gemstone.GemPreferencesServiceProtocol
-import NodeService
 import Preferences
 import Primitives
 import Store

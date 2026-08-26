@@ -12,7 +12,6 @@ import Preferences
 import Primitives
 import PrimitivesComponents
 import Stake
-import StakeService
 import Store
 import Swap
 import SwapService

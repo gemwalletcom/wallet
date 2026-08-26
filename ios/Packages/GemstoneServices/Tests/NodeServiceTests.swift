@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-@testable import NodeService
-import NodeServiceTestKit
+@testable import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import Store
 import StoreTestKit

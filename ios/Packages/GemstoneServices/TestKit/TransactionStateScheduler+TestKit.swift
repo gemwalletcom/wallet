@@ -5,8 +5,6 @@ import Blockchain
 import BlockchainTestKit
 import Foundation
 import GemstoneStore
-import StakeService
-import StakeServiceTestKit
 import Store
 import StoreTestKit
 

@@ -9,11 +9,9 @@ import ConnectionsService
 import ConnectionStatusService
 import ExplorerService
 import Foundation
-import NodeService
 import Primitives
 import PrimitivesComponents
 import ServiceStatusService
-import StakeService
 import StreamService
 import SwapService
 import WalletConnector

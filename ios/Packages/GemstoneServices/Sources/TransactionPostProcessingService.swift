@@ -2,7 +2,6 @@
 
 import Foundation
 import Primitives
-import StakeService
 import Store
 
 public struct TransactionPostProcessingService: Sendable {

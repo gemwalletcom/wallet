@@ -9,10 +9,6 @@ let package = Package(
         .macOS(.v15),
     ],
     products: [
-        .library(name: "StakeService", targets: ["StakeService"]),
-        .library(name: "StakeServiceTestKit", targets: ["StakeServiceTestKit"]),
-        .library(name: "NodeService", targets: ["NodeService"]),
-        .library(name: "NodeServiceTestKit", targets: ["NodeServiceTestKit"]),
         .library(name: "WalletConnectorService", targets: ["WalletConnectorService"]),
         .library(name: "WalletConnectorServiceTestKit", targets: ["WalletConnectorServiceTestKit"]),
         .library(name: "ExplorerService", targets: ["ExplorerService"]),
@@ -32,61 +28,6 @@ let package = Package(
         .package(name: "reown-swift", path: "../../Submodules/reown-swift"),
     ],
     targets: [
-        .target(
-            name: "StakeService",
-            dependencies: [
-                "Primitives",
-                "Store",
-                "Gemstone",
-                "GemstonePrimitives",
-                "ChainService",
-            ],
-            path: "StakeService",
-            exclude: ["TestKit"],
-        ),
-        .target(
-            name: "StakeServiceTestKit",
-            dependencies: [
-                .product(name: "StoreTestKit", package: "Store"),
-                "ChainServiceTestKit",
-                "Gemstone",
-                "Primitives",
-                "StakeService",
-                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
-            ],
-            path: "StakeService/TestKit",
-        ),
-        .target(
-            name: "NodeService",
-            dependencies: [
-                "Primitives",
-                "Store",
-                "ChainService",
-                "Gemstone",
-                "GemstonePrimitives",
-            ],
-            path: "NodeService",
-            exclude: ["TestKit", "Tests"],
-        ),
-        .target(
-            name: "NodeServiceTestKit",
-            dependencies: [
-                "GemstoneStore",
-                "NodeService",
-                .product(name: "StoreTestKit", package: "Store"),
-            ],
-            path: "NodeService/TestKit",
-        ),
-        .testTarget(
-            name: "NodeServiceTests",
-            dependencies: [
-                "NodeService",
-                "NodeServiceTestKit",
-                "Primitives",
-                .product(name: "StoreTestKit", package: "Store"),
-            ],
-            path: "NodeService/Tests",
-        ),
         .target(
             name: "WalletConnectorService",
             dependencies: [

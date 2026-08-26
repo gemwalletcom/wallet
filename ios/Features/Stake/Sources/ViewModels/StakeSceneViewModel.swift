@@ -9,7 +9,7 @@ import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
-import StakeService
+import GemstoneServices
 import Store
 import SwiftUI
 
