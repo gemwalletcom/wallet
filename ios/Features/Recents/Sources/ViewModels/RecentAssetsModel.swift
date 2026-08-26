@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
+import GemstoneServices
 import Foundation
 import Primitives
 import PrimitivesComponents

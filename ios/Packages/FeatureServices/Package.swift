@@ -11,13 +11,9 @@ let package = Package(
     products: [
         .library(name: "StreamService", targets: ["StreamService"]),
         .library(name: "StreamServiceTestKit", targets: ["StreamServiceTestKit"]),
-        .library(name: "SwapService", targets: ["SwapService"]),
-        .library(name: "SwapServiceTestKit", targets: ["SwapServiceTestKit"]),
         .library(name: "AppService", targets: ["AppService"]),
         .library(name: "AppServiceTestKit", targets: ["AppServiceTestKit"]),
         .library(name: "ConnectionStatusService", targets: ["ConnectionStatusService"]),
-        .library(name: "ActivityService", targets: ["ActivityService"]),
-        .library(name: "ActivityServiceTestKit", targets: ["ActivityServiceTestKit"]),
         .library(name: "ConnectionsService", targets: ["ConnectionsService"]),
         .library(name: "ConnectionsServiceTestKit", targets: ["ConnectionsServiceTestKit"]),
     ],
@@ -60,28 +56,6 @@ let package = Package(
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
             ],
             path: "StreamService/TestKit",
-        ),
-        .target(
-            name: "SwapService",
-            dependencies: [
-                .product(name: "GemstoneServices", package: "GemstoneServices"),
-                "Gemstone",
-                "GemstonePrimitives",
-                "Primitives",
-                "Keystore",
-                "NativeProviderService",
-            ],
-            path: "SwapService",
-            exclude: ["TestKit"],
-        ),
-        .target(
-            name: "SwapServiceTestKit",
-            dependencies: [
-                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
-                "SwapService",
-                "Gemstone",
-            ],
-            path: "SwapService/TestKit",
         ),
         .target(
             name: "AppService",
@@ -134,23 +108,6 @@ let package = Package(
                 .product(name: "ConnectivityService", package: "SystemServices"),
             ],
             path: "ConnectionStatusService/Tests",
-        ),
-        .target(
-            name: "ActivityService",
-            dependencies: [
-                "Primitives",
-                "Store",
-            ],
-            path: "ActivityService",
-            exclude: ["TestKit"],
-        ),
-        .target(
-            name: "ActivityServiceTestKit",
-            dependencies: [
-                "ActivityService",
-                .product(name: "StoreTestKit", package: "Store"),
-            ],
-            path: "ActivityService/TestKit",
         ),
         .target(
             name: "ConnectionsService",

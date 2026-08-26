@@ -5,7 +5,6 @@ import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
-import ActivityService
 import GemstoneServices
 import AppService
 import ConnectionsService
@@ -22,7 +21,6 @@ import Primitives
 import PrimitivesComponents
 import protocol Gemstone.GemServiceStatusProtocol
 import StreamService
-import SwapService
 import WalletConnector
 
 extension AppResolver {

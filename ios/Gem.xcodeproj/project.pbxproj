@@ -86,7 +86,6 @@
 		D83BDCB92E3E8AA400E41807 /* ViewModelFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */; };
 		D852CAFD2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CAFC2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift */; };
 		D852CB012C9CC315004121D3 /* PriceAlertsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CB002C9CC315004121D3 /* PriceAlertsNavigationView.swift */; };
-		D85AD29D2CD337BE0010DEF8 /* SwapService in Frameworks */ = {isa = PBXBuildFile; productRef = D85AD29C2CD337BE0010DEF8 /* SwapService */; };
 		D85AD2A62CD7017E0010DEF8 /* NativeProviderService in Frameworks */ = {isa = PBXBuildFile; productRef = D85AD2A52CD7017E0010DEF8 /* NativeProviderService */; };
 		D87316B82E3AF30300C11634 /* ui_tests.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = D87316B72E3AF30300C11634 /* ui_tests.xctestplan */; };
 		D873DA512D7933AF0003F5CE /* MarketsNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D873DA502D7933AF0003F5CE /* MarketsNavigationStack.swift */; };
@@ -319,7 +318,6 @@
 				D829BF422CBDD65A00DEB2E8 /* MarketInsight in Frameworks */,
 				C36679162A119C6200F1D74D /* GemAPI in Frameworks */,
 				D896B57E2E2EE2D300ADE083 /* Perpetuals in Frameworks */,
-				D85AD29D2CD337BE0010DEF8 /* SwapService in Frameworks */,
 				C3CF3B7B29A98C7B00E96586 /* Primitives in Frameworks */,
 				C3CF3BDB29BBE45D00E96586 /* Style in Frameworks */,
 				836281B02DEF34DC00CA5C75 /* Assets in Frameworks */,
@@ -778,7 +776,6 @@
 				83D6808A2CCA90D900B45089 /* InfoSheet */,
 				E1B4C70A2E85B00000EARN03 /* Stake */,
 				F1A7B80D2F0C000000FIAT01 /* GemstoneServices */,
-				D85AD29C2CD337BE0010DEF8 /* SwapService */,
 				D85AD2A52CD7017E0010DEF8 /* NativeProviderService */,
 				D8D83C832CECFA610083AA53 /* Swap */,
 				839C794A2D1C42A500E32072 /* PrimitivesComponents */,
@@ -821,7 +818,6 @@
 			dependencies = (
 				D869D9432E358A9C0025A94D /* PBXTargetDependency */,
 				D869D94D2E358A9C0025A94D /* PBXTargetDependency */,
-				D869D9512E358A9C0025A94D /* PBXTargetDependency */,
 				D869D95F2E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9612E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9632E358A9C0025A94D /* PBXTargetDependency */,
@@ -1147,10 +1143,6 @@
 		D869D94D2E358A9C0025A94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			productRef = D869D94C2E358A9C0025A94D /* WalletConnectorServiceTestKit */;
-		};
-		D869D9512E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D9502E358A9C0025A94D /* SwapServiceTestKit */;
 		};
 		D869D95F2E358A9C0025A94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1896,10 +1888,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = FiatConnect;
 		};
-		D85AD29C2CD337BE0010DEF8 /* SwapService */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SwapService;
-		};
 		D85AD2A52CD7017E0010DEF8 /* NativeProviderService */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NativeProviderService;
@@ -1911,10 +1899,6 @@
 		D869D94C2E358A9C0025A94D /* WalletConnectorServiceTestKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WalletConnectorServiceTestKit;
-		};
-		D869D9502E358A9C0025A94D /* SwapServiceTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SwapServiceTestKit;
 		};
 		D869D95E2E358A9C0025A94D /* WalletTabTestKit */ = {
 			isa = XCSwiftPackageProductDependency;

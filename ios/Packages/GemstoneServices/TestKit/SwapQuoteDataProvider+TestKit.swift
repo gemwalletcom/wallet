@@ -4,7 +4,7 @@ import Foundation
 import struct Gemstone.SwapperQuote
 import Primitives
 import PrimitivesTestKit
-import SwapService
+import GemstoneServices
 
 public extension SwapQuoteDataProvider {
     static func mock() -> SwapQuoteDataProviderMock {

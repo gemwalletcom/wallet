@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
-import ActivityServiceTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 import Preferences

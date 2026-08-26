@@ -16,7 +16,6 @@ import Primitives
 import PrimitivesComponents
 import Store
 import Style
-import SwapService
 import Validators
 
 @MainActor

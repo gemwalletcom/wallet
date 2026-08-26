@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityServiceTestKit
 import GemstoneServicesTestKit
 import GemstoneServices
 import BigInt

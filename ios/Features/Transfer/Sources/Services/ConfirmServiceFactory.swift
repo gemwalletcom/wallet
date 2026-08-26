@@ -3,7 +3,6 @@
 import Store
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
-import ActivityService
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation

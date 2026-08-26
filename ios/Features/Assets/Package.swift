@@ -54,7 +54,6 @@ let package = Package(
                 "QRScanner",
                 "Recents",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
-                .product(name: "ActivityService", package: "FeatureServices"),
             ],
             path: "Sources",
         ),
@@ -63,7 +62,6 @@ let package = Package(
             dependencies: [
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
-                .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
                 "Components",
                 "Assets",
             ],

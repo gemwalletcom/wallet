@@ -5,7 +5,6 @@ import protocol Gemstone.GemPriceServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
-import ActivityService
 import GemstoneServices
 import Assets
 import FiatConnect
@@ -20,7 +19,6 @@ import PrimitivesComponents
 import Stake
 import Store
 import Swap
-import SwapService
 import SwiftUI
 import Transfer
 import WalletConnector

@@ -1,10 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
-import ActivityServiceTestKit
-@testable import Perpetuals
 import GemstoneServices
 import GemstoneServicesTestKit
+@testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
 import PrimitivesTestKit

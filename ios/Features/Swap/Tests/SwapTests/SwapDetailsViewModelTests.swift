@@ -8,7 +8,7 @@ import Preferences
 import Primitives
 import PrimitivesTestKit
 @testable import Swap
-import SwapServiceTestKit
+import GemstoneServicesTestKit
 import Testing
 
 @MainActor

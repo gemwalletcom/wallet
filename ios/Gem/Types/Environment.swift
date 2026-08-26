@@ -5,9 +5,8 @@ import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
-import ActivityService
-import AppService
 import GemstoneServices
+import AppService
 import ConnectionsService
 import ConnectionStatusService
 import Foundation

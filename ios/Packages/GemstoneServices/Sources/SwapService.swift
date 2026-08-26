@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import BigInt
 import Foundation
 import enum Gemstone.FetchQuoteData

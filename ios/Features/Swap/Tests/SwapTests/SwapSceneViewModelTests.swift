@@ -15,8 +15,7 @@ import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 @testable import Swap
-import SwapService
-import SwapServiceTestKit
+import GemstoneServices
 import Testing
 
 @MainActor

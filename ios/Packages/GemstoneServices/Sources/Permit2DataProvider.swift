@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Foundation
 import class Gemstone.Config
 import struct Gemstone.Permit2ApprovalData
