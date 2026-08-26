@@ -16,9 +16,9 @@ use primitives::{
     TransactionPerpetualMetadata, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
-    AddressName, AuthNonce, ChainAddress, Device, DeviceToken, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAssets,
-    PortfolioAssetsRequest, PriceAlert, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription,
-    WalletSubscriptionChains,
+    AddressName, AuthNonce, AuthPayload, ChainAddress, Device, DeviceToken, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
+    PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult,
+    WalletSubscription, WalletSubscriptionChains,
 };
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
 use primitives::{AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, FiatAssets, FiatQuoteType, Markets, SearchResponse};
@@ -57,6 +57,7 @@ json_bridge!(
     AssetPrice,
     AssetType,
     AuthNonce,
+    AuthPayload,
     BalanceMetadata,
     BannerEvent,
     BannerState,
@@ -81,6 +82,7 @@ json_bridge!(
     DeviceToken,
     EarnType,
     FiatAssets,
+    FiatQuote,
     FiatQuoteRequest,
     FiatQuoteType,
     FiatQuoteUrl,
