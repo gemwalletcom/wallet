@@ -4,6 +4,7 @@ import GemstoneServices
 import Components
 import Formatters
 import Foundation
+import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -19,7 +20,7 @@ import WalletSessionService
 @Observable
 @MainActor
 public final class WalletSceneViewModel: Sendable, AssetActions {
-    private let assetDiscoveryService: any AssetDiscoverable
+    private let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
     let balanceService: BalanceService
     let assetsEnabler: any AssetsEnabler
     private let bannerService: BannerService
@@ -50,7 +51,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     public var isLoadingAssets = false
 
     public init(
-        assetDiscoveryService: any AssetDiscoverable,
+        assetDiscoveryService: any GemAssetDiscoveryServiceProtocol,
         balanceService: BalanceService,
         assetsEnabler: any AssetsEnabler,
         bannerService: BannerService,
@@ -297,7 +298,7 @@ extension WalletSceneViewModel {
 
     private func discoverAssets(wallet: Wallet) async {
         do {
-            try await assetDiscoveryService.discoverAssets(wallet: wallet)
+            _ = try await assetDiscoveryService.discover(walletId: wallet.id.id, currency: Currency(id: observablePreferences.preferences.currency).json())
         } catch {
             debugLog("WalletSceneViewModel discoverAssets error: \(error)")
         }

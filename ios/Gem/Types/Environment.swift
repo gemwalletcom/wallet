@@ -8,6 +8,7 @@ import ChainService
 import ConnectionsService
 import ConnectionStatusService
 import Foundation
+import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import GRDB
 import Primitives
 import ServiceStatusService
@@ -27,7 +28,7 @@ extension EnvironmentValues {
     @Entry var marketService: MarketService = AppResolver.main.services.marketService
     @Entry var streamSubscriptionService: StreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
     @Entry var assetsEnabler: any AssetsEnabler = AppResolver.main.services.assetsEnabler
-    @Entry var assetDiscoveryService: any AssetDiscoverable = AppResolver.main.services.assetDiscoveryService
+    @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
     @Entry var walletService: WalletService = AppResolver.main.services.walletService
     @Entry var walletSessionService: any WalletSessionManageable = AppResolver.main.services.walletSessionService
     @Entry var priceAlertService: PriceAlertService = AppResolver.main.services.priceAlertService

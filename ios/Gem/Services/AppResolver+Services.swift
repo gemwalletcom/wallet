@@ -9,6 +9,7 @@ import ConnectionsService
 import ConnectionStatusService
 import ExplorerService
 import Foundation
+import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import Primitives
 import PrimitivesComponents
 import ServiceStatusService
@@ -44,7 +45,7 @@ extension AppResolver {
         let walletService: WalletService
         let walletSessionService: any WalletSessionManageable
         let assetsEnabler: any AssetsEnabler
-        let assetDiscoveryService: any AssetDiscoverable
+        let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
         let walletSetupService: WalletSetupService
         let explorerService: ExplorerService
         let nftService: NFTService

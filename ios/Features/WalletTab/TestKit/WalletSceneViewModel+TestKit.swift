@@ -7,12 +7,13 @@ import Primitives
 import PrimitivesTestKit
 import WalletSessionService
 import WalletSessionServiceTestKit
+import GemstonePrimitivesTestKit
 import WalletTab
 
 public extension WalletSceneViewModel {
     static func mock(wallet: Wallet = .mock()) -> WalletSceneViewModel {
         WalletSceneViewModel(
-            assetDiscoveryService: .mock(),
+            assetDiscoveryService: GemAssetDiscoveryServiceMock(),
             balanceService: .mock(),
             assetsEnabler: .mock(),
             bannerService: .mock(),

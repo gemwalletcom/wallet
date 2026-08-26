@@ -62,7 +62,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`ConnectionStatusService`](../../ios/Packages/FeatureServices/ConnectionStatusService) | — | App-only | Connectivity |
 | [`ContactService`](../../ios/Packages/GemstoneServices/Sources) | `GemContactService` | Done | Avatar files stay app-side; Android: `ContactsRepository` |
 | [`DeviceService`](../../ios/Packages/GemstoneServices/Sources) | `GemDeviceService` | Done | |
-| [`DiscoverAssetsService`](../../ios/Packages/GemstoneServices/Sources) | `GemAssetDiscoveryService` | Done | |
+| `DiscoverAssetsService` | `GemAssetDiscoveryService` | Done | Wrapper removed; view models call the Core service directly |
 | [`EarnService`](../../ios/Packages/GemstoneServices/Sources) | `GemStakeService` | Done | Earn positions sync via `sync_earn`; Android has no earn UI yet |
 | [`FiatService`](../../ios/Packages/GemstoneServices/Sources) | `GemFiatService` | Done | Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
 | [`NFTService`](../../ios/Packages/GemstoneServices/Sources) | `GemNftService` | Done | |
