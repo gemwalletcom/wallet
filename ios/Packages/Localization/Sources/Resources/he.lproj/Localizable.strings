@@ -69,6 +69,9 @@
 "wallet.manage_token_list" = "ניהול אסימונים";
 "wallet.scan_qr_code" = "סרוק קוד QR";
 "wallet.scan" = "סריקה";
+"wallet.scan_hint" = "שלחו, שלמו או התחברו ל-DApp";
+"wallet.scan_hint_address" = "כתובת הארנק";
+"wallet.scan_hint_node" = "כתובת URL של הצומת";
 "wallet.default_name" = "ארנק #%d";
 "wallet.default_name_chain" = "%@ ארנק #%d";
 "wallet.copy_address" = "העתק כתובת";

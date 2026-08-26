@@ -69,6 +69,9 @@
 "wallet.manage_token_list" = "Gestionați token-urile";
 "wallet.scan_qr_code" = "Scanați codul QR";
 "wallet.scan" = "Scanează";
+"wallet.scan_hint" = "Trimite, plătește sau conectează-te la un DApp";
+"wallet.scan_hint_address" = "Adresa portofelului";
+"wallet.scan_hint_node" = "URL-ul nodului";
 "wallet.default_name" = "Portofelul #%d";
 "wallet.default_name_chain" = "%@ Portofelul #%d";
 "wallet.copy_address" = "Copiați adresa";

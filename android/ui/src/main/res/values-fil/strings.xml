@@ -74,6 +74,9 @@
   <string name="wallet_manage_token_list">Pamahalaan ang mga Token</string>
   <string name="wallet_scan_qr_code">I-scan ang QR Code</string>
   <string name="wallet_scan">I-scan</string>
+  <string name="wallet_scan_hint">Magpadala, magbayad, o kumonekta sa DApp</string>
+  <string name="wallet_scan_hint_address">Address ng wallet</string>
+  <string name="wallet_scan_hint_node">URL ng node</string>
   <string name="wallet_default_name">Wallet #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Wallet #%2$d</string>
   <string name="wallet_copy_address">Kopyahin ang Address</string>

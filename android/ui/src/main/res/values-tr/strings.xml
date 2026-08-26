@@ -74,6 +74,9 @@
   <string name="wallet_manage_token_list">Jetonları Yönet</string>
   <string name="wallet_scan_qr_code">QR Kodunu Tara</string>
   <string name="wallet_scan">Tara</string>
+  <string name="wallet_scan_hint">Gönderin, ödeyin veya bir DApp\'e bağlanın</string>
+  <string name="wallet_scan_hint_address">Cüzdan adresi</string>
+  <string name="wallet_scan_hint_node">Düğüm URL\'si</string>
   <string name="wallet_default_name">Cüzdan # %1$d</string>
   <string name="wallet_default_name_chain">%1$s Cüzdan # %2$d</string>
   <string name="wallet_copy_address">Adresi Kopyala</string>

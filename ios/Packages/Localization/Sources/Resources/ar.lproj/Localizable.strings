@@ -69,6 +69,9 @@
 "wallet.manage_token_list" = "إدارة الرموز";
 "wallet.scan_qr_code" = "مسح رمز الاستجابة السريعة";
 "wallet.scan" = "مسح";
+"wallet.scan_hint" = "أرسل، ادفع أو اتصل بـ DApp";
+"wallet.scan_hint_address" = "عنوان المحفظة";
+"wallet.scan_hint_node" = "عنوان URL للعقدة";
 "wallet.default_name" = "المحفظة #%d";
 "wallet.default_name_chain" = "%@ المحفظة رقم %d";
 "wallet.copy_address" = "نسخ العنوان";

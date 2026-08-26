@@ -74,6 +74,9 @@
   <string name="wallet_manage_token_list">مدیریت توکن‌ها</string>
   <string name="wallet_scan_qr_code">کد QR را اسکن کنید</string>
   <string name="wallet_scan">اسکن کن</string>
+  <string name="wallet_scan_hint">ارسال، پرداخت یا اتصال به DApp</string>
+  <string name="wallet_scan_hint_address">آدرس کیف پول</string>
+  <string name="wallet_scan_hint_node">URL نود</string>
   <string name="wallet_default_name">کیف پول %1$d</string>
   <string name="wallet_default_name_chain">%1$s کیف پول %2$d</string>
   <string name="wallet_copy_address">کپی کردن آدرس</string>

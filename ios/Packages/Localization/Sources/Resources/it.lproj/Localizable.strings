@@ -69,6 +69,9 @@
 "wallet.manage_token_list" = "Gestisci token";
 "wallet.scan_qr_code" = "Scansiona il codice QR";
 "wallet.scan" = "Scansione";
+"wallet.scan_hint" = "Invia, paga o connettiti a una DApp";
+"wallet.scan_hint_address" = "Indirizzo del portafoglio";
+"wallet.scan_hint_node" = "URL del nodo";
 "wallet.default_name" = "Portafoglio n.%d";
 "wallet.default_name_chain" = "%@ Portafoglio n.%d";
 "wallet.copy_address" = "Copia indirizzo";

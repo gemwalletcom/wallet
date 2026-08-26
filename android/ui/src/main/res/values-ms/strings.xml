@@ -74,6 +74,9 @@
   <string name="wallet_manage_token_list">Uruskan Token</string>
   <string name="wallet_scan_qr_code">Imbas Kod QR</string>
   <string name="wallet_scan">Imbas</string>
+  <string name="wallet_scan_hint">Hantar, bayar atau sambung ke DApp</string>
+  <string name="wallet_scan_hint_address">Alamat dompet</string>
+  <string name="wallet_scan_hint_node">URL nod</string>
   <string name="wallet_default_name">Dompet #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Dompet #%2$d</string>
   <string name="wallet_copy_address">Salin Alamat</string>

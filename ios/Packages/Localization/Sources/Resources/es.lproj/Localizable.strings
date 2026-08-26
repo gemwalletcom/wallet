@@ -69,6 +69,9 @@
 "wallet.manage_token_list" = "Administrar tokens";
 "wallet.scan_qr_code" = "Escanear código QR";
 "wallet.scan" = "Escanear";
+"wallet.scan_hint" = "Envía, paga o conéctate a una DApp";
+"wallet.scan_hint_address" = "Dirección de la billetera";
+"wallet.scan_hint_node" = "URL del nodo";
 "wallet.default_name" = "Billetera #%d";
 "wallet.default_name_chain" = "Billetera %@ #%d";
 "wallet.copy_address" = "Copiar dirección";

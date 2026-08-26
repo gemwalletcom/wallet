@@ -74,6 +74,9 @@
   <string name="wallet_manage_token_list">Administrer tokens</string>
   <string name="wallet_scan_qr_code">Scan QR-kode</string>
   <string name="wallet_scan">Scan</string>
+  <string name="wallet_scan_hint">Send, betal eller opret forbindelse til en DApp</string>
+  <string name="wallet_scan_hint_address">Tegnebogsadresse</string>
+  <string name="wallet_scan_hint_node">Node-URL</string>
   <string name="wallet_default_name">Tegnebog #%1$d</string>
   <string name="wallet_default_name_chain">%1$s tegnebog #%2$d</string>
   <string name="wallet_copy_address">Kopiér adresse</string>

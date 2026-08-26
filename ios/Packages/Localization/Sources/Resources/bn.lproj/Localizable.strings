@@ -69,6 +69,9 @@
 "wallet.manage_token_list" = "টোকেন পরিচালনা করুন";
 "wallet.scan_qr_code" = "QR কোড স্ক্যান করুন";
 "wallet.scan" = "স্ক্যান করুন";
+"wallet.scan_hint" = "পাঠান, পে করুন বা DApp-এ সংযুক্ত হন";
+"wallet.scan_hint_address" = "ওয়ালেটের ঠিকানা";
+"wallet.scan_hint_node" = "নোডের URL";
 "wallet.default_name" = "ওয়ালেট #%d";
 "wallet.default_name_chain" = "%@ ওয়ালেট #%d";
 "wallet.copy_address" = "কপি ঠিকানা";

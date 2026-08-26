@@ -74,6 +74,9 @@
   <string name="wallet_manage_token_list">टोकन प्रबंधित करें</string>
   <string name="wallet_scan_qr_code">QR कोड स्कैन करें</string>
   <string name="wallet_scan">स्कैन करें</string>
+  <string name="wallet_scan_hint">भेजें, भुगतान करें या DApp से कनेक्ट करें</string>
+  <string name="wallet_scan_hint_address">बटुए का पता</string>
+  <string name="wallet_scan_hint_node">नोड यूआरएल</string>
   <string name="wallet_default_name">वॉलेट #%1$d</string>
   <string name="wallet_default_name_chain">%1$s वॉलेट #%2$d</string>
   <string name="wallet_copy_address">पता कॉपी करें</string>

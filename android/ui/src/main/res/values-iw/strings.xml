@@ -74,6 +74,9 @@
   <string name="wallet_manage_token_list">ניהול אסימונים</string>
   <string name="wallet_scan_qr_code">סרוק קוד QR</string>
   <string name="wallet_scan">סריקה</string>
+  <string name="wallet_scan_hint">שלחו, שלמו או התחברו ל-DApp</string>
+  <string name="wallet_scan_hint_address">כתובת הארנק</string>
+  <string name="wallet_scan_hint_node">כתובת URL של הצומת</string>
   <string name="wallet_default_name">ארנק #%1$d</string>
   <string name="wallet_default_name_chain">%1$s ארנק #%2$d</string>
   <string name="wallet_copy_address">העתק כתובת</string>

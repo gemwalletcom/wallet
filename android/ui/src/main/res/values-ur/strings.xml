@@ -74,6 +74,9 @@
   <string name="wallet_manage_token_list">ٹوکنز کا نظم کریں۔</string>
   <string name="wallet_scan_qr_code">کیو آر کوڈ اسکین کریں۔</string>
   <string name="wallet_scan">اسکین کریں۔</string>
+  <string name="wallet_scan_hint">بھیجیں، ادائیگی کریں یا DApp سے منسلک ہوں</string>
+  <string name="wallet_scan_hint_address">والیٹ کا پتہ</string>
+  <string name="wallet_scan_hint_node">نوڈ کا URL</string>
   <string name="wallet_default_name">والیٹ #%1$d</string>
   <string name="wallet_default_name_chain">%1$s والیٹ #%2$d</string>
   <string name="wallet_copy_address">ایڈریس کاپی کریں۔</string>

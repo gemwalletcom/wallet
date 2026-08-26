@@ -69,6 +69,9 @@
 "wallet.manage_token_list" = "Uruskan Token";
 "wallet.scan_qr_code" = "Imbas Kod QR";
 "wallet.scan" = "Imbas";
+"wallet.scan_hint" = "Hantar, bayar atau sambung ke DApp";
+"wallet.scan_hint_address" = "Alamat dompet";
+"wallet.scan_hint_node" = "URL nod";
 "wallet.default_name" = "Dompet #%d";
 "wallet.default_name_chain" = "%@ Dompet #%d";
 "wallet.copy_address" = "Salin Alamat";

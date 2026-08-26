@@ -74,6 +74,9 @@
   <string name="wallet_manage_token_list">トークンの管理</string>
   <string name="wallet_scan_qr_code">QRコードをスキャン</string>
   <string name="wallet_scan">スキャン</string>
+  <string name="wallet_scan_hint">送金、支払い、またはDAppに接続</string>
+  <string name="wallet_scan_hint_address">ウォレットアドレス</string>
+  <string name="wallet_scan_hint_node">ノードURL</string>
   <string name="wallet_default_name">ウォレット #%1$d</string>
   <string name="wallet_default_name_chain">%1$s ウォレット #%2$d</string>
   <string name="wallet_copy_address">アドレスをコピー</string>

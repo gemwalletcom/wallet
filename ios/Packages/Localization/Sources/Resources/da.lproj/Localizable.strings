@@ -69,6 +69,9 @@
 "wallet.manage_token_list" = "Administrer tokens";
 "wallet.scan_qr_code" = "Scan QR-kode";
 "wallet.scan" = "Scan";
+"wallet.scan_hint" = "Send, betal eller opret forbindelse til en DApp";
+"wallet.scan_hint_address" = "Tegnebogsadresse";
+"wallet.scan_hint_node" = "Node-URL";
 "wallet.default_name" = "Tegnebog #%d";
 "wallet.default_name_chain" = "%@ tegnebog #%d";
 "wallet.copy_address" = "Kopiér adresse";

@@ -74,6 +74,9 @@
   <string name="wallet_manage_token_list">إدارة الرموز</string>
   <string name="wallet_scan_qr_code">مسح رمز الاستجابة السريعة</string>
   <string name="wallet_scan">مسح</string>
+  <string name="wallet_scan_hint">أرسل، ادفع أو اتصل بـ DApp</string>
+  <string name="wallet_scan_hint_address">عنوان المحفظة</string>
+  <string name="wallet_scan_hint_node">عنوان URL للعقدة</string>
   <string name="wallet_default_name">المحفظة #%1$d</string>
   <string name="wallet_default_name_chain">%1$s المحفظة رقم %2$d</string>
   <string name="wallet_copy_address">نسخ العنوان</string>
