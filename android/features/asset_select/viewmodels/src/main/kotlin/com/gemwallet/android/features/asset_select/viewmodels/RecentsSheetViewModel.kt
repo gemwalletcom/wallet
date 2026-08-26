@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -45,9 +45,9 @@ class RecentsSheetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val uiModel: StateFlow<RecentsSheetUIModel> = config
+        .filterNotNull()
         .flatMapLatest { config ->
-            if (config == null) flowOf(RecentsSheetUIModel.Empty)
-            else combine(
+            combine(
                 getRecentAssets(RecentAssetsRequest(types = config.types, filters = config.filters, limit = 0)),
                 snapshotFlow { query.text.toString() },
                 ::buildUIModel,
