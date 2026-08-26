@@ -260,11 +260,10 @@ struct ServicesFactory {
         )
         let walletSetupService = WalletSetupService(balanceService: balanceService)
 
-        let configService = ConfigService(service: Gemstone.GemConfigService(api: gemApiClient))
-        let releaseService = AppReleaseService(configService: configService)
+        let gemConfigService = Gemstone.GemConfigService(api: gemApiClient, preferences: preferencesService)
+        let configService = ConfigService(service: gemConfigService)
         let releaseAlertService = ReleaseAlertService(
-            appReleaseService: releaseService,
-            preferences: preferences,
+            appUpdateService: Gemstone.GemAppUpdateService(config: gemConfigService, preferences: preferencesService),
         )
         let rateService = RateService(preferences: preferences)
 
@@ -417,7 +416,6 @@ struct ServicesFactory {
             nftService: nftService,
             avatarService: avatarService,
             swapService: swapService,
-            appReleaseService: releaseService,
             releaseAlertService: releaseAlertService,
             rateService: rateService,
             deviceObserverService: deviceObserverService,

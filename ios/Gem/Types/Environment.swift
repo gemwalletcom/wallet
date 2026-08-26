@@ -60,7 +60,7 @@ extension EnvironmentValues {
     @Entry var chainServiceFactory: ChainServiceFactory = AppResolver.main.services.chainServiceFactory
     @Entry var nftService: NFTService = AppResolver.main.services.nftService
     @Entry var avatarService: AvatarService = AppResolver.main.services.avatarService
-    @Entry var releaseService: AppReleaseService = AppResolver.main.services.appReleaseService
+    @Entry var releaseAlertService: ReleaseAlertService = AppResolver.main.services.releaseAlertService
     @Entry var perpetualService: PerpetualService = AppResolver.main.services.perpetualService
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
     @Entry var nameService: any NameServiceable = AppResolver.main.services.nameService

@@ -8,5 +8,5 @@ import uniffi.gemstone.GemConfigService
 class GetRemoteConfigImpl(
     private val configService: GemConfigService,
 ) : GetRemoteConfig {
-    override suspend fun getRemoteConfig(): ConfigResponse = configService.getConfig().decodeJson()
+    override suspend fun getRemoteConfig(): ConfigResponse = configService.updateConfig().decodeJson()
 }

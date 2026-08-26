@@ -1,60 +1,41 @@
 package com.gemwallet.android.data.coordinators.update
 
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.update.coordinators.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.coordinators.SkipAppUpdate
 import com.gemwallet.android.application.update.coordinators.SyncAppUpdate
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.ext.VersionCheck
 import com.gemwallet.android.model.AppUpdateChannel
-import com.gemwallet.android.model.AppUpdateInfo
 import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.model.BuildInfo
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.PlatformStore
+import com.wallet.core.primitives.Release
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.MutableStateFlow
+import uniffi.gemstone.GemAppUpdateService
 
 class AppUpdateCoordinator(
-    private val getRemoteConfig: GetRemoteConfig,
-    private val userConfig: UserConfig,
+    private val appUpdateService: GemAppUpdateService,
     private val buildInfo: BuildInfo,
 ) : SyncAppUpdate, ObserveAppUpdateOffer, SkipAppUpdate {
 
-    override suspend fun syncAppUpdate(): AppUpdateOffer? {
-        if (buildInfo.platformStore == PlatformStore.Local) {
-            return null
-        }
-        val config = runCatching { getRemoteConfig.getRemoteConfig() }.getOrNull() ?: return null
-        val release = config.releases.firstOrNull { it.store == buildInfo.platformStore } ?: return null
-        val skippedVersion = userConfig.getAppVersionSkip().firstOrNull().orEmpty()
-        val update = AppUpdateInfo(version = release.version, isRequired = release.upgradeRequired)
-        userConfig.setLatestAppUpdate(update)
-        return buildOffer(update, skippedVersion)
-    }
+    private val offer = MutableStateFlow<AppUpdateOffer?>(null)
 
-    override fun observeAppUpdateOffer(): Flow<AppUpdateOffer?> = combine(
-        userConfig.getLatestAppUpdate(),
-        userConfig.getAppVersionSkip(),
-    ) { update, skippedVersion -> buildOffer(update, skippedVersion) }
+    override suspend fun syncAppUpdate(): AppUpdateOffer? = check().also { offer.value = it }
+
+    override fun observeAppUpdateOffer(): Flow<AppUpdateOffer?> = offer
 
     override suspend fun skipAppUpdate(version: String) {
-        userConfig.setAppVersionSkip(version)
+        appUpdateService.skip(version)
+        offer.value = check()
     }
 
-    private fun buildOffer(update: AppUpdateInfo?, skippedVersion: String): AppUpdateOffer? {
-        if (update == null) {
-            return null
-        }
-        if (!VersionCheck.isVersionHigher(new = update.version, current = buildInfo.versionName)) {
-            return null
-        }
-        if (!update.isRequired && update.version == skippedVersion) {
-            return null
-        }
+    private suspend fun check(): AppUpdateOffer? {
+        val release = runCatching { appUpdateService.check(buildInfo.platformStore.toJson(), buildInfo.versionName) }
+            .getOrNull()?.decodeJson<Release>() ?: return null
         return AppUpdateOffer(
-            version = update.version,
-            isRequired = update.isRequired,
+            version = release.version,
+            isRequired = release.upgradeRequired,
             channel = deliveryChannel(),
         )
     }

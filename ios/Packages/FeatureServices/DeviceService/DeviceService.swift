@@ -89,16 +89,10 @@ public struct DeviceService: DeviceServiceable {
     @MainActor
     private func currentDevice(deviceId: String) throws -> Primitives.Device {
         let deviceToken = try securePreferences.get(key: .deviceToken) ?? .empty
-        #if targetEnvironment(simulator)
-            let platformStore = PlatformStore.local
-        #else
-            let platformStore = PlatformStore.appStore
-        #endif
-
         return Primitives.Device(
             id: deviceId,
             platform: .ios,
-            platformStore: platformStore,
+            platformStore: .current,
             os: UIDevice.current.osName,
             model: UIDevice.current.modelName,
             token: deviceToken,

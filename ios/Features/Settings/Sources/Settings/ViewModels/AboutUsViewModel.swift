@@ -15,14 +15,14 @@ import SwiftUI
 @MainActor
 public final class AboutUsViewModel: Sendable {
     private let preferences: ObservablePreferences
-    private let releaseService: AppReleaseService
+    private let releaseAlertService: ReleaseAlertService
 
     public init(
         preferences: ObservablePreferences,
-        releaseService: AppReleaseService,
+        releaseAlertService: ReleaseAlertService,
     ) {
         self.preferences = preferences
-        self.releaseService = releaseService
+        self.releaseAlertService = releaseAlertService
     }
 
     var title: String {
@@ -120,10 +120,10 @@ extension AboutUsViewModel {
     }
 
     func fetch() async {
-        release = await releaseService.getNewestRelease()
+        release = await releaseAlertService.newestRelease()
     }
 
     func onUpdate() {
-        UIApplication.shared.open(AppUrl.page(.appStore))
+        releaseAlertService.openAppStore()
     }
 }

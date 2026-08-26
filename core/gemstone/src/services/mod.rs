@@ -1,3 +1,4 @@
+pub mod app_update;
 pub mod asset_discovery;
 pub mod assets;
 pub mod auth;
@@ -25,6 +26,7 @@ pub mod transaction_state;
 pub mod transactions;
 pub mod wallet_configuration;
 
+pub use app_update::GemAppUpdateService;
 pub use asset_discovery::{GemAssetDiscoveryService, GemAssetDiscoveryStore};
 pub use assets::{GemAssetStore, GemAssetsService};
 pub use auth::GemAuthService;

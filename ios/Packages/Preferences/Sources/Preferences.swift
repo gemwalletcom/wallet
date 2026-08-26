@@ -30,7 +30,6 @@ public final class Preferences: @unchecked Sendable {
         static let isDeveloperEnabled = "is_developer_enabled"
         static let isHideBalanceEnabled = "is_balance_privacy_enabled"
         static let isAcceptTermsCompleted = "is_accepted_terms"
-        static let skippedReleaseVersion = "skipped_release_version"
         static let isWalletConnectActivated = "is_walletconnect_activated"
         static let chartPeriod = "chart_period"
         static let perpetualChartPeriod = "perpetual_chart_period"
@@ -104,9 +103,6 @@ public final class Preferences: @unchecked Sendable {
     @ConfigurableDefaults(key: Keys.isAcceptTermsCompleted, defaultValue: false)
     public var isAcceptTermsCompleted: Bool
 
-    @ConfigurableDefaults(key: Keys.skippedReleaseVersion, defaultValue: nil)
-    public var skippedReleaseVersion: String?
-
     @ConfigurableDefaults(key: Keys.isWalletConnectActivated, defaultValue: nil)
     public var isWalletConnectActivated: Bool?
 
@@ -174,7 +170,6 @@ public final class Preferences: @unchecked Sendable {
         configure(\._isDeveloperEnabled, key: Keys.isDeveloperEnabled, defaultValue: false)
         configure(\._isHideBalanceEnabled, key: Keys.isHideBalanceEnabled, defaultValue: false)
         configure(\._isAcceptTermsCompleted, key: Keys.isAcceptTermsCompleted, defaultValue: false)
-        configure(\._skippedReleaseVersion, key: Keys.skippedReleaseVersion, defaultValue: nil)
         configure(\._isWalletConnectActivated, key: Keys.isWalletConnectActivated, defaultValue: nil)
         configure(\._chartPeriodRawValue, key: Keys.chartPeriod, defaultValue: ChartPeriod.day.rawValue)
         configure(\._perpetualChartPeriodRawValue, key: Keys.perpetualChartPeriod, defaultValue: ChartPeriod.day.rawValue)

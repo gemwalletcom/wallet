@@ -9,7 +9,7 @@ import android.content.pm.Signature
 import android.os.Build
 import android.os.Environment
 import androidx.core.content.FileProvider
-import com.gemwallet.android.ext.VersionCheck
+import uniffi.gemstone.isVersionHigher
 import com.gemwallet.android.ext.universalApkDownloadUrl
 import com.gemwallet.android.model.BuildInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -173,7 +173,7 @@ class InAppUpdateServiceImpl @Inject constructor(
         if (archiveVersion != expectedVersion) {
             throw IllegalStateException("Downloaded APK version mismatch")
         }
-        if (!VersionCheck.isVersionHigher(new = archiveVersion, current = buildInfo.versionName)) {
+        if (!isVersionHigher(new = archiveVersion, current = buildInfo.versionName)) {
             throw IllegalStateException("Downloaded APK is not a newer version")
         }
 

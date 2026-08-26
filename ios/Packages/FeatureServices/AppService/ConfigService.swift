@@ -1,21 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemConfigService
+import protocol Gemstone.GemConfigServiceProtocol
 import GemstonePrimitives
-import Preferences
 import Primitives
 
 public actor ConfigService {
-    private let configPreferences: ConfigPreferences
-    private let service: GemConfigService
+    private let service: any GemConfigServiceProtocol
     private var updateTask: Task<ConfigResponse, Error>?
 
-    public init(
-        configPreferences: ConfigPreferences = .standard,
-        service: GemConfigService,
-    ) {
-        self.configPreferences = configPreferences
+    public init(service: any GemConfigServiceProtocol) {
         self.service = service
     }
 
@@ -24,13 +18,9 @@ public actor ConfigService {
             _ = try await task.value
             return
         }
-
         updateTask = Task {
-            let config = try await ConfigResponse(service.getConfig())
-            configPreferences.config = config
-            return config
+            try await ConfigResponse(service.updateConfig())
         }
-
         defer { updateTask = nil }
         _ = try await updateTask?.value
     }
@@ -39,6 +29,6 @@ public actor ConfigService {
         if let updateTask {
             return try? await updateTask.value
         }
-        return configPreferences.config
+        return try? await ConfigResponse(service.getConfig())
     }
 }

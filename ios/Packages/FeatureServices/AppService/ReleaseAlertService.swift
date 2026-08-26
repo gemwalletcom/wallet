@@ -1,32 +1,39 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemAppUpdateServiceProtocol
 import GemstonePrimitives
-import Preferences
 import Primitives
 import UIKit
 
 public struct ReleaseAlertService: Sendable {
-    private let appReleaseService: AppReleaseService
-    private let preferences: Preferences
+    private let appUpdateService: any GemAppUpdateServiceProtocol
 
-    public init(
-        appReleaseService: AppReleaseService,
-        preferences: Preferences,
-    ) {
-        self.appReleaseService = appReleaseService
-        self.preferences = preferences
+    public init(appUpdateService: any GemAppUpdateServiceProtocol) {
+        self.appUpdateService = appUpdateService
+    }
+
+    public func newestRelease() async -> Release? {
+        try? await appUpdateService.newest(store: PlatformStore.current.json(), currentVersion: Bundle.main.releaseVersionNumber)
+            .map { try Release($0) }
     }
 
     public func checkForUpdate() async -> Release? {
-        guard let release = await appReleaseService.getNewestRelease(),
-              preferences.skippedReleaseVersion != release.version
-        else { return nil }
-        return release
+        do {
+            return try await appUpdateService.check(store: PlatformStore.current.json(), currentVersion: Bundle.main.releaseVersionNumber)
+                .map { try Release($0) }
+        } catch {
+            debugLog("checkForUpdate error: \(error)")
+            return nil
+        }
     }
 
     public func skipRelease(_ release: Release) {
-        preferences.skippedReleaseVersion = release.version
+        do {
+            try appUpdateService.skip(version: release.version)
+        } catch {
+            debugLog("skipRelease error: \(error)")
+        }
     }
 
     @MainActor

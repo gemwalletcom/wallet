@@ -68,7 +68,6 @@ extension AppResolver {
         let nftService: NFTService
         let avatarService: AvatarService
         let swapService: SwapService
-        let appReleaseService: AppReleaseService
         let releaseAlertService: ReleaseAlertService
         let rateService: RateService
         let deviceObserverService: DeviceObserverService

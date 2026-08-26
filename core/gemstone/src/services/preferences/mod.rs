@@ -3,10 +3,14 @@ pub mod store;
 
 use std::sync::Arc;
 
+use primitives::ConfigResponse;
+
 pub use error::GemPreferencesError;
 pub use store::GemPreferencesStore;
 
 const PRICE_ALERTS_ENABLED: &str = "price_alerts_enabled";
+const SKIPPED_APP_VERSION: &str = "skipped_app_version";
+const CONFIG: &str = "config";
 
 #[derive(uniffi::Object)]
 pub struct GemPreferencesService {
@@ -26,6 +30,25 @@ impl GemPreferencesService {
 
     pub fn set_price_alerts_enabled(&self, enabled: bool) -> Result<(), GemPreferencesError> {
         self.store.set(PRICE_ALERTS_ENABLED.to_string(), enabled.to_string())
+    }
+
+    pub fn get_skipped_app_version(&self) -> Result<Option<String>, GemPreferencesError> {
+        self.store.get(SKIPPED_APP_VERSION.to_string())
+    }
+
+    pub fn set_skipped_app_version(&self, version: String) -> Result<(), GemPreferencesError> {
+        self.store.set(SKIPPED_APP_VERSION.to_string(), version)
+    }
+}
+
+impl GemPreferencesService {
+    pub fn get_config(&self) -> Result<Option<ConfigResponse>, GemPreferencesError> {
+        Ok(self.store.get(CONFIG.to_string())?.and_then(|json| serde_json::from_str(&json).ok()))
+    }
+
+    pub fn set_config(&self, config: &ConfigResponse) -> Result<(), GemPreferencesError> {
+        let json = serde_json::to_string(config).map_err(|error| GemPreferencesError::Store { msg: error.to_string() })?;
+        self.store.set(CONFIG.to_string(), json)
     }
 }
 

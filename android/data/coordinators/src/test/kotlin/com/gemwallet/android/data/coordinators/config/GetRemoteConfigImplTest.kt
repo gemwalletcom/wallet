@@ -40,7 +40,7 @@ class GetRemoteConfigImplTest {
                 enabledProviders = emptyList(),
             ),
         )
-        coEvery { configService.getConfig() } returns config.toJson()
+        coEvery { configService.updateConfig() } returns config.toJson()
 
         val result = subject.getRemoteConfig()
 

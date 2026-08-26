@@ -99,6 +99,8 @@ extension Primitives.PerpetualModifyPositionType: JsonCodable {}
 extension Primitives.PerpetualOrderType: JsonCodable {}
 extension Primitives.PerpetualPortfolio: JsonCodable {}
 extension Primitives.PerpetualPortfolioTimeframeData: JsonCodable {}
+extension Primitives.PlatformStore: JsonCodable {}
+extension Primitives.Release: JsonCodable {}
 extension Primitives.PerpetualPosition: JsonCodable {}
 extension Primitives.PerpetualPositionsSummary: JsonCodable {}
 extension Primitives.PerpetualReduceData: JsonCodable {}

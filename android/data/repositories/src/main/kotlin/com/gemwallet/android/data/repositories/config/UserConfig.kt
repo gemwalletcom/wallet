@@ -12,7 +12,6 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
-import com.gemwallet.android.model.AppUpdateInfo
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualAccountMode
@@ -88,26 +87,6 @@ class UserConfig(
 
     suspend fun setSwapSlippageBps(bps: UInt?) = write(Key.SwapSlippageBps, bps?.toInt() ?: 0)
 
-    fun getLatestAppUpdate(): Flow<AppUpdateInfo?> = context.dataStore.data.map { preferences ->
-        val version = preferences[Key.LatestVersion].orEmpty()
-        if (version.isBlank()) {
-            null
-        } else {
-            AppUpdateInfo(version = version, isRequired = preferences[Key.LatestVersionRequired] == true)
-        }
-    }
-
-    suspend fun setLatestAppUpdate(update: AppUpdateInfo) {
-        context.dataStore.edit { preferences ->
-            preferences[Key.LatestVersion] = update.version
-            preferences[Key.LatestVersionRequired] = update.isRequired
-        }
-    }
-
-    fun getAppVersionSkip(): Flow<String> = read(Key.AppVersionSkip, "")
-
-    suspend fun setAppVersionSkip(version: String) = write(Key.AppVersionSkip, version)
-
     fun getLockInterval(): Flow<Int> = read(Key.LockInterval, 1)
 
     suspend fun setLockInterval(minutes: Int) = write(Key.LockInterval, minutes)
@@ -152,10 +131,7 @@ class UserConfig(
 
     private object Key {
         val IsHideBalances = booleanPreferencesKey("hide_balances")
-        val LatestVersion = stringPreferencesKey("latest_version")
-        val LatestVersionRequired = booleanPreferencesKey("latest_version_required")
         val LockInterval = intPreferencesKey("lock_interval")
-        val AppVersionSkip = stringPreferencesKey("app-version-skip")
         val IsWelcomeBannerHidden = stringSetPreferencesKey("is_welcome_banner_state")
         val IsTermsAccepted = booleanPreferencesKey("is_terms_accepted")
         val AskNotifications = longPreferencesKey("ask_notifications")

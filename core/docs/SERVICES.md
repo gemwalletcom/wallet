@@ -26,9 +26,10 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemTransactionStateService`](../gemstone/src/services/transaction_state/mod.rs) | [`GemTransactionStateStore`](../gemstone/src/services/transaction_state/store.rs) | [Swift](../../ios/Packages/FeatureServices/TransactionStateService/GemstoneTransactionStateStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/transactions/GemstoneTransactionStateStore.kt) | Done | Pending transaction status updates |
 | [`GemTransactionsService`](../gemstone/src/services/transactions/mod.rs) | [`GemTransactionStore`](../gemstone/src/services/transactions/store.rs) | [Swift](../../ios/Packages/FeatureServices/TransactionsService/GemstoneTransactionStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/transactions/GemstoneTransactionStore.kt) | Done | Transaction history sync |
 | [`GemWalletConfigurationService`](../gemstone/src/services/wallet_configuration/mod.rs) | [`GemWalletConfigurationStore`](../gemstone/src/services/wallet_configuration/store.rs) | [Swift](../../ios/Packages/FeatureServices/AppService/GemstoneWalletConfigurationStore.swift) | [Kotlin](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/wallet_import/GemstoneWalletConfigurationStore.kt) | Done | Initial wallet configuration sync, multi-signature banners |
+| [`GemAppUpdateService`](../gemstone/src/services/app_update/mod.rs) | — | — | — | Done | Release for the store, version compare, skipped version via `GemPreferencesService` |
 | [`GemAuthService`](../gemstone/src/services/auth/mod.rs) | — | — | — | Done | Wallet auth payloads |
 | [`GemChartService`](../gemstone/src/services/chart/mod.rs) | — | — | — | Done | Price charts |
-| [`GemConfigService`](../gemstone/src/services/config/mod.rs) | — | — | — | Done | Remote config |
+| [`GemConfigService`](../gemstone/src/services/config/mod.rs) | — | — | — | Done | Remote config, cached via `GemPreferencesService` |
 | [`GemFiatService`](../gemstone/src/services/fiat/mod.rs) | — | — | — | Done | Fiat quotes and transactions |
 | [`GemPortfolioService`](../gemstone/src/services/portfolio/mod.rs) | — | — | — | Done | Portfolio |
 | [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals |
@@ -46,8 +47,10 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`AppService/OnstartService`](../../ios/Packages/FeatureServices/AppService/OnstartService.swift) | — | Review | Startup migrations, asset import |
 | [`AppService/OnstartAsyncService`](../../ios/Packages/FeatureServices/AppService/OnstartAsyncService.swift) | — | Review | Background startup tasks |
 | [`AppService/OnstartWalletService`](../../ios/Packages/FeatureServices/AppService/OnstartWalletService.swift) | `GemWalletConfigurationService` | Review | Configuration sync in Core; banner seeding and push permissions still app-side |
-| [`AppService/ConfigService`](../../ios/Packages/FeatureServices/AppService/ConfigService.swift) | `GemConfigService` | Review | |
-| [`AppService/AppReleaseService`](../../ios/Packages/FeatureServices/AppService/AppReleaseService.swift), [`ReleaseAlertService`](../../ios/Packages/FeatureServices/AppService/ReleaseAlertService.swift), [`RateService`](../../ios/Packages/FeatureServices/AppService/RateService.swift), [`AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | — | Review | |
+| [`AppService/ConfigService`](../../ios/Packages/FeatureServices/AppService/ConfigService.swift) | `GemConfigService` | Done | Thin actor that dedupes concurrent updates |
+| [`AppService/ReleaseAlertService`](../../ios/Packages/FeatureServices/AppService/ReleaseAlertService.swift) | `GemAppUpdateService` | Done | Android: [`AppUpdateCoordinator`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/update/AppUpdateCoordinator.kt) |
+| [`AppService/RateService`](../../ios/Packages/FeatureServices/AppService/RateService.swift) | — | App-only | App Store review prompt |
+| [`AppService/AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | — | Review | |
 | [`AssetsService`](../../ios/Packages/FeatureServices/AssetsService) | `GemAssetsService` | Review | Sync/details in Core; remaining app-side helpers to review |
 | [`AuthService`](../../ios/Packages/FeatureServices/AuthService) | `GemAuthService` | Done | |
 | [`AvatarService`](../../ios/Packages/FeatureServices/AvatarService) | — | App-only | Image files |

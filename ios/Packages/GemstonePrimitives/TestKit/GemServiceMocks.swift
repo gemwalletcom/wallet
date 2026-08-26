@@ -82,12 +82,37 @@ public final class GemSubscriptionServiceMock: GemSubscriptionServiceProtocol, @
     }
 }
 
+public final class GemConfigServiceMock: GemConfigServiceProtocol, @unchecked Sendable {
+    private let config: Primitives.ConfigResponse
+
+    public init(config: Primitives.ConfigResponse) {
+        self.config = config
+    }
+
+    public func getConfig() async throws -> Gemstone.ConfigResponse {
+        try config.json()
+    }
+
+    public func updateConfig() async throws -> Gemstone.ConfigResponse {
+        try config.json()
+    }
+}
+
 public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @unchecked Sendable {
     private let lock = NSLock()
     private var priceAlertsEnabled: Bool
+    private var skippedAppVersion: String?
 
     public init(priceAlertsEnabled: Bool = false) {
         self.priceAlertsEnabled = priceAlertsEnabled
+    }
+
+    public func getSkippedAppVersion() throws -> String? {
+        lock.withLock { skippedAppVersion }
+    }
+
+    public func setSkippedAppVersion(version: String) throws {
+        lock.withLock { skippedAppVersion = version }
     }
 
     public func isPriceAlertsEnabled() throws -> Bool {

@@ -37,7 +37,7 @@ struct SettingsNavigationView: View {
     @Environment(\.serviceStatusService) private var serviceStatusService
     @Environment(\.chainServiceFactory) private var chainServiceFactory
     @Environment(\.observablePreferences) private var observablePreferences
-    @Environment(\.releaseService) private var releaseService
+    @Environment(\.releaseAlertService) private var releaseAlertService
     @Environment(\.perpetualService) private var perpetualService
     @Environment(\.walletConnectorManager) private var walletConnectorManager
     @Environment(\.rewardsService) private var rewardsService
@@ -130,7 +130,7 @@ struct SettingsNavigationView: View {
             AboutUsScene(
                 model: AboutUsViewModel(
                     preferences: observablePreferences,
-                    releaseService: releaseService,
+                    releaseAlertService: releaseAlertService,
                 ),
             )
         }

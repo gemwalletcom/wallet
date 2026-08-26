@@ -2,33 +2,12 @@
 
 import AppService
 import Foundation
-import class Gemstone.GemApiClient
-import class Gemstone.GemConfigService
-import NativeProviderService
-import Preferences
-import PreferencesTestKit
-import Primitives
+import protocol Gemstone.GemConfigServiceProtocol
+import GemstonePrimitivesTestKit
 import PrimitivesTestKit
 
 public extension ConfigService {
-    static func mock(
-        configPreferences: ConfigPreferences = .mock(),
-        service: GemConfigService = .mock(),
-    ) -> ConfigService {
-        ConfigService(
-            configPreferences: configPreferences,
-            service: service,
-        )
-    }
-}
-
-public extension GemConfigService {
-    static func mock() -> GemConfigService {
-        GemConfigService(
-            api: GemApiClient(
-                provider: NativeProvider(url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor()),
-                baseUrl: Constants.apiURL.absoluteString,
-            ),
-        )
+    static func mock(service: any GemConfigServiceProtocol = GemConfigServiceMock(config: .mock())) -> ConfigService {
+        ConfigService(service: service)
     }
 }

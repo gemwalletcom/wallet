@@ -43,6 +43,7 @@ import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemApiClient as GemstoneApiClient
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemStaticApiClient
+import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.PaymentService
 import uniffi.gemstone.PaymentServiceInterface
@@ -178,7 +179,7 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemConfigService(apiClient: GemstoneApiClient): GemConfigService = GemConfigService(apiClient)
+    fun provideGemConfigService(apiClient: GemstoneApiClient, preferencesService: GemPreferencesService): GemConfigService = GemConfigService(apiClient, preferencesService)
 
 
 
