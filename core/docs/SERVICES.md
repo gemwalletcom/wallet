@@ -107,6 +107,10 @@ Store adapters and the thin app services are being consolidated so both apps loo
 
 Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: all migrated feature services moved (Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets, Balance, Earn, TransactionState, Perpetual); Stake, Node, Swap and Activity moved too; `Blockchain`, `ChainService`, `Signer` and `Keystore` packages folded in (`Sources/Gateway`, `Sources/Signer`, `Sources/Keystore`); pure-forwarding wrappers removed (AssetDiscovery, InAppNotification, Market, Chart, Stake, Earn, AddAsset, ServiceStatus, WalletSetup, NFT, Fiat, Balance, Transactions, AddressName, Portfolio, Price, Assets); `DeviceRequestSigner` lives in `GemstoneServices` (the `GemAPIDevice` target is gone).
 
+## Remaining
+
+- **Android WalletConnect requests** — `WCRequestViewModel` still parses, simulates and encodes requests itself. Target: `BridgesRepository` hands each session request to `GemWalletConnectService.handle_request`; an Android `GemWalletConnectSigner` publishes the pending request to the UI (a suspending bridge the request screen resolves with the signature, or rejects), so parse → simulate → decode → sign → encode runs in Core exactly as on iOS. Proposal wallet selection can already use `select_session_wallets` / `session_chains`.
+
 ## Conventions
 
 - Identifiers cross the FFI typed: `WalletId`, `AssetId`, `Chain`, `NFTAssetId`, `Currency`; store row ids stay `String`.
