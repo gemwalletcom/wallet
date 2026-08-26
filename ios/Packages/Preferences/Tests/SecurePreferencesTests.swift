@@ -100,17 +100,6 @@ struct SecurePreferencesTests {
         #expect(keychain.accessibility(for: SecurePreferences.Keys.devicePublicKey.rawValue) == .afterFirstUnlock)
     }
 
-    @Test
-    func newValuesUseDeviceOnlyAccessibility() throws {
-        let keychain = MockKeychainPreference(storage: .mock())
-        let preferences = SecurePreferences(keychain: keychain)
-
-        try preferences.set(value: mockDeviceToken, key: .deviceToken)
-        try preferences.set(value: Data([0x01]), key: .authToken)
-
-        #expect(keychain.accessibility(for: SecurePreferences.Keys.deviceToken.rawValue) == .whenUnlockedThisDeviceOnly)
-        #expect(keychain.accessibility(for: SecurePreferences.Keys.authToken.rawValue) == .whenUnlockedThisDeviceOnly)
-    }
 
     @Test
     func testClear() {

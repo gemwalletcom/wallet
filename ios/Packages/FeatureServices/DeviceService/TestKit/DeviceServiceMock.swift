@@ -12,7 +12,6 @@ public actor DeviceServiceMock: DeviceServiceable {
         updateCalls += 1
     }
 
-    public func updateNodeAuthTokenIfNeeded() async throws {}
 
     public func synchronizeIfNeeded() async throws {
         synchronizeIfNeededCalls += 1

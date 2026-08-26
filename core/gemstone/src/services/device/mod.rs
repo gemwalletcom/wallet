@@ -4,7 +4,7 @@ pub mod store;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::{Device, DeviceToken};
+use primitives::Device;
 
 pub use store::GemDeviceStore;
 
@@ -75,10 +75,6 @@ impl GemDeviceService {
         self.store.set_pushed_device(local).await?;
         self.store.set_pushed_subscriptions(signature).await?;
         Ok(synced)
-    }
-
-    pub async fn get_token(&self) -> Result<DeviceToken, GemServiceError> {
-        Ok(self.api.client.get_device_token().await.map_err(GemApiError::from)?)
     }
 }
 

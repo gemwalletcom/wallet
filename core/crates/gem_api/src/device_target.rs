@@ -20,7 +20,6 @@ pub enum GemDeviceApiTarget {
     AddDevice(Device),
     UpdateDevice(Device),
     IsDeviceRegistered,
-    GetDeviceToken,
     GetAuthNonce,
 
     GetSubscriptions,
@@ -121,7 +120,6 @@ impl GemDeviceApiTarget {
         match self {
             Self::GetDevice
             | Self::IsDeviceRegistered
-            | Self::GetDeviceToken
             | Self::GetAuthNonce
             | Self::GetSubscriptions
             | Self::GetPriceAlerts { .. }
@@ -160,7 +158,6 @@ impl GemDeviceApiTarget {
         match self {
             Self::GetDevice | Self::AddDevice(_) | Self::UpdateDevice(_) => "/v2/devices".to_string(),
             Self::IsDeviceRegistered => "/v2/devices/is_registered".to_string(),
-            Self::GetDeviceToken => "/v2/devices/token".to_string(),
             Self::GetAuthNonce => "/v2/devices/auth/nonce".to_string(),
             Self::GetSubscriptions | Self::AddSubscriptions(_) | Self::DeleteSubscriptions(_) => "/v2/devices/subscriptions".to_string(),
             Self::GetPriceAlerts { asset_id } => match asset_id {

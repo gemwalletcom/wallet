@@ -25,7 +25,7 @@ public actor NativeProvider {
         self.requestInterceptor = requestInterceptor
     }
 
-    public init(session: URLSession = .shared, url: URL, requestInterceptor: any RequestInterceptable) {
+    public init(session: URLSession = .shared, url: URL, requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor()) {
         self.init(
             session: session,
             nodeProvider: StaticNode(url: url),

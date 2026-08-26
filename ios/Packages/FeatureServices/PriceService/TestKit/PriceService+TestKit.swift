@@ -22,7 +22,7 @@ public extension GemPriceService {
     static func mock(db: DB = .mock()) -> GemPriceService {
         GemPriceService(
             api: GemApiClient(
-                provider: NativeProvider(url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor()),
+                provider: NativeProvider(url: Constants.apiURL),
                 baseUrl: Constants.apiURL.absoluteString,
             ),
             store: GemstonePriceStore(priceStore: .mock(db: db), fiatRateStore: .mock(db: db)),

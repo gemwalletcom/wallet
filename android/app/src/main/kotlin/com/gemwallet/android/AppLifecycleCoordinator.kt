@@ -15,7 +15,6 @@ class AppLifecycleCoordinator @Inject constructor(
     private val deviceObserver: DeviceObserverService,
     private val streamObserver: StreamObserverService,
     private val hyperliquidObserver: HyperliquidObserverService,
-    private val nodeAuthTokenService: NodeAuthTokenService,
     private val connectionStatusObserver: ConnectionStatusObserver,
     private val transactionStateScheduler: TransactionStateScheduler,
 ) : DefaultLifecycleObserver {
@@ -24,7 +23,6 @@ class AppLifecycleCoordinator @Inject constructor(
         deviceObserver.start()
         streamObserver.start()
         hyperliquidObserver.start()
-        nodeAuthTokenService.start()
         connectionStatusObserver.start()
         transactionStateScheduler.start()
     }
@@ -33,7 +31,6 @@ class AppLifecycleCoordinator @Inject constructor(
         deviceObserver.stop()
         streamObserver.stop()
         hyperliquidObserver.stop()
-        nodeAuthTokenService.stop()
         connectionStatusObserver.stop()
         transactionStateScheduler.stop()
     }

@@ -21,7 +21,7 @@ public extension GemAssetsService {
     ) -> GemAssetsService {
         GemAssetsService(
             api: GemApiClient(
-                provider: NativeProvider(url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor()),
+                provider: NativeProvider(url: Constants.apiURL),
                 baseUrl: Constants.apiURL.absoluteString,
             ),
             store: GemstoneAssetStore(assetStore: assetStore, balanceStore: balanceStore),

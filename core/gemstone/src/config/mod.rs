@@ -3,7 +3,6 @@ pub mod docs;
 pub mod fee_config;
 pub mod fiat_config;
 pub mod node;
-pub mod node_auth;
 pub mod perpetual_config;
 pub mod public;
 pub mod rewards;

@@ -2,10 +2,7 @@ package com.gemwallet.android.di
 
 import android.content.Context
 import com.gemwallet.android.Constants
-import com.gemwallet.android.NodeAuthInterceptor
-import com.gemwallet.android.NodeAuthTokenService
 import com.gemwallet.android.blockchain.services.ServiceStatusService
-import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.repositories.config.GemstonePreferencesStore
@@ -30,7 +27,6 @@ import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
-import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemFiatStore
 import uniffi.gemstone.GemAssetsService
@@ -64,25 +60,17 @@ object GatewayModule {
     @Provides
     fun provideGemPreferencesStore(@ApplicationContext context: Context): GemPreferencesStore = TinkGemPreferences(context)
 
-    @Singleton
-    @Provides
-    fun provideNodeAuthTokenService(
-        deviceService: GemDeviceService,
-        isDeviceRegistered: IsDeviceRegistered,
-        preferences: GemPreferencesStore,
-    ): NodeAuthTokenService = NodeAuthTokenService(deviceService, isDeviceRegistered, preferences)
 
     @Singleton
     @Provides
     fun provideAlienProvider(
         getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
-        nodeAuthInterceptor: NodeAuthInterceptor,
         @ApplicationContext context: Context,
     ): AlienProvider {
         return NativeProvider(
             getNodeUrlCase = getNodeUrlCase,
-            httpClient = okHttpClient.newBuilder().addInterceptor(nodeAuthInterceptor).build(),
+            httpClient = okHttpClient,
             config = NativeProviderConfig(
                 networkOfflineMessage = context.getString(UiR.string.errors_network_offline),
             ),
@@ -200,20 +188,15 @@ object GatewayModule {
     @Singleton
     fun providePaymentService(alienProvider: AlienProvider): PaymentServiceInterface = PaymentService(alienProvider)
 
-    @Singleton
-    @Provides
-    fun provideNodeAuthInterceptor(preferences: GemPreferencesStore): NodeAuthInterceptor = NodeAuthInterceptor(preferences)
 
     @Provides
     @Singleton
     fun provideServiceStatusService(
         getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
-        nodeAuthInterceptor: NodeAuthInterceptor,
         @ApplicationContext context: Context,
     ): ServiceStatusService {
         val httpClient = okHttpClient.newBuilder()
-            .addInterceptor(nodeAuthInterceptor)
             .callTimeout(serviceStatusTimeoutSeconds().toLong(), TimeUnit.SECONDS)
             .build()
         val provider = NativeProvider(

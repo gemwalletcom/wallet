@@ -88,7 +88,6 @@ struct DeviceServiceTests {
         _ = try await (update, ready)
 
         #expect(await deviceProvider.syncCalls == 1)
-        #expect(await deviceProvider.getTokenCalls == 1)
     }
 
     @Test

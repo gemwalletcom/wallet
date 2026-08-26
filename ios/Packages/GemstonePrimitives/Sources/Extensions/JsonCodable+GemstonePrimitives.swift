@@ -60,7 +60,6 @@ extension Primitives.DelegationBase: JsonCodable {}
 extension Primitives.DelegationState: JsonCodable {}
 extension Primitives.DelegationValidator: JsonCodable {}
 extension Primitives.Device: JsonCodable {}
-extension Primitives.DeviceToken: JsonCodable {}
 extension Primitives.EarnType: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
 extension Primitives.FiatQuote: JsonCodable {}

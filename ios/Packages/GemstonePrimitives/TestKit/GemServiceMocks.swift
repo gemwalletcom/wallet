@@ -9,23 +9,19 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     private let delay: Duration?
     private let needsSyncResult: Bool
     private let syncError: Error?
-    private let token: Primitives.DeviceToken
 
     public private(set) var needsSyncCalls = 0
     public private(set) var syncCalls = 0
-    public private(set) var getTokenCalls = 0
     public private(set) var syncedDeviceIds: [String] = []
 
     public init(
         delay: Duration? = nil,
         needsSync: Bool = true,
         syncError: Error? = nil,
-        token: Primitives.DeviceToken = .init(token: "", expiresAt: 0),
     ) {
         self.delay = delay
         needsSyncResult = needsSync
         self.syncError = syncError
-        self.token = token
     }
 
     public func needsSync(device _: Gemstone.Device) async throws -> Bool {
@@ -41,11 +37,6 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
             throw syncError
         }
         return device
-    }
-
-    public func getToken() async throws -> Gemstone.DeviceToken {
-        getTokenCalls += 1
-        return try token.json()
     }
 
     private func sleepIfNeeded() async throws {

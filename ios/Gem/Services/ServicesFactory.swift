@@ -60,8 +60,7 @@ struct ServicesFactory {
             nodeStore: storeManager.nodeStore,
             service: GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore)),
         )
-        let nodeAuthProvider = NodeAuthTokenProvider(securePreferences: securePreferences)
-        let nativeProvider = NativeProvider(nodeProvider: nodeService, requestInterceptor: nodeAuthProvider)
+        let nativeProvider = NativeProvider(nodeProvider: nodeService)
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, securePreferences: securePreferences)
 
         let gemWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
@@ -113,11 +112,8 @@ struct ServicesFactory {
         let gatewayService = GatewayService(provider: nativeProvider)
         let paymentService = PaymentService(provider: nativeProvider)
         let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
-        let serviceStatusService = ServiceStatusService(requestInterceptor: nodeAuthProvider)
-        let chainServiceFactory = ChainServiceFactory(
-            gatewayService: gatewayService,
-            requestInterceptor: nodeAuthProvider,
-        )
+        let serviceStatusService = ServiceStatusService()
+        let chainServiceFactory = ChainServiceFactory(gatewayService: gatewayService)
 
         let avatarService = AvatarService(store: storeManager.walletStore)
         let assetsService = AssetsService(
@@ -181,7 +177,7 @@ struct ServicesFactory {
             store: storeManager.perpetualStore,
             perpetualStore: gemPerpetualStore,
             balanceStore: storeManager.balanceStore,
-            provider: PerpetualProviderFactory(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider).createProvider(),
+            provider: PerpetualProviderFactory(nodeProvider: nodeProvider).createProvider(),
             service: gemPerpetualService,
             preferences: preferences,
         )
@@ -233,7 +229,7 @@ struct ServicesFactory {
             webSocket: webSocket,
         )
         let explorerService = ExplorerService.standard
-        let swapService = SwapService(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
+        let swapService = SwapService(nodeProvider: nodeProvider)
 
         let presenter = WalletConnectorPresenter()
         let walletConnectorManager = WalletConnectorManager(presenter: presenter)

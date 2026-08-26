@@ -7,7 +7,7 @@ import Primitives
 
 public extension GatewayService {
     static func mock() -> GatewayService {
-        GatewayService(provider: NativeProvider(session: .offline, url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor()))
+        GatewayService(provider: NativeProvider(session: .offline, url: Constants.apiURL))
     }
 }
 

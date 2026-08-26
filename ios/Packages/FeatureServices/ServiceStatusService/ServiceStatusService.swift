@@ -11,7 +11,7 @@ internal import GemstonePrimitives
 public struct ServiceStatusService: ServiceStatusServiceable, Sendable {
     private let client: GemServiceStatus
 
-    public init(requestInterceptor: any RequestInterceptable) {
+    public init(requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor()) {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = TimeInterval(serviceStatusTimeoutSeconds())
 

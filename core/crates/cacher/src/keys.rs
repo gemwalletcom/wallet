@@ -133,7 +133,7 @@ impl CacheKey<'_> {
             Self::Price(_) => 30 * SECONDS_PER_DAY,
             Self::PricerCoinInfo(_) => SECONDS_PER_DAY,
             Self::FiatRates => SECONDS_PER_DAY,
-            Self::FiatQuote(_) => 15 * SECONDS_PER_MINUTE,
+            Self::FiatQuote(_) => 5 * SECONDS_PER_MINUTE,
             Self::FiatIpCheck(_) => SECONDS_PER_DAY,
             Self::AuthNonce(_, _) => 5 * SECONDS_PER_MINUTE,
             Self::AddressStatus(_, _) => 31 * SECONDS_PER_DAY,

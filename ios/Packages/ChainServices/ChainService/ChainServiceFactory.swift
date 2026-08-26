@@ -11,19 +11,13 @@ public protocol ChainServiceFactorable: Sendable {
 
 public final class ChainServiceFactory: ChainServiceFactorable, Sendable {
     private let gatewayService: GatewayService
-    private let requestInterceptor: any RequestInterceptable
 
     public init(nodeProvider: any NodeURLFetchable) {
         self.gatewayService = GatewayService(provider: NativeProvider(nodeProvider: nodeProvider))
-        self.requestInterceptor = EmptyRequestInterceptor()
     }
 
-    public init(
-        gatewayService: GatewayService,
-        requestInterceptor: any RequestInterceptable,
-    ) {
+    public init(gatewayService: GatewayService) {
         self.gatewayService = gatewayService
-        self.requestInterceptor = requestInterceptor
     }
 
     public func service(for chain: Chain) -> any ChainServiceable {
@@ -33,7 +27,7 @@ public final class ChainServiceFactory: ChainServiceFactorable, Sendable {
     public func service(for chain: Chain, url: URL) -> any ChainServiceable {
         ChainService.service(
             chain: chain,
-            gateway: GatewayService(provider: NativeProvider(url: url, requestInterceptor: requestInterceptor)),
+            gateway: GatewayService(provider: NativeProvider(url: url)),
         )
     }
 }

@@ -22,7 +22,7 @@ public extension GemNftService {
     static func mock(nftStore: NFTStore = .mock()) -> GemNftService {
         GemNftService(
             api: GemDeviceApiClient(
-                provider: NativeProvider(url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor()),
+                provider: NativeProvider(url: Constants.apiURL),
                 baseUrl: Constants.apiURL.absoluteString,
                 devicePrivateKey: Data(),
             ),

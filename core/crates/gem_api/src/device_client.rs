@@ -8,9 +8,9 @@ use gem_jsonrpc::{RpcClientError, RpcProvider, Target};
 use primitives::name::NameRecord;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{
-    AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, DeviceToken, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
-    NFTAssetData, NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction, ScanTransactionPayload,
-    SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
+    AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, NFTAssetData,
+    NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction, ScanTransactionPayload, SupportMessage,
+    SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
 };
 use serde::de::DeserializeOwned;
 
@@ -66,10 +66,6 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
 
     pub async fn is_device_registered(&self) -> Result<bool, ClientError> {
         self.send(GemDeviceApiTarget::IsDeviceRegistered).await
-    }
-
-    pub async fn get_device_token(&self) -> Result<DeviceToken, ClientError> {
-        self.send(GemDeviceApiTarget::GetDeviceToken).await
     }
 
     pub async fn get_auth_nonce(&self) -> Result<AuthNonce, ClientError> {
