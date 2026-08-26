@@ -35,13 +35,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -59,7 +63,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.alpha50
-import com.gemwallet.android.ui.theme.alpha70
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -82,9 +85,13 @@ import kotlin.math.min
 
 private val QR_ANALYSIS_RESOLUTION = Size(1280, 720)
 private const val SCAN_FROM_GALLERY_TAG = "scanFromGallery"
-private const val FINDER_SCALE = 0.7f
+private const val FINDER_SCALE = 0.66f
 private val HINT_SPACING = 24.dp
 private val HINT_HORIZONTAL_PADDING = 32.dp
+private val FINDER_CORNER_RADIUS = 25.dp
+private val FINDER_CORNER_LENGTH = 25.dp
+private val FINDER_STROKE_WIDTH = 4.dp
+private const val FINDER_DIM_ALPHA = 0.33f
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -418,42 +425,55 @@ private fun ScannerHint(hint: String) {
 @Composable
 private fun FinderView() {
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val halfFullWidth = size.width / 2f
-        val halfFullHeight = size.height / 2f
-        val rectSize = min(size.width, size.height) * FINDER_SCALE
-        val rectHalfSize = rectSize / 2f
-        val viewFrameSize = (rectHalfSize / 2f)
+        val boxSize = min(size.width, size.height) * FINDER_SCALE
+        val left = (size.width - boxSize) / 2f
+        val top = (size.height - boxSize) / 2f
+        val right = left + boxSize
+        val bottom = top + boxSize
+        val cornerRadius = FINDER_CORNER_RADIUS.toPx()
+        val cornerLength = FINDER_CORNER_LENGTH.toPx()
+        val cornerDiameter = cornerRadius * 2f
 
-        clipRect(
-            left = halfFullWidth - rectHalfSize + 10,
-            top = halfFullHeight - rectHalfSize + 10,
-            right = halfFullWidth + rectHalfSize - 10,
-            bottom = halfFullHeight + rectHalfSize - 10,
-            clipOp = ClipOp.Difference
-        ) {
-            drawRect(Color.Black.copy(alpha = alpha70), topLeft = Offset.Zero, size)
+        val cutout = Path().apply {
+            addRoundRect(RoundRect(left, top, right, bottom, CornerRadius(cornerRadius)))
         }
-        val path = Path()
-        path.moveTo(halfFullWidth - rectHalfSize, halfFullHeight - viewFrameSize)
-        path.lineTo(halfFullWidth - rectHalfSize, halfFullHeight - rectHalfSize)
-        path.lineTo(halfFullWidth - viewFrameSize, halfFullHeight - rectHalfSize)
+        clipPath(cutout, clipOp = ClipOp.Difference) {
+            drawRect(Color.Black.copy(alpha = FINDER_DIM_ALPHA), topLeft = Offset.Zero, size)
+        }
 
-        path.moveTo(halfFullWidth + viewFrameSize, halfFullHeight - rectHalfSize)
-        path.lineTo(halfFullWidth + rectHalfSize, halfFullHeight - rectHalfSize)
-        path.lineTo(halfFullWidth + rectHalfSize, halfFullHeight - viewFrameSize)
+        val brackets = Path().apply {
+            moveTo(left, top + cornerRadius)
+            arcTo(Rect(left, top, left + cornerDiameter, top + cornerDiameter), 180f, 90f, false)
+            moveTo(left + cornerRadius, top)
+            lineTo(left + cornerRadius + cornerLength, top)
+            moveTo(left, top + cornerRadius)
+            lineTo(left, top + cornerRadius + cornerLength)
 
-        path.moveTo(halfFullWidth + rectHalfSize, halfFullHeight + viewFrameSize)
-        path.lineTo(halfFullWidth + rectHalfSize, halfFullHeight + rectHalfSize)
-        path.lineTo(halfFullWidth + viewFrameSize, halfFullHeight + rectHalfSize)
+            moveTo(right - cornerRadius, top)
+            arcTo(Rect(right - cornerDiameter, top, right, top + cornerDiameter), 270f, 90f, false)
+            moveTo(right - cornerRadius - cornerLength, top)
+            lineTo(right - cornerRadius, top)
+            moveTo(right, top + cornerRadius)
+            lineTo(right, top + cornerRadius + cornerLength)
 
-        path.moveTo(halfFullWidth - rectHalfSize, halfFullHeight + viewFrameSize)
-        path.lineTo(halfFullWidth - rectHalfSize, halfFullHeight + rectHalfSize)
-        path.lineTo(halfFullWidth - viewFrameSize, halfFullHeight + rectHalfSize)
+            moveTo(right, bottom - cornerRadius)
+            arcTo(Rect(right - cornerDiameter, bottom - cornerDiameter, right, bottom), 0f, 90f, false)
+            moveTo(right - cornerRadius - cornerLength, bottom)
+            lineTo(right - cornerRadius, bottom)
+            moveTo(right, bottom - cornerRadius)
+            lineTo(right, bottom - cornerRadius - cornerLength)
 
+            moveTo(left + cornerRadius, bottom)
+            arcTo(Rect(left, bottom - cornerDiameter, left + cornerDiameter, bottom), 90f, 90f, false)
+            moveTo(left + cornerRadius, bottom)
+            lineTo(left + cornerRadius + cornerLength, bottom)
+            moveTo(left, bottom - cornerRadius)
+            lineTo(left, bottom - cornerRadius - cornerLength)
+        }
         drawPath(
-            path = path,
+            path = brackets,
             color = Color.White,
-            style = Stroke(width = 20.0f, join = StrokeJoin.Round)
+            style = Stroke(width = FINDER_STROKE_WIDTH.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
         )
     }
 }
