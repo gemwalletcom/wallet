@@ -31,6 +31,7 @@ import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemApiClient as GemstoneApiClient
+import uniffi.gemstone.GemNftService
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemStaticApiClient
 import uniffi.gemstone.GemStaticAssetsService
@@ -134,6 +135,10 @@ object GatewayModule {
     @Provides
     @Singleton
     fun provideGemScanService(apiClient: GemstoneDeviceApiClient): GemScanService = GemScanService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemNftService(apiClient: GemstoneDeviceApiClient): GemNftService = GemNftService(apiClient)
 
     @Provides
     @Singleton

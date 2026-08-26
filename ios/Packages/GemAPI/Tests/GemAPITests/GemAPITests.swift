@@ -83,8 +83,6 @@ struct GemAPITests {
         #expect(GemDeviceAPI.getSubscriptions.walletId == nil)
         #expect(GemDeviceAPI.getAssetsList(walletId: walletId, fromTimestamp: 0).walletId == walletId.id)
         #expect(GemDeviceAPI.getTransactions(walletId: walletId, assetId: nil, fromTimestamp: 0).walletId == walletId.id)
-        let nftAssetId = NFTAssetId(chain: .ethereum, contractAddress: "0xabc", tokenId: "1")
-        #expect(GemDeviceAPI.refreshNftAsset(walletId: walletId, assetId: nftAssetId).walletId == walletId.id)
         #expect(GemDeviceAPI.getFiatQuoteUrl(walletId: walletId, quoteId: "quote").walletId == walletId.id)
         #expect(GemDeviceAPI.getWalletConfiguration(walletId: walletId).walletId == walletId.id)
     }

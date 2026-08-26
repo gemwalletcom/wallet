@@ -102,7 +102,8 @@ struct ServicesFactory {
         let marketService = MarketService(service: Gemstone.GemPriceService(api: gemApiClient))
         let staticAssetsService = Gemstone.GemStaticAssetsService(api: gemStaticApiClient)
         let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient)
-        let gemScanService = Self.makeScanService(provider: nativeProvider, securePreferences: securePreferences)
+        let gemDeviceApiClient = Self.makeDeviceApiClient(provider: nativeProvider, securePreferences: securePreferences)
+        let gemScanService = Gemstone.GemScanService(api: gemDeviceApiClient)
         let gatewayService = GatewayService(provider: nativeProvider)
         let paymentService = PaymentService(provider: nativeProvider)
         let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
@@ -148,7 +149,7 @@ struct ServicesFactory {
             assetsService: staticAssetsService,
         )
         let nftService = NFTService(
-            apiService: apiService,
+            service: Gemstone.GemNftService(api: gemDeviceApiClient),
             nftStore: storeManager.nftStore,
         )
         let transactionsService = TransactionsService(
@@ -436,14 +437,13 @@ struct ServicesFactory {
 // MARK: - Private Static
 
 extension ServicesFactory {
-    private static func makeScanService(provider: NativeProvider, securePreferences: SecurePreferences) -> Gemstone.GemScanService {
+    private static func makeDeviceApiClient(provider: NativeProvider, securePreferences: SecurePreferences) -> Gemstone.GemDeviceApiClient {
         let keyPair = try? DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
-        let client = Gemstone.GemDeviceApiClient(
+        return Gemstone.GemDeviceApiClient(
             provider: provider,
             baseUrl: Constants.apiURL.absoluteString,
             devicePrivateKey: keyPair?.privateKey ?? Data(),
         )
-        return Gemstone.GemScanService(api: client)
     }
 
     private static func makeRequestSigner(securePreferences: SecurePreferences) -> DeviceRequestSigner? {

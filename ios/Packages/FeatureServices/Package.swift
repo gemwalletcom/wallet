@@ -167,7 +167,8 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
-                "GemAPI",
+                "Gemstone",
+                "GemstonePrimitives",
             ],
             path: "NFTService",
             exclude: ["TestKit"],
@@ -176,7 +177,8 @@ let package = Package(
             name: "NFTServiceTestKit",
             dependencies: [
                 .product(name: "StoreTestKit", package: "Store"),
-                .product(name: "GemAPITestKit", package: "GemAPI"),
+                .product(name: "NativeProviderService", package: "NativeProviderService"),
+                "Gemstone",
                 "NFTService",
             ],
             path: "NFTService/TestKit",

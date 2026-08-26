@@ -3,7 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use gem_auth::build_device_auth_header;
 use gem_client::{Client, ClientError};
-use primitives::{ScanTransaction, ScanTransactionPayload};
+use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, ScanTransaction, ScanTransactionPayload};
 use serde::de::DeserializeOwned;
 
 use crate::device_target::GemDeviceApiTarget;
@@ -28,6 +28,23 @@ impl<C: Client> GemDeviceApiClient<C> {
 
     pub async fn scan_transaction(&self, payload: ScanTransactionPayload) -> Result<ScanTransaction, ClientError> {
         self.send(GemDeviceApiTarget::ScanTransaction(payload)).await
+    }
+
+    pub async fn get_nft_assets(&self, wallet_id: String) -> Result<Vec<NFTData>, ClientError> {
+        let assets: Option<Vec<NFTData>> = self.send(GemDeviceApiTarget::GetNftAssets(wallet_id)).await?;
+        Ok(assets.unwrap_or_default())
+    }
+
+    pub async fn get_nft_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, ClientError> {
+        self.send(GemDeviceApiTarget::GetNftAsset(asset_id)).await
+    }
+
+    pub async fn refresh_nft_asset(&self, wallet_id: String, asset_id: NFTAssetId) -> Result<bool, ClientError> {
+        self.send(GemDeviceApiTarget::RefreshNftAsset(wallet_id, asset_id)).await
+    }
+
+    pub async fn report_nft(&self, report: ReportNft) -> Result<bool, ClientError> {
+        self.send(GemDeviceApiTarget::ReportNft(report)).await
     }
 
     async fn send<R: DeserializeOwned>(&self, target: GemDeviceApiTarget) -> Result<R, ClientError> {

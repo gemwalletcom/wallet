@@ -1,19 +1,35 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemAPI
-import GemAPITestKit
+import Foundation
+import class Gemstone.GemDeviceApiClient
+import class Gemstone.GemNftService
+import protocol Gemstone.GemNftServiceProtocol
+import NativeProviderService
 import NFTService
+import Primitives
 import Store
 import StoreTestKit
 
 public extension NFTService {
     static func mock(
-        apiService: any GemAPINFTService = GemAPINFTServiceMock(),
+        service: any GemNftServiceProtocol = GemNftService.mock(),
         nftStore: NFTStore = .mock(),
     ) -> NFTService {
         NFTService(
-            apiService: apiService,
+            service: service,
             nftStore: nftStore,
+        )
+    }
+}
+
+public extension GemNftService {
+    static func mock() -> GemNftService {
+        GemNftService(
+            api: GemDeviceApiClient(
+                provider: NativeProvider(url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor()),
+                baseUrl: Constants.apiURL.absoluteString,
+                devicePrivateKey: Data(),
+            ),
         )
     }
 }

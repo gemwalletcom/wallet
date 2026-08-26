@@ -63,7 +63,7 @@ struct AssetDiscoveryServiceTests {
         let transactionProvider = GemAPITransactionServiceMock(
             walletTransactionsResponse: TransactionsResponse(transactions: [initialTransaction], addressNames: []),
         )
-        let nftProvider = GemAPINFTServiceMock(nftAssets: [initialNFT])
+        let nftProvider = GemNftServiceMock(assets: [initialNFT])
         let service = AssetDiscoveryService.mock(
             assetsListService: GemAPIAssetsListServiceMock(assetsByDeviceIdResult: []),
             transactionsService: .mock(
@@ -75,7 +75,7 @@ struct AssetDiscoveryServiceTests {
                 ),
                 addressStore: .mock(db: db),
             ),
-            nftService: .mock(apiService: nftProvider, nftStore: nftStore),
+            nftService: .mock(service: nftProvider, nftStore: nftStore),
         )
 
         try await service.discoverAssets(wallet: wallet)
@@ -122,7 +122,7 @@ struct AssetDiscoveryServiceTests {
         transactionProvider.setWalletTransactionsResponse(
             TransactionsResponse(transactions: [nextTransaction], addressNames: []),
         )
-        nftProvider.setNFTAssets([nextNFT])
+        nftProvider.setAssets([nextNFT])
 
         try await service.discoverAssets(wallet: wallet)
         let savedTransactions = try transactionStore.getTransactions(states: [.confirmed])

@@ -6,11 +6,11 @@ import com.gemwallet.android.cases.nft.RefreshNftAsset
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.repositories.nft.NftRepository
 import com.gemwallet.android.data.service.store.database.NftDao
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemNftService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -20,10 +20,10 @@ class NftModule {
     @Provides
     @Singleton
     fun provideNftRepository(
-        gemDeviceApiClient: GemDeviceApiClient,
+        nftService: GemNftService,
         nftDao: NftDao
     ): NftRepository {
-        return NftRepository(gemDeviceApiClient, nftDao)
+        return NftRepository(nftService, nftDao)
     }
 
     @Provides

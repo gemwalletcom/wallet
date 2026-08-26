@@ -256,7 +256,7 @@ struct TransactionStateServiceTests {
             stakeService: .mock(),
             earnService: .mock(),
             nftService: .mock(
-                apiService: GemAPINFTServiceMock(nftAssets: [nftData]),
+                service: GemNftServiceMock(assets: [nftData]),
                 nftStore: nftStore,
             ),
         )

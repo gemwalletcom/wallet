@@ -9,9 +9,10 @@ import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.NFTAsset
+import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTData
@@ -27,15 +28,16 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import okio.IOException
+import uniffi.gemstone.GemNftService
 
 class NftRepository(
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val nftService: GemNftService,
     private val nftDao: NftDao,
 ) : SyncNfts, GetListNftCase, GetAssetNft, RefreshNftAsset {
 
     @Throws(HttpException::class, IOException::class)
     override suspend fun sync(walletId: WalletId) {
-        val nftData = gemDeviceApiClient.getNFTs(walletId = walletId).orEmpty()
+        val nftData = nftService.getAssets(walletId.id).map { it.decodeJson<NFTData>() }
         val collections = nftData.map { it.collection.toDb() }
         val assets = nftData.flatMap { it.assets }.map { it.toDb() }
         val associations = assets.map { DbNFTAssociation(walletId = walletId.id, assetId = it.id) }
@@ -44,7 +46,7 @@ class NftRepository(
 
     @Throws(HttpException::class, IOException::class)
     override suspend fun refreshNftAsset(wallet: Wallet, assetId: NFTAssetId) {
-        gemDeviceApiClient.refreshNftAsset(wallet.id, assetId.toIdentifier())
+        nftService.refreshAsset(wallet.id.id, assetId.toIdentifier())
     }
 
     override fun getListNft(walletId: WalletId, collectionId: String?): Flow<List<NFTData>> {
@@ -74,7 +76,7 @@ class NftRepository(
 
     private fun fetchAndAddNftAsset(assetId: NFTAssetId): Flow<NFTData> {
         return flow {
-            val assetData = gemDeviceApiClient.getNFT(assetId.toIdentifier())
+            val assetData = nftService.getAsset(assetId.toIdentifier()).decodeJson<NFTAssetData>()
             nftDao.add(collection = assetData.collection.toDb(), asset = assetData.asset.toDb())
             emit(NFTData(collection = assetData.collection, assets = listOf(assetData.asset)))
         }

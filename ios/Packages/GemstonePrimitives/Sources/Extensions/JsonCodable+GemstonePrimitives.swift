@@ -57,8 +57,10 @@ extension Primitives.FiatAssets: JsonCodable {}
 extension Primitives.FiatQuoteType: JsonCodable {}
 extension Primitives.Markets: JsonCodable {}
 extension Primitives.NFTAsset: JsonCodable {}
+extension Primitives.NFTAssetData: JsonCodable {}
 extension Primitives.NFTAttribute: JsonCodable {}
 extension Primitives.NFTAttributeType: JsonCodable {}
+extension Primitives.NFTData: JsonCodable {}
 extension Primitives.NFTImages: JsonCodable {}
 extension Primitives.NFTResource: JsonCodable {}
 extension Primitives.NFTType: JsonCodable {}
@@ -86,6 +88,7 @@ extension Primitives.PerpetualReduceData: JsonCodable {}
 extension Primitives.PerpetualTriggerOrder: JsonCodable {}
 extension Primitives.PerpetualType: JsonCodable {}
 extension Primitives.Price: JsonCodable {}
+extension Primitives.ReportNft: JsonCodable {}
 extension Primitives.Resource: JsonCodable {}
 extension Primitives.ScanAddressTarget: JsonCodable {}
 extension Primitives.ScanTransaction: JsonCodable {}

@@ -3,7 +3,7 @@ package com.gemwallet.android.data.repositories.nft
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.testkit.mockNftAssetData
@@ -24,12 +24,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemNftService
 
 class NftRepositoryTest {
 
-    private val gemDeviceApiClient = mockk<GemDeviceApiClient>()
+    private val nftService = mockk<GemNftService>()
     private val nftDao = mockk<NftDao>()
-    private val subject = NftRepository(gemDeviceApiClient, nftDao)
+    private val subject = NftRepository(nftService, nftDao)
 
     private val collectionId = mockNftCollectionId()
     private val otherCollectionId = mockNftCollectionId(contractAddress = "0xother")
@@ -55,23 +56,23 @@ class NftRepositoryTest {
 
         assertEquals(collectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
-        coVerify(exactly = 0) { gemDeviceApiClient.getNFT(any()) }
+        coVerify(exactly = 0) { nftService.getAsset(any()) }
     }
 
     @Test
     fun getAssetNftFallsBackToApiAndAddsToStore() = runTest {
         every { nftDao.getAsset(assetId) } returns flowOf(null)
-        coEvery { gemDeviceApiClient.getNFT(assetId.toIdentifier()) } returns mockNftAssetData(
+        coEvery { nftService.getAsset(assetId.toIdentifier()) } returns mockNftAssetData(
             collection = mockNftCollection(id = collectionId),
             asset = mockNftAsset(id = assetId, collectionId = collectionId),
-        )
+        ).toJson()
         coEvery { nftDao.add(any(), any()) } returns Unit
 
         val result = subject.getAssetNft(assetId).first()
 
         assertEquals(collectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
-        coVerify { gemDeviceApiClient.getNFT(assetId.toIdentifier()) }
+        coVerify { nftService.getAsset(assetId.toIdentifier()) }
         coVerify {
             nftDao.add(
                 collection = match { it.id == collectionId },
@@ -84,17 +85,17 @@ class NftRepositoryTest {
     fun getAssetNftFallsBackToApiWhenCollectionIsMissing() = runTest {
         every { nftDao.getAsset(assetId) } returns flowOf(dbAsset(assetId, collectionId))
         every { nftDao.getCollection(collectionId) } returns flowOf(null)
-        coEvery { gemDeviceApiClient.getNFT(assetId.toIdentifier()) } returns mockNftAssetData(
+        coEvery { nftService.getAsset(assetId.toIdentifier()) } returns mockNftAssetData(
             collection = mockNftCollection(id = otherCollectionId),
             asset = mockNftAsset(id = assetId, collectionId = otherCollectionId),
-        )
+        ).toJson()
         coEvery { nftDao.add(any(), any()) } returns Unit
 
         val result = subject.getAssetNft(assetId).first()
 
         assertEquals(otherCollectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
-        coVerify { gemDeviceApiClient.getNFT(assetId.toIdentifier()) }
+        coVerify { nftService.getAsset(assetId.toIdentifier()) }
     }
 }
 

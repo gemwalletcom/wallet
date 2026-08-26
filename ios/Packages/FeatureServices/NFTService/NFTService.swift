@@ -1,25 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
+import protocol Gemstone.GemNftServiceProtocol
+import GemstonePrimitives
 import Primitives
 import Store
 
 public struct NFTService: Sendable {
-    private let apiService: any GemAPINFTService
+    private let service: any GemNftServiceProtocol
     private let nftStore: NFTStore
 
     public init(
-        apiService: any GemAPINFTService,
+        service: any GemNftServiceProtocol,
         nftStore: NFTStore,
     ) {
-        self.apiService = apiService
+        self.service = service
         self.nftStore = nftStore
     }
 
     @discardableResult
     public func updateAssets(wallet: Wallet) async throws -> Int {
-        let nfts = try await apiService.getDeviceNFTAssets(walletId: wallet.id)
+        let nfts = try await service.getAssets(walletId: wallet.id.id).map { try NFTData($0) }
         try nftStore.save(nfts, for: wallet.id)
         return nfts.count
     }
@@ -30,11 +31,11 @@ public struct NFTService: Sendable {
             assetId: assetId?.identifier,
             reason: reason,
         )
-        try await apiService.reportNft(report: report)
+        try await service.report(report: report.json())
     }
 
     public func refreshAsset(wallet: Wallet, assetId: NFTAssetId) async throws {
-        try await apiService.refreshNftAsset(walletId: wallet.id, assetId: assetId)
+        try await service.refreshAsset(walletId: wallet.id.id, assetId: assetId.identifier)
     }
 
     public func getOrFetchAssetData(assetId: NFTAssetId) async throws -> NFTAssetData {
@@ -43,7 +44,7 @@ public struct NFTService: Sendable {
         {
             return NFTAssetData(collection: collection, asset: asset)
         }
-        let assetData = try await apiService.getDeviceNFTAsset(assetId: assetId)
+        let assetData = try await NFTAssetData(service.getAsset(assetId: assetId.identifier))
         try nftStore.add(asset: assetData.asset, collection: assetData.collection)
         return assetData
     }

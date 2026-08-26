@@ -47,13 +47,6 @@ public protocol GemAPIPriceAlertService: Sendable {
     func deletePriceAlerts(priceAlerts: [PriceAlert]) async throws
 }
 
-public protocol GemAPINFTService: Sendable {
-    func getDeviceNFTAssets(walletId: WalletId) async throws -> [NFTData]
-    func getDeviceNFTAsset(assetId: NFTAssetId) async throws -> NFTAssetData
-    func refreshNftAsset(walletId: WalletId, assetId: NFTAssetId) async throws
-    func reportNft(report: ReportNft) async throws
-}
-
 public protocol GemAPISupportService: Sendable {
     func getSupportMessages(fromTimestamp: Int) async throws -> [SupportMessage]
     func sendSupportMessage(input: SupportMessageInput) async throws -> SupportMessage
@@ -189,27 +182,6 @@ extension GemAPIService: GemAPIPriceAlertService {
     public func deletePriceAlerts(priceAlerts: [PriceAlert]) async throws {
         _ = try await requestDevice(.deletePriceAlerts(priceAlerts: priceAlerts))
             .mapResponse(as: Int.self)
-    }
-}
-
-extension GemAPIService: GemAPINFTService {
-    public func getDeviceNFTAssets(walletId: WalletId) async throws -> [NFTData] {
-        try await requestDevice(.getDeviceNFTAssets(walletId: walletId))
-            .mapResponse(as: [NFTData].self)
-    }
-
-    public func getDeviceNFTAsset(assetId: NFTAssetId) async throws -> NFTAssetData {
-        try await requestDevice(.getDeviceNFTAsset(assetId: assetId))
-            .mapResponse(as: NFTAssetData.self)
-    }
-
-    public func refreshNftAsset(walletId: WalletId, assetId: NFTAssetId) async throws {
-        _ = try await requestDevice(.refreshNftAsset(walletId: walletId, assetId: assetId))
-            .mapResponse(as: Bool.self)
-    }
-
-    public func reportNft(report: ReportNft) async throws {
-        _ = try await requestDevice(.reportNft(report: report))
     }
 }
 
