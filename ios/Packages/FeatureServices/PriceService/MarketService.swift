@@ -1,17 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
+import class Gemstone.GemPriceService
+import GemstonePrimitives
 import Primitives
 
 public struct MarketService: Sendable {
-    private let provider: any GemAPIMarketService
+    private let service: GemPriceService
 
-    public init(provider: any GemAPIMarketService = GemAPIService.shared) {
-        self.provider = provider
+    public init(service: GemPriceService) {
+        self.service = service
     }
 
     public func getMarkets() async throws -> Markets {
-        try await provider.getMarkets()
+        try await Markets(service.getMarkets())
     }
 }

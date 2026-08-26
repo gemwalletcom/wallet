@@ -2,8 +2,9 @@
 
 import AppService
 import Foundation
-import GemAPI
-import GemAPITestKit
+import class Gemstone.GemApiClient
+import class Gemstone.GemConfigService
+import NativeProviderService
 import Preferences
 import PreferencesTestKit
 import Primitives
@@ -12,11 +13,22 @@ import PrimitivesTestKit
 public extension ConfigService {
     static func mock(
         configPreferences: ConfigPreferences = .mock(),
-        apiService: any GemAPIConfigService = GemAPIConfigServiceMock(config: .mock()),
+        service: GemConfigService = .mock(),
     ) -> ConfigService {
         ConfigService(
             configPreferences: configPreferences,
-            apiService: apiService,
+            service: service,
+        )
+    }
+}
+
+public extension GemConfigService {
+    static func mock() -> GemConfigService {
+        GemConfigService(
+            api: GemApiClient(
+                provider: NativeProvider(url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor()),
+                baseUrl: Constants.apiURL.absoluteString,
+            ),
         )
     }
 }

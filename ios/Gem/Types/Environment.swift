@@ -39,6 +39,7 @@ extension EnvironmentValues {
     @Entry var serviceStatusService: any ServiceStatusServiceable = AppResolver.main.services.serviceStatusService
     @Entry var priceService: PriceService = AppResolver.main.services.priceService
     @Entry var chartService: ChartService = AppResolver.main.services.chartService
+    @Entry var marketService: MarketService = AppResolver.main.services.marketService
     @Entry var streamSubscriptionService: StreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
     @Entry var assetsEnabler: any AssetsEnabler = AppResolver.main.services.assetsEnabler
     @Entry var assetDiscoveryService: any AssetDiscoverable = AppResolver.main.services.assetDiscoveryService

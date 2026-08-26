@@ -198,6 +198,7 @@ let package = Package(
                 "Store",
                 "GemAPI",
                 "Gemstone",
+                "GemstonePrimitives",
             ],
             path: "PriceService",
             exclude: ["TestKit"],

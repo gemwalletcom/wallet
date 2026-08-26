@@ -1,21 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
+import class Gemstone.GemConfigService
+import GemstonePrimitives
 import Preferences
 import Primitives
 
 public actor ConfigService {
     private let configPreferences: ConfigPreferences
-    private let apiService: any GemAPIConfigService
+    private let service: GemConfigService
     private var updateTask: Task<ConfigResponse, Error>?
 
     public init(
         configPreferences: ConfigPreferences = .standard,
-        apiService: any GemAPIConfigService,
+        service: GemConfigService,
     ) {
         self.configPreferences = configPreferences
-        self.apiService = apiService
+        self.service = service
     }
 
     public func updateConfig() async throws {
@@ -25,7 +26,7 @@ public actor ConfigService {
         }
 
         updateTask = Task {
-            let config = try await apiService.getConfig()
+            let config = try await ConfigResponse(service.getConfig())
             configPreferences.config = config
             return config
         }

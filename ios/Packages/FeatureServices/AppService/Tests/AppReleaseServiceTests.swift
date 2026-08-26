@@ -3,7 +3,6 @@
 @testable import AppService
 import AppServiceTestKit
 import Foundation
-import GemAPITestKit
 import Preferences
 import PreferencesTestKit
 import Primitives
@@ -15,7 +14,7 @@ struct AppReleaseServiceTests {
     func newestRelease() async {
         let configPreferences = ConfigPreferences.mock()
         configPreferences.config = .mock()
-        let service = AppReleaseService(configService: ConfigService(configPreferences: configPreferences, apiService: GemAPIConfigServiceMock(config: .mock())))
+        let service = AppReleaseService(configService: ConfigService(configPreferences: configPreferences, service: .mock()))
 
         #expect(await service.getNewestRelease()?.version == "99.0")
     }

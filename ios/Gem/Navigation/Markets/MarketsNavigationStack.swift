@@ -7,11 +7,12 @@ import SwiftUI
 
 struct MarketsNavigationStack: View {
     @Environment(\.assetsService) private var assetsService
+    @Environment(\.marketService) private var marketService
 
     var body: some View {
         MarketsScene(
             model: MarketsSceneViewModel(
-                service: MarketService(),
+                service: marketService,
                 assetsService: assetsService,
             ),
         )

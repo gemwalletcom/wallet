@@ -7,13 +7,11 @@ import SwiftHTTPClient
 public enum GemAPI: TargetType {
     case getSwapAssets
     case getFiatAssets(FiatQuoteType)
-    case getConfig
     case getPrices(AssetPricesRequest)
     case getAsset(AssetId)
     case getAssets([AssetId], currency: String?)
     case getSearchAssets(query: String, chains: [Chain])
     case getSearch(query: String, chains: [Chain], tags: [String])
-    case markets
 
     public var baseUrl: URL {
         Constants.apiURL
@@ -23,11 +21,9 @@ public enum GemAPI: TargetType {
         switch self {
         case .getSwapAssets,
              .getFiatAssets,
-             .getConfig,
              .getAsset,
              .getSearchAssets,
-             .getSearch,
-             .markets:
+             .getSearch:
             .GET
         case .getAssets,
              .getPrices:
@@ -41,8 +37,6 @@ public enum GemAPI: TargetType {
             return "/v1/swap/assets"
         case let .getFiatAssets(type):
             return "/v1/fiat/assets/\(type.rawValue)"
-        case .getConfig:
-            return "/v1/config"
         case let .getAsset(id):
             return "/v1/assets/\(id.identifier)"
         case let .getAssets(_, currency):
@@ -57,8 +51,6 @@ public enum GemAPI: TargetType {
             return "/v1/search"
         case .getPrices:
             return "/v1/prices"
-        case .markets:
-            return "/v1/markets"
         }
     }
 
@@ -66,9 +58,7 @@ public enum GemAPI: TargetType {
         switch self {
         case .getSwapAssets,
              .getFiatAssets,
-             .getConfig,
-             .getAsset,
-             .markets:
+             .getAsset:
             .plain
         case let .getAssets(value, _):
             .encodable(value.map(\.identifier))

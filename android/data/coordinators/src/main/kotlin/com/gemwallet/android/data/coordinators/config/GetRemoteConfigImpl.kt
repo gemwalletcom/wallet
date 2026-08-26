@@ -1,13 +1,12 @@
 package com.gemwallet.android.data.coordinators.config
 
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
-import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.ConfigResponse
+import uniffi.gemstone.GemConfigService
 
 class GetRemoteConfigImpl(
-    private val gemApiClient: GemApiClient,
+    private val configService: GemConfigService,
 ) : GetRemoteConfig {
-    override suspend fun getRemoteConfig(): ConfigResponse {
-        return gemApiClient.getConfig()
-    }
+    override suspend fun getRemoteConfig(): ConfigResponse = configService.getConfig().decodeJson()
 }

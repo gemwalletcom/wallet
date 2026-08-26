@@ -55,6 +55,7 @@ extension AppResolver {
         let streamSubscriptionService: StreamSubscriptionService
         let priceService: PriceService
         let chartService: ChartService
+        let marketService: MarketService
         let stakeService: StakeService
         let transactionsService: TransactionsService
         let transactionStateScheduler: TransactionStateScheduler

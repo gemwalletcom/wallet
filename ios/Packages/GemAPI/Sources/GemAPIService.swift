@@ -4,10 +4,6 @@ import Foundation
 import Primitives
 import SwiftHTTPClient
 
-public protocol GemAPIConfigService: Sendable {
-    func getConfig() async throws -> ConfigResponse
-}
-
 public protocol GemAPIFiatService: Sendable {
     func getQuotes(walletId: WalletId, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote]
     func getQuoteUrl(walletId: WalletId, quoteId: String) async throws -> FiatQuoteUrl
@@ -83,10 +79,6 @@ public protocol GemAPIWalletConfigurationService: Sendable {
     func getWalletConfiguration(walletId: WalletId) async throws -> WalletConfigurationResult
 }
 
-public protocol GemAPIMarketService: Sendable {
-    func getMarkets() async throws -> Markets
-}
-
 public protocol GemAPIAuthService: Sendable {
     func getAuthNonce() async throws -> AuthNonce
 }
@@ -153,14 +145,6 @@ extension GemAPIService: GemAPIFiatService {
     public func getFiatTransactions(walletId: WalletId) async throws -> [FiatTransactionData] {
         try await requestDevice(.getFiatTransactions(walletId: walletId))
             .mapResponse(as: [FiatTransactionData].self)
-    }
-}
-
-extension GemAPIService: GemAPIConfigService {
-    public func getConfig() async throws -> ConfigResponse {
-        try await provider
-            .request(.getConfig)
-            .mapResponse(as: ConfigResponse.self)
     }
 }
 
@@ -297,14 +281,6 @@ extension GemAPIService: GemAPIWalletConfigurationService {
     public func getWalletConfiguration(walletId: WalletId) async throws -> WalletConfigurationResult {
         try await requestDevice(.getWalletConfiguration(walletId: walletId))
             .mapResponse(as: WalletConfigurationResult.self)
-    }
-}
-
-extension GemAPIService: GemAPIMarketService {
-    public func getMarkets() async throws -> Markets {
-        try await provider
-            .request(.markets)
-            .mapResponse(as: Markets.self)
     }
 }
 

@@ -1,5 +1,6 @@
 use primitives::asset_balance::BalanceMetadata;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
+use primitives::currency::Currency;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
 use primitives::perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
@@ -13,7 +14,7 @@ use primitives::{
     TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
-use primitives::{BannerEvent, BannerState};
+use primitives::{AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, FiatAssets, FiatQuoteType, Markets, SearchResponse};
 use primitives::{ChartPeriod, Charts};
 
 macro_rules! json_bridge {
@@ -42,6 +43,10 @@ json_bridge!(
     ApplicationMetadataSource,
     ApprovalData,
     Asset,
+    AssetBasic,
+    AssetFull,
+    AssetMarket,
+    AssetPrice,
     AssetType,
     BalanceMetadata,
     BannerEvent,
@@ -53,14 +58,19 @@ json_bridge!(
     ChartDateValue,
     ChartPeriod,
     Charts,
+    ConfigResponse,
     ConnectionComponent,
     ConnectionStatus,
     ContractCallData,
+    Currency,
     Delegation,
     DelegationBase,
     DelegationState,
     DelegationValidator,
     EarnType,
+    FiatAssets,
+    FiatQuoteType,
+    Markets,
     NFTAsset,
     NFTAttribute,
     NFTAttributeType,
@@ -95,13 +105,14 @@ json_bridge!(
     ScanAddressTarget,
     ScanTransaction,
     ScanTransactionPayload,
+    SearchResponse,
     SimulationPayloadField,
     SimulationResult,
     SolanaNftStandard,
     SolanaTokenProgramId,
     StakeProviderType,
-    StakeValidator,
     StakeType,
+    StakeValidator,
     SwapData,
     SwapPriceImpact,
     SwapPriceImpactType,

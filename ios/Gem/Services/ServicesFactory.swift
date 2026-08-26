@@ -101,6 +101,7 @@ struct ServicesFactory {
         let gemApiClient = Gemstone.GemApiClient(provider: nativeProvider, baseUrl: Constants.apiURL.absoluteString)
         let gemStaticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
         let chartService = ChartService(service: Gemstone.GemChartService(api: gemApiClient))
+        let marketService = MarketService(service: Gemstone.GemPriceService(api: gemApiClient))
         let staticAssetsService = Gemstone.GemStaticAssetsService(api: gemStaticApiClient)
         let gemScanService = Self.makeScanService(provider: nativeProvider, securePreferences: securePreferences)
         let gatewayService = GatewayService(provider: nativeProvider)
@@ -252,7 +253,7 @@ struct ServicesFactory {
         )
         let walletSetupService = WalletSetupService(balanceService: balanceService)
 
-        let configService = ConfigService(apiService: apiService)
+        let configService = ConfigService(service: Gemstone.GemConfigService(api: gemApiClient))
         let releaseService = AppReleaseService(configService: configService)
         let releaseAlertService = ReleaseAlertService(
             appReleaseService: releaseService,
@@ -387,6 +388,7 @@ struct ServicesFactory {
             streamSubscriptionService: streamSubscriptionService,
             priceService: priceService,
             chartService: chartService,
+            marketService: marketService,
             stakeService: stakeService,
             transactionsService: transactionsService,
             transactionStateScheduler: transactionStateScheduler,
