@@ -4,8 +4,6 @@ import android.util.Log
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.serializer.StreamEventSerializer
-import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,12 +64,7 @@ class StreamObserverService(
     }
 
     private fun handleMessage(text: String) {
-        try {
-            val event = jsonEncoder.decodeFromString(StreamEventSerializer, text)
-            scope.launch { eventHandler.handle(event) }
-        } catch (err: Throwable) {
-            Log.e(TAG, "Parse event error: ${text.take(100)}", err)
-        }
+        scope.launch { eventHandler.handle(text) }
     }
 
     companion object {

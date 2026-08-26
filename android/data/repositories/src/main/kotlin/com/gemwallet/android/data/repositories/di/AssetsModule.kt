@@ -3,18 +3,13 @@ package com.gemwallet.android.data.repositories.di
 import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
-import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
-import com.gemwallet.android.data.repositories.notifications.InAppNotificationsRepository
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -41,6 +36,14 @@ import com.gemwallet.android.data.repositories.prices.GemstonePriceStore
 import com.gemwallet.android.data.service.store.database.PricesDao
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemSupportStore
+import uniffi.gemstone.GemNotificationStore
+import uniffi.gemstone.GemFiatService
+import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemTransactionsService
+import uniffi.gemstone.GemPriceAlertService
+import uniffi.gemstone.GemStreamService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -100,27 +103,37 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideStreamEventHandler(
-        pricesRepository: PricesRepository,
-        syncTransactions: dagger.Lazy<SyncTransactions>,
-        syncNfts: SyncNfts,
-        updatePriceAlerts: UpdatePriceAlerts,
-        syncFiatTransactions: dagger.Lazy<SyncFiatTransactions>,
-        walletsRepository: WalletsRepository,
-        updateBalances: UpdateBalances,
-        inAppNotificationsRepository: InAppNotificationsRepository,
-        supportChatRepository: SupportChatRepository,
-    ): StreamEventHandler = StreamEventHandler(
-        pricesRepository = pricesRepository,
-        syncTransactions = syncTransactions,
-        syncNfts = syncNfts,
-        updatePriceAlerts = updatePriceAlerts,
-        syncFiatTransactions = syncFiatTransactions,
-        walletsRepository = walletsRepository,
-        updateBalances = updateBalances,
-        inAppNotificationsRepository = inAppNotificationsRepository,
-        supportChatRepository = supportChatRepository,
+    fun provideGemStreamService(
+        priceService: GemPriceService,
+        priceAlertService: GemPriceAlertService,
+        balanceService: GemBalanceService,
+        transactionsService: GemTransactionsService,
+        nftService: GemNftService,
+        perpetualService: GemPerpetualService,
+        fiatService: GemFiatService,
+        notificationStore: GemNotificationStore,
+        supportStore: GemSupportStore,
+        walletsRepository: Lazy<WalletsRepository>,
+    ): GemStreamService = GemStreamService(
+        priceService,
+        priceAlertService,
+        balanceService,
+        transactionsService,
+        nftService,
+        perpetualService,
+        fiatService,
+        notificationStore,
+        supportStore,
+        GemstoneWalletStore(walletsRepository),
     )
+
+    @Provides
+    @Singleton
+    fun provideStreamEventHandler(
+        streamService: GemStreamService,
+        sessionRepository: SessionRepository,
+        supportChatRepository: SupportChatRepository,
+    ): StreamEventHandler = StreamEventHandler(streamService, sessionRepository, supportChatRepository)
 
     @Provides
     @Singleton

@@ -27,7 +27,7 @@ use primitives::{
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
 use primitives::{
     AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, FiatAssets, FiatQuoteType, Markets, PlatformStore, Release,
-    SearchResponse,
+    SearchResponse, StreamEvent,
 };
 use primitives::{ChartPeriod, Charts};
 
@@ -148,6 +148,7 @@ json_bridge!(
     ScanTransaction,
     ScanTransactionPayload,
     SearchResponse,
+    StreamEvent,
     SimulationPayloadField,
     SimulationResult,
     SolanaNftStandard,

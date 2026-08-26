@@ -200,6 +200,12 @@ public actor GemWalletConfigurationServiceMock: GemWalletConfigurationServicePro
     }
 }
 
+public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Sendable {
+    public init() {}
+
+    public func handle(event _: Gemstone.StreamEvent, currency _: Gemstone.Currency) async throws {}
+}
+
 public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked Sendable {
     public init() {}
 

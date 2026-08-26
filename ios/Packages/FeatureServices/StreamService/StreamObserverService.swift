@@ -8,7 +8,6 @@ public actor StreamObserverService: Sendable {
     private let subscriptionService: StreamSubscriptionService
     private let eventService: StreamEventService
     private let webSocket: any WebSocketConnectable
-    private let decoder = JSONDateDecoder.standard
     private var observeTask: Task<Void, Never>?
 
     public init(
@@ -61,11 +60,6 @@ public actor StreamObserverService: Sendable {
     }
 
     private func handleMessage(_ data: Data) async {
-        do {
-            let event = try decoder.decode(StreamEvent.self, from: data)
-            await eventService.handle(event)
-        } catch {
-            debugLog("stream observer: handleMessage error: \(error)")
-        }
+        await eventService.handle(data)
     }
 }

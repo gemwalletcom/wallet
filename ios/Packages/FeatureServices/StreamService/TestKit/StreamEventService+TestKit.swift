@@ -1,54 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
-import BalanceServiceTestKit
-import FiatService
-import FiatServiceTestKit
 import Foundation
+import protocol Gemstone.GemStreamServiceProtocol
 import GemstonePrimitivesTestKit
-import NFTService
-import NFTServiceTestKit
-import PerpetualService
-import PerpetualServiceTestKit
 import Preferences
 import PreferencesTestKit
-import PriceAlertService
-import PriceAlertServiceTestKit
-import PriceService
-import PriceServiceTestKit
-import Store
-import StoreTestKit
 import StreamService
 import SupportChatService
-import TransactionsService
-import TransactionsServiceTestKit
 
 public extension StreamEventService {
     static func mock(
-        walletStore: WalletStore = .mock(),
-        notificationStore: InAppNotificationStore = .mock(),
-        priceService: PriceService = .mock(),
-        priceAlertService: PriceAlertService = .mock(),
-        balanceUpdater: any BalanceUpdater = .mock(),
-        transactionsService: TransactionsService = .mock(),
-        nftService: NFTService = .mock(),
-        perpetualService: any HyperliquidPerpetualServiceable = PerpetualServiceMock(),
-        fiatService: FiatService = .mock(),
-        supportChatService: SupportChatService = SupportChatService(store: .mock(), provider: GemSupportServiceMock(), typing: SupportTypingState()),
+        service: any GemStreamServiceProtocol = GemStreamServiceMock(),
+        typing: SupportTypingState = SupportTypingState(),
         preferences: Preferences = .mock(),
     ) -> StreamEventService {
-        StreamEventService(
-            walletStore: walletStore,
-            notificationStore: notificationStore,
-            priceService: priceService,
-            priceAlertService: priceAlertService,
-            balanceUpdater: balanceUpdater,
-            transactionsService: transactionsService,
-            nftService: nftService,
-            perpetualService: perpetualService,
-            fiatService: fiatService,
-            supportChatService: supportChatService,
-            preferences: preferences,
-        )
+        StreamEventService(service: service, typing: typing, preferences: preferences)
     }
 }
