@@ -1,12 +1,10 @@
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
 import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.cases.nft.SyncNfts
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -27,8 +25,6 @@ class ImportWalletService(
     private val discoveryService: GemAssetDiscoveryService,
     private val sessionRepository: SessionRepository,
     private val syncDevice: SyncDevice,
-    private val syncTransactions: SyncTransactions,
-    private val syncNfts: SyncNfts,
     private val walletConfigurationSync: SyncWalletConfiguration,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }),
 ) : SyncWalletImport, GetImportWalletState {
@@ -51,8 +47,6 @@ class ImportWalletService(
         supervisorScope {
             launch { walletConfigurationSync.sync(wallet.id) }
             launch { discoverAssets(wallet) }
-            launch { syncTransactions.syncTransactions(wallet) }
-            launch { syncNfts.sync(wallet.id) }
         }
     }
 

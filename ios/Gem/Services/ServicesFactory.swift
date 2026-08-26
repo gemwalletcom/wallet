@@ -251,11 +251,11 @@ struct ServicesFactory {
             discovery: Gemstone.GemAssetDiscoveryService(
                 api: gemDeviceApiClient,
                 balance: gemBalanceService,
+                transactions: gemTransactionsService,
+                nft: gemNftService,
                 walletStore: gemWalletStore,
                 store: GemstoneAssetDiscoveryStore(),
             ),
-            transactionsService: transactionsService,
-            nftService: nftService,
             preferences: preferences,
         )
         let walletSetupService = WalletSetupService(balanceService: balanceService)

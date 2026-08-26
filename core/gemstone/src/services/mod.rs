@@ -30,7 +30,7 @@ pub mod transactions;
 pub mod wallet_configuration;
 
 pub use app_update::GemAppUpdateService;
-pub use asset_discovery::{GemAssetDiscoveryService, GemAssetDiscoveryStore};
+pub use asset_discovery::{GemAssetDiscoveryService, GemAssetDiscoveryStore, GemDiscoveryStep};
 pub use assets::{GemAssetStore, GemAssetsService};
 pub use auth::GemAuthService;
 pub use balance::{GemBalanceService, GemBalanceStore};

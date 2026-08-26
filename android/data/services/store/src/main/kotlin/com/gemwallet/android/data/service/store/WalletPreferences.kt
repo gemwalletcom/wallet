@@ -28,6 +28,10 @@ class WalletPreferences(context: Context, walletId: String) {
         get() = store.getBoolean(KEY_COMPLETE_INITIAL_WALLET_CONFIGURATION)
         set(value) = store.putBoolean(KEY_COMPLETE_INITIAL_WALLET_CONFIGURATION, value)
 
+    fun isInitialLoadCompleted(step: String): Boolean = store.getBoolean(KEY_COMPLETE_INITIAL_LOAD + step)
+
+    fun setInitialLoadCompleted(step: String) = store.putBoolean(KEY_COMPLETE_INITIAL_LOAD + step, true)
+
     fun transactionsForAssetTimestamp(assetId: String): Long {
         return store.getLong(KEY_TRANSACTIONS_FOR_ASSET, postfix = assetId)
     }
@@ -48,5 +52,6 @@ class WalletPreferences(context: Context, walletId: String) {
         private const val KEY_TRANSACTIONS_TIMESTAMP = "transactions_timestamp"
         private const val KEY_TRANSACTIONS_FOR_ASSET = "transactions_for_asset"
         private const val KEY_COMPLETE_INITIAL_WALLET_CONFIGURATION = "complete_initial_wallet_configuration"
+        private const val KEY_COMPLETE_INITIAL_LOAD = "complete_initial_load_"
     }
 }

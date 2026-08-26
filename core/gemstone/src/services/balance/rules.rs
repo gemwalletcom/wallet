@@ -81,7 +81,6 @@ pub fn balance_updates(assets: &[Asset], balances: Vec<(BalanceKind, AssetBalanc
         .collect()
 }
 
-
 pub fn newly_enabled_asset_ids(requested: &[AssetId], enabled: &[AssetId]) -> Vec<AssetId> {
     let enabled: HashSet<&AssetId> = enabled.iter().collect();
     requested.iter().filter(|asset_id| !enabled.contains(asset_id)).cloned().collect()
@@ -169,7 +168,10 @@ mod tests {
         let bitcoin = AssetId::from_chain(Chain::Bitcoin);
         let ethereum = AssetId::from_chain(Chain::Ethereum);
 
-        assert_eq!(unique_asset_ids(vec![bitcoin.clone(), ethereum.clone(), bitcoin.clone()]), vec![bitcoin.clone(), ethereum.clone()]);
+        assert_eq!(
+            unique_asset_ids(vec![bitcoin.clone(), ethereum.clone(), bitcoin.clone()]),
+            vec![bitcoin.clone(), ethereum.clone()]
+        );
         assert_eq!(newly_enabled_asset_ids(&[bitcoin.clone(), ethereum.clone()], &[bitcoin]), vec![ethereum]);
     }
 }

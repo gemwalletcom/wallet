@@ -3,9 +3,7 @@ package com.gemwallet.android.data.coordinators.di
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.coordinators.wallet_import.SyncWalletConfigurationImpl
 import com.gemwallet.android.data.coordinators.wallet_import.services.ImportWalletService
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
@@ -43,15 +41,11 @@ object WalletImportModule {
         discoveryService: GemAssetDiscoveryService,
         sessionRepository: SessionRepository,
         syncDevice: SyncDevice,
-        syncTransactions: SyncTransactions,
-        syncNfts: SyncNfts,
         walletConfigurationSync: SyncWalletConfiguration,
     ): ImportWalletService = ImportWalletService(
         discoveryService = discoveryService,
         sessionRepository = sessionRepository,
         syncDevice = syncDevice,
-        syncTransactions = syncTransactions,
-        syncNfts = syncNfts,
         walletConfigurationSync = walletConfigurationSync,
     )
 

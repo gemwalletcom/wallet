@@ -344,15 +344,11 @@ let package = Package(
         .target(
             name: "DiscoverAssetsService",
             dependencies: [
-                "Store",
                 "GemstonePrimitives",
                 "Primitives",
-                "BalanceService",
                 "AssetsService",
                 "Preferences",
                 "GemAPI",
-                "TransactionsService",
-                "NFTService",
                 "Gemstone",
             ],
             path: "DiscoverAssetsService",
@@ -363,9 +359,6 @@ let package = Package(
             dependencies: [
                 "DiscoverAssetsService",
                 "AssetsServiceTestKit",
-                "BalanceServiceTestKit",
-                "TransactionsServiceTestKit",
-                "NFTServiceTestKit",
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Gemstone",

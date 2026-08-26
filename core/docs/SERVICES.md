@@ -86,6 +86,16 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`ChainServices/WalletConnectorService`](../../ios/Packages/ChainServices/WalletConnectorService) | — | App-only | WalletConnect SDK bridge |
 | [`SystemServices`](../../ios/Packages/SystemServices) | — | App-only | Connectivity, image gallery, local store |
 
+## App packaging goal
+
+Store adapters and the thin app services are being consolidated so both apps look the same:
+
+- **iOS `Packages/GemstoneStore`** — every `Gem*Store` implementation, one file per store (`FiatStore.swift`, `BalanceStore.swift`, …) over the `Store`/`Preferences` packages. Feature packages depend on it instead of owning adapters.
+- **iOS `Packages/GemstoneServices`** — the thin app-side services that wrap the Core services (`BalanceService.swift`, `FiatService.swift`, …), one file per service, tests under `Tests/`. The migrated `FeatureServices` move here as they are wired to `GemstoneStore`; wrappers that add nothing over the Core service (for example `AssetDiscoveryService`) are removed and callers use the Core service directly.
+- **Android** — the same split in Android's patterns: store adapters in one package (`data/repositories/.../gemstone`, one file per store) and the coordinators/repositories stay thin wrappers over the Core services.
+
+Status: GemstoneStore — in progress; GemstoneServices — planned.
+
 ## Conventions
 
 - Identifiers cross the FFI typed: `WalletId`, `AssetId`, `Chain`, `NFTAssetId`, `Currency`; store row ids stay `String`.

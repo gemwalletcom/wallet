@@ -1,9 +1,7 @@
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
 import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.testkit.mockWallet
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -28,12 +26,10 @@ class ImportWalletServiceTest {
         coEvery { getCurrentCurrency() } returns Currency.USD
     }
     private val syncDevice = mockk<SyncDevice>(relaxed = true)
-    private val syncTransactions = mockk<SyncTransactions>(relaxed = true)
-    private val syncNfts = mockk<SyncNfts>(relaxed = true)
     private val walletConfigurationSync = mockk<SyncWalletConfiguration>(relaxed = true)
 
     @Test
-    fun sync_discoversAssetsTransactionsAndNfts() = runTest {
+    fun sync_discoversAssets() = runTest {
         val wallet = mockWallet(id = "wallet-1")
         val subject = service()
 
@@ -41,8 +37,6 @@ class ImportWalletServiceTest {
         advanceUntilIdle()
 
         coVerify { discoveryService.discover("wallet-1", any()) }
-        coVerify { syncTransactions.syncTransactions(wallet) }
-        coVerify { syncNfts.sync(wallet.id) }
     }
 
     @Test
@@ -63,8 +57,6 @@ class ImportWalletServiceTest {
         discoveryService = discoveryService,
         sessionRepository = sessionRepository,
         syncDevice = syncDevice,
-        syncTransactions = syncTransactions,
-        syncNfts = syncNfts,
         walletConfigurationSync = walletConfigurationSync,
         scope = this,
     )

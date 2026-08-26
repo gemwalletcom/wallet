@@ -73,6 +73,8 @@ import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import dagger.Lazy
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemBalanceService
+import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
@@ -234,11 +236,15 @@ object AssetModule {
     fun provideGemAssetDiscoveryService(
         apiClient: GemDeviceApiClient,
         balanceService: GemBalanceService,
+        transactionsService: GemTransactionsService,
+        nftService: GemNftService,
         walletsRepository: Lazy<WalletsRepository>,
         walletPreferencesFactory: WalletPreferencesFactory,
     ): GemAssetDiscoveryService = GemAssetDiscoveryService(
         apiClient,
         balanceService,
+        transactionsService,
+        nftService,
         GemstoneWalletStore(walletsRepository),
         GemstoneAssetDiscoveryStore(walletPreferencesFactory),
     )
