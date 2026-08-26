@@ -67,12 +67,12 @@ import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAssetsService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -81,9 +81,9 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideSearchAssetsImpl(
-        gemApiClient: GemApiClient,
+        assetsService: GemAssetsService,
     ): SearchAssetsImpl = SearchAssetsImpl(
-        gemApiClient = gemApiClient,
+        assetsService = assetsService,
     )
 
     @Provides
@@ -183,10 +183,10 @@ object AssetModule {
     @Provides
     @Singleton
     fun providePrefetchAssets(
-        gemApiClient: GemApiClient,
+        assetsService: GemAssetsService,
         assetsRepository: AssetsRepository,
     ): PrefetchAssets = PrefetchAssetsImpl(
-        gemApiClient = gemApiClient,
+        assetsService = assetsService,
         assetsRepository = assetsRepository,
     )
 
@@ -215,12 +215,12 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideSyncAssetInfo(
-        gemApiClient: GemApiClient,
+        assetsService: GemAssetsService,
         assetsRepository: AssetsRepository,
         streamSubscriptionService: StreamSubscriptionService,
         prefetchAssets: PrefetchAssets,
     ): SyncAssetInfo = SyncAssetInfoImpl(
-        gemApiClient = gemApiClient,
+        assetsService = assetsService,
         assetsRepository = assetsRepository,
         streamSubscriptionService = streamSubscriptionService,
         prefetchAssets = prefetchAssets,

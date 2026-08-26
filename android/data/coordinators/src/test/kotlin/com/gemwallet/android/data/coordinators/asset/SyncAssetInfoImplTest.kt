@@ -3,7 +3,8 @@ package com.gemwallet.android.data.coordinators.asset
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
-import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -24,16 +25,17 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import uniffi.gemstone.GemAssetsService
 
 class SyncAssetInfoImplTest {
 
-    private val gemApiClient = mockk<GemApiClient>()
+    private val assetsService = mockk<GemAssetsService>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
     private val streamSubscriptionService = mockk<StreamSubscriptionService>(relaxed = true)
     private val prefetchAssets = mockk<PrefetchAssets>(relaxed = true)
 
     private val subject = SyncAssetInfoImpl(
-        gemApiClient = gemApiClient,
+        assetsService = assetsService,
         assetsRepository = assetsRepository,
         streamSubscriptionService = streamSubscriptionService,
         prefetchAssets = prefetchAssets,
@@ -73,7 +75,7 @@ class SyncAssetInfoImplTest {
 
         every { assetsRepository.getAssetInfo(asset.id) } returns flowOf(null)
         every { assetsRepository.getTokenInfo(asset.id) } returns flowOf(foreignWalletAsset)
-        coEvery { gemApiClient.getAsset("bitcoin") } returns assetFull
+        coEvery { assetsService.getAsset("bitcoin") } returns assetFull.toJson()
 
         subject.syncAssetInfo(asset.id, wallet)
 
@@ -109,7 +111,7 @@ class SyncAssetInfoImplTest {
         ).copy(metadata = assetMetadata)
 
         every { assetsRepository.getAssetInfo(asset.id) } returns flowOf(currentWalletAsset)
-        coEvery { gemApiClient.getAsset("bitcoin") } returns assetFull
+        coEvery { assetsService.getAsset("bitcoin") } returns assetFull.toJson()
 
         subject.syncAssetInfo(asset.id, wallet)
 
@@ -138,7 +140,7 @@ class SyncAssetInfoImplTest {
         )
 
         every { assetsRepository.getAssetInfo(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
-        coEvery { gemApiClient.getAsset("bitcoin") } returns assetFull
+        coEvery { assetsService.getAsset("bitcoin") } returns assetFull.toJson()
 
         subject.syncAssetInfo(asset.id, wallet)
 

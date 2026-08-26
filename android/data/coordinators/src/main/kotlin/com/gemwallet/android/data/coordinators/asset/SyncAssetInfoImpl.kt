@@ -4,11 +4,13 @@ import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.Wallet
+import uniffi.gemstone.GemAssetsService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.firstOrNull
@@ -16,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class SyncAssetInfoImpl(
-    private val gemApiClient: GemApiClient,
+    private val assetsService: GemAssetsService,
     private val assetsRepository: AssetsRepository,
     private val streamSubscriptionService: StreamSubscriptionService,
     private val prefetchAssets: PrefetchAssets,
@@ -56,5 +58,5 @@ class SyncAssetInfoImpl(
         }
 
     private suspend fun loadAssetMetadata(assetId: AssetId) =
-        runCatching { gemApiClient.getAsset(assetId.toIdentifier()) }.getOrNull()
+        runCatching { assetsService.getAsset(assetId.toIdentifier()).decodeJson<AssetFull>() }.getOrNull()
 }

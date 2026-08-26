@@ -25,7 +25,6 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,6 +33,7 @@ import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemSwapper
 import javax.inject.Qualifier
+import uniffi.gemstone.GemAssetsService
 import javax.inject.Singleton
 
 @Qualifier
@@ -117,9 +117,9 @@ object SwapModule {
     @Singleton
     @Provides
     fun provideGetSwapAssets(
-        gemApiClient: GemApiClient,
+        assetsService: GemAssetsService,
     ): GetSwapAssets = GetSwapAssetsImpl(
-        gemApiClient = gemApiClient,
+        assetsService = assetsService,
     )
 
     @Singleton

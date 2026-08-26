@@ -2,12 +2,14 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetsService
 
 class PrefetchAssetsImpl(
-    private val gemApiClient: GemApiClient,
+    private val assetsService: GemAssetsService,
     private val assetsRepository: AssetsRepository,
 ) : PrefetchAssets {
 
@@ -28,7 +30,8 @@ class PrefetchAssetsImpl(
     private suspend fun loadAssets(assetIds: List<AssetId>): List<AssetBasic> {
         if (assetIds.isEmpty()) return emptyList()
 
-        return runCatching { gemApiClient.getAssets(assetIds) }
-            .getOrDefault(emptyList())
+        return runCatching {
+            assetsService.getAssets(assetIds.map { it.toIdentifier() }, null).map { it.decodeJson<AssetBasic>() }
+        }.getOrDefault(emptyList())
     }
 }

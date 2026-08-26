@@ -28,7 +28,6 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
@@ -36,6 +35,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Qualifier
+import uniffi.gemstone.GemAssetsService
 import javax.inject.Singleton
 
 @Qualifier
@@ -62,20 +62,20 @@ object FiatModule {
     @Provides
     @Singleton
     fun provideGetBuyableFiatAssets(
-        gemApiClient: GemApiClient,
+        assetsService: GemAssetsService,
     ): GetBuyableFiatAssets {
         return GetBuyableFiatAssetsImpl(
-            gemApiClient = gemApiClient,
+            assetsService = assetsService,
         )
     }
 
     @Provides
     @Singleton
     fun provideGetSellableFiatAssets(
-        gemApiClient: GemApiClient,
+        assetsService: GemAssetsService,
     ): GetSellableFiatAssets {
         return GetSellableFiatAssetsImpl(
-            gemApiClient = gemApiClient,
+            assetsService = assetsService,
         )
     }
 

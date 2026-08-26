@@ -1,7 +1,8 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBasic
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -12,14 +13,15 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemAssetsService
 
 class PrefetchAssetsImplTest {
 
-    private val gemApiClient = mockk<GemApiClient>()
+    private val assetsService = mockk<GemAssetsService>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
 
     private val subject = PrefetchAssetsImpl(
-        gemApiClient = gemApiClient,
+        assetsService = assetsService,
         assetsRepository = assetsRepository,
     )
 
@@ -31,11 +33,11 @@ class PrefetchAssetsImplTest {
         val assetIds = listOf(bitcoin.id, ethereum.id)
 
         coEvery { assetsRepository.hasAssets(assetIds) } returns setOf(bitcoin.id)
-        coEvery { gemApiClient.getAssets(listOf(ethereum.id)) } returns listOf(ethereumBasic)
+        coEvery { assetsService.getAssets(listOf(ethereum.id).map { it.toIdentifier() }, null) } returns listOf(ethereumBasic.toJson())
 
         val result = subject.prefetchAssets(listOf(bitcoin.id, ethereum.id, ethereum.id))
 
-        coVerify { gemApiClient.getAssets(listOf(ethereum.id)) }
+        coVerify { assetsService.getAssets(listOf(ethereum.id).map { it.toIdentifier() }, null) }
         coVerify { assetsRepository.add(listOf(ethereumBasic)) }
         assertEquals(listOf(ethereum.id), result)
     }
@@ -48,7 +50,7 @@ class PrefetchAssetsImplTest {
 
         val result = subject.prefetchAssets(listOf(bitcoin.id))
 
-        coVerify(exactly = 0) { gemApiClient.getAssets(any()) }
+        coVerify(exactly = 0) { assetsService.getAssets(any(), any()) }
         coVerify(exactly = 0) { assetsRepository.add(any<List<AssetBasic>>()) }
         assertEquals(emptyList<com.wallet.core.primitives.AssetId>(), result)
     }
