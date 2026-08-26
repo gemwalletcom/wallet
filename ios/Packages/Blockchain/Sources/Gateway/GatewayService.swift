@@ -128,14 +128,6 @@ public extension GatewayService {
 // MARK: - Earn
 
 public extension GatewayService {
-    func earnProviders(assetId: Primitives.AssetId) throws -> [Primitives.DelegationValidator] {
-        try gateway.getEarnProviders(assetId: assetId.identifier).map { try Primitives.DelegationValidator($0) }
-    }
-
-    func earnPositions(address: String, assetId: Primitives.AssetId) async throws -> [Primitives.DelegationBase] {
-        try await gateway.getEarnPositions(address: address, assetId: assetId.identifier).map { try Primitives.DelegationBase($0) }
-    }
-
     func getEarnData(
         assetId: Primitives.AssetId,
         address: String,

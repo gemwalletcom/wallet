@@ -5,7 +5,7 @@ pub mod store;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{AssetId, Chain, DelegationValidator, WalletId};
+use primitives::{AssetId, Chain, DelegationValidator, StakeProviderType, WalletId};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
@@ -30,6 +30,15 @@ impl GemStakeService {
     pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String, apr: f64) -> Result<(), GemStakeError> {
         let names = self.sync_validators(chain, &address, apr).await?;
         self.sync_delegations(wallet_id, chain, &address, &names).await
+    }
+
+    pub async fn sync_earn(&self, wallet_id: WalletId, asset_id: AssetId, address: String, apr: f64) -> Result<(), GemStakeError> {
+        let providers = rules::earn_validators(self.gateway.get_earn_providers(asset_id.clone()), apr);
+        self.store.save_validators(providers).await?;
+        let positions = self.gateway.get_earn_positions(address, asset_id.clone()).await;
+        let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id, StakeProviderType::Earn).await?;
+        let delete_ids = rules::stale_delegation_ids(existing_ids, &positions);
+        self.store.update_delegations(wallet_id, positions, delete_ids).await
     }
 }
 
@@ -60,7 +69,7 @@ impl GemStakeService {
         let delegations = self.gateway.get_staking_delegations(chain, address.to_string()).await?;
         let mut validators: HashMap<String, DelegationValidator> = self
             .store
-            .get_validators(asset_id.clone())
+            .get_validators(asset_id.clone(), StakeProviderType::Stake)
             .await?
             .into_iter()
             .map(|validator| (validator.id.clone(), validator))
@@ -73,7 +82,7 @@ impl GemStakeService {
         }
 
         let incoming = rules::apply_validator_state(delegations, &validators);
-        let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id).await?;
+        let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id, StakeProviderType::Stake).await?;
         let delete_ids = rules::stale_delegation_ids(existing_ids, &incoming);
         self.store.update_delegations(wallet_id, incoming, delete_ids).await
     }
@@ -154,5 +163,23 @@ mod tests {
         assert_eq!(merged.len(), 2);
         assert!(merged[0].is_active);
         assert_eq!(merged[1].name, "Bee");
+    }
+
+    #[test]
+    fn test_earn_validators_take_asset_apr() {
+        let provider = DelegationValidator {
+            chain: Chain::Ethereum,
+            id: "provider".into(),
+            name: "Provider".into(),
+            is_active: true,
+            commission: 0.0,
+            apr: 0.0,
+            provider_type: StakeProviderType::Earn,
+        };
+
+        let validators = earn_validators(vec![provider], 4.5);
+
+        assert_eq!(validators[0].apr, 4.5);
+        assert_eq!(validators[0].provider_type, StakeProviderType::Earn);
     }
 }

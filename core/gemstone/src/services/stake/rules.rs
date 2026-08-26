@@ -80,3 +80,7 @@ pub fn validator_address_names(validators: &[DelegationValidator]) -> Vec<Addres
         })
         .collect()
 }
+
+pub fn earn_validators(providers: Vec<DelegationValidator>, apr: f64) -> Vec<DelegationValidator> {
+    providers.into_iter().map(|provider| DelegationValidator { apr, ..provider }).collect()
+}

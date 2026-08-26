@@ -20,15 +20,15 @@ class GemstoneStakeStore(
     private val saveAddressNames: SaveAddressNames,
 ) : GemStakeStore {
 
-    override suspend fun getValidators(assetId: String): List<String> {
+    override suspend fun getValidators(assetId: String, providerType: String): List<String> {
         val id = assetId.toAssetId() ?: return emptyList()
-        return stakeDao.getValidators(id, StakeProviderType.Stake).first().toDTO().map { it.toJson() }
+        return stakeDao.getValidators(id, providerType.decodeJson<StakeProviderType>()).first().toDTO().map { it.toJson() }
     }
 
     override suspend fun saveValidators(validators: List<String>) =
         stakeDao.upsertValidators(validators.map { it.decodeJson<DelegationValidator>() }.toRecord())
 
-    override suspend fun getDelegationIds(walletId: String, assetId: String): List<String> {
+    override suspend fun getDelegationIds(walletId: String, assetId: String, providerType: String): List<String> {
         val id = assetId.toAssetId() ?: return emptyList()
         return stakeDao.getDelegationIds(WalletId(walletId), id)
     }

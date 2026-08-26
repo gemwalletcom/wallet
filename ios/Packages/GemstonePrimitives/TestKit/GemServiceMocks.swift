@@ -337,6 +337,8 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     public init() {}
 
     public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String, apr _: Double) async throws {}
+
+    public func syncEarn(walletId _: String, assetId _: Gemstone.AssetId, address _: String, apr _: Double) async throws {}
 }
 
 public final class GemTransactionStateServiceMock: GemTransactionStateServiceProtocol, @unchecked Sendable {

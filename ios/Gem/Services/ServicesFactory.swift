@@ -144,17 +144,12 @@ struct ServicesFactory {
             store: GemstoneBalanceStore(store: storeManager.balanceStore),
         )
         let balanceService = BalanceService(balanceStore: storeManager.balanceStore, service: gemBalanceService)
-        let earnService = EarnService(
-            store: storeManager.stakeStore,
-            gatewayService: gatewayService,
+        let gemStakeService = gatewayService.stakeService(
+            staticApi: gemStaticApiClient,
+            store: GemstoneStakeStore(store: storeManager.stakeStore, addressStore: storeManager.addressStore),
         )
-        let stakeService = StakeService(
-            store: storeManager.stakeStore,
-            service: gatewayService.stakeService(
-                staticApi: gemStaticApiClient,
-                store: GemstoneStakeStore(store: storeManager.stakeStore, addressStore: storeManager.addressStore),
-            ),
-        )
+        let earnService = EarnService(store: storeManager.stakeStore, service: gemStakeService, gatewayService: gatewayService)
+        let stakeService = StakeService(store: storeManager.stakeStore, service: gemStakeService)
         let gemNftService = Gemstone.GemNftService(api: gemDeviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
         let nftService = NFTService(service: gemNftService)
         let transactionsService = TransactionsService(
