@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.assets
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import kotlinx.coroutines.flow.first

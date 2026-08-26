@@ -2,6 +2,7 @@
 
 import Foundation
 import class Gemstone.GemNodeService
+import GemstoneStore
 import NodeService
 import Store
 import StoreTestKit

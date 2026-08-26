@@ -66,8 +66,8 @@ import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
-import com.gemwallet.android.data.coordinators.asset.GemstoneAssetDiscoveryStore
-import com.gemwallet.android.data.repositories.wallets.GemstoneWalletStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetDiscoveryStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import dagger.Lazy

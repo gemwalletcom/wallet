@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.coordinators.asset
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import uniffi.gemstone.GemAssetDiscoveryStore

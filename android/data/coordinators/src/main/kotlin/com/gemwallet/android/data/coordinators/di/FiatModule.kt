@@ -22,7 +22,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemFiatStore
-import com.gemwallet.android.data.coordinators.fiat.GemstoneFiatStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneFiatStore
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)

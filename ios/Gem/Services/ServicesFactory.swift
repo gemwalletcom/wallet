@@ -23,6 +23,7 @@ import GemAPI
 import GemAPIDevice
 import Gemstone
 import GemstonePrimitives
+import GemstoneStore
 import Keystore
 import NativeProviderService
 import NFTService

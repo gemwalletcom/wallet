@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.banners
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.data.service.store.database.entities.DbBanner

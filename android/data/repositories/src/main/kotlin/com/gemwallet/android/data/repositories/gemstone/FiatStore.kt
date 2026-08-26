@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.coordinators.fiat
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.toRecord

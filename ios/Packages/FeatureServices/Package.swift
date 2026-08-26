@@ -65,6 +65,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
+        .package(name: "GemstoneStore", path: "../GemstoneStore"),
         .package(name: "Store", path: "../Store"),
         .package(name: "Blockchain", path: "../Blockchain"),
         .package(name: "ChainServices", path: "../ChainServices"),
@@ -83,6 +84,7 @@ let package = Package(
         .target(
             name: "PerpetualService",
             dependencies: [
+                "GemstoneStore",
                 "Gemstone",
                 "Primitives",
                 "GemstonePrimitives",
@@ -99,6 +101,7 @@ let package = Package(
         .target(
             name: "PerpetualServiceTestKit",
             dependencies: [
+                "GemstoneStore",
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "BlockchainTestKit", package: "Blockchain"),
                 "Blockchain",
@@ -164,6 +167,7 @@ let package = Package(
         .target(
             name: "BannerServiceTestKit",
             dependencies: [
+                "GemstoneStore",
                 .product(name: "StoreTestKit", package: "Store"),
                 "NotificationServiceTestKit",
                 "BannerService",
@@ -184,6 +188,7 @@ let package = Package(
         .target(
             name: "NFTServiceTestKit",
             dependencies: [
+                "GemstoneStore",
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "NativeProviderService", package: "NativeProviderService"),
                 "Gemstone",
@@ -216,6 +221,7 @@ let package = Package(
         .target(
             name: "PriceServiceTestKit",
             dependencies: [
+                "GemstoneStore",
                 .product(name: "NativeProviderService", package: "NativeProviderService"),
                 "Primitives",
                 "PriceService",
@@ -306,6 +312,7 @@ let package = Package(
         .target(
             name: "TransactionStateServiceTestKit",
             dependencies: [
+                "GemstoneStore",
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "StakeServiceTestKit", package: "ChainServices"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
@@ -406,6 +413,7 @@ let package = Package(
         .target(
             name: "AssetsServiceTestKit",
             dependencies: [
+                "GemstoneStore",
                 "PriceServiceTestKit",
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),
@@ -773,6 +781,7 @@ let package = Package(
         .testTarget(
             name: "TransactionStateServiceTests",
             dependencies: [
+                "GemstoneStore",
                 "Gemstone",
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "TransactionStateService",

@@ -1,5 +1,7 @@
-package com.gemwallet.android.data.repositories.nft
+package com.gemwallet.android.data.repositories.gemstone
 
+import com.gemwallet.android.data.repositories.nft.toAssetModel
+import com.gemwallet.android.data.repositories.nft.toCollectionModel
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation

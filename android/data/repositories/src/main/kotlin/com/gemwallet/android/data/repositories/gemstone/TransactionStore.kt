@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.transactions
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory

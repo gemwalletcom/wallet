@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstoneStore
 import PerpetualService
 import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstonePrimitivesTestKit

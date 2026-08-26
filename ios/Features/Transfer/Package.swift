@@ -42,6 +42,7 @@ let package = Package(
 
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
+        .package(name: "GemstoneStore", path: "../../Packages/GemstoneStore"),
         .package(name: "GemAPI", path: "../../Packages/GemAPI"),
     ],
     targets: [
@@ -97,6 +98,7 @@ let package = Package(
         .testTarget(
             name: "TransferTests",
             dependencies: [
+                .product(name: "GemstoneStore", package: "GemstoneStore"),
                 "Transfer",
                 "TransferTestKit",
                 "Gemstone",

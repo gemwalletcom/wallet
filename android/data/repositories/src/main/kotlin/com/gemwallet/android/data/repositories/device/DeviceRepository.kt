@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.device
 
+import com.gemwallet.android.data.repositories.gemstone.GemstoneDeviceStore
 import android.content.Context
 import android.icu.util.ULocale
 import androidx.datastore.preferences.core.booleanPreferencesKey

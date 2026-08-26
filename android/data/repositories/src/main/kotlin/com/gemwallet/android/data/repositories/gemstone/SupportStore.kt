@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.support
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.service.store.database.entities.toRecord

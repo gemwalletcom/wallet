@@ -1,5 +1,6 @@
-package com.gemwallet.android.data.repositories.wallets
+package com.gemwallet.android.data.repositories.gemstone
 
+import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.WalletId
 import dagger.Lazy

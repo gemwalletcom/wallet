@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.stake
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.cases.addresses.SaveAddressNames
 import com.gemwallet.android.data.service.store.database.StakeDao

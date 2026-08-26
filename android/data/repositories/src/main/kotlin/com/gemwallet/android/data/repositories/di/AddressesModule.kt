@@ -5,7 +5,7 @@ import com.gemwallet.android.cases.addresses.GetAddressNames
 import com.gemwallet.android.cases.addresses.RenameWalletAddresses
 import com.gemwallet.android.cases.addresses.SaveAddressNames
 import com.gemwallet.android.data.repositories.addresses.AddressesRepository
-import com.gemwallet.android.data.repositories.addresses.GemstoneAddressStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAddressStore
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import dagger.Module
 import dagger.Provides

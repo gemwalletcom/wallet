@@ -15,7 +15,7 @@ import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemWalletConfigurationService
 import uniffi.gemstone.GemWalletConfigurationStore
-import com.gemwallet.android.data.coordinators.wallet_import.GemstoneWalletConfigurationStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletConfigurationStore
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)

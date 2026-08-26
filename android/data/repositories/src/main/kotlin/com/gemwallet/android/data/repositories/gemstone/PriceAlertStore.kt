@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.pricealerts
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO

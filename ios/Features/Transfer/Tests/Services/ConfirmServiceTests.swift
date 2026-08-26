@@ -11,6 +11,7 @@ import ChainServiceTestKit
 import Foundation
 import GemstonePrimitivesTestKit
 import GemAPITestKit
+import GemstoneStore
 import KeystoreTestKit
 import PriceServiceTestKit
 import Primitives

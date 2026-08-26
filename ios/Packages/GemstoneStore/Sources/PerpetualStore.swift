@@ -44,7 +44,7 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         try updateBalance(walletId: WalletId.from(id: walletId), balance: Primitives.PerpetualBalance(balance))
     }
 
-    func updateBalance(walletId: WalletId, balance: Primitives.PerpetualBalance) throws {
+    public func updateBalance(walletId: WalletId, balance: Primitives.PerpetualBalance) throws {
         let usd = Chain.hyperCore.defaultAsset(type: .perpetual)
         try balanceStore.addMissingBalances(walletId: walletId, assetIds: [usd.id], isEnabled: false)
 

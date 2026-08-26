@@ -1,6 +1,7 @@
-package com.gemwallet.android.data.repositories.transactions
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.data.repositories.transactions.addSwapMetadata
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson

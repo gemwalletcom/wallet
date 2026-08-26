@@ -3,8 +3,8 @@
 import BigInt
 import Foundation
 import Gemstone
+import GemstoneStore
 import NativeProviderService
-import Preferences
 import Primitives
 
 public import GemstonePrimitives

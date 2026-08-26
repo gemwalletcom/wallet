@@ -5,7 +5,7 @@ import com.gemwallet.android.cases.contacts.DeleteContact
 import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.contacts.UpdateContact
 import com.gemwallet.android.data.repositories.contacts.ContactsRepository
-import com.gemwallet.android.data.repositories.contacts.GemstoneContactStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneContactStore
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.ContactsDao
 import dagger.Module

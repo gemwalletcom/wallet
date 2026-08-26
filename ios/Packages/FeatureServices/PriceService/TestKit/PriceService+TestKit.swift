@@ -3,6 +3,7 @@
 import Foundation
 import class Gemstone.GemApiClient
 import class Gemstone.GemPriceService
+import GemstoneStore
 import NativeProviderService
 import PriceService
 import Primitives

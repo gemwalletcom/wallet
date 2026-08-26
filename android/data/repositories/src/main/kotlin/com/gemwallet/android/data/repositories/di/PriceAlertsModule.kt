@@ -7,7 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import com.gemwallet.android.data.repositories.pricealerts.GemstonePriceAlertStore
+import com.gemwallet.android.data.repositories.gemstone.GemstonePriceAlertStore
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPriceAlertService

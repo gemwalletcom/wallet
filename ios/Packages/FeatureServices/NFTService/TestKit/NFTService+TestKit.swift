@@ -4,6 +4,7 @@ import Foundation
 import class Gemstone.GemDeviceApiClient
 import class Gemstone.GemNftService
 import protocol Gemstone.GemNftServiceProtocol
+import GemstoneStore
 import NativeProviderService
 import NFTService
 import Primitives

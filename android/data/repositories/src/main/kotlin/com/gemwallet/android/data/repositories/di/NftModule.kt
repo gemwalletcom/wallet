@@ -4,7 +4,7 @@ import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.cases.nft.GetListNftCase
 import com.gemwallet.android.cases.nft.RefreshNftAsset
 import com.gemwallet.android.cases.nft.SyncNfts
-import com.gemwallet.android.data.repositories.nft.GemstoneNftStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneNftStore
 import com.gemwallet.android.data.repositories.nft.NftRepository
 import com.gemwallet.android.data.service.store.database.NftDao
 import dagger.Module

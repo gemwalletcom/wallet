@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.device
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.service.store.ConfigStore
 import uniffi.gemstone.GemDeviceStore

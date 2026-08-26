@@ -1,5 +1,6 @@
-package com.gemwallet.android.data.repositories.assets
+package com.gemwallet.android.data.repositories.gemstone
 
+import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.toDTO

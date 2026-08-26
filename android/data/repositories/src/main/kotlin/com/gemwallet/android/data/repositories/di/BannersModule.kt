@@ -5,7 +5,7 @@ import com.gemwallet.android.cases.banners.GetBannersCase
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.banners.BannersRepository
-import com.gemwallet.android.data.repositories.banners.GemstoneBannerStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.model.NotificationsAvailable

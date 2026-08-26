@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.perpetual
 
+import com.gemwallet.android.data.repositories.gemstone.toDbBalance
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.PerpetualBalance

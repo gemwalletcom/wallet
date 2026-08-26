@@ -21,6 +21,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
+        .package(name: "GemstoneStore", path: "../GemstoneStore"),
         .package(name: "GemAPI", path: "../GemAPI"),
         .package(name: "Store", path: "../Store"),
         .package(name: "Blockchain", path: "../Blockchain"),
@@ -70,6 +71,7 @@ let package = Package(
         .target(
             name: "NodeServiceTestKit",
             dependencies: [
+                "GemstoneStore",
                 "NodeService",
                 .product(name: "StoreTestKit", package: "Store"),
             ],

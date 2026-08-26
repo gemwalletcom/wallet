@@ -2,6 +2,7 @@
 
 import BannerService
 import class Gemstone.GemBannerService
+import GemstoneStore
 import NotificationService
 import NotificationServiceTestKit
 import Store

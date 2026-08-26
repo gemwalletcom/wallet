@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.perpetual
 
+import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao

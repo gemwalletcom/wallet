@@ -25,14 +25,12 @@ let package = Package(
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
         .package(name: "Keychain", path: "../Keychain"),
-        .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
     ],
     targets: [
         .target(
             name: "Preferences",
             dependencies: [
-                "Gemstone",
                 "Primitives",
                 "Keychain",
                 "GemstonePrimitives",

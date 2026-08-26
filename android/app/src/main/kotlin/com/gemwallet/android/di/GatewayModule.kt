@@ -5,7 +5,7 @@ import com.gemwallet.android.Constants
 import com.gemwallet.android.blockchain.services.ServiceStatusService
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
-import com.gemwallet.android.data.repositories.config.GemstonePreferencesStore
+import com.gemwallet.android.data.repositories.gemstone.GemstonePreferencesStore
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.services.DeviceSyncPreflight
 import com.gemwallet.android.application.device.coordinators.GetDeviceId

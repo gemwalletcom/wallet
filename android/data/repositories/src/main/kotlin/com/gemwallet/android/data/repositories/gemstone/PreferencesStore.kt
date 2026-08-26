@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.config
+package com.gemwallet.android.data.repositories.gemstone
 
 import android.content.SharedPreferences
 import androidx.core.content.edit

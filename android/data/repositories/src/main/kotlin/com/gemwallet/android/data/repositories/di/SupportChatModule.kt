@@ -9,7 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemSupportService
 import uniffi.gemstone.GemSupportStore
-import com.gemwallet.android.data.repositories.support.GemstoneSupportStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneSupportStore
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)

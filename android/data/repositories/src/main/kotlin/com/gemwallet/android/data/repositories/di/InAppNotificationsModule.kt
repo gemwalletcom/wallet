@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.data.repositories.notifications.GemstoneNotificationStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneNotificationStore
 import com.gemwallet.android.data.repositories.notifications.InAppNotificationsRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao

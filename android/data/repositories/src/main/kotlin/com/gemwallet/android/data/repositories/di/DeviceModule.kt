@@ -11,8 +11,8 @@ import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.device.DeviceObserverService
 import com.gemwallet.android.data.repositories.device.DeviceRepository
-import com.gemwallet.android.data.repositories.device.GemstoneDeviceStore
-import com.gemwallet.android.data.repositories.wallets.GemstoneWalletStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneDeviceStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.model.BuildInfo

@@ -7,6 +7,7 @@ import Foundation
 import struct Gemstone.GemTransactionStateResult
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import GemstoneStore
 import NFTService
 import NFTServiceTestKit
 import Primitives

@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
-import com.gemwallet.android.data.repositories.config.GemstonePreferencesStore
+import com.gemwallet.android.data.repositories.gemstone.GemstonePreferencesStore
 import com.gemwallet.android.data.repositories.pricealerts.MigratePriceAlertsPreference
 import dagger.Module
 import dagger.Provides

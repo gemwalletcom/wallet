@@ -10,7 +10,7 @@ import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetBlockExplorerCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
-import com.gemwallet.android.data.repositories.nodes.GemstoneNodeStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneNodeStore
 import com.gemwallet.android.data.repositories.nodes.NodesRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.NodesDao

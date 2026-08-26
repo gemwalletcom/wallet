@@ -8,9 +8,9 @@ import com.gemwallet.android.data.repositories.assets.TransactionPostProcessingS
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionStateScheduler
-import com.gemwallet.android.data.repositories.addresses.GemstoneAddressStore
-import com.gemwallet.android.data.repositories.transactions.GemstoneTransactionStateStore
-import com.gemwallet.android.data.repositories.transactions.GemstoneTransactionStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAddressStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStateStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
 import com.gemwallet.android.data.repositories.transactions.TransactionsRepositoryImpl
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.service.store.database.AddressesDao
