@@ -8,7 +8,7 @@ import Primitives
 
 public protocol TransferTransactionProvidable: Sendable {
     func loadTransferTransactionData(
-        wallet: Wallet,
+        wallet: Primitives.Wallet,
         data: TransferData,
         selection: FeeSelection,
         available: BigInt,
@@ -23,7 +23,7 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
     }
 
     public func loadTransferTransactionData(
-        wallet: Wallet,
+        wallet: Primitives.Wallet,
         data: TransferData,
         selection: FeeSelection,
         available: BigInt,

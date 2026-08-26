@@ -1,30 +1,40 @@
+pub mod error;
+pub mod rules;
+pub mod store;
+
 use std::sync::Arc;
 
-use primitives::{WalletSubscription, WalletSubscriptionChains};
+pub use error::GemSubscriptionError;
+pub use store::GemWalletStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 
-#[derive(Debug, uniffi::Object)]
+#[derive(uniffi::Object)]
 pub struct GemSubscriptionService {
     api: Arc<GemDeviceApiClient>,
+    store: Arc<dyn GemWalletStore>,
 }
 
 #[uniffi::export]
 impl GemSubscriptionService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>) -> Self {
-        Self { api }
+    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemWalletStore>) -> Self {
+        Self { api, store }
     }
 
-    pub async fn get_subscriptions(&self) -> Result<Vec<WalletSubscriptionChains>, GemApiError> {
-        Ok(self.api.client.get_subscriptions().await?)
-    }
-
-    pub async fn add_subscriptions(&self, subscriptions: Vec<WalletSubscription>) -> Result<(), GemApiError> {
-        Ok(self.api.client.add_subscriptions(subscriptions).await?)
-    }
-
-    pub async fn delete_subscriptions(&self, subscriptions: Vec<WalletSubscriptionChains>) -> Result<(), GemApiError> {
-        Ok(self.api.client.delete_subscriptions(subscriptions).await?)
+    pub async fn sync(&self) -> Result<bool, GemSubscriptionError> {
+        let local = rules::wallet_subscriptions(&self.store.get_wallets().await?);
+        let remote = self.api.client.get_subscriptions().await.map_err(GemApiError::from)?;
+        let changes = rules::subscription_changes(local, remote);
+        if changes.is_empty() {
+            return Ok(false);
+        }
+        if !changes.to_add.is_empty() {
+            self.api.client.add_subscriptions(changes.to_add).await.map_err(GemApiError::from)?;
+        }
+        if !changes.to_delete.is_empty() {
+            self.api.client.delete_subscriptions(changes.to_delete).await.map_err(GemApiError::from)?;
+        }
+        Ok(true)
     }
 }

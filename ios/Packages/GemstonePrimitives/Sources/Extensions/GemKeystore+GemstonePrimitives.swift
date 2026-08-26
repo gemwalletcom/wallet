@@ -47,9 +47,9 @@ public extension GemWalletImport {
 }
 
 public extension GemStoredWallet {
-    func mapToWallet(name: String, source: WalletSource) throws -> Wallet {
+    func mapToWallet(name: String, source: WalletSource) throws -> Primitives.Wallet {
         // externalId stays nil for v4 wallets
-        try Wallet(
+        try Primitives.Wallet(
             id: WalletId.from(id: walletId),
             externalId: nil,
             name: name,
@@ -63,9 +63,9 @@ public extension GemStoredWallet {
     }
 }
 
-public extension Wallet {
-    func adding(accounts newAccounts: [Primitives.Account]) -> Wallet {
-        Wallet(
+public extension Primitives.Wallet {
+    func adding(accounts newAccounts: [Primitives.Account]) -> Primitives.Wallet {
+        Primitives.Wallet(
             id: id,
             externalId: externalId,
             name: name,

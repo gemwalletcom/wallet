@@ -38,7 +38,7 @@ pub use price_alert::{GemPriceAlertService, GemPriceAlertStore};
 pub use rewards::GemRewardsService;
 pub use scan::GemScanService;
 pub use stake::{GemStakeService, GemStakeStore};
-pub use subscription::GemSubscriptionService;
+pub use subscription::{GemSubscriptionService, GemWalletStore};
 pub use support::GemSupportService;
 pub use transaction_state::{GemTransactionStateService, GemTransactionStateStore};
 pub use transactions::{GemTransactionStore, GemTransactionsService};

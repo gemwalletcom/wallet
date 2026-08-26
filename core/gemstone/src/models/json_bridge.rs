@@ -1,4 +1,5 @@
 use primitives::TransactionId;
+use primitives::Wallet;
 use primitives::asset_balance::BalanceMetadata;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
 use primitives::currency::Currency;
@@ -169,6 +170,7 @@ json_bridge!(
     TronVote,
     UTXO,
     WalletConfigurationResult,
+    Wallet,
     WalletSubscription,
     WalletSubscriptionChains,
 );

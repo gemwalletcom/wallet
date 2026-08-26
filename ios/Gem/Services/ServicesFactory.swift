@@ -64,8 +64,10 @@ struct ServicesFactory {
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, securePreferences: securePreferences)
 
         let subscriptionService = SubscriptionService(
-            subscriptionProvider: Gemstone.GemSubscriptionService(api: deviceRegistrationClient),
-            walletStore: storeManager.walletStore,
+            subscriptionProvider: Gemstone.GemSubscriptionService(
+                api: deviceRegistrationClient,
+                store: GemstoneWalletStore(store: storeManager.walletStore),
+            ),
         )
         let deviceService = DeviceService(
             deviceProvider: Gemstone.GemDeviceService(api: deviceRegistrationClient),

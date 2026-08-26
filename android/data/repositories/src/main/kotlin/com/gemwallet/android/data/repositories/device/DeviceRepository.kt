@@ -21,20 +21,15 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemSubscriptionService
-import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.serializer.jsonEncoder
-import com.wallet.core.primitives.AddressChains
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Device
 import com.wallet.core.primitives.DeviceLocale
 import com.wallet.core.primitives.Platform
 import com.wallet.core.primitives.PlatformStore
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletSubscription
-import com.wallet.core.primitives.WalletSubscriptionChains
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -133,7 +128,7 @@ class DeviceRepository(
 
         val signatureChanged = signature != pushedSubscriptionSignature()
         if (signatureChanged || remoteDevice.subscriptionsVersion != version) {
-            reconcileSubscriptions(wallets)
+            reconcileSubscriptions()
             if (signatureChanged) {
                 version += 1
                 setSubscriptionVersion(version)
@@ -174,17 +169,8 @@ class DeviceRepository(
         context.dataStore.edit { it[Key.DeviceRegistered] = isRegistered }
     }
 
-    private suspend fun reconcileSubscriptions(wallets: List<Wallet>) {
-        val remoteSubscriptions = subscriptionService.getSubscriptions().map { it.decodeJson<WalletSubscriptionChains>() }
-        val (toAdd, toRemove) = wallets.subscriptionsDiff(remoteSubscriptions)
-
-        if (toAdd.isNotEmpty()) {
-            subscriptionService.addSubscriptions(toAdd.map { it.toJson() })
-        }
-
-        if (toRemove.isNotEmpty()) {
-            subscriptionService.deleteSubscriptions(toRemove.map { it.toJson() })
-        }
+    private suspend fun reconcileSubscriptions() {
+        subscriptionService.sync()
     }
 
     private suspend fun resolvePushState(): PushState? {
@@ -306,38 +292,3 @@ internal fun List<Wallet>.subscriptionSignature(): String {
         .joinToString(";")
 }
 
-// TODO: Temp solution. Move to App Layer with subscriptions subsystem when will prepared.
-fun List<Wallet>.subscriptionsDiff(remote: List<WalletSubscriptionChains>): Pair<List<WalletSubscription>, List<WalletSubscriptionChains>> {
-    val wallets = this
-
-    val remoteIndex = remote.groupBy { it.walletId }
-        .mapValues { item -> item.value.map { it.chains }.flatten() }
-
-    val diffs = wallets.map { wallet -> walletSubscriptionsDiff(wallet, remoteIndex[wallet.id.id] ?: emptyList()) }
-    val toRemove = diffs.map { it.second }.filter { it.chains.isNotEmpty() } +
-            remote.filter { remote -> wallets.firstOrNull { it.id.id == remote.walletId } == null }
-
-    val toAdd = diffs.map { it.first }.filter { it.subscriptions.isNotEmpty() }
-    return Pair(toAdd, toRemove)
-}
-
-private fun walletSubscriptionsDiff(wallet: Wallet, remote: List<Chain>): Pair<WalletSubscription, WalletSubscriptionChains> {
-    val toAdd = wallet.accounts.filter { !remote.contains(it.chain) }
-        .groupBy { account ->  account.address }
-        .map { entry ->
-            AddressChains(entry.key, entry.value.map { it.chain })
-        }
-
-    val toRemove = remote.filter { wallet.getAccount(it) == null }
-    return Pair(
-        WalletSubscription(
-            walletId = wallet.id.id,
-            source = wallet.source,
-            subscriptions = toAdd
-        ),
-        WalletSubscriptionChains(
-            walletId = wallet.id.id,
-            chains = toRemove
-        ),
-    )
-}

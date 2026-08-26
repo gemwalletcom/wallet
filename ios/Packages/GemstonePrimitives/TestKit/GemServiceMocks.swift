@@ -63,37 +63,31 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     }
 }
 
-public actor GemSubscriptionServiceMock: GemSubscriptionServiceProtocol {
+public final class GemSubscriptionServiceMock: GemSubscriptionServiceProtocol, @unchecked Sendable {
+    private let lock = NSLock()
     private let delay: Duration?
-    private let subscriptions: [Primitives.WalletSubscriptionChains]
-    private let getSubscriptionsError: Error?
+    private let syncError: Error?
+    private var calls = 0
 
-    public private(set) var getSubscriptionsCalls = 0
-
-    public init(
-        delay: Duration? = nil,
-        subscriptions: [Primitives.WalletSubscriptionChains] = [],
-        getSubscriptionsError: Error? = nil,
-    ) {
+    public init(delay: Duration? = nil, syncError: Error? = nil) {
         self.delay = delay
-        self.subscriptions = subscriptions
-        self.getSubscriptionsError = getSubscriptionsError
+        self.syncError = syncError
     }
 
-    public func getSubscriptions() async throws -> [Gemstone.WalletSubscriptionChains] {
-        getSubscriptionsCalls += 1
+    public var syncCalls: Int {
+        lock.withLock { calls }
+    }
+
+    public func sync() async throws -> Bool {
+        lock.withLock { calls += 1 }
         if let delay {
             try await Task.sleep(for: delay)
         }
-        if let getSubscriptionsError {
-            throw getSubscriptionsError
+        if let syncError {
+            throw syncError
         }
-        return try subscriptions.map { try $0.json() }
+        return false
     }
-
-    public func addSubscriptions(subscriptions _: [Gemstone.WalletSubscription]) async throws {}
-
-    public func deleteSubscriptions(subscriptions _: [Gemstone.WalletSubscriptionChains]) async throws {}
 }
 
 public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unchecked Sendable {

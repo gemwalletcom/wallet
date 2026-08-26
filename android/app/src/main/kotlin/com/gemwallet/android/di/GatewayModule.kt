@@ -35,7 +35,6 @@ import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemPortfolioService
 import uniffi.gemstone.GemRewardsService
-import uniffi.gemstone.GemSubscriptionService
 import uniffi.gemstone.GemSupportService
 import uniffi.gemstone.GemWalletConfigurationService
 import javax.inject.Named
@@ -136,9 +135,6 @@ object GatewayModule {
     @Singleton
     fun provideGemDeviceService(@Named("registration") apiClient: GemstoneDeviceApiClient): GemDeviceService = GemDeviceService(apiClient)
 
-    @Provides
-    @Singleton
-    fun provideGemSubscriptionService(@Named("registration") apiClient: GemstoneDeviceApiClient): GemSubscriptionService = GemSubscriptionService(apiClient)
 
     @Provides
     @Singleton

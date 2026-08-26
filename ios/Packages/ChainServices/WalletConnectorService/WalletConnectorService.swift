@@ -334,7 +334,7 @@ extension WalletConnectorService {
         try signer.addConnection(connection: WalletConnection(session: session.asSession, wallet: selectedWallet))
     }
 
-    private func acceptProposal(proposal: Session.Proposal, wallet: Wallet) async throws -> Session {
+    private func acceptProposal(proposal: Session.Proposal, wallet: Primitives.Wallet) async throws -> Session {
         let chains = signer.getChains(wallet: wallet)
         let accounts = wallet.accounts.filter { chains.contains($0.chain) }
         let events = signer.getEvents()

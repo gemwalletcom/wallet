@@ -67,7 +67,7 @@ struct DeviceServiceTests {
         #expect(await deviceProvider.isRegisteredCalls == 1)
         #expect(await deviceProvider.addDeviceCalls == 1)
         #expect(await deviceProvider.updateDeviceCalls == 1)
-        #expect(await subscriptionProvider.getSubscriptionsCalls == 1)
+        #expect(await subscriptionProvider.syncCalls == 1)
         #expect(!preferences.subscriptionsVersionHasChange)
     }
 
@@ -157,7 +157,7 @@ struct DeviceServiceTests {
         #expect(await deviceProvider.addDeviceCalls == 0)
         #expect(await deviceProvider.updateDeviceCalls == 1)
         #expect(await deviceProvider.getTokenCalls == 1)
-        #expect(await subscriptionProvider.getSubscriptionsCalls == 1)
+        #expect(await subscriptionProvider.syncCalls == 1)
         #expect(!preferences.subscriptionsVersionHasChange)
     }
 
@@ -173,7 +173,7 @@ struct DeviceServiceTests {
                 isRegistered: false,
                 getDeviceResult: nil,
             ),
-            subscriptionProvider: GemSubscriptionServiceMock(getSubscriptionsError: TestError.failed),
+            subscriptionProvider: GemSubscriptionServiceMock(syncError: TestError.failed),
         )
 
         await #expect(throws: TestError.self) {
@@ -195,7 +195,6 @@ private extension DeviceServiceTests {
             deviceProvider: deviceProvider,
             subscriptionsService: SubscriptionService(
                 subscriptionProvider: subscriptionProvider,
-                walletStore: .mock(),
                 preferences: preferences,
             ),
             preferences: preferences,

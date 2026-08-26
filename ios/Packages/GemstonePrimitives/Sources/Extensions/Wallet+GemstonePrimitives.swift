@@ -3,7 +3,7 @@
 import Gemstone
 import Primitives
 
-public extension Wallet {
+public extension Primitives.Wallet {
     /// Deterministic v4 keystore id (UUID v5 from the wallet id)
     var keystoreId: String {
         keystoreIdForWallet(walletId: id.id)

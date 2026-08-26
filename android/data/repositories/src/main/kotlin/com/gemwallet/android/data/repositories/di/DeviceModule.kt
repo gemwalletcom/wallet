@@ -12,23 +12,34 @@ import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.device.DeviceObserverService
 import com.gemwallet.android.data.repositories.device.DeviceRepository
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
+import com.gemwallet.android.data.repositories.wallets.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.model.NotificationsAvailable
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemSubscriptionService
+import javax.inject.Named
 import javax.inject.Singleton
 
 
 @InstallIn(SingletonComponent::class)
 @Module
 object DeviceModule {
+
+    @Provides
+    @Singleton
+    fun provideGemSubscriptionService(
+        @Named("registration") apiClient: GemDeviceApiClient,
+        walletsRepository: Lazy<WalletsRepository>,
+    ): GemSubscriptionService = GemSubscriptionService(apiClient, GemstoneWalletStore(walletsRepository))
 
     @Provides
     @Singleton
