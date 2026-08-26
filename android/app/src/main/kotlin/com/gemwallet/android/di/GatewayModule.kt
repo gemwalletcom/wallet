@@ -32,6 +32,8 @@ import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemFiatService
+import uniffi.gemstone.GemFiatStore
+import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPortfolioService
 import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemSupportService
@@ -160,7 +162,11 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemFiatService(apiClient: GemstoneDeviceApiClient): GemFiatService = GemFiatService(apiClient)
+    fun provideGemFiatService(
+        apiClient: GemstoneDeviceApiClient,
+        assetsService: GemAssetsService,
+        store: GemFiatStore,
+    ): GemFiatService = GemFiatService(apiClient, assetsService, store)
 
 
     @Provides

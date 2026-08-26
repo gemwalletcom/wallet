@@ -35,7 +35,7 @@ pub use banner::{GemBannerService, GemBannerStore};
 pub use chart::GemChartService;
 pub use config::GemConfigService;
 pub use device::{GemDeviceService, GemDeviceStore};
-pub use fiat::GemFiatService;
+pub use fiat::{GemFiatService, GemFiatStore};
 pub use name::{GemAddressStore, GemNameService};
 pub use nft::{GemNftService, GemNftStore};
 pub use node::{GemNodeService, GemNodeStore};

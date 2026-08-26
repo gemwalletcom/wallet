@@ -258,12 +258,12 @@ public final class GemNotificationServiceMock: GemNotificationServiceProtocol, @
 
 public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendable {
     private let quotes: [Primitives.FiatQuote]
-    private let transactions: [Primitives.FiatTransactionData]
 
-    public init(quotes: [Primitives.FiatQuote] = [], transactions: [Primitives.FiatTransactionData] = []) {
+    public init(quotes: [Primitives.FiatQuote] = []) {
         self.quotes = quotes
-        self.transactions = transactions
     }
+
+    public func syncTransactions(walletId _: String) async throws {}
 
     public func getQuotes(walletId _: String, quoteType _: Gemstone.FiatQuoteType, assetId _: String, amount _: Double, currency _: String) async throws -> [Gemstone.FiatQuote] {
         try quotes.map { try $0.json() }
@@ -273,9 +273,6 @@ public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendab
         throw AnyError("not stubbed")
     }
 
-    public func getTransactions(walletId _: String) async throws -> [Gemstone.FiatTransactionData] {
-        try transactions.map { try $0.json() }
-    }
 }
 
 public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendable {

@@ -207,9 +207,11 @@ struct ServicesFactory {
             preferences: preferences,
         )
         let fiatService = FiatService(
-            apiService: Gemstone.GemFiatService(api: gemDeviceApiClient),
-            assetsService: assetsService,
-            store: storeManager.fiatTransactionStore,
+            apiService: Gemstone.GemFiatService(
+                api: gemDeviceApiClient,
+                assets: gemAssetsService,
+                store: GemstoneFiatStore(store: storeManager.fiatTransactionStore),
+            ),
         )
         let supportTypingState = SupportTypingState()
         let supportChatService = SupportChatService(store: storeManager.supportChatStore, provider: Gemstone.GemSupportService(api: gemDeviceApiClient), typing: supportTypingState)

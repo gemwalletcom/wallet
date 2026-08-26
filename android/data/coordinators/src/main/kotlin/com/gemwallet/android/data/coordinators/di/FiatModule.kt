@@ -1,18 +1,15 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
-import com.gemwallet.android.application.fiat.coordinators.GetFiatTransactions
 import com.gemwallet.android.application.fiat.coordinators.ObserveFiatTransactions
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
 import com.gemwallet.android.data.coordinators.fiat.GetAssetPriceUsdImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuoteUrlImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuotesImpl
-import com.gemwallet.android.data.coordinators.fiat.GetFiatTransactionsImpl
 import com.gemwallet.android.data.coordinators.fiat.ObserveFiatTransactionsImpl
 import com.gemwallet.android.data.coordinators.fiat.SyncFiatTransactionsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -24,6 +21,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemFiatService
+import uniffi.gemstone.GemFiatStore
+import com.gemwallet.android.data.coordinators.fiat.GemstoneFiatStore
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -32,15 +31,6 @@ object FiatModule {
 
 
 
-    @Provides
-    @Singleton
-    fun provideGetFiatTransactions(
-        fiatService: GemFiatService,
-    ): GetFiatTransactions {
-        return GetFiatTransactionsImpl(
-            fiatService = fiatService,
-        )
-    }
 
     @Provides
     @Singleton
@@ -54,19 +44,14 @@ object FiatModule {
 
     @Provides
     @Singleton
+    fun provideGemFiatStore(fiatTransactionsDao: FiatTransactionsDao): GemFiatStore = GemstoneFiatStore(fiatTransactionsDao)
+
+    @Provides
+    @Singleton
     fun provideSyncFiatTransactions(
         sessionRepository: SessionRepository,
-        getFiatTransactions: GetFiatTransactions,
-        prefetchAssets: PrefetchAssets,
-        fiatTransactionsDao: FiatTransactionsDao,
-    ): SyncFiatTransactions {
-        return SyncFiatTransactionsImpl(
-            sessionRepository = sessionRepository,
-            getFiatTransactions = getFiatTransactions,
-            prefetchAssets = prefetchAssets,
-            fiatTransactionsDao = fiatTransactionsDao,
-        )
-    }
+        fiatService: GemFiatService,
+    ): SyncFiatTransactions = SyncFiatTransactionsImpl(sessionRepository, fiatService)
 
     @Provides
     @Singleton

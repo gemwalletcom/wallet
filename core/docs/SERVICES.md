@@ -27,10 +27,10 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemTransactionsService`](../gemstone/src/services/transactions/mod.rs) | [`GemTransactionStore`](../gemstone/src/services/transactions/store.rs) | [Swift](../../ios/Packages/FeatureServices/TransactionsService/GemstoneTransactionStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/transactions/GemstoneTransactionStore.kt) | Done | Transaction history sync |
 | [`GemWalletConfigurationService`](../gemstone/src/services/wallet_configuration/mod.rs) | [`GemWalletConfigurationStore`](../gemstone/src/services/wallet_configuration/store.rs) | [Swift](../../ios/Packages/FeatureServices/AppService/GemstoneWalletConfigurationStore.swift) | [Kotlin](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/wallet_import/GemstoneWalletConfigurationStore.kt) | Done | Initial wallet configuration sync, multi-signature banners |
 | [`GemAppUpdateService`](../gemstone/src/services/app_update/mod.rs) | — | — | — | Done | Release for the store, version compare, skipped version via `GemPreferencesService` |
+| [`GemFiatService`](../gemstone/src/services/fiat/mod.rs) | [`GemFiatStore`](../gemstone/src/services/fiat/store.rs) | [Swift](../../ios/Packages/FeatureServices/FiatService/GemstoneFiatStore.swift) | [Kotlin](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/fiat/GemstoneFiatStore.kt) | Done | Fiat quotes, transaction sync with asset prefetch |
 | [`GemAuthService`](../gemstone/src/services/auth/mod.rs) | — | — | — | Done | Wallet auth payloads |
 | [`GemChartService`](../gemstone/src/services/chart/mod.rs) | — | — | — | Done | Price charts |
 | [`GemConfigService`](../gemstone/src/services/config/mod.rs) | — | — | — | Done | Remote config, cached via `GemPreferencesService` |
-| [`GemFiatService`](../gemstone/src/services/fiat/mod.rs) | — | — | — | Done | Fiat quotes and transactions |
 | [`GemPortfolioService`](../gemstone/src/services/portfolio/mod.rs) | — | — | — | Done | Portfolio |
 | [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals |
 | [`GemScanService`](../gemstone/src/services/scan/mod.rs) | — | — | — | Done | Transaction scanning |
@@ -62,7 +62,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`DeviceService`](../../ios/Packages/FeatureServices/DeviceService) | `GemDeviceService` | Done | |
 | [`DiscoverAssetsService`](../../ios/Packages/FeatureServices/DiscoverAssetsService) | `GemAssetDiscoveryService` | Done | |
 | [`EarnService`](../../ios/Packages/FeatureServices/EarnService) | — | Planned | Android has no earn feature yet |
-| [`FiatService`](../../ios/Packages/FeatureServices/FiatService) | `GemFiatService` | Done | |
+| [`FiatService`](../../ios/Packages/FeatureServices/FiatService) | `GemFiatService` | Done | Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
 | [`NFTService`](../../ios/Packages/FeatureServices/NFTService) | `GemNftService` | Done | |
 | [`NotificationService`](../../ios/Packages/FeatureServices/NotificationService) | `GemNotificationService` | Done | |
 | [`PerpetualService`](../../ios/Packages/FeatureServices/PerpetualService) | `GemPerpetualService` | Done | |

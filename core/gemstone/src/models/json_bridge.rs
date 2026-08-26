@@ -25,7 +25,10 @@ use primitives::{
     WalletSubscription, WalletSubscriptionChains,
 };
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
-use primitives::{AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, FiatAssets, FiatQuoteType, Markets, PlatformStore, Release, SearchResponse};
+use primitives::{
+    AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, FiatAssets, FiatQuoteType, Markets, PlatformStore, Release,
+    SearchResponse,
+};
 use primitives::{ChartPeriod, Charts};
 
 macro_rules! json_bridge {

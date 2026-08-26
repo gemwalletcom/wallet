@@ -756,7 +756,6 @@ let package = Package(
         .target(
             name: "FiatService",
             dependencies: [
-                "AssetsService",
                 "Primitives",
                 "GemAPI",
                 "Store",
@@ -770,7 +769,6 @@ let package = Package(
             name: "FiatServiceTestKit",
             dependencies: [
                 "FiatService",
-                "AssetsServiceTestKit",
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
