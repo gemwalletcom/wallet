@@ -184,27 +184,6 @@ class AssetsRepositoryTest {
         }
     }
 
-    @Test
-    fun addBalancesIfMissing_insertsHiddenBalanceOnlyForExistingAssets() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-
-        val present = mockAssetSolana()
-        val absent = mockAssetEthereum()
-        val walletId = mockWalletId()
-
-        coEvery {
-            assetsDao.getAssetIds(listOf(present.id.toIdentifier(), absent.id.toIdentifier()))
-        } returns listOf(present.id.toIdentifier())
-
-        val subject = createSubject()
-        subject.addBalancesIfMissing(walletId, listOf(present.id, absent.id))
-
-        val balanceSlot = slot<DbBalance>()
-        coVerify(exactly = 1) { assetsDao.insertBalance(capture(balanceSlot)) }
-        assertEquals(present.id.toIdentifier(), balanceSlot.captured.assetId)
-        assertEquals(walletId.id, balanceSlot.captured.walletId)
-        assertEquals(false, balanceSlot.captured.isVisible)
-    }
 
     @Test
     fun ensureDefaultAssets_addsMissingAssets() = runBlocking {

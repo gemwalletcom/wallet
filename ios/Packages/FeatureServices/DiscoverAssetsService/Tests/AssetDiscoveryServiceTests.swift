@@ -5,6 +5,7 @@ import DiscoverAssetsService
 import DiscoverAssetsServiceTestKit
 import Foundation
 import GemstonePrimitivesTestKit
+import NFTService
 import NFTServiceTestKit
 import Preferences
 import Primitives
@@ -63,10 +64,10 @@ struct AssetDiscoveryServiceTests {
         let transactionProvider = GemTransactionsServiceMock { walletId, _ in
             try transactionStore.addTransactions(walletId: WalletId.from(id: walletId), transactions: [initialTransaction])
         }
-        let nftProvider = GemNftServiceMock(assets: [initialNFT])
+        let nftProvider = GemNftServiceMock(assets: [initialNFT], store: GemstoneNftStore(store: nftStore))
         let service = AssetDiscoveryService.mock(
             transactionsService: .mock(service: transactionProvider, transactionStore: transactionStore),
-            nftService: .mock(service: nftProvider, nftStore: nftStore),
+            nftService: .mock(service: nftProvider),
         )
 
         try await service.discoverAssets(wallet: wallet)

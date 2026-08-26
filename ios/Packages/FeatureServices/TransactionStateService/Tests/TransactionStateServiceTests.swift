@@ -7,6 +7,7 @@ import Foundation
 import struct Gemstone.GemTransactionStateResult
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import NFTService
 import NFTServiceTestKit
 import Primitives
 import PrimitivesTestKit
@@ -146,8 +147,7 @@ struct TransactionStateServiceTests {
             stakeService: .mock(),
             earnService: .mock(),
             nftService: .mock(
-                service: GemNftServiceMock(assets: [nftData]),
-                nftStore: nftStore,
+                service: GemNftServiceMock(assets: [nftData], store: GemstoneNftStore(store: nftStore)),
             ),
         )
 

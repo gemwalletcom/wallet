@@ -7,14 +7,13 @@ import com.gemwallet.android.cases.nft.RefreshNftAsset
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
-import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.NFTAsset
+import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.NFTAssetId
-import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.NFTImages
 import com.wallet.core.primitives.NFTResource
@@ -37,11 +36,7 @@ class NftRepository(
 
     @Throws(HttpException::class, IOException::class)
     override suspend fun sync(walletId: WalletId) {
-        val nftData = nftService.getAssets(walletId.id).map { it.decodeJson<NFTData>() }
-        val collections = nftData.map { it.collection.toDb() }
-        val assets = nftData.flatMap { it.assets }.map { it.toDb() }
-        val associations = assets.map { DbNFTAssociation(walletId = walletId.id, assetId = it.id) }
-        nftDao.updateNft(walletId.id, collections, assets, associations)
+        nftService.sync(walletId.id)
     }
 
     @Throws(HttpException::class, IOException::class)
@@ -76,40 +71,11 @@ class NftRepository(
 
     private fun fetchAndAddNftAsset(assetId: NFTAssetId): Flow<NFTData> {
         return flow {
-            val assetData = nftService.getAsset(assetId.toIdentifier()).decodeJson<NFTAssetData>()
-            nftDao.add(collection = assetData.collection.toDb(), asset = assetData.asset.toDb())
+            val assetData = nftService.getOrFetchAsset(assetId.toIdentifier()).decodeJson<NFTAssetData>()
             emit(NFTData(collection = assetData.collection, assets = listOf(assetData.asset)))
         }
     }
 }
-
-private fun NFTCollection.toDb() = DbNFTCollection(
-    id = id,
-    name = name,
-    description = description,
-    chain = chain,
-    contractAddress = contractAddress,
-    imageUrl = images.preview.url,
-    previewImageUrl = images.preview.url,
-    originalSourceUrl = images.preview.url,
-    status = status,
-    links = links,
-)
-
-private fun NFTAsset.toDb() = DbNFTAsset(
-    id = id,
-    collectionId = collectionId,
-    name = name,
-    tokenId = tokenId,
-    tokenType = tokenType,
-    contractAddress = contractAddress,
-    chain = chain,
-    description = description,
-    imageUrl = images.preview.url,
-    previewImageUrl = images.preview.url,
-    originalSourceUrl = images.preview.url,
-    attributes = attributes,
-)
 
 private fun DbNFTAsset.toNftData(collection: DbNFTCollection) = NFTData(
     collection = collection.toCollectionModel(),
@@ -118,7 +84,7 @@ private fun DbNFTAsset.toNftData(collection: DbNFTCollection) = NFTData(
 
 private fun List<DbNFTCollection>.toCollectionModels() = map { it.toCollectionModel() }
 
-private fun DbNFTCollection.toCollectionModel() = NFTCollection(
+internal fun DbNFTCollection.toCollectionModel() = NFTCollection(
     id = id,
     name = name,
     description = description,
@@ -131,7 +97,7 @@ private fun DbNFTCollection.toCollectionModel() = NFTCollection(
 
 private fun List<DbNFTAsset>.toAssetModels(): List<NFTAsset> = map { it.toAssetModel() }
 
-private fun DbNFTAsset.toAssetModel() = NFTAsset(
+internal fun DbNFTAsset.toAssetModel() = NFTAsset(
     id = id,
     collectionId = collectionId,
     tokenId = tokenId,

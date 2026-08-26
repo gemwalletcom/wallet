@@ -56,46 +56,38 @@ class NftRepositoryTest {
 
         assertEquals(collectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
-        coVerify(exactly = 0) { nftService.getAsset(any()) }
+        coVerify(exactly = 0) { nftService.getOrFetchAsset(any()) }
     }
 
     @Test
-    fun getAssetNftFallsBackToApiAndAddsToStore() = runTest {
+    fun getAssetNftFallsBackToService() = runTest {
         every { nftDao.getAsset(assetId) } returns flowOf(null)
-        coEvery { nftService.getAsset(assetId.toIdentifier()) } returns mockNftAssetData(
+        coEvery { nftService.getOrFetchAsset(assetId.toIdentifier()) } returns mockNftAssetData(
             collection = mockNftCollection(id = collectionId),
             asset = mockNftAsset(id = assetId, collectionId = collectionId),
         ).toJson()
-        coEvery { nftDao.add(any(), any()) } returns Unit
 
         val result = subject.getAssetNft(assetId).first()
 
         assertEquals(collectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
-        coVerify { nftService.getAsset(assetId.toIdentifier()) }
-        coVerify {
-            nftDao.add(
-                collection = match { it.id == collectionId },
-                asset = match { it.id == assetId },
-            )
-        }
+        coVerify { nftService.getOrFetchAsset(assetId.toIdentifier()) }
     }
 
     @Test
-    fun getAssetNftFallsBackToApiWhenCollectionIsMissing() = runTest {
+    fun getAssetNftFallsBackToServiceWhenCollectionIsMissing() = runTest {
         every { nftDao.getAsset(assetId) } returns flowOf(dbAsset(assetId, collectionId))
         every { nftDao.getCollection(collectionId) } returns flowOf(null)
-        coEvery { nftService.getAsset(assetId.toIdentifier()) } returns mockNftAssetData(
+        coEvery { nftService.getOrFetchAsset(assetId.toIdentifier()) } returns mockNftAssetData(
             collection = mockNftCollection(id = otherCollectionId),
             asset = mockNftAsset(id = assetId, collectionId = otherCollectionId),
         ).toJson()
-        coEvery { nftDao.add(any(), any()) } returns Unit
 
         val result = subject.getAssetNft(assetId).first()
 
         assertEquals(otherCollectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
-        coVerify { nftService.getAsset(assetId.toIdentifier()) }
+        coVerify { nftService.getOrFetchAsset(assetId.toIdentifier()) }
     }
 }
 

@@ -13,23 +13,20 @@ import StoreTestKit
 public extension NFTService {
     static func mock(
         service: any GemNftServiceProtocol = GemNftService.mock(),
-        nftStore: NFTStore = .mock(),
     ) -> NFTService {
-        NFTService(
-            service: service,
-            nftStore: nftStore,
-        )
+        NFTService(service: service)
     }
 }
 
 public extension GemNftService {
-    static func mock() -> GemNftService {
+    static func mock(nftStore: NFTStore = .mock()) -> GemNftService {
         GemNftService(
             api: GemDeviceApiClient(
                 provider: NativeProvider(url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor()),
                 baseUrl: Constants.apiURL.absoluteString,
                 devicePrivateKey: Data(),
             ),
+            store: GemstoneNftStore(store: nftStore),
         )
     }
 }

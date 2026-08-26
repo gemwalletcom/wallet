@@ -29,7 +29,7 @@ pub use config::GemConfigService;
 pub use device::GemDeviceService;
 pub use fiat::GemFiatService;
 pub use name::{GemAddressStore, GemNameService};
-pub use nft::GemNftService;
+pub use nft::{GemNftService, GemNftStore};
 pub use node::{GemNodeService, GemNodeStore};
 pub use notification::{GemNotificationService, GemNotificationStore};
 pub use portfolio::GemPortfolioService;
