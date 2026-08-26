@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Blockchain
-import ChainService
 import Components
 import Localization
 import GemstoneServices

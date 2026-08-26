@@ -2,8 +2,6 @@
 
 import GemstoneServices
 import GemstoneServicesTestKit
-import BlockchainTestKit
-import ChainServiceTestKit
 import GemAPITestKit
 import Primitives
 import PrimitivesTestKit

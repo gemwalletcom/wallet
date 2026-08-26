@@ -4,8 +4,6 @@ import ActivityService
 import GemstoneServices
 import AppService
 import AvatarService
-import Blockchain
-import ChainService
 import ConnectionsService
 import ConnectionStatusService
 import Foundation

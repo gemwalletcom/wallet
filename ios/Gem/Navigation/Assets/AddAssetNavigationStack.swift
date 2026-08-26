@@ -2,7 +2,6 @@
 
 import Assets
 import GemstoneServices
-import ChainService
 import Localization
 import Primitives
 import Style

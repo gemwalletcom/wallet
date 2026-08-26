@@ -2,8 +2,6 @@
 
 import ActivityService
 import GemstoneServices
-import Blockchain
-import ChainService
 import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitives
 import Keystore

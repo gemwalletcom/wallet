@@ -3,7 +3,6 @@
 import ActivityService
 import GemstoneServices
 import Assets
-import ChainService
 import FiatConnect
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol

@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ChainService
+import GemstoneServices
 import Foundation
 import Primitives
-import Signer
 import Style
 import SwiftUI
 import Transfer

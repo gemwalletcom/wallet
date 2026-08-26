@@ -29,7 +29,6 @@ let package = Package(
         .package(name: "Validators", path: "../../Packages/Validators"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
         .package(name: "Keystore", path: "../../Packages/Keystore"),
-        .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "GemAPI", path: "../../Packages/GemAPI"),
     ],
     targets: [
@@ -60,7 +59,6 @@ let package = Package(
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "SwapServiceTestKit", package: "FeatureServices"),
                 .product(name: "KeystoreTestKit", package: "Keystore"),
-                .product(name: "ChainServiceTestKit", package: "ChainServices"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),

@@ -5,9 +5,6 @@ import ActivityServiceTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 import BigInt
-import BlockchainTestKit
-import ChainService
-import ChainServiceTestKit
 import Components
 import Foundation
 import class Gemstone.GemConfirmService

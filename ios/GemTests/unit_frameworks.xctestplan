@@ -177,13 +177,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Packages\/Blockchain",
-        "identifier": "BlockchainTests",
-        "name": "BlockchainTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Features\/WalletConnector",
         "identifier": "WalletConnectorTests",
         "name": "WalletConnectorTests"

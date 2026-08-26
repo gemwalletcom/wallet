@@ -82,7 +82,8 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`TransactionStateService`](../../ios/Packages/GemstoneServices/Sources) | `GemTransactionStateService` | Done | |
 | [`WalletService`](../../ios/Packages/FeatureServices/WalletService) | `GemKeystore` | Done | Keystore in Core, see [KEYSTORE_V4.md](KEYSTORE_V4.md); wallet rows app-side |
 | [`WalletSessionService`](../../ios/Packages/FeatureServices/WalletSessionService) | — | App-only | Current wallet session |
-| [`ChainServices/ChainService`](../../ios/Packages/ChainServices/ChainService) | `GemGateway` | Done | Thin factory over the Core gateway |
+| [`GatewayService`](../../ios/Packages/GemstoneServices/Sources/Gateway) | `GemGateway` | Done | Typed gateway wrapper and chain service factory, moved from `Blockchain`/`ChainServices` into `GemstoneServices` |
+| [`Signer`](../../ios/Packages/GemstoneServices/Sources/Signer) | `GemSigner` | Done | Transaction and message signing over the Core signer, moved into `GemstoneServices` |
 | [`NodeService`](../../ios/Packages/GemstoneServices/Sources) | `GemNodeService` | Done | |
 | `StakeService` | `GemStakeService` | Done | Wrapper removed; view models call `sync` on the Core service, APR read from `GemStakeStore` |
 | [`ChainServices/WalletConnectorService`](../../ios/Packages/ChainServices/WalletConnectorService) | — | App-only | WalletConnect SDK bridge |
@@ -92,11 +93,11 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 
 Store adapters and the thin app services are being consolidated so both apps look the same:
 
-- **iOS `Packages/GemstoneServices/Sources/Stores`** — every `Gem*Store` implementation, one file per store (`FiatStore.swift`, `BalanceStore.swift`, …) over the `Store`/`Preferences` packages. Feature packages depend on `GemstoneServices` instead of owning adapters; the gateway's preference stores are injected into `GatewayService` so `Blockchain` stays below it.
+- **iOS `Packages/GemstoneServices/Sources/Stores`** — every `Gem*Store` implementation, one file per store (`FiatStore.swift`, `BalanceStore.swift`, …) over the `Store`/`Preferences` packages. Feature packages depend on `GemstoneServices` instead of owning adapters; the app injects the gateway's preference stores into `GatewayService`.
 - **iOS `Packages/GemstoneServices`** — the thin app-side services that wrap the Core services (`BalanceService.swift`, `FiatService.swift`, …), one file per service, tests under `Tests/`. The migrated `FeatureServices` move here as they are wired to `GemstoneStore`; wrappers that only forward calls (for example `AssetDiscoveryService`, `InAppNotificationService`, `MarketService`, `ChartService`) are removed and callers use the Core service directly; a wrapper stays only when it combines Core calls with app-side stores or files, or maps bridged JSON to typed models for several call sites.
 - **Android** — the same split in Android's patterns: store adapters in one package (`data/repositories/.../gemstone`, one file per store) and the coordinators/repositories stay thin wrappers over the Core services.
 
-Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: all migrated feature services moved (Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets, Balance, Earn, TransactionState, Perpetual); Stake and Node moved too; wrapper removal in progress (AssetDiscovery, InAppNotification, Market, Chart removed).
+Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: all migrated feature services moved (Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets, Balance, Earn, TransactionState, Perpetual); Stake and Node moved too; `Blockchain`, `ChainService` and `Signer` packages folded in (`Sources/Gateway`, `Sources/Signer`); pure-forwarding wrappers removed (AssetDiscovery, InAppNotification, Market, Chart, Stake, Earn, AddAsset).
 
 ## Conventions
 

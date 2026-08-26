@@ -1,11 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Blockchain
 import ActivityService
 import GemstoneServices
 import AppService
 import AvatarService
-import ChainService
 import ConnectionsService
 import ConnectionStatusService
 import protocol Gemstone.GemExplorerServiceProtocol

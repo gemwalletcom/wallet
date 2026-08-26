@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-internal import GemstonePrimitives
+import GemstonePrimitives
 
 public enum ChainCoreError: String, Error, Equatable {
     case feeRateMissed

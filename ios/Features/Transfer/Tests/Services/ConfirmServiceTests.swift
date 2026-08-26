@@ -4,8 +4,6 @@ import ActivityServiceTestKit
 import GemstoneServicesTestKit
 import GemstoneServices
 import BigInt
-import BlockchainTestKit
-import ChainServiceTestKit
 import Foundation
 import GemstonePrimitivesTestKit
 import GemAPITestKit

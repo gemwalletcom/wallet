@@ -31,7 +31,6 @@ let package = Package(
         .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "Preferences", path: "../../Packages/Preferences"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
-        .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "Recents", path: "../Recents"),
     ],

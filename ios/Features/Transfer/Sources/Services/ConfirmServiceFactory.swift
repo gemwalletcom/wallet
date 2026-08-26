@@ -2,14 +2,12 @@
 
 import ActivityService
 import GemstoneServices
-import ChainService
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import class Gemstone.GemConfirmService
 import Keystore
 import Primitives
 import PrimitivesComponents
-import Signer
 
 public enum ConfirmServiceFactory {
     public static func create(

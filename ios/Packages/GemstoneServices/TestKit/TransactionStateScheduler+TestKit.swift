@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstoneServices
-import Blockchain
-import BlockchainTestKit
 import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitivesTestKit

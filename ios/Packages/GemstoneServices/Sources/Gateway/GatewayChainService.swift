@@ -6,7 +6,7 @@ import Primitives
 
 import enum Gemstone.GemTransactionLoadMetadata
 
-internal import GemstonePrimitives
+import GemstonePrimitives
 
 struct GatewayChainService {
     private let chain: Chain

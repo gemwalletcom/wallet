@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-internal import GemstonePrimitives
+import GemstonePrimitives
 import Foundation
 import enum Gemstone.NodeRegion
 import Primitives

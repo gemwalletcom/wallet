@@ -29,7 +29,6 @@ let package = Package(
 
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "Preferences", path: "../../Packages/Preferences"),
-        .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "GemAPI", path: "../../Packages/GemAPI"),
@@ -80,7 +79,6 @@ let package = Package(
                 .product(name: "PreferencesTestKit", package: "Preferences"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "WalletSessionServiceTestKit", package: "FeatureServices"),
-                .product(name: "ChainServiceTestKit", package: "ChainServices"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "ActivityServiceTestKit", package: "FeatureServices"),

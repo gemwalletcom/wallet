@@ -23,7 +23,6 @@ let package = Package(
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "Store", path: "../../Packages/Store"),
-        .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "Onboarding", path: "../Onboarding"),
     ],

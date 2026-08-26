@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-@testable import Blockchain
+@testable import GemstoneServices
 import Foundation
 import GemstonePrimitives
 import Testing

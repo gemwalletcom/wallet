@@ -2,8 +2,8 @@
 
 public import struct Gemstone.GemSignedTransaction
 public import GemstonePrimitives
+import GemstoneServices
 import Primitives
-import Signer
 
 public struct TransactionSignerMock: TransactionSigning {
     public static let transferType = (try? Primitives.TransactionType.transfer.json()) ?? ""

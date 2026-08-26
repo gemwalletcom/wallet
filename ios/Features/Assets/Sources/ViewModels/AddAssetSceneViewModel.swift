@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Blockchain
+import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import Components
 import Foundation

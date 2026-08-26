@@ -11,17 +11,11 @@ let package = Package(
     products: [
         .library(name: "WalletConnectorService", targets: ["WalletConnectorService"]),
         .library(name: "WalletConnectorServiceTestKit", targets: ["WalletConnectorServiceTestKit"]),
-        .library(name: "ChainService", targets: ["ChainService"]),
-        .library(name: "ChainServiceTestKit", targets: ["ChainServiceTestKit"]),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
-        .package(name: "GemAPI", path: "../GemAPI"),
-        .package(name: "Store", path: "../Store"),
-        .package(name: "Blockchain", path: "../Blockchain"),
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
-        .package(name: "NativeProviderService", path: "../NativeProviderService"),
         .package(name: "reown-swift", path: "../../Submodules/reown-swift"),
     ],
     targets: [
@@ -45,27 +39,6 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "WalletConnectorService/TestKit",
-        ),
-        .target(
-            name: "ChainService",
-            dependencies: [
-                "Primitives",
-                "Blockchain",
-                "NativeProviderService",
-            ],
-            path: "ChainService",
-            exclude: ["TestKit"],
-        ),
-        .target(
-            name: "ChainServiceTestKit",
-            dependencies: [
-                "ChainService",
-                "Primitives",
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
-                "Blockchain",
-                .product(name: "BlockchainTestKit", package: "Blockchain"),
-            ],
-            path: "ChainService/TestKit",
         ),
         .testTarget(
             name: "WalletConnectorServiceTests",

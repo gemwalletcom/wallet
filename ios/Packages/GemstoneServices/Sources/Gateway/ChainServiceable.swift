@@ -3,7 +3,7 @@ import Foundation
 import Primitives
 
 public import enum Gemstone.GemTransactionLoadMetadata
-public import GemstonePrimitives
+import GemstonePrimitives
 
 public protocol ChainFeeRateFetchable: Sendable {
     func feeRates(type: TransferDataType) async throws -> [FeeRate]

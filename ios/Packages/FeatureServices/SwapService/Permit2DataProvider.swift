@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstoneServices
 import Foundation
 import class Gemstone.Config
 import struct Gemstone.Permit2ApprovalData
@@ -9,7 +10,6 @@ import struct Gemstone.Permit2Detail
 import struct Gemstone.PermitSingle
 import Keystore
 import Primitives
-import Signer
 
 protocol Permit2DataProvidable: Sendable {
     func getPermit2Data(

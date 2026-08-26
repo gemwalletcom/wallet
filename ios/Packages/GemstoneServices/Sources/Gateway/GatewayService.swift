@@ -6,7 +6,7 @@ import Gemstone
 import NativeProviderService
 import Primitives
 
-public import GemstonePrimitives
+import GemstonePrimitives
 
 public actor GatewayService: Sendable {
     let gateway: GemGateway

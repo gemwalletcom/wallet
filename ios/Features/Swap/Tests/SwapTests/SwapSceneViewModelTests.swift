@@ -2,7 +2,6 @@
 
 import GemstoneServicesTestKit
 import BigInt
-import ChainServiceTestKit
 import protocol Gemstone.GemSwapperProtocol
 import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote

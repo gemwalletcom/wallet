@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ChainServiceTestKit
+import GemstoneServicesTestKit
 import Foundation
 import protocol Gemstone.GemSwapperProtocol
 import SwapService

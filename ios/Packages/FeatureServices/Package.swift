@@ -31,13 +31,11 @@ let package = Package(
         .package(name: "Primitives", path: "../Primitives"),
         .package(name: "GemstoneServices", path: "../GemstoneServices"),
         .package(name: "Store", path: "../Store"),
-        .package(name: "Blockchain", path: "../Blockchain"),
         .package(name: "ChainServices", path: "../ChainServices"),
         .package(name: "GemAPI", path: "../GemAPI"),
         .package(name: "Preferences", path: "../Preferences"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Gemstone", path: "../Gemstone"),
-        .package(name: "Signer", path: "../Signer"),
         .package(name: "Keystore", path: "../Keystore"),
         .package(name: "Formatters", path: "../Formatters"),
         .package(name: "SwiftHTTPClient", path: "../SwiftHTTPClient"),
@@ -87,11 +85,10 @@ let package = Package(
         .target(
             name: "SwapService",
             dependencies: [
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Gemstone",
                 "GemstonePrimitives",
                 "Primitives",
-                .product(name: "ChainService", package: "ChainServices"),
-                "Signer",
                 "Keystore",
                 "NativeProviderService",
             ],
@@ -101,7 +98,7 @@ let package = Package(
         .target(
             name: "SwapServiceTestKit",
             dependencies: [
-                .product(name: "ChainServiceTestKit", package: "ChainServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 "SwapService",
                 "Gemstone",
             ],
