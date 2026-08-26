@@ -9,7 +9,6 @@ public enum GemAPI: TargetType {
     case getFiatAssets(FiatQuoteType)
     case getConfig
     case getPrices(AssetPricesRequest)
-    case getCharts(AssetId, period: String)
     case getAsset(AssetId)
     case getAssets([AssetId], currency: String?)
     case getSearchAssets(query: String, chains: [Chain])
@@ -25,7 +24,6 @@ public enum GemAPI: TargetType {
         case .getSwapAssets,
              .getFiatAssets,
              .getConfig,
-             .getCharts,
              .getAsset,
              .getSearchAssets,
              .getSearch,
@@ -45,8 +43,6 @@ public enum GemAPI: TargetType {
             return "/v1/fiat/assets/\(type.rawValue)"
         case .getConfig:
             return "/v1/config"
-        case let .getCharts(assetId, _):
-            return "/v1/charts/\(assetId.identifier)"
         case let .getAsset(id):
             return "/v1/assets/\(id.identifier)"
         case let .getAssets(_, currency):
@@ -76,10 +72,6 @@ public enum GemAPI: TargetType {
             .plain
         case let .getAssets(value, _):
             .encodable(value.map(\.identifier))
-        case let .getCharts(_, period):
-            .params([
-                "period": period,
-            ])
         case let .getPrices(request):
             .encodable(request)
         case let .getSearchAssets(query, chains):

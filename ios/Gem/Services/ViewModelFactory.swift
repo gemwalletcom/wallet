@@ -18,7 +18,6 @@ import PriceAlertService
 import PriceService
 import Primitives
 import PrimitivesComponents
-import ScanService
 import Stake
 import StakeService
 import Store

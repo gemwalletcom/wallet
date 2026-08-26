@@ -104,7 +104,6 @@
 		D83819562E256A5B0076CDB3 /* GemPriceWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D83819492E256A5A0076CDB3 /* GemPriceWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D83BDCB72E3E878A00E41807 /* PerpetualPositionNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB52E3E878A00E41807 /* PerpetualPositionNavigationStack.swift */; };
 		D83BDCB92E3E8AA400E41807 /* ViewModelFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */; };
-		D83D3C252D6E62F4002959EA /* ScanService in Frameworks */ = {isa = PBXBuildFile; productRef = D83D3C242D6E62F4002959EA /* ScanService */; };
 		D852CAFD2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CAFC2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift */; };
 		D852CB012C9CC315004121D3 /* PriceAlertsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CB002C9CC315004121D3 /* PriceAlertsNavigationView.swift */; };
 		D85AD29D2CD337BE0010DEF8 /* SwapService in Frameworks */ = {isa = PBXBuildFile; productRef = D85AD29C2CD337BE0010DEF8 /* SwapService */; };
@@ -357,7 +356,6 @@
 				D8F5B8602CCA008E0007E615 /* ChainService in Frameworks */,
 				8361BB6A2D400DB6008D89CF /* TransactionsService in Frameworks */,
 				D829BF422CBDD65A00DEB2E8 /* MarketInsight in Frameworks */,
-				D83D3C252D6E62F4002959EA /* ScanService in Frameworks */,
 				C36679162A119C6200F1D74D /* GemAPI in Frameworks */,
 				C36679202F41000000F1D74D /* GemAPIDevice in Frameworks */,
 				D896B57E2E2EE2D300ADE083 /* Perpetuals in Frameworks */,
@@ -863,7 +861,6 @@
 				83B6C20F2D5E3F2600F9DF8A /* WalletTab */,
 				8349F1462D5E4FF4003A0A93 /* ManageWallets */,
 				B617D60A2D5B75F0001697A6 /* AvatarService */,
-				D83D3C242D6E62F4002959EA /* ScanService */,
 				834EC8092D7F1FCD00D8FA39 /* WalletSessionService */,
 				8342EA022DB67EE3001B3780 /* WalletService */,
 				B66AFC6B2DDB260A0082C026 /* AppService */,
@@ -894,7 +891,6 @@
 			);
 			dependencies = (
 				D869D93B2E358A9C0025A94D /* PBXTargetDependency */,
-				D869D93D2E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9412E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9432E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9452E358A9C0025A94D /* PBXTargetDependency */,
@@ -1231,10 +1227,6 @@
 		D869D93B2E358A9C0025A94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			productRef = D869D93A2E358A9C0025A94D /* WalletServiceTestKit */;
-		};
-		D869D93D2E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D93C2E358A9C0025A94D /* ScanServiceTestKit */;
 		};
 		D869D9412E358A9C0025A94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2128,10 +2120,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = DeviceService;
 		};
-		D83D3C242D6E62F4002959EA /* ScanService */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = ScanService;
-		};
 		D85AD29C2CD337BE0010DEF8 /* SwapService */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SwapService;
@@ -2143,10 +2131,6 @@
 		D869D93A2E358A9C0025A94D /* WalletServiceTestKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WalletServiceTestKit;
-		};
-		D869D93C2E358A9C0025A94D /* ScanServiceTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = ScanServiceTestKit;
 		};
 		D869D9402E358A9C0025A94D /* TransactionStateServiceTestKit */ = {
 			isa = XCSwiftPackageProductDependency;

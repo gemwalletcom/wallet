@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use strum::{AsRefStr, EnumString};
 use typeshare::typeshare;
 
 use crate::currency::Currency;
@@ -117,9 +118,10 @@ impl PartialEq for ChartValue {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, AsRefStr, EnumString, PartialEq, Eq, Hash)]
 #[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum ChartPeriod {
     Hour,
     Day,

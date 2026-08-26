@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
-import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetMarket
 import com.wallet.core.primitives.ChartPeriod
@@ -16,18 +16,19 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import uniffi.gemstone.GemChartService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class GetAssetChartDataImplTest {
 
-    private val gemApiClient = mockk<GemApiClient>()
+    private val chartService = mockk<GemChartService>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
     private val currencyRatesService = mockk<CurrencyRatesService>(relaxed = true)
 
     private val subject = GetAssetChartDataImpl(
-        gemApiClient = gemApiClient,
+        chartService = chartService,
         assetsRepository = assetsRepository,
         currencyRatesService = currencyRatesService,
     )
@@ -45,7 +46,7 @@ class GetAssetChartDataImplTest {
             marketCaps = emptyList(),
             totalVolumes = emptyList(),
         )
-        coEvery { gemApiClient.getChart("bitcoin", "day") } returns chart
+        coEvery { chartService.getCharts("bitcoin", ChartPeriod.Day.toJson()) } returns chart.toJson()
         every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate(Currency.EUR, 2.0))
 
         val result = subject.getAssetChartData(
@@ -66,7 +67,7 @@ class GetAssetChartDataImplTest {
             marketCaps = emptyList(),
             totalVolumes = emptyList(),
         )
-        coEvery { gemApiClient.getChart("bitcoin", "day") } returns chart
+        coEvery { chartService.getCharts("bitcoin", ChartPeriod.Day.toJson()) } returns chart.toJson()
         every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(null)
 
         val result = subject.getAssetChartData(

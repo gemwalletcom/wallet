@@ -23,7 +23,6 @@ import PriceServiceTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
-import ScanServiceTestKit
 import Store
 import Testing
 import TransactionStateServiceTestKit

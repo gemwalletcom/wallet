@@ -3,7 +3,8 @@
 import Blockchain
 import ChainService
 import Foundation
-import GemAPI
+import class Gemstone.GemStaticAssetsService
+import GemstonePrimitives
 import Primitives
 import Store
 
@@ -11,13 +12,13 @@ public struct StakeService: StakeServiceable {
     private let store: StakeStore
     private let addressStore: AddressStore
     private let chainServiceFactory: any ChainServiceFactorable
-    private let assetsService: GemAPIStaticService
+    private let assetsService: GemStaticAssetsService
 
     public init(
         store: StakeStore,
         addressStore: AddressStore,
         chainServiceFactory: any ChainServiceFactorable,
-        assetsService: GemAPIStaticService = GemAPIStaticService(),
+        assetsService: GemStaticAssetsService,
     ) {
         self.store = store
         self.addressStore = addressStore
@@ -57,7 +58,7 @@ extension StakeService {
             getValidators,
             getDelegationValidators,
         )
-        let validatorsList = await (try? assetsService.getValidators(chain: chain).toMap { $0.id }) ?? [:]
+        let validatorsList = await (try? assetsService.getValidators(chain: chain.rawValue).map { try Primitives.StakeValidator($0) }.toMap { $0.id }) ?? [:]
 
         let activeValidatorIds = validators.map(\.id).asSet()
         let updateValidators = (validators + delegationValidators.filter { !activeValidatorIds.contains($0.id) }).map {

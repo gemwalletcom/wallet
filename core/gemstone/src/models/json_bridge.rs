@@ -9,10 +9,11 @@ use primitives::{
     AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetType, ChainAsset, ConnectionComponent, ConnectionStatus, ContractCallData, DelegationBase,
     DelegationState, DelegationValidator, NFTAsset, NFTAttribute, NFTAttributeType, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink, PaymentRequest,
     PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder, ScanAddressTarget, ScanTransaction,
-    ScanTransactionPayload, SimulationPayloadField, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, TransactionPerpetualMetadata, TransactionState,
-    TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    ScanTransactionPayload, SimulationPayloadField, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeValidator, TransactionPerpetualMetadata,
+    TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
+use primitives::{ChartPeriod, Charts};
 
 macro_rules! json_bridge {
     ($($type:ident),* $(,)?) => {
@@ -47,6 +48,8 @@ json_bridge!(
     ChartCandleStick,
     ChartCandleUpdate,
     ChartDateValue,
+    ChartPeriod,
+    Charts,
     ConnectionComponent,
     ConnectionStatus,
     ContractCallData,
@@ -94,6 +97,7 @@ json_bridge!(
     SolanaNftStandard,
     SolanaTokenProgramId,
     StakeProviderType,
+    StakeValidator,
     StakeType,
     SwapData,
     SwapPriceImpact,

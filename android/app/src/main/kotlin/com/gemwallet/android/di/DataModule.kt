@@ -7,16 +7,15 @@ import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
-import com.gemwallet.android.services.DeviceConfirmScanner
 import com.gemwallet.android.services.SyncService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemConfirmScanner
 import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemScanService
 import uniffi.gemstone.TransactionSimulationService
 import javax.inject.Singleton
 
@@ -26,17 +25,11 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideConfirmScanner(
-        gemDeviceApiClient: GemDeviceApiClient,
-    ): GemConfirmScanner = DeviceConfirmScanner(gemDeviceApiClient)
-
-    @Provides
-    @Singleton
     fun provideConfirmService(
         gateway: GemGateway,
         simulationService: TransactionSimulationService,
-        scanner: GemConfirmScanner,
-    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanner)
+        scanService: GemScanService,
+    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService)
 
     @Provides
     @Singleton

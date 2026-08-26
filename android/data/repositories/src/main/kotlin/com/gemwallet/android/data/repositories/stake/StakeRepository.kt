@@ -6,14 +6,15 @@ import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toModel
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.data.services.gemapi.GemApiStaticClient
 import com.gemwallet.android.domains.asset.SYSTEM_VALIDATOR_ID
 import com.gemwallet.android.domains.stake.inactiveStakeValidator
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeProviderType
+import com.wallet.core.primitives.StakeValidator
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -21,10 +22,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.Config
+import uniffi.gemstone.GemStaticAssetsService
 import java.math.BigInteger
 
 class StakeRepository(
-    private val gemApiStaticClient: GemApiStaticClient,
+    private val staticAssetsService: GemStaticAssetsService,
     private val stakeService: StakeService,
     private val stakeDao: StakeDao,
 ) : SyncStakeDelegations {
@@ -73,7 +75,7 @@ class StakeRepository(
 
     private suspend fun syncValidators(assetId: AssetId, address: String, apr: Double): Map<String, String> {
         val chain = assetId.chain
-        val names = runCatching { gemApiStaticClient.getValidators(chain.string) }
+        val names = runCatching { staticAssetsService.getValidators(chain.string).map { it.decodeJson<StakeValidator>() } }
             .getOrDefault(emptyList())
             .associate { it.id to it.name }
         val validators = stakeService.getValidators(chain, apr)

@@ -3,13 +3,12 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-use async_trait::async_trait;
-
 use crate::GemstoneError;
 use crate::fee::custom_gas_price;
 use crate::gateway::GemGateway;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput, GemTransactionLoadMetadata};
+use crate::services::GemScanService;
 use crate::transaction_simulation::TransactionSimulationService;
 use num_bigint::BigInt;
 use primitives::{Account, ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, SimulationResult, TransactionPreloadInput};
@@ -89,23 +88,17 @@ impl std::fmt::Display for GemConfirmError {
 
 impl std::error::Error for GemConfirmError {}
 
-#[uniffi::export(with_foreign)]
-#[async_trait]
-pub trait GemConfirmScanner: Send + Sync {
-    async fn scan_transaction(&self, payload: ScanTransactionPayload) -> Option<ScanTransaction>;
-}
-
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
     gateway: Arc<GemGateway>,
     simulation: Arc<TransactionSimulationService>,
-    scanner: Arc<dyn GemConfirmScanner>,
+    scanner: Arc<GemScanService>,
 }
 
 #[uniffi::export]
 impl GemConfirmService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, simulation: Arc<TransactionSimulationService>, scanner: Arc<dyn GemConfirmScanner>) -> Self {
+    pub fn new(gateway: Arc<GemGateway>, simulation: Arc<TransactionSimulationService>, scanner: Arc<GemScanService>) -> Self {
         Self { gateway, simulation, scanner }
     }
 
@@ -123,7 +116,7 @@ impl GemConfirmService {
 
         let scan_future = async {
             match scan_payload(preload_input.clone()) {
-                Some(payload) => self.scanner.scan_transaction(payload).await,
+                Some(payload) => self.scanner.scan_transaction(payload).await.ok(),
                 None => None,
             }
         };

@@ -3,7 +3,10 @@
 import ChainService
 import ChainServiceTestKit
 import Foundation
-import GemAPI
+import class Gemstone.GemStaticApiClient
+import class Gemstone.GemStaticAssetsService
+import NativeProviderService
+import Primitives
 import StakeService
 import Store
 import StoreTestKit
@@ -13,13 +16,24 @@ public extension StakeService {
         store: StakeStore = .mock(),
         addressStore: AddressStore = .mock(),
         chainServiceFactory: any ChainServiceFactorable = ChainServiceFactoryMock(),
-        assetsService: GemAPIStaticService = GemAPIStaticService(),
+        assetsService: GemStaticAssetsService = .mock(),
     ) -> Self {
         StakeService(
             store: store,
             addressStore: addressStore,
             chainServiceFactory: chainServiceFactory,
             assetsService: assetsService,
+        )
+    }
+}
+
+public extension GemStaticAssetsService {
+    static func mock() -> GemStaticAssetsService {
+        GemStaticAssetsService(
+            api: GemStaticApiClient(
+                provider: NativeProvider(url: Constants.assetsURL, requestInterceptor: EmptyRequestInterceptor()),
+                baseUrl: Constants.assetsURL.absoluteString,
+            ),
         )
     }
 }

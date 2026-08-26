@@ -8,7 +8,6 @@ import Localization
 import NodeService
 import Primitives
 import PrimitivesComponents
-import ScanService
 import Store
 import Style
 import SwiftUI

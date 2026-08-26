@@ -41,10 +41,6 @@ public protocol GemAPIAddressNamesService: Sendable {
     func getAddressNames(requests: [ChainAddress]) async throws -> [AddressName]
 }
 
-public protocol GemAPIChartService: Sendable {
-    func getCharts(assetId: AssetId, period: String) async throws -> Charts
-}
-
 public protocol GemAPIDeviceService: Sendable {
     func getDevice() async throws -> Device?
     func addDevice(device: Device) async throws -> Device
@@ -75,10 +71,6 @@ public protocol GemAPINFTService: Sendable {
     func getDeviceNFTAsset(assetId: NFTAssetId) async throws -> NFTAssetData
     func refreshNftAsset(walletId: WalletId, assetId: NFTAssetId) async throws
     func reportNft(report: ReportNft) async throws
-}
-
-public protocol GemAPIScanService: Sendable {
-    func getScanTransaction(payload: ScanTransactionPayload) async throws -> ScanTransaction
 }
 
 public protocol GemAPISupportService: Sendable {
@@ -186,14 +178,6 @@ extension GemAPIService: GemAPIAddressNamesService {
     }
 }
 
-extension GemAPIService: GemAPIChartService {
-    public func getCharts(assetId: AssetId, period: String) async throws -> Charts {
-        try await provider
-            .request(.getCharts(assetId, period: period))
-            .mapResponse(as: Charts.self)
-    }
-}
-
 extension GemAPIService: GemAPITransactionService {
     public func getDeviceTransactionsForAsset(walletId: WalletId, asset: Primitives.AssetId, fromTimestamp: Int) async throws -> TransactionsResponse {
         try await requestDevice(.getTransactions(walletId: walletId, assetId: asset.identifier, fromTimestamp: fromTimestamp))
@@ -288,13 +272,6 @@ extension GemAPIService: GemAPINFTService {
 
     public func reportNft(report: ReportNft) async throws {
         _ = try await requestDevice(.reportNft(report: report))
-    }
-}
-
-extension GemAPIService: GemAPIScanService {
-    public func getScanTransaction(payload: ScanTransactionPayload) async throws -> ScanTransaction {
-        try await requestDevice(.scanTransaction(payload: payload))
-            .mapResponse(as: ScanTransaction.self)
     }
 }
 

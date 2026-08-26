@@ -25,7 +25,6 @@ import PriceService
 import Primitives
 import PrimitivesComponents
 import RewardsService
-import ScanService
 import ServiceStatusService
 import StakeService
 import StreamService
@@ -55,6 +54,7 @@ extension AppResolver {
         let streamObserverService: StreamObserverService
         let streamSubscriptionService: StreamSubscriptionService
         let priceService: PriceService
+        let chartService: ChartService
         let stakeService: StakeService
         let transactionsService: TransactionsService
         let transactionStateScheduler: TransactionStateScheduler
@@ -64,7 +64,6 @@ extension AppResolver {
         let assetDiscoveryService: any AssetDiscoverable
         let walletSetupService: WalletSetupService
         let explorerService: ExplorerService
-        let scanService: ScanService
         let nftService: NFTService
         let avatarService: AvatarService
         let swapService: SwapService

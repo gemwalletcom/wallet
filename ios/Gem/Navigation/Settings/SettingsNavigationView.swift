@@ -32,6 +32,7 @@ struct SettingsNavigationView: View {
     @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.priceService) private var priceService
+    @Environment(\.chartService) private var chartService
     @Environment(\.nodeService) private var nodeService
     @Environment(\.serviceStatusService) private var serviceStatusService
     @Environment(\.chainServiceFactory) private var chainServiceFactory
@@ -110,6 +111,7 @@ struct SettingsNavigationView: View {
         .navigationDestination(for: Scenes.Price.self) { scene in
             ChartScene(
                 model: ChartSceneViewModel(
+                    service: chartService,
                     priceService: priceService,
                     assetModel: AssetViewModel(asset: scene.asset),
                     priceAlertService: priceAlertService,

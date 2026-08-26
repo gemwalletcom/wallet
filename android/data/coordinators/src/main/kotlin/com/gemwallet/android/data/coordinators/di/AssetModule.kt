@@ -35,6 +35,7 @@ import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetChartDataImpl
+import uniffi.gemstone.GemChartService
 import com.gemwallet.android.data.coordinators.asset.GetAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetLinksImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetMarketImpl
@@ -154,11 +155,11 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideGetAssetChartData(
-        gemApiClient: GemApiClient,
+        chartService: GemChartService,
         assetsRepository: AssetsRepository,
         currencyRatesService: CurrencyRatesService,
     ): GetAssetChartData = GetAssetChartDataImpl(
-        gemApiClient = gemApiClient,
+        chartService = chartService,
         assetsRepository = assetsRepository,
         currencyRatesService = currencyRatesService,
     )

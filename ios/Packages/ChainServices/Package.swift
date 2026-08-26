@@ -15,8 +15,6 @@ let package = Package(
         .library(name: "NodeServiceTestKit", targets: ["NodeServiceTestKit"]),
         .library(name: "WalletConnectorService", targets: ["WalletConnectorService"]),
         .library(name: "WalletConnectorServiceTestKit", targets: ["WalletConnectorServiceTestKit"]),
-        .library(name: "ScanService", targets: ["ScanService"]),
-        .library(name: "ScanServiceTestKit", targets: ["ScanServiceTestKit"]),
         .library(name: "ExplorerService", targets: ["ExplorerService"]),
         .library(name: "ChainService", targets: ["ChainService"]),
         .library(name: "ChainServiceTestKit", targets: ["ChainServiceTestKit"]),
@@ -38,7 +36,8 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
-                "GemAPI",
+                "Gemstone",
+                "GemstonePrimitives",
                 "ChainService",
             ],
             path: "StakeService",
@@ -48,8 +47,9 @@ let package = Package(
             name: "StakeServiceTestKit",
             dependencies: [
                 .product(name: "StoreTestKit", package: "Store"),
-                .product(name: "GemAPITestKit", package: "GemAPI"),
+                .product(name: "NativeProviderService", package: "NativeProviderService"),
                 "ChainServiceTestKit",
+                "Gemstone",
                 "Primitives",
                 "StakeService",
             ],
@@ -103,24 +103,6 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "WalletConnectorService/TestKit",
-        ),
-        .target(
-            name: "ScanService",
-            dependencies: [
-                "Primitives",
-                "GemAPI",
-            ],
-            path: "ScanService",
-            exclude: ["TestKit"],
-        ),
-        .target(
-            name: "ScanServiceTestKit",
-            dependencies: [
-                "ScanService",
-                "Primitives",
-                "GemAPI",
-            ],
-            path: "ScanService/TestKit",
         ),
         .target(
             name: "ExplorerService",

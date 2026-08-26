@@ -20,8 +20,6 @@ import com.wallet.core.primitives.RedemptionRequest
 import com.wallet.core.primitives.RedemptionResult
 import com.wallet.core.primitives.ReferralCode
 import com.wallet.core.primitives.Rewards
-import com.wallet.core.primitives.ScanTransaction
-import com.wallet.core.primitives.ScanTransactionPayload
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageInput
 import com.wallet.core.primitives.WalletId
@@ -110,8 +108,6 @@ interface GemDeviceApiClient {
         @Query("from_timestamp") from: Long,
     ): TransactionsResponse?
 
-    @POST("/v2/devices/scan/transaction")
-    suspend fun getScanTransaction(@Body payload: ScanTransactionPayload): ScanTransaction
 
     @GET("/v2/devices/support/messages")
     suspend fun getSupportMessages(

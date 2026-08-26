@@ -4,12 +4,12 @@ import com.gemwallet.android.blockchain.services.StakeService
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.data.service.store.database.StakeDao
-import com.gemwallet.android.data.services.gemapi.GemApiStaticClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemStaticAssetsService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -20,10 +20,10 @@ object StakeModule {
     fun provideStakeRepository(
         stakeDao: StakeDao,
         gateway: GemGateway,
-        gemApiStaticClient: GemApiStaticClient,
+        staticAssetsService: GemStaticAssetsService,
     ): StakeRepository = StakeRepository(
         stakeDao = stakeDao,
-        gemApiStaticClient = gemApiStaticClient,
+        staticAssetsService = staticAssetsService,
         stakeService = StakeService(gateway),
     )
 

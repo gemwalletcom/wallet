@@ -3,7 +3,6 @@ package com.gemwallet.android.data.services.gemapi
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Charts
 import com.wallet.core.primitives.ConfigResponse
 import com.wallet.core.primitives.FiatAssets
 import com.wallet.core.primitives.SearchResponse
@@ -16,9 +15,6 @@ import retrofit2.http.Query
 interface GemApiClient {
     @GET("/v1/config")
     suspend fun getConfig(): ConfigResponse
-
-    @GET("/v1/charts/{asset_id}")
-    suspend fun getChart(@Path("asset_id") assetId: String, @Query("period") period: String): Charts
 
     @GET("/v1/assets/{asset_id}")
     suspend fun getAsset(@Path("asset_id") assetId: String): AssetFull

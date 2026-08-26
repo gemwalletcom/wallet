@@ -10,6 +10,9 @@ import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.repositories.config.SharedGemPreferences
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.application.device.coordinators.GetDeviceId
+import com.gemwallet.android.math.fromHex
+import kotlinx.coroutines.runBlocking
 import com.gemwallet.android.data.services.gemapi.NativeProvider
 import com.gemwallet.android.data.services.gemapi.NativeProviderConfig
 import com.gemwallet.android.ui.R as UiR
@@ -21,7 +24,13 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import uniffi.gemstone.AlienProvider
+import uniffi.gemstone.GemChartService
+import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemApiClient as GemstoneApiClient
+import uniffi.gemstone.GemScanService
+import uniffi.gemstone.GemStaticApiClient
+import uniffi.gemstone.GemStaticAssetsService
 import uniffi.gemstone.GemPreferences
 import uniffi.gemstone.PaymentService
 import uniffi.gemstone.PaymentServiceInterface
@@ -79,6 +88,41 @@ object GatewayModule {
             securePreferences = securePreferences,
         )
     }
+
+
+    @Provides
+    @Singleton
+    fun provideGemstoneApiClient(alienProvider: AlienProvider): GemstoneApiClient =
+        GemstoneApiClient(alienProvider, Constants.API_URL)
+
+    @Provides
+    @Singleton
+    fun provideGemstoneDeviceApiClient(
+        alienProvider: AlienProvider,
+        getDeviceId: GetDeviceId,
+    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
+        alienProvider,
+        Constants.API_URL,
+        runBlocking { getDeviceId.getDeviceKey().fromHex() },
+    )
+
+    @Provides
+    @Singleton
+    fun provideGemStaticApiClient(alienProvider: AlienProvider): GemStaticApiClient =
+        GemStaticApiClient(alienProvider, Constants.ASSETS_URL)
+
+    @Provides
+    @Singleton
+    fun provideGemChartService(apiClient: GemstoneApiClient): GemChartService = GemChartService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemScanService(apiClient: GemstoneDeviceApiClient): GemScanService = GemScanService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemStaticAssetsService(apiClient: GemStaticApiClient): GemStaticAssetsService =
+        GemStaticAssetsService(apiClient)
 
     @Provides
     @Singleton

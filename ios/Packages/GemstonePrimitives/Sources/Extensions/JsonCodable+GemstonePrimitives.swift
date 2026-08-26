@@ -4,7 +4,7 @@ import Foundation
 import Primitives
 
 private enum JsonCodableEncoder {
-    nonisolated(unsafe) static let standard: JSONEncoder = {
+    static let standard: JSONEncoder = {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         return encoder
@@ -35,6 +35,8 @@ extension Primitives.ChainAsset: JsonCodable {}
 extension Primitives.ChartCandleStick: JsonCodable {}
 extension Primitives.ChartCandleUpdate: JsonCodable {}
 extension Primitives.ChartDateValue: JsonCodable {}
+extension Primitives.ChartPeriod: JsonCodable {}
+extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConnectionComponent: JsonCodable {}
 extension Primitives.ConnectionStatus: JsonCodable {}
 extension Primitives.ContractCallData: JsonCodable {}
@@ -82,6 +84,7 @@ extension Primitives.SimulationResult: JsonCodable {}
 extension Primitives.SolanaNftStandard: JsonCodable {}
 extension Primitives.SolanaTokenProgramId: JsonCodable {}
 extension Primitives.StakeProviderType: JsonCodable {}
+extension Primitives.StakeValidator: JsonCodable {}
 extension Primitives.StakeType: JsonCodable {}
 extension Primitives.SwapData: JsonCodable {}
 extension Primitives.SwapPriceImpact: JsonCodable {}

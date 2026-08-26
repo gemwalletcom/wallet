@@ -23,7 +23,7 @@ public actor GatewayService: Sendable {
 
     public nonisolated func confirmService(
         simulation: TransactionSimulationService,
-        scanner: any GemConfirmScanner,
+        scanner: GemScanService,
     ) -> GemConfirmService {
         GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner)
     }
@@ -175,7 +175,7 @@ public extension GatewayService {
         }
     }
 
-    func getPerpetualCandlesticks(chain: Primitives.Chain, symbol: String, period: ChartPeriod) async throws -> [Primitives.ChartCandleStick] {
+    func getPerpetualCandlesticks(chain: Primitives.Chain, symbol: String, period: Primitives.ChartPeriod) async throws -> [Primitives.ChartCandleStick] {
         try await gateway.getPerpetualCandlesticks(chain: chain.rawValue, symbol: symbol, period: period.rawValue).map {
             try Primitives.ChartCandleStick($0)
         }

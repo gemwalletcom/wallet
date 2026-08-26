@@ -54,7 +54,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     }
 
     public init(
-        service: ChartService = ChartService(),
+        service: ChartService,
         priceService: PriceService,
         assetModel: AssetViewModel,
         priceAlertService: PriceAlertService,

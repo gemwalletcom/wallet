@@ -21,8 +21,7 @@ import FiatService
 import Foundation
 import GemAPI
 import GemAPIDevice
-import class Gemstone.PaymentService
-import class Gemstone.TransactionSimulationService
+import Gemstone
 import GemstonePrimitives
 import Keystore
 import NativeProviderService
@@ -36,7 +35,6 @@ import PriceService
 import Primitives
 import PrimitivesComponents
 import RewardsService
-import ScanService
 import ServiceStatusService
 import StakeService
 import Store
@@ -100,6 +98,11 @@ struct ServicesFactory {
             ],
         )
         let nativeProvider = NativeProvider(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
+        let gemApiClient = Gemstone.GemApiClient(provider: nativeProvider, baseUrl: Constants.apiURL.absoluteString)
+        let gemStaticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
+        let chartService = ChartService(service: Gemstone.GemChartService(api: gemApiClient))
+        let staticAssetsService = Gemstone.GemStaticAssetsService(api: gemStaticApiClient)
+        let gemScanService = Self.makeScanService(provider: nativeProvider, securePreferences: securePreferences)
         let gatewayService = GatewayService(provider: nativeProvider)
         let paymentService = PaymentService(provider: nativeProvider)
         let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
@@ -141,6 +144,7 @@ struct ServicesFactory {
             store: storeManager.stakeStore,
             addressStore: storeManager.addressStore,
             chainServiceFactory: chainServiceFactory,
+            assetsService: staticAssetsService,
         )
         let nftService = NFTService(
             apiService: apiService,
@@ -284,7 +288,6 @@ struct ServicesFactory {
             perpetualService: perpetualService,
         )
 
-        let scanService = ScanService(apiService: apiService)
         let addressNameService = AddressNameService(addressStore: storeManager.addressStore, apiService: apiService)
         let activityService = ActivityService(store: storeManager.recentActivityStore)
         let authService = AuthService(apiService: apiService, keystore: storages.keystore)
@@ -338,7 +341,7 @@ struct ServicesFactory {
 
         let gemConfirmService = gatewayService.confirmService(
             simulation: transactionSimulationService,
-            scanner: ConfirmScanner(scanService: scanService),
+            scanner: gemScanService,
         )
         let viewModelFactory = ViewModelFactory(
             keystore: storages.keystore,
@@ -382,6 +385,7 @@ struct ServicesFactory {
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
             priceService: priceService,
+            chartService: chartService,
             stakeService: stakeService,
             transactionsService: transactionsService,
             transactionStateScheduler: transactionStateScheduler,
@@ -391,7 +395,6 @@ struct ServicesFactory {
             assetDiscoveryService: assetDiscoveryService,
             walletSetupService: walletSetupService,
             explorerService: explorerService,
-            scanService: scanService,
             nftService: nftService,
             avatarService: avatarService,
             swapService: swapService,
@@ -427,6 +430,16 @@ struct ServicesFactory {
 // MARK: - Private Static
 
 extension ServicesFactory {
+    private static func makeScanService(provider: NativeProvider, securePreferences: SecurePreferences) -> Gemstone.GemScanService {
+        let keyPair = try? DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
+        let client = Gemstone.GemDeviceApiClient(
+            provider: provider,
+            baseUrl: Constants.apiURL.absoluteString,
+            devicePrivateKey: keyPair?.privateKey ?? Data(),
+        )
+        return Gemstone.GemScanService(api: client)
+    }
+
     private static func makeRequestSigner(securePreferences: SecurePreferences) -> DeviceRequestSigner? {
         do {
             let keyPair = try DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)

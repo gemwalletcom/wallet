@@ -3581,6 +3581,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_api"
+version = "2.114.11"
+dependencies = [
+ "gem_auth",
+ "gem_client",
+ "primitives",
+ "serde",
+ "serde_json",
+ "strum",
+]
+
+[[package]]
 name = "gem_aptos"
 version = "2.114.11"
 dependencies = [
@@ -4213,6 +4225,7 @@ dependencies = [
  "chrono",
  "futures",
  "gem_algorand",
+ "gem_api",
  "gem_aptos",
  "gem_auth",
  "gem_bitcoin",

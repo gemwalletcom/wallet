@@ -25,7 +25,6 @@ public enum GemDeviceAPI: TargetType {
     case refreshNftAsset(walletId: WalletId, assetId: NFTAssetId)
 
     case reportNft(report: ReportNft)
-    case scanTransaction(payload: ScanTransactionPayload)
     case getWalletConfiguration(walletId: WalletId)
 
     case getSupportMessages(fromTimestamp: Int)
@@ -80,7 +79,6 @@ public enum GemDeviceAPI: TargetType {
         case .addDevice,
              .addSubscriptions,
              .addPriceAlerts,
-             .scanTransaction,
              .refreshNftAsset,
              .reportNft,
              .createDeviceReferral,
@@ -132,8 +130,6 @@ public enum GemDeviceAPI: TargetType {
             return "/v2/devices/nft_assets/\(assetId.identifier)/refresh"
         case .reportNft:
             return "/v2/devices/nft/report"
-        case .scanTransaction:
-            return "/v2/devices/scan/transaction"
         case .getWalletConfiguration:
             return "/v2/devices/wallet_configuration"
         case let .getSupportMessages(fromTimestamp):
@@ -236,8 +232,6 @@ public enum GemDeviceAPI: TargetType {
         case let .addPriceAlerts(priceAlerts),
              let .deletePriceAlerts(priceAlerts):
             return .encodable(priceAlerts)
-        case let .scanTransaction(payload):
-            return .encodable(payload)
         case let .reportNft(report):
             return .encodable(report)
         case let .createDeviceReferral(_, request):

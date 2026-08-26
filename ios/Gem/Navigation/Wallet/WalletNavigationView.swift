@@ -27,6 +27,7 @@ struct WalletNavigationView: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.priceService) private var priceService
+    @Environment(\.chartService) private var chartService
     @Environment(\.portfolioService) private var portfolioService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.assetsService) private var assetsService
@@ -170,6 +171,7 @@ struct WalletNavigationView: View {
         .navigationDestination(for: Scenes.Price.self) {
             ChartScene(
                 model: ChartSceneViewModel(
+                    service: chartService,
                     priceService: priceService,
                     assetModel: AssetViewModel(asset: $0.asset),
                     priceAlertService: priceAlertService,

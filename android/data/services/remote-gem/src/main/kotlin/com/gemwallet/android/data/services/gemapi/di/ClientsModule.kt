@@ -5,7 +5,6 @@ import android.os.Build
 import com.gemwallet.android.Constants
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.data.services.gemapi.GemApiClient
-import com.gemwallet.android.data.services.gemapi.GemApiStaticClient
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.data.services.gemapi.Mime
 import com.gemwallet.android.data.services.gemapi.http.GemApiErrorInterceptor
@@ -87,14 +86,4 @@ object ClientsModule {
             .create(GemDeviceApiClient::class.java)
     }
 
-    @Provides
-    @Singleton
-    fun provideGemApiStaticClient(httpClient: OkHttpClient): GemApiStaticClient {
-        return Retrofit.Builder()
-            .baseUrl(Constants.ASSETS_URL)
-            .client(httpClient)
-            .addConverterFactory(jsonEncoder.asConverterFactory(Mime.Json.value))
-            .build()
-            .create(GemApiStaticClient::class.java)
-    }
 }

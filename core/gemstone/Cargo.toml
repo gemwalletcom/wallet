@@ -33,6 +33,7 @@ gem_tempo = { path = "../crates/gem_tempo", features = ["rpc", "signer"] }
 simulation = { path = "../crates/simulation", features = ["rpc"] }
 gem_sui = { path = "../crates/gem_sui", features = ["rpc", "signer"] }
 gem_aptos = { path = "../crates/gem_aptos", features = ["rpc"] }
+gem_api = { path = "../crates/gem_api" }
 gem_auth = { path = "../crates/gem_auth" }
 gem_jsonrpc = { path = "../crates/gem_jsonrpc", features = ["client"] }
 gem_client = { path = "../crates/gem_client" }

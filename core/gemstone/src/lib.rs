@@ -1,6 +1,7 @@
 pub mod address;
 pub mod address_formatter;
 pub mod alien;
+pub mod api;
 mod application;
 pub mod auth;
 pub mod balance_calculator;
@@ -23,6 +24,7 @@ pub mod perpetual;
 pub mod price;
 pub mod price_alert_formatter;
 pub mod service_status;
+pub mod services;
 pub mod signer;
 pub mod siwe;
 pub mod support;
