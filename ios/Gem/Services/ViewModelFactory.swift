@@ -6,6 +6,7 @@ import Assets
 import ChainService
 import FiatConnect
 import Foundation
+import protocol Gemstone.GemStakeServiceProtocol
 import class Gemstone.GemConfirmService
 import Keystore
 import Preferences
@@ -30,8 +31,7 @@ public struct ViewModelFactory: Sendable {
     let assetsEnabler: any AssetsEnabler
     let priceUpdater: any PriceUpdater
     let walletSessionService: any WalletSessionManageable
-    let stakeService: StakeService
-    let earnService: EarnService
+    let stakeService: any GemStakeServiceProtocol
     let amountService: AmountService
     let nameService: any NameServiceable
     let balanceService: BalanceService
@@ -209,7 +209,7 @@ public struct ViewModelFactory: Sendable {
             wallet: wallet,
             asset: asset,
             currencyCode: Preferences.standard.currency,
-            earnService: earnService,
+            stakeService: stakeService,
         )
     }
 

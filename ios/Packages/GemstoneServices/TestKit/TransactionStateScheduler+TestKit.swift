@@ -4,6 +4,8 @@ import GemstoneServices
 import Blockchain
 import BlockchainTestKit
 import Foundation
+import protocol Gemstone.GemStakeServiceProtocol
+import GemstonePrimitivesTestKit
 import Store
 import StoreTestKit
 
@@ -11,15 +13,13 @@ public extension TransactionStateScheduler {
     static func mock(
         transactionStore: TransactionStore = .mock(),
         gatewayService: GatewayService = .mock(),
-        stakeService: StakeService = .mock(),
-        earnService: any EarnPositionsUpdatable = .mock(),
+        stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
         nftService: NFTService = .mock(),
     ) -> TransactionStateScheduler {
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: transactionStore,
             balanceUpdater: .mock(),
             stakeService: stakeService,
-            earnService: earnService,
             nftService: nftService,
         )
         let service = TransactionStateService(

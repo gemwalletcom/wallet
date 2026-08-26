@@ -20,7 +20,7 @@ struct SettingsNavigationView: View {
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.assetsService) private var assetsService
-    @Environment(\.stakeService) private var stakeService
+    @Environment(\.stakeStore) private var stakeStore
     @Environment(\.bannerService) private var bannerService
     @Environment(\.connectionsService) private var connectionsService
     @Environment(\.assetsEnabler) private var assetsEnabler
@@ -142,7 +142,7 @@ struct SettingsNavigationView: View {
                 walletId: walletId,
                 transactionsService: transactionsService,
                 assetService: assetsService,
-                stakeService: stakeService,
+                stakeStore: stakeStore,
                 bannerService: bannerService,
                 priceService: priceService,
                 perpetualService: perpetualService,

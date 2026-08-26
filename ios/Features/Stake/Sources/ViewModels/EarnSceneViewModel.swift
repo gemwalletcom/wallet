@@ -4,6 +4,8 @@ import BigInt
 import Components
 import GemstoneServices
 import Foundation
+import protocol Gemstone.GemStakeServiceProtocol
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -12,7 +14,7 @@ import Store
 @MainActor
 @Observable
 public final class EarnSceneViewModel {
-    private let earnService: EarnService
+    private let stakeService: any GemStakeServiceProtocol
     private var viewState: StateViewType<Bool> = .loading
 
     public let wallet: Wallet
@@ -39,12 +41,12 @@ public final class EarnSceneViewModel {
         wallet: Wallet,
         asset: Asset,
         currencyCode: String,
-        earnService: EarnService,
+        stakeService: any GemStakeServiceProtocol,
     ) {
         self.wallet = wallet
         self.asset = asset
         self.currencyCode = currencyCode
-        self.earnService = earnService
+        self.stakeService = stakeService
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: asset.id), initialValue: .with(asset: asset))
         positionsQuery = ObservableQuery(
             DelegationsRequest(walletId: wallet.id, assetId: asset.id, providerType: .earn),
@@ -124,9 +126,9 @@ extension EarnSceneViewModel {
         viewState = .loading
         do {
             let address = try wallet.account(for: asset.id.chain).address
-            try await earnService.update(
-                walletId: wallet.id,
-                assetId: asset.id,
+            try await stakeService.syncEarn(
+                walletId: wallet.id.id,
+                assetId: asset.id.identifier,
                 address: address,
             )
             viewState = .data(true)

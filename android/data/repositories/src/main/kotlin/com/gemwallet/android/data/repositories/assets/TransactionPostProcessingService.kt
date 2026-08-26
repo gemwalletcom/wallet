@@ -4,7 +4,6 @@ import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.isCompleted
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.TransactionExtended
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionType
@@ -32,7 +31,7 @@ class TransactionPostProcessingService @Inject constructor(
                 assetsRepository.updateBalances(assetInfos)
                 val walletId = assetInfos.firstNotNullOfOrNull { it.walletId } ?: return@async
                 if (transaction.state.isCompleted()) {
-                    processCompleteTransaction(walletId, transaction, assetInfos)
+                    processCompleteTransaction(walletId, transaction)
                 }
             }
         }.awaitAll()
@@ -41,7 +40,6 @@ class TransactionPostProcessingService @Inject constructor(
     private suspend fun processCompleteTransaction(
         walletId: WalletId,
         transaction: Transaction,
-        assetInfos: List<AssetInfo>,
     ) {
         when (transaction.type) {
             TransactionType.StakeDelegate,
@@ -54,7 +52,6 @@ class TransactionPostProcessingService @Inject constructor(
                 walletId = walletId,
                 assetId = transaction.assetId,
                 address = transaction.from,
-                apr = assetInfos.firstOrNull { it.id() == transaction.assetId }?.metadata?.stakingApr ?: 0.0,
             )
             TransactionType.TransferNFT -> syncNfts.sync(walletId)
             else -> Unit

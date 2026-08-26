@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
+import protocol Gemstone.GemStakeServiceProtocol
 
 public struct AmountService: Sendable {
-    let earnDataProvider: any EarnDataProvidable
+    let stakeService: any GemStakeServiceProtocol
 
-    public init(earnDataProvider: any EarnDataProvidable) {
-        self.earnDataProvider = earnDataProvider
+    public init(stakeService: any GemStakeServiceProtocol) {
+        self.stakeService = stakeService
     }
 }

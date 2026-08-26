@@ -14,13 +14,6 @@ import Testing
 @MainActor
 struct StakeSceneViewModelTests {
     @Test
-    func aprValue() {
-        #expect(StakeSceneViewModel.mock(stakeService: MockStakeService(stakeApr: 13.5)).stakeAprModel.subtitle.text == "13.50%")
-        #expect(StakeSceneViewModel.mock(stakeService: MockStakeService(stakeApr: 0)).stakeAprModel.subtitle.text == .empty)
-        #expect(StakeSceneViewModel.mock(stakeService: MockStakeService(stakeApr: .none)).stakeAprModel.subtitle.text == .empty)
-    }
-
-    @Test
     func testLockTimeField() {
         #expect(StakeSceneViewModel.mock(chain: .tron).lockTimeField.value.text == "14 days")
     }

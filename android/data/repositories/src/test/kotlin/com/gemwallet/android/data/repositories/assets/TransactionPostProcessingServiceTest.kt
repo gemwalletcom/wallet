@@ -60,7 +60,7 @@ class TransactionPostProcessingServiceTest {
         )
 
         coVerify(exactly = 3) {
-            syncStakeDelegations.sync(mockWalletId("wallet-1"), asset.id, "solana-sender", apr = 7.5)
+            syncStakeDelegations.sync(mockWalletId("wallet-1"), asset.id, "solana-sender")
         }
         coVerify(exactly = 0) { syncNfts.sync(any()) }
     }
@@ -79,6 +79,6 @@ class TransactionPostProcessingServiceTest {
         )
 
         coVerify(exactly = 3) { syncNfts.sync(mockWalletId()) }
-        coVerify(exactly = 0) { syncStakeDelegations.sync(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { syncStakeDelegations.sync(any(), any(), any()) }
     }
 }

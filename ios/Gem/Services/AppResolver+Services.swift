@@ -11,6 +11,7 @@ import ExplorerService
 import Foundation
 import protocol Gemstone.GemChartServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
+import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemNotificationServiceProtocol
 import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import Primitives
@@ -42,7 +43,7 @@ extension AppResolver {
         let priceService: PriceService
         let chartService: any GemChartServiceProtocol
         let marketService: any GemPriceServiceProtocol
-        let stakeService: StakeService
+        let stakeService: any GemStakeServiceProtocol
         let transactionsService: TransactionsService
         let transactionStateScheduler: TransactionStateScheduler
         let walletService: WalletService

@@ -1,27 +1,25 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemStakeServiceProtocol
 import Primitives
 import Store
 
 public struct TransactionPostProcessingService: Sendable {
     private let transactionStore: TransactionStore
     private let balanceUpdater: any BalanceUpdater
-    private let stakeService: StakeService
-    private let earnService: any EarnPositionsUpdatable
+    private let stakeService: any GemStakeServiceProtocol
     private let nftService: NFTService
 
     public init(
         transactionStore: TransactionStore,
         balanceUpdater: any BalanceUpdater,
-        stakeService: StakeService,
-        earnService: any EarnPositionsUpdatable,
+        stakeService: any GemStakeServiceProtocol,
         nftService: NFTService,
     ) {
         self.transactionStore = transactionStore
         self.balanceUpdater = balanceUpdater
         self.stakeService = stakeService
-        self.earnService = earnService
         self.nftService = nftService
     }
 
@@ -32,9 +30,9 @@ public struct TransactionPostProcessingService: Sendable {
         case .stakeDelegate, .stakeUndelegate, .stakeRewards, .stakeRedelegate, .stakeWithdraw:
             for assetIdentifier in transaction.assetIds {
                 Task {
-                    try await stakeService.update(
-                        walletId: wallet.id,
-                        chain: assetIdentifier.chain,
+                    try await stakeService.sync(
+                        walletId: wallet.id.id,
+                        chain: assetIdentifier.chain.rawValue,
                         address: transaction.from,
                     )
                 }
@@ -42,9 +40,9 @@ public struct TransactionPostProcessingService: Sendable {
         case .earnDeposit, .earnWithdraw:
             for assetIdentifier in transaction.assetIds {
                 Task {
-                    try await earnService.update(
-                        walletId: wallet.id,
-                        assetId: assetIdentifier,
+                    try await stakeService.syncEarn(
+                        walletId: wallet.id.id,
+                        assetId: assetIdentifier.identifier,
                         address: transaction.from,
                     )
                 }

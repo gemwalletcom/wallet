@@ -1,26 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import GemstoneServices
 import Foundation
+import protocol Gemstone.GemStakeServiceProtocol
+import GemstonePrimitives
 import Localization
 import Primitives
 
 public final class AmountEarnViewModel: AmountDataProvidable {
     let asset: Asset
     let action: EarnType
-    private let earnService: any EarnDataProvidable
+    private let stakeService: any GemStakeServiceProtocol
     private let wallet: Wallet
 
     init(
         asset: Asset,
         action: EarnType,
-        earnService: any EarnDataProvidable,
+        stakeService: any GemStakeServiceProtocol,
         wallet: Wallet,
     ) {
         self.asset = asset
         self.action = action
-        self.earnService = earnService
+        self.stakeService = stakeService
         self.wallet = wallet
     }
 
@@ -82,12 +83,12 @@ public final class AmountEarnViewModel: AmountDataProvidable {
 
     func makeTransferData(amount: TransferAmountValue) async throws -> TransferData {
         let address = try wallet.account(for: asset.chain).address
-        let earnData = try await earnService.getEarnData(
-            assetId: asset.id,
+        let earnData = try await ContractCallData(stakeService.getEarnData(
+            assetId: asset.id.identifier,
             address: address,
             value: String(amount.value),
-            earnType: action,
-        )
+            earnType: action.json(),
+        ))
         return TransferData(
             type: .earn(asset, action, earnData),
             recipientData: RecipientData(

@@ -10,6 +10,7 @@ import ConnectionsService
 import ConnectionStatusService
 import ExplorerService
 import Foundation
+import protocol Gemstone.GemStakeServiceProtocol
 import GemAPI
 import GemAPIDevice
 import Gemstone
@@ -130,8 +131,7 @@ struct ServicesFactory {
             staticApi: gemStaticApiClient,
             store: GemstoneStakeStore(store: storeManager.stakeStore, addressStore: storeManager.addressStore),
         )
-        let earnService = EarnService(store: storeManager.stakeStore, service: gemStakeService, gatewayService: gatewayService)
-        let stakeService = StakeService(store: storeManager.stakeStore, service: gemStakeService)
+        let stakeService = gemStakeService
         let gemNftService = Gemstone.GemNftService(api: gemDeviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
         let nftService = NFTService(service: gemNftService)
         let transactionsService = TransactionsService(
@@ -142,7 +142,6 @@ struct ServicesFactory {
             transactionStore: storeManager.transactionStore,
             gatewayService: gatewayService,
             stakeService: stakeService,
-            earnService: earnService,
             nftService: nftService,
             balanceService: balanceService,
         )
@@ -351,8 +350,7 @@ struct ServicesFactory {
             priceUpdater: streamSubscriptionService,
             walletSessionService: walletSessionService,
             stakeService: stakeService,
-            earnService: earnService,
-            amountService: AmountService(earnDataProvider: earnService),
+            amountService: AmountService(stakeService: stakeService),
             nameService: GemstoneNameService(service: gemNameService),
             balanceService: balanceService,
             priceService: priceService,
@@ -473,8 +471,7 @@ extension ServicesFactory {
     private static func makeTransactionService(
         transactionStore: TransactionStore,
         gatewayService: GatewayService,
-        stakeService: StakeService,
-        earnService: EarnService,
+        stakeService: any GemStakeServiceProtocol,
         nftService: NFTService,
         balanceService: BalanceService,
     ) -> TransactionStateScheduler {
@@ -482,7 +479,6 @@ extension ServicesFactory {
             transactionStore: transactionStore,
             balanceUpdater: balanceService,
             stakeService: stakeService,
-            earnService: earnService,
             nftService: nftService,
         )
         let service = TransactionStateService(

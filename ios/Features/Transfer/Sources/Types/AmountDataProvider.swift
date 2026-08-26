@@ -26,7 +26,7 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         case let .perpetual(data):
             .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data))
         case let .earn(earnType):
-            .earn(AmountEarnViewModel(asset: input.asset, action: earnType, earnService: service.earnDataProvider, wallet: wallet))
+            .earn(AmountEarnViewModel(asset: input.asset, action: earnType, stakeService: service.stakeService, wallet: wallet))
         }
     }
 

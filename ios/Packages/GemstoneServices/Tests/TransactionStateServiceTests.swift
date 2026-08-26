@@ -112,8 +112,7 @@ struct TransactionStateServiceTests {
                     #expect(assetIds == [fromAsset, toAsset])
                     updatedBalances()
                 },
-                stakeService: .mock(),
-                earnService: .mock(),
+                stakeService: GemStakeServiceMock(),
                 nftService: .mock(),
             )
 
@@ -138,8 +137,7 @@ struct TransactionStateServiceTests {
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: .mock(),
             balanceUpdater: BalanceUpdaterMock(),
-            stakeService: .mock(),
-            earnService: .mock(),
+            stakeService: GemStakeServiceMock(),
             nftService: .mock(
                 service: GemNftServiceMock(assets: [nftData], store: GemstoneNftStore(store: nftStore)),
             ),
@@ -199,8 +197,7 @@ private extension TransactionStateServiceTests {
         let postProcessingService = TransactionPostProcessingService(
             transactionStore: store,
             balanceUpdater: balanceUpdater,
-            stakeService: .mock(),
-            earnService: .mock(),
+            stakeService: GemStakeServiceMock(),
             nftService: .mock(),
         )
         let service = TransactionStateService(

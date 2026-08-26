@@ -4,6 +4,7 @@ import com.gemwallet.android.cases.addresses.SaveAddressNames
 import com.gemwallet.android.data.repositories.gemstone.GemstoneStakeStore
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StakeDao
 import dagger.Module
 import dagger.Provides
@@ -20,7 +21,8 @@ import javax.inject.Singleton
 object StakeModule {
     @Singleton
     @Provides
-    fun provideGemStakeStore(stakeDao: StakeDao, saveAddressNames: SaveAddressNames): GemStakeStore = GemstoneStakeStore(stakeDao, saveAddressNames)
+    fun provideGemStakeStore(stakeDao: StakeDao, assetsDao: AssetsDao, saveAddressNames: SaveAddressNames): GemStakeStore =
+        GemstoneStakeStore(stakeDao, assetsDao, saveAddressNames)
 
     @Singleton
     @Provides

@@ -159,7 +159,6 @@ class StakeViewModel @Inject constructor(
                     walletId = walletId,
                     assetId = assetInfo.asset.id,
                     address = account.address,
-                    apr = assetInfo.metadata?.stakingApr ?: 0.0,
                 )
                 emit(false)
                 sync.update { false }

@@ -10,6 +10,7 @@ import ConnectionStatusService
 import Foundation
 import protocol Gemstone.GemChartServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
+import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemNotificationServiceProtocol
 import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import GRDB
@@ -42,7 +43,8 @@ extension EnvironmentValues {
     @Entry var assetsService: AssetsService = AppResolver.main.services.assetsService
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
     @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler
-    @Entry var stakeService: StakeService = AppResolver.main.services.stakeService
+    @Entry var stakeService: any GemStakeServiceProtocol = AppResolver.main.services.stakeService
+    @Entry var stakeStore: StakeStore = StoreManager(db: AppResolver.main.storages.db).stakeStore
     @Entry var connectionsService: ConnectionsService = AppResolver.main.services.connectionsService
     @Entry var connectionStatus: ConnectionStatusObserver = AppResolver.main.services.connectionStatusObserver
     @Entry var walletConnectorManager: WalletConnectorManager = AppResolver.main.services.walletConnectorManager

@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -16,7 +17,7 @@ import SwiftUI
 @MainActor
 @Observable
 public final class StakeSceneViewModel {
-    private let stakeService: any StakeServiceable
+    private let stakeService: any GemStakeServiceProtocol
 
     private var delegationsState: StateViewType<Bool> = .loading
     private let chain: StakeChain
@@ -48,7 +49,7 @@ public final class StakeSceneViewModel {
         wallet: Wallet,
         chain: StakeChain,
         currencyCode: String,
-        stakeService: any StakeServiceable,
+        stakeService: any GemStakeServiceProtocol,
     ) {
         self.wallet = wallet
         self.chain = chain
@@ -80,8 +81,7 @@ public final class StakeSceneViewModel {
     }
 
     var stakeAprModel: AprViewModel {
-        let apr = (try? stakeService.stakeApr(assetId: chain.chain.assetId)) ?? .zero
-        return AprViewModel(apr: apr)
+        AprViewModel(apr: assetData.metadata.stakingApr ?? .zero)
     }
 
     var resourcesTitle: String {
@@ -253,7 +253,7 @@ extension StakeSceneViewModel {
         delegationsState = .loading
         do {
             let account = try wallet.account(for: chain.chain)
-            try await stakeService.update(walletId: wallet.id, chain: chain.chain, address: account.address)
+            try await stakeService.sync(walletId: wallet.id.id, chain: chain.chain.rawValue, address: account.address)
             delegationsState = .data(true)
         } catch {
             debugLog("Stake scene fetch error: \(error)")

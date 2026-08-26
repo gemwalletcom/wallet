@@ -25,8 +25,8 @@ class StakeRepository(
 ) : SyncStakeDelegations {
     private val recommendedValidators by lazy { Config().getValidators() }
 
-    override suspend fun sync(walletId: WalletId, assetId: AssetId, address: String, apr: Double) = withContext(Dispatchers.IO) {
-        stakeService.sync(walletId.id, assetId.chain.string, address, apr)
+    override suspend fun sync(walletId: WalletId, assetId: AssetId, address: String) = withContext(Dispatchers.IO) {
+        stakeService.sync(walletId.id, assetId.chain.string, address)
     }
 
     fun getRecommendValidators(assetId: AssetId): List<String> {

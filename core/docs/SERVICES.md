@@ -63,7 +63,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`ContactService`](../../ios/Packages/GemstoneServices/Sources) | `GemContactService` | Done | Avatar files stay app-side; Android: `ContactsRepository` |
 | [`DeviceService`](../../ios/Packages/GemstoneServices/Sources) | `GemDeviceService` | Done | |
 | `DiscoverAssetsService` | `GemAssetDiscoveryService` | Done | Wrapper removed; view models call the Core service directly |
-| [`EarnService`](../../ios/Packages/GemstoneServices/Sources) | `GemStakeService` | Done | Earn positions sync via `sync_earn`; Android has no earn UI yet |
+| `EarnService` | `GemStakeService` | Done | Wrapper removed; `sync_earn` and `get_earn_data` on the Core service, APR read from `GemStakeStore`; Android has no earn UI yet |
 | [`FiatService`](../../ios/Packages/GemstoneServices/Sources) | `GemFiatService` | Done | Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
 | [`NFTService`](../../ios/Packages/GemstoneServices/Sources) | `GemNftService` | Done | |
 | `InAppNotificationService` | `GemNotificationService` | Done | Wrapper removed; view models call the Core service directly |
@@ -82,7 +82,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`ChainServices/ChainService`](../../ios/Packages/ChainServices/ChainService) | `GemGateway` | Done | Thin factory over the Core gateway |
 | [`ChainServices/ExplorerService`](../../ios/Packages/ChainServices/ExplorerService) | `Explorer` | Done | Explorer URLs from Core; selected explorer preference app-side |
 | [`NodeService`](../../ios/Packages/GemstoneServices/Sources) | `GemNodeService` | Done | |
-| [`StakeService`](../../ios/Packages/GemstoneServices/Sources) | `GemStakeService` | Done | |
+| `StakeService` | `GemStakeService` | Done | Wrapper removed; view models call `sync` on the Core service, APR read from `GemStakeStore` |
 | [`ChainServices/WalletConnectorService`](../../ios/Packages/ChainServices/WalletConnectorService) | — | App-only | WalletConnect SDK bridge |
 | [`SystemServices`](../../ios/Packages/SystemServices) | — | App-only | Connectivity, image gallery, local store |
 

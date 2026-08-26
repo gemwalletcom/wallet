@@ -9,6 +9,7 @@ use primitives::{AssetId, Chain, DelegationValidator, StakeProviderType, WalletI
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
+use crate::models::{GemContractCallData, GemEarnType};
 
 pub use store::GemStakeStore;
 
@@ -26,18 +27,24 @@ impl GemStakeService {
         Self { gateway, static_api, store }
     }
 
-    pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String, apr: f64) -> Result<(), GemServiceError> {
+    pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
+        let apr = self.store.get_apr(AssetId::from_chain(chain), StakeProviderType::Stake).await?.unwrap_or_default();
         let names = self.sync_validators(chain, &address, apr).await?;
         self.sync_delegations(wallet_id, chain, &address, &names).await
     }
 
-    pub async fn sync_earn(&self, wallet_id: WalletId, asset_id: AssetId, address: String, apr: f64) -> Result<(), GemServiceError> {
+    pub async fn sync_earn(&self, wallet_id: WalletId, asset_id: AssetId, address: String) -> Result<(), GemServiceError> {
+        let apr = self.store.get_apr(asset_id.clone(), StakeProviderType::Earn).await?.unwrap_or_default();
         let providers = rules::earn_validators(self.gateway.get_earn_providers(asset_id.clone()), apr);
         self.store.save_validators(providers).await?;
         let positions = self.gateway.get_earn_positions(address, asset_id.clone()).await;
         let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id, StakeProviderType::Earn).await?;
         let delete_ids = rules::stale_delegation_ids(existing_ids, &positions);
         self.store.update_delegations(wallet_id, positions, delete_ids).await
+    }
+
+    pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GemServiceError> {
+        Ok(self.gateway.get_earn_data(asset_id, address, value, earn_type).await?)
     }
 }
 

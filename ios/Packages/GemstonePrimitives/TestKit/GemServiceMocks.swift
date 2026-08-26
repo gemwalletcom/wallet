@@ -329,11 +329,19 @@ public final class GemAuthServiceMock: GemAuthServiceProtocol, @unchecked Sendab
 }
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
-    public init() {}
+    private let earnData: String
 
-    public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String, apr _: Double) async throws {}
+    public init(earnData: String = "{}") {
+        self.earnData = earnData
+    }
 
-    public func syncEarn(walletId _: String, assetId _: Gemstone.AssetId, address _: String, apr _: Double) async throws {}
+    public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}
+
+    public func syncEarn(walletId _: String, assetId _: Gemstone.AssetId, address _: String) async throws {}
+
+    public func getEarnData(assetId _: Gemstone.AssetId, address _: String, value _: String, earnType _: Gemstone.EarnType) async throws -> Gemstone.ContractCallData {
+        earnData
+    }
 }
 
 public final class GemTransactionStateServiceMock: GemTransactionStateServiceProtocol, @unchecked Sendable {

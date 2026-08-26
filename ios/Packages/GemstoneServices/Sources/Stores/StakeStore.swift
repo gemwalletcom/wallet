@@ -20,6 +20,14 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
         self.addressStore = addressStore
     }
 
+    public func getApr(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> Double? {
+        let assetId = try Primitives.AssetId(id: assetId)
+        switch try Primitives.StakeProviderType(providerType) {
+        case .stake: return try store.getStakeApr(assetId: assetId)
+        case .earn: return try store.getEarnApr(assetId: assetId)
+        }
+    }
+
     public func getValidators(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [Gemstone.DelegationValidator] {
         try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: Primitives.StakeProviderType(providerType)).map { try $0.json() }
     }

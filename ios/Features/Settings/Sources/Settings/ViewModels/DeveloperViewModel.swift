@@ -9,6 +9,7 @@ import Localization
 import Preferences
 import Primitives
 import PrimitivesComponents
+import Store
 import SwiftUI
 
 @Observable
@@ -17,7 +18,7 @@ public final class DeveloperViewModel {
     private let walletId: WalletId
     private let transactionsService: TransactionsService
     private let assetService: AssetsService
-    private let stakeService: StakeService
+    private let stakeStore: StakeStore
     private let bannerService: BannerService
     private let priceService: PriceService
     private let perpetualService: PerpetualService
@@ -28,7 +29,7 @@ public final class DeveloperViewModel {
         walletId: WalletId,
         transactionsService: TransactionsService,
         assetService: AssetsService,
-        stakeService: StakeService,
+        stakeStore: StakeStore,
         bannerService: BannerService,
         priceService: PriceService,
         perpetualService: PerpetualService,
@@ -36,7 +37,7 @@ public final class DeveloperViewModel {
         self.walletId = walletId
         self.transactionsService = transactionsService
         self.assetService = assetService
-        self.stakeService = stakeService
+        self.stakeStore = stakeStore
         self.bannerService = bannerService
         self.priceService = priceService
         self.perpetualService = perpetualService
@@ -107,13 +108,13 @@ public final class DeveloperViewModel {
 
     func clearDelegations() {
         performAction {
-            try stakeService.clearDelegations()
+            try stakeStore.clearDelegations()
         }
     }
 
     func clearValidators() {
         performAction {
-            try stakeService.clearValidators()
+            try stakeStore.clearValidators()
         }
     }
 

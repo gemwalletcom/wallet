@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.cases.addresses.SaveAddressNames
+import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
@@ -17,8 +18,17 @@ import uniffi.gemstone.GemStakeStore
 
 class GemstoneStakeStore(
     private val stakeDao: StakeDao,
+    private val assetsDao: AssetsDao,
     private val saveAddressNames: SaveAddressNames,
 ) : GemStakeStore {
+
+    override suspend fun getApr(assetId: String, providerType: String): Double? {
+        val asset = assetsDao.getAsset(assetId).first() ?: return null
+        return when (providerType.decodeJson<StakeProviderType>()) {
+            StakeProviderType.Stake -> asset.stakingApr
+            StakeProviderType.Earn -> null
+        }
+    }
 
     override suspend fun getValidators(assetId: String, providerType: String): List<String> {
         val id = assetId.toAssetId() ?: return emptyList()
