@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.nft.presents
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,20 +12,16 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.cases.nft.NftError
 import com.gemwallet.android.features.nft.presents.components.NFTItem
+import com.gemwallet.android.features.nft.viewmodels.NftListMode
 import com.gemwallet.android.features.nft.viewmodels.NftListViewModels
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -48,18 +43,16 @@ import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
 fun NftListNavScreen(
-    cancelAction: CancelAction?,
+    cancelAction: CancelAction,
     collectionAction: NftCollectionIdAction,
     assetAction: NftAssetIdAction,
-    onReceive: (() -> Unit)? = null,
+    onReceive: () -> Unit,
+    onUnverified: () -> Unit,
     listState: LazyGridState = rememberLazyGridState(),
-    title: String = stringResource(R.string.nft_collections),
-    onUnverifiedClick: (() -> Unit)? = null,
     viewModel: NftListViewModels = hiltViewModel(),
 ) {
     val items by viewModel.collections.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
     val unverifiedCount by viewModel.unverifiedCount.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
 
@@ -70,19 +63,15 @@ fun NftListNavScreen(
     NftListScene(
         items = items,
         isRefreshing = isRefreshing,
-        error = error,
         unverifiedCount = unverifiedCount,
-        title = title,
-        showCloseAction = cancelAction != null,
-        showReceiveAction = onReceive != null,
-        showUnverifiedAction = onUnverifiedClick != null,
+        mode = viewModel.mode,
         listState = listState,
         onAction = { action ->
             when (action) {
                 NftListAction.Refresh -> viewModel.refresh()
-                NftListAction.Close -> cancelAction?.invoke()
-                NftListAction.Receive -> onReceive?.invoke()
-                NftListAction.OpenUnverified -> onUnverifiedClick?.invoke()
+                NftListAction.Close -> cancelAction()
+                NftListAction.Receive -> onReceive()
+                NftListAction.OpenUnverified -> onUnverified()
                 is NftListAction.OpenCollection -> collectionAction(action.collectionId)
                 is NftListAction.OpenAsset -> assetAction(action.assetId)
             }
@@ -94,15 +83,27 @@ fun NftListNavScreen(
 internal fun NftListScene(
     items: List<NftItemUIModel>,
     isRefreshing: Boolean,
-    error: NftError?,
     unverifiedCount: Int,
-    title: String,
-    showCloseAction: Boolean,
-    showReceiveAction: Boolean,
-    showUnverifiedAction: Boolean,
+    mode: NftListMode,
     listState: LazyGridState = rememberLazyGridState(),
     onAction: (NftListAction) -> Unit,
 ) {
+    val showReceiveAction = when (mode) {
+        NftListMode.Collections,
+        is NftListMode.Collection -> true
+        NftListMode.Unverified -> false
+    }
+    val showUnverifiedAction = when (mode) {
+        NftListMode.Collections -> true
+        is NftListMode.Collection,
+        NftListMode.Unverified -> false
+    }
+    val title = when (mode) {
+        NftListMode.Collections,
+        is NftListMode.Collection -> stringResource(R.string.nft_collections)
+        NftListMode.Unverified -> stringResource(R.string.asset_verification_unverified)
+    }
+
     Scene(
         title = title,
         actions = {
@@ -115,37 +116,13 @@ internal fun NftListScene(
                 }
             }
         },
-        onClose = if (showCloseAction) {
-            { onAction(NftListAction.Close) }
-        } else {
-            null
-        }
+        onClose = { onAction(NftListAction.Close) },
     ) {
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             isRefreshing = isRefreshing,
             onRefresh = { onAction(NftListAction.Refresh) },
         ) {
-            val currentError = error
-            if (currentError != null) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            textAlign = TextAlign.Center,
-                            text = when (currentError) {
-                                NftError.LoadError -> stringResource(R.string.errors_error_occurred)
-                                NftError.NotFoundAsset -> currentError.message.orEmpty()
-                                NftError.NotFoundCollection -> currentError.message.orEmpty()
-                            }
-                        )
-                        TextButton(onClick = { onAction(NftListAction.Refresh) }) {
-                            Text(stringResource(R.string.common_try_again))
-                        }
-                    }
-                }
-                return@PullToRefreshBox
-            }
-
             val showUnverifiedRow = showUnverifiedAction && unverifiedCount > 0
 
             if (items.isEmpty() && !showUnverifiedRow) {
