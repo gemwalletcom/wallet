@@ -4,15 +4,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.presents.views.SelectReceiveScreen
+import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
 import com.gemwallet.android.features.receive.presents.ReceiveScreen
 import com.gemwallet.android.ui.components.PortraitOrientationLock
 import com.gemwallet.android.ui.components.QrCodeRequest
@@ -37,6 +40,11 @@ fun ScanReceiveModal(
     ) {
         PortraitOrientationLock()
 
+        val assetSelectViewModel: AssetSelectViewModel = hiltViewModel()
+        DisposableEffect(Unit) {
+            onDispose { assetSelectViewModel.reset() }
+        }
+
         var mode by rememberSaveable { mutableStateOf(ScanReceiveMode.Scan) }
         var receiveAssetId by rememberSaveable { mutableStateOf<String?>(null) }
         var isReceivePresented by rememberSaveable { mutableStateOf(false) }
@@ -49,6 +57,7 @@ fun ScanReceiveModal(
                     onResult = onScan,
                 )
                 ScanReceiveMode.Receive -> SelectReceiveScreen(
+                    viewModel = assetSelectViewModel,
                     onCancel = onDismissRequest,
                     onSelect = {
                         receiveAssetId = it.toIdentifier()
