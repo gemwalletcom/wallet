@@ -312,8 +312,10 @@ struct ServicesFactory {
             searchStore: storeManager.searchStore,
         )
         let inAppNotificationService = InAppNotificationService(
-            apiService: Gemstone.GemNotificationService(api: gemDeviceApiClient),
-            store: storeManager.inAppNotificationStore,
+            service: Gemstone.GemNotificationService(
+                api: gemDeviceApiClient,
+                store: GemstoneNotificationStore(store: storeManager.inAppNotificationStore),
+            ),
         )
 
         let contactService = ContactService(store: storeManager.contactStore, addressStore: storeManager.addressStore)

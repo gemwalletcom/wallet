@@ -213,15 +213,9 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
 }
 
 public final class GemNotificationServiceMock: GemNotificationServiceProtocol, @unchecked Sendable {
-    private let notifications: [Primitives.InAppNotification]
+    public init() {}
 
-    public init(notifications: [Primitives.InAppNotification] = []) {
-        self.notifications = notifications
-    }
-
-    public func getNotifications(fromTimestamp _: UInt64) async throws -> [Gemstone.InAppNotification] {
-        try notifications.map { try $0.json() }
-    }
+    public func sync(walletId _: String) async throws {}
 
     public func markRead() async throws {}
 }

@@ -28,7 +28,7 @@ pub use device::GemDeviceService;
 pub use fiat::GemFiatService;
 pub use name::GemNameService;
 pub use nft::GemNftService;
-pub use notification::GemNotificationService;
+pub use notification::{GemNotificationService, GemNotificationStore};
 pub use portfolio::GemPortfolioService;
 pub use price::GemPriceService;
 pub use price_alert::GemPriceAlertService;
