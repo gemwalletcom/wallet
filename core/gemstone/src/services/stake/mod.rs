@@ -64,7 +64,12 @@ impl GemStakeService {
         );
         let validators = rules::merge_validators(validators?, delegation_validators?, &names);
         if !validators.is_empty() {
+            let asset_id = AssetId::from_chain(chain);
+            let stale_ids = rules::stale_validator_ids(self.store.get_validators(asset_id.clone(), StakeProviderType::Stake).await?, &validators);
             self.store.save_validators(validators.clone()).await?;
+            if !stale_ids.is_empty() {
+                self.store.deactivate_validators(asset_id, stale_ids).await?;
+            }
             self.store.save_address_names(rules::validator_address_names(&validators)).await?;
         }
         Ok(names)
@@ -142,6 +147,16 @@ mod tests {
         assert_eq!(missing[0].id, "gone");
         assert_eq!(missing[0].name, "Gone");
         assert!(!missing[0].is_active);
+    }
+
+    #[test]
+    fn test_stale_validator_ids_returns_only_ids_missing_from_the_response() {
+        let existing = vec![validator("kept", true), validator("gone", true)];
+        let incoming = vec![validator("kept", true), validator("fresh", true)];
+
+        assert_eq!(stale_validator_ids(existing, &incoming), vec!["gone".to_string()]);
+        assert!(stale_validator_ids(vec![validator("kept", true)], &[validator("kept", true)]).is_empty());
+        assert!(stale_validator_ids(vec![validator("gone", false)], &[validator("kept", true)]).is_empty());
     }
 
     #[test]

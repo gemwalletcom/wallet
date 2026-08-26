@@ -85,6 +85,20 @@ public struct StakeStore: Sendable {
         }
     }
 
+    @discardableResult
+    public func deactivateValidators(assetId: AssetId, validatorIds: [String]) throws -> Int {
+        try db.write { db in
+            try StakeValidatorRecord
+                .filter(StakeValidatorRecord.Columns.assetId == assetId.identifier)
+                .filter(validatorIds.contains(StakeValidatorRecord.Columns.validatorId))
+                .updateAll(
+                    db,
+                    StakeValidatorRecord.Columns.isActive.set(to: false),
+                    StakeValidatorRecord.Columns.apr.set(to: 0),
+                )
+        }
+    }
+
     public func getDelegations(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType) throws -> [Delegation] {
         try db.read { db in
             try DelegationsRequest(walletId: walletId, assetId: assetId, providerType: providerType).fetch(db)

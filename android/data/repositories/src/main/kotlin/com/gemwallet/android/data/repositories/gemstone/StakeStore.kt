@@ -38,6 +38,14 @@ class GemstoneStakeStore(
     override suspend fun saveValidators(validators: List<String>) =
         stakeDao.upsertValidators(validators.map { it.decodeJson<DelegationValidator>() }.toRecord())
 
+    override suspend fun deactivateValidators(assetId: String, validatorIds: List<String>) {
+        if (validatorIds.isEmpty()) {
+            return
+        }
+        val id = assetId.toAssetId() ?: return
+        stakeDao.deactivateValidators(id, validatorIds)
+    }
+
     override suspend fun getDelegationIds(walletId: String, assetId: String, providerType: String): List<String> {
         val id = assetId.toAssetId() ?: return emptyList()
         return stakeDao.getDelegationIds(WalletId(walletId), id)
