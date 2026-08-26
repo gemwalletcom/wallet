@@ -215,7 +215,6 @@ private fun ReferralScenePreview() {
             inSync = SyncType.None,
             isAvailableWalletSelect = false,
             rewards = Rewards(
-            referralLink = null,
                 code = "testuser",
                 referralCount = 5,
                 points = 1000,
@@ -223,6 +222,7 @@ private fun ReferralScenePreview() {
                 status = RewardStatus.Verified,
                 redemptionOptions = emptyList(),
             ),
+            referralLink = null,
             uiState = RewardsUIState(canInvite = true, isUnverified = false, hasPendingReferral = false, canActivatePendingReferral = false),
             currentWallet = Wallet(
                 id = WalletId("1"),
