@@ -28,7 +28,6 @@ import WalletConnector
 extension AppResolver {
     struct Services {
         // Environment-level services
-        let assetsService: AssetsService
         let balanceService: any GemBalanceServiceProtocol
         let bannerService: BannerService
         let chainServiceFactory: ChainServiceFactory

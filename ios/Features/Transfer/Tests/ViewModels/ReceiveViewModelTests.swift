@@ -31,7 +31,7 @@ struct ReceiveViewModelTests {
             ),
             wallet: wallet,
             assetsEnabler: .mock(),
-            assetsService: .mock(),
+            assetsService: GemAssetsServiceMock(),
         )
 
         #expect(model.networkAssetIds == [tronAsset.id, ethereumAsset.id])

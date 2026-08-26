@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAssetsServiceProtocol
 import GemstonePrimitives
 import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
@@ -55,7 +56,7 @@ extension NavigationPresenter {
         from fromAssetId: AssetId,
         to toAssetId: AssetId?,
         wallet: Wallet,
-        assetsService: AssetsService,
+        assetsService: any GemAssetsServiceProtocol,
     ) async throws {
         let fromAsset = try await assetsService.getOrFetchAsset(for: fromAssetId)
         let toAsset: Asset? = if let toAssetId {
@@ -70,7 +71,7 @@ extension NavigationPresenter {
         _ action: TransactionHeaderAction,
         wallet: Wallet,
         navigationState: NavigationStateManager,
-        assetsService: AssetsService,
+        assetsService: any GemAssetsServiceProtocol,
         nftService: any GemNftServiceProtocol,
         nftDestination: NavigationPathState,
     ) async throws {

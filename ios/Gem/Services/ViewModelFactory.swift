@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
@@ -48,7 +49,8 @@ public struct ViewModelFactory: Sendable {
     let activityService: ActivityService
     let toastPresenter: ToastPresenter
     let fiatService: any GemFiatServiceProtocol
-    let assetsService: AssetsService
+    let assetsService: any GemAssetsServiceProtocol
+    let assetStore: AssetStore
     let assetSearchService: AssetSearchService
     let priceAlertService: PriceAlertService
     let walletSearchService: WalletSearchService
@@ -115,6 +117,7 @@ public struct ViewModelFactory: Sendable {
                 assetsEnabler: assetsEnabler,
                 gemConfirmService: gemConfirmService,
                 balanceStore: balanceStore,
+                assetStore: assetStore,
                 assetsService: assetsService,
                 priceStore: priceStore,
                 transactionStateScheduler: transactionStateScheduler,

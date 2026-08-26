@@ -102,13 +102,6 @@ struct ServicesFactory {
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration), url: Constants.apiURL),
         )
         let chainServiceFactory = ChainServiceFactory(gatewayService: gatewayService)
-        let assetsService = AssetsService(
-            assetStore: storeManager.assetStore,
-            balanceStore: storeManager.balanceStore,
-            chainServiceFactory: chainServiceFactory,
-            assetsProvider: gemAssetsService,
-        )
-
         let avatarService = AvatarService(store: storeManager.walletStore)
 
         let gemWalletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: storages.observablePreferences), wallets: gemWalletStore)
@@ -265,7 +258,7 @@ struct ServicesFactory {
             assetsProvider: gemAssetsService,
             nodeService: nodeService,
             preferences: preferences,
-            assetsService: assetsService,
+            assetStore: storeManager.assetStore,
             bannerSetupService: bannerSetupService,
             configService: configService,
             swappableChainsProvider: swapService,
@@ -294,7 +287,8 @@ struct ServicesFactory {
         let navigationHandler = NavigationHandler(
             navigationState: navigation,
             presenter: navigationPresenter,
-            assetsService: assetsService,
+            assetsService: gemAssetsService,
+            assetStore: storeManager.assetStore,
             connectionsService: connectionsService,
             toastPresenter: toastPresenter,
             paymentService: paymentService,
@@ -303,16 +297,17 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
         )
         let walletSearchService = WalletSearchService(
-            assetsService: assetsService,
+            assetsService: gemAssetsService,
+            assetStore: storeManager.assetStore,
             searchStore: storeManager.searchStore,
             perpetualStore: storeManager.perpetualStore,
             assetListStore: storeManager.assetListStore,
             priceService: priceService,
             preferences: preferences,
-            searchProvider: gemAssetsService,
         )
         let assetSearchService = AssetSearchService(
-            assetsService: assetsService,
+            assetsService: gemAssetsService,
+            assetStore: storeManager.assetStore,
             searchStore: storeManager.searchStore,
         )
         let inAppNotificationService = Gemstone.GemNotificationService(
@@ -369,7 +364,8 @@ struct ServicesFactory {
             activityService: activityService,
             toastPresenter: toastPresenter,
             fiatService: fiatService,
-            assetsService: assetsService,
+            assetsService: gemAssetsService,
+            assetStore: storeManager.assetStore,
             assetSearchService: assetSearchService,
             priceAlertService: priceAlertService,
             walletSearchService: walletSearchService,
@@ -377,7 +373,6 @@ struct ServicesFactory {
         )
 
         return AppResolver.Services(
-            assetsService: assetsService,
             balanceService: balanceService,
             bannerService: bannerService,
             chainServiceFactory: chainServiceFactory,
@@ -532,7 +527,7 @@ extension ServicesFactory {
         assetsProvider: any Gemstone.GemAssetsServiceProtocol,
         nodeService: NodeService,
         preferences: Preferences,
-        assetsService: AssetsService,
+        assetStore: AssetStore,
         bannerSetupService: BannerSetupService,
         configService: ConfigService,
         swappableChainsProvider: any SwappableChainsProvider,
@@ -544,7 +539,7 @@ extension ServicesFactory {
                 AssetsUpdateRunner(
                     configService: configService,
                     assetsProvider: assetsProvider,
-                    assetsService: assetsService,
+                    assetStore: assetStore,
                     swappableChainsProvider: swappableChainsProvider,
                 ),
             ],

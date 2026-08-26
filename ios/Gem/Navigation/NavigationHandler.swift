@@ -5,6 +5,7 @@ import GemstoneServices
 import Components
 import ConnectionsService
 import Foundation
+import protocol Gemstone.GemAssetsServiceProtocol
 import class Gemstone.PaymentService
 import GemstonePrimitives
 import Localization
@@ -19,7 +20,8 @@ final class NavigationHandler: Sendable {
     private let navigationState: NavigationStateManager
     private let presenter: NavigationPresenter
 
-    private let assetsService: AssetsService
+    private let assetsService: any GemAssetsServiceProtocol
+    private let assetStore: AssetStore
     private let connectionsService: ConnectionsService
     private let toastPresenter: ToastPresenter
     private let paymentService: PaymentService
@@ -30,7 +32,8 @@ final class NavigationHandler: Sendable {
     init(
         navigationState: NavigationStateManager,
         presenter: NavigationPresenter,
-        assetsService: AssetsService,
+        assetsService: any GemAssetsServiceProtocol,
+        assetStore: AssetStore,
         connectionsService: ConnectionsService,
         toastPresenter: ToastPresenter,
         paymentService: PaymentService,
@@ -41,6 +44,7 @@ final class NavigationHandler: Sendable {
         self.navigationState = navigationState
         self.presenter = presenter
         self.assetsService = assetsService
+        self.assetStore = assetStore
         self.connectionsService = connectionsService
         self.toastPresenter = toastPresenter
         self.paymentService = paymentService
@@ -138,7 +142,7 @@ extension NavigationHandler {
         guard let wallet = walletSessionService.currentWallet else { return }
         switch payment {
         case let .request(request):
-            let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [])
+            let assets = try assetStore.getAssetsData(walletId: wallet.id, filters: [])
             presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets)
         case let .link(link):
             toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
@@ -271,7 +275,7 @@ extension NavigationHandler {
             return nil
         }
         let asset = try await assetsService.getOrFetchAsset(for: assetId)
-        try assetsService.addBalancesIfMissing(walletId: wallet.id, assetIds: [asset.id])
+        try await assetsService.addMissingBalances(walletId: wallet.id, assetIds: [asset.id])
         return asset
     }
 

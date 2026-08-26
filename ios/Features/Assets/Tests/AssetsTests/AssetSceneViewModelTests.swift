@@ -104,7 +104,7 @@ extension AssetSceneViewModel {
         let model = AssetSceneViewModel(
             assetsEnabler: .mock(),
             balanceService: GemBalanceServiceMock(),
-            assetsService: .mock(),
+            assetsService: GemAssetsServiceMock(),
             transactionsService: GemTransactionsServiceMock(),
             priceUpdater: .mock(),
             priceAlertService: .mock(),

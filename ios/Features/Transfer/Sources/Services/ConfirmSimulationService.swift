@@ -1,22 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import protocol Gemstone.GemNameServiceProtocol
-import GemstoneServices
 import BigInt
+import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import Store
 
 public struct ConfirmSimulationService: Sendable {
     private let nameService: any GemNameServiceProtocol
-    private let assetsService: AssetsService
+    private let assetsService: any GemAssetsServiceProtocol
+    private let assetStore: AssetStore
 
     public init(
         nameService: any GemNameServiceProtocol,
-        assetsService: AssetsService,
+        assetsService: any GemAssetsServiceProtocol,
+        assetStore: AssetStore,
     ) {
         self.nameService = nameService
         self.assetsService = assetsService
+        self.assetStore = assetStore
     }
 
     func makeState(data: TransferData, simulation: SimulationResult?) -> ConfirmSimulationState {
@@ -35,7 +39,7 @@ public struct ConfirmSimulationService: Sendable {
         let addressRequests = payload.addressRequests
         async let names = nameService.addressNames(requests: addressRequests)
         do {
-            try await assetsService.prefetchAssets(assetIds: simulation?.simulationAssetIds ?? [])
+            try await assetsService.prefetchAssets(for: simulation?.simulationAssetIds ?? [])
         } catch {
             debugLog("simulation asset prefetch error: \(error)")
         }
@@ -131,7 +135,7 @@ private extension ConfirmSimulationService {
         guard let simulation else {
             return [:]
         }
-        let assets = (try? assetsService.getAssets(for: simulation.simulationAssetIds)) ?? []
+        let assets = (try? assetStore.getAssets(for: simulation.simulationAssetIds.ids)) ?? []
         return Dictionary(uniqueKeysWithValues: assets.map { ($0.id, $0) })
     }
 

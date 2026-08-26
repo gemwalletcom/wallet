@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemTransactionsServiceProtocol
-import protocol Gemstone.GemBalanceServiceProtocol
-import GemstoneServices
 import Components
+import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemTransactionsServiceProtocol
+import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitives
 import Localization
@@ -20,7 +21,7 @@ import UIKit
 public final class AssetSceneViewModel: Sendable {
     private let assetsEnabler: any AssetsEnabler
     private let balanceService: any GemBalanceServiceProtocol
-    private let assetsService: AssetsService
+    private let assetsService: any GemAssetsServiceProtocol
     private let transactionsService: any GemTransactionsServiceProtocol
     private let priceUpdater: any PriceUpdater
     private let bannerService: BannerService
@@ -43,7 +44,7 @@ public final class AssetSceneViewModel: Sendable {
     public init(
         assetsEnabler: any AssetsEnabler,
         balanceService: any GemBalanceServiceProtocol,
-        assetsService: AssetsService,
+        assetsService: any GemAssetsServiceProtocol,
         transactionsService: any GemTransactionsServiceProtocol,
         priceUpdater: any PriceUpdater,
         priceAlertService: PriceAlertService,
@@ -553,8 +554,8 @@ extension AssetSceneViewModel {
     private func updateAssetData() async {
         let associations: [AssetAssociation]
         do {
-            let asset = try await assetsService.updateAsset(
-                assetId: assetModel.asset.id,
+            let asset = try await assetsService.syncAsset(
+                for: assetModel.asset.id,
                 currency: preferences.preferences.currency,
             )
             associations = asset.associations
@@ -565,7 +566,7 @@ extension AssetSceneViewModel {
         }
 
         do {
-            try await assetsService.prefetchAssets(assetIds: associations.map(\.assetId))
+            try await assetsService.prefetchAssets(for: associations.map(\.assetId))
         } catch {
             debugLog("asset scene: prefetch associations error \(error)")
         }

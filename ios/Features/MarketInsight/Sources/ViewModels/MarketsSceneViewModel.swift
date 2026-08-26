@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Components
 import Foundation
+import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
 import GemstonePrimitives
 import Primitives
@@ -14,11 +14,11 @@ public final class MarketsSceneViewModel: Sendable {
     var state: StateViewType<MarketsViewModel> = .noData
 
     let service: any GemPriceServiceProtocol
-    let assetsService: AssetsService
+    let assetsService: any GemAssetsServiceProtocol
 
     public init(
         service: any GemPriceServiceProtocol,
-        assetsService: AssetsService,
+        assetsService: any GemAssetsServiceProtocol,
     ) {
         self.service = service
         self.assetsService = assetsService
@@ -32,7 +32,7 @@ public final class MarketsSceneViewModel: Sendable {
                 .compactMap(\.self)
                 .flatMap(\.self)
 
-            try await assetsService.prefetchAssets(assetIds: assets)
+            try await assetsService.prefetchAssets(for: assets)
 
             state = .data(MarketsViewModel(markets: markets))
         } catch {

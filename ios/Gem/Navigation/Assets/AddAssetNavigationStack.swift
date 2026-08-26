@@ -11,7 +11,7 @@ struct AddAssetNavigationStack: View {
     let wallet: Wallet
     @Environment(\.gatewayService) private var gatewayService
     @Environment(\.explorerService) private var explorerService
-    @Environment(\.assetsService) private var assetsService
+    @Environment(\.assetStore) private var assetStore
     @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.dismiss) private var dismiss
 
@@ -42,7 +42,7 @@ extension AddAssetNavigationStack {
     private func addAsset(_ asset: Asset) {
         Task {
             do {
-                try assetsService.addAssets(assets: [asset.defaultBasic])
+                try assetStore.add(assets: [asset.defaultBasic])
                 try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
             } catch {
                 debugLog("AddAssetNavigationStack add asset error: \(error)")

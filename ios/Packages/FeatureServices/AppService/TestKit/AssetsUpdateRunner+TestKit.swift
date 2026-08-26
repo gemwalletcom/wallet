@@ -7,18 +7,20 @@ import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import Primitives
 import PrimitivesTestKit
+import Store
+import StoreTestKit
 
 public extension AssetsUpdateRunner {
     static func mock(
         configService: ConfigService = .mock(),
         assetsProvider: any GemAssetsServiceProtocol = GemAssetsServiceMock(),
-        assetsService: AssetsService = .mock(),
+        assetStore: AssetStore = .mock(),
         swappableChainsProvider: any SwappableChainsProvider = SwappableChainsProviderMock.mock(),
     ) -> AssetsUpdateRunner {
         AssetsUpdateRunner(
             configService: configService,
             assetsProvider: assetsProvider,
-            assetsService: assetsService,
+            assetStore: assetStore,
             swappableChainsProvider: swappableChainsProvider,
         )
     }

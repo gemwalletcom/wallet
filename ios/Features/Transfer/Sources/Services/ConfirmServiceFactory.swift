@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Store
+import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import ActivityService
 import GemstoneServices
@@ -19,7 +20,8 @@ public enum ConfirmServiceFactory {
         assetsEnabler: any AssetsEnabler,
         gemConfirmService: GemConfirmService,
         balanceStore: BalanceStore,
-        assetsService: AssetsService,
+        assetStore: AssetStore,
+        assetsService: any GemAssetsServiceProtocol,
         priceStore: PriceStore,
         transactionStateScheduler: TransactionStateScheduler,
         nameService: any GemNameServiceProtocol,
@@ -39,11 +41,12 @@ public enum ConfirmServiceFactory {
                 transferTransactionProvider: TransferTransactionProvider(
                     confirmService: gemConfirmService,
                 ),
-                feeAssetProvider: FeeAssetProvider(assetStore: assetsService.assetStore),
+                feeAssetProvider: FeeAssetProvider(assetStore: assetStore),
             ),
             simulationService: ConfirmSimulationService(
                 nameService: nameService,
                 assetsService: assetsService,
+                assetStore: assetStore,
             ),
             transferExecutor: TransferExecutor(
                 signer: TransactionSigner(keystore: keystore),

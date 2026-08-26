@@ -9,38 +9,38 @@ import Primitives
 import Store
 
 public struct WalletSearchService: Sendable {
-    private let assetsService: AssetsService
+    private let assetsService: any GemAssetsServiceProtocol
+    private let assetStore: AssetStore
     private let searchStore: SearchStore
     private let perpetualStore: PerpetualStore
     private let assetListStore: AssetListStore
     private let priceService: any GemPriceServiceProtocol
     private let preferences: Preferences
-    private let searchProvider: any GemAssetsServiceProtocol
 
     public init(
-        assetsService: AssetsService,
+        assetsService: any GemAssetsServiceProtocol,
+        assetStore: AssetStore,
         searchStore: SearchStore,
         perpetualStore: PerpetualStore,
         assetListStore: AssetListStore,
         priceService: any GemPriceServiceProtocol,
         preferences: Preferences,
-        searchProvider: any GemAssetsServiceProtocol,
     ) {
         self.assetsService = assetsService
+        self.assetStore = assetStore
         self.searchStore = searchStore
         self.perpetualStore = perpetualStore
         self.assetListStore = assetListStore
         self.priceService = priceService
         self.preferences = preferences
-        self.searchProvider = searchProvider
     }
 
     public func search(wallet: Wallet, query: String, scope: WalletSearchTag = .all) async throws {
         let scopeChains = WalletSearchScope.chains(for: wallet)
         let chains = scope.isAll ? (scopeChains.isEmpty ? Chain.allCases : scopeChains) : []
 
-        async let networkAssets = assetsService.searchNetworkAsset(tokenId: query, chains: chains)
-        async let searchResult = try SearchResponse(searchProvider.search(query: query, chains: scopeChains.map(\.rawValue), tags: [scope.apiTag].compactMap(\.self)))
+        async let networkAssets = assetsService.searchTokens(tokenId: query, chains: chains)
+        async let searchResult = try SearchResponse(assetsService.search(query: query, chains: scopeChains.map(\.rawValue), tags: [scope.apiTag].compactMap(\.self)))
         let assets = try await searchResult.assets + networkAssets
 
         let searchKey = scope.searchKey(query: query)
@@ -56,14 +56,14 @@ public struct WalletSearchService: Sendable {
 
 private extension WalletSearchService {
     func store(assets: [AssetBasic], wallet: Wallet, searchKey: String) async throws {
-        try assetsService.addAssets(assets: assets)
+        try assetStore.add(assets: assets)
         try await priceService.updatePrices(prices: prices(from: assets).map { try $0.json() }, currency: Currency(id: preferences.currency).json())
-        try assetsService.addBalancesIfMissing(walletId: wallet.id, assetIds: assets.map(\.asset.id))
+        try await assetsService.addMissingBalances(walletId: wallet.id, assetIds: assets.map(\.asset.id))
         try searchStore.add(type: .asset, query: searchKey, ids: assets.map(\.asset.id.identifier))
     }
 
     func store(perpetuals: [PerpetualSearchData], searchKey: String) throws {
-        try assetsService.addAssets(assets: perpetuals.map(\.assetBasic))
+        try assetStore.add(assets: perpetuals.map(\.assetBasic))
         try perpetualStore.upsertPerpetuals(perpetuals.map(\.perpetual))
         try searchStore.add(type: .perpetual, query: searchKey, ids: perpetuals.map(\.perpetual.id.identifier))
     }

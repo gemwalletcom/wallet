@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAssetsServiceProtocol
 import GemstoneServices
 import Components
 import FiatConnect
@@ -93,7 +94,7 @@ private struct GetAssetNavigationStack: View {
     let model: ConfirmTransferSceneViewModel
     let viewModelFactory: ViewModelFactory
     let assetsEnabler: any AssetsEnabler
-    let assetsService: AssetsService
+    let assetsService: any GemAssetsServiceProtocol
 
     @State private var selectedAction: GetAssetAction?
     @State private var actionNavigationPath = NavigationPath()

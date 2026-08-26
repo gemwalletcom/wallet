@@ -17,7 +17,7 @@ import SwiftUI
 public final class DeveloperViewModel {
     private let walletId: WalletId
     private let transactionStore: TransactionStore
-    private let assetService: AssetsService
+    private let assetStore: AssetStore
     private let stakeStore: StakeStore
     private let bannerService: BannerService
     private let priceStore: PriceStore
@@ -28,7 +28,7 @@ public final class DeveloperViewModel {
     public init(
         walletId: WalletId,
         transactionStore: TransactionStore,
-        assetService: AssetsService,
+        assetStore: AssetStore,
         stakeStore: StakeStore,
         bannerService: BannerService,
         priceStore: PriceStore,
@@ -36,7 +36,7 @@ public final class DeveloperViewModel {
     ) {
         self.walletId = walletId
         self.transactionStore = transactionStore
-        self.assetService = assetService
+        self.assetStore = assetStore
         self.stakeStore = stakeStore
         self.bannerService = bannerService
         self.priceStore = priceStore
@@ -102,7 +102,7 @@ public final class DeveloperViewModel {
 
     func clearAssets() {
         performAction {
-            try assetService.assetStore.clearTokens()
+            try assetStore.clearTokens()
         }
     }
 

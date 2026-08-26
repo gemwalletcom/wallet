@@ -1,6 +1,7 @@
-import GemstoneServices
 import Components
 import Foundation
+import protocol Gemstone.GemAssetsServiceProtocol
+import GemstoneServices
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -22,7 +23,7 @@ public final class ReceiveViewModel: Sendable {
 
     private let wallet: Wallet
     private let assetsEnabler: any AssetsEnabler
-    private let assetsService: AssetsService
+    private let assetsService: any GemAssetsServiceProtocol
     private let generator = QRCodeGenerator()
     let networkAssetIds: [AssetId]
 
@@ -32,7 +33,7 @@ public final class ReceiveViewModel: Sendable {
         wallet: Wallet,
         address: String,
         assetsEnabler: any AssetsEnabler,
-        assetsService: AssetsService,
+        assetsService: any GemAssetsServiceProtocol,
     ) {
         assetModel = AssetViewModel(asset: asset)
         self.wallet = wallet
@@ -49,7 +50,7 @@ public final class ReceiveViewModel: Sendable {
         assetData: AssetData,
         wallet: Wallet,
         assetsEnabler: any AssetsEnabler,
-        assetsService: AssetsService,
+        assetsService: any GemAssetsServiceProtocol,
     ) {
         self.init(
             asset: assetData.asset,
@@ -65,7 +66,7 @@ public final class ReceiveViewModel: Sendable {
         assetAddress: AssetAddress,
         wallet: Wallet,
         assetsEnabler: any AssetsEnabler,
-        assetsService: AssetsService,
+        assetsService: any GemAssetsServiceProtocol,
     ) {
         self.init(
             asset: assetAddress.asset,
@@ -166,7 +167,7 @@ public final class ReceiveViewModel: Sendable {
     private func prefetchAssociations() async {
         do {
             try await assetsService.prefetchAssets(
-                assetIds: networkAssetIds.filter { $0 != assetModel.asset.id },
+                for: networkAssetIds.filter { $0 != assetModel.asset.id },
             )
         } catch {
             debugLog("ReceiveViewModel prefetchAssociations error: \(error)")

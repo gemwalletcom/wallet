@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
@@ -43,7 +44,8 @@ extension EnvironmentValues {
     @Entry var bannerService: BannerService = AppResolver.main.services.bannerService
     @Entry var transactionsService: any GemTransactionsServiceProtocol = AppResolver.main.services.transactionsService
     @Entry var transactionStore: TransactionStore = StoreManager(db: AppResolver.main.storages.db).transactionStore
-    @Entry var assetsService: AssetsService = AppResolver.main.services.assetsService
+    @Entry var assetsService: any GemAssetsServiceProtocol = AppResolver.main.services.gemAssetsService
+    @Entry var assetStore: AssetStore = StoreManager(db: AppResolver.main.storages.db).assetStore
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
     @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler
     @Entry var stakeService: any GemStakeServiceProtocol = AppResolver.main.services.stakeService

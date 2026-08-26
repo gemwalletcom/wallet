@@ -19,7 +19,7 @@ struct SettingsNavigationView: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.transactionsService) private var transactionsService
-    @Environment(\.assetsService) private var assetsService
+    @Environment(\.assetStore) private var assetStore
     @Environment(\.stakeStore) private var stakeStore
     @Environment(\.transactionStore) private var transactionStore
     @Environment(\.priceStore) private var priceStore
@@ -146,7 +146,7 @@ struct SettingsNavigationView: View {
             DeveloperScene(model: DeveloperViewModel(
                 walletId: walletId,
                 transactionStore: transactionStore,
-                assetService: assetsService,
+                assetStore: assetStore,
                 stakeStore: stakeStore,
                 bannerService: bannerService,
                 priceStore: priceStore,

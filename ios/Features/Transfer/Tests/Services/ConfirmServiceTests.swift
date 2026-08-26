@@ -21,7 +21,8 @@ struct ConfirmServiceTests {
     func simulationStateUsesTransferApprovalValue() {
         let service = ConfirmSimulationService(
             nameService: GemNameServiceMock(),
-            assetsService: .mock(),
+            assetsService: GemAssetsServiceMock(),
+            assetStore: .mock(),
         )
 
         let state = service.makeState(
@@ -43,7 +44,8 @@ struct ConfirmServiceTests {
 
         let service = ConfirmSimulationService(
             nameService: GemNameServiceMock(),
-            assetsService: .mock(assetStore: assetStore),
+            assetsService: GemAssetsServiceMock(),
+            assetStore: assetStore,
         )
 
         let state = await service.updateState(
@@ -61,7 +63,8 @@ struct ConfirmServiceTests {
 
         let service = ConfirmSimulationService(
             nameService: GemNameServiceMock(),
-            assetsService: .mock(assetStore: assetStore),
+            assetsService: GemAssetsServiceMock(),
+            assetStore: assetStore,
         )
 
         let state = service.makeState(
@@ -91,7 +94,8 @@ struct ConfirmServiceTests {
 
         let service = ConfirmSimulationService(
             nameService: GemNameServiceMock(),
-            assetsService: .mock(assetStore: assetStore),
+            assetsService: GemAssetsServiceMock(),
+            assetStore: assetStore,
         )
 
         let state = service.makeState(
@@ -128,13 +132,11 @@ struct ConfirmServiceTests {
         let assetStore = AssetStore.mock()
         let fetchedState = await ConfirmSimulationService(
             nameService: GemNameServiceMock(),
-            assetsService: .mock(
-                assetStore: assetStore,
-                assetsProvider: GemAssetsServiceMock(
-                    assetsResult: [.mock(asset: dust)],
-                    store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock()),
-                ),
+            assetsService: GemAssetsServiceMock(
+                assetsResult: [.mock(asset: dust)],
+                store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock()),
             ),
+            assetStore: assetStore,
         ).updateState(
             data: TransferData.mock(type: .transfer(.mock())),
             simulation: simulation,
@@ -147,7 +149,8 @@ struct ConfirmServiceTests {
     func simulationStateIgnoresAddressNameLookupFailure() async {
         let service = ConfirmSimulationService(
             nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
-            assetsService: .mock(),
+            assetsService: GemAssetsServiceMock(),
+            assetStore: .mock(),
         )
 
         let state = await service.updateState(
