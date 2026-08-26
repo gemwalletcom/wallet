@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use primitives::{AssetId, Wallet};
+use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, Wallet};
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 
@@ -11,6 +11,11 @@ pub fn missing_asset_ids(requested: Vec<AssetId>, existing: Vec<AssetId>) -> Vec
         .into_iter()
         .filter(|asset_id| !existing.contains(asset_id) && seen.insert(asset_id.clone()))
         .collect()
+}
+
+pub fn default_asset_basic(asset: Asset) -> AssetBasic {
+    let asset_id = asset.id.clone();
+    AssetBasic::new(asset, AssetProperties::default(asset_id.clone()), AssetScore::new(asset_id.default_rank()))
 }
 
 pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
@@ -52,6 +57,14 @@ mod tests {
             image_url: None,
             source: WalletSource::Import,
         }
+    }
+
+    #[test]
+    fn test_default_asset_basic_uses_default_rank_and_properties() {
+        let basic = default_asset_basic(Asset::from_chain(Chain::Ethereum));
+        assert_eq!(basic.score.rank, AssetId::from_chain(Chain::Ethereum).default_rank());
+        assert!(basic.properties.is_enabled);
+        assert!(basic.price.is_none());
     }
 
     #[test]

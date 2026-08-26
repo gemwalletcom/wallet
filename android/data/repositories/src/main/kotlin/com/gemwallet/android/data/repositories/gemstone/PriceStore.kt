@@ -12,13 +12,23 @@ import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
 import kotlinx.coroutines.flow.firstOrNull
+import dagger.Lazy
+import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
+import com.gemwallet.android.ext.toIdentifier
 import uniffi.gemstone.GemPriceStore
 import uniffi.gemstone.GemPriceUpdate
 
 class GemstonePriceStore(
     private val pricesDao: PricesDao,
     private val assetsDao: AssetsDao,
+    private val priceAlertRepository: Lazy<PriceAlertRepository>,
 ) : GemPriceStore {
+
+    override suspend fun getEnabledPriceAssetIds(walletId: String): List<String> {
+        val enabled = assetsDao.getAssetsPriceUpdate(walletId).mapNotNull { it.toAssetId()?.toIdentifier() }
+        val alerts = priceAlertRepository.get().getPriceAlertAssetIds().firstOrNull().orEmpty().map { it.toIdentifier() }
+        return (enabled + alerts).distinct()
+    }
 
     override suspend fun getRate(currency: String): String? =
         pricesDao.getRates(currency.decodeJson<Currency>()).firstOrNull()?.toDTO()?.toJson()

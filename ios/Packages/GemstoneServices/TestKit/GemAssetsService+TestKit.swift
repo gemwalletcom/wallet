@@ -19,7 +19,7 @@ public extension GemAssetsService {
         balanceStore: BalanceStore = .mock(),
         priceService: GemPriceService = .mock(),
     ) -> GemAssetsService {
-        GemAssetsService(
+        GatewayService.mock().assetsService(
             api: GemApiClient(
                 provider: NativeProvider(url: Constants.apiURL),
                 baseUrl: Constants.apiURL.absoluteString,

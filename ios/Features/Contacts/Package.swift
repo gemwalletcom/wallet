@@ -23,7 +23,6 @@ let package = Package(
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "Validators", path: "../../Packages/Validators"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
-        .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "QRScanner", path: "../../Packages/QRScanner"),
     ],

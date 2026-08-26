@@ -42,7 +42,7 @@ extension AppResolver {
         let priceAlertService: PriceAlertService
         let streamObserverService: StreamObserverService
         let streamSubscriptionService: StreamSubscriptionService
-        let priceService: PriceService
+        let priceService: any GemPriceServiceProtocol
         let chartService: any GemChartServiceProtocol
         let marketService: any GemPriceServiceProtocol
         let stakeService: any GemStakeServiceProtocol

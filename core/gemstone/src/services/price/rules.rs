@@ -1,5 +1,5 @@
 use primitives::currency::Currency;
-use primitives::{AssetMarket, AssetPrice, FiatRate};
+use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
 
 use super::model::GemPriceUpdate;
 
@@ -30,6 +30,10 @@ pub fn fiat_prices(prices: Vec<AssetPrice>, rate: &FiatRate) -> Vec<GemPriceUpda
             updated_at: price.updated_at,
         })
         .collect()
+}
+
+pub fn observable_asset_ids(enabled: Vec<AssetId>, defaults: Vec<AssetId>) -> Vec<AssetId> {
+    if enabled.is_empty() { defaults } else { enabled }
 }
 
 #[cfg(test)]
@@ -65,5 +69,19 @@ mod tests {
         assert_eq!(converted.all_time_high_value.as_ref().map(|value| value.percentage), Some(-10.0));
         assert_eq!(converted.circulating_supply, Some(10.0));
         assert_eq!(converted.market_cap_rank, Some(1));
+    }
+}
+
+#[cfg(test)]
+mod observable_tests {
+    use super::*;
+    use primitives::Chain;
+
+    #[test]
+    fn test_observable_asset_ids_falls_back_to_defaults() {
+        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+        let ethereum = AssetId::from_chain(Chain::Ethereum);
+        assert_eq!(observable_asset_ids(vec![bitcoin.clone()], vec![ethereum.clone()]), vec![bitcoin]);
+        assert_eq!(observable_asset_ids(vec![], vec![ethereum.clone()]), vec![ethereum]);
     }
 }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Store
 import GemstonePrimitives
 import protocol Gemstone.GemPortfolioServiceProtocol
 import Foundation
@@ -14,16 +15,16 @@ enum PortfolioDataInput {
 public struct PortfolioDataService: Sendable {
     private let portfolioService: any GemPortfolioServiceProtocol
     private let perpetualService: any PerpetualServiceable
-    private let priceService: PriceService
+    private let priceStore: PriceStore
 
     public init(
         portfolioService: any GemPortfolioServiceProtocol,
         perpetualService: any PerpetualServiceable,
-        priceService: PriceService,
+        priceStore: PriceStore,
     ) {
         self.portfolioService = portfolioService
         self.perpetualService = perpetualService
-        self.priceService = priceService
+        self.priceStore = priceStore
     }
 
     func getPortfoliData(input: PortfolioDataInput) async throws -> PortfolioData {
@@ -40,7 +41,7 @@ public struct PortfolioDataService: Sendable {
 
 extension PortfolioDataService {
     private func getWalletData(walletId: WalletId, period: ChartPeriod, currencyCode: String) async throws -> PortfolioData {
-        let rate = try priceService.getRate(currency: currencyCode)
+        let rate = try priceStore.getRate(currency: currencyCode).rate
         let portfolio = try await PortfolioAssets(portfolioService.getWalletAssets(walletId: walletId.id, period: period.json()))
 
         let values = portfolio.values.map {

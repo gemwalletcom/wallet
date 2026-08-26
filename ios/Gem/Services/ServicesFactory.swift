@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
@@ -79,9 +80,14 @@ struct ServicesFactory {
             store: GemstonePriceStore(priceStore: storeManager.priceStore, fiatRateStore: storeManager.fiatRateStore),
         )
         let marketService = gemPriceService
-        let priceService = PriceService(priceStore: storeManager.priceStore, service: gemPriceService)
+        let priceService = gemPriceService
         let gemAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
-        let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient, store: gemAssetStore, price: gemPriceService, preferences: preferencesService)
+        let gatewayService = GatewayService(
+            provider: nativeProvider,
+            preferences: GemstonePreferencesStore(namespace: "gateway"),
+            securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
+        )
+        let gemAssetsService = gatewayService.assetsService(api: gemApiClient, store: gemAssetStore, price: gemPriceService, preferences: preferencesService)
         let gemTransactionsService = Gemstone.GemTransactionsService(
             api: gemDeviceApiClient,
             assets: gemAssetsService,
@@ -89,11 +95,6 @@ struct ServicesFactory {
             addressStore: GemstoneAddressStore(store: storeManager.addressStore),
         )
         let gemScanService = Gemstone.GemScanService(api: gemDeviceApiClient)
-        let gatewayService = GatewayService(
-            provider: nativeProvider,
-            preferences: GemstonePreferencesStore(namespace: "gateway"),
-            securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
-        )
         let paymentService = PaymentService(provider: nativeProvider)
         let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
         let serviceStatusConfiguration = URLSessionConfiguration.default
@@ -102,14 +103,14 @@ struct ServicesFactory {
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration), url: Constants.apiURL),
         )
         let chainServiceFactory = ChainServiceFactory(gatewayService: gatewayService)
-
-        let avatarService = AvatarService(store: storeManager.walletStore)
         let assetsService = AssetsService(
             assetStore: storeManager.assetStore,
             balanceStore: storeManager.balanceStore,
             chainServiceFactory: chainServiceFactory,
             assetsProvider: gemAssetsService,
         )
+
+        let avatarService = AvatarService(store: storeManager.walletStore)
 
         let gemWalletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: storages.observablePreferences), wallets: gemWalletStore)
         let walletSessionService = WalletSessionService(
@@ -363,6 +364,7 @@ struct ServicesFactory {
             balanceStore: storeManager.balanceStore,
             addressStore: storeManager.addressStore,
             priceService: priceService,
+            priceStore: storeManager.priceStore,
             transactionStateScheduler: transactionStateScheduler,
             gemNameService: gemNameService,
             activityService: activityService,

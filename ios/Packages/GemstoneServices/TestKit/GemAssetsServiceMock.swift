@@ -71,6 +71,23 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         return missing.map(\.asset.id.identifier)
     }
 
+    public func getOrFetchAsset(assetId: Gemstone.AssetId) async throws -> Gemstone.Asset {
+        guard let asset = assetsResult.first(where: { $0.asset.id.identifier == assetId }) else { throw AnyError("not stubbed") }
+        return try asset.asset.json()
+    }
+
+    public func getOrFetchTokenAsset(assetId: Gemstone.AssetId) async throws -> Gemstone.Asset {
+        try await getOrFetchAsset(assetId: assetId)
+    }
+
+    public func searchAssetsAndTokens(query _: String, chains _: [Gemstone.Chain]) async throws -> [Gemstone.AssetBasic] {
+        try searchAssetsResult.map { try $0.json() }
+    }
+
+    public func searchTokens(tokenId _: String, chains _: [Gemstone.Chain]) async -> [Gemstone.AssetBasic] {
+        []
+    }
+
     public func addMissingBalances(walletId _: String, assetIds _: [Gemstone.AssetId]) async throws {}
 
     public func setupWallet(wallet _: Gemstone.Wallet) async throws {}

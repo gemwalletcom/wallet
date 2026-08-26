@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceServiceProtocol
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import GemstonePrimitives
@@ -12,7 +13,7 @@ public struct WalletSearchService: Sendable {
     private let searchStore: SearchStore
     private let perpetualStore: PerpetualStore
     private let assetListStore: AssetListStore
-    private let priceService: PriceService
+    private let priceService: any GemPriceServiceProtocol
     private let preferences: Preferences
     private let searchProvider: any GemAssetsServiceProtocol
 
@@ -21,7 +22,7 @@ public struct WalletSearchService: Sendable {
         searchStore: SearchStore,
         perpetualStore: PerpetualStore,
         assetListStore: AssetListStore,
-        priceService: PriceService,
+        priceService: any GemPriceServiceProtocol,
         preferences: Preferences,
         searchProvider: any GemAssetsServiceProtocol,
     ) {
@@ -56,7 +57,7 @@ public struct WalletSearchService: Sendable {
 private extension WalletSearchService {
     func store(assets: [AssetBasic], wallet: Wallet, searchKey: String) async throws {
         try assetsService.addAssets(assets: assets)
-        try await priceService.updatePrices(prices(from: assets), currency: preferences.currency)
+        try await priceService.updatePrices(prices: prices(from: assets).map { try $0.json() }, currency: Currency(id: preferences.currency).json())
         try assetsService.addBalancesIfMissing(walletId: wallet.id, assetIds: assets.map(\.asset.id))
         try searchStore.add(type: .asset, query: searchKey, ids: assets.map(\.asset.id.identifier))
     }

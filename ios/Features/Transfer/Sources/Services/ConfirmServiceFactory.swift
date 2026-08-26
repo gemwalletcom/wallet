@@ -20,7 +20,7 @@ public enum ConfirmServiceFactory {
         gemConfirmService: GemConfirmService,
         balanceStore: BalanceStore,
         assetsService: AssetsService,
-        priceService: PriceService,
+        priceStore: PriceStore,
         transactionStateScheduler: TransactionStateScheduler,
         nameService: any GemNameServiceProtocol,
         addressStore: AddressStore,
@@ -33,7 +33,7 @@ public enum ConfirmServiceFactory {
         return ConfirmService(
             metadataProvider: TransferMetadataProvider(
                 balanceStore: balanceStore,
-                priceService: priceService,
+                priceStore: priceStore,
             ),
             inputProvider: ConfirmTransferInputProvider(
                 transferTransactionProvider: TransferTransactionProvider(

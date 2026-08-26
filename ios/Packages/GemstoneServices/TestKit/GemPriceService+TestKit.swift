@@ -10,15 +10,6 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 
-public extension PriceService {
-    static func mock(db: DB = .mock()) -> Self {
-        PriceService(
-            priceStore: .mock(db: db),
-            service: GemPriceService.mock(db: db),
-        )
-    }
-}
-
 public extension GemPriceService {
     static func mock(db: DB = .mock()) -> GemPriceService {
         GemPriceService(

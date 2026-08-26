@@ -28,7 +28,8 @@ extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation
     @Entry var nodeService: NodeService = AppResolver.main.services.nodeService
     @Entry var serviceStatusService: any GemServiceStatusProtocol = AppResolver.main.services.serviceStatusService
-    @Entry var priceService: PriceService = AppResolver.main.services.priceService
+    @Entry var priceService: any GemPriceServiceProtocol = AppResolver.main.services.priceService
+    @Entry var priceStore: PriceStore = StoreManager(db: AppResolver.main.storages.db).priceStore
     @Entry var chartService: any GemChartServiceProtocol = AppResolver.main.services.chartService
     @Entry var marketService: any GemPriceServiceProtocol = AppResolver.main.services.marketService
     @Entry var streamSubscriptionService: StreamSubscriptionService = AppResolver.main.services.streamSubscriptionService

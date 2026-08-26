@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import typealias Gemstone.WalletId
 import Foundation
 import typealias Gemstone.AssetId
 import typealias Gemstone.AssetMarket
@@ -18,6 +19,10 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
     public init(priceStore: PriceStore, fiatRateStore: FiatRateStore) {
         self.priceStore = priceStore
         self.fiatRateStore = fiatRateStore
+    }
+
+    public func getEnabledPriceAssetIds(walletId: Gemstone.WalletId) async throws -> [Gemstone.AssetId] {
+        try priceStore.enabledPriceAssets(walletId: Primitives.WalletId.from(id: walletId)).map(\.identifier)
     }
 
     public func getRate(currency: Gemstone.Currency) async throws -> Gemstone.FiatRate? {

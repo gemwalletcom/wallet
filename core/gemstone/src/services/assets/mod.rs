@@ -6,18 +6,20 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, Wallet, WalletId};
 
 pub use model::AssetList;
 pub use store::GemAssetStore;
 
 use crate::api::{GemApiClient, GemApiError};
+use crate::gateway::GemGateway;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetsService {
     api: Arc<GemApiClient>,
+    gateway: Arc<GemGateway>,
     store: Arc<dyn GemAssetStore>,
     price: Arc<GemPriceService>,
     preferences: Arc<GemPreferencesService>,
@@ -26,8 +28,58 @@ pub struct GemAssetsService {
 #[uniffi::export]
 impl GemAssetsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemApiClient>, store: Arc<dyn GemAssetStore>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>) -> Self {
-        Self { api, store, price, preferences }
+    pub fn new(api: Arc<GemApiClient>, gateway: Arc<GemGateway>, store: Arc<dyn GemAssetStore>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>) -> Self {
+        Self {
+            api,
+            gateway,
+            store,
+            price,
+            preferences,
+        }
+    }
+
+    pub async fn get_or_fetch_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
+        if let Some(asset) = self.stored_asset(&asset_id).await? {
+            return Ok(asset);
+        }
+        self.prefetch_assets(vec![asset_id.clone()]).await?;
+        self.stored_asset(&asset_id).await?.ok_or_else(|| GemServiceError::Status {
+            msg: format!("asset not found: {asset_id}"),
+        })
+    }
+
+    pub async fn get_or_fetch_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
+        if let Some(asset) = self.stored_asset(&asset_id).await? {
+            return Ok(asset);
+        }
+        let Some(token_id) = asset_id.token_id.clone() else {
+            return self.get_or_fetch_asset(asset_id).await;
+        };
+        let asset = self.gateway.get_token_data(asset_id.chain, token_id).await?;
+        self.store.save_assets(vec![rules::default_asset_basic(asset.clone())]).await?;
+        Ok(asset)
+    }
+
+    pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Vec<AssetBasic> {
+        let lookups = chains.into_iter().map(|chain| {
+            let token_id = token_id.clone();
+            async move {
+                if self.gateway.get_is_token_address(chain, token_id.clone()).await.ok()? {
+                    self.gateway.get_token_data(chain, token_id).await.ok().map(rules::default_asset_basic)
+                } else {
+                    None
+                }
+            }
+        });
+        futures::future::join_all(lookups).await.into_iter().flatten().collect()
+    }
+
+    pub async fn search_assets_and_tokens(&self, query: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {
+        let token_chains = if chains.is_empty() { Chain::all() } else { chains.clone() };
+        let (assets, tokens) = futures::join!(self.search_assets(query.clone(), chains), self.search_tokens(query, token_chains));
+        let mut assets = assets?;
+        assets.extend(tokens);
+        Ok(assets)
     }
 
     pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
@@ -114,5 +166,11 @@ impl GemAssetsService {
 
     pub async fn get_swap_assets(&self) -> Result<FiatAssets, GemApiError> {
         Ok(self.api.client.get_swap_assets().await?)
+    }
+}
+
+impl GemAssetsService {
+    async fn stored_asset(&self, asset_id: &AssetId) -> Result<Option<Asset>, GemServiceError> {
+        Ok(self.store.get_assets(vec![asset_id.clone()]).await?.into_iter().next())
     }
 }

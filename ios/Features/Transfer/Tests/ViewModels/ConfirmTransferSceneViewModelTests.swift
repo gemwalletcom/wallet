@@ -729,7 +729,7 @@ private extension ConfirmTransferSceneViewModel {
                 gemConfirmService: GemConfirmService(noHandle: .init()),
                 balanceStore: .mock(),
                 assetsService: .mock(),
-                priceService: .mock(),
+                priceStore: .mock(),
                 transactionStateScheduler: .mock(),
                 nameService: GemNameServiceMock(),
                 addressStore: addressStore,

@@ -1,12 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceServiceProtocol
 import Foundation
 import GemstoneServices
 import Primitives
 import WebSocketClient
 
 public actor StreamSubscriptionService: Sendable {
-    private let priceService: PriceService
+    private let priceService: any GemPriceServiceProtocol
     private let walletSessionService: any WalletSessionManageable
     private let webSocket: any WebSocketConnectable
     private let encoder = JSONEncoder()
@@ -14,7 +15,7 @@ public actor StreamSubscriptionService: Sendable {
     private var subscribedAssetIds: Set<AssetId> = []
 
     public init(
-        priceService: PriceService,
+        priceService: any GemPriceServiceProtocol,
         walletSessionService: any WalletSessionManageable,
         webSocket: any WebSocketConnectable,
     ) {
@@ -27,7 +28,7 @@ public actor StreamSubscriptionService: Sendable {
         guard let walletId = walletSessionService.currentWalletId else { return }
         guard await webSocket.state == .connected else { return }
 
-        let assets = try priceService.observableAssets(walletId: walletId)
+        let assets = try await priceService.observableAssetIds(walletId: walletId.id).map { try AssetId(id: $0) }
         let assetIds = Set(assets)
         guard subscribedAssetIds != assetIds else { return }
 

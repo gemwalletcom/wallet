@@ -26,7 +26,7 @@ struct PortfolioDataServiceTests {
                 allTimeHigh: .mock(date: date, value: 100),
                 allTimeLow: .mock(date: date, value: 20),
             ),
-            priceService: .mock(db: db),
+            priceStore: .mock(db: db),
         )
 
         let data = try await service.getPortfoliData(input: .wallet(walletId: .mock(), period: .all, currencyCode: currency))

@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemPriceServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
@@ -10,7 +12,7 @@ import Primitives
 @MainActor
 public final class CurrencySceneViewModel {
     private var currencyStorage: CurrencyStorable
-    private let priceService: PriceService
+    private let priceService: any GemPriceServiceProtocol
     private let deviceService: any DeviceServiceable
     private let defaultCurrencies: [Currency] = [.usd, .eur, .gbp, .cny, .jpy, .inr, .rub]
 
@@ -28,7 +30,7 @@ public final class CurrencySceneViewModel {
 
     public init(
         currencyStorage: CurrencyStorable,
-        priceService: PriceService,
+        priceService: any GemPriceServiceProtocol,
         deviceService: any DeviceServiceable,
     ) {
         self.currencyStorage = currencyStorage
@@ -68,7 +70,7 @@ public final class CurrencySceneViewModel {
 
     func setCurrency(_ currency: Currency) async throws {
         self.currency = currency
-        try await priceService.changeCurrency(currency: currency.rawValue)
+        try await priceService.changeCurrency(currency: currency.json())
     }
 
     func updateDevice() async {

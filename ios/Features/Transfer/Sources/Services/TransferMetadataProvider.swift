@@ -30,14 +30,14 @@ public extension TransferMetadataProvidable {
 
 public final class TransferMetadataProvider: TransferMetadataProvidable {
     private let balanceStore: BalanceStore
-    private let priceService: PriceService
+    private let priceStore: PriceStore
 
     public init(
         balanceStore: BalanceStore,
-        priceService: PriceService,
+        priceStore: PriceStore,
     ) {
         self.balanceStore = balanceStore
-        self.priceService = priceService
+        self.priceStore = priceStore
     }
 
     public func metadata(
@@ -54,7 +54,7 @@ public final class TransferMetadataProvider: TransferMetadataProvidable {
         }
 
         let ids = Array(Set([assetId, feeAssetId] + extraIds))
-        let pricesList = try priceService.getPrices(for: ids)
+        let pricesList = try priceStore.getPrices(for: ids.map(\.identifier))
         let prices = Dictionary(uniqueKeysWithValues: pricesList.map { ($0.assetId, $0.mapToPrice()) })
 
         return TransferDataMetadata(

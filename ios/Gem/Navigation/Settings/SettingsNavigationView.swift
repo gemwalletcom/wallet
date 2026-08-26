@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceServiceProtocol
 import Contacts
 import GemstoneServices
 import InAppNotifications
@@ -21,6 +22,7 @@ struct SettingsNavigationView: View {
     @Environment(\.assetsService) private var assetsService
     @Environment(\.stakeStore) private var stakeStore
     @Environment(\.transactionStore) private var transactionStore
+    @Environment(\.priceStore) private var priceStore
     @Environment(\.explorerService) private var explorerService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.connectionsService) private var connectionsService
@@ -52,7 +54,7 @@ struct SettingsNavigationView: View {
     init(
         walletId: WalletId,
         preferences: Preferences = .standard,
-        priceService: PriceService,
+        priceService: any GemPriceServiceProtocol,
         deviceService: any DeviceServiceable,
         isPresentingSupport: Binding<Bool>,
     ) {
@@ -110,6 +112,7 @@ struct SettingsNavigationView: View {
                     explorerService: explorerService,
                     service: chartService,
                     priceService: priceService,
+                    priceStore: priceStore,
                     assetModel: AssetViewModel(asset: scene.asset),
                     priceAlertService: priceAlertService,
                     walletId: walletId,
@@ -146,7 +149,7 @@ struct SettingsNavigationView: View {
                 assetService: assetsService,
                 stakeStore: stakeStore,
                 bannerService: bannerService,
-                priceService: priceService,
+                priceStore: priceStore,
                 perpetualService: perpetualService,
             ))
         }

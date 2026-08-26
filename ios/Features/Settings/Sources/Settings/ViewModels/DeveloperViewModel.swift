@@ -20,7 +20,7 @@ public final class DeveloperViewModel {
     private let assetService: AssetsService
     private let stakeStore: StakeStore
     private let bannerService: BannerService
-    private let priceService: PriceService
+    private let priceStore: PriceStore
     private let perpetualService: PerpetualService
 
     public var isPresentingToastMessage: ToastMessage?
@@ -31,7 +31,7 @@ public final class DeveloperViewModel {
         assetService: AssetsService,
         stakeStore: StakeStore,
         bannerService: BannerService,
-        priceService: PriceService,
+        priceStore: PriceStore,
         perpetualService: PerpetualService,
     ) {
         self.walletId = walletId
@@ -39,7 +39,7 @@ public final class DeveloperViewModel {
         self.assetService = assetService
         self.stakeStore = stakeStore
         self.bannerService = bannerService
-        self.priceService = priceService
+        self.priceStore = priceStore
         self.perpetualService = perpetualService
     }
 
@@ -132,7 +132,7 @@ public final class DeveloperViewModel {
 
     func clearPrices() {
         performAction {
-            try priceService.clear()
+            try priceStore.clear()
         }
     }
 

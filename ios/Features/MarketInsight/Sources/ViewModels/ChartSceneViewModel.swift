@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceServiceProtocol
 import Components
 import Formatters
 import Foundation
@@ -19,7 +20,8 @@ import SwiftUI
 @Observable
 public final class ChartSceneViewModel: ChartListViewable {
     private let service: any GemChartServiceProtocol
-    private let priceService: PriceService
+    private let priceService: any GemPriceServiceProtocol
+    private let priceStore: PriceStore
     private let preferences: Preferences
 
     let walletId: WalletId
@@ -59,7 +61,8 @@ public final class ChartSceneViewModel: ChartListViewable {
     public init(
         explorerService: any GemExplorerServiceProtocol,
         service: any GemChartServiceProtocol,
-        priceService: PriceService,
+        priceService: any GemPriceServiceProtocol,
+        priceStore: PriceStore,
         assetModel: AssetViewModel,
         priceAlertService: PriceAlertService,
         walletId: WalletId,
@@ -68,6 +71,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     ) {
         self.service = service
         self.priceService = priceService
+        self.priceStore = priceStore
         self.preferences = preferences
         self.assetModel = assetModel
         self.priceAlertService = priceAlertService
@@ -92,10 +96,10 @@ public extension ChartSceneViewModel {
         do {
             let values = try await Primitives.Charts(service.getCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.json()))
             if let market = values.market {
-                try await priceService.updateMarketPrice(assetId: assetModel.asset.id, market: market, currency: preferences.currency)
+                try await priceService.updateMarket(assetId: assetModel.asset.id.identifier, market: market.json(), currency: Currency(id: preferences.currency).json())
             }
-            let price = try priceService.getPrice(for: assetModel.asset.id)
-            let rate = try priceService.getRate(currency: preferences.currency)
+            let price = try priceStore.getPrices(for: [assetModel.asset.id.identifier]).first
+            let rate = try priceStore.getRate(currency: preferences.currency).rate
 
             var charts = values.prices.map {
                 ChartDateValue(date: Date(timeIntervalSince1970: TimeInterval($0.timestamp)), value: Double($0.value) * rate)

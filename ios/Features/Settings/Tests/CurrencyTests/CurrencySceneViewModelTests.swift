@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import class Gemstone.GemPriceService
 import GemstoneServicesTestKit
 import Foundation
 import GemstoneServices
@@ -21,7 +23,7 @@ struct CurrencySceneViewModelTests {
     @Test
     func uSDCurrencyValue() {
         let usdCurrencyStorage = MockCurrencyStorage()
-        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: .mock(), deviceService: DeviceServiceMock())
+        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: GemPriceService.mock(), deviceService: DeviceServiceMock())
 
         #expect(viewModel.selectedCurrencyValue == "🇺🇸 USD")
     }
@@ -29,14 +31,14 @@ struct CurrencySceneViewModelTests {
     @Test
     func gBPCurrencyValue() {
         let gbpCurrencyStorage = MockCurrencyStorage(currency: "GBP")
-        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, priceService: .mock(), deviceService: DeviceServiceMock())
+        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, priceService: GemPriceService.mock(), deviceService: DeviceServiceMock())
         #expect(viewModel.selectedCurrencyValue == "🇬🇧 GBP")
     }
 
     @Test
     func setNewCurrency() async throws {
-        let priceService: PriceService = .mock()
-        try await priceService.addRates([FiatRate(symbol: .ars, rate: 1200)], currency: Currency.ars.rawValue)
+        let priceService = GemPriceService.mock()
+        try await priceService.updateRates(rates: [FiatRate(symbol: .ars, rate: 1200).json()], currency: Currency.ars.json())
         let usdCurrencyStorage = MockCurrencyStorage()
         let deviceService = DeviceServiceMock()
         let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: priceService, deviceService: deviceService)

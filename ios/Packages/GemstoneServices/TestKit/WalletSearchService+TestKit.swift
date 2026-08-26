@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemPriceService
+import protocol Gemstone.GemPriceServiceProtocol
 import GemstoneServices
 import Foundation
 import PrimitivesTestKit
@@ -16,7 +18,7 @@ public extension WalletSearchService {
         searchStore: SearchStore = .mock(),
         perpetualStore: PerpetualStore = .mock(),
         assetListStore: AssetListStore = .mock(),
-        priceService: PriceService = .mock(),
+        priceService: any GemPriceServiceProtocol = GemPriceService.mock(),
         preferences: Preferences = .mock(),
         searchProvider: any GemAssetsServiceProtocol = GemAssetsService.mock(),
     ) -> WalletSearchService {

@@ -199,11 +199,12 @@ object AssetsModule {
     @Singleton
     fun provideGemAssetsService(
         apiClient: GemApiClient,
+        gateway: GemGateway,
         assetsDao: AssetsDao,
         availabilityService: AssetsAvailabilityService,
         priceService: GemPriceService,
         preferencesService: GemPreferencesService,
-    ): GemAssetsService = GemAssetsService(apiClient, GemstoneAssetStore(assetsDao, availabilityService), priceService, preferencesService)
+    ): GemAssetsService = GemAssetsService(apiClient, gateway, GemstoneAssetStore(assetsDao, availabilityService), priceService, preferencesService)
 
     @Provides
     @Singleton
@@ -211,5 +212,6 @@ object AssetsModule {
         apiClient: GemApiClient,
         pricesDao: PricesDao,
         assetsDao: AssetsDao,
-    ): GemPriceService = GemPriceService(apiClient, GemstonePriceStore(pricesDao, assetsDao))
+        priceAlertRepository: Lazy<PriceAlertRepository>,
+    ): GemPriceService = GemPriceService(apiClient, GemstonePriceStore(pricesDao, assetsDao, priceAlertRepository))
 }

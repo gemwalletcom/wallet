@@ -31,7 +31,6 @@ let package = Package(
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "Keystore", path: "../Keystore"),
-        .package(name: "Formatters", path: "../Formatters"),
         .package(name: "SwiftHTTPClient", path: "../SwiftHTTPClient"),
         .package(name: "NativeProviderService", path: "../NativeProviderService"),
         .package(name: "SystemServices", path: "../SystemServices"),

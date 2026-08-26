@@ -26,6 +26,7 @@ struct WalletNavigationView: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.priceService) private var priceService
+    @Environment(\.priceStore) private var priceStore
     @Environment(\.chartService) private var chartService
     @Environment(\.portfolioService) private var portfolioService
     @Environment(\.priceAlertService) private var priceAlertService
@@ -176,6 +177,7 @@ struct WalletNavigationView: View {
                     explorerService: explorerService,
                     service: chartService,
                     priceService: priceService,
+                    priceStore: priceStore,
                     assetModel: AssetViewModel(asset: $0.asset),
                     priceAlertService: priceAlertService,
                     walletId: model.wallet.id,
@@ -272,7 +274,7 @@ struct WalletNavigationView: View {
                             service: PortfolioDataService(
                                 portfolioService: portfolioService,
                                 perpetualService: perpetualService,
-                                priceService: priceService,
+                                priceStore: priceStore,
                             ),
                             preferences: preferences,
                             defaultType: defaultType,

@@ -6,7 +6,9 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate, Markets};
+use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate, Markets, WalletId};
+
+use crate::models::asset::asset_ids_enabled_by_default;
 
 pub use model::GemPriceUpdate;
 pub use store::GemPriceStore;
@@ -51,6 +53,13 @@ impl GemPriceService {
             return Ok(());
         };
         self.store.save_market(asset_id, rules::market_in_currency(market, rate.rate)).await
+    }
+
+    pub async fn observable_asset_ids(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
+        Ok(rules::observable_asset_ids(
+            self.store.get_enabled_price_asset_ids(wallet_id).await?,
+            asset_ids_enabled_by_default(),
+        ))
     }
 
     pub async fn change_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
@@ -105,6 +114,10 @@ mod tests {
 
     #[async_trait::async_trait]
     impl GemPriceStore for MemoryStore {
+        async fn get_enabled_price_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
+            Ok(vec![])
+        }
+
         async fn get_rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {
             Ok(self.rates.lock().unwrap().iter().find(|rate| rate.symbol == currency).cloned())
         }
