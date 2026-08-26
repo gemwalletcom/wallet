@@ -2,18 +2,22 @@
 
 import BigInt
 import Foundation
+import struct Gemstone.Account
+import typealias Gemstone.Chain
 import class Gemstone.Config
-import class Gemstone.MessageSigner
+import enum Gemstone.GemServiceError
+import protocol Gemstone.GemWalletConnectSigner
 import struct Gemstone.SignMessage
+import typealias Gemstone.SimulationResult
+import enum Gemstone.WalletConnectTransaction
 import GemstonePrimitives
+import GemstoneServices
 import Preferences
 import Primitives
 import Store
 import WalletConnectorService
-import WalletConnectSign
-import GemstoneServices
 
-public final class WalletConnectorSigner: WalletConnectorSignable {
+public final class WalletConnectorSigner: WalletConnectorSignable, GemWalletConnectSigner {
     private let connectionsStore: ConnectionsStore
     private let walletConnectorInteractor: any WalletConnectorInteractable
     private let walletSessionService: any WalletSessionManageable
@@ -29,7 +33,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     }
 
     public var allChains: [Primitives.Chain] {
-        Config.shared.getWalletConnectConfig().chains.compactMap { Chain(rawValue: $0) }
+        Config.shared.getWalletConnectConfig().chains.compactMap { Primitives.Chain(rawValue: $0) }
     }
 
     public func getCurrentWallet() throws -> Wallet {
@@ -40,33 +44,15 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         try walletSessionService.getWallet(walletId: id)
     }
 
-    public func getChains(wallet: Wallet) -> [Primitives.Chain] {
-        wallet.accounts.map(\.chain).asSet().intersection(allChains).asArray()
+    public func getWallets() throws -> [Wallet] {
+        try walletSessionService.getWallets()
     }
 
-    public func getAccounts(sessionId: String, chain: Primitives.Chain) throws -> [Primitives.Account] {
+    public func getAccounts(sessionId: String, chain: Gemstone.Chain) throws -> [Gemstone.Account] {
+        let chain = try resolve(chain: chain)
         let connection = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: connection.session)
-        return connection.wallet.accounts.filter { $0.chain == chain }
-    }
-
-    public func getWallets(for proposal: Session.Proposal) throws -> [Wallet] {
-        guard let requiredChains = proposal.supportedRequiredChains else { return [] }
-        let optionalChains = proposal.supportedOptionalChains
-
-        return try walletSessionService.getWallets()
-            .filter {
-                guard !$0.isViewOnly else { return false }
-
-                let walletChains = $0.accounts.map(\.chain).filter { $0 != .bitcoin }.asSet()
-                guard walletChains.isNotEmpty else { return false }
-
-                if requiredChains.isNotEmpty {
-                    return walletChains.isSuperset(of: requiredChains)
-                }
-
-                return optionalChains.isEmpty || walletChains.contains(where: optionalChains.contains)
-            }
+        return connection.wallet.accounts.filter { $0.chain == chain }.map { $0.mapToGem() }
     }
 
     public func getEvents() -> [WalletConnectionEvents] {
@@ -85,17 +71,19 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         await walletConnectorInteractor.sessionReject(error: error)
     }
 
-    public func signMessage(sessionId: String, chain: Chain, message: SignMessage, simulation: SimulationResult) async throws -> String {
+    public func signMessage(sessionId: String, chain: Gemstone.Chain, message: SignMessage, simulation: Gemstone.SimulationResult) async throws -> String {
+        let chain = try resolve(chain: chain)
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
-        let payload = SignMessagePayload(
+
+        let payload = try SignMessagePayload(
             chain: chain,
             session: session.session,
             wallet: session.wallet,
             message: message,
-            simulation: simulation,
+            simulation: Primitives.SimulationResult(simulation),
         )
-        return try await walletConnectorInteractor.signMessage(payload: payload)
+        return try await interact { try await walletConnectorInteractor.signMessage(payload: payload) }
     }
 
     public func updateSessions(sessions: [WalletConnectionSession]) throws {
@@ -119,10 +107,13 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         await walletConnectorInteractor.sessionReject(error: error)
     }
 
-    public func signTransaction(sessionId: String, chain: Chain, transaction: WalletConnectorTransaction, simulation: SimulationResult) async throws -> String {
+    public func signTransaction(sessionId: String, chain: Gemstone.Chain, transaction: WalletConnectTransaction, simulation: Gemstone.SimulationResult) async throws -> String {
+        let chain = try resolve(chain: chain)
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
         let wallet = try getWallet(id: session.wallet.id)
+        let simulation = try Primitives.SimulationResult(simulation)
+        let transaction = try transaction.map()
         let transactionType = transaction.transactionType
 
         switch transaction {
@@ -140,14 +131,17 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                 outputAction: .sign,
                 transactionType: transactionType,
             )
-            return try await walletConnectorInteractor.signTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
+            return try await interact { try await walletConnectorInteractor.signTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation)) }
         }
     }
 
-    public func sendTransaction(sessionId: String, chain: Chain, transaction: WalletConnectorTransaction, simulation: SimulationResult) async throws -> String {
+    public func sendTransaction(sessionId: String, chain: Gemstone.Chain, transaction: WalletConnectTransaction, simulation: Gemstone.SimulationResult) async throws -> String {
+        let chain = try resolve(chain: chain)
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
         let wallet = try getWallet(id: session.wallet.id)
+        let simulation = try Primitives.SimulationResult(simulation)
+        let transaction = try transaction.map()
         let transactionType = transaction.transactionType
 
         switch transaction {
@@ -196,7 +190,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                 amount: .exact(value),
             )
 
-            return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
+            return try await interact { try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation)) }
         case let .solana(transaction, outputType, _),
              let .sui(transaction, outputType),
              let .ton(transaction, outputType),
@@ -209,38 +203,26 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                 outputAction: .send,
                 transactionType: transactionType,
             )
-            return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation))
+            return try await interact { try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation)) }
         }
     }
 
-    public func sendRawTransaction(sessionId: String, chain: Chain, transaction: String) async throws -> String {
-        let session = try connectionsStore.getConnection(id: sessionId)
-        try validate(chain: chain, session: session.session)
-        let wallet = try getWallet(id: session.wallet.id)
-        let transferData = transferData(
-            chain: chain,
-            session: session.session,
-            transaction: transaction,
-            outputType: .encodedTransaction,
-            outputAction: .send,
-            transactionType: .smartContractCall,
-        )
-        let simulation = SimulationResult(
-            warnings: [],
-            balanceChanges: [],
-            payload: [],
-            header: nil,
-        )
-        return try await walletConnectorInteractor.sendRawTransaction(
-            transferData: WCTransferData(
-                transferData: transferData,
-                wallet: wallet,
-                simulation: simulation,
-            ),
-        )
+    private func resolve(chain: Gemstone.Chain) throws -> Primitives.Chain {
+        guard let chain = Primitives.Chain(rawValue: chain) else {
+            throw WalletConnectorServiceError.unresolvedChainId(chain)
+        }
+        return chain
     }
 
-    private func validate(chain: Chain, session: WalletConnectionSession) throws {
+    private func interact(_ action: () async throws -> String) async throws -> String {
+        do {
+            return try await action()
+        } catch ConnectionsError.userCancelled {
+            throw GemServiceError.Cancelled
+        }
+    }
+
+    private func validate(chain: Primitives.Chain, session: WalletConnectionSession) throws {
         if !session.chains.contains(chain) {
             throw WalletConnectorServiceError.unresolvedChainId(chain.rawValue)
         }
@@ -251,7 +233,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     }
 
     private func transferData(
-        chain: Chain,
+        chain: Primitives.Chain,
         session: WalletConnectionSession,
         transaction: String,
         outputType: TransferDataOutputType,
@@ -276,31 +258,5 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
             ),
             amount: .exact(.zero),
         )
-    }
-}
-
-extension Session.Proposal {
-    var supportedRequiredChains: Set<Chain>? {
-        requiredNamespaces.fullySupportedChains
-    }
-
-    var supportedOptionalChains: Set<Chain> {
-        optionalNamespaces?.supportedChains ?? []
-    }
-}
-
-private extension [String: ProposalNamespace] {
-    var fullySupportedChains: Set<Chain>? {
-        let blockchains = values.flatMap { $0.chains ?? [] }
-        let chains = blockchains.compactMap(\.chain)
-        guard chains.count == blockchains.count else { return .none }
-        return chains.asSet()
-    }
-
-    var supportedChains: Set<Chain> {
-        values
-            .flatMap { $0.chains ?? [] }
-            .compactMap(\.chain)
-            .asSet()
     }
 }

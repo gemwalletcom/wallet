@@ -1,13 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Gemstone
-import enum Gemstone.SignDigestType
-import class Gemstone.TransactionSimulationService
+import struct Gemstone.GemWalletConnectRequest
+import protocol Gemstone.GemWalletConnectServiceProtocol
 import class Gemstone.WalletConnect
-import enum Gemstone.WalletConnectAction
-import enum Gemstone.WalletConnectChainOperation
-import enum Gemstone.WalletConnectTransactionType
 import GemstonePrimitives
 import Primitives
 @preconcurrency import ReownWalletKit
@@ -16,16 +12,16 @@ import Primitives
 public final class WalletConnectorService {
     private let interactor = WCConnectionsInteractor()
     private let signer: WalletConnectorSignable
+    private let service: any GemWalletConnectServiceProtocol
     private let messageTracker = MessageTracker()
     private let walletConnect = WalletConnect()
-    private let transactionSimulationService: TransactionSimulationService
 
     public init(
         signer: WalletConnectorSignable,
-        transactionSimulationService: TransactionSimulationService,
+        service: any GemWalletConnectServiceProtocol,
     ) {
         self.signer = signer
-        self.transactionSimulationService = transactionSimulationService
+        self.service = service
     }
 }
 
@@ -92,20 +88,6 @@ extension WalletConnectorService: WalletConnectorServiceable {
 // MARK: - Private
 
 extension WalletConnectorService {
-    private func simulateSignMessage(chain: Gemstone.Chain, signType: SignDigestType, data: String, sessionDomain: String) async throws -> Primitives.SimulationResult {
-        let simulation = try await transactionSimulationService.simulateSignMessage(chain: chain, signType: signType, data: data, sessionDomain: sessionDomain)
-        return try Primitives.SimulationResult(simulation)
-    }
-
-    private func simulateSendTransaction(
-        chain: Gemstone.Chain,
-        transactionType: WalletConnectTransactionType,
-        data: String,
-    ) async throws -> Primitives.SimulationResult {
-        let simulation = try await transactionSimulationService.simulateSendTransaction(chain: chain, transactionType: transactionType, data: data)
-        return try Primitives.SimulationResult(simulation)
-    }
-
     private func handleSessions() async {
         for await sessions in interactor.sessionsStream {
             updateSessions(sessions)
@@ -201,20 +183,17 @@ extension WalletConnectorService {
 
         do {
             let params = try JSONEncoder().encode(request.params).encodeString()
-            let action = try walletConnect.parseRequest(
-                topic: request.topic,
-                method: request.method,
-                params: params,
-                chainId: request.chainId.absoluteString,
-                domain: session.peer.metadata.url,
+            let response = try await service.handleRequest(
+                request: GemWalletConnectRequest(
+                    topic: request.topic,
+                    method: request.method,
+                    params: params,
+                    chainId: request.chainId.absoluteString,
+                    domain: session.peer.metadata.url,
+                ),
             )
-
-            debugLog("parse request result: \(action)")
-
-            let response = try await handleAction(action: action, sessionId: request.topic, sessionDomain: session.peer.metadata.url)
-
             debugLog("handle method result: \(request.method) \(response)")
-            try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: response)
+            try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: response.map())
         } catch let requestError {
             debugLog("handle method error: \(requestError)")
             do {
@@ -223,63 +202,6 @@ extension WalletConnectorService {
                 debugLog("Error rejecting request: \(error)")
             }
             await signer.sessionReject(error: requestError)
-        }
-    }
-
-    private func handleAction(action: WalletConnectAction, sessionId: String, sessionDomain: String) async throws -> RPCResult {
-        switch action {
-        case let .signMessage(chain, signType, data):
-            let simulation = try await simulateSignMessage(chain: chain, signType: signType, data: data, sessionDomain: sessionDomain)
-            let message = walletConnect.decodeSignMessage(chain: chain, signType: signType, data: data)
-            let signature = try await signer.signMessage(
-                sessionId: sessionId,
-                chain: chain.map(),
-                message: message,
-                simulation: simulation,
-            )
-            let response = walletConnect.encodeSignMessage(chain: chain, signature: signature)
-            return .response(response.map())
-        case let .signTransaction(chain, type, data):
-            let simulation = try await simulateSendTransaction(chain: chain, transactionType: type, data: data)
-            let transaction = try walletConnect.decodeSendTransaction(transactionType: type, data: data)
-            let transactionId = try await signer.signTransaction(sessionId: sessionId, chain: chain.map(), transaction: transaction.map(), simulation: simulation)
-            let response = walletConnect.encodeSignTransaction(chain: chain, transactionId: transactionId)
-            return .response(response.map())
-        case let .signAllTransactions(chain, type, transactions):
-            guard transactions.count <= 1, let data = transactions.first else {
-                throw WalletConnectorServiceError.unresolvedMethod("signAllTransactions with multiple transactions is not yet supported")
-            }
-            let simulation = try await simulateSendTransaction(chain: chain, transactionType: type, data: data)
-            let transaction = try walletConnect.decodeSendTransaction(transactionType: type, data: data)
-            let signed = try await signer.signTransaction(sessionId: sessionId, chain: chain.map(), transaction: transaction.map(), simulation: simulation)
-            let response = walletConnect.encodeSignAllTransactions(signedTransactions: [signed])
-            return .response(response.map())
-        case let .sendTransaction(chain, type, data):
-            let simulation = try await simulateSendTransaction(chain: chain, transactionType: type, data: data)
-            let transaction = try walletConnect.decodeSendTransaction(transactionType: type, data: data)
-            let transactionId = try await signer.sendTransaction(
-                sessionId: sessionId,
-                chain: chain.map(),
-                transaction: transaction.map(),
-                simulation: simulation,
-            )
-            let response = walletConnect.encodeSendTransaction(chain: chain, transactionId: transactionId)
-            return .response(response.map())
-        case let .chainOperation(operation):
-            return handleChainOperation(operation: operation)
-        case let .getAccounts(chain):
-            let accounts = try signer.getAccounts(sessionId: sessionId, chain: chain.map())
-            let response = walletConnect.encodeGetAccounts(chain: chain, accounts: accounts.map { $0.mapToGem() })
-            return .response(response.map())
-        case .unsupported:
-            return .error(.methodNotFound)
-        }
-    }
-
-    private func handleChainOperation(operation: WalletConnectChainOperation) -> RPCResult {
-        switch operation {
-        case .addChain, .switchChain: .response(AnyCodable.null())
-        case .getChainId: .error(.methodNotFound)
         }
     }
 
@@ -295,10 +217,16 @@ extension WalletConnectorService {
             return
         }
 
-        let wallets = try signer.getWallets(for: proposal)
-        let currentWalletId = try signer.getCurrentWallet().id
-
-        guard let preselectedWallet = wallets.first(where: { $0.id == currentWalletId }) ?? wallets.first else {
+        guard let requiredChains = proposal.supportedRequiredChains else {
+            throw WalletConnectorServiceError.walletsUnsupported
+        }
+        let currentWalletId = try? signer.getCurrentWallet().id
+        guard let sessionWallets = try service.selectSessionWallets(
+            wallets: signer.getWallets().map { try $0.json() },
+            currentWalletId: currentWalletId?.id,
+            requiredChains: requiredChains.map(\.rawValue),
+            optionalChains: proposal.supportedOptionalChains.map(\.rawValue),
+        ) else {
             throw WalletConnectorServiceError.walletsUnsupported
         }
 
@@ -313,9 +241,9 @@ extension WalletConnectorService {
             throw WalletConnectorServiceError.invalidOrigin
         }
 
-        let payload = WalletConnectionSessionProposal(
-            defaultWallet: preselectedWallet,
-            wallets: wallets,
+        let payload = try WalletConnectionSessionProposal(
+            defaultWallet: Primitives.Wallet(sessionWallets.defaultWallet),
+            wallets: sessionWallets.wallets.map { try Primitives.Wallet($0) },
             metadata: metadata,
         )
 
@@ -332,7 +260,7 @@ extension WalletConnectorService {
     }
 
     private func acceptProposal(proposal: Session.Proposal, wallet: Primitives.Wallet) async throws -> Session {
-        let chains = signer.getChains(wallet: wallet)
+        let chains = try service.sessionChains(wallet: wallet.json(), supportedChains: signer.allChains.map(\.rawValue)).map { try $0.map() }
         let accounts = wallet.accounts.filter { chains.contains($0.chain) }
         let events = signer.getEvents()
         let methods = signer.getMethods()

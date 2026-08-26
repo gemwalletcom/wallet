@@ -7,7 +7,6 @@ import WalletConnectorService
 
 public final class ConnectionsService: Sendable {
     private let store: ConnectionsStore
-    private let signer: any WalletConnectorSignable
     private let connector: WalletConnectorServiceable
     private let preferences: Preferences
 
@@ -18,12 +17,10 @@ public final class ConnectionsService: Sendable {
 
     public init(
         store: ConnectionsStore,
-        signer: any WalletConnectorSignable,
         connector: WalletConnectorServiceable,
         preferences: Preferences = .standard,
     ) {
         self.store = store
-        self.signer = signer
         self.connector = connector
         self.preferences = preferences
     }

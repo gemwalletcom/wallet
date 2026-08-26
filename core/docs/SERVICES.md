@@ -40,6 +40,7 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemPortfolioService`](../gemstone/src/services/portfolio/mod.rs) | [`GemPortfolioStore`](../gemstone/src/services/portfolio/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/PortfolioStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/PortfolioStore.kt) | Done | Portfolio chart for the wallet's held assets |
 | [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals |
 | [`GemScanService`](../gemstone/src/services/scan/mod.rs) | — | — | — | Done | Transaction scanning |
+| [`GemWalletConnectService`](../gemstone/src/services/wallet_connect/mod.rs) | [`GemWalletConnectSigner`](../gemstone/src/services/wallet_connect/signer.rs) | [Swift](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorSigner.swift) | — | In progress | Request parse → simulate → decode → app signer → encode, session wallet selection and session chains ([rules](../gemstone/src/services/wallet_connect/rules.rs)); Android still handles requests in `WCRequestViewModel` |
 
 ## App services (iOS is the reference)
 
@@ -90,7 +91,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`Signer`](../../ios/Packages/GemstoneServices/Sources/Signer) | `GemSigner` | Done | Transaction and message signing over the Core signer, moved into `GemstoneServices` |
 | [`NodeService`](../../ios/Packages/GemstoneServices/Sources) | `GemNodeService` | Done | |
 | `StakeService` | `GemStakeService` | Done | Wrapper removed; view models call `sync` on the Core service, APR read from `GemStakeStore` |
-| [`ChainServices/WalletConnectorService`](../../ios/Packages/ChainServices/WalletConnectorService) | — | App-only | WalletConnect SDK bridge |
+| [`ChainServices/WalletConnectorService`](../../ios/Packages/ChainServices/WalletConnectorService) | `GemWalletConnectService` | Done | reown SDK bridge only (pairing, proposals, session streams); request handling and wallet selection in Core, `reown-swift` never becomes a `GemstoneServices` dependency |
 | [`SystemServices`](../../ios/Packages/SystemServices) | — | App-only | Connectivity, image gallery, local store |
 
 ## App packaging goal

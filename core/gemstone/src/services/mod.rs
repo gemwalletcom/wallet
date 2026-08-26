@@ -30,6 +30,7 @@ pub mod transaction_state;
 pub mod transactions;
 pub mod wallet;
 pub mod wallet_configuration;
+pub mod wallet_connect;
 pub mod wallet_session;
 
 pub use app_update::GemAppUpdateService;
@@ -64,4 +65,5 @@ pub use transaction_state::{GemTransactionStateService, GemTransactionStateStore
 pub use transactions::{GemTransactionStore, GemTransactionsService};
 pub use wallet::{GemKeystorePassword, GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletSource, GemWalletStore};
 pub use wallet_configuration::{GemWalletConfigurationService, GemWalletConfigurationStore};
+pub use wallet_connect::{GemSessionWallets, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectService, GemWalletConnectSigner};
 pub use wallet_session::{GemWalletSessionService, GemWalletSessionStore};

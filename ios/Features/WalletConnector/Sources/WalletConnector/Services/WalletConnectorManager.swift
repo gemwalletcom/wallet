@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemServiceError
 import Primitives
 import SwiftUI
 import WalletConnectorService
@@ -16,8 +17,9 @@ public final class WalletConnectorManager {
 
 extension WalletConnectorManager: WalletConnectorInteractable {
     public func sessionReject(error: any Error) async {
-        if let error = error as? ConnectionsError, case .userCancelled = error {
-            return
+        switch error {
+        case ConnectionsError.userCancelled, GemServiceError.Cancelled: return
+        default: break
         }
         await MainActor.run { [weak self] in
             guard let self else { return }
@@ -40,10 +42,6 @@ extension WalletConnectorManager: WalletConnectorInteractable {
 
     public func signTransaction(transferData: WCTransferData) async throws -> String {
         try await presentSheet(payload: transferData, sheetType: { .transferData($0) })
-    }
-
-    public func sendRawTransaction(transferData _: WCTransferData) async throws -> String {
-        throw AnyError.notImplemented
     }
 
     // MARK: - Private

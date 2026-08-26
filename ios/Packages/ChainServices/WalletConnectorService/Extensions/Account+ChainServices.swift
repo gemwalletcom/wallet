@@ -14,7 +14,7 @@ extension Primitives.Account {
         return .none
     }
 
-    func mapToGem() -> Gemstone.Account {
+    public func mapToGem() -> Gemstone.Account {
         Gemstone.Account(
             chain: chain.rawValue,
             address: address,

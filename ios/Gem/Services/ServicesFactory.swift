@@ -532,8 +532,10 @@ extension ServicesFactory {
         )
         return ConnectionsService(
             store: connectionsStore,
-            signer: signer,
-            connector: WalletConnectorService(signer: signer, transactionSimulationService: transactionSimulationService),
+            connector: WalletConnectorService(
+                signer: signer,
+                service: GemWalletConnectService(simulation: transactionSimulationService, signer: signer),
+            ),
         )
     }
 

@@ -8,20 +8,29 @@ pub enum GemServiceError {
     Gateway { msg: String },
     Store { msg: String },
     Status { msg: String },
-    Keystore { msg: String },
+    Core { msg: String },
+    Platform { msg: String },
     UnknownCurrency { currency: String },
+    Cancelled,
 }
 
 impl std::fmt::Display for GemServiceError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Api { msg } | Self::Gateway { msg } | Self::Store { msg } | Self::Status { msg } | Self::Keystore { msg } => write!(f, "{msg}"),
+            Self::Api { msg } | Self::Gateway { msg } | Self::Store { msg } | Self::Status { msg } | Self::Core { msg } | Self::Platform { msg } => write!(f, "{msg}"),
             Self::UnknownCurrency { currency } => write!(f, "unknown currency: {currency}"),
+            Self::Cancelled => write!(f, "cancelled"),
         }
     }
 }
 
 impl std::error::Error for GemServiceError {}
+
+impl From<uniffi::UnexpectedUniFFICallbackError> for GemServiceError {
+    fn from(error: uniffi::UnexpectedUniFFICallbackError) -> Self {
+        Self::Platform { msg: error.reason }
+    }
+}
 
 impl From<GemApiError> for GemServiceError {
     fn from(error: GemApiError) -> Self {
@@ -37,6 +46,6 @@ impl From<GatewayError> for GemServiceError {
 
 impl From<GemstoneError> for GemServiceError {
     fn from(error: GemstoneError) -> Self {
-        Self::Keystore { msg: error.to_string() }
+        Self::Core { msg: error.to_string() }
     }
 }

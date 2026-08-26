@@ -1,9 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.SignMessage
 import Primitives
-import WalletConnectSign
 
 public protocol WalletConnectorSignable: Sendable {
     var allChains: [Primitives.Chain] { get }
@@ -14,14 +12,8 @@ public protocol WalletConnectorSignable: Sendable {
     func sessionReject(id: String, error: any Error) async throws
     func getCurrentWallet() throws -> Primitives.Wallet
     func getWallet(id: WalletId) throws -> Primitives.Wallet
-    func getChains(wallet: Wallet) -> [Primitives.Chain]
-    func getAccounts(sessionId: String, chain: Primitives.Chain) throws -> [Primitives.Account]
-    func getWallets(for proposal: Session.Proposal) throws -> [Wallet]
+    func getWallets() throws -> [Primitives.Wallet]
     func getMethods() -> [WalletConnectionMethods]
     func getEvents() -> [WalletConnectionEvents]
     func sessionApproval(payload: WCPairingProposal) async throws -> WalletId
-    func signMessage(sessionId: String, chain: Chain, message: SignMessage, simulation: SimulationResult) async throws -> String
-    func signTransaction(sessionId: String, chain: Chain, transaction: WalletConnectorTransaction, simulation: SimulationResult) async throws -> String
-    func sendTransaction(sessionId: String, chain: Chain, transaction: WalletConnectorTransaction, simulation: SimulationResult) async throws -> String
-    func sendRawTransaction(sessionId: String, chain: Chain, transaction: String) async throws -> String
 }

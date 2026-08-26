@@ -29,7 +29,6 @@ struct ConnectionsServiceTests {
         let connector = WalletConnectorServiceMock()
         let service = ConnectionsService(
             store: store,
-            signer: WalletConnectorSigner.mock(),
             connector: connector,
             preferences: preferences,
         )
@@ -69,7 +68,6 @@ extension ConnectionsService {
     ) -> ConnectionsService {
         ConnectionsService(
             store: .mock(),
-            signer: WalletConnectorSigner.mock(),
             connector: connector,
             preferences: preferences,
         )

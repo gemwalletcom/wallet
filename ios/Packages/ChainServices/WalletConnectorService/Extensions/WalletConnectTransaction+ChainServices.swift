@@ -8,7 +8,7 @@ import GemstonePrimitives
 import Primitives
 
 extension WalletConnectTransaction {
-    func map() throws -> WalletConnectorTransaction {
+    public func map() throws -> WalletConnectorTransaction {
         switch self {
         case let .ethereum(data, kind): try .ethereum(data.map(), kind.map())
         case let .solana(data, outputType, transactionType):
@@ -21,7 +21,7 @@ extension WalletConnectTransaction {
 }
 
 extension EvmTransactionKind {
-    func map() throws -> WalletConnectorEVMTransactionKind {
+    public func map() throws -> WalletConnectorEVMTransactionKind {
         switch self {
         case .transfer: .transfer
         case .contractCall: .contractCall

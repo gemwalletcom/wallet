@@ -11,5 +11,4 @@ public protocol WalletConnectorInteractable: Sendable {
 
     func signTransaction(transferData: WCTransferData) async throws -> String
     func sendTransaction(transferData: WCTransferData) async throws -> String
-    func sendRawTransaction(transferData: WCTransferData) async throws -> String
 }

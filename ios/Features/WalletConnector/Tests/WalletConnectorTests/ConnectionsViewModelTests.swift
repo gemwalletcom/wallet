@@ -51,7 +51,6 @@ extension ConnectionsService {
     static func mock() -> ConnectionsService {
         ConnectionsService(
             store: .mock(),
-            signer: WalletConnectorSigner.mock(),
             connector: WalletConnectorServiceMock(),
         )
     }
