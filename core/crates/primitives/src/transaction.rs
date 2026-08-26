@@ -64,9 +64,6 @@ pub struct Transaction {
     pub created_at: DateTime<Utc>,
 }
 
-/// `hash` is `typeshare(skip)`, so the platforms never send it. It is carried by
-/// `id`, so derive it when absent and accept it when present — which keeps every
-/// payload that already includes it working.
 impl<'de> Deserialize<'de> for Transaction {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]

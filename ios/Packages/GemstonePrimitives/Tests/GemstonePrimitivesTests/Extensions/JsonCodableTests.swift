@@ -5,9 +5,6 @@ import Foundation
 import Primitives
 import Testing
 
-// Guards the JSON bridge: every type that crosses the FFI as JSON must survive a
-// round-trip through the coders in `JsonCodable`, including the representations
-// that differ between serde and Codable (dates, big integers, tagged enums).
 struct JsonCodableTests {
     @Test
     func roundTripsTaggedEnum() throws {
@@ -18,7 +15,6 @@ struct JsonCodableTests {
 
     @Test
     func roundTripsDate() throws {
-        // Rust emits RFC3339; a bare JSONDecoder would read it as a timestamp and fail.
         let value = Primitives.ChartDateValue(date: Date(timeIntervalSince1970: 1_700_000_000), value: 42)
 
         #expect(try Primitives.ChartDateValue(value.json()).date == value.date)

@@ -57,8 +57,6 @@ class TransactionStatusServiceTest {
 
         val result = service.getUpdate(transaction())
 
-        // Gemstone owns the request shape and swap routing now; the service only has
-        // to hand over the transaction and map what comes back.
         assertEquals("0xhash", sent.captured.decodeJson<Transaction>().id.hash)
         assertEquals(TransactionState.Confirmed, result.state)
         assertEquals("42", result.fee?.toString())

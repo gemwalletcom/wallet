@@ -26,7 +26,6 @@ class ConnectionStatusObserverTest {
         every { Log.d(any(), any()) } returns 0
         mockkStatic("uniffi.gemstone.GemstoneKt")
         every { connectionStatus(any()) } answers {
-            // Components cross as JSON now, so decode them back before deciding.
             val components = firstArg<List<String>>().map { it.decodeJson<ConnectionComponent>() }
             when {
                 components.contains(ConnectionComponent.Internet) -> ConnectionStatus.NoInternet

@@ -170,8 +170,6 @@ struct TransactionStateServiceTests {
         await expectRetry(job.run())
         await expectComplete(job.run())
 
-        // The job re-reads the transaction after the hash change, so the second
-        // lookup goes out against the new hash.
         #expect(await statusService.requestedHashes() == ["hash", "new-hash"])
     }
 

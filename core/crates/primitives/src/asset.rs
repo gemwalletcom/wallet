@@ -21,9 +21,6 @@ pub struct Asset {
     pub asset_type: AssetType,
 }
 
-/// `chain` and `token_id` are `typeshare(skip)`, so the platforms never send them.
-/// They are both carried by `id`, so derive them when absent and accept them when
-/// present — which keeps every payload that already includes them working.
 impl<'de> Deserialize<'de> for Asset {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
@@ -280,7 +277,6 @@ mod asset_deserialize_tests {
 
     #[test]
     fn test_deserialize_derives_skipped_fields_from_id() {
-        // What the platforms send: no `chain`, no `tokenId`.
         let token: Asset =
             serde_json::from_str(r#"{"id":"ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7","name":"Tether","symbol":"USDT","decimals":6,"type":"ERC20"}"#).unwrap();
         assert_eq!(token.chain, Chain::Ethereum);
@@ -290,7 +286,6 @@ mod asset_deserialize_tests {
         assert_eq!(native.chain, Chain::Ethereum);
         assert_eq!(native.token_id, None);
 
-        // Payloads that still carry them keep working, and round-trips are stable.
         let round_tripped: Asset = serde_json::from_str(&serde_json::to_string(&token).unwrap()).unwrap();
         assert_eq!(round_tripped, token);
     }

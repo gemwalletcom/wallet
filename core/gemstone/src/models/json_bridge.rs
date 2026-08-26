@@ -14,16 +14,6 @@ use primitives::{
 };
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
 
-/// Bridges `primitives` types across the FFI as JSON strings.
-///
-/// The platform side decodes into its typeshare-generated counterpart, which is
-/// produced from the same `primitives` type. That keeps `primitives` the single
-/// source of truth: no uniffi mirror record here, and no hand-written mapper on
-/// Swift or Kotlin.
-///
-/// Use this for records and enums. Newtype-ish values that already have a lossless
-/// string form (`AssetId`, `Chain`, `BigInt`) belong in `custom_types` instead —
-/// a bare string is cheaper than JSON and is equally free of duplication.
 macro_rules! json_bridge {
     ($($type:ident),* $(,)?) => {
         $(
@@ -44,9 +34,6 @@ macro_rules! json_bridge {
     };
 }
 
-// Every `primitives` type that crosses the FFI as JSON. Add a type here and the
-// platform side decodes it into its typeshare-generated counterpart — no uniffi
-// mirror record, no hand-written mapper on either platform.
 json_bridge!(
     AccountDataType,
     ApplicationMetadata,

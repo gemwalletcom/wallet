@@ -54,9 +54,6 @@ public struct TransactionStateService: Sendable {
             let stateChanges = try await statusService.transactionUpdate(transaction)
             return try saveStateChanges(stateChanges, for: transaction)
         } catch {
-            // Gemstone applies the timeout when a status lookup succeeds. A lookup that
-            // keeps failing never reaches that, so apply the same rule here rather than
-            // retrying forever.
             if hasTimedOut(transaction), let result = try? saveStateChanges(TransactionChanges(state: .failed), for: transaction) {
                 return result
             }
@@ -147,8 +144,6 @@ extension TransactionStateService {
         }
     }
 
-    // Gemstone merges against the transaction it was handed. A hash change resolves
-    // to a different local record, so guard that one from being walked backwards too.
     private func updateStateIfNeeded(transactionId: TransactionId, oldState: TransactionState, newState: TransactionState) throws -> TransactionState {
         let nextState = oldState == .pending || newState.isCompleted ? newState : oldState
         if nextState != oldState {
