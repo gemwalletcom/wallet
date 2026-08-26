@@ -1,37 +1,21 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
-import com.gemwallet.android.cases.tokens.SyncAssetPrices
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.WalletId
-import kotlinx.coroutines.flow.firstOrNull
+import uniffi.gemstone.GemBalanceService
 
 class EnableAssetImpl(
     private val sessionRepository: SessionRepository,
-    private val syncAssetPrices: SyncAssetPrices,
-    private val assetsRepository: AssetsRepository,
+    private val balanceService: GemBalanceService,
 ) : EnableAsset {
 
-    override suspend fun invoke(walletId: WalletId, assetId: AssetId) =
-        invoke(walletId, listOf(assetId))
+    override suspend fun invoke(walletId: WalletId, assetId: AssetId) = invoke(walletId, listOf(assetId))
 
     override suspend fun invoke(walletId: WalletId, assetIds: List<AssetId>) {
-        val unique = assetIds.distinct()
-        if (unique.isEmpty()) return
-
-        val enabled = assetsRepository.getAssetsInfo(unique)
-            .firstOrNull()
-            .orEmpty()
-            .filter { it.walletId == walletId && it.metadata?.isBalanceEnabled == true }
-            .mapTo(hashSetOf()) { it.asset.id }
-
-        val missing = unique - enabled
-        if (missing.isEmpty()) return
-
-        syncAssetPrices(missing, sessionRepository.getCurrentCurrency())
-        missing.forEach { assetsRepository.linkAssetToWallet(walletId.id, it, visible = true) }
-        assetsRepository.updateBalances(*missing.toTypedArray())
+        balanceService.enableAssets(walletId.id, assetIds.map { it.toIdentifier() }, true, sessionRepository.getCurrentCurrency().toJson())
     }
 }

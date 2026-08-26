@@ -30,8 +30,14 @@ public actor GatewayService: Sendable {
         GemTransactionStateService(gateway: gateway, store: store)
     }
 
-    public nonisolated func balanceService(walletStore: any GemWalletStore, assetStore: any GemAssetStore, store: any GemBalanceStore) -> GemBalanceService {
-        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store)
+    public nonisolated func balanceService(
+        walletStore: any GemWalletStore,
+        assetStore: any GemAssetStore,
+        store: any GemBalanceStore,
+        assets: GemAssetsService,
+        price: GemPriceService,
+    ) -> GemBalanceService {
+        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, price: price)
     }
 
     public nonisolated func perpetualService(price: GemPriceService, store: any GemPerpetualStore) -> GemPerpetualService {

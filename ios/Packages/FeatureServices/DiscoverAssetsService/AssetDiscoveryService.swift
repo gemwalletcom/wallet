@@ -2,6 +2,7 @@
 
 import Foundation
 import protocol Gemstone.GemAssetDiscoveryServiceProtocol
+import GemstonePrimitives
 import NFTService
 import Preferences
 import Primitives
@@ -11,15 +12,18 @@ public struct AssetDiscoveryService: AssetDiscoverable {
     private let discovery: any GemAssetDiscoveryServiceProtocol
     private let transactionsService: TransactionsService
     private let nftService: NFTService
+    private let preferences: Preferences
 
     public init(
         discovery: any GemAssetDiscoveryServiceProtocol,
         transactionsService: TransactionsService,
         nftService: NFTService,
+        preferences: Preferences,
     ) {
         self.discovery = discovery
         self.transactionsService = transactionsService
         self.nftService = nftService
+        self.preferences = preferences
     }
 
     public func discoverAssets(wallet: Wallet) async throws {
@@ -32,7 +36,7 @@ public struct AssetDiscoveryService: AssetDiscoverable {
     }
 
     private func discoverAssets(wallet: Wallet, preferences: WalletPreferences) async throws {
-        _ = try await discovery.discover(walletId: wallet.id.id)
+        _ = try await discovery.discover(walletId: wallet.id.id, currency: Currency(id: self.preferences.currency).json())
         preferences.completeInitialLoadAssets = true
     }
 

@@ -138,6 +138,8 @@ struct ServicesFactory {
             walletStore: gemWalletStore,
             assetStore: gemAssetStore,
             store: GemstoneBalanceStore(store: storeManager.balanceStore),
+            assets: gemAssetsService,
+            price: gemPriceService,
         )
         let balanceService = BalanceService(balanceStore: storeManager.balanceStore, service: gemBalanceService)
         let gemStakeService = gatewayService.stakeService(
@@ -241,19 +243,20 @@ struct ServicesFactory {
         )
 
         let assetsEnabler = AssetsEnablerService(
-            assetsService: assetsService,
-            balanceUpdater: balanceService,
+            service: gemBalanceService,
             priceUpdater: streamSubscriptionService,
+            preferences: preferences,
         )
         let assetDiscoveryService = AssetDiscoveryService(
             discovery: Gemstone.GemAssetDiscoveryService(
                 api: gemDeviceApiClient,
-                assets: gemAssetsService,
+                balance: gemBalanceService,
                 walletStore: gemWalletStore,
-                store: GemstoneAssetDiscoveryStore(walletStore: storeManager.walletStore, assetsEnabler: assetsEnabler),
+                store: GemstoneAssetDiscoveryStore(),
             ),
             transactionsService: transactionsService,
             nftService: nftService,
+            preferences: preferences,
         )
         let walletSetupService = WalletSetupService(balanceService: balanceService)
 

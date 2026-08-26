@@ -30,7 +30,6 @@ import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
 import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.cases.banners.HasMultiSign
-import com.gemwallet.android.cases.tokens.SyncAssetPrices
 import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
@@ -73,6 +72,7 @@ import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import dagger.Lazy
 import uniffi.gemstone.GemAssetDiscoveryService
+import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
@@ -200,13 +200,8 @@ object AssetModule {
     @Singleton
     fun provideEnableAsset(
         sessionRepository: SessionRepository,
-        syncAssetPrices: SyncAssetPrices,
-        assetsRepository: AssetsRepository,
-    ): EnableAsset = EnableAssetImpl(
-        sessionRepository = sessionRepository,
-        syncAssetPrices = syncAssetPrices,
-        assetsRepository = assetsRepository,
-    )
+        balanceService: GemBalanceService,
+    ): EnableAsset = EnableAssetImpl(sessionRepository, balanceService)
 
     @Provides
     @Singleton
@@ -238,15 +233,14 @@ object AssetModule {
     @Singleton
     fun provideGemAssetDiscoveryService(
         apiClient: GemDeviceApiClient,
-        assetsService: GemAssetsService,
+        balanceService: GemBalanceService,
         walletsRepository: Lazy<WalletsRepository>,
         walletPreferencesFactory: WalletPreferencesFactory,
-        enableAsset: EnableAsset,
     ): GemAssetDiscoveryService = GemAssetDiscoveryService(
         apiClient,
-        assetsService,
+        balanceService,
         GemstoneWalletStore(walletsRepository),
-        GemstoneAssetDiscoveryStore(walletPreferencesFactory, enableAsset),
+        GemstoneAssetDiscoveryStore(walletPreferencesFactory),
     )
 
     @Provides

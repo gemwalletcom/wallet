@@ -5,6 +5,7 @@ import protocol Gemstone.GemBalanceStore
 import struct Gemstone.GemBalanceUpdate
 import enum Gemstone.GemBalanceUpdateType
 import struct Gemstone.GemBalanceValue
+import typealias Gemstone.AssetId
 import GemstonePrimitives
 import Primitives
 import Store
@@ -20,7 +21,7 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         let walletId = try WalletId.from(id: walletId)
         let balances = try updates.map { update in
             try UpdateBalance(
-                assetId: AssetId(id: update.assetId),
+                assetId: Primitives.AssetId(id: update.assetId),
                 type: updateType(update.updateType),
                 updatedAt: .now,
                 isActive: update.isActive,
@@ -28,6 +29,22 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         }
         try store.addBalance(assetIds: balances.map(\.assetId), isEnabled: false, for: walletId)
         try store.updateBalances(balances, for: walletId)
+    }
+
+    public func getEnabledAssetIds(walletId: String, assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
+        try store.getBalanceAssetIds(
+            walletId: WalletId.from(id: walletId),
+            assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
+            filters: [.enabled],
+        ).map(\Primitives.AssetId.identifier)
+    }
+
+    public func setEnabled(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
+        try store.setIsEnabled(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId(id: $0) }, value: enabled)
+    }
+
+    public func setPinned(walletId: String, assetId: Gemstone.AssetId, pinned: Bool) async throws {
+        try store.pinAsset(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), value: pinned)
     }
 
     private func updateType(_ type: GemBalanceUpdateType) throws -> UpdateBalanceType {

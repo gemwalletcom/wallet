@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.assets
 
+import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import io.mockk.mockk
@@ -16,7 +17,7 @@ import uniffi.gemstone.GemBalanceValue
 class GemstoneBalanceStoreTest {
 
     private val balancesDao = mockk<BalancesDao>(relaxed = true)
-    private val subject = GemstoneBalanceStore(balancesDao)
+    private val subject = GemstoneBalanceStore(balancesDao, mockk<AssetsDao>(relaxed = true))
 
     @Test
     fun tokenUpdateCreatesHiddenRowBeforeWritingBalance() = runTest {

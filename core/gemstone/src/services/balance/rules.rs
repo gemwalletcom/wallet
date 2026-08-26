@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
@@ -81,6 +81,17 @@ pub fn balance_updates(assets: &[Asset], balances: Vec<(BalanceKind, AssetBalanc
         .collect()
 }
 
+
+pub fn newly_enabled_asset_ids(requested: &[AssetId], enabled: &[AssetId]) -> Vec<AssetId> {
+    let enabled: HashSet<&AssetId> = enabled.iter().collect();
+    requested.iter().filter(|asset_id| !enabled.contains(asset_id)).cloned().collect()
+}
+
+pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
+    let mut seen = HashSet::new();
+    asset_ids.into_iter().filter(|asset_id| seen.insert(asset_id.clone())).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -151,5 +162,14 @@ mod tests {
             }
             other => panic!("unexpected update {other:?}"),
         }
+    }
+
+    #[test]
+    fn test_enable_asset_rules() {
+        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+        let ethereum = AssetId::from_chain(Chain::Ethereum);
+
+        assert_eq!(unique_asset_ids(vec![bitcoin.clone(), ethereum.clone(), bitcoin.clone()]), vec![bitcoin.clone(), ethereum.clone()]);
+        assert_eq!(newly_enabled_asset_ids(&[bitcoin.clone(), ethereum.clone()], &[bitcoin]), vec![ethereum]);
     }
 }

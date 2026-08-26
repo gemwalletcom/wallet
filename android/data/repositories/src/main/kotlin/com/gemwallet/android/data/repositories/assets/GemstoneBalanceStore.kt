@@ -1,6 +1,8 @@
 package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.data.service.store.database.BalancesDao
+import kotlinx.coroutines.flow.first
+import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.BalanceMetadata
@@ -12,7 +14,20 @@ import uniffi.gemstone.GemBalanceUpdateType
 
 class GemstoneBalanceStore(
     private val balancesDao: BalancesDao,
+    private val assetsDao: AssetsDao,
 ) : GemBalanceStore {
+
+    override suspend fun getEnabledAssetIds(walletId: String, assetIds: List<String>): List<String> =
+        assetsDao.getAssetsInfo(walletId, assetIds).first().filter { it.visible == true }.map { it.id }
+
+    override suspend fun setEnabled(walletId: String, assetIds: List<String>, enabled: Boolean) {
+        assetIds.forEach { assetsDao.setWalletAssetVisibility(walletId, it, enabled) }
+    }
+
+    override suspend fun setPinned(walletId: String, assetId: String, pinned: Boolean) {
+        val balance = assetsDao.getBalance(walletId, assetId) ?: return
+        assetsDao.setBalanceConfig(walletId, assetId, isPinned = pinned, isVisible = balance.isVisible, listPosition = balance.listPosition)
+    }
 
     override suspend fun updateBalances(walletId: String, updates: List<GemBalanceUpdate>) = withContext(Dispatchers.IO) {
         val updatedAt = System.currentTimeMillis()

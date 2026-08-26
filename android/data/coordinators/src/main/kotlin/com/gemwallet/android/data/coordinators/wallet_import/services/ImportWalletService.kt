@@ -19,10 +19,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemAssetDiscoveryService
 
 class ImportWalletService(
     private val discoveryService: GemAssetDiscoveryService,
+    private val sessionRepository: SessionRepository,
     private val syncDevice: SyncDevice,
     private val syncTransactions: SyncTransactions,
     private val syncNfts: SyncNfts,
@@ -54,7 +57,7 @@ class ImportWalletService(
     }
 
     private suspend fun discoverAssets(wallet: Wallet) {
-        discoveryService.discover(wallet.id.id)
+        discoveryService.discover(wallet.id.id, sessionRepository.getCurrentCurrency().toJson())
     }
 
     override fun getImportState(walletId: WalletId): Flow<ImportWalletState> = importingWalletIds.map { walletIds ->

@@ -88,11 +88,15 @@ object AssetsModule {
         assetsDao: AssetsDao,
         balancesDao: BalancesDao,
         availabilityService: AssetsAvailabilityService,
+        assetsService: GemAssetsService,
+        priceService: GemPriceService,
     ): GemBalanceService = GemBalanceService(
         gateway,
         GemstoneWalletStore(walletsRepository),
         GemstoneAssetStore(assetsDao, availabilityService),
-        GemstoneBalanceStore(balancesDao),
+        GemstoneBalanceStore(balancesDao, assetsDao),
+        assetsService,
+        priceService,
     )
 
     @Provides
