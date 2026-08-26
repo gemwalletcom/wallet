@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.fiat
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatQuote
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.WalletId
@@ -21,7 +22,7 @@ class GetBuyQuotesImpl(
         walletId: WalletId,
         asset: Asset,
         type: FiatQuoteType,
-        fiatCurrency: String,
+        currency: Currency,
         amount: Double,
     ): List<FiatQuote> {
         return try {
@@ -30,7 +31,7 @@ class GetBuyQuotesImpl(
                 quoteType = type.toJson(),
                 assetId = asset.id.toIdentifier(),
                 amount = amount,
-                currency = fiatCurrency,
+                currency = currency.toJson(),
             ).map { it.decodeJson<FiatQuote>() }
         } catch (err: Exception) {
             currentCoroutineContext().ensureActive()

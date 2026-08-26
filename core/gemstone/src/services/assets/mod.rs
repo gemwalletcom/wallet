@@ -2,6 +2,7 @@ pub mod error;
 pub mod rules;
 pub mod store;
 
+use primitives::WalletId;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
@@ -48,11 +49,11 @@ impl GemAssetsService {
             return Ok(vec![]);
         }
         let assets = self.get_assets(missing, None).await?;
-        self.store.add_assets(assets.clone()).await?;
+        self.store.save_assets(assets.clone()).await?;
         Ok(assets.into_iter().map(|asset| asset.asset.id).collect())
     }
 
-    pub async fn add_missing_balances(&self, wallet_id: String, asset_ids: Vec<AssetId>) -> Result<(), GemAssetError> {
+    pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemAssetError> {
         self.store.add_missing_balances(wallet_id, asset_ids).await
     }
 

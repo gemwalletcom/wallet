@@ -32,7 +32,7 @@ class PerpetualRepositoryImpl(
 ) : PerpetualRepository {
 
     override suspend fun putPerpetuals(items: List<PerpetualData>) {
-        perpetualStore.savePerpetuals(items)
+        perpetualStore.putPerpetuals(items)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -70,7 +70,7 @@ class PerpetualRepositoryImpl(
     }
 
     override suspend fun applyPositionsDiff(walletId: WalletId, deleteIds: List<String>, positions: List<PerpetualPosition>) {
-        perpetualStore.savePositions(walletId, deleteIds, positions)
+        perpetualStore.putPositions(walletId, positions, deleteIds)
     }
 
     override suspend fun getProviderPositions(walletId: WalletId, provider: PerpetualProvider): List<PerpetualPosition> {
@@ -102,7 +102,7 @@ class PerpetualRepositoryImpl(
     }
 
     override suspend fun putBalance(walletId: WalletId, balance: PerpetualBalance) {
-        perpetualStore.saveBalance(walletId, balance)
+        perpetualStore.putBalance(walletId, balance)
     }
 
     override fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?> {

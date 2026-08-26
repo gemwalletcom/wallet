@@ -32,7 +32,7 @@ public final class SetPriceAlertViewModel {
     }
 
     public init(
-        walletId: WalletId,
+        walletId: Primitives.WalletId,
         asset: Primitives.Asset,
         priceAlertService: PriceAlertService,
         price: Double? = nil,

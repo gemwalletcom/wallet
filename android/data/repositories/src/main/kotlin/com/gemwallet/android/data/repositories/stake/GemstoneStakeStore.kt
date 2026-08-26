@@ -25,7 +25,7 @@ class GemstoneStakeStore(
         return stakeDao.getValidators(id, StakeProviderType.Stake).first().toDTO().map { it.toJson() }
     }
 
-    override suspend fun upsertValidators(validators: List<String>) =
+    override suspend fun saveValidators(validators: List<String>) =
         stakeDao.upsertValidators(validators.map { it.decodeJson<DelegationValidator>() }.toRecord())
 
     override suspend fun getDelegationIds(walletId: String, assetId: String): List<String> {
@@ -33,7 +33,7 @@ class GemstoneStakeStore(
         return stakeDao.getDelegationIds(WalletId(walletId), id)
     }
 
-    override suspend fun updateAndDeleteDelegations(walletId: String, delegations: List<String>, deleteIds: List<String>) {
+    override suspend fun updateDelegations(walletId: String, delegations: List<String>, deleteIds: List<String>) {
         val wallet = WalletId(walletId)
         stakeDao.updateAndDeleteDelegations(wallet, delegations.map { it.decodeJson<DelegationBase>() }.toRecord(wallet), deleteIds)
     }

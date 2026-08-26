@@ -2,6 +2,7 @@ pub mod error;
 pub mod rules;
 pub mod store;
 
+use primitives::WalletId;
 use std::sync::Arc;
 
 use chrono::Utc;
@@ -34,13 +35,13 @@ impl GemTransactionsService {
         }
     }
 
-    pub async fn sync(&self, wallet_id: String, asset_id: Option<AssetId>) -> Result<(), GemTransactionsError> {
+    pub async fn sync(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemTransactionsError> {
         let from_timestamp = self.store.get_sync_timestamp(wallet_id.clone(), asset_id.clone()).await?;
         let timestamp = Utc::now().timestamp() as u64;
         let response = self
             .api
             .client
-            .get_transactions(wallet_id.clone(), asset_id.as_ref().map(|asset_id| asset_id.to_string()), from_timestamp)
+            .get_transactions(wallet_id.id(), asset_id.as_ref().map(|asset_id| asset_id.to_string()), from_timestamp)
             .await
             .map_err(GemApiError::from)?;
 
@@ -48,7 +49,7 @@ impl GemTransactionsService {
         if !new_asset_ids.is_empty() {
             self.assets.add_missing_balances(wallet_id.clone(), new_asset_ids).await?;
         }
-        self.store.add_transactions(wallet_id.clone(), response.transactions).await?;
+        self.store.save_transactions(wallet_id.clone(), response.transactions).await?;
         self.address_store.save_address_names(response.address_names).await?;
         self.store.set_sync_timestamp(wallet_id, asset_id, timestamp).await
     }

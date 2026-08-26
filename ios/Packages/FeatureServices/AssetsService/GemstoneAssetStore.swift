@@ -27,7 +27,7 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
         try assetStore.getAssets(for: assetIds).map { try $0.json() }
     }
 
-    public func addAssets(assets: [Gemstone.AssetBasic]) async throws {
+    public func saveAssets(assets: [Gemstone.AssetBasic]) async throws {
         try assetStore.add(assets: assets.map { try Primitives.AssetBasic($0) })
     }
 

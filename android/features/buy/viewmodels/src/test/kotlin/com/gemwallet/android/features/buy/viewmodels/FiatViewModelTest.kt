@@ -69,7 +69,7 @@ class FiatViewModelTest {
                 walletId = any(),
                 asset = any(),
                 type = any(),
-                fiatCurrency = any(),
+                currency = any(),
                 amount = any(),
             )
         } returns listOf(mockFiatQuote())
@@ -78,7 +78,7 @@ class FiatViewModelTest {
                 walletId = walletId,
                 asset = asset,
                 type = any(),
-                fiatCurrency = Currency.USD.string,
+                currency = Currency.USD,
                 amount = 50.0,
             )
         } returns listOf(mockFiatQuote())
@@ -87,7 +87,7 @@ class FiatViewModelTest {
                 walletId = walletId,
                 asset = asset,
                 type = FiatQuoteType.Sell,
-                fiatCurrency = Currency.USD.string,
+                currency = Currency.USD,
                 amount = 100.0,
             )
         } returns listOf(mockFiatQuote())
@@ -127,7 +127,7 @@ class FiatViewModelTest {
                     walletId = walletId,
                     asset = asset,
                     type = FiatQuoteType.Buy,
-                    fiatCurrency = Currency.USD.string,
+                    currency = Currency.USD,
                     amount = 50.0,
                 )
             }
@@ -153,7 +153,7 @@ class FiatViewModelTest {
                     walletId = walletId,
                     asset = asset,
                     type = FiatQuoteType.Buy,
-                    fiatCurrency = Currency.USD.string,
+                    currency = Currency.USD,
                     amount = 50.0,
                 )
             }
@@ -175,7 +175,7 @@ class FiatViewModelTest {
                     walletId = walletId,
                     asset = asset,
                     type = FiatQuoteType.Buy,
-                    fiatCurrency = Currency.USD.string,
+                    currency = Currency.USD,
                     amount = 10.0,
                 )
             }

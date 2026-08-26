@@ -1,6 +1,7 @@
 pub mod error;
 pub mod store;
 
+use primitives::WalletId;
 use std::future::Future;
 use std::sync::Arc;
 
@@ -24,8 +25,8 @@ impl GemNftService {
         Self { api, store }
     }
 
-    pub async fn sync(&self, wallet_id: String) -> Result<u32, GemNftError> {
-        let data = self.api.client.get_nft_assets(wallet_id.clone()).await.map_err(GemApiError::from)?;
+    pub async fn sync(&self, wallet_id: WalletId) -> Result<u32, GemNftError> {
+        let data = self.api.client.get_nft_assets(wallet_id.id()).await.map_err(GemApiError::from)?;
         let count = data.len() as u32;
         self.store.save(wallet_id, data).await?;
         Ok(count)
@@ -38,8 +39,8 @@ impl GemNftService {
         .await
     }
 
-    pub async fn refresh_asset(&self, wallet_id: String, asset_id: NFTAssetId) -> Result<(), GemNftError> {
-        self.api.client.refresh_nft_asset(wallet_id, asset_id).await.map_err(GemApiError::from)?;
+    pub async fn refresh_asset(&self, wallet_id: WalletId, asset_id: NFTAssetId) -> Result<(), GemNftError> {
+        self.api.client.refresh_nft_asset(wallet_id.id(), asset_id).await.map_err(GemApiError::from)?;
         Ok(())
     }
 
@@ -57,7 +58,7 @@ where
         return Ok(data);
     }
     let data = fetch.await?;
-    store.add_asset_data(data.clone()).await?;
+    store.save_asset(data.clone()).await?;
     Ok(data)
 }
 
@@ -75,13 +76,13 @@ mod tests {
 
     #[async_trait::async_trait]
     impl GemNftStore for MemoryStore {
-        async fn save(&self, _wallet_id: String, _data: Vec<primitives::NFTData>) -> Result<(), GemNftError> {
+        async fn save(&self, _wallet_id: WalletId, _data: Vec<primitives::NFTData>) -> Result<(), GemNftError> {
             Ok(())
         }
         async fn get_asset_data(&self, _asset_id: NFTAssetId) -> Result<Option<NFTAssetData>, GemNftError> {
             Ok(self.cached.clone())
         }
-        async fn add_asset_data(&self, data: NFTAssetData) -> Result<(), GemNftError> {
+        async fn save_asset(&self, data: NFTAssetData) -> Result<(), GemNftError> {
             self.added.lock().unwrap().push(data);
             Ok(())
         }

@@ -22,7 +22,7 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         self.balanceStore = balanceStore
     }
 
-    public func upsertPerpetuals(data: [Gemstone.PerpetualData]) async throws {
+    public func savePerpetuals(data: [Gemstone.PerpetualData]) async throws {
         let perpetualsData = try data.map { try Primitives.PerpetualData($0) }
         try assetStore.add(assets: perpetualsData.map { perpetualAssetBasic(from: $0.asset) })
         try store.upsertPerpetuals(perpetualsData.map(\.perpetual))
@@ -32,7 +32,7 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         try store.getPositions(walletId: WalletId.from(id: walletId), provider: provider.map()).map(\.id)
     }
 
-    public func applyPositions(walletId: String, deleteIds: [String], positions: [Gemstone.PerpetualPosition]) async throws {
+    public func updatePositions(walletId: String, positions: [Gemstone.PerpetualPosition], deleteIds: [String]) async throws {
         try store.diffPositions(
             deleteIds: deleteIds,
             positions: positions.map { try Primitives.PerpetualPosition($0) },

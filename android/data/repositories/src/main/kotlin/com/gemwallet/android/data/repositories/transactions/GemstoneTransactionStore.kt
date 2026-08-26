@@ -26,6 +26,6 @@ class GemstoneTransactionStore(
         }
     }
 
-    override suspend fun addTransactions(walletId: String, transactions: List<String>) =
+    override suspend fun saveTransactions(walletId: String, transactions: List<String>) =
         saveTransactions.saveTransactions(WalletId(walletId), transactions.map { it.decodeJson<Transaction>() })
 }

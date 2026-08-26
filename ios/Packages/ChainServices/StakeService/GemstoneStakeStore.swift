@@ -23,7 +23,7 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
         try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: .stake).map { try $0.json() }
     }
 
-    public func upsertValidators(validators: [Gemstone.DelegationValidator]) async throws {
+    public func saveValidators(validators: [Gemstone.DelegationValidator]) async throws {
         try store.updateValidators(validators.map { try Primitives.DelegationValidator($0) })
     }
 
@@ -31,7 +31,7 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
         try store.getDelegations(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), providerType: .stake).map(\.id)
     }
 
-    public func updateAndDeleteDelegations(walletId: String, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {
+    public func updateDelegations(walletId: String, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {
         try store.updateAndDelete(
             walletId: WalletId.from(id: walletId),
             delegations: delegations.map { try Primitives.DelegationBase($0) },

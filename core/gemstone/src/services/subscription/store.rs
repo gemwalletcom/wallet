@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use primitives::Wallet;
+use primitives::WalletId;
 
 use super::error::GemSubscriptionError;
 
@@ -7,5 +8,5 @@ use super::error::GemSubscriptionError;
 #[async_trait]
 pub trait GemWalletStore: Send + Sync {
     async fn get_wallets(&self) -> Result<Vec<Wallet>, GemSubscriptionError>;
-    async fn get_wallet(&self, wallet_id: String) -> Result<Option<Wallet>, GemSubscriptionError>;
+    async fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemSubscriptionError>;
 }

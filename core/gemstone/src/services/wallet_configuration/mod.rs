@@ -1,3 +1,4 @@
+use primitives::WalletId;
 use std::sync::Arc;
 
 use primitives::WalletConfigurationResult;
@@ -16,7 +17,7 @@ impl GemWalletConfigurationService {
         Self { api }
     }
 
-    pub async fn get_configuration(&self, wallet_id: String) -> Result<WalletConfigurationResult, GemApiError> {
-        Ok(self.api.client.get_wallet_configuration(wallet_id).await?)
+    pub async fn get_configuration(&self, wallet_id: WalletId) -> Result<WalletConfigurationResult, GemApiError> {
+        Ok(self.api.client.get_wallet_configuration(wallet_id.id()).await?)
     }
 }

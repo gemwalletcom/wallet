@@ -27,10 +27,10 @@ class GemstonePerpetualStore(
     private val balancesDao: BalancesDao,
 ) : GemPerpetualStore {
 
-    override suspend fun upsertPerpetuals(data: List<String>) =
-        savePerpetuals(data.map { it.decodeJson<PerpetualData>() })
+    override suspend fun savePerpetuals(data: List<String>) =
+        putPerpetuals(data.map { it.decodeJson<PerpetualData>() })
 
-    suspend fun savePerpetuals(items: List<PerpetualData>) {
+    suspend fun putPerpetuals(items: List<PerpetualData>) {
         assetsDao.insert(items.map { it.asset.toRecord() })
         perpetualDao.upsert(items.map { it.perpetual.toDB() })
     }
@@ -38,18 +38,18 @@ class GemstonePerpetualStore(
     override suspend fun getPositionIds(walletId: String, provider: GemPerpetualProvider): List<String> =
         perpetualPositionDao.getPositionsByProvider(walletId, provider.toPrimitives()).map { it.id }
 
-    override suspend fun applyPositions(walletId: String, deleteIds: List<String>, positions: List<String>) =
-        savePositions(WalletId(walletId), deleteIds, positions.map { it.decodeJson<PerpetualPosition>() })
+    override suspend fun updatePositions(walletId: String, positions: List<String>, deleteIds: List<String>) =
+        putPositions(WalletId(walletId), positions.map { it.decodeJson<PerpetualPosition>() }, deleteIds)
 
-    suspend fun savePositions(walletId: WalletId, deleteIds: List<String>, positions: List<PerpetualPosition>) {
+    suspend fun putPositions(walletId: WalletId, positions: List<PerpetualPosition>, deleteIds: List<String>) {
         if (deleteIds.isEmpty() && positions.isEmpty()) return
         perpetualPositionDao.applyDiff(walletId.id, deleteIds, positions.map { it.toDB(walletId.id) })
     }
 
     override suspend fun updateBalance(walletId: String, balance: String) =
-        saveBalance(WalletId(walletId), balance.decodeJson<PerpetualBalance>())
+        putBalance(WalletId(walletId), balance.decodeJson<PerpetualBalance>())
 
-    suspend fun saveBalance(walletId: WalletId, balance: PerpetualBalance) {
+    suspend fun putBalance(walletId: WalletId, balance: PerpetualBalance) {
         assetsDao.insert(HypercoreUSDC.toRecord())
         balancesDao.insert(balance.toDbBalance(walletId, HypercoreUSDC, System.currentTimeMillis()))
     }

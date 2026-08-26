@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use primitives::name::NameRecord;
-use primitives::{AddressName, ChainAddress};
+use primitives::{AddressName, Chain, ChainAddress};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 
@@ -25,8 +25,8 @@ impl GemNameService {
         Self { api, store }
     }
 
-    pub async fn resolve(&self, name: String, chain: String) -> Result<Option<NameRecord>, GemNameError> {
-        Ok(self.api.client.get_name_record(name, chain).await.map_err(GemApiError::from)?)
+    pub async fn resolve(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemNameError> {
+        Ok(self.api.client.get_name_record(name, chain.to_string()).await.map_err(GemApiError::from)?)
     }
 
     pub async fn get_address_names(&self, requests: Vec<ChainAddress>) -> Result<Vec<AddressName>, GemNameError> {

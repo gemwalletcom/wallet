@@ -36,7 +36,7 @@ class GemstoneNftStore(
         return NFTAssetData(collection = collection.toCollectionModel(), asset = asset.toAssetModel()).toJson()
     }
 
-    override suspend fun addAssetData(data: String) {
+    override suspend fun saveAsset(data: String) {
         val assetData = data.decodeJson<NFTAssetData>()
         nftDao.add(collection = assetData.collection.toDb(), asset = assetData.asset.toDb())
     }

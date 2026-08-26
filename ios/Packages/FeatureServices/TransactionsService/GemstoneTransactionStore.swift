@@ -31,7 +31,7 @@ public final class GemstoneTransactionStore: GemTransactionStore, @unchecked Sen
         }
     }
 
-    public func addTransactions(walletId: String, transactions: [Gemstone.Transaction]) async throws {
+    public func saveTransactions(walletId: String, transactions: [Gemstone.Transaction]) async throws {
         try store.addTransactions(walletId: WalletId.from(id: walletId), transactions: transactions.map { try Primitives.Transaction($0) })
     }
 }

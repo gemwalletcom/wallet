@@ -45,7 +45,7 @@ extension FiatService: FiatQuoting {
             quoteType: type.json(),
             assetId: assetId.identifier,
             amount: request.amount,
-            currency: request.currency,
+            currency: try Currency(id: request.currency).json(),
         ).map { try FiatQuote($0) }
     }
 

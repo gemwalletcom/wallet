@@ -2,6 +2,7 @@ pub mod error;
 pub mod rules;
 pub mod store;
 
+use primitives::WalletId;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -27,7 +28,7 @@ impl GemStakeService {
         Self { gateway, static_api, store }
     }
 
-    pub async fn sync(&self, wallet_id: String, chain: Chain, address: String, apr: f64) -> Result<(), GemStakeError> {
+    pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String, apr: f64) -> Result<(), GemStakeError> {
         let names = self.sync_validators(chain, &address, apr).await?;
         self.sync_delegations(wallet_id, chain, &address, &names).await
     }
@@ -49,13 +50,13 @@ impl GemStakeService {
         );
         let validators = rules::merge_validators(validators?, delegation_validators?, &names);
         if !validators.is_empty() {
-            self.store.upsert_validators(validators.clone()).await?;
+            self.store.save_validators(validators.clone()).await?;
             self.store.save_address_names(rules::validator_address_names(&validators)).await?;
         }
         Ok(names)
     }
 
-    async fn sync_delegations(&self, wallet_id: String, chain: Chain, address: &str, names: &HashMap<String, String>) -> Result<(), GemStakeError> {
+    async fn sync_delegations(&self, wallet_id: WalletId, chain: Chain, address: &str, names: &HashMap<String, String>) -> Result<(), GemStakeError> {
         let asset_id = AssetId::from_chain(chain);
         let delegations = self.gateway.get_staking_delegations(chain, address.to_string()).await?;
         let mut validators: HashMap<String, DelegationValidator> = self
@@ -68,14 +69,14 @@ impl GemStakeService {
 
         let missing = rules::missing_validators(chain, &delegations, &validators, names);
         if !missing.is_empty() {
-            self.store.upsert_validators(missing.clone()).await?;
+            self.store.save_validators(missing.clone()).await?;
             validators.extend(missing.into_iter().map(|validator| (validator.id.clone(), validator)));
         }
 
         let incoming = rules::apply_validator_state(delegations, &validators);
         let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id).await?;
         let delete_ids = rules::stale_delegation_ids(existing_ids, &incoming);
-        self.store.update_and_delete_delegations(wallet_id, incoming, delete_ids).await
+        self.store.update_delegations(wallet_id, incoming, delete_ids).await
     }
 }
 

@@ -4,7 +4,7 @@ pub mod store;
 
 use std::sync::Arc;
 
-use primitives::PriceAlert;
+use primitives::{AssetId, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 
@@ -24,10 +24,15 @@ impl GemPriceAlertService {
         Self { api, store }
     }
 
-    pub async fn sync(&self, asset_id: Option<String>) -> Result<(), GemPriceAlertError> {
-        let remote = self.api.client.get_price_alerts(asset_id.clone()).await.map_err(GemApiError::from)?;
+    pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemPriceAlertError> {
+        let remote = self
+            .api
+            .client
+            .get_price_alerts(asset_id.as_ref().map(ToString::to_string))
+            .await
+            .map_err(GemApiError::from)?;
         let remote = match &asset_id {
-            Some(asset_id) => remote.into_iter().filter(|alert| alert.asset_id.to_string() == *asset_id).collect(),
+            Some(asset_id) => remote.into_iter().filter(|alert| alert.asset_id == *asset_id).collect(),
             None => remote,
         };
         let local = self.store.get_price_alerts(asset_id).await?;
@@ -35,7 +40,7 @@ impl GemPriceAlertService {
         if changes.delete_ids.is_empty() && changes.alerts.is_empty() {
             return Ok(());
         }
-        self.store.apply(changes.delete_ids, changes.alerts).await
+        self.store.update(changes.alerts, changes.delete_ids).await
     }
 
     pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemPriceAlertError> {

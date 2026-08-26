@@ -174,7 +174,7 @@ class FiatViewModel @Inject constructor(
                     walletId = data.walletId,
                     asset = data.asset,
                     type = currentType,
-                    fiatCurrency = currency.string,
+                    currency = currency,
                     amount = amountParsed,
                 )
                 if (quotes.isEmpty()) throw Exception()

@@ -18,7 +18,7 @@ class GemstonePriceAlertStore(
         return records.map { it.toDTO().priceAlert.toJson() }
     }
 
-    override suspend fun apply(deleteIds: List<String>, alerts: List<String>) {
+    override suspend fun update(alerts: List<String>, deleteIds: List<String>) {
         val local = priceAlertsDao.getAllPriceAlerts()
         val localIdsByKey = local.associate { it.toDTO().priceAlert.id to it.id }
 

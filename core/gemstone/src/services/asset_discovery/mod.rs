@@ -2,6 +2,7 @@ pub mod error;
 pub mod rules;
 pub mod store;
 
+use primitives::WalletId;
 use std::sync::Arc;
 
 use chrono::Utc;
@@ -29,13 +30,13 @@ impl GemAssetDiscoveryService {
         Self { api, assets, wallet_store, store }
     }
 
-    pub async fn discover(&self, wallet_id: String) -> Result<Vec<AssetId>, GemAssetDiscoveryError> {
+    pub async fn discover(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemAssetDiscoveryError> {
         let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone()).await? else {
             return Ok(vec![]);
         };
         let from_timestamp = self.store.get_assets_timestamp(wallet_id.clone()).await?;
         let timestamp = Utc::now().timestamp() as u64;
-        let asset_ids = self.api.client.get_assets_list(wallet_id.clone(), from_timestamp).await.map_err(GemApiError::from)?;
+        let asset_ids = self.api.client.get_assets_list(wallet_id.id(), from_timestamp).await.map_err(GemApiError::from)?;
         let asset_ids = rules::discoverable_asset_ids(asset_ids, &wallet.accounts);
         if !asset_ids.is_empty() {
             self.assets.prefetch_assets(asset_ids.clone()).await?;

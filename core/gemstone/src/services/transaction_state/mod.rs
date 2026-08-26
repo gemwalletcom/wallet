@@ -3,6 +3,7 @@ pub mod model;
 pub mod rules;
 pub mod store;
 
+use primitives::WalletId;
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
@@ -27,7 +28,7 @@ impl GemTransactionStateService {
         Self { gateway, store }
     }
 
-    pub async fn update(&self, wallet_id: String, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemTransactionStateError> {
+    pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemTransactionStateError> {
         let update = self.gateway.get_transaction_update(transaction.clone()).await.map_err(|error| error.to_string());
         apply(self.store.as_ref(), wallet_id, transaction, update, Utc::now()).await
     }
@@ -35,7 +36,7 @@ impl GemTransactionStateService {
 
 async fn apply(
     store: &dyn GemTransactionStateStore,
-    wallet_id: String,
+    wallet_id: WalletId,
     transaction: Transaction,
     update: Result<TransactionUpdate, String>,
     now: DateTime<Utc>,
@@ -70,18 +71,18 @@ async fn apply(
 
 async fn rename(
     store: &dyn GemTransactionStateStore,
-    wallet_id: &str,
+    wallet_id: &WalletId,
     transaction: &Transaction,
     hash: String,
 ) -> Result<(TransactionId, TransactionState), GemTransactionStateError> {
     let new_transaction_id = TransactionId::new(transaction.asset_id.chain, hash);
-    match store.get_state(wallet_id.to_string(), new_transaction_id.clone()).await? {
+    match store.get_state(wallet_id.clone(), new_transaction_id.clone()).await? {
         Some(existing_state) => {
-            store.delete_transaction(wallet_id.to_string(), transaction.id.clone()).await?;
+            store.delete_transaction(wallet_id.clone(), transaction.id.clone()).await?;
             Ok((new_transaction_id, existing_state))
         }
         None => {
-            store.rename_transaction(wallet_id.to_string(), transaction.id.clone(), new_transaction_id.clone()).await?;
+            store.rename_transaction(wallet_id.clone(), transaction.id.clone(), new_transaction_id.clone()).await?;
             Ok((new_transaction_id, transaction.state))
         }
     }
@@ -112,22 +113,22 @@ mod tests {
 
     #[async_trait::async_trait]
     impl GemTransactionStateStore for MemoryStore {
-        async fn get_state(&self, _wallet_id: String, transaction_id: TransactionId) -> Result<Option<TransactionState>, GemTransactionStateError> {
+        async fn get_state(&self, _wallet_id: WalletId, transaction_id: TransactionId) -> Result<Option<TransactionState>, GemTransactionStateError> {
             Ok(self.states.lock().unwrap().iter().find(|(id, _)| *id == transaction_id).map(|(_, state)| *state))
         }
-        async fn rename_transaction(&self, _wallet_id: String, transaction_id: TransactionId, new_transaction_id: TransactionId) -> Result<(), GemTransactionStateError> {
+        async fn rename_transaction(&self, _wallet_id: WalletId, transaction_id: TransactionId, new_transaction_id: TransactionId) -> Result<(), GemTransactionStateError> {
             for entry in self.states.lock().unwrap().iter_mut().filter(|(id, _)| *id == transaction_id) {
                 entry.0 = new_transaction_id.clone();
             }
             self.renamed.lock().unwrap().push((transaction_id, new_transaction_id));
             Ok(())
         }
-        async fn delete_transaction(&self, _wallet_id: String, transaction_id: TransactionId) -> Result<(), GemTransactionStateError> {
+        async fn delete_transaction(&self, _wallet_id: WalletId, transaction_id: TransactionId) -> Result<(), GemTransactionStateError> {
             self.states.lock().unwrap().retain(|(id, _)| *id != transaction_id);
             self.deleted.lock().unwrap().push(transaction_id);
             Ok(())
         }
-        async fn update_transaction(&self, _wallet_id: String, transaction_id: TransactionId, update: GemTransactionStateUpdate) -> Result<bool, GemTransactionStateError> {
+        async fn update_transaction(&self, _wallet_id: WalletId, transaction_id: TransactionId, update: GemTransactionStateUpdate) -> Result<bool, GemTransactionStateError> {
             let mut states = self.states.lock().unwrap();
             let Some(entry) = states.iter_mut().find(|(id, _)| *id == transaction_id) else {
                 return Ok(false);
@@ -176,7 +177,7 @@ mod tests {
         update: Result<TransactionUpdate, String>,
         now: DateTime<Utc>,
     ) -> Result<Option<GemTransactionStateResult>, GemTransactionStateError> {
-        futures::executor::block_on(apply(store, "wallet".into(), transaction, update, now))
+        futures::executor::block_on(apply(store, WalletId::Multicoin("wallet".into()), transaction, update, now))
     }
 
     fn id(hash: &str) -> TransactionId {

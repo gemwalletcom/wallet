@@ -1,6 +1,7 @@
 package com.gemwallet.android.application.fiat.coordinators
 
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatQuote
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.WalletId
@@ -10,7 +11,7 @@ interface GetBuyQuotes {
         walletId: WalletId,
         asset: Asset,
         type: FiatQuoteType,
-        fiatCurrency: String,
+        currency: Currency,
         amount: Double,
     ): List<FiatQuote>
 }

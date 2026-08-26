@@ -39,7 +39,7 @@ public extension WalletType {
 public extension GemWalletImport {
     func mapToPreview() throws -> WalletImport {
         try WalletImport(
-            walletId: WalletId.from(id: walletId),
+            walletId: Primitives.WalletId.from(id: walletId),
             walletType: walletType.map(),
             accounts: accounts.map { try $0.mapToAccount() },
         )
@@ -50,7 +50,7 @@ public extension GemStoredWallet {
     func mapToWallet(name: String, source: WalletSource) throws -> Primitives.Wallet {
         // externalId stays nil for v4 wallets
         try Primitives.Wallet(
-            id: WalletId.from(id: walletId),
+            id: Primitives.WalletId.from(id: walletId),
             externalId: nil,
             name: name,
             index: 0,

@@ -3,6 +3,7 @@ pub mod model;
 pub mod rules;
 pub mod store;
 
+use primitives::WalletId;
 use std::sync::Arc;
 
 use futures::future::join_all;
@@ -37,7 +38,7 @@ impl GemBalanceService {
         }
     }
 
-    pub async fn update(&self, wallet_id: String, asset_ids: Vec<AssetId>) -> Result<(), GemBalanceError> {
+    pub async fn update(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemBalanceError> {
         let Some(wallet) = self
             .wallet_store
             .get_wallet(wallet_id.clone())

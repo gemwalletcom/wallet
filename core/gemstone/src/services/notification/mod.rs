@@ -1,6 +1,7 @@
 pub mod error;
 pub mod store;
 
+use primitives::WalletId;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -22,7 +23,7 @@ impl GemNotificationService {
         Self { api, store }
     }
 
-    pub async fn sync(&self, wallet_id: String) -> Result<(), GemNotificationError> {
+    pub async fn sync(&self, wallet_id: WalletId) -> Result<(), GemNotificationError> {
         let started_at = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map_err(|error| GemNotificationError::Store { msg: error.to_string() })?
