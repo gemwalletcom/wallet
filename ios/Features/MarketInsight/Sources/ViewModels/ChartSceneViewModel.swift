@@ -90,7 +90,7 @@ public extension ChartSceneViewModel {
                 period: selectedPeriod,
             )
             if let market = values.market {
-                try priceService.updateMarketPrice(assetId: assetModel.asset.id, market: market, currency: preferences.currency)
+                try await priceService.updateMarketPrice(assetId: assetModel.asset.id, market: market, currency: preferences.currency)
             }
             let price = try priceService.getPrice(for: assetModel.asset.id)
             let rate = try priceService.getRate(currency: preferences.currency)

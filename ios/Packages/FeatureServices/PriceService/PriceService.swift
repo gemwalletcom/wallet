@@ -35,12 +35,8 @@ public struct PriceService: Sendable {
         try await service.changeCurrency(currency: currencyJson(currency))
     }
 
-    public func updateMarketPrice(assetId: AssetId, market: AssetMarket, currency: String) throws {
-        try priceStore.updateMarket(
-            assetId: assetId.identifier,
-            market: market,
-            rate: getRate(currency: currency),
-        )
+    public func updateMarketPrice(assetId: AssetId, market: AssetMarket, currency: String) async throws {
+        try await service.updateMarket(assetId: assetId.identifier, market: market.json(), currency: currencyJson(currency))
     }
 
     public func getPrice(for assetId: AssetId) throws -> AssetPrice? {

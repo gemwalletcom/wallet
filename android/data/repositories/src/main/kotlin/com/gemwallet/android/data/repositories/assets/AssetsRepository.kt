@@ -95,26 +95,7 @@ class AssetsRepository @Inject constructor(
         getAssetsInfo().firstOrNull()?.refreshBalances()?.awaitAll()
     }
 
-    suspend fun saveAssetMetadata(assetFull: AssetFull) = withContext(Dispatchers.IO) {
-        val assetId = assetFull.asset.id
-        val currency = sessionRepository.getCurrentCurrency()
-        val rate = currencyRatesService.getCurrencyRate(currency).firstOrNull() ?: when (currency) {
-            Currency.USD -> FiatRate(Currency.USD, 1.0)
-            else -> null
-        }
-        val record = assetFull.toRecord().copy(
-            updatedAt = System.currentTimeMillis(),
-        )
-        val linkRecords = assetFull.links.toAssetLinkRecord(assetId)
-        val marketRecord = rate?.let { assetFull.toMarketRecord(it.rate) }
-        assetsDao.upsertAssetMetadata(record, linkRecords, marketRecord)
-        pricesRepository.updatePrice(assetFull, currency)
-    }
 
-    suspend fun updateAssetMarket(assetId: AssetId, market: AssetMarket, currency: Currency) = withContext(Dispatchers.IO) {
-        val rate = currencyRatesService.getCurrencyRate(currency).firstOrNull()?.rate ?: return@withContext
-        assetsDao.setMarket(market.toRecord(assetId, rate))
-    }
 
     /**
      *  Create assets for new wallet(import or create wallet)

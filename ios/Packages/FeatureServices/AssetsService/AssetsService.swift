@@ -5,27 +5,23 @@ import ChainService
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import GemstonePrimitives
-import PriceService
 import Primitives
 import Store
 
 public final class AssetsService: Sendable {
     public let assetStore: AssetStore
     let balanceStore: BalanceStore
-    let priceService: PriceService
     let assetsProvider: any GemAssetsServiceProtocol
     let chainServiceFactory: any ChainServiceFactorable
 
     public init(
         assetStore: AssetStore,
         balanceStore: BalanceStore,
-        priceService: PriceService,
         chainServiceFactory: any ChainServiceFactorable,
         assetsProvider: any GemAssetsServiceProtocol,
     ) {
         self.assetStore = assetStore
         self.balanceStore = balanceStore
-        self.priceService = priceService
         self.chainServiceFactory = chainServiceFactory
         self.assetsProvider = assetsProvider
     }
@@ -100,15 +96,10 @@ public final class AssetsService: Sendable {
 
     @discardableResult
     public func updateAsset(assetId: AssetId, currency: String) async throws -> AssetFull {
-        let asset = try await getAsset(assetId: assetId)
-        try assetStore.add(assets: [asset.basic])
-        try assetStore.updateLinks(assetId: assetId, asset.links)
-        try assetStore.updateAssociations(assetId: assetId, associations: asset.associations)
-        try await priceService.updateAssetPrice(assetId: assetId, price: asset.price?.mapToAssetPrice(assetId: assetId), currency: currency)
-        if let market = asset.market {
-            try priceService.updateMarketPrice(assetId: assetId, market: market, currency: currency)
+        guard let currency = Currency(rawValue: currency) else {
+            throw AnyError("unknown currency: \(currency)")
         }
-        return asset
+        return try await AssetFull(assetsProvider.syncAsset(assetId: assetId.identifier, currency: currency.json()))
     }
 
     public func addAssets(assetIds: [AssetId]) async throws {

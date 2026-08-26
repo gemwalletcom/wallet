@@ -6,7 +6,7 @@ import ChainServiceTestKit
 import Foundation
 import class Gemstone.GemAssetsService
 import protocol Gemstone.GemAssetsServiceProtocol
-import PriceService
+import class Gemstone.GemPriceService
 import PriceServiceTestKit
 import Primitives
 import Store
@@ -16,16 +16,15 @@ public extension AssetsService {
     static func mock(
         assetStore: AssetStore = .mock(),
         balanceStore: BalanceStore = .mock(),
-        priceService: PriceService = .mock(),
+        priceService: GemPriceService = .mock(),
         chainServiceFactory: any ChainServiceFactorable = ChainServiceFactoryMock(),
         assetsProvider: (any GemAssetsServiceProtocol)? = nil,
     ) -> AssetsService {
         AssetsService(
             assetStore: assetStore,
             balanceStore: balanceStore,
-            priceService: priceService,
             chainServiceFactory: chainServiceFactory,
-            assetsProvider: assetsProvider ?? GemAssetsService.mock(assetStore: assetStore, balanceStore: balanceStore),
+            assetsProvider: assetsProvider ?? GemAssetsService.mock(assetStore: assetStore, balanceStore: balanceStore, priceService: priceService),
         )
     }
 }

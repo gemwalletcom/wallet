@@ -100,7 +100,7 @@ struct ServicesFactory {
         let marketService = MarketService(service: gemPriceService)
         let priceService = PriceService(priceStore: storeManager.priceStore, service: gemPriceService)
         let gemAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
-        let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient, store: gemAssetStore)
+        let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient, store: gemAssetStore, price: gemPriceService)
         let gemTransactionsService = Gemstone.GemTransactionsService(
             api: gemDeviceApiClient,
             assets: gemAssetsService,
@@ -121,7 +121,6 @@ struct ServicesFactory {
         let assetsService = AssetsService(
             assetStore: storeManager.assetStore,
             balanceStore: storeManager.balanceStore,
-            priceService: priceService,
             chainServiceFactory: chainServiceFactory,
             assetsProvider: gemAssetsService,
         )

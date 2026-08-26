@@ -2,6 +2,8 @@
 
 import AssetsService
 import AssetsServiceTestKit
+import class Gemstone.GemPriceService
+import PriceServiceTestKit
 import Foundation
 import GemAPITestKit
 import Primitives
@@ -46,7 +48,7 @@ struct AssetsServicePersistenceTests {
             assetStore: assetStore,
             balanceStore: balanceStore,
             priceService: .mock(db: db),
-            assetsProvider: GemAssetsServiceMock(assetResult: assetFull),
+            assetsProvider: GemAssetsServiceMock(assetResult: assetFull, store: GemstoneAssetStore(assetStore: assetStore, balanceStore: balanceStore), price: GemPriceService.mock(db: db)),
         )
 
         try await service.updateAsset(assetId: asset.id, currency: Currency.eur.rawValue)
@@ -87,7 +89,7 @@ struct AssetsServicePersistenceTests {
             assetStore: assetStore,
             balanceStore: balanceStore,
             priceService: .mock(db: db),
-            assetsProvider: GemAssetsServiceMock(assetResult: .mock(asset: asset, price: price)),
+            assetsProvider: GemAssetsServiceMock(assetResult: .mock(asset: asset, price: price), store: GemstoneAssetStore(assetStore: assetStore, balanceStore: balanceStore), price: GemPriceService.mock(db: db)),
         )
 
         try await service.updateAsset(assetId: asset.id, currency: Currency.usd.rawValue)

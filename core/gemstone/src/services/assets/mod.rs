@@ -4,24 +4,41 @@ pub mod store;
 
 use std::sync::Arc;
 
-use primitives::{AssetBasic, AssetFull, AssetId, Chain, FiatAssets, FiatQuoteType, SearchResponse};
+use primitives::currency::Currency;
+use primitives::{AssetBasic, AssetFull, AssetId, AssetPrice, Chain, FiatAssets, FiatQuoteType, SearchResponse};
 
 pub use error::GemAssetError;
 pub use store::GemAssetStore;
 
 use crate::api::{GemApiClient, GemApiError};
+use crate::services::price::GemPriceService;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetsService {
     api: Arc<GemApiClient>,
     store: Arc<dyn GemAssetStore>,
+    price: Arc<GemPriceService>,
 }
 
 #[uniffi::export]
 impl GemAssetsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemApiClient>, store: Arc<dyn GemAssetStore>) -> Self {
-        Self { api, store }
+    pub fn new(api: Arc<GemApiClient>, store: Arc<dyn GemAssetStore>, price: Arc<GemPriceService>) -> Self {
+        Self { api, store, price }
+    }
+
+    pub async fn sync_asset(&self, asset_id: AssetId, currency: Currency) -> Result<AssetFull, GemAssetError> {
+        let asset = self.get_asset(asset_id.clone()).await?;
+        self.store.save_asset(asset.clone()).await?;
+        let price = asset
+            .price
+            .as_ref()
+            .map(|price| AssetPrice::new(asset_id.clone(), price.price, price.price_change_percentage_24h, price.updated_at));
+        self.price.update_asset_price(asset_id.clone(), price, currency.clone()).await?;
+        if let Some(market) = asset.market.clone() {
+            self.price.update_market(asset_id, market, currency).await?;
+        }
+        Ok(asset)
     }
 
     pub async fn prefetch_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemAssetError> {

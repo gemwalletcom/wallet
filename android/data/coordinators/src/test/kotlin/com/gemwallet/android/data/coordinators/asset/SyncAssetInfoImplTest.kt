@@ -25,6 +25,8 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAssetsService
 
 class SyncAssetInfoImplTest {
@@ -33,12 +35,16 @@ class SyncAssetInfoImplTest {
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
     private val streamSubscriptionService = mockk<StreamSubscriptionService>(relaxed = true)
     private val prefetchAssets = mockk<PrefetchAssets>(relaxed = true)
+    private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
+        coEvery { getCurrentCurrency() } returns Currency.USD
+    }
 
     private val subject = SyncAssetInfoImpl(
         assetsService = assetsService,
         assetsRepository = assetsRepository,
         streamSubscriptionService = streamSubscriptionService,
         prefetchAssets = prefetchAssets,
+        sessionRepository = sessionRepository,
     )
 
     private val asset = mockAsset()
@@ -75,7 +81,7 @@ class SyncAssetInfoImplTest {
 
         every { assetsRepository.getAssetInfo(asset.id) } returns flowOf(null)
         every { assetsRepository.getTokenInfo(asset.id) } returns flowOf(foreignWalletAsset)
-        coEvery { assetsService.getAsset("bitcoin") } returns assetFull.toJson()
+        coEvery { assetsService.syncAsset("bitcoin", Currency.USD.toJson()) } returns assetFull.toJson()
 
         subject.syncAssetInfo(asset.id, wallet)
 
@@ -94,7 +100,7 @@ class SyncAssetInfoImplTest {
             )
         }
         coVerify { assetsRepository.updateBalances(asset.id) }
-        coVerify { assetsRepository.saveAssetMetadata(assetFull) }
+        coVerify { assetsService.syncAsset("bitcoin", Currency.USD.toJson()) }
         coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
     }
 
@@ -111,7 +117,7 @@ class SyncAssetInfoImplTest {
         ).copy(metadata = assetMetadata)
 
         every { assetsRepository.getAssetInfo(asset.id) } returns flowOf(currentWalletAsset)
-        coEvery { assetsService.getAsset("bitcoin") } returns assetFull.toJson()
+        coEvery { assetsService.syncAsset("bitcoin", Currency.USD.toJson()) } returns assetFull.toJson()
 
         subject.syncAssetInfo(asset.id, wallet)
 
@@ -123,7 +129,7 @@ class SyncAssetInfoImplTest {
             )
         }
         coVerify { assetsRepository.updateBalances(asset.id) }
-        coVerify { assetsRepository.saveAssetMetadata(assetFull) }
+        coVerify { assetsService.syncAsset("bitcoin", Currency.USD.toJson()) }
         coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
     }
 
@@ -140,7 +146,7 @@ class SyncAssetInfoImplTest {
         )
 
         every { assetsRepository.getAssetInfo(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
-        coEvery { assetsService.getAsset("bitcoin") } returns assetFull.toJson()
+        coEvery { assetsService.syncAsset("bitcoin", Currency.USD.toJson()) } returns assetFull.toJson()
 
         subject.syncAssetInfo(asset.id, wallet)
 

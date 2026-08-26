@@ -3,10 +3,12 @@ package com.gemwallet.android.data.coordinators.asset
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.Wallet
@@ -22,6 +24,7 @@ class SyncAssetInfoImpl(
     private val assetsRepository: AssetsRepository,
     private val streamSubscriptionService: StreamSubscriptionService,
     private val prefetchAssets: PrefetchAssets,
+    private val sessionRepository: SessionRepository,
 ) : SyncAssetInfo {
 
     override suspend fun syncAssetInfo(assetId: AssetId, wallet: Wallet): Unit = withContext(Dispatchers.IO) {
@@ -38,8 +41,7 @@ class SyncAssetInfoImpl(
             }
             launch { assetsRepository.updateBalances(assetId) }
             launch {
-                val assetFull = loadAssetMetadata(assetId) ?: return@launch
-                assetsRepository.saveAssetMetadata(assetFull)
+                val assetFull = syncAssetMetadata(assetId) ?: return@launch
                 prefetchAssets.prefetchAssets(assetFull.associations.map { it.assetId })
             }
         }
@@ -57,6 +59,7 @@ class SyncAssetInfoImpl(
             )
         }
 
-    private suspend fun loadAssetMetadata(assetId: AssetId) =
-        runCatching { assetsService.getAsset(assetId.toIdentifier()).decodeJson<AssetFull>() }.getOrNull()
+    private suspend fun syncAssetMetadata(assetId: AssetId) = runCatching {
+        assetsService.syncAsset(assetId.toIdentifier(), sessionRepository.getCurrentCurrency().toJson()).decodeJson<AssetFull>()
+    }.getOrNull()
 }

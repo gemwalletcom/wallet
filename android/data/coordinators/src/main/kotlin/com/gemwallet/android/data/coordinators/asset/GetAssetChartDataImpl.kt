@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import uniffi.gemstone.GemPriceService
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
@@ -16,7 +16,7 @@ import uniffi.gemstone.GemChartService
 
 class GetAssetChartDataImpl(
     private val chartService: GemChartService,
-    private val assetsRepository: AssetsRepository,
+    private val priceService: GemPriceService,
     private val currencyRatesService: CurrencyRatesService,
 ) : GetAssetChartData {
 
@@ -27,7 +27,7 @@ class GetAssetChartDataImpl(
     ): List<ChartValue> {
         val chart = chartService.getCharts(assetId.toIdentifier(), period.toJson()).decodeJson<Charts>()
         chart.market?.let {
-            assetsRepository.updateAssetMarket(assetId, it, currency)
+            priceService.updateMarket(assetId.toIdentifier(), it.toJson(), currency.toJson())
         }
 
         val rate = currencyRatesService.getCurrencyRate(currency).firstOrNull()?.rate?.toFloat() ?: return emptyList()

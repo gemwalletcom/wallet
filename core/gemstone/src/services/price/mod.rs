@@ -6,7 +6,7 @@ pub mod store;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetPrice, FiatRate, Markets};
+use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate, Markets};
 
 pub use error::GemPriceError;
 pub use model::GemPriceUpdate;
@@ -47,11 +47,24 @@ impl GemPriceService {
         update_rates(self.store.as_ref(), rates, currency).await
     }
 
+    pub async fn update_market(&self, asset_id: AssetId, market: AssetMarket, currency: Currency) -> Result<(), GemPriceError> {
+        let Some(rate) = self.rate(currency).await? else {
+            return Ok(());
+        };
+        self.store.save_market(asset_id, rules::market_in_currency(market, rate.rate)).await
+    }
+
     pub async fn change_currency(&self, currency: Currency) -> Result<(), GemPriceError> {
         let Some(rate) = rules::rate_or_base(currency.clone(), self.store.get_rate(currency.clone()).await?) else {
             return Err(GemPriceError::UnknownCurrency { currency: currency.to_string() });
         };
         self.store.convert_prices(currency, rate.rate).await
+    }
+}
+
+impl GemPriceService {
+    pub async fn rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemPriceError> {
+        Ok(rules::rate_or_base(currency.clone(), self.store.get_rate(currency).await?))
     }
 }
 
@@ -106,6 +119,9 @@ mod tests {
         }
         async fn convert_prices(&self, currency: Currency, rate: f64) -> Result<(), GemPriceError> {
             self.converted.lock().unwrap().push((currency, rate));
+            Ok(())
+        }
+        async fn save_market(&self, _asset_id: AssetId, _market: AssetMarket) -> Result<(), GemPriceError> {
             Ok(())
         }
     }

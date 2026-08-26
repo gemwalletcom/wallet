@@ -102,78 +102,6 @@ class AssetsRepositoryTest {
     }
 
     @Test
-    fun saveAssetMetadata_storesLinksPriceAndMarketFromAssetResponse() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-
-        val asset = mockAssetSolana()
-        val assetFull = mockAssetFull(
-            asset = asset,
-            properties = mockAssetProperties(
-                isSwapable = false,
-            ),
-            links = listOf(mockAssetLink()),
-            price = mockPrice(
-                price = 100.0,
-                priceChangePercentage24h = -5.0,
-                updatedAt = 1L,
-            ),
-            market = mockAssetMarket(
-                marketCap = 1_000.0,
-                marketCapFdv = 1_500.0,
-                marketCapRank = 1,
-                totalVolume = 200.0,
-                circulatingSupply = 10.0,
-                totalSupply = 20.0,
-                maxSupply = 21.0,
-                allTimeHighValue = mockChartValuePercentage(date = 2L, value = 300.0f, percentage = -10.0f),
-                allTimeLowValue = mockChartValuePercentage(date = 3L, value = 50.0f, percentage = 80.0f),
-            ),
-        )
-
-        coEvery { sessionRepository.getCurrentCurrency() } returns Currency.EUR
-        every { pricesDao.getRates(Currency.EUR) } returns flowOf(DbFiatRate(Currency.EUR, 0.5))
-        coEvery { pricesDao.getByAssets(listOf("solana")) } returns emptyList()
-
-        val subject = createSubject()
-        subject.saveAssetMetadata(assetFull)
-
-        val linksSlot = slot<List<DbAssetLink>>()
-        val assetSlot = slot<DbAsset>()
-        val marketSlot = slot<DbAssetMarket>()
-
-        coVerify { assetsDao.upsertAssetMetadata(capture(assetSlot), capture(linksSlot), capture(marketSlot)) }
-        coVerify { priceService.updateAssetPrice("solana", match { it.decodeJson<AssetPrice>().price == 100.0 }, Currency.EUR.toJson()) }
-
-        assertEquals("solana", assetSlot.captured.id)
-        assertEquals(false, assetSlot.captured.isSwapEnabled)
-        assertEquals(1, linksSlot.captured.size)
-        assertEquals("website", linksSlot.captured.single().name)
-        assertEquals("https://bitcoin.org", linksSlot.captured.single().url)
-
-        assertEquals("solana", marketSlot.captured.assetId)
-        assertEquals(500.0, marketSlot.captured.marketCap ?: 0.0, 0.0)
-        assertEquals(750.0, marketSlot.captured.marketCapFdv ?: 0.0, 0.0)
-        assertEquals(100.0, marketSlot.captured.totalVolume ?: 0.0, 0.0)
-        assertEquals(150.0, marketSlot.captured.allTimeHigh ?: 0.0, 0.0)
-        assertEquals(25.0, marketSlot.captured.allTimeLow ?: 0.0, 0.0)
-    }
-
-    @Test
-    fun saveAssetMetadata_passesMissingPriceAsNull() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-        coEvery { sessionRepository.getCurrentCurrency() } returns Currency.USD
-
-        val subject = createSubject()
-        listOf(null, mockPrice(price = 0.0)).forEach { price ->
-            subject.saveAssetMetadata(mockAssetFull(asset = mockAssetSolana(), price = price))
-        }
-
-        coVerify(exactly = 1) { priceService.updateAssetPrice("solana", null, Currency.USD.toJson()) }
-        coVerify(exactly = 1) { priceService.updateAssetPrice("solana", match { it.decodeJson<AssetPrice>().price == 0.0 }, Currency.USD.toJson()) }
-    }
-
-
-    @Test
     fun ensureDefaultAssets_addsMissingAssets() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
         val assets = Chain.Tron.defaultAssets
@@ -286,30 +214,6 @@ class AssetsRepositoryTest {
             coVerify { assetsDao.setWalletAssetVisibility(wallet.id.id, asset.id.toIdentifier(), false) }
         }
         coVerify(exactly = 0) { streamSubscriptionService.addAssetIds(any()) }
-    }
-
-    @Test
-    fun saveAssetMetadata_persistsUnknownAssetAndMarketInOneAtomicCall() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-
-        val asset = mockAssetSolanaUSDC()
-        val assetFull = mockAssetFull(
-            asset = asset,
-            market = mockAssetMarket(marketCap = 1_000.0),
-        )
-        coEvery { sessionRepository.getCurrentCurrency() } returns Currency.USD
-        every { pricesDao.getRates(Currency.USD) } returns flowOf(null)
-
-        val subject = createSubject()
-        subject.saveAssetMetadata(assetFull)
-
-        val assetSlot = slot<DbAsset>()
-        val marketSlot = slot<DbAssetMarket>()
-        coVerify(exactly = 1) { assetsDao.upsertAssetMetadata(capture(assetSlot), any(), capture(marketSlot)) }
-        coVerify(exactly = 0) { assetsDao.setMarket(any()) }
-
-        assertEquals(asset.id.toIdentifier(), assetSlot.captured.id)
-        assertEquals(asset.id.toIdentifier(), marketSlot.captured.assetId)
     }
 
     @Test

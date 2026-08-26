@@ -3,6 +3,7 @@
 import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetBasic
+import typealias Gemstone.AssetFull
 import typealias Gemstone.AssetId
 import protocol Gemstone.GemAssetStore
 import GemstonePrimitives
@@ -28,6 +29,13 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
 
     public func addAssets(assets: [Gemstone.AssetBasic]) async throws {
         try assetStore.add(assets: assets.map { try Primitives.AssetBasic($0) })
+    }
+
+    public func saveAsset(asset: Gemstone.AssetFull) async throws {
+        let asset = try Primitives.AssetFull(asset)
+        try assetStore.add(assets: [asset.basic])
+        try assetStore.updateLinks(assetId: asset.asset.id, asset.links)
+        try assetStore.updateAssociations(assetId: asset.asset.id, associations: asset.associations)
     }
 
     public func addMissingBalances(walletId: String, assetIds: [Gemstone.AssetId]) async throws {

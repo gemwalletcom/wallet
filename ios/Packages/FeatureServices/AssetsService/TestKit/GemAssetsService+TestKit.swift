@@ -4,7 +4,9 @@ import AssetsService
 import Foundation
 import class Gemstone.GemApiClient
 import class Gemstone.GemAssetsService
+import class Gemstone.GemPriceService
 import NativeProviderService
+import PriceServiceTestKit
 import Primitives
 import Store
 import StoreTestKit
@@ -13,6 +15,7 @@ public extension GemAssetsService {
     static func mock(
         assetStore: AssetStore = .mock(),
         balanceStore: BalanceStore = .mock(),
+        priceService: GemPriceService = .mock(),
     ) -> GemAssetsService {
         GemAssetsService(
             api: GemApiClient(
@@ -20,6 +23,7 @@ public extension GemAssetsService {
                 baseUrl: Constants.apiURL.absoluteString,
             ),
             store: GemstoneAssetStore(assetStore: assetStore, balanceStore: balanceStore),
+            price: priceService,
         )
     }
 }

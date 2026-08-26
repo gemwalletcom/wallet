@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAsset
@@ -17,6 +16,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import uniffi.gemstone.GemChartService
+import uniffi.gemstone.GemPriceService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -24,12 +24,12 @@ import org.junit.Test
 class GetAssetChartDataImplTest {
 
     private val chartService = mockk<GemChartService>()
-    private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
+    private val priceService = mockk<GemPriceService>(relaxed = true)
     private val currencyRatesService = mockk<CurrencyRatesService>(relaxed = true)
 
     private val subject = GetAssetChartDataImpl(
         chartService = chartService,
-        assetsRepository = assetsRepository,
+        priceService = priceService,
         currencyRatesService = currencyRatesService,
     )
 
@@ -56,7 +56,7 @@ class GetAssetChartDataImplTest {
         )
 
         assertEquals(listOf(4.0f, 6.0f), result.map { it.value })
-        coVerify { assetsRepository.updateAssetMarket(asset.id, market, Currency.EUR) }
+        coVerify { priceService.updateMarket("bitcoin", market.toJson(), Currency.EUR.toJson()) }
     }
 
     @Test
@@ -77,6 +77,6 @@ class GetAssetChartDataImplTest {
         )
 
         assertTrue(result.isEmpty())
-        coVerify(exactly = 0) { assetsRepository.updateAssetMarket(any(), any(), any()) }
+        coVerify(exactly = 0) { priceService.updateMarket(any(), any(), any()) }
     }
 }

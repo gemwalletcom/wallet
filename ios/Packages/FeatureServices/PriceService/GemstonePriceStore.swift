@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import typealias Gemstone.AssetId
+import typealias Gemstone.AssetMarket
 import typealias Gemstone.Currency
 import typealias Gemstone.FiatRate
 import protocol Gemstone.GemPriceStore
@@ -33,7 +35,7 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
     public func savePrices(currency _: Gemstone.Currency, prices: [GemPriceUpdate]) async throws {
         try priceStore.updatePrices(prices.map { update in
             try PriceUpdate(
-                assetId: AssetId(id: update.assetId),
+                assetId: Primitives.AssetId(id: update.assetId),
                 price: update.price,
                 priceUsd: update.priceUsd,
                 priceChangePercentage24h: update.priceChangePercentage24h,
@@ -44,5 +46,9 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
 
     public func convertPrices(currency _: Gemstone.Currency, rate: Double) async throws {
         try priceStore.convertPrices(rate: rate)
+    }
+
+    public func saveMarket(assetId: Gemstone.AssetId, market: Gemstone.AssetMarket) async throws {
+        try priceStore.updateMarket(assetId: assetId, market: Primitives.AssetMarket(market))
     }
 }

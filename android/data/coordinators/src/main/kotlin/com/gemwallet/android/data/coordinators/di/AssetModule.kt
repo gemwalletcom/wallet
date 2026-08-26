@@ -72,6 +72,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemPortfolioService
 import javax.inject.Singleton
 
@@ -156,11 +157,11 @@ object AssetModule {
     @Singleton
     fun provideGetAssetChartData(
         chartService: GemChartService,
-        assetsRepository: AssetsRepository,
+        priceService: GemPriceService,
         currencyRatesService: CurrencyRatesService,
     ): GetAssetChartData = GetAssetChartDataImpl(
         chartService = chartService,
-        assetsRepository = assetsRepository,
+        priceService = priceService,
         currencyRatesService = currencyRatesService,
     )
 
@@ -217,11 +218,13 @@ object AssetModule {
         assetsRepository: AssetsRepository,
         streamSubscriptionService: StreamSubscriptionService,
         prefetchAssets: PrefetchAssets,
+        sessionRepository: SessionRepository,
     ): SyncAssetInfo = SyncAssetInfoImpl(
         assetsService = assetsService,
         assetsRepository = assetsRepository,
         streamSubscriptionService = streamSubscriptionService,
         prefetchAssets = prefetchAssets,
+        sessionRepository = sessionRepository,
     )
 
     @Provides
