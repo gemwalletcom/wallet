@@ -147,21 +147,12 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
 }
 
 public actor GemWalletConfigurationServiceMock: GemWalletConfigurationServiceProtocol {
-    private let result: Primitives.WalletConfigurationResult
     public private(set) var walletIds: [String] = []
 
-    public init(
-        result: Primitives.WalletConfigurationResult = WalletConfigurationResult(
-            walletId: .multicoin(address: "mock"),
-            configuration: WalletConfiguration(multiSignatureAccounts: []),
-        ),
-    ) {
-        self.result = result
-    }
+    public init() {}
 
-    public func getConfiguration(walletId: String) async throws -> Gemstone.WalletConfigurationResult {
+    public func sync(walletId: String) async throws {
         walletIds.append(walletId)
-        return try result.json()
     }
 }
 

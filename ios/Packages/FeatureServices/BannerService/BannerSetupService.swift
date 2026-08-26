@@ -27,12 +27,6 @@ public struct BannerSetupService: Sendable {
         try setupOnboarding(wallet: wallet)
     }
 
-    public func setupAccountMultiSignatureWallet(walletId: WalletId, chain: Chain) throws {
-        try store.addBanners([
-            NewBanner.accountBlockedMultiSignature(walletId: walletId, chain: chain),
-        ])
-    }
-
     // MARK: - Private methods
 
     private func setupStake() throws {

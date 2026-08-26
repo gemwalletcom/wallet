@@ -13,11 +13,10 @@ pub fn is_visible(state: BannerState) -> bool {
 
 pub fn default_state(event: BannerEvent) -> BannerState {
     match event {
-        BannerEvent::ActivateAsset => BannerState::AlwaysActive,
+        BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature => BannerState::AlwaysActive,
         BannerEvent::Stake
         | BannerEvent::AccountActivation
         | BannerEvent::EnableNotifications
-        | BannerEvent::AccountBlockedMultiSignature
         | BannerEvent::SuspiciousAsset
         | BannerEvent::Onboarding
         | BannerEvent::TradePerpetuals => BannerState::Active,

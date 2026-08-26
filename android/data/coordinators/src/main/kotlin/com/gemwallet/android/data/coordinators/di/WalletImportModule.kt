@@ -4,7 +4,6 @@ import com.gemwallet.android.application.wallet_import.coordinators.GetImportWal
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
-import com.gemwallet.android.cases.banners.AddBanner
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.coordinators.wallet_import.SyncWalletConfigurationImpl
@@ -16,6 +15,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemWalletConfigurationService
+import uniffi.gemstone.GemWalletConfigurationStore
+import com.gemwallet.android.data.coordinators.wallet_import.GemstoneWalletConfigurationStore
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -25,15 +26,15 @@ object WalletImportModule {
 
     @Provides
     @Singleton
+    fun provideGemWalletConfigurationStore(
+        walletPreferencesFactory: WalletPreferencesFactory,
+    ): GemWalletConfigurationStore = GemstoneWalletConfigurationStore(walletPreferencesFactory)
+
+    @Provides
+    @Singleton
     fun provideSyncWalletConfiguration(
         walletConfigurationService: GemWalletConfigurationService,
-        addBanner: AddBanner,
-        walletPreferencesFactory: WalletPreferencesFactory,
-    ): SyncWalletConfiguration = SyncWalletConfigurationImpl(
-        walletConfigurationService = walletConfigurationService,
-        addBanner = addBanner,
-        walletPreferencesFactory = walletPreferencesFactory,
-    )
+    ): SyncWalletConfiguration = SyncWalletConfigurationImpl(walletConfigurationService)
 
     @Provides
     @Singleton

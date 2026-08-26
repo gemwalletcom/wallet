@@ -50,4 +50,4 @@ pub use subscription::{GemSubscriptionService, GemWalletStore};
 pub use support::GemSupportService;
 pub use transaction_state::{GemTransactionStateService, GemTransactionStateStore};
 pub use transactions::{GemTransactionStore, GemTransactionsService};
-pub use wallet_configuration::GemWalletConfigurationService;
+pub use wallet_configuration::{GemWalletConfigurationService, GemWalletConfigurationStore};

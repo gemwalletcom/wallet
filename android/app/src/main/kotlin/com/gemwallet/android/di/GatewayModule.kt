@@ -36,6 +36,8 @@ import uniffi.gemstone.GemPortfolioService
 import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemSupportService
 import uniffi.gemstone.GemWalletConfigurationService
+import uniffi.gemstone.GemWalletConfigurationStore
+import uniffi.gemstone.GemBannerStore
 import javax.inject.Named
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemApiClient as GemstoneApiClient
@@ -139,7 +141,11 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemWalletConfigurationService(apiClient: GemstoneDeviceApiClient): GemWalletConfigurationService = GemWalletConfigurationService(apiClient)
+    fun provideGemWalletConfigurationService(
+        apiClient: GemstoneDeviceApiClient,
+        bannerStore: GemBannerStore,
+        store: GemWalletConfigurationStore,
+    ): GemWalletConfigurationService = GemWalletConfigurationService(apiClient, bannerStore, store)
 
 
     @Provides

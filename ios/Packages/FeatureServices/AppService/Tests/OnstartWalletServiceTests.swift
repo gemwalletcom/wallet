@@ -16,53 +16,10 @@ import Testing
 
 struct OnstartWalletServiceTests {
     @Test
-    func setupAddsMultiSignatureBanner() async throws {
-        let walletId = WalletId.multicoin(address: "0x\(UUID().uuidString)")
-        let walletPreferences = WalletPreferences(walletId: walletId)
-        defer { walletPreferences.clear() }
-
-        let wallet = Wallet.mock(
-            id: walletId,
-            accounts: [.mock(chain: .tron, address: "tron-address")],
-        )
+    func setupSeedsWalletBannersAndSyncsConfiguration() async throws {
+        let wallet = Wallet.mock(id: .multicoin(address: "0x\(UUID().uuidString)"), source: .create)
         let preferences = Preferences.mock()
-        let db = DB.mockWithChains([.tron, .xrp, .stellar, .algorand])
-        let bannerStore = BannerStore.mock(db: db)
-        try WalletStore.mock(db: db).addWallet(wallet)
-        let walletConfigurationService = GemWalletConfigurationServiceMock(
-            result: WalletConfigurationResult(
-                walletId: walletId,
-                configuration: WalletConfiguration(
-                    multiSignatureAccounts: [ChainAddress(chain: .tron, address: "tron-address")],
-                ),
-            ),
-        )
-        let service = OnstartWalletService(
-            deviceService: DeviceServiceMock(),
-            bannerSetupService: BannerSetupService(store: bannerStore, preferences: preferences),
-            walletConfigurationService: walletConfigurationService,
-            pushNotificationEnablerService: PushNotificationEnablerService(preferences: preferences),
-        )
-
-        await service.setup(wallet: wallet).value
-
-        let banner = try bannerStore.getBanner(id: "\(walletId.id)_\(Chain.tron.id)_\(BannerEvent.accountBlockedMultiSignature.rawValue)")
-        #expect(banner?.event == .accountBlockedMultiSignature)
-        #expect(banner?.state == .alwaysActive)
-        #expect(walletPreferences.completeInitialWalletConfiguration)
-        #expect(await walletConfigurationService.walletIds == [walletId.id])
-    }
-
-    @Test
-    func setupSkipsBannerWhenAlreadySynchronized() async throws {
-        let walletId = WalletId.multicoin(address: "0x\(UUID().uuidString)")
-        let walletPreferences = WalletPreferences(walletId: walletId)
-        defer { walletPreferences.clear() }
-        walletPreferences.completeInitialWalletConfiguration = true
-
-        let wallet = Wallet.mock(id: walletId, accounts: [.mock(chain: .tron, address: "tron-address")])
-        let preferences = Preferences.mock()
-        let db = DB.mockWithChains([.tron])
+        let db = DB.mockWithChains([.xrp, .stellar, .algorand])
         let bannerStore = BannerStore.mock(db: db)
         try WalletStore.mock(db: db).addWallet(wallet)
         let walletConfigurationService = GemWalletConfigurationServiceMock()
@@ -75,6 +32,7 @@ struct OnstartWalletServiceTests {
 
         await service.setup(wallet: wallet).value
 
-        #expect(await walletConfigurationService.walletIds.isEmpty)
+        #expect(try bannerStore.getBanner(id: "\(wallet.id.id)_\(BannerEvent.onboarding.rawValue)")?.event == .onboarding)
+        #expect(await walletConfigurationService.walletIds == [wallet.id.id])
     }
 }

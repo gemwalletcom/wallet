@@ -25,6 +25,7 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemSubscriptionService`](../gemstone/src/services/subscription/mod.rs) | [`GemWalletStore`](../gemstone/src/services/subscription/store.rs) | [Swift](../../ios/Packages/FeatureServices/DeviceService/GemstoneWalletStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/wallets/GemstoneWalletStore.kt) | Done | Wallet subscription changes |
 | [`GemTransactionStateService`](../gemstone/src/services/transaction_state/mod.rs) | [`GemTransactionStateStore`](../gemstone/src/services/transaction_state/store.rs) | [Swift](../../ios/Packages/FeatureServices/TransactionStateService/GemstoneTransactionStateStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/transactions/GemstoneTransactionStateStore.kt) | Done | Pending transaction status updates |
 | [`GemTransactionsService`](../gemstone/src/services/transactions/mod.rs) | [`GemTransactionStore`](../gemstone/src/services/transactions/store.rs) | [Swift](../../ios/Packages/FeatureServices/TransactionsService/GemstoneTransactionStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/transactions/GemstoneTransactionStore.kt) | Done | Transaction history sync |
+| [`GemWalletConfigurationService`](../gemstone/src/services/wallet_configuration/mod.rs) | [`GemWalletConfigurationStore`](../gemstone/src/services/wallet_configuration/store.rs) | [Swift](../../ios/Packages/FeatureServices/AppService/GemstoneWalletConfigurationStore.swift) | [Kotlin](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/wallet_import/GemstoneWalletConfigurationStore.kt) | Done | Initial wallet configuration sync, multi-signature banners |
 | [`GemAuthService`](../gemstone/src/services/auth/mod.rs) | — | — | — | Done | Wallet auth payloads |
 | [`GemChartService`](../gemstone/src/services/chart/mod.rs) | — | — | — | Done | Price charts |
 | [`GemConfigService`](../gemstone/src/services/config/mod.rs) | — | — | — | Done | Remote config |
@@ -33,7 +34,6 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals |
 | [`GemScanService`](../gemstone/src/services/scan/mod.rs) | — | — | — | Done | Transaction scanning |
 | [`GemSupportService`](../gemstone/src/services/support/mod.rs) | — | — | — | Done | Support chat |
-| [`GemWalletConfigurationService`](../gemstone/src/services/wallet_configuration/mod.rs) | — | — | — | Done | Wallet configuration |
 
 ## App services (iOS is the reference)
 
@@ -45,7 +45,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`AddressNameService`](../../ios/Packages/FeatureServices/AddressNameService) | `GemNameService` | Done | |
 | [`AppService/OnstartService`](../../ios/Packages/FeatureServices/AppService/OnstartService.swift) | — | Review | Startup migrations, asset import |
 | [`AppService/OnstartAsyncService`](../../ios/Packages/FeatureServices/AppService/OnstartAsyncService.swift) | — | Review | Background startup tasks |
-| [`AppService/OnstartWalletService`](../../ios/Packages/FeatureServices/AppService/OnstartWalletService.swift) | — | Review | Per-wallet startup tasks |
+| [`AppService/OnstartWalletService`](../../ios/Packages/FeatureServices/AppService/OnstartWalletService.swift) | `GemWalletConfigurationService` | Review | Configuration sync in Core; banner seeding and push permissions still app-side |
 | [`AppService/ConfigService`](../../ios/Packages/FeatureServices/AppService/ConfigService.swift) | `GemConfigService` | Review | |
 | [`AppService/AppReleaseService`](../../ios/Packages/FeatureServices/AppService/AppReleaseService.swift), [`ReleaseAlertService`](../../ios/Packages/FeatureServices/AppService/ReleaseAlertService.swift), [`RateService`](../../ios/Packages/FeatureServices/AppService/RateService.swift), [`AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | — | Review | |
 | [`AssetsService`](../../ios/Packages/FeatureServices/AssetsService) | `GemAssetsService` | Review | Sync/details in Core; remaining app-side helpers to review |
@@ -66,7 +66,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`PriceAlertService`](../../ios/Packages/FeatureServices/PriceAlertService) | `GemPriceAlertService` | Done | |
 | [`PriceService`](../../ios/Packages/FeatureServices/PriceService) | `GemPriceService` | Done | |
 | [`RewardsService`](../../ios/Packages/FeatureServices/RewardsService) | `GemRewardsService` | Done | |
-| [`ServiceStatusService`](../../ios/Packages/FeatureServices/ServiceStatusService) | — | Review | |
+| [`ServiceStatusService`](../../ios/Packages/FeatureServices/ServiceStatusService) | `GemServiceStatus` | Done | Thin wrapper over the Core client |
 | [`StreamService`](../../ios/Packages/FeatureServices/StreamService) | — | Review | WebSocket subscriptions, see [DEVICE_WEBSOCKETS.md](DEVICE_WEBSOCKETS.md) |
 | [`SupportChatService`](../../ios/Packages/FeatureServices/SupportChatService) | `GemSupportService` | Review | |
 | [`SwapService`](../../ios/Packages/FeatureServices/SwapService) | — | Review | Swapper lives in Core; app wrapper to review |

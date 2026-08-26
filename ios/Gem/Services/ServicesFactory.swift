@@ -289,7 +289,11 @@ struct ServicesFactory {
         let onstartWalletService = OnstartWalletService(
             deviceService: deviceService,
             bannerSetupService: bannerSetupService,
-            walletConfigurationService: Gemstone.GemWalletConfigurationService(api: gemDeviceApiClient),
+            walletConfigurationService: Gemstone.GemWalletConfigurationService(
+                api: gemDeviceApiClient,
+                banners: GemstoneBannerStore(store: storeManager.bannerStore),
+                store: GemstoneWalletConfigurationStore(),
+            ),
             pushNotificationEnablerService: pushNotificationEnablerService,
         )
 

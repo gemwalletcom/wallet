@@ -22,9 +22,16 @@ public final class GemstoneBannerStore: GemBannerStore, @unchecked Sendable {
     }
 
     public func setState(key: GemBannerKey, state: Gemstone.BannerState) async throws {
-        try store.updateState(
-            bannerIdentifier(key: key),
-            state: Primitives.BannerState(state),
-        )
+        let state = try Primitives.BannerState(state)
+        try store.addBanners([
+            NewBanner(
+                walletId: key.walletId,
+                assetId: key.assetId.map { try Primitives.AssetId(id: $0) },
+                chain: key.chain.flatMap { Primitives.Chain(rawValue: $0) },
+                event: Primitives.BannerEvent(key.event),
+                state: state,
+            ),
+        ])
+        try store.updateState(bannerIdentifier(key: key), state: state)
     }
 }

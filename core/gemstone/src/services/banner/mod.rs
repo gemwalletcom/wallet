@@ -5,7 +5,7 @@ pub mod store;
 
 use std::sync::Arc;
 
-use primitives::{AssetId, BannerEvent, BannerState};
+use primitives::{AssetId, BannerEvent, BannerState, WalletId};
 
 pub use error::GemBannerError;
 pub use model::{GemBannerContext, GemBannerKey};
@@ -23,7 +23,7 @@ impl GemBannerService {
         Self { store }
     }
 
-    pub async fn active_events(&self, wallet_id: Option<String>, asset_id: Option<AssetId>, context: GemBannerContext) -> Result<Vec<BannerEvent>, GemBannerError> {
+    pub async fn active_events(&self, wallet_id: Option<WalletId>, asset_id: Option<AssetId>, context: GemBannerContext) -> Result<Vec<BannerEvent>, GemBannerError> {
         let mut active = Vec::new();
         for event in rules::suggested_events(&context) {
             let key = GemBannerKey {

@@ -3,9 +3,7 @@
 import BannerService
 import DeviceService
 import protocol Gemstone.GemWalletConfigurationServiceProtocol
-import GemstonePrimitives
 import NotificationService
-import Preferences
 import Primitives
 
 public final class OnstartWalletService: Sendable {
@@ -30,7 +28,7 @@ public final class OnstartWalletService: Sendable {
     public func setup(wallet: Wallet) -> Task<Void, Never> {
         Task {
             try? bannerSetupService.setupWallet(wallet: wallet)
-            await syncWalletConfiguration(wallet)
+            try? await walletConfigurationService.sync(walletId: wallet.id.id)
         }
     }
 
@@ -52,17 +50,5 @@ public final class OnstartWalletService: Sendable {
         } catch {
             debugLog("requestPushPermissions error: \(error)")
         }
-    }
-
-    private func syncWalletConfiguration(_ wallet: Wallet) async {
-        let walletPreferences = WalletPreferences(walletId: wallet.id)
-        guard !walletPreferences.completeInitialWalletConfiguration else { return }
-
-        guard let result = try? await WalletConfigurationResult(walletConfigurationService.getConfiguration(walletId: wallet.id.id)) else { return }
-
-        for account in result.configuration.multiSignatureAccounts {
-            try? bannerSetupService.setupAccountMultiSignatureWallet(walletId: wallet.id, chain: account.chain)
-        }
-        walletPreferences.completeInitialWalletConfiguration = true
     }
 }

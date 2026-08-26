@@ -1,13 +1,11 @@
 package com.gemwallet.android.data.repositories.banners
 
-import com.gemwallet.android.cases.banners.AddBanner
 import com.gemwallet.android.cases.banners.CancelBannerCase
 import com.gemwallet.android.cases.banners.GetBannersCase
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.service.store.database.BannersDao
-import com.gemwallet.android.data.service.store.database.entities.DbBanner
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.domains.asset.isStakeable
@@ -20,7 +18,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +37,7 @@ class BannersRepository(
     private val userConfig: UserConfig,
     private val notificationsAvailable: NotificationsAvailable,
     private val bannerService: GemBannerService,
-) : GetBannersCase, CancelBannerCase, HasMultiSign, AddBanner {
+) : GetBannersCase, CancelBannerCase, HasMultiSign {
 
     override suspend fun getActiveBanners(wallet: Wallet?, asset: Asset?): List<Banner> = withContext(Dispatchers.IO) {
         val assetInfo = asset?.id?.let { assetRepository.getAssetInfo(it).firstOrNull() }
@@ -67,23 +64,6 @@ class BannersRepository(
 
     override suspend fun cancelBanner(banner: Banner) = withContext(Dispatchers.IO) {
         bannersDao.saveBanner(banner.toRecord(BannerState.Cancelled))
-    }
-
-    override suspend fun addBanner(
-        walletId: WalletId?,
-        asset: Asset?,
-        chain: Chain?,
-        event: BannerEvent,
-        state: BannerState,
-    ) {
-        val banner = DbBanner(
-            walletId = walletId?.id ?: "",
-            assetId = asset?.id?.toIdentifier() ?: "",
-            chain = chain,
-            event = event,
-            state = state,
-        )
-        bannersDao.saveBanner(banner)
     }
 
     private suspend fun bannerContext(wallet: Wallet?, assetInfo: AssetInfo?) = GemBannerContext(

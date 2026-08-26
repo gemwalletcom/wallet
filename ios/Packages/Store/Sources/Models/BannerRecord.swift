@@ -102,7 +102,7 @@ public struct NewBanner {
     let event: BannerEvent
     let state: BannerState
 
-    init(
+    public init(
         walletId: String? = .none,
         assetId: AssetId? = .none,
         chain: Chain? = .none,
@@ -134,14 +134,6 @@ public extension NewBanner {
         )
     }
 
-    static func accountBlockedMultiSignature(walletId: WalletId, chain: Chain) -> NewBanner {
-        NewBanner(
-            walletId: walletId.id,
-            chain: chain,
-            event: .accountBlockedMultiSignature,
-            state: .alwaysActive,
-        )
-    }
 
     static func onboarding(walletId: WalletId) -> NewBanner {
         NewBanner(
