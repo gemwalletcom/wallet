@@ -1,6 +1,6 @@
-pub mod error;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::collections::HashSet;
 use std::sync::Arc;
 
@@ -9,7 +9,6 @@ use primitives::{AddressName, Chain, ChainAddress};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 
-pub use error::GemNameError;
 pub use store::GemAddressStore;
 
 #[derive(uniffi::Object)]
@@ -25,11 +24,11 @@ impl GemNameService {
         Self { api, store }
     }
 
-    pub async fn resolve(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemNameError> {
+    pub async fn resolve(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
         Ok(self.api.client.get_name_record(name, chain.to_string()).await.map_err(GemApiError::from)?)
     }
 
-    pub async fn get_address_names(&self, requests: Vec<ChainAddress>) -> Result<Vec<AddressName>, GemNameError> {
+    pub async fn get_address_names(&self, requests: Vec<ChainAddress>) -> Result<Vec<AddressName>, GemServiceError> {
         let requests = unique_requests(requests);
         if requests.is_empty() {
             return Ok(Vec::new());

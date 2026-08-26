@@ -1,7 +1,7 @@
-pub mod error;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -10,7 +10,6 @@ use primitives::{AssetId, Chain, DelegationValidator, StakeProviderType, WalletI
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
 
-pub use error::GemStakeError;
 pub use store::GemStakeStore;
 
 #[derive(uniffi::Object)]
@@ -27,12 +26,12 @@ impl GemStakeService {
         Self { gateway, static_api, store }
     }
 
-    pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String, apr: f64) -> Result<(), GemStakeError> {
+    pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String, apr: f64) -> Result<(), GemServiceError> {
         let names = self.sync_validators(chain, &address, apr).await?;
         self.sync_delegations(wallet_id, chain, &address, &names).await
     }
 
-    pub async fn sync_earn(&self, wallet_id: WalletId, asset_id: AssetId, address: String, apr: f64) -> Result<(), GemStakeError> {
+    pub async fn sync_earn(&self, wallet_id: WalletId, asset_id: AssetId, address: String, apr: f64) -> Result<(), GemServiceError> {
         let providers = rules::earn_validators(self.gateway.get_earn_providers(asset_id.clone()), apr);
         self.store.save_validators(providers).await?;
         let positions = self.gateway.get_earn_positions(address, asset_id.clone()).await;
@@ -43,7 +42,7 @@ impl GemStakeService {
 }
 
 impl GemStakeService {
-    async fn sync_validators(&self, chain: Chain, address: &str, apr: f64) -> Result<HashMap<String, String>, GemStakeError> {
+    async fn sync_validators(&self, chain: Chain, address: &str, apr: f64) -> Result<HashMap<String, String>, GemServiceError> {
         let names: HashMap<String, String> = self
             .static_api
             .client
@@ -64,7 +63,7 @@ impl GemStakeService {
         Ok(names)
     }
 
-    async fn sync_delegations(&self, wallet_id: WalletId, chain: Chain, address: &str, names: &HashMap<String, String>) -> Result<(), GemStakeError> {
+    async fn sync_delegations(&self, wallet_id: WalletId, chain: Chain, address: &str, names: &HashMap<String, String>) -> Result<(), GemServiceError> {
         let asset_id = AssetId::from_chain(chain);
         let delegations = self.gateway.get_staking_delegations(chain, address.to_string()).await?;
         let mut validators: HashMap<String, DelegationValidator> = self

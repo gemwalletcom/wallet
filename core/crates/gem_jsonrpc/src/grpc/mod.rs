@@ -39,6 +39,7 @@ fn grpc_headers() -> HashMap<String, String> {
         ("Content-Type".into(), "application/grpc+proto".into()),
         ("Accept".into(), "application/grpc+proto".into()),
         ("TE".into(), "trailers".into()),
+        ("grpc-accept-encoding".into(), "identity".into()),
     ])
 }
 
@@ -65,5 +66,17 @@ impl GrpcTransport for AlienGrpcTransport {
         let response = self.provider.request(unary_target(endpoint, path, body)).await?;
         validate_http_status(response.status)?;
         Ok(response.data)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_unary_target_accepts_identity_encoding() {
+        let target = unary_target("https://example.com", "/Service/Method", Vec::new());
+
+        assert_eq!(target.headers.unwrap().get("grpc-accept-encoding").map(String::as_str), Some("identity"));
     }
 }

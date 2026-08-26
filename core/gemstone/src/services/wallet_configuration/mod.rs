@@ -1,14 +1,13 @@
-pub mod error;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use primitives::WalletId;
 use std::sync::Arc;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::banner::{GemBannerStore, rules as banner_rules};
 
-pub use error::GemWalletConfigurationError;
 pub use store::GemWalletConfigurationStore;
 
 #[derive(uniffi::Object)]
@@ -25,7 +24,7 @@ impl GemWalletConfigurationService {
         Self { api, banners, store }
     }
 
-    pub async fn sync(&self, wallet_id: WalletId) -> Result<(), GemWalletConfigurationError> {
+    pub async fn sync(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         if self.store.is_completed(wallet_id.clone()).await? {
             return Ok(());
         }

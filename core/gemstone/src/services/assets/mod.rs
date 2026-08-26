@@ -1,14 +1,13 @@
-pub mod error;
 pub mod model;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
 use primitives::{AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, WalletId};
 
-pub use error::GemAssetError;
 pub use model::AssetList;
 pub use store::GemAssetStore;
 
@@ -31,7 +30,7 @@ impl GemAssetsService {
         Self { api, store, price, preferences }
     }
 
-    pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemAssetError> {
+    pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
         let lists = [
             (AssetList::Buy, versions.fiat_on_ramp_assets),
             (AssetList::Sell, versions.fiat_off_ramp_assets),
@@ -58,7 +57,7 @@ impl GemAssetsService {
         Ok(())
     }
 
-    pub async fn sync_asset(&self, asset_id: AssetId, currency: Currency) -> Result<AssetFull, GemAssetError> {
+    pub async fn sync_asset(&self, asset_id: AssetId, currency: Currency) -> Result<AssetFull, GemServiceError> {
         let asset = self.get_asset(asset_id.clone()).await?;
         self.store.save_asset(asset.clone()).await?;
         let price = asset
@@ -72,7 +71,7 @@ impl GemAssetsService {
         Ok(asset)
     }
 
-    pub async fn prefetch_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemAssetError> {
+    pub async fn prefetch_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
         let missing = rules::missing_asset_ids(asset_ids, existing);
         if missing.is_empty() {
@@ -83,7 +82,7 @@ impl GemAssetsService {
         Ok(assets.into_iter().map(|asset| asset.asset.id).collect())
     }
 
-    pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemAssetError> {
+    pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         self.store.add_missing_balances(wallet_id, asset_ids).await
     }
 

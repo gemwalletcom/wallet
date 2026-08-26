@@ -4,6 +4,7 @@ import BigInt
 import Foundation
 import Gemstone
 import NativeProviderService
+import Preferences
 import Primitives
 
 public import GemstonePrimitives

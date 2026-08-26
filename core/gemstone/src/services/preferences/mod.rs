@@ -1,13 +1,12 @@
-pub mod error;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::ConfigResponse;
 
 use crate::services::assets::AssetList;
 
-pub use error::GemPreferencesError;
 pub use store::GemPreferencesStore;
 
 const PRICE_ALERTS_ENABLED: &str = "price_alerts_enabled";
@@ -29,38 +28,38 @@ impl GemPreferencesService {
         Self { store }
     }
 
-    pub fn is_price_alerts_enabled(&self) -> Result<bool, GemPreferencesError> {
+    pub fn is_price_alerts_enabled(&self) -> Result<bool, GemServiceError> {
         Ok(self.store.get(PRICE_ALERTS_ENABLED.to_string())?.as_deref() == Some("true"))
     }
 
-    pub fn set_price_alerts_enabled(&self, enabled: bool) -> Result<(), GemPreferencesError> {
+    pub fn set_price_alerts_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
         self.store.set(PRICE_ALERTS_ENABLED.to_string(), enabled.to_string())
     }
 
-    pub fn get_skipped_app_version(&self) -> Result<Option<String>, GemPreferencesError> {
+    pub fn get_skipped_app_version(&self) -> Result<Option<String>, GemServiceError> {
         self.store.get(SKIPPED_APP_VERSION.to_string())
     }
 
-    pub fn set_skipped_app_version(&self, version: String) -> Result<(), GemPreferencesError> {
+    pub fn set_skipped_app_version(&self, version: String) -> Result<(), GemServiceError> {
         self.store.set(SKIPPED_APP_VERSION.to_string(), version)
     }
 }
 
 impl GemPreferencesService {
-    pub fn get_assets_version(&self, list: AssetList) -> Result<Option<String>, GemPreferencesError> {
+    pub fn get_assets_version(&self, list: AssetList) -> Result<Option<String>, GemServiceError> {
         self.store.get(assets_version_key(list).to_string())
     }
 
-    pub fn set_assets_version(&self, list: AssetList, version: String) -> Result<(), GemPreferencesError> {
+    pub fn set_assets_version(&self, list: AssetList, version: String) -> Result<(), GemServiceError> {
         self.store.set(assets_version_key(list).to_string(), version)
     }
 
-    pub fn get_config(&self) -> Result<Option<ConfigResponse>, GemPreferencesError> {
+    pub fn get_config(&self) -> Result<Option<ConfigResponse>, GemServiceError> {
         Ok(self.store.get(CONFIG.to_string())?.and_then(|json| serde_json::from_str(&json).ok()))
     }
 
-    pub fn set_config(&self, config: &ConfigResponse) -> Result<(), GemPreferencesError> {
-        let json = serde_json::to_string(config).map_err(|error| GemPreferencesError::Store { msg: error.to_string() })?;
+    pub fn set_config(&self, config: &ConfigResponse) -> Result<(), GemServiceError> {
+        let json = serde_json::to_string(config).map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
         self.store.set(CONFIG.to_string(), json)
     }
 }
@@ -85,16 +84,16 @@ mod tests {
     }
 
     impl GemPreferencesStore for MemoryStore {
-        fn get(&self, key: String) -> Result<Option<String>, GemPreferencesError> {
+        fn get(&self, key: String) -> Result<Option<String>, GemServiceError> {
             Ok(self.values.lock().unwrap().get(&key).cloned())
         }
 
-        fn set(&self, key: String, value: String) -> Result<(), GemPreferencesError> {
+        fn set(&self, key: String, value: String) -> Result<(), GemServiceError> {
             self.values.lock().unwrap().insert(key, value);
             Ok(())
         }
 
-        fn remove(&self, key: String) -> Result<(), GemPreferencesError> {
+        fn remove(&self, key: String) -> Result<(), GemServiceError> {
             self.values.lock().unwrap().remove(&key);
             Ok(())
         }

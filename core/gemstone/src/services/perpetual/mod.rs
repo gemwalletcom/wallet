@@ -1,13 +1,12 @@
-pub mod error;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
 use primitives::{Chain, WalletId};
 
-pub use error::GemPerpetualError;
 pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;
@@ -27,7 +26,7 @@ impl GemPerpetualService {
         Self { gateway, price, store }
     }
 
-    pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemPerpetualError> {
+    pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
         let data = self.gateway.get_perpetuals_data(chain).await?;
         self.store.save_perpetuals(data).await?;
         if let Some(price) = rules::collateral_price(chain) {
@@ -36,7 +35,7 @@ impl GemPerpetualService {
         Ok(())
     }
 
-    pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemPerpetualError> {
+    pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
         let summary = self.gateway.get_positions(chain, address).await?;
         let existing_ids = self.store.get_position_ids(wallet_id.clone(), rules::provider(chain)).await?;
         let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);

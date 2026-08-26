@@ -1,12 +1,11 @@
-pub mod error;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::{Device, DeviceToken};
 
-pub use error::GemDeviceError;
 pub use store::GemDeviceStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -32,7 +31,7 @@ impl GemDeviceService {
         }
     }
 
-    pub async fn needs_sync(&self, device: Device) -> Result<bool, GemDeviceError> {
+    pub async fn needs_sync(&self, device: Device) -> Result<bool, GemServiceError> {
         if !self.store.is_registered().await? {
             return Ok(true);
         }
@@ -50,7 +49,7 @@ impl GemDeviceService {
         Ok(self.store.get_pushed_subscriptions().await? != Some(signature))
     }
 
-    pub async fn sync(&self, device: Device) -> Result<Device, GemDeviceError> {
+    pub async fn sync(&self, device: Device) -> Result<Device, GemServiceError> {
         let signature = rules::subscriptions_signature(&self.wallet_store.get_wallets().await?);
         let mut version = self.store.get_subscriptions_version().await?;
         let remote = self.get_or_create(&device).await?;
@@ -78,13 +77,13 @@ impl GemDeviceService {
         Ok(synced)
     }
 
-    pub async fn get_token(&self) -> Result<DeviceToken, GemDeviceError> {
+    pub async fn get_token(&self) -> Result<DeviceToken, GemServiceError> {
         Ok(self.api.client.get_device_token().await.map_err(GemApiError::from)?)
     }
 }
 
 impl GemDeviceService {
-    async fn get_or_create(&self, device: &Device) -> Result<Device, GemDeviceError> {
+    async fn get_or_create(&self, device: &Device) -> Result<Device, GemServiceError> {
         let registered = self.store.is_registered().await? || self.api.client.is_device_registered().await.map_err(GemApiError::from)?;
         if registered {
             match self.api.client.get_device().await.map_err(GemApiError::from)? {

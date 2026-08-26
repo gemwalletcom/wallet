@@ -1,7 +1,7 @@
-pub mod error;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::{AssetId, PriceAlert};
@@ -9,7 +9,6 @@ use primitives::{AssetId, PriceAlert};
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::preferences::GemPreferencesService;
 
-pub use error::GemPriceAlertError;
 pub use store::GemPriceAlertStore;
 
 #[derive(uniffi::Object)]
@@ -26,15 +25,15 @@ impl GemPriceAlertService {
         Self { api, preferences, store }
     }
 
-    pub fn is_enabled(&self) -> Result<bool, GemPriceAlertError> {
-        Ok(self.preferences.is_price_alerts_enabled()?)
+    pub fn is_enabled(&self) -> Result<bool, GemServiceError> {
+        self.preferences.is_price_alerts_enabled()
     }
 
-    pub fn set_enabled(&self, enabled: bool) -> Result<(), GemPriceAlertError> {
-        Ok(self.preferences.set_price_alerts_enabled(enabled)?)
+    pub fn set_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        self.preferences.set_price_alerts_enabled(enabled)
     }
 
-    pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemPriceAlertError> {
+    pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
         let remote = self
             .api
             .client
@@ -53,11 +52,11 @@ impl GemPriceAlertService {
         self.store.update(changes.alerts, changes.delete_ids).await
     }
 
-    pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemPriceAlertError> {
+    pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
         Ok(self.api.client.add_price_alerts(alerts).await.map_err(GemApiError::from)?)
     }
 
-    pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemPriceAlertError> {
+    pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
         Ok(self.api.client.delete_price_alerts(alerts).await.map_err(GemApiError::from)?)
     }
 

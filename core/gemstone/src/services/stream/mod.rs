@@ -1,6 +1,6 @@
-pub mod error;
 pub mod rules;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
@@ -16,8 +16,6 @@ use crate::services::price_alert::GemPriceAlertService;
 use crate::services::subscription::GemWalletStore;
 use crate::services::support::GemSupportStore;
 use crate::services::transactions::GemTransactionsService;
-
-pub use error::GemStreamError;
 
 #[derive(uniffi::Object)]
 pub struct GemStreamService {
@@ -63,34 +61,31 @@ impl GemStreamService {
         }
     }
 
-    pub async fn handle(&self, event: StreamEvent, currency: Currency) -> Result<(), GemStreamError> {
+    pub async fn handle(&self, event: StreamEvent, currency: Currency) -> Result<(), GemServiceError> {
         match event {
             StreamEvent::Prices(payload) => {
-                self.price.update_rates(payload.rates, currency.clone()).await.map_err(GemStreamError::service)?;
-                self.price.update_prices(payload.prices, currency).await.map_err(GemStreamError::service)
+                self.price.update_rates(payload.rates, currency.clone()).await?;
+                self.price.update_prices(payload.prices, currency).await
             }
-            StreamEvent::Balances(update) => self.balance.update(update.wallet_id, update.asset_ids).await.map_err(GemStreamError::service),
+            StreamEvent::Balances(update) => self.balance.update(update.wallet_id, update.asset_ids).await,
             StreamEvent::Transactions(update) => {
-                self.transactions.sync(update.wallet_id.clone(), None).await.map_err(GemStreamError::service)?;
-                self.balance.update(update.wallet_id, update.asset_ids).await.map_err(GemStreamError::service)
+                self.transactions.sync(update.wallet_id.clone(), None).await?;
+                self.balance.update(update.wallet_id, update.asset_ids).await
             }
-            StreamEvent::PriceAlerts(_) => self.price_alert.sync(None).await.map_err(GemStreamError::service),
-            StreamEvent::Nft(update) => self.nft.sync(update.wallet_id).await.map(|_| ()).map_err(GemStreamError::service),
+            StreamEvent::PriceAlerts(_) => self.price_alert.sync(None).await,
+            StreamEvent::Nft(update) => self.nft.sync(update.wallet_id).await.map(|_| ()),
             StreamEvent::Perpetual(update) => {
-                let Some(wallet) = self.wallet_store.get_wallet(update.wallet_id.clone()).await.map_err(GemStreamError::service)? else {
+                let Some(wallet) = self.wallet_store.get_wallet(update.wallet_id.clone()).await? else {
                     return Ok(());
                 };
                 let Some(account) = rules::hyperliquid_account(&wallet.accounts) else {
                     return Ok(());
                 };
-                self.perpetual
-                    .sync_positions(update.wallet_id, Chain::HyperCore, account.address.clone())
-                    .await
-                    .map_err(GemStreamError::service)
+                self.perpetual.sync_positions(update.wallet_id, Chain::HyperCore, account.address.clone()).await
             }
-            StreamEvent::InAppNotification(update) => self.notifications.save(vec![update.notification]).await.map_err(GemStreamError::service),
-            StreamEvent::FiatTransaction(update) => self.fiat.sync_transactions(update.wallet_id).await.map_err(GemStreamError::service),
-            StreamEvent::Support(SupportStreamEvent::Message(message)) => self.support.save_messages(vec![message]).await.map_err(GemStreamError::service),
+            StreamEvent::InAppNotification(update) => self.notifications.save(vec![update.notification]).await,
+            StreamEvent::FiatTransaction(update) => self.fiat.sync_transactions(update.wallet_id).await,
+            StreamEvent::Support(SupportStreamEvent::Message(message)) => self.support.save_messages(vec![message]).await,
             StreamEvent::Support(SupportStreamEvent::Typing(_)) => Ok(()),
         }
     }

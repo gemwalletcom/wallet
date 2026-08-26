@@ -4,11 +4,11 @@ import Foundation
 import Gemstone
 import Keychain
 
-final class GemstoneSecurePreferencesStore: GemPreferencesStore, @unchecked Sendable {
+public final class GemstoneSecurePreferencesStore: GemPreferencesStore, @unchecked Sendable {
     private let keychain: Keychain
     private let namespace: String
 
-    init(
+    public init(
         namespace: String,
         keychain: Keychain = KeychainDefault(),
     ) {
@@ -16,15 +16,15 @@ final class GemstoneSecurePreferencesStore: GemPreferencesStore, @unchecked Send
         self.keychain = keychain
     }
 
-    func get(key: String) throws -> String? {
+    public func get(key: String) throws -> String? {
         try keychain.get(namespace + key)
     }
 
-    func set(key: String, value: String) throws {
+    public func set(key: String, value: String) throws {
         try keychain.set(value, key: namespace + key)
     }
 
-    func remove(key: String) throws {
+    public func remove(key: String) throws {
         try keychain.remove(namespace + key)
     }
 }

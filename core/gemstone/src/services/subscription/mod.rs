@@ -1,10 +1,9 @@
-pub mod error;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-pub use error::GemSubscriptionError;
 pub use store::GemWalletStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -22,7 +21,7 @@ impl GemSubscriptionService {
         Self { api, store }
     }
 
-    pub async fn sync(&self) -> Result<bool, GemSubscriptionError> {
+    pub async fn sync(&self) -> Result<bool, GemServiceError> {
         let local = rules::wallet_subscriptions(&self.store.get_wallets().await?);
         let remote = self.api.client.get_subscriptions().await.map_err(GemApiError::from)?;
         let changes = rules::subscription_changes(local, remote);

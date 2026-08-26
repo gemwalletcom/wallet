@@ -1,13 +1,12 @@
-pub mod error;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
 use primitives::{AssetId, WalletId};
 
-pub use error::GemTransactionsError;
 pub use store::GemTransactionStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -34,7 +33,7 @@ impl GemTransactionsService {
         }
     }
 
-    pub async fn sync(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemTransactionsError> {
+    pub async fn sync(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
         let from_timestamp = self.store.get_sync_timestamp(wallet_id.clone(), asset_id.clone()).await?;
         let timestamp = Utc::now().timestamp() as u64;
         let response = self

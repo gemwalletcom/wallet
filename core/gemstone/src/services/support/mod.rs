@@ -1,7 +1,7 @@
-pub mod error;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
@@ -11,7 +11,6 @@ use uuid::Uuid;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 
-pub use error::GemSupportError;
 pub use store::GemSupportStore;
 
 #[derive(uniffi::Object)]
@@ -27,24 +26,24 @@ impl GemSupportService {
         Self { api, store }
     }
 
-    pub async fn sync_messages(&self, from_timestamp: u64) -> Result<(), GemSupportError> {
+    pub async fn sync_messages(&self, from_timestamp: u64) -> Result<(), GemServiceError> {
         let messages = self.api.client.get_support_messages(from_timestamp).await.map_err(GemApiError::from)?;
         self.store.save_messages(messages).await
     }
 
-    pub async fn send_text(&self, content: String) -> Result<(), GemSupportError> {
+    pub async fn send_text(&self, content: String) -> Result<(), GemServiceError> {
         let message = rules::pending_message(Uuid::new_v4().to_string(), content.clone(), vec![], Utc::now());
         self.deliver(message, self.api.client.send_support_message(SupportMessageInput { content })).await
     }
 
-    pub async fn send_image(&self, image: Vec<u8>, file_name: String, mime_type: String) -> Result<(), GemSupportError> {
+    pub async fn send_image(&self, image: Vec<u8>, file_name: String, mime_type: String) -> Result<(), GemServiceError> {
         let id = Uuid::new_v4().to_string();
         let pending_image = rules::pending_image(id.clone(), file_name.clone(), image.len() as u64);
         let message = rules::pending_message(id, String::new(), vec![pending_image], Utc::now());
         self.deliver(message, self.api.client.send_support_image(image, file_name, mime_type)).await
     }
 
-    pub async fn retry_message(&self, message: SupportMessage) -> Result<(), GemSupportError> {
+    pub async fn retry_message(&self, message: SupportMessage) -> Result<(), GemServiceError> {
         let content = message.content.clone();
         let message = rules::with_status(message, SupportMessageStatus::Sending);
         self.deliver(message, self.api.client.send_support_message(SupportMessageInput { content })).await
@@ -52,7 +51,7 @@ impl GemSupportService {
 }
 
 impl GemSupportService {
-    async fn deliver<F, E>(&self, message: SupportMessage, send: F) -> Result<(), GemSupportError>
+    async fn deliver<F, E>(&self, message: SupportMessage, send: F) -> Result<(), GemServiceError>
     where
         F: Future<Output = Result<SupportMessage, E>>,
         GemApiError: From<E>,

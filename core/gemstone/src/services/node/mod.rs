@@ -1,14 +1,13 @@
-pub mod error;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::Chain;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::{self, NodePriority, NodeRegion};
 
-pub use error::GemNodeError;
 pub use store::GemNodeStore;
 
 #[derive(uniffi::Object)]
@@ -27,12 +26,12 @@ impl GemNodeService {
         default_nodes(chain)
     }
 
-    pub async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemNodeError> {
+    pub async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError> {
         let stored = self.store.get_nodes(chain).await?;
         Ok(rules::merge_nodes(default_nodes(chain), stored))
     }
 
-    pub async fn get_selected_node(&self, chain: Chain) -> Result<Node, GemNodeError> {
+    pub async fn get_selected_node(&self, chain: Chain) -> Result<Node, GemServiceError> {
         let selected_url = self.store.get_selected_url(chain).await?;
         let nodes = self.get_nodes(chain).await?;
         Ok(selected_url
@@ -40,15 +39,15 @@ impl GemNodeService {
             .unwrap_or_else(|| region_node(chain, NodeRegion::Us)))
     }
 
-    pub async fn get_node_url(&self, chain: Chain) -> Result<String, GemNodeError> {
+    pub async fn get_node_url(&self, chain: Chain) -> Result<String, GemServiceError> {
         Ok(self.get_selected_node(chain).await?.url)
     }
 
-    pub async fn set_selected_node(&self, chain: Chain, url: String) -> Result<(), GemNodeError> {
+    pub async fn set_selected_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         self.store.set_selected_url(chain, url).await
     }
 
-    pub async fn add_node(&self, chain: Chain, url: String) -> Result<(), GemNodeError> {
+    pub async fn add_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         self.store
             .add_node(
                 chain,
@@ -61,7 +60,7 @@ impl GemNodeService {
             .await
     }
 
-    pub async fn delete_node(&self, chain: Chain, url: String) -> Result<(), GemNodeError> {
+    pub async fn delete_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         if rules::is_default_node(&url, &default_nodes(chain)) {
             return Ok(());
         }
@@ -113,25 +112,25 @@ mod tests {
 
     #[async_trait::async_trait]
     impl GemNodeStore for MemoryStore {
-        async fn get_nodes(&self, _chain: Chain) -> Result<Vec<Node>, GemNodeError> {
+        async fn get_nodes(&self, _chain: Chain) -> Result<Vec<Node>, GemServiceError> {
             Ok(self.nodes.lock().unwrap().clone())
         }
-        async fn add_node(&self, _chain: Chain, node: Node) -> Result<(), GemNodeError> {
+        async fn add_node(&self, _chain: Chain, node: Node) -> Result<(), GemServiceError> {
             self.nodes.lock().unwrap().push(node);
             Ok(())
         }
-        async fn delete_node(&self, _chain: Chain, url: String) -> Result<(), GemNodeError> {
+        async fn delete_node(&self, _chain: Chain, url: String) -> Result<(), GemServiceError> {
             self.nodes.lock().unwrap().retain(|node| node.url != url);
             Ok(())
         }
-        async fn get_selected_url(&self, _chain: Chain) -> Result<Option<String>, GemNodeError> {
+        async fn get_selected_url(&self, _chain: Chain) -> Result<Option<String>, GemServiceError> {
             Ok(self.selected.lock().unwrap().clone())
         }
-        async fn set_selected_url(&self, _chain: Chain, url: String) -> Result<(), GemNodeError> {
+        async fn set_selected_url(&self, _chain: Chain, url: String) -> Result<(), GemServiceError> {
             *self.selected.lock().unwrap() = Some(url);
             Ok(())
         }
-        async fn clear_selected_url(&self, _chain: Chain) -> Result<(), GemNodeError> {
+        async fn clear_selected_url(&self, _chain: Chain) -> Result<(), GemServiceError> {
             *self.selected.lock().unwrap() = None;
             Ok(())
         }

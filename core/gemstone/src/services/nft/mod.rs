@@ -1,12 +1,11 @@
-pub mod error;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
 use primitives::{NFTAssetData, NFTAssetId, ReportNft, WalletId};
 
-pub use error::GemNftError;
 pub use store::GemNftStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -24,34 +23,34 @@ impl GemNftService {
         Self { api, store }
     }
 
-    pub async fn sync(&self, wallet_id: WalletId) -> Result<u32, GemNftError> {
+    pub async fn sync(&self, wallet_id: WalletId) -> Result<u32, GemServiceError> {
         let data = self.api.client.get_nft_assets(wallet_id.id()).await.map_err(GemApiError::from)?;
         let count = data.len() as u32;
         self.store.save(wallet_id, data).await?;
         Ok(count)
     }
 
-    pub async fn get_or_fetch_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, GemNftError> {
+    pub async fn get_or_fetch_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, GemServiceError> {
         cached_or_fetched(self.store.as_ref(), asset_id.clone(), async move {
             Ok(self.api.client.get_nft_asset(asset_id).await.map_err(GemApiError::from)?)
         })
         .await
     }
 
-    pub async fn refresh_asset(&self, wallet_id: WalletId, asset_id: NFTAssetId) -> Result<(), GemNftError> {
+    pub async fn refresh_asset(&self, wallet_id: WalletId, asset_id: NFTAssetId) -> Result<(), GemServiceError> {
         self.api.client.refresh_nft_asset(wallet_id.id(), asset_id).await.map_err(GemApiError::from)?;
         Ok(())
     }
 
-    pub async fn report(&self, report: ReportNft) -> Result<(), GemNftError> {
+    pub async fn report(&self, report: ReportNft) -> Result<(), GemServiceError> {
         self.api.client.report_nft(report).await.map_err(GemApiError::from)?;
         Ok(())
     }
 }
 
-async fn cached_or_fetched<F>(store: &dyn GemNftStore, asset_id: NFTAssetId, fetch: F) -> Result<NFTAssetData, GemNftError>
+async fn cached_or_fetched<F>(store: &dyn GemNftStore, asset_id: NFTAssetId, fetch: F) -> Result<NFTAssetData, GemServiceError>
 where
-    F: Future<Output = Result<NFTAssetData, GemNftError>>,
+    F: Future<Output = Result<NFTAssetData, GemServiceError>>,
 {
     if let Some(data) = store.get_asset_data(asset_id).await? {
         return Ok(data);
@@ -75,13 +74,13 @@ mod tests {
 
     #[async_trait::async_trait]
     impl GemNftStore for MemoryStore {
-        async fn save(&self, _wallet_id: WalletId, _data: Vec<primitives::NFTData>) -> Result<(), GemNftError> {
+        async fn save(&self, _wallet_id: WalletId, _data: Vec<primitives::NFTData>) -> Result<(), GemServiceError> {
             Ok(())
         }
-        async fn get_asset_data(&self, _asset_id: NFTAssetId) -> Result<Option<NFTAssetData>, GemNftError> {
+        async fn get_asset_data(&self, _asset_id: NFTAssetId) -> Result<Option<NFTAssetData>, GemServiceError> {
             Ok(self.cached.clone())
         }
-        async fn save_asset(&self, data: NFTAssetData) -> Result<(), GemNftError> {
+        async fn save_asset(&self, data: NFTAssetData) -> Result<(), GemServiceError> {
             self.added.lock().unwrap().push(data);
             Ok(())
         }

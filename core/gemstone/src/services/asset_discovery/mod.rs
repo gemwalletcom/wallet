@@ -1,13 +1,12 @@
-pub mod error;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
 use primitives::{AssetId, WalletId};
 
-pub use error::GemAssetDiscoveryError;
 pub use store::GemAssetDiscoveryStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -29,7 +28,7 @@ impl GemAssetDiscoveryService {
         Self { api, assets, wallet_store, store }
     }
 
-    pub async fn discover(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemAssetDiscoveryError> {
+    pub async fn discover(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
         let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone()).await? else {
             return Ok(vec![]);
         };

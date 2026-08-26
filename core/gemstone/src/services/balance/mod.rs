@@ -1,14 +1,13 @@
-pub mod error;
 pub mod model;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use futures::future::join_all;
 use primitives::{AssetBalance, AssetId, WalletId};
 
-pub use error::GemBalanceError;
 pub use model::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 pub use store::GemBalanceStore;
 
@@ -37,12 +36,12 @@ impl GemBalanceService {
         }
     }
 
-    pub async fn update(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemBalanceError> {
+    pub async fn update(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         let Some(wallet) = self
             .wallet_store
             .get_wallet(wallet_id.clone())
             .await
-            .map_err(|error| GemBalanceError::Store { msg: error.to_string() })?
+            .map_err(|error| GemServiceError::Store { msg: error.to_string() })?
         else {
             return Ok(());
         };
@@ -55,7 +54,7 @@ impl GemBalanceService {
             .asset_store
             .get_assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect())
             .await
-            .map_err(|error| GemBalanceError::Store { msg: error.to_string() })?;
+            .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
         let updates = rules::balance_updates(&assets, balances);
         self.store.update_balances(wallet_id, updates).await
     }

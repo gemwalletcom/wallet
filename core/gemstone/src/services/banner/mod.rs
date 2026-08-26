@@ -1,13 +1,12 @@
-pub mod error;
 pub mod model;
 pub mod rules;
 pub mod store;
 
+use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::{AssetId, BannerEvent, BannerState, WalletId};
 
-pub use error::GemBannerError;
 pub use model::{GemBannerContext, GemBannerKey};
 pub use store::GemBannerStore;
 
@@ -23,7 +22,7 @@ impl GemBannerService {
         Self { store }
     }
 
-    pub async fn active_events(&self, wallet_id: Option<WalletId>, asset_id: Option<AssetId>, context: GemBannerContext) -> Result<Vec<BannerEvent>, GemBannerError> {
+    pub async fn active_events(&self, wallet_id: Option<WalletId>, asset_id: Option<AssetId>, context: GemBannerContext) -> Result<Vec<BannerEvent>, GemServiceError> {
         let mut active = Vec::new();
         for event in rules::suggested_events(&context) {
             let key = GemBannerKey {
@@ -40,7 +39,7 @@ impl GemBannerService {
         Ok(active)
     }
 
-    pub async fn close(&self, key: GemBannerKey) -> Result<(), GemBannerError> {
+    pub async fn close(&self, key: GemBannerKey) -> Result<(), GemServiceError> {
         self.store.set_state(key, BannerState::Cancelled).await
     }
 
