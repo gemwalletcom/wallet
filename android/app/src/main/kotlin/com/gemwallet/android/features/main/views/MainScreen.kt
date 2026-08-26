@@ -49,7 +49,6 @@ import com.gemwallet.android.features.settings.settings.presents.views.SettingsS
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
-import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.navigation.WalletNavigator
@@ -72,10 +71,10 @@ fun MainScreen(
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
     var isPresentingScanner by remember { mutableStateOf(false) }
 
-    QrCodeScannerModal(
+    ScanReceiveModal(
         isVisible = isPresentingScanner,
         onDismissRequest = { isPresentingScanner = false },
-        onResult = { code ->
+        onScan = { code ->
             isPresentingScanner = false
             viewModel.onScan(code)
         },

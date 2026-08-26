@@ -18,12 +18,16 @@ import com.wallet.core.primitives.AssetId
 fun SelectReceiveScreen(
     onCancel: () -> Unit,
     onSelect: ((AssetId) -> Unit)?,
+    titleContent: (@Composable () -> Unit)? = null,
+    closeIcon: Boolean = false,
     viewModel: AssetSelectViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboard.current.nativeClipboard
     AssetSelectScreen(
         title = stringResource(id = R.string.wallet_receive),
+        titleContent = titleContent,
+        closeIcon = closeIcon,
         titleBadge = ::getAssetBadge,
         recentType = RecentType.Receive,
         onSelectRecent = onSelect,

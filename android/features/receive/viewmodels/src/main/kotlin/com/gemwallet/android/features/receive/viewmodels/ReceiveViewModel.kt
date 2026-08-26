@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.receive.viewmodels
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
@@ -8,9 +7,10 @@ import com.gemwallet.android.application.receive.coordinators.GetReceiveAssetInf
 import com.gemwallet.android.application.receive.coordinators.SetAssetVisible
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,19 +24,17 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel
-class ReceiveViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = ReceiveViewModel.Factory::class)
+class ReceiveViewModel @AssistedInject constructor(
+    @Assisted private val sourceAssetId: AssetId,
     private val getReceiveAssetInfo: GetReceiveAssetInfo,
     private val setAssetVisible: SetAssetVisible,
     private val syncAssetInfo: SyncAssetInfo,
     getSession: GetSession,
-    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val sourceAssetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
     private val selectedAssetId = MutableStateFlow(sourceAssetId)
     private val session = getSession()
 
@@ -63,6 +61,11 @@ class ReceiveViewModel @Inject constructor(
 
     fun selectAsset(assetId: AssetId) {
         selectedAssetId.value = assetId
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(assetId: AssetId): ReceiveViewModel
     }
 
     fun setVisible() = viewModelScope.launch {

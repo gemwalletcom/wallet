@@ -42,6 +42,7 @@ import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
 import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -64,6 +65,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 
 private val qrSize = 300.dp
@@ -71,8 +73,14 @@ private val qrSizeCompact = 220.dp
 private val qrMinSize = 100.dp
 
 @Composable
-fun ReceiveScreen(onCancel: () -> Unit) {
-    val viewModel: ReceiveViewModel = hiltViewModel()
+fun ReceiveScreen(
+    assetId: AssetId,
+    closeIcon: Boolean = false,
+    onCancel: () -> Unit,
+) {
+    val viewModel = hiltViewModel<ReceiveViewModel, ReceiveViewModel.Factory>(
+        key = assetId.toIdentifier(),
+    ) { it.create(assetId) }
     val assetInfo by viewModel.asset.collectAsStateWithLifecycle()
     val networkAssetIds by viewModel.networkAssetIds.collectAsStateWithLifecycle()
     var isShowingNetworkSelector by remember { mutableStateOf(false) }
@@ -83,6 +91,7 @@ fun ReceiveScreen(onCancel: () -> Unit) {
             viewModel.setVisible()
         }
         ReceiveScene(
+            closeIcon = closeIcon,
             assetInfo = info,
             onSelectNetwork = if (networkAssetIds.size > 1) {
                 { isShowingNetworkSelector = true }
@@ -104,6 +113,7 @@ fun ReceiveScreen(onCancel: () -> Unit) {
 
 @Composable
 private fun ReceiveScene(
+    closeIcon: Boolean,
     assetInfo: AssetInfo,
     onSelectNetwork: (() -> Unit)?,
     onCancel: () -> Unit,
@@ -127,6 +137,7 @@ private fun ReceiveScene(
     Scene(
         title = stringResource(R.string.receive_title, ""),
         onClose = onCancel,
+        closeIcon = closeIcon,
         actions = {
             IconButton(onShare) {
                 Icon(AppIcons.Share, "")

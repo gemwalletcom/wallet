@@ -10,6 +10,7 @@ import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
+import com.gemwallet.android.ui.components.screen.SceneTitle
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.wallet.core.primitives.Asset
@@ -20,6 +21,8 @@ import kotlinx.collections.immutable.toImmutableList
 @Composable
 fun AssetSelectScreen(
     title: String = "",
+    titleContent: (@Composable () -> Unit)? = null,
+    closeIcon: Boolean = false,
     titleBadge: (AssetInfoDataAggregate) -> String?,
     showPopular: Boolean = false,
     recentType: RecentType? = null,
@@ -50,8 +53,9 @@ fun AssetSelectScreen(
     }
 
     AssetSelectScene(
-        title = title,
+        title = titleContent ?: { SceneTitle(title) },
         titleBadge = titleBadge,
+        closeIcon = closeIcon,
         support = if (itemSupport == null) {
             {
                 if (it.asset.id.type() == AssetSubtype.NATIVE) null else {
