@@ -3,7 +3,6 @@
 import protocol Gemstone.GemNameServiceProtocol
 import GemstoneServices
 import Foundation
-import enum GemstoneServices.KeystoreImportType
 import Primitives
 import PrimitivesComponents
 import SwiftUI

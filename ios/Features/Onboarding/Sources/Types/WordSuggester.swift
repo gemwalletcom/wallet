@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemMnemonic
 import Foundation
 import GemstoneServices
 
@@ -26,6 +27,6 @@ struct WordSuggester {
     }
 
     private func suggest(word: String) -> [String] {
-        Mnemonic.suggestWords(prefix: word, limit: 20)
+        GemMnemonic().suggestWords(prefix: word, limit: 20)
     }
 }

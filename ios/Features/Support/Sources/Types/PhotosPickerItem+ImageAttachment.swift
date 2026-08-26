@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Primitives
 import Components
 import PhotosUI
 import GemstoneServices

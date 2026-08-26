@@ -6,7 +6,7 @@ public enum PrivacyLockStatus: String {
     case enabled
     case disabled
 
-    init(enabled: Bool) {
+    public init(enabled: Bool) {
         self = enabled ? .enabled : .disabled
     }
 }

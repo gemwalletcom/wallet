@@ -1,9 +1,8 @@
+import class Gemstone.GemMnemonic
 import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
-import enum GemstoneServices.KeystoreImportType
-import enum GemstoneServices.Mnemonic
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -249,11 +248,11 @@ extension ImportWalletSceneViewModel {
         switch type {
         case .phrase:
             for word in words {
-                if !Mnemonic.isValidWord(word) {
+                if !GemMnemonic().isValidWord(word: word) {
                     throw WalletImportError.invalidSecretPhraseWord(word: word)
                 }
             }
-            guard Mnemonic.isValidWords(words) else {
+            guard GemMnemonic().isValid(words: words) else {
                 throw WalletImportError.invalidSecretPhrase
             }
         case .privateKey:

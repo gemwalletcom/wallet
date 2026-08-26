@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-@testable import GemstoneServices
+@testable import GemstonePrimitives
 import Foundation
-import GemstonePrimitives
 import Testing
 
 struct ChainCoreErrorTests {

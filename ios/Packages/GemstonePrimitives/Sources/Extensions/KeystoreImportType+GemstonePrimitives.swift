@@ -2,7 +2,7 @@
 
 import Primitives
 
-public import enum Gemstone.GemWalletImportType
+import enum Gemstone.GemWalletImportType
 
 public extension KeystoreImportType {
     var walletImport: GemWalletImportType {
