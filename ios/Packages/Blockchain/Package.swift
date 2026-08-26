@@ -20,7 +20,6 @@ let package = Package(
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Keychain", path: "../Keychain"),
-        .package(name: "GemstoneStore", path: "../GemstoneStore"),
         .package(name: "NativeProviderService", path: "../NativeProviderService"),
     ],
     targets: [
@@ -32,7 +31,6 @@ let package = Package(
                 "GemstonePrimitives",
                 "Keychain",
                 "NativeProviderService",
-                "GemstoneStore",
             ],
             path: "Sources",
         ),
@@ -45,6 +43,7 @@ let package = Package(
                 "GemstonePrimitives",
                 "NativeProviderService",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
             ],
             path: "TestKit",
         ),

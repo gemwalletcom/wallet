@@ -4,7 +4,6 @@ import Formatters
 import Foundation
 import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstonePrimitives
-import GemstoneStore
 import Preferences
 import Primitives
 import Store

@@ -75,7 +75,6 @@
 		C366791D2A18623800F1D74D /* QRScanner in Frameworks */ = {isa = PBXBuildFile; productRef = C366791C2A18623800F1D74D /* QRScanner */; };
 		C3A7CB7C29CA5F7000431341 /* Store in Frameworks */ = {isa = PBXBuildFile; productRef = C3A7CB7B29CA5F7000431341 /* Store */; };
 		C3CF3B7729A98C7B00E96586 /* Blockchain in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3B7629A98C7B00E96586 /* Blockchain */; };
-		C3A1B2C3D4E5F60718293A4B /* GemstoneStore in Frameworks */ = {isa = PBXBuildFile; productRef = C3A1B2C3D4E5F60718293A4D /* GemstoneStore */; };
 		C3CF3B7B29A98C7B00E96586 /* Primitives in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3B7A29A98C7B00E96586 /* Primitives */; };
 		C3CF3B8829AC2C0800E96586 /* Components in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3B8729AC2C0800E96586 /* Components */; };
 		C3CF3BA729B5317300E96586 /* Keystore in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3BA629B5317300E96586 /* Keystore */; };
@@ -234,8 +233,6 @@
 		C366791B2A1860E500F1D74D /* QRScanner */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = QRScanner; sourceTree = "<group>"; };
 		C370289B2A9C3B0E009AE123 /* Settings */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Settings; sourceTree = "<group>"; };
 		C3CF3B7329A98C3400E96586 /* Blockchain */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Blockchain; sourceTree = "<group>"; };
-		C3A1B2C3D4E5F60718293A4C /* GemstoneStore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemstoneStore; sourceTree = "<group>"; };
-		C3A1B2C3D4E5F60718293A4E /* GemstoneServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemstoneServices; sourceTree = "<group>"; };
 		C3CF3B7529A98C5D00E96586 /* Primitives */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Primitives; sourceTree = "<group>"; };
 		C3CF3B8629AC2B5500E96586 /* Components */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Components; sourceTree = "<group>"; };
 		C3CF3BA529B5262100E96586 /* Keystore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Keystore; sourceTree = "<group>"; };
@@ -338,7 +335,6 @@
 				C36679202F41000000F1D74D /* GemAPIDevice in Frameworks */,
 				D896B57E2E2EE2D300ADE083 /* Perpetuals in Frameworks */,
 				C3CF3B7729A98C7B00E96586 /* Blockchain in Frameworks */,
-				C3A1B2C3D4E5F60718293A4B /* GemstoneStore in Frameworks */,
 				8352C8D52D393E05000DEDD9 /* ExplorerService in Frameworks */,
 				D85AD29D2CD337BE0010DEF8 /* SwapService in Frameworks */,
 				C3CF3B7B29A98C7B00E96586 /* Primitives in Frameworks */,
@@ -639,8 +635,6 @@
 				C3549B4C29CA3A9000B4BE01 /* Store */,
 				C3CF3BA529B5262100E96586 /* Keystore */,
 				C3CF3B7329A98C3400E96586 /* Blockchain */,
-				C3A1B2C3D4E5F60718293A4C /* GemstoneStore */,
-				C3A1B2C3D4E5F60718293A4E /* GemstoneServices */,
 				C3CF3B7529A98C5D00E96586 /* Primitives */,
 				C3CF3BD929BBE40300E96586 /* Style */,
 				C3CF3B8629AC2B5500E96586 /* Components */,
@@ -785,7 +779,6 @@
 			name = Gem;
 			packageProductDependencies = (
 				C3CF3B7629A98C7B00E96586 /* Blockchain */,
-				C3A1B2C3D4E5F60718293A4D /* GemstoneStore */,
 				C3CF3B7A29A98C7B00E96586 /* Primitives */,
 				C3CF3B8729AC2C0800E96586 /* Components */,
 				C3CF3BA629B5317300E96586 /* Keystore */,
@@ -1939,10 +1932,6 @@
 		C3CF3B7629A98C7B00E96586 /* Blockchain */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Blockchain;
-		};
-		C3A1B2C3D4E5F60718293A4D /* GemstoneStore */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = GemstoneStore;
 		};
 		C3CF3B7A29A98C7B00E96586 /* Primitives */ = {
 			isa = XCSwiftPackageProductDependency;

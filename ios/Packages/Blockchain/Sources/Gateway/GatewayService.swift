@@ -3,7 +3,6 @@
 import BigInt
 import Foundation
 import Gemstone
-import GemstoneStore
 import NativeProviderService
 import Primitives
 
@@ -11,15 +10,25 @@ public import GemstonePrimitives
 
 public actor GatewayService: Sendable {
     let gateway: GemGateway
+    private let preferences: any GemPreferencesStore
+    private let securePreferences: any GemPreferencesStore
 
     public init(
         provider: NativeProvider,
+        preferences: any GemPreferencesStore,
+        securePreferences: any GemPreferencesStore,
     ) {
+        self.preferences = preferences
+        self.securePreferences = securePreferences
         gateway = GemGateway(
             provider: provider,
-            preferences: GemstonePreferencesStore(namespace: "gateway"),
-            securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
+            preferences: preferences,
+            securePreferences: securePreferences,
         )
+    }
+
+    public nonisolated func with(provider: NativeProvider) -> GatewayService {
+        GatewayService(provider: provider, preferences: preferences, securePreferences: securePreferences)
     }
 
     public nonisolated func stakeService(staticApi: GemStaticApiClient, store: any GemStakeStore) -> GemStakeService {

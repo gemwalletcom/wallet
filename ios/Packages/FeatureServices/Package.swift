@@ -29,7 +29,6 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
-        .package(name: "GemstoneStore", path: "../GemstoneStore"),
         .package(name: "GemstoneServices", path: "../GemstoneServices"),
         .package(name: "Store", path: "../Store"),
         .package(name: "Blockchain", path: "../Blockchain"),

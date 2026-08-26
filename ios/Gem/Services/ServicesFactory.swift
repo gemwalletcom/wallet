@@ -14,7 +14,6 @@ import GemAPI
 import GemAPIDevice
 import Gemstone
 import GemstonePrimitives
-import GemstoneStore
 import Keystore
 import NativeProviderService
 import Preferences
@@ -90,7 +89,11 @@ struct ServicesFactory {
             addressStore: GemstoneAddressStore(store: storeManager.addressStore),
         )
         let gemScanService = Gemstone.GemScanService(api: gemDeviceApiClient)
-        let gatewayService = GatewayService(provider: nativeProvider)
+        let gatewayService = GatewayService(
+            provider: nativeProvider,
+            preferences: GemstonePreferencesStore(namespace: "gateway"),
+            securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
+        )
         let paymentService = PaymentService(provider: nativeProvider)
         let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
         let serviceStatusService = ServiceStatusService()
@@ -160,7 +163,7 @@ struct ServicesFactory {
             store: storeManager.perpetualStore,
             perpetualStore: gemPerpetualStore,
             balanceStore: storeManager.balanceStore,
-            provider: PerpetualProviderFactory(nodeProvider: nodeProvider).createProvider(),
+            provider: PerpetualProviderFactory(gatewayService: gatewayService, nodeProvider: nodeProvider).createProvider(),
             service: gemPerpetualService,
             preferences: preferences,
         )

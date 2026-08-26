@@ -2,12 +2,17 @@
 
 import Blockchain
 import Foundation
+import GemstonePrimitivesTestKit
 import NativeProviderService
 import Primitives
 
 public extension GatewayService {
     static func mock() -> GatewayService {
-        GatewayService(provider: NativeProvider(session: .offline, url: Constants.apiURL))
+        GatewayService(
+            provider: NativeProvider(session: .offline, url: Constants.apiURL),
+            preferences: GemPreferencesStoreMock(),
+            securePreferences: GemPreferencesStoreMock(),
+        )
     }
 }
 

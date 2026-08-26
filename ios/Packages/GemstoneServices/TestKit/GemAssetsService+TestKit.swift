@@ -7,7 +7,6 @@ import class Gemstone.GemAssetsService
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemPriceService
 import GemstonePrimitivesTestKit
-import GemstoneStore
 import NativeProviderService
 import Primitives
 import PrimitivesTestKit

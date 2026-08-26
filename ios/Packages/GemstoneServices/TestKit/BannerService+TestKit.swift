@@ -3,7 +3,6 @@
 import PrimitivesTestKit
 import GemstoneServices
 import class Gemstone.GemBannerService
-import GemstoneStore
 import Store
 import StoreTestKit
 

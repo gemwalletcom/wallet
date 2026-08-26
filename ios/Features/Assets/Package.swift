@@ -35,7 +35,6 @@ let package = Package(
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
-        .package(name: "GemstoneStore", path: "../../Packages/GemstoneStore"),
         .package(name: "GemAPI", path: "../../Packages/GemAPI"),
     ],
     targets: [
@@ -76,7 +75,6 @@ let package = Package(
         .testTarget(
             name: "AssetsTests",
             dependencies: [
-                .product(name: "GemstoneStore", package: "GemstoneStore"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),

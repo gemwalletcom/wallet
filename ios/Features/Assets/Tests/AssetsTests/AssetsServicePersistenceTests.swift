@@ -3,7 +3,6 @@
 import GemstoneServices
 import GemstoneServicesTestKit
 import class Gemstone.GemPriceService
-import GemstoneStore
 import Foundation
 import GemAPITestKit
 import Primitives

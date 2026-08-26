@@ -12,10 +12,6 @@ public protocol ChainServiceFactorable: Sendable {
 public final class ChainServiceFactory: ChainServiceFactorable, Sendable {
     private let gatewayService: GatewayService
 
-    public init(nodeProvider: any NodeURLFetchable) {
-        self.gatewayService = GatewayService(provider: NativeProvider(nodeProvider: nodeProvider))
-    }
-
     public init(gatewayService: GatewayService) {
         self.gatewayService = gatewayService
     }
@@ -27,7 +23,7 @@ public final class ChainServiceFactory: ChainServiceFactorable, Sendable {
     public func service(for chain: Chain, url: URL) -> any ChainServiceable {
         ChainService.service(
             chain: chain,
-            gateway: GatewayService(provider: NativeProvider(url: url)),
+            gateway: gatewayService.with(provider: NativeProvider(url: url)),
         )
     }
 }
