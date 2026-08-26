@@ -17,4 +17,6 @@ class GetRewardsImpl(
         }
         return response
     }
+
+    override fun referralLink(code: String): String = rewardsService.referralLink(code)
 }

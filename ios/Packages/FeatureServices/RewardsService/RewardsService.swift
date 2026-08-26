@@ -41,7 +41,7 @@ public struct RewardsService: RewardsServiceable, Sendable {
     }
 
     public func generateReferralLink(code: String) -> URL {
-        URL(string: "\(Constants.App.website)/join?code=\(code)")!
+        URL(string: apiService.referralLink(code: code))!
     }
 
     public func redeem(wallet: Wallet, redemptionId: String) async throws -> RedemptionResult {

@@ -67,6 +67,7 @@ fun ReferralScene(
     inSync: SyncType,
     isAvailableWalletSelect: Boolean,
     rewards: Rewards?,
+    referralLink: String?,
     uiState: RewardsUIState,
     currentWallet: Wallet?,
     joinPointsCost: Int,
@@ -82,7 +83,7 @@ fun ReferralScene(
 ) {
 
     val context = LocalContext.current
-    val link = "https://gemwallet.com/join?code=${rewards?.code}"
+    val link = referralLink.orEmpty()
     val joinText = stringResource(R.string.rewards_share_text, link)
     val shareTitle = stringResource(id = R.string.common_share, link)
 
@@ -214,6 +215,7 @@ private fun ReferralScenePreview() {
             inSync = SyncType.None,
             isAvailableWalletSelect = false,
             rewards = Rewards(
+            referralLink = null,
                 code = "testuser",
                 referralCount = 5,
                 points = 1000,
@@ -252,6 +254,7 @@ private fun ReferralSceneNoRewardsPreview() {
             inSync = SyncType.None,
             isAvailableWalletSelect = false,
             rewards = null,
+            referralLink = null,
             uiState = RewardsUIState(canInvite = false, isUnverified = false, hasPendingReferral = false, canActivatePendingReferral = false),
             currentWallet = Wallet(
                 id = WalletId("1"),

@@ -237,6 +237,10 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
         self.redemption = redemption
     }
 
+    public func referralLink(code: String) -> String {
+        "https://gemwallet.com/join?code=\(code)"
+    }
+
     public func getRewards(walletId _: String) async throws -> Gemstone.Rewards {
         guard let rewards else { throw AnyError("not stubbed") }
         return try rewards.json()

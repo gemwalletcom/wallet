@@ -4,6 +4,7 @@ use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{AuthPayload, AuthenticatedRequest, ReferralCode, Rewards, WalletId};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::config::rewards::get_referral_url;
 
 #[derive(Debug, uniffi::Object)]
 pub struct GemRewardsService {
@@ -15,6 +16,10 @@ impl GemRewardsService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemDeviceApiClient>) -> Self {
         Self { api }
+    }
+
+    pub fn referral_link(&self, code: String) -> String {
+        get_referral_url(&code)
     }
 
     pub async fn get_rewards(&self, wallet_id: WalletId) -> Result<Rewards, GemApiError> {

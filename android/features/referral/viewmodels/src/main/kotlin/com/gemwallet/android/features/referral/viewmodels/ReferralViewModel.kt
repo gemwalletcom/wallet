@@ -51,6 +51,9 @@ class ReferralViewModel @Inject constructor(
     val uiState = rewards.mapLatest { RewardsUIState.from(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, RewardsUIState.from(null))
 
+    val referralLink = rewards.mapLatest { it?.code?.let(getRewards::referralLink) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     val availableWallets = walletsRepository.getAll().mapLatest { items ->
         items.filter { it.type == WalletType.Multicoin }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

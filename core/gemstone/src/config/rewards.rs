@@ -20,6 +20,10 @@ pub fn get_rewards_url(item: RewardsUrl, locale: Option<String>) -> String {
     format!("{WEBSITE_URL}{locale_prefix}{path}")
 }
 
+pub fn get_referral_url(code: &str) -> String {
+    format!("{WEBSITE_URL}/join?code={code}")
+}
+
 fn normalize_locale(locale: Option<String>) -> String {
     let Some(loc) = locale else {
         return String::from("en");
@@ -64,6 +68,11 @@ mod tests {
         assert_eq!(normalize_locale(Some("zh_TW".to_string())), "zh-tw");
         assert_eq!(normalize_locale(Some("pt-BR".to_string())), "pt-br");
         assert_eq!(normalize_locale(Some("pt_PT".to_string())), "pt");
+    }
+
+    #[test]
+    fn test_get_referral_url() {
+        assert_eq!(get_referral_url("GEM123"), "https://gemwallet.com/join?code=GEM123");
     }
 
     #[test]
