@@ -1,6 +1,7 @@
 package com.gemwallet.android.model
 
 import com.gemwallet.android.domains.confirm.ConfirmError
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -13,13 +14,15 @@ import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockSwapParams
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.Resource
+import com.wallet.core.primitives.StakeType
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.swap.ApprovalData
+import java.math.BigInteger
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -27,11 +30,8 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemResource
-import uniffi.gemstone.GemStakeType
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.TransactionType as GemTransactionType
-import java.math.BigInteger
 
 class ConfirmParamsTest {
 
@@ -73,7 +73,7 @@ class ConfirmParamsTest {
         val input = params.toDto()
 
         assertTrue(input is GemTransactionInputType.Generic)
-        assertEquals(GemTransactionType.TOKEN_APPROVAL, (input as GemTransactionInputType.Generic).extra.transactionType)
+        assertEquals(TransactionType.TokenApproval, (input as GemTransactionInputType.Generic).extra.transactionType.decodeJson<TransactionType>())
         assertEquals("21000", input.extra.gasLimit)
         assertEquals(listOf(1.toByte()), input.extra.data?.toList())
         assertEquals("memo", params.memo)
@@ -160,8 +160,7 @@ class ConfirmParamsTest {
 
         assertTrue(inputType is GemTransactionInputType.Stake)
         val stakeType = (inputType as GemTransactionInputType.Stake).stakeType
-        assertTrue(stakeType is GemStakeType.Freeze)
-        assertEquals(GemResource.BANDWIDTH, (stakeType as GemStakeType.Freeze).resource)
+        assertEquals(StakeType.Freeze(Resource.Bandwidth), stakeType.decodeJson<StakeType>())
     }
 
     @Test
@@ -176,8 +175,7 @@ class ConfirmParamsTest {
 
         assertTrue(inputType is GemTransactionInputType.Stake)
         val stakeType = (inputType as GemTransactionInputType.Stake).stakeType
-        assertTrue(stakeType is GemStakeType.Unfreeze)
-        assertEquals(GemResource.ENERGY, (stakeType as GemStakeType.Unfreeze).resource)
+        assertEquals(StakeType.Unfreeze(Resource.Energy), stakeType.decodeJson<StakeType>())
     }
 
     private fun applicationMetadata() = ApplicationMetadata(

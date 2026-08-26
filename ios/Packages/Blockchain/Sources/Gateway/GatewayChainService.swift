@@ -50,9 +50,6 @@ extension GatewayChainService: ChainServiceable {
         try await gateway.transactionLoad(chain: chain, input: input.map())
     }
 
-    func transactionState(for request: TransactionStateRequest) async throws -> TransactionChanges {
-        try await gateway.transactionStatus(chain: chain, request: request)
-    }
 
     func getChainID() async throws -> String {
         try await gateway.chainId(chain: chain)

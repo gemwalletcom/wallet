@@ -1,24 +1,24 @@
 package com.gemwallet.android.blockchain.services
 
+import com.gemwallet.android.blockchain.model.ServiceUnavailable
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.SwapProvider
+import com.wallet.core.primitives.Transaction
+import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
-import com.wallet.core.primitives.TransactionStateRequest
-import com.wallet.core.primitives.TransactionSwapStateRequest
+import com.wallet.core.primitives.TransactionType
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import uniffi.gemstone.GemGatewayInterface
-import uniffi.gemstone.GemTransactionStateRequest
-import uniffi.gemstone.GemTransactionSwapStateRequest
-import uniffi.gemstone.SwapperProvider
-import uniffi.gemstone.SwapperTransactionSwapMetadata
 import uniffi.gemstone.TransactionChange
-import uniffi.gemstone.TransactionMetadata
 import uniffi.gemstone.TransactionUpdate
 
 class TransactionStatusServiceTest {
@@ -26,79 +26,51 @@ class TransactionStatusServiceTest {
     private val gateway = mockk<GemGatewayInterface>()
     private val service = TransactionStatusService(gateway)
 
+    private fun transaction() = Transaction(
+        id = TransactionId(Chain.Bitcoin, "0xhash"),
+        assetId = AssetId(Chain.Bitcoin),
+        from = "sender",
+        to = "recipient",
+        contract = null,
+        type = TransactionType.Transfer,
+        state = TransactionState.Pending,
+        blockNumber = "10",
+        sequence = "0",
+        fee = "1",
+        feeAssetId = AssetId(Chain.Bitcoin),
+        value = "100",
+        memo = null,
+        direction = TransactionDirection.Outgoing,
+        utxoInputs = null,
+        utxoOutputs = null,
+        metadata = null,
+        createdAt = 1234L,
+    )
+
     @Test
-    fun getStatus_mapsRequest() = runBlocking {
-        val requestSlot = slot<GemTransactionStateRequest>()
-        coEvery { gateway.getTransactionStatus(Chain.Bitcoin.string, capture(requestSlot)) } returns TransactionUpdate(
-            state = uniffi.gemstone.TransactionState.CONFIRMED,
-            changes = emptyList(),
+    fun getUpdate_sendsTheTransactionAndMapsTheResult() = runBlocking {
+        val sent = slot<String>()
+        coEvery { gateway.getTransactionUpdate(capture(sent)) } returns TransactionUpdate(
+            state = TransactionState.Confirmed.toJson(),
+            changes = listOf(TransactionChange.NetworkFee("42")),
         )
 
-        val result = service.getStatus(
-            Chain.Bitcoin,
-            TransactionStateRequest(
-                id = "0xhash",
-                senderAddress = "sender",
-                createdAt = 1_234_000L,
-                blockNumber = 10L,
-            )
-        )
+        val result = service.getUpdate(transaction())
 
+        // Gemstone owns the request shape and swap routing now; the service only has
+        // to hand over the transaction and map what comes back.
+        assertEquals("0xhash", sent.captured.decodeJson<Transaction>().id.hash)
         assertEquals(TransactionState.Confirmed, result.state)
-        assertEquals("0xhash", requestSlot.captured.id)
-        assertEquals("sender", requestSlot.captured.senderAddress)
-        assertEquals(1234L, requestSlot.captured.createdAt)
-        assertEquals(10UL, requestSlot.captured.blockNumber)
-        coVerify(exactly = 1) { gateway.getTransactionStatus(Chain.Bitcoin.string, any()) }
+        assertEquals("42", result.fee?.toString())
     }
 
     @Test
-    fun getSwapStatus_mapsInTransitMetadataAndRequest() = runBlocking {
-        val requestSlot = slot<GemTransactionSwapStateRequest>()
-        coEvery { gateway.getTransactionSwapStatus(Chain.Bitcoin.string, capture(requestSlot)) } returns TransactionUpdate(
-            state = uniffi.gemstone.TransactionState.IN_TRANSIT,
-            changes = listOf(
-                TransactionChange.Metadata(
-                    TransactionMetadata.Swap(
-                        SwapperTransactionSwapMetadata(
-                            fromAsset = "bitcoin",
-                            fromValue = "100000000",
-                            toAsset = "ethereum",
-                            toValue = "9900000000000000000",
-                            provider = "thorchain",
-                        )
-                    )
-                )
-            ),
-        )
+    fun getUpdate_reportsGatewayFailureAsServiceUnavailable() = runBlocking {
+        coEvery { gateway.getTransactionUpdate(any()) } throws IllegalStateException("boom")
 
-        val result = service.getSwapStatus(
-            Chain.Bitcoin,
-            TransactionSwapStateRequest(
-                transaction = TransactionStateRequest(
-                    id = "0xhash",
-                    senderAddress = "sender",
-                    createdAt = 1_234_000L,
-                    blockNumber = 10L,
-                ),
-                state = TransactionState.InTransit,
-                swapProvider = SwapProvider.Thorchain,
-                destinationChain = Chain.Ethereum,
-            )
-        )
-
-        assertEquals(TransactionState.InTransit, result.state)
-        assertEquals(
-            "{\"fromAsset\":\"bitcoin\",\"fromValue\":\"100000000\",\"toAsset\":\"ethereum\",\"toValue\":\"9900000000000000000\",\"provider\":\"thorchain\"}",
-            result.metadata,
-        )
-        assertEquals("0xhash", requestSlot.captured.transaction.id)
-        assertEquals("sender", requestSlot.captured.transaction.senderAddress)
-        assertEquals(1234L, requestSlot.captured.transaction.createdAt)
-        assertEquals(10UL, requestSlot.captured.transaction.blockNumber)
-        assertEquals(uniffi.gemstone.TransactionState.IN_TRANSIT, requestSlot.captured.state)
-        assertEquals(SwapperProvider.THORCHAIN, requestSlot.captured.swapProvider)
-        assertEquals(Chain.Ethereum.string, requestSlot.captured.destinationChain)
-        coVerify(exactly = 1) { gateway.getTransactionSwapStatus(Chain.Bitcoin.string, any()) }
+        assertThrows(ServiceUnavailable::class.java) {
+            runBlocking { service.getUpdate(transaction()) }
+        }
+        Unit
     }
 }

@@ -8,6 +8,7 @@ import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.SignerParams
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetHyperCoreHype
@@ -23,12 +24,14 @@ import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.swap.ApprovalData
+import com.wallet.core.primitives.swap.SwapQuoteDataType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import java.math.BigInteger
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -38,14 +41,12 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmServiceInterface
-import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemSignedTransaction
-import uniffi.gemstone.GemSwapQuoteDataType
+import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.TransactionType as GemTransactionType
 import uniffi.gemstone.transactionMetadataBlockNumber
-import java.math.BigInteger
 
 class ConfirmTransactionImplTest {
 
@@ -97,8 +98,8 @@ class ConfirmTransactionImplTest {
         val arbitrum = mockAsset(chain = Chain.Arbitrum, name = "Ethereum", symbol = "ETH", decimals = 18)
         val wallet = mockWallet(accounts = listOf(account))
         val signedTransactions = listOf(
-            GemSignedTransaction("approval", GemTransactionType.TOKEN_APPROVAL),
-            GemSignedTransaction("swap", GemTransactionType.SWAP),
+            GemSignedTransaction("approval", TransactionType.TokenApproval.toJson()),
+            GemSignedTransaction("swap", TransactionType.Swap.toJson()),
         )
         val createdHashes = mutableListOf<String>()
         val createdAssetIds = mutableListOf<AssetId>()
@@ -157,7 +158,7 @@ class ConfirmTransactionImplTest {
                 ),
                 slippageBps = 50u,
                 etaInSeconds = null,
-                dataType = GemSwapQuoteDataType.CONTRACT,
+                dataType = SwapQuoteDataType.Contract,
             ),
             selectedData = SignerParams.Data(
                 fee = Fee.Plain(arbitrum.id, FeePriority.Normal, BigInteger.ZERO, emptyMap()),
@@ -212,7 +213,7 @@ class ConfirmTransactionImplTest {
         }
         val signer = mockk<GemSignTransactionOperator> {
             coEvery { this@mockk.invoke(wallet, signerParams, "password") } returns listOf(
-                GemSignedTransaction("approval", GemTransactionType.TOKEN_APPROVAL),
+                GemSignedTransaction("approval", TransactionType.TokenApproval.toJson()),
             )
         }
         val confirmService = mockk<GemConfirmServiceInterface>(relaxed = true)
@@ -244,7 +245,7 @@ class ConfirmTransactionImplTest {
         val wallet = mockWallet(accounts = listOf(account))
         val createTransaction = mockk<CreateTransaction>()
         val createdHashes = mutableListOf<String>()
-        val signedTransactions = List(3) { GemSignedTransaction("swap", GemTransactionType.SWAP) }
+        val signedTransactions = List(3) { GemSignedTransaction("swap", TransactionType.Swap.toJson()) }
         val passwordStore = mockk<PasswordStore> {
             every { getPassword(wallet.id.id) } returns "password"
         }
@@ -296,7 +297,7 @@ class ConfirmTransactionImplTest {
                     value = "0",
                     slippageBps = 50u,
                     etaInSeconds = null,
-                    dataType = GemSwapQuoteDataType.TRANSFER,
+                    dataType = SwapQuoteDataType.Transfer,
                 ),
                 selectedData = SignerParams.Data(
                     fee = Fee.Plain(hype.id, FeePriority.Normal, BigInteger.ZERO, emptyMap()),

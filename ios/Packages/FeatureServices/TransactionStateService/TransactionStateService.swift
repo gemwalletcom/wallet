@@ -7,8 +7,7 @@ import Primitives
 import Store
 
 protocol TransactionStatusServiceable: Sendable {
-    func transactionStatus(chain: Primitives.Chain, request: TransactionStateRequest) async throws -> TransactionChanges
-    func transactionSwapStatus(chain: Primitives.Chain, request: TransactionSwapStateRequest) async throws -> TransactionChanges
+    func transactionUpdate(_ transaction: Transaction) async throws -> TransactionChanges
 }
 
 extension GatewayService: TransactionStatusServiceable {}
@@ -52,7 +51,7 @@ public struct TransactionStateService: Sendable {
 
     func update(for transaction: Transaction) async -> TransactionStateUpdateResult {
         do {
-            let stateChanges = try await fetchStateChanges(for: transaction)
+            let stateChanges = try await statusService.transactionUpdate(transaction)
             return try saveStateChanges(stateChanges, for: transaction)
         } catch {
             // Gemstone applies the timeout when a status lookup succeeds. A lookup that
@@ -102,49 +101,6 @@ public struct TransactionStateService: Sendable {
 // MARK: - Private
 
 extension TransactionStateService {
-    private func fetchStateChanges(for transaction: Transaction) async throws -> TransactionChanges {
-        let request = transactionStateRequest(for: transaction)
-        if let swapRequest = transactionSwapStateRequest(for: transaction, transactionRequest: request) {
-            return try await statusService.transactionSwapStatus(
-                chain: transaction.assetId.chain,
-                request: swapRequest,
-            )
-        }
-        if transaction.type == .swap, transaction.state == .inTransit {
-            return TransactionChanges(state: transaction.state)
-        }
-        return try await statusService.transactionStatus(
-            chain: transaction.assetId.chain,
-            request: request,
-        )
-    }
-
-    private func transactionStateRequest(for transaction: Transaction) -> TransactionStateRequest {
-        TransactionStateRequest(
-            id: transaction.id.hash,
-            senderAddress: transaction.from,
-            createdAt: transaction.createdAt,
-            blockNumber: transaction.blockNumber.flatMap(UInt64.init) ?? 0,
-        )
-    }
-
-    private func transactionSwapStateRequest(
-        for transaction: Transaction,
-        transactionRequest: TransactionStateRequest,
-    ) -> TransactionSwapStateRequest? {
-        guard
-            let swapMetadata = transaction.metadata?.decode(TransactionSwapMetadata.self),
-            let swapProvider = swapMetadata.provider.flatMap(SwapProvider.init(rawValue:))
-        else {
-            return nil
-        }
-        return TransactionSwapStateRequest(
-            transaction: transactionRequest,
-            state: transaction.state,
-            swapProvider: swapProvider,
-            destinationChain: swapMetadata.toAsset.chain,
-        )
-    }
 
     private func saveStateChanges(_ stateChanges: TransactionChanges, for transaction: Transaction) throws -> TransactionStateUpdateResult {
         guard stateChanges.state != transaction.state || !stateChanges.changes.isEmpty else {
@@ -191,8 +147,10 @@ extension TransactionStateService {
         }
     }
 
+    // Gemstone merges against the transaction it was handed. A hash change resolves
+    // to a different local record, so guard that one from being walked backwards too.
     private func updateStateIfNeeded(transactionId: TransactionId, oldState: TransactionState, newState: TransactionState) throws -> TransactionState {
-        let nextState = nextTransactionState(oldState: oldState, newState: newState)
+        let nextState = oldState == .pending || newState.isCompleted ? newState : oldState
         if nextState != oldState {
             _ = try transactionStore.updateState(id: transactionId, state: nextState)
         }
@@ -218,7 +176,4 @@ extension TransactionStateService {
         }
     }
 
-    private func nextTransactionState(oldState: TransactionState, newState: TransactionState) -> TransactionState {
-        oldState == .pending || newState.isCompleted ? newState : oldState
-    }
 }

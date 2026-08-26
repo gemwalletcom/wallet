@@ -1,10 +1,11 @@
 package com.gemwallet.android.data.repositories.perpetual
 
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.PerpetualAccountMode
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemPerpetualAccountMode
 import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.HyperliquidSubscriptions
 
@@ -17,7 +18,7 @@ class HyperliquidSubscriptionServiceTest {
         service.subscribe(GemPerpetualSubscription.MarketPrices)
         assertTrue(service.messages.tryReceive().isFailure)
 
-        service.connected(ADDRESS, GemPerpetualAccountMode.STANDARD)
+        service.connected(ADDRESS, PerpetualAccountMode.Standard.toJson())
 
         val sent = generateSequence { service.messages.tryReceive().getOrNull() }.toList()
         assertEquals(

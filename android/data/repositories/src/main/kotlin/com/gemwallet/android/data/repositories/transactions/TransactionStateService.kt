@@ -26,31 +26,9 @@ class TransactionStateService(
     internal suspend fun checkTransaction(transaction: DbTransactionExtended): DbTransactionExtended? {
         val transactionRecord = transaction.transaction
         val chain = transactionRecord.assetId.chain
-        val swapMetadata = getTransactionSwapMetadata(transactionRecord.type, transactionRecord.metadata)
-        val swapProvider = swapMetadata?.provider?.toSwapProvider()
-        if (transactionRecord.type == TransactionType.Swap && transactionRecord.state == TransactionState.InTransit && swapProvider == null) {
-            return null
-        }
-        val request = TransactionStateRequest(
-            id = transactionRecord.hash,
-            senderAddress = transactionRecord.owner,
-            createdAt = transactionRecord.createdAt,
-            blockNumber = transactionRecord.blockNumber.toLongOrNull() ?: 0L,
-        )
+        val dto = transaction.toDTO()?.transaction ?: return null
         val stateChanges = try {
-            if (swapMetadata != null && swapProvider != null) {
-                transactionStatusService.getSwapStatus(
-                    chain,
-                    TransactionSwapStateRequest(
-                        transaction = request,
-                        state = transactionRecord.state,
-                        swapProvider = swapProvider,
-                        destinationChain = swapMetadata.toAsset.chain,
-                    ),
-                )
-            } else {
-                transactionStatusService.getStatus(chain, request)
-            }
+            transactionStatusService.getUpdate(dto)
         } catch (_: ServiceUnavailable) {
             return transaction.copy(transaction = transactionRecord.copy(updatedAt = System.currentTimeMillis()))
         }

@@ -21,6 +21,13 @@ impl TransactionState {
             Self::Pending | Self::InTransit => false,
         }
     }
+
+    /// The state to record after a status lookup. A pending transaction takes
+    /// whatever comes back; once it has moved on, only a completed state can
+    /// replace it, so a late or out-of-order lookup cannot walk it backwards.
+    pub fn merged_with(self, updated: Self) -> Self {
+        if self == Self::Pending || updated.is_completed() { updated } else { self }
+    }
 }
 
 #[cfg(test)]

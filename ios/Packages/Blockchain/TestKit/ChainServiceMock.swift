@@ -25,7 +25,6 @@ public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     public var tokenDataError: (any Error)?
     public var transactionData: TransactionData = .init(fee: Fee(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero, feeAssetId: Asset.mock().id))
     public var transactionPreload: GemTransactionLoadMetadata = .none
-    public var transactionState: TransactionChanges = .init(state: .pending, changes: [])
     public var nodeStatus: NodeStatus = .init(chainId: "1", latestBlockNumber: .zero, latency: .from(duration: 1000))
     public var onLoad: (@Sendable (TransactionInput) async -> Void)?
 
@@ -106,9 +105,6 @@ public extension ChainServiceMock {
         transactionPreload
     }
 
-    func transactionState(for _: TransactionStateRequest) async throws -> TransactionChanges {
-        transactionState
-    }
 
     func getNodeStatus(url _: String) async throws -> NodeStatus {
         nodeStatus

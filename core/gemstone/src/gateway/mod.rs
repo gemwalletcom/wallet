@@ -19,7 +19,7 @@ use std::sync::Arc;
 use swapper::swapper::GemSwapper as Swapper;
 use yielder::Yielder;
 
-use primitives::{AssetId, Chain, ChartPeriod};
+use primitives::{AssetId, Chain, ChartPeriod, Transaction};
 
 #[derive(uniffi::Object)]
 pub struct GemGateway {
@@ -99,6 +99,13 @@ impl GemGateway {
 
     pub async fn get_transaction_swap_status(&self, chain: Chain, request: GemTransactionSwapStateRequest) -> Result<GemTransactionUpdate, GatewayError> {
         Ok(self.status_provider.get_swap_status(chain, request).await?)
+    }
+
+    /// Resolves the next update for a transaction on record — request shape, swap
+    /// routing, timeout, and the state merge — so the clients only have to store
+    /// the result.
+    pub async fn get_transaction_update(&self, transaction: Transaction) -> Result<GemTransactionUpdate, GatewayError> {
+        Ok(self.status_provider.get_update(&transaction).await?)
     }
 
     pub async fn get_chain_id(&self, chain: Chain) -> Result<String, GatewayError> {

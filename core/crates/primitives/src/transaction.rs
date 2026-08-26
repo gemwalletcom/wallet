@@ -23,7 +23,7 @@ impl TransactionsResponse {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 #[typeshare(swift = "Sendable, Equatable, Hashable")]
 pub struct Transaction {
     pub id: TransactionId,
@@ -62,6 +62,69 @@ pub struct Transaction {
     pub data: Option<String>,
     #[serde(rename = "createdAt")]
     pub created_at: DateTime<Utc>,
+}
+
+/// `hash` is `typeshare(skip)`, so the platforms never send it. It is carried by
+/// `id`, so derive it when absent and accept it when present — which keeps every
+/// payload that already includes it working.
+impl<'de> Deserialize<'de> for Transaction {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct Fields {
+            id: TransactionId,
+            #[serde(default)]
+            hash: Option<String>,
+            #[serde(rename = "assetId")]
+            asset_id: AssetId,
+            from: String,
+            to: String,
+            contract: Option<String>,
+            #[serde(rename = "type")]
+            transaction_type: TransactionType,
+            state: TransactionState,
+            #[serde(rename = "blockNumber")]
+            block_number: Option<String>,
+            sequence: Option<String>,
+            fee: String,
+            #[serde(rename = "feeAssetId")]
+            fee_asset_id: AssetId,
+            value: String,
+            memo: Option<String>,
+            direction: TransactionDirection,
+            #[serde(rename = "utxoInputs")]
+            utxo_inputs: Option<Vec<TransactionUtxoInput>>,
+            #[serde(rename = "utxoOutputs")]
+            utxo_outputs: Option<Vec<TransactionUtxoInput>>,
+            metadata: Option<serde_json::Value>,
+            data: Option<String>,
+            #[serde(rename = "createdAt")]
+            created_at: DateTime<Utc>,
+        }
+
+        let fields = Fields::deserialize(deserializer)?;
+        Ok(Self {
+            hash: fields.hash.unwrap_or_else(|| fields.id.hash.clone()),
+            id: fields.id,
+            asset_id: fields.asset_id,
+            from: fields.from,
+            to: fields.to,
+            contract: fields.contract,
+            transaction_type: fields.transaction_type,
+            state: fields.state,
+            block_number: fields.block_number,
+            sequence: fields.sequence,
+            fee: fields.fee,
+            fee_asset_id: fields.fee_asset_id,
+            value: fields.value,
+            memo: fields.memo,
+            direction: fields.direction,
+            utxo_inputs: fields.utxo_inputs,
+            utxo_outputs: fields.utxo_outputs,
+            metadata: fields.metadata,
+            data: fields.data,
+            created_at: fields.created_at,
+        })
+    }
 }
 
 impl Transaction {

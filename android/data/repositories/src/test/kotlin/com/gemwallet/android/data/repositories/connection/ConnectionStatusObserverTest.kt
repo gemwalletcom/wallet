@@ -1,6 +1,8 @@
 package com.gemwallet.android.data.repositories.connection
 
 import android.util.Log
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.ConnectionStatus
 import io.mockk.every
@@ -13,8 +15,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemConnectionComponent
-import uniffi.gemstone.GemConnectionStatus
 import uniffi.gemstone.connectionStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -26,12 +26,13 @@ class ConnectionStatusObserverTest {
         every { Log.d(any(), any()) } returns 0
         mockkStatic("uniffi.gemstone.GemstoneKt")
         every { connectionStatus(any()) } answers {
-            val components = firstArg<List<GemConnectionComponent>>()
+            // Components cross as JSON now, so decode them back before deciding.
+            val components = firstArg<List<String>>().map { it.decodeJson<ConnectionComponent>() }
             when {
-                components.contains(GemConnectionComponent.INTERNET) -> GemConnectionStatus.NO_INTERNET
-                components.isNotEmpty() -> GemConnectionStatus.NO_SERVICE
-                else -> GemConnectionStatus.ONLINE
-            }
+                components.contains(ConnectionComponent.Internet) -> ConnectionStatus.NoInternet
+                components.isNotEmpty() -> ConnectionStatus.NoService
+                else -> ConnectionStatus.Online
+            }.toJson()
         }
     }
 

@@ -149,50 +149,10 @@ struct TransactionStateServiceTests {
     }
 
     @Test
-    func inTransitSwapUsesSwapStatusProvider() async throws {
-        let statusService = TransactionStatusServiceMock(
-            swapStatus: { _ in TransactionChanges(state: .confirmed) },
-        )
-        let fixture = try makeFixture(
-            state: .inTransit,
-            statusService: statusService,
-        )
-
-        let status = await fixture.service.update(for: fixture.transaction).status
-
-        expectComplete(status)
-        #expect(await statusService.regularRequestCount() == 0)
-        let swapRequests = await statusService.swapRequests()
-        #expect(swapRequests.count == 1)
-        #expect(swapRequests.first?.state == .inTransit)
-    }
-
-    @Test
-    func inTransitSwapWithoutProviderDoesNotUseChainStatusProvider() async throws {
-        let statusService = TransactionStatusServiceMock(
-            regularStatus: { _ in TransactionChanges(state: .confirmed) },
-            swapStatus: { _ in TransactionChanges(state: .confirmed) },
-        )
-        let fixture = try makeFixture(
-            state: .inTransit,
-            provider: nil,
-            statusService: statusService,
-        )
-
-        let status = await fixture.service.update(for: fixture.transaction).status
-
-        expectRetry(status)
-        #expect(await statusService.regularRequestCount() == 0)
-        let swapRequests = await statusService.swapRequests()
-        #expect(swapRequests.isEmpty)
-        #expect(try fixture.store.getTransactions(states: [.inTransit]).count == 1)
-    }
-
-    @Test
     func jobRefreshesTransactionAfterHashChange() async throws {
         let statusService = TransactionStatusServiceMock(
-            swapStatus: { request in
-                if request.transaction.id == "hash" {
+            update: { transaction in
+                if transaction.id.hash == "hash" {
                     return TransactionChanges(
                         state: .inTransit,
                         changes: [.hashChange(old: "hash", new: "new-hash")],
@@ -210,10 +170,9 @@ struct TransactionStateServiceTests {
         await expectRetry(job.run())
         await expectComplete(job.run())
 
-        #expect(await statusService.regularRequestCount() == 0)
-        let swapRequests = await statusService.swapRequests()
-        #expect(swapRequests.map(\.transaction.id) == ["hash", "new-hash"])
-        #expect(swapRequests.map(\.state) == [TransactionState.pending, .inTransit])
+        // The job re-reads the transaction after the hash change, so the second
+        // lookup goes out against the new hash.
+        #expect(await statusService.requestedHashes() == ["hash", "new-hash"])
     }
 
     @Test
@@ -431,39 +390,23 @@ private extension TransactionStateServiceTests {
 }
 
 private actor TransactionStatusServiceMock: TransactionStatusServiceable {
-    private let regularStatus: @Sendable (TransactionStateRequest) -> TransactionChanges
-    private let swapStatus: @Sendable (TransactionSwapStateRequest) -> TransactionChanges
-    private var regularRequests: [TransactionStateRequest] = []
-    private var recordedSwapRequests: [TransactionSwapStateRequest] = []
+    private let update: @Sendable (Transaction) -> TransactionChanges
+    private var requests: [Transaction] = []
 
     init(stateChanges: TransactionChanges) {
-        regularStatus = { _ in stateChanges }
-        swapStatus = { _ in stateChanges }
+        update = { _ in stateChanges }
     }
 
-    init(
-        regularStatus: @escaping @Sendable (TransactionStateRequest) -> TransactionChanges = { _ in TransactionChanges(state: .pending) },
-        swapStatus: @escaping @Sendable (TransactionSwapStateRequest) -> TransactionChanges,
-    ) {
-        self.regularStatus = regularStatus
-        self.swapStatus = swapStatus
+    init(update: @escaping @Sendable (Transaction) -> TransactionChanges) {
+        self.update = update
     }
 
-    func transactionStatus(chain _: Primitives.Chain, request: TransactionStateRequest) async throws -> TransactionChanges {
-        regularRequests.append(request)
-        return regularStatus(request)
+    func transactionUpdate(_ transaction: Transaction) async throws -> TransactionChanges {
+        requests.append(transaction)
+        return update(transaction)
     }
 
-    func transactionSwapStatus(chain _: Primitives.Chain, request: TransactionSwapStateRequest) async throws -> TransactionChanges {
-        recordedSwapRequests.append(request)
-        return swapStatus(request)
-    }
-
-    func regularRequestCount() -> Int {
-        regularRequests.count
-    }
-
-    func swapRequests() -> [TransactionSwapStateRequest] {
-        recordedSwapRequests
+    func requestedHashes() -> [String] {
+        requests.map(\.id.hash)
     }
 }

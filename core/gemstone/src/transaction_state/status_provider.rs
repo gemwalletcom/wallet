@@ -1,5 +1,8 @@
 use chrono::{DateTime, Utc};
-use primitives::{Chain, TransactionChange, TransactionMetadata, TransactionState, TransactionUpdate, chain_transaction_timeout, swap_transaction_timeout};
+use primitives::{
+    Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionUpdate, chain_transaction_timeout,
+    swap_transaction_timeout,
+};
 use std::sync::Arc;
 use swapper::{SwapResult, SwapperProvider, swapper::GemSwapper};
 
@@ -29,6 +32,47 @@ impl StatusProvider {
         let destination_chain = request.destination_chain;
         let result = self.swap_transaction_status(chain, request).await;
         get_transaction_update(chain, Some(destination_chain), created_at, result)
+    }
+
+    /// Resolves the next update for a transaction already on record.
+    ///
+    /// Picks the swap or plain-chain route from the transaction's own metadata,
+    /// builds the request, and merges the result against the state on record. The
+    /// clients previously each did all three themselves.
+    pub async fn get_update(&self, transaction: &Transaction) -> Result<TransactionUpdate, TransactionStatusError> {
+        let chain = transaction.asset_id.chain;
+        let request = GemTransactionStateRequest {
+            id: transaction.id.hash.clone(),
+            sender_address: transaction.from.clone(),
+            created_at: transaction.created_at,
+            block_number: transaction.block_number.as_deref().and_then(|number| number.parse().ok()).unwrap_or_default(),
+        };
+
+        let route = swap_route(transaction);
+        if route.is_none() && transaction.transaction_type == TransactionType::Swap && transaction.state == TransactionState::InTransit {
+            // A swap in transit can only be resolved by its provider. Without one there
+            // is nothing to ask, and the source chain would answer about the outbound
+            // leg only — so leave the transaction where it is.
+            return Ok(TransactionUpdate::new_state(transaction.state));
+        }
+
+        let update = match route {
+            Some((swap_provider, destination_chain)) => {
+                let request = GemTransactionSwapStateRequest {
+                    transaction: request,
+                    state: transaction.state,
+                    swap_provider,
+                    destination_chain,
+                };
+                self.get_swap_status(chain, request).await?
+            }
+            None => self.get(chain, request).await?,
+        };
+
+        Ok(TransactionUpdate {
+            state: transaction.state.merged_with(update.state),
+            changes: update.changes,
+        })
     }
 
     async fn swap_transaction_status(&self, chain: Chain, request: GemTransactionSwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
@@ -228,5 +272,55 @@ mod tests {
         assert_eq!(pending.changes, vec![TransactionChange::ConfirmationEtaSeconds(120)]);
         assert_eq!(missing.changes, vec![TransactionChange::ConfirmationEtaSeconds(0)]);
         assert_eq!(completed.changes.last(), Some(&TransactionChange::ConfirmationEtaSeconds(0)));
+    }
+}
+
+/// The swap provider and destination chain to poll, when the transaction carries
+/// swap metadata naming a provider we know.
+fn swap_route(transaction: &Transaction) -> Option<(SwapperProvider, Chain)> {
+    let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.clone()?).ok()?;
+    let provider = metadata.provider?.parse().ok()?;
+    Some((provider, metadata.to_asset.chain))
+}
+
+#[cfg(test)]
+mod swap_route_tests {
+    use super::swap_route;
+    use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionSwapMetadata};
+    use serde_json::json;
+
+    fn transaction_with_metadata(metadata: Option<serde_json::Value>) -> Transaction {
+        let mut transaction = Transaction::mock();
+        transaction.metadata = metadata;
+        transaction
+    }
+
+    #[test]
+    fn test_swap_route() {
+        // No metadata, or metadata naming no provider, stays on the plain chain route.
+        assert!(swap_route(&transaction_with_metadata(None)).is_none());
+        assert!(
+            swap_route(&transaction_with_metadata(Some(
+                json!({"fromAsset":"ethereum","fromValue":"1","toAsset":"solana","toValue":"2"})
+            )))
+            .is_none()
+        );
+        assert!(
+            swap_route(&transaction_with_metadata(Some(
+                json!({"fromAsset":"ethereum","fromValue":"1","toAsset":"solana","toValue":"2","provider":"nope"})
+            )))
+            .is_none()
+        );
+
+        // A known provider routes to the swap status against the destination chain.
+        let metadata = TransactionSwapMetadata {
+            from_asset: AssetId::from_chain(Chain::Ethereum),
+            from_value: "1".into(),
+            to_asset: AssetId::from_chain(Chain::Solana),
+            to_value: "2".into(),
+            provider: Some(SwapProvider::Thorchain.as_ref().to_string()),
+        };
+        let route = swap_route(&transaction_with_metadata(Some(serde_json::to_value(metadata).unwrap())));
+        assert_eq!(route, Some((SwapProvider::Thorchain, Chain::Solana)));
     }
 }

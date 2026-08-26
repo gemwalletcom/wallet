@@ -12,7 +12,7 @@ use primitives::{
     ScanTransactionPayload, SimulationPayloadField, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, TransactionPerpetualMetadata, TransactionState,
     TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
-use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType};
+use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
 
 /// Bridges `primitives` types across the FFI as JSON strings.
 ///
@@ -116,6 +116,7 @@ json_bridge!(
     SwapQuoteData,
     SwapQuoteDataType,
     TPSLOrderData,
+    Transaction,
     TransactionPerpetualMetadata,
     TransactionState,
     TransactionType,

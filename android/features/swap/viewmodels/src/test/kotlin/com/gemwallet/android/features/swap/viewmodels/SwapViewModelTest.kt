@@ -13,6 +13,7 @@ import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
@@ -31,15 +32,19 @@ import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModel
-import com.gemwallet.android.domains.swap.AssetRatePair
+import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.swap.SwapPriceImpactType
+import com.wallet.core.primitives.swap.SwapQuoteDataType
+import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.unmockkObject
+import java.math.BigDecimal
+import java.math.BigInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -61,7 +66,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemSwapQuoteDataType
 import uniffi.gemstone.SwapperOptions
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderData
@@ -73,10 +77,6 @@ import uniffi.gemstone.SwapperQuoteRequest
 import uniffi.gemstone.SwapperRoute
 import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.SwapperSlippageMode
-import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.swap.SwapPriceImpactType
-import java.math.BigDecimal
-import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapViewModelTest {
@@ -542,7 +542,7 @@ class SwapViewModelTest {
                 etaInSeconds = quote.etaInSeconds,
                 slippageBps = quote.data.slippageBps,
                 memo = null,
-                dataType = GemSwapQuoteDataType.CONTRACT,
+                dataType = SwapQuoteDataType.Contract,
             )
         }
     }
