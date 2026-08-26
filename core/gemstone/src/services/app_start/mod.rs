@@ -7,7 +7,6 @@ use primitives::Wallet;
 
 pub use model::{GemAppStartFailure, GemAppStartStep};
 
-use crate::gem_swapper::GemSwapper;
 use crate::services::assets::GemAssetsService;
 use crate::services::banner::GemBannerService;
 use crate::services::config::GemConfigService;
@@ -19,25 +18,17 @@ pub struct GemAppStartService {
     config: Arc<GemConfigService>,
     banners: Arc<GemBannerService>,
     assets: Arc<GemAssetsService>,
-    swapper: Arc<GemSwapper>,
     wallet_configuration: Arc<GemWalletConfigurationService>,
 }
 
 #[uniffi::export]
 impl GemAppStartService {
     #[uniffi::constructor]
-    pub fn new(
-        config: Arc<GemConfigService>,
-        banners: Arc<GemBannerService>,
-        assets: Arc<GemAssetsService>,
-        swapper: Arc<GemSwapper>,
-        wallet_configuration: Arc<GemWalletConfigurationService>,
-    ) -> Self {
+    pub fn new(config: Arc<GemConfigService>, banners: Arc<GemBannerService>, assets: Arc<GemAssetsService>, wallet_configuration: Arc<GemWalletConfigurationService>) -> Self {
         Self {
             config,
             banners,
             assets,
-            swapper,
             wallet_configuration,
         }
     }
@@ -61,7 +52,7 @@ impl GemAppStartService {
 
 impl GemAppStartService {
     async fn sync_assets(&self) -> Result<(), GemServiceError> {
-        self.assets.set_swappable_chains(self.swapper.supported_chains()).await?;
+        self.assets.sync_swappable_chains().await?;
         let config = self.config.get_config().await?;
         self.assets.sync_availability(config.versions).await
     }

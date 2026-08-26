@@ -253,7 +253,6 @@ struct ServicesFactory {
             config: gemConfigService,
             banners: bannerService,
             assets: gemAssetsService,
-            swapper: gemSwapper,
             walletConfiguration: Gemstone.GemWalletConfigurationService(
                 api: gemDeviceApiClient,
                 banners: GemstoneBannerStore(store: storeManager.bannerStore),

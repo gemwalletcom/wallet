@@ -106,15 +106,20 @@ public struct AssetStore: Sendable {
 
     private func updateColumn(column: Column, enabledAssetIds: [String]) throws -> Int {
         try db.write { db in
-            try AssetRecord
-                .updateAll(db, column.set(to: enabledAssetIds.contains(AssetRecord.Columns.id)))
+            let enabled = try AssetRecord
+                .filter(enabledAssetIds.contains(AssetRecord.Columns.id) && column == false)
+                .updateAll(db, column.set(to: true))
+            let disabled = try AssetRecord
+                .filter(!enabledAssetIds.contains(AssetRecord.Columns.id) && column == true)
+                .updateAll(db, column.set(to: false))
+            return enabled + disabled
         }
     }
 
     private func setColumn(for assetIds: [String], column: Column, value: Bool) throws -> Int {
         try db.write { db in
             try AssetRecord
-                .filter(assetIds.contains(AssetRecord.Columns.id))
+                .filter(assetIds.contains(AssetRecord.Columns.id) && column != value)
                 .updateAll(db, column.set(to: value))
         }
     }

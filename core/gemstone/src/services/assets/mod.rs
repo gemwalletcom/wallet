@@ -138,8 +138,9 @@ impl GemAssetsService {
         self.store.add_missing_balances(wallet_id, asset_ids).await
     }
 
-    pub async fn set_swappable_chains(&self, chains: Vec<Chain>) -> Result<(), GemServiceError> {
-        self.store.set_swappable_assets(chains.into_iter().map(AssetId::from_chain).collect()).await
+    pub async fn sync_swappable_chains(&self) -> Result<(), GemServiceError> {
+        let asset_ids = Chain::all().into_iter().filter(Chain::is_swap_supported).map(AssetId::from_chain).collect();
+        self.store.set_swappable_assets(asset_ids).await
     }
 
     pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {

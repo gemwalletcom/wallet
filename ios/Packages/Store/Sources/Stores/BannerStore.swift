@@ -23,7 +23,7 @@ public struct BannerStore: Sendable {
     public func updateState(_ id: String, state: BannerState) throws -> Int {
         try db.write {
             try BannerRecord
-                .filter(BannerRecord.Columns.id == id)
+                .filter(BannerRecord.Columns.id == id && BannerRecord.Columns.state != state.rawValue)
                 .updateAll($0, [BannerRecord.Columns.state.set(to: state.rawValue)])
         }
     }
