@@ -189,7 +189,7 @@ fun QRScannerScene(
         cancel()
     }
     Scene(
-        title = stringResource(id = R.string.wallet_scan_qr_code),
+        title = stringResource(id = R.string.wallet_scan),
         actions = {
             if (!isCameraGranted) {
                 IconButton(onClick = onGrantPermission) {
