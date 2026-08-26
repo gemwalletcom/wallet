@@ -47,11 +47,11 @@ let package = Package(
             name: "StakeServiceTestKit",
             dependencies: [
                 .product(name: "StoreTestKit", package: "Store"),
-                .product(name: "NativeProviderService", package: "NativeProviderService"),
                 "ChainServiceTestKit",
                 "Gemstone",
                 "Primitives",
                 "StakeService",
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
             ],
             path: "StakeService/TestKit",
         ),

@@ -290,3 +290,9 @@ public final class GemAuthServiceMock: GemAuthServiceProtocol, @unchecked Sendab
         try nonce.json()
     }
 }
+
+public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
+    public init() {}
+
+    public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String, apr _: Double) async throws {}
+}

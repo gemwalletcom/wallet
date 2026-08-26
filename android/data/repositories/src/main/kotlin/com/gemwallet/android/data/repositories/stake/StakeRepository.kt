@@ -1,20 +1,14 @@
 package com.gemwallet.android.data.repositories.stake
 
-import com.gemwallet.android.blockchain.services.StakeService
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toModel
-import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.domains.asset.SYSTEM_VALIDATOR_ID
-import com.gemwallet.android.domains.stake.inactiveStakeValidator
-import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Delegation
-import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeProviderType
-import com.wallet.core.primitives.StakeValidator
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -22,19 +16,17 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.Config
-import uniffi.gemstone.GemStaticAssetsService
+import uniffi.gemstone.GemStakeService
 import java.math.BigInteger
 
 class StakeRepository(
-    private val staticAssetsService: GemStaticAssetsService,
-    private val stakeService: StakeService,
+    private val stakeService: GemStakeService,
     private val stakeDao: StakeDao,
 ) : SyncStakeDelegations {
     private val recommendedValidators by lazy { Config().getValidators() }
 
     override suspend fun sync(walletId: WalletId, assetId: AssetId, address: String, apr: Double) = withContext(Dispatchers.IO) {
-        val validatorNamesById = syncValidators(assetId, address, apr)
-        syncDelegations(walletId, assetId, address, validatorNamesById)
+        stakeService.sync(walletId.id, assetId.chain.string, address, apr)
     }
 
     fun getRecommendValidators(assetId: AssetId): List<String> {
@@ -73,64 +65,6 @@ class StakeRepository(
         stakeDao.getValidator(assetId, validatorId)?.toDTO()
     }
 
-    private suspend fun syncValidators(assetId: AssetId, address: String, apr: Double): Map<String, String> {
-        val chain = assetId.chain
-        val names = runCatching { staticAssetsService.getValidators(chain.string).map { it.decodeJson<StakeValidator>() } }
-            .getOrDefault(emptyList())
-            .associate { it.id to it.name }
-        val validators = stakeService.getValidators(chain, apr)
-        val validatorIds = validators.map { it.id }.toSet()
-        val delegationValidators = stakeService.getDelegationValidators(chain, address)
-            .filterNot { validatorIds.contains(it.id) }
-        val updateValidators = (validators + delegationValidators).map { validator ->
-            if (validator.name.isEmpty()) validator.copy(name = names[validator.id].orEmpty()) else validator
-        }
-        if (updateValidators.isNotEmpty()) {
-            stakeDao.upsertValidators(updateValidators.toRecord())
-        }
-        return names
-    }
-
-    private suspend fun syncDelegations(
-        walletId: WalletId,
-        assetId: AssetId,
-        address: String,
-        validatorNamesById: Map<String, String>,
-    ) {
-        val delegations = stakeService.getStakeDelegations(assetId.chain, address) ?: return
-        val existingValidators = stakeDao.getValidators(assetId, StakeProviderType.Stake)
-            .first()
-            .toDTO()
-            .associateBy { it.id }
-        val missingValidatorIds = delegations
-            .map { it.validatorId }
-            .filterNot(existingValidators::containsKey)
-            .distinct()
-        val missingValidators = missingValidatorIds
-            .map { validatorId ->
-                inactiveStakeValidator(
-                    chain = assetId.chain,
-                    id = validatorId,
-                    name = validatorNamesById[validatorId]?.takeIf { it.isNotEmpty() } ?: validatorId,
-                )
-            }
-        if (missingValidators.isNotEmpty()) {
-            stakeDao.upsertValidators(missingValidators.toRecord())
-        }
-        val validators = existingValidators + missingValidators.associateBy { it.id }
-        val incoming = delegations.map { delegation ->
-            val validator = validators[delegation.validatorId] ?: return@map delegation
-            if (delegation.state == DelegationState.Active && !validator.isActive) {
-                delegation.copy(state = DelegationState.Inactive)
-            } else {
-                delegation
-            }
-        }.toRecord(walletId)
-        val incomingIds = incoming.map { it.id }.toSet()
-        val deleteIds = stakeDao.getDelegationIds(walletId, assetId)
-            .filterNot { incomingIds.contains(it) }
-        stakeDao.updateAndDeleteDelegations(walletId, incoming, deleteIds)
-    }
 }
 
 internal fun pickRecommendedValidator(

@@ -91,7 +91,6 @@ struct ServicesFactory {
         let gemStaticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
         let chartService = ChartService(service: Gemstone.GemChartService(api: gemApiClient))
         let marketService = MarketService(service: Gemstone.GemPriceService(api: gemApiClient))
-        let staticAssetsService = Gemstone.GemStaticAssetsService(api: gemStaticApiClient)
         let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient)
         let gemScanService = Gemstone.GemScanService(api: gemDeviceApiClient)
         let gatewayService = GatewayService(provider: nativeProvider)
@@ -134,9 +133,10 @@ struct ServicesFactory {
         )
         let stakeService = StakeService(
             store: storeManager.stakeStore,
-            addressStore: storeManager.addressStore,
-            chainServiceFactory: chainServiceFactory,
-            assetsService: staticAssetsService,
+            service: gatewayService.stakeService(
+                staticApi: gemStaticApiClient,
+                store: GemstoneStakeStore(store: storeManager.stakeStore, addressStore: storeManager.addressStore),
+            ),
         )
         let nftService = NFTService(
             service: Gemstone.GemNftService(api: gemDeviceApiClient),

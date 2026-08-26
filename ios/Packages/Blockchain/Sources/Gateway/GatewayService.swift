@@ -21,6 +21,10 @@ public actor GatewayService: Sendable {
         )
     }
 
+    public nonisolated func stakeService(staticApi: GemStaticApiClient, store: any GemStakeStore) -> GemStakeService {
+        GemStakeService(gateway: gateway, staticApi: staticApi, store: store)
+    }
+
     public nonisolated func confirmService(
         simulation: TransactionSimulationService,
         scanner: GemScanService,

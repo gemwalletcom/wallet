@@ -1,0 +1,43 @@
+package com.gemwallet.android.data.repositories.stake
+
+import com.gemwallet.android.cases.addresses.SaveAddressNames
+import com.gemwallet.android.data.service.store.database.StakeDao
+import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.AddressName
+import com.wallet.core.primitives.DelegationBase
+import com.wallet.core.primitives.DelegationValidator
+import com.wallet.core.primitives.StakeProviderType
+import com.wallet.core.primitives.WalletId
+import kotlinx.coroutines.flow.first
+import uniffi.gemstone.GemStakeStore
+
+class GemstoneStakeStore(
+    private val stakeDao: StakeDao,
+    private val saveAddressNames: SaveAddressNames,
+) : GemStakeStore {
+
+    override suspend fun getValidators(assetId: String): List<String> {
+        val id = assetId.toAssetId() ?: return emptyList()
+        return stakeDao.getValidators(id, StakeProviderType.Stake).first().toDTO().map { it.toJson() }
+    }
+
+    override suspend fun upsertValidators(validators: List<String>) =
+        stakeDao.upsertValidators(validators.map { it.decodeJson<DelegationValidator>() }.toRecord())
+
+    override suspend fun getDelegationIds(walletId: String, assetId: String): List<String> {
+        val id = assetId.toAssetId() ?: return emptyList()
+        return stakeDao.getDelegationIds(WalletId(walletId), id)
+    }
+
+    override suspend fun updateAndDeleteDelegations(walletId: String, delegations: List<String>, deleteIds: List<String>) {
+        val wallet = WalletId(walletId)
+        stakeDao.updateAndDeleteDelegations(wallet, delegations.map { it.decodeJson<DelegationBase>() }.toRecord(wallet), deleteIds)
+    }
+
+    override suspend fun saveAddressNames(names: List<String>) =
+        saveAddressNames.saveAddressNames(names.map { it.decodeJson<AddressName>() })
+}
