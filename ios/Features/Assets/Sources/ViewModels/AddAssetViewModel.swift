@@ -1,13 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
+import GemstonePrimitives
 import Foundation
 import Localization
 import Primitives
 
 struct AddAssetViewModel {
     let asset: Asset
-    let explorerService: ExplorerService = .standard
+    let explorerService: any GemExplorerServiceProtocol
 
     var nameTitle: String {
         Localized.Asset.name
@@ -26,7 +27,7 @@ struct AddAssetViewModel {
     }
 
     private var tokenLink: BlockExplorerLink? {
-        explorerService.tokenUrl(chain: asset.chain, address: asset.tokenId ?? "")
+        explorerService.getTokenUrl(chain: asset.chain.rawValue, address: asset.tokenId ?? "").map { BlockExplorerLink($0) }
     }
 
     var explorerText: String? {

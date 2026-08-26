@@ -2,7 +2,7 @@
 
 import BigInt
 import Components
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Formatters
 import Foundation
 import InfoSheet
@@ -16,7 +16,7 @@ import SwiftUI
 @MainActor
 public final class TransactionSceneViewModel {
     private let preferences: Preferences
-    private let explorerService: ExplorerService
+    private let explorerService: any GemExplorerServiceProtocol
     private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
 
@@ -32,7 +32,7 @@ public final class TransactionSceneViewModel {
         transaction: TransactionExtended,
         walletId: WalletId,
         preferences: Preferences = Preferences.standard,
-        explorerService: ExplorerService = ExplorerService.standard,
+        explorerService: any GemExplorerServiceProtocol,
         onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {

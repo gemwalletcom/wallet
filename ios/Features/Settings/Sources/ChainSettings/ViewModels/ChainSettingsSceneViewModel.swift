@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ChainService
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Formatters
 import Foundation
 import Localization
@@ -11,7 +11,7 @@ import Primitives
 @Observable
 @MainActor
 public final class ChainSettingsSceneViewModel {
-    private let explorerService: ExplorerService
+    private let explorerService: any GemExplorerServiceProtocol
 
     let nodeService: NodeService
     let chainServiceFactory: ChainServiceFactory
@@ -32,7 +32,7 @@ public final class ChainSettingsSceneViewModel {
     public init(
         nodeService: NodeService,
         chainServiceFactory: ChainServiceFactory,
-        explorerService: ExplorerService = .standard,
+        explorerService: any GemExplorerServiceProtocol,
         chain: Chain,
     ) {
         self.nodeService = nodeService
@@ -43,8 +43,8 @@ public final class ChainSettingsSceneViewModel {
 
         defaultNodes = (try? nodeService.defaultNodes(chain: chain)) ?? []
         selectedNode = chain.defaultChainNode
-        explorers = ExplorerService.explorers(chain: chain)
-        selectedExplorer = explorerService.get(chain: chain) ?? explorers.first
+        explorers = explorerService.getExplorers(chain: chain.rawValue)
+        selectedExplorer = explorerService.getExplorerName(chain: chain.rawValue)
     }
 
     var title: String {
@@ -100,7 +100,7 @@ extension ChainSettingsSceneViewModel {
 
     func onSelectExplorer(name: String) {
         selectedExplorer = name
-        explorerService.set(chain: chain, name: name)
+        try? explorerService.setExplorerName(chain: chain.rawValue, name: name)
     }
 
     func onSelectNode(_ node: ChainNode) {

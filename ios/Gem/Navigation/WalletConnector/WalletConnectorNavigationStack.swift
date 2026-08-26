@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ExplorerService
 import Primitives
 import Signer
 import Style

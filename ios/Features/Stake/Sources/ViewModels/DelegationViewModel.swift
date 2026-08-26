@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
+import GemstonePrimitives
 import Formatters
 import Foundation
 import Primitives
@@ -14,7 +15,7 @@ public struct DelegationViewModel: Sendable {
     public let currencyCode: String
     private let asset: Asset
     private let formatter: ValueFormatter
-    private let exploreService: ExplorerService
+    private let explorerService: any GemExplorerServiceProtocol
     private let priceFormatter: CurrencyFormatter
 
     private static let dateFormatterDefault: DateComponentsFormatter = {
@@ -34,17 +35,17 @@ public struct DelegationViewModel: Sendable {
     }()
 
     public init(
+        explorerService: any GemExplorerServiceProtocol,
         delegation: Delegation,
         asset: Asset,
         formatter: ValueFormatter = .short,
         currencyCode: String,
-        exploreService: ExplorerService = .standard,
     ) {
         self.delegation = delegation
         self.currencyCode = currencyCode
         self.asset = asset
         self.formatter = formatter
-        self.exploreService = exploreService
+        self.explorerService = explorerService
         priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
     }
 
@@ -106,7 +107,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorModel: ValidatorViewModel {
-        ValidatorViewModel(validator: delegation.validator, exploreService: exploreService)
+        ValidatorViewModel(validator: delegation.validator)
     }
 
     public var validatorText: String {
@@ -118,7 +119,13 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorUrl: URL? {
-        validatorModel.url
+        switch delegation.validator.providerType {
+        case .stake:
+            guard delegation.validator.id != DelegationValidator.systemId else { return nil }
+            return explorerService.getValidatorUrl(chain: delegation.validator.chain.rawValue, address: delegation.validator.id).map { BlockExplorerLink($0) }?.url
+        case .earn:
+            return nil
+        }
     }
 
     public var completionDateText: String? {

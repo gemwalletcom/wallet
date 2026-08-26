@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemExplorerServiceProtocol
+import struct Gemstone.GemBlockExplorerLink
+import typealias Gemstone.Chain
 import Components
 import Primitives
 import Style
@@ -27,18 +30,16 @@ public struct TransactionView: View {
 
 // MARK: - Previews
 
-private struct ExplorerMock: ExplorerLinkFetchable {
-    func addressUrl(chain _: Chain, address _: String) -> BlockExplorerLink {
-        .init(name: "", link: "")
-    }
-
-    func transactionUrl(chain _: Chain, hash _: String) -> BlockExplorerLink {
-        .init(name: "", link: "")
-    }
-
-    func swapTransactionUrl(chain _: Chain, provider _: String, input _: ExplorerInput) -> BlockExplorerLink? {
-        .init(name: "", link: "")
-    }
+private final class ExplorerMock: GemExplorerServiceProtocol {
+    func getExplorers(chain _: Gemstone.Chain) -> [String] { [] }
+    func getExplorerName(chain _: Gemstone.Chain) -> String { "" }
+    func setExplorerName(chain _: Gemstone.Chain, name _: String) throws {}
+    func getTransactionUrl(chain _: Gemstone.Chain, hash _: String) -> GemBlockExplorerLink { .init(name: "", link: "") }
+    func getTransactionLink(chain _: Gemstone.Chain, hash _: String, provider _: String?, recipient _: String?, memo _: String?) -> GemBlockExplorerLink { .init(name: "", link: "") }
+    func getAddressUrl(chain _: Gemstone.Chain, address _: String) -> GemBlockExplorerLink { .init(name: "", link: "") }
+    func getTokenUrl(chain _: Gemstone.Chain, address _: String) -> GemBlockExplorerLink? { nil }
+    func getNftUrl(chain _: Gemstone.Chain, contractAddress _: String, tokenId _: String) -> GemBlockExplorerLink? { nil }
+    func getValidatorUrl(chain _: Gemstone.Chain, address _: String) -> GemBlockExplorerLink? { nil }
 }
 
 #Preview {

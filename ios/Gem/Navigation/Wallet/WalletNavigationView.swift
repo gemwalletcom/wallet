@@ -20,6 +20,7 @@ import WalletTab
 
 struct WalletNavigationView: View {
     @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.explorerService) private var explorerService
     @Environment(\.balanceService) private var balanceService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
@@ -103,6 +104,7 @@ struct WalletNavigationView: View {
                     priceUpdater: streamSubscriptionService,
                     priceAlertService: priceAlertService,
                     bannerService: bannerService,
+                    explorerService: explorerService,
                     input: AssetSceneInput(
                         wallet: model.wallet,
                         asset: $0.asset,
@@ -128,6 +130,7 @@ struct WalletNavigationView: View {
                 model: TransactionSceneViewModel(
                     transaction: $0.transaction,
                     walletId: model.wallet.id,
+                    explorerService: explorerService,
                     onHeaderAction: onSelectTransactionHeaderAction,
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
                 ),
@@ -140,6 +143,7 @@ struct WalletNavigationView: View {
                     assetData: $0.assetData,
                     avatarService: avatarService,
                     nftService: nftService,
+                    explorerService: explorerService,
                     isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
                 ),
             )
@@ -169,6 +173,7 @@ struct WalletNavigationView: View {
         .navigationDestination(for: Scenes.Price.self) {
             ChartScene(
                 model: ChartSceneViewModel(
+                    explorerService: explorerService,
                     service: chartService,
                     priceService: priceService,
                     assetModel: AssetViewModel(asset: $0.asset),
@@ -211,6 +216,7 @@ struct WalletNavigationView: View {
                 perpetualService: perpetualService,
                 transactionsService: transactionsService,
                 observerService: hyperliquidObserverService,
+                explorerService: explorerService,
                 isPresentingSheet: $model.isPresentingSheet,
             )
         }

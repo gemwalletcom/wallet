@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
+import uniffi.gemstone.GemExplorerService
 import com.gemwallet.android.application.nft.coordinators.GetNftAssetDetails
 import com.gemwallet.android.application.nft.coordinators.GetNftCollections
 import com.gemwallet.android.application.nft.coordinators.RefreshNftAsset
@@ -8,7 +9,6 @@ import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.cases.nft.GetListNftCase
 import com.gemwallet.android.cases.nft.RefreshNftAsset as RefreshNftAssetCase
 import com.gemwallet.android.cases.nft.SyncNfts
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.coordinators.nft.GetNftAssetDetailsImpl
 import com.gemwallet.android.data.coordinators.nft.GetNftCollectionsImpl
 import com.gemwallet.android.data.coordinators.nft.RefreshNftAssetImpl
@@ -29,9 +29,9 @@ object NftCoordinatorModule {
     fun provideGetNftAssetDetails(
         sessionRepository: SessionRepository,
         getAssetNft: GetAssetNft,
-        getCurrentBlockExplorer: GetCurrentBlockExplorer,
+        explorerService: GemExplorerService,
     ): GetNftAssetDetails {
-        return GetNftAssetDetailsImpl(sessionRepository, getAssetNft, getCurrentBlockExplorer)
+        return GetNftAssetDetailsImpl(sessionRepository, getAssetNft, explorerService)
     }
 
     @Provides

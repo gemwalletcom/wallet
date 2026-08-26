@@ -3,7 +3,7 @@
 import ActivityService
 import GemstoneServices
 import ChainService
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import class Gemstone.GemConfirmService
 import Keystore
@@ -13,6 +13,7 @@ import Signer
 
 public enum ConfirmServiceFactory {
     public static func create(
+        explorerService: any GemExplorerServiceProtocol,
         keystore: any Keystore,
         chainServiceFactory: any ChainServiceFactorable,
         assetsEnabler: any AssetsEnabler,
@@ -53,7 +54,7 @@ public enum ConfirmServiceFactory {
             toastPresenter: toastPresenter,
             keystore: keystore,
             chainService: chainService,
-            explorerService: ExplorerService.standard,
+            explorerService: explorerService,
             addressNameService: addressNameService,
         )
     }

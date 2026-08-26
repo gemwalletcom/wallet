@@ -381,3 +381,50 @@ public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtoco
         []
     }
 }
+
+public final class GemExplorerServiceMock: GemExplorerServiceProtocol, @unchecked Sendable {
+    private let lock = NSLock()
+    private var names: [Gemstone.Chain: String] = [:]
+
+    public init() {}
+
+    public func getExplorers(chain _: Gemstone.Chain) -> [String] {
+        ["MockExplorer"]
+    }
+
+    public func getExplorerName(chain: Gemstone.Chain) -> String {
+        lock.withLock { names[chain] ?? "MockExplorer" }
+    }
+
+    public func setExplorerName(chain: Gemstone.Chain, name: String) throws {
+        lock.withLock { names[chain] = name }
+    }
+
+    public func getTransactionUrl(chain: Gemstone.Chain, hash: String) -> GemBlockExplorerLink {
+        link("https://mock.explorer/\(chain)/tx/\(hash)")
+    }
+
+    public func getTransactionLink(chain: Gemstone.Chain, hash: String, provider _: String?, recipient _: String?, memo _: String?) -> GemBlockExplorerLink {
+        getTransactionUrl(chain: chain, hash: hash)
+    }
+
+    public func getAddressUrl(chain: Gemstone.Chain, address: String) -> GemBlockExplorerLink {
+        link("https://mock.explorer/\(chain)/address/\(address)")
+    }
+
+    public func getTokenUrl(chain: Gemstone.Chain, address: String) -> GemBlockExplorerLink? {
+        link("https://mock.explorer/\(chain)/token/\(address)")
+    }
+
+    public func getNftUrl(chain: Gemstone.Chain, contractAddress: String, tokenId: String) -> GemBlockExplorerLink? {
+        link("https://mock.explorer/\(chain)/nft/\(contractAddress)/\(tokenId)")
+    }
+
+    public func getValidatorUrl(chain: Gemstone.Chain, address: String) -> GemBlockExplorerLink? {
+        link("https://mock.explorer/\(chain)/validator/\(address)")
+    }
+
+    private func link(_ url: String) -> GemBlockExplorerLink {
+        GemBlockExplorerLink(name: "MockExplorer", link: url)
+    }
+}

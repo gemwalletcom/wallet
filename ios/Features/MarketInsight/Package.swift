@@ -33,12 +33,12 @@ let package = Package(
         .target(
             name: "MarketInsight",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "Formatters",
                 "GemstonePrimitives",
                 "Localization",
                 "Store",
-                .product(name: "ExplorerService", package: "ChainServices"),
                 "PrimitivesComponents",
                 "Components",
                 "Preferences",

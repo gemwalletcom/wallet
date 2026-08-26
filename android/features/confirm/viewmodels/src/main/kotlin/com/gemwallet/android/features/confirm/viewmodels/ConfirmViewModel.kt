@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,7 +11,6 @@ import com.gemwallet.android.application.confirm.coordinators.CalculateTransferA
 import com.gemwallet.android.application.confirm.coordinators.GetFeeAssets
 import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.cases.addresses.GetAddressNames
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
@@ -79,7 +79,7 @@ class ConfirmViewModel @Inject constructor(
     private val getFeeAssets: GetFeeAssets,
     private val confirmTransaction: ConfirmTransaction,
     private val buildConfirmProperties: BuildConfirmProperties,
-    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
+    private val explorerService: GemExplorerService,
     private val getAddressName: GetAddressName,
     private val getAddressNames: GetAddressNames,
     private val savedStateHandle: SavedStateHandle,
@@ -120,7 +120,7 @@ class ConfirmViewModel @Inject constructor(
 
     val simulation = combine(simulationResult, simulationAssets, approvalAssetId, request) { simulationResult, simulationAssets, approvalAssetId, params ->
         val chain = params?.assetId?.chain
-        val explorerName = chain?.let { getCurrentBlockExplorer.getCurrentBlockExplorer(it) }
+        val explorerName = chain?.let { explorerService.getExplorerName(it.string) }
         val simulation = simulationResult?.toSimulation(simulationAssets, chain, explorerName) ?: Simulation()
         val headerAssetId = simulationResult?.header?.assetId
         val asset = when {

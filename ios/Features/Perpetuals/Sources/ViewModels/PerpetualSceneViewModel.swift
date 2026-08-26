@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Formatters
 import Foundation
 import GemstonePrimitives
@@ -27,7 +27,7 @@ public final class PerpetualSceneViewModel {
     public let wallet: Wallet
     public let asset: Asset
 
-    public let explorerService: any ExplorerLinkFetchable = ExplorerService.standard
+    public let explorerService: any GemExplorerServiceProtocol
 
     public let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     public let perpetualQuery: ObservableQuery<PerpetualRequest>
@@ -64,6 +64,7 @@ public final class PerpetualSceneViewModel {
         perpetualService: PerpetualServiceable,
         transactionsService: TransactionsService,
         observerService: any PerpetualObservable,
+        explorerService: any GemExplorerServiceProtocol,
         preferences: Preferences = .standard,
         onTransferData: TransferDataAction = nil,
         onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)? = nil,
@@ -72,6 +73,7 @@ public final class PerpetualSceneViewModel {
         self.asset = asset
         self.transactionsService = transactionsService
         self.observerService = observerService
+        self.explorerService = explorerService
         self.preferences = preferences
         chart = PerpetualChartModel(
             perpetualService: perpetualService,

@@ -12,6 +12,7 @@ import Transfer
 
 struct AmountNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
+    @Environment(\.explorerService) private var explorerService
     @State private var model: AmountSceneViewModel
 
     init(model: AmountSceneViewModel) {
@@ -66,6 +67,7 @@ struct AmountNavigationView: View {
                 {
                     ValidatorSelectScene(
                         model: ValidatorSelectSceneViewModel(
+                            explorerService: explorerService,
                             type: stake.validatorSelectType,
                             chain: model.asset.chain,
                             currentValidator: validator,

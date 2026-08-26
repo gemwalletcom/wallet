@@ -1,5 +1,6 @@
 import AvatarService
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
+import GemstonePrimitivesTestKit
 import Formatters
 import Foundation
 @testable import NFT
@@ -126,7 +127,7 @@ extension CollectibleViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         assetData: NFTAssetData = .mock(),
-        explorerService: ExplorerService = ExplorerService.standard,
+        explorerService: any GemExplorerServiceProtocol = GemExplorerServiceMock(),
     ) -> CollectibleViewModel {
         CollectibleViewModel(
             wallet: wallet,

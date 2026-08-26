@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.di
 
+import uniffi.gemstone.GemExplorerService
 import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionDetailsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.SyncTransactionsImpl
@@ -46,13 +46,13 @@ object TransactionModule {
         sessionRepository: SessionRepository,
         transactionRepository: TransactionRepository,
         assetsRepository: AssetsRepository,
-        getCurrentBlockExplorer: GetCurrentBlockExplorer,
+        explorerService: GemExplorerService,
     ): GetTransactionDetails {
         return GetTransactionDetailsImpl(
             sessionRepository = sessionRepository,
             transactionRepository = transactionRepository,
             assetsRepository = assetsRepository,
-            getCurrentBlockExplorer = getCurrentBlockExplorer,
+            explorerService = explorerService,
         )
     }
 }

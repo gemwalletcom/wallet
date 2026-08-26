@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import com.gemwallet.android.data.repositories.nodes.MigrateExplorerPreference
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.model.AuthState
@@ -97,6 +98,7 @@ class MainViewModelAuthStateTest {
             syncService = mockk<SyncService>(relaxed = true),
             migrateV3KeystoreService = mockk<MigrateV3KeystoreService>(relaxed = true),
             migratePriceAlertsPreference = mockk<MigratePriceAlertsPreference>(relaxed = true),
+            migrateExplorerPreference = mockk<MigrateExplorerPreference>(relaxed = true),
             checkAccountsService = mockk<CheckAccountsService>(relaxed = true),
             lockTimer = mockk<LockTimer>(relaxed = true),
             pendingNavigationCoordinator = mockk<PendingNavigationCoordinator>(relaxed = true),

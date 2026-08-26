@@ -33,6 +33,7 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemFiatService`](../gemstone/src/services/fiat/mod.rs) | [`GemFiatStore`](../gemstone/src/services/fiat/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/FiatStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/FiatStore.kt) | Done | Fiat quotes, transaction sync with asset prefetch |
 | [`GemAuthService`](../gemstone/src/services/auth/mod.rs) | — | — | — | Done | Wallet auth payloads |
 | [`GemChartService`](../gemstone/src/services/chart/mod.rs) | — | — | — | Done | Price charts |
+| [`GemExplorerService`](../gemstone/src/services/explorer/mod.rs) | — | — | — | Done | Block explorer selection (preference) and transaction/address/token/NFT/validator links |
 | [`GemConfigService`](../gemstone/src/services/config/mod.rs) | — | — | — | Done | Remote config, cached via `GemPreferencesService` |
 | [`GemPortfolioService`](../gemstone/src/services/portfolio/mod.rs) | — | — | — | Done | Portfolio |
 | [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals |
@@ -45,6 +46,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | App service | Core service | Status | Notes |
 | --- | --- | --- | --- |
 | [`ActivityService`](../../ios/Packages/FeatureServices/ActivityService) | — | App-only | Recent activity rows, no rules; Android: `RecentAssetsService` |
+| `AddAssetService` | `GemGateway` | Done | Wrapper removed; the add-asset view model reads token data through `GatewayService` |
 | [`AddressNameService`](../../ios/Packages/GemstoneServices/Sources) | `GemNameService` | Done | |
 | [`AppService/OnstartService`](../../ios/Packages/FeatureServices/AppService/OnstartService.swift) | — | App-only | Preference migrations and bundled asset seeding from the app asset configuration |
 | [`AppService/OnstartAsyncService`](../../ios/Packages/FeatureServices/AppService/OnstartAsyncService.swift) | — | Done | Runs config update, availability sync, banner setup; Android: [`SyncService`](../../android/app/src/main/kotlin/com/gemwallet/android/services/SyncService.kt) |
@@ -64,6 +66,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`DeviceService`](../../ios/Packages/GemstoneServices/Sources) | `GemDeviceService` | Done | |
 | `DiscoverAssetsService` | `GemAssetDiscoveryService` | Done | Wrapper removed; view models call the Core service directly |
 | `EarnService` | `GemStakeService` | Done | Wrapper removed; `sync_earn` and `get_earn_data` on the Core service, APR read from `GemStakeStore`; Android has no earn UI yet |
+| `ExplorerService` | `GemExplorerService` | Done | Moved to Core with the selected-explorer preference; both apps call the Core service directly (legacy selection migrated once) |
 | [`FiatService`](../../ios/Packages/GemstoneServices/Sources) | `GemFiatService` | Done | Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
 | [`NFTService`](../../ios/Packages/GemstoneServices/Sources) | `GemNftService` | Done | |
 | `InAppNotificationService` | `GemNotificationService` | Done | Wrapper removed; view models call the Core service directly |
@@ -80,7 +83,6 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | [`WalletService`](../../ios/Packages/FeatureServices/WalletService) | `GemKeystore` | Done | Keystore in Core, see [KEYSTORE_V4.md](KEYSTORE_V4.md); wallet rows app-side |
 | [`WalletSessionService`](../../ios/Packages/FeatureServices/WalletSessionService) | — | App-only | Current wallet session |
 | [`ChainServices/ChainService`](../../ios/Packages/ChainServices/ChainService) | `GemGateway` | Done | Thin factory over the Core gateway |
-| [`ChainServices/ExplorerService`](../../ios/Packages/ChainServices/ExplorerService) | `Explorer` | Done | Explorer URLs from Core; selected explorer preference app-side |
 | [`NodeService`](../../ios/Packages/GemstoneServices/Sources) | `GemNodeService` | Done | |
 | `StakeService` | `GemStakeService` | Done | Wrapper removed; view models call `sync` on the Core service, APR read from `GemStakeStore` |
 | [`ChainServices/WalletConnectorService`](../../ios/Packages/ChainServices/WalletConnectorService) | — | App-only | WalletConnect SDK bridge |

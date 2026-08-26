@@ -3,7 +3,7 @@ pub mod store;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::ConfigResponse;
+use primitives::{Chain, ConfigResponse};
 
 use crate::services::assets::AssetList;
 
@@ -15,6 +15,7 @@ const CONFIG: &str = "config";
 const BUY_ASSETS_VERSION: &str = "buy_assets_version";
 const SELL_ASSETS_VERSION: &str = "sell_assets_version";
 const SWAP_ASSETS_VERSION: &str = "swap_assets_version";
+const EXPLORER_NAME: &str = "explorer_name";
 
 #[derive(uniffi::Object)]
 pub struct GemPreferencesService {
@@ -58,10 +59,22 @@ impl GemPreferencesService {
         Ok(self.store.get(CONFIG.to_string())?.and_then(|json| serde_json::from_str(&json).ok()))
     }
 
+    pub fn get_explorer_name(&self, chain: Chain) -> Result<Option<String>, GemServiceError> {
+        self.store.get(explorer_name_key(chain))
+    }
+
+    pub fn set_explorer_name(&self, chain: Chain, name: String) -> Result<(), GemServiceError> {
+        self.store.set(explorer_name_key(chain), name)
+    }
+
     pub fn set_config(&self, config: &ConfigResponse) -> Result<(), GemServiceError> {
         let json = serde_json::to_string(config).map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
         self.store.set(CONFIG.to_string(), json)
     }
+}
+
+fn explorer_name_key(chain: Chain) -> String {
+    format!("{EXPLORER_NAME}_{}", chain.as_ref())
 }
 
 fn assets_version_key(list: AssetList) -> &'static str {

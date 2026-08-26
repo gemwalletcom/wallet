@@ -49,6 +49,7 @@ let package = Package(
         .target(
             name: "Transfer",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "Formatters",
                 .product(name: "GemstoneFormatters", package: "Formatters"),
@@ -73,7 +74,6 @@ let package = Package(
                 .product(name: "ChainService", package: "ChainServices"),
                 .product(name: "WalletSessionService", package: "FeatureServices"),
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
-                .product(name: "ExplorerService", package: "ChainServices"),
                 .product(name: "ActivityService", package: "FeatureServices"),
             ],
             path: "Sources",

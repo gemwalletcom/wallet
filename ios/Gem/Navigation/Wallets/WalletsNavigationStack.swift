@@ -13,6 +13,7 @@ struct WalletsNavigationStack: View {
     @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nameService) private var nameService
+    @Environment(\.explorerService) private var explorerService
     @Environment(\.dismiss) private var dismiss
 
     @State private var navigationPath = NavigationPath()
@@ -37,6 +38,7 @@ struct WalletsNavigationStack: View {
                         navigationPath: $navigationPath,
                         wallet: $0.wallet,
                         walletService: walletService,
+                        explorerService: explorerService,
                     ),
                 )
             }

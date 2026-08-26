@@ -15,6 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
@@ -33,6 +34,7 @@ let package = Package(
         .target(
             name: "NFT",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "Components",
                 "PrimitivesComponents",
@@ -42,7 +44,6 @@ let package = Package(
                 "Store",
                 .product(name: "ImageGalleryService", package: "SystemServices"),
                 "GemstonePrimitives",
-                .product(name: "ExplorerService", package: "ChainServices"),
                 .product(name: "AvatarService", package: "FeatureServices"),
                 "Formatters",
                 "InfoSheet",

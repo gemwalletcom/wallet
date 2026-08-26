@@ -15,6 +15,8 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Localization", path: "../../Packages/Localization"),
         .package(name: "Formatters", path: "../../Packages/Formatters"),
@@ -33,6 +35,8 @@ let package = Package(
         .target(
             name: "Transactions",
             dependencies: [
+                "GemstonePrimitives",
+                "Gemstone",
                 .product(name: "BigInt", package: "BigInt"),
                 "Primitives",
                 "Localization",
@@ -41,7 +45,6 @@ let package = Package(
                 "Style",
                 "Components",
                 "PrimitivesComponents",
-                .product(name: "ExplorerService", package: "ChainServices"),
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "WalletSessionService", package: "FeatureServices"),
                 "Preferences",

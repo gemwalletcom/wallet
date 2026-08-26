@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Foundation
 import struct Gemstone.SignMessage
@@ -26,6 +27,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -49,6 +51,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -70,6 +73,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -91,6 +95,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -127,6 +132,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -148,6 +154,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -170,6 +177,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -195,6 +203,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -227,6 +236,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -249,6 +259,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -281,6 +292,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -351,6 +363,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -387,6 +400,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
@@ -425,6 +439,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
+            explorerService: GemExplorerServiceMock(),
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,

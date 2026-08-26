@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemExplorerServiceProtocol
 import Components
 import Foundation
 import Localization
@@ -8,24 +10,24 @@ import PrimitivesComponents
 
 struct TransactionExplorerViewModel {
     private let transactionViewModel: TransactionViewModel
-    private let explorerService: any ExplorerLinkFetchable
+    private let explorerService: any GemExplorerServiceProtocol
 
     init(
         transactionViewModel: TransactionViewModel,
-        explorerService: any ExplorerLinkFetchable,
+        explorerService: any GemExplorerServiceProtocol,
     ) {
         self.transactionViewModel = transactionViewModel
         self.explorerService = explorerService
     }
 
     private var transactionLink: BlockExplorerLink {
-        explorerService.transactionLink(
-            chain: transactionViewModel.transaction.transaction.assetId.chain,
-            provider: transactionViewModel.transaction.transaction.swapProvider,
+        BlockExplorerLink(explorerService.getTransactionLink(
+            chain: transactionViewModel.transaction.transaction.assetId.chain.rawValue,
             hash: transactionViewModel.transaction.transaction.id.hash,
+            provider: transactionViewModel.transaction.transaction.swapProvider,
             recipient: transactionViewModel.transaction.transaction.to,
             memo: transactionViewModel.transaction.transaction.memo,
-        )
+        ))
     }
 
     var url: URL {

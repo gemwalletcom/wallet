@@ -10,7 +10,8 @@ import SwiftUI
 
 struct AddAssetNavigationStack: View {
     let wallet: Wallet
-    @Environment(\.chainServiceFactory) private var chainServiceFactory
+    @Environment(\.gatewayService) private var gatewayService
+    @Environment(\.explorerService) private var explorerService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.dismiss) private var dismiss
@@ -20,7 +21,8 @@ struct AddAssetNavigationStack: View {
             AddAssetScene(
                 model: AddAssetSceneViewModel(
                     wallet: wallet,
-                    service: AddAssetService(chainServiceFactory: chainServiceFactory),
+                    gatewayService: gatewayService,
+                    explorerService: explorerService,
                 ),
                 action: addAsset,
             )

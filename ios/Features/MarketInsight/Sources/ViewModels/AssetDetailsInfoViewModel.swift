@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import GemstonePrimitives
 import Localization
@@ -10,12 +10,12 @@ import PrimitivesComponents
 
 struct AssetDetailsInfoViewModel {
     private let priceData: PriceData
-    private let explorerService: ExplorerService
+    private let explorerService: any GemExplorerServiceProtocol
     private let market: AssetMarketViewModel?
 
     init(
+        explorerService: any GemExplorerServiceProtocol,
         priceData: PriceData,
-        explorerService: ExplorerService = .standard,
         currency: String = Preferences.standard.currency,
     ) {
         self.priceData = priceData
@@ -77,6 +77,6 @@ struct AssetDetailsInfoViewModel {
     }
 
     private var contractExplorerLink: BlockExplorerLink? {
-        contract.flatMap { explorerService.tokenUrl(chain: priceData.asset.chain, address: $0) }
+        contract.flatMap { explorerService.getTokenUrl(chain: priceData.asset.chain.rawValue, address: $0).map { BlockExplorerLink($0) } }
     }
 }

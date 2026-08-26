@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
+import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import BigInt
 import Primitives
@@ -108,6 +109,7 @@ extension AssetSceneViewModel {
             priceUpdater: .mock(),
             priceAlertService: .mock(),
             bannerService: .mock(),
+            explorerService: GemExplorerServiceMock(),
             input: AssetSceneInput(
                 wallet: .mock(),
                 asset: assetData.asset,

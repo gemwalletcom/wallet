@@ -4,7 +4,7 @@ import ActivityService
 import GemstoneServices
 import Blockchain
 import ChainService
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitives
 import Keystore
 import Primitives
@@ -19,7 +19,7 @@ public struct ConfirmService: Sendable {
     private let toastPresenter: ToastPresenter
     private let keystore: any Keystore
     private let chainService: any ChainServiceable
-    private let explorerService: any ExplorerLinkFetchable
+    private let explorerService: any GemExplorerServiceProtocol
     private let addressNameService: AddressNameService
 
     public init(
@@ -31,7 +31,7 @@ public struct ConfirmService: Sendable {
         toastPresenter: ToastPresenter,
         keystore: any Keystore,
         chainService: any ChainServiceable,
-        explorerService: any ExplorerLinkFetchable,
+        explorerService: any GemExplorerServiceProtocol,
         addressNameService: AddressNameService,
     ) {
         self.metadataProvider = metadataProvider
@@ -92,7 +92,7 @@ public struct ConfirmService: Sendable {
     }
 
     public func explorerLink(chain: Chain, address: String) -> BlockExplorerLink {
-        explorerService.addressUrl(chain: chain, address: address)
+        BlockExplorerLink(explorerService.getAddressUrl(chain: chain.rawValue, address: address))
     }
 
     public func addressName(chain: Chain, address: String) throws -> AddressName? {

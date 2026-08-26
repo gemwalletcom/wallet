@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import Localization
 import Preferences
@@ -13,7 +13,7 @@ import GemstoneServices
 @Observable
 @MainActor
 public final class TransactionsViewModel {
-    public let explorerService: any ExplorerLinkFetchable = ExplorerService.standard
+    public let explorerService: any GemExplorerServiceProtocol
     public let transactionsService: TransactionsService
     public let preferences: Preferences
 
@@ -32,12 +32,13 @@ public final class TransactionsViewModel {
 
     public init(
         transactionsService: TransactionsService,
+        explorerService: any GemExplorerServiceProtocol,
         wallet: Wallet,
         type: TransactionsRequestType,
         preferences: Preferences = .standard,
     ) {
         self.transactionsService = transactionsService
-
+        self.explorerService = explorerService
         self.type = type
         self.wallet = wallet
         filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)

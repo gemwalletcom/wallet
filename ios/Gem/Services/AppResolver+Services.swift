@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Blockchain
 import ActivityService
 import GemstoneServices
 import AppService
@@ -7,7 +8,7 @@ import AvatarService
 import ChainService
 import ConnectionsService
 import ConnectionStatusService
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import protocol Gemstone.GemChartServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
@@ -51,7 +52,8 @@ extension AppResolver {
         let assetsEnabler: any AssetsEnabler
         let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
         let walletSetupService: WalletSetupService
-        let explorerService: ExplorerService
+        let explorerService: any GemExplorerServiceProtocol
+        let gatewayService: GatewayService
         let nftService: NFTService
         let avatarService: AvatarService
         let swapService: SwapService

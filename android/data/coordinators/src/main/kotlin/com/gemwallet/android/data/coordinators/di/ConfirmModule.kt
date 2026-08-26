@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
+import uniffi.gemstone.GemExplorerService
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
@@ -7,7 +8,6 @@ import com.gemwallet.android.application.confirm.coordinators.CalculateTransferA
 import com.gemwallet.android.application.confirm.coordinators.GetFeeAssets
 import uniffi.gemstone.GemConfirmServiceInterface
 import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImpl
 import com.gemwallet.android.data.coordinators.confirm.ConfirmTransactionImpl
@@ -58,9 +58,9 @@ object ConfirmModule {
     @Singleton
     fun provideBuildConfirmProperties(
         stakeRepository: StakeRepository,
-        getCurrentBlockExplorer: GetCurrentBlockExplorer,
+        explorerService: GemExplorerService,
     ): BuildConfirmProperties = BuildConfirmPropertiesImpl(
         stakeRepository,
-        getCurrentBlockExplorer,
+        explorerService,
     )
 }

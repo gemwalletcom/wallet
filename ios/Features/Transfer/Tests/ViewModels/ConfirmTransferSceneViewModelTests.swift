@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
 import ActivityServiceTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -688,7 +689,7 @@ private extension ConfirmService {
             toastPresenter: ToastPresenter(),
             keystore: KeystoreMock(),
             chainService: ChainServiceMock(),
-            explorerService: MockExplorerLink(),
+            explorerService: GemExplorerServiceMock(),
             addressNameService: .mock(addressStore: .mock()),
         )
     }
@@ -724,6 +725,7 @@ private extension ConfirmTransferSceneViewModel {
                 simulation: simulation,
             ),
             confirmService: ConfirmServiceFactory.create(
+                explorerService: GemExplorerServiceMock(),
                 keystore: KeystoreMock(),
                 chainServiceFactory: ChainServiceFactoryMock(),
                 assetsEnabler: .mock(),

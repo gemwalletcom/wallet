@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
+import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
@@ -29,7 +29,6 @@ import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.StakeChain
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.Explorer
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,7 +44,7 @@ import javax.inject.Inject
 class DelegationViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
     private val stakeRepository: StakeRepository,
-    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
+    private val explorerService: GemExplorerService,
     sessionRepository: SessionRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -76,8 +75,7 @@ class DelegationViewModel @Inject constructor(
         }
         val availableIn = availableIn(delegation)
         val chain = delegation.validator.chain
-        val validatorUrl = Explorer(chain.string)
-            .getValidatorUrl(getCurrentBlockExplorer.getCurrentBlockExplorer(chain), delegation.validator.id)
+        val validatorUrl = explorerService.getValidatorUrl(chain.string, delegation.validator.id)?.link
         listOfNotNull(
             DelegationProperty.Name(delegation.validator.name, validatorUrl),
             delegation.validator.takeIf { it.apr != 0.0 }?.let { DelegationProperty.Apr(it) },

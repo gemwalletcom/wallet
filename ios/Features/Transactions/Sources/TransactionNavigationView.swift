@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import ExplorerService
 import Foundation
 import InfoSheet
 import Localization

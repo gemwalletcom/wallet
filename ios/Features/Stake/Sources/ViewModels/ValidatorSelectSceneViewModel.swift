@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
+import GemstonePrimitives
 import Foundation
 import Localization
 import Primitives
@@ -14,17 +15,19 @@ public final class ValidatorSelectSceneViewModel {
     public let currentValidator: DelegationValidator?
     private let validators: [DelegationValidator]
     public var selectValidator: ((DelegationValidator) -> Void)?
-    private let exploreService: ExplorerService = .standard
+    private let explorerService: any GemExplorerServiceProtocol
 
     private let recommendedValidators = StakeRecommendedValidators()
 
     public init(
+        explorerService: any GemExplorerServiceProtocol,
         type: ValidatorSelectType,
         chain: Chain,
         currentValidator: DelegationValidator?,
         validators: [DelegationValidator],
         selectValidator: ((DelegationValidator) -> Void)? = nil,
     ) {
+        self.explorerService = explorerService
         self.type = type
         self.chain = chain
         self.currentValidator = currentValidator
@@ -61,7 +64,7 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public func explorerLink(for validator: DelegationValidator) -> BlockExplorerLink? {
-        exploreService.validatorUrl(chain: validator.chain, address: validator.id)
+        explorerService.getValidatorUrl(chain: validator.chain.rawValue, address: validator.id).map { BlockExplorerLink($0) }
     }
 
     public func explorerContext(for validator: DelegationValidator) -> ExplorerContextData? {

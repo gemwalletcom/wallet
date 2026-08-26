@@ -2,7 +2,7 @@
 
 import GemstoneServices
 import Components
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -25,7 +25,7 @@ public final class AssetSceneViewModel: Sendable {
 
     private let preferences: ObservablePreferences = .default
 
-    let explorerService: ExplorerService = .standard
+    let explorerService: any GemExplorerServiceProtocol
     public let priceAlertService: PriceAlertService
 
     private var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
@@ -46,6 +46,7 @@ public final class AssetSceneViewModel: Sendable {
         priceUpdater: any PriceUpdater,
         priceAlertService: PriceAlertService,
         bannerService: BannerService,
+        explorerService: any GemExplorerServiceProtocol,
         input: AssetSceneInput,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
@@ -56,6 +57,7 @@ public final class AssetSceneViewModel: Sendable {
         self.priceUpdater = priceUpdater
         self.priceAlertService = priceAlertService
         self.bannerService = bannerService
+        self.explorerService = explorerService
 
         self.input = input
         assetQuery = ObservableQuery(
@@ -499,13 +501,13 @@ extension AssetSceneViewModel {
         guard let tokenId = assetModel.asset.tokenId else {
             return .none
         }
-        return explorerService.tokenUrl(chain: assetModel.asset.chain, address: tokenId)
+        return explorerService.getTokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { BlockExplorerLink($0) }
     }
 
     private static let showStakedBalanceTypes: [Primitives.BalanceType] = [.staked, .pending, .rewards]
 
     private var addressLink: BlockExplorerLink {
-        explorerService.addressUrl(chain: assetModel.asset.chain, address: assetDataModel.address)
+        BlockExplorerLink(explorerService.getAddressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address))
     }
 
     private var feeAssetDataModel: AssetDataViewModel {

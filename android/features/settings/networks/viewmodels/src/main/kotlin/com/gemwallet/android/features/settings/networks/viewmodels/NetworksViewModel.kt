@@ -1,16 +1,14 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
+import uniffi.gemstone.GemExplorerService
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.cases.nodes.DeleteNodeCase
-import com.gemwallet.android.cases.nodes.GetBlockExplorers
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
-import com.gemwallet.android.cases.nodes.SetBlockExplorerCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.getGemNode
 import com.gemwallet.android.data.repositories.chains.ChainInfoRepository
@@ -43,9 +41,7 @@ import uniffi.gemstone.Config
 class NetworksViewModel @Inject constructor(
     private val chainInfoRepository: ChainInfoRepository,
     private val getNodesCase: GetNodesCase,
-    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
-    private val getBlockExplorers: GetBlockExplorers,
-    private val setBlockExplorerCase: SetBlockExplorerCase,
+    private val explorerService: GemExplorerService,
     private val getCurrentNodeCase: GetCurrentNodeCase,
     private val setCurrentNodeCase: SetCurrentNodeCase,
     private val deleteNodeCase: DeleteNodeCase,
@@ -81,9 +77,9 @@ class NetworksViewModel @Inject constructor(
             it.copy(
                 chain = chain,
                 selectChain = false,
-                explorers = getBlockExplorers.getBlockExplorers(chain),
+                explorers = explorerService.getExplorers(chain.string),
                 currentNode = getCurrentNodeCase.getCurrentNode(chain),
-                currentExplorer = getCurrentBlockExplorer.getCurrentBlockExplorer(chain),
+                currentExplorer = explorerService.getExplorerName(chain.string),
                 availableAddNode = true,
                 defaultNodeUrls = defaultNodeUrls,
                 gemNodeFlags = gemNodeFlags,
@@ -108,7 +104,7 @@ class NetworksViewModel @Inject constructor(
 
     fun onSelectBlockExplorer(name: String) {
         val chain = state.value.chain ?: return
-        setBlockExplorerCase.setCurrentBlockExplorer(chain, name)
+        explorerService.setExplorerName(chain.string, name)
         updateState { it.copy(currentExplorer = name) }
     }
 

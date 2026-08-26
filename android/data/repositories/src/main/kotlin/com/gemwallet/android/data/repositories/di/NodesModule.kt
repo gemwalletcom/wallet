@@ -3,12 +3,9 @@ package com.gemwallet.android.data.repositories.di
 import android.content.Context
 import com.gemwallet.android.cases.nodes.AddNodeCase
 import com.gemwallet.android.cases.nodes.DeleteNodeCase
-import com.gemwallet.android.cases.nodes.GetBlockExplorers
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
-import com.gemwallet.android.cases.nodes.SetBlockExplorerCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.data.repositories.gemstone.GemstoneNodeStore
 import com.gemwallet.android.data.repositories.nodes.NodesRepository
@@ -48,15 +45,7 @@ object NodesModule {
 
     @Provides
     @Singleton
-    fun provideNodesRepository(
-        nodeService: GemNodeService,
-        @Named("node") configStore: ConfigStore,
-        config: Config,
-    ): NodesRepository = NodesRepository(
-        nodeService = nodeService,
-        configStore = configStore,
-        config = config,
-    )
+    fun provideNodesRepository(nodeService: GemNodeService): NodesRepository = NodesRepository(nodeService = nodeService)
 
     @Provides
     fun provideSetCurrentNodeCase(repository: NodesRepository): SetCurrentNodeCase = repository
@@ -66,15 +55,6 @@ object NodesModule {
 
     @Provides
     fun provideGetNodeUrlCase(repository: NodesRepository): GetNodeUrlCase = repository
-
-    @Provides
-    fun provideSetBlockExplorerCase(repository: NodesRepository): SetBlockExplorerCase = repository
-
-    @Provides
-    fun provideGetBlockExplorersCase(repository: NodesRepository): GetBlockExplorers = repository
-
-    @Provides
-    fun provideGetCurrentBlockExplorerCase(repository: NodesRepository): GetCurrentBlockExplorer = repository
 
     @Provides
     fun provideGetNodesCase(repository: NodesRepository): GetNodesCase = repository

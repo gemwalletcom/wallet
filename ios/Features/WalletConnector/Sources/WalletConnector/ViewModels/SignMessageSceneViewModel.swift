@@ -2,7 +2,7 @@
 
 import GemstoneServices
 import Components
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import class Gemstone.MessageSigner
 import GemstonePrimitives
@@ -16,7 +16,7 @@ import WalletConnectorService
 @Observable
 @MainActor
 public final class SignMessageSceneViewModel {
-    private let explorerService: ExplorerService = .standard
+    private let explorerService: any GemExplorerServiceProtocol
     private let keystore: any Keystore
     private let addressNameService: AddressNameService
     private let payload: SignMessagePayload
@@ -30,11 +30,13 @@ public final class SignMessageSceneViewModel {
     private var payloadAddressNames: [ChainAddress: AddressName] = [:]
 
     public init(
+        explorerService: any GemExplorerServiceProtocol,
         keystore: any Keystore,
         addressNameService: AddressNameService,
         payload: SignMessagePayload,
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
     ) {
+        self.explorerService = explorerService
         self.keystore = keystore
         self.addressNameService = addressNameService
         self.payload = payload
@@ -164,7 +166,7 @@ public extension SignMessageSceneViewModel {
     func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
         payloadModel.contextMenuItems(
             for: field,
-            explorerLink: { explorerService.addressUrl(chain: payload.chain, address: $0) },
+            explorerLink: { BlockExplorerLink(explorerService.getAddressUrl(chain: payload.chain.rawValue, address: $0)) },
             onOpenURL: { [weak self] in self?.isPresentingUrl = $0 },
         )
     }

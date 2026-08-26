@@ -1,6 +1,8 @@
 package com.gemwallet.android.data.coordinators.transaction
 
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
+import com.gemwallet.android.ext.hash
+import uniffi.gemstone.GemBlockExplorerLink
+import uniffi.gemstone.GemExplorerService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
@@ -34,15 +36,13 @@ class GetTransactionDetailsImplTest {
     private val sessionRepository = mockk<SessionRepository>()
     private val transactionRepository = mockk<TransactionRepository>()
     private val assetsRepository = mockk<AssetsRepository>()
-    private val getCurrentBlockExplorer = mockk<GetCurrentBlockExplorer>()
-    private val explorer = mockk<uniffi.gemstone.Explorer>()
+    private val explorerService = mockk<GemExplorerService>()
 
     private val subject = GetTransactionDetailsImpl(
         sessionRepository = sessionRepository,
         transactionRepository = transactionRepository,
         assetsRepository = assetsRepository,
-        getCurrentBlockExplorer = getCurrentBlockExplorer,
-        createExplorer = { explorer },
+        explorerService = explorerService,
     )
 
     @Test
@@ -82,12 +82,11 @@ class GetTransactionDetailsImplTest {
         every { assetsRepository.getAssetsInfo(any<List<AssetId>>()) } returns flowOf(
             listOf(mockAssetInfo(asset = asset, owner = mockAccount(chain = Chain.Near, address = transaction.from)))
         )
-        every { getCurrentBlockExplorer.getBlockExplorerInfo(transaction) } returns Pair(
-            "https://explorer.near-intents.org/transactions/${transaction.to}",
+        every { explorerService.getTransactionLink(Chain.Near.string, transaction.hash, any(), any(), any()) } returns GemBlockExplorerLink(
             "NEAR Intents",
+            "https://explorer.near-intents.org/transactions/${transaction.to}",
         )
-        every { getCurrentBlockExplorer.getCurrentBlockExplorer(Chain.Near) } returns "Near"
-        every { explorer.getAddressUrl("Near", any()) } answers { "https://nearblocks.io/address/${secondArg<String>()}" }
+        every { explorerService.getAddressUrl(Chain.Near.string, any()) } answers { GemBlockExplorerLink("Near", "https://nearblocks.io/address/${secondArg<String>()}") }
 
         val result = subject.getTransactionDetails(transaction.id).first()
 
@@ -97,7 +96,6 @@ class GetTransactionDetailsImplTest {
             "https://explorer.near-intents.org/transactions/${transaction.to}",
             result?.explorer?.url,
         )
-        verify(exactly = 2) { explorer.getAddressUrl("Near", any()) }
-        verify(exactly = 0) { explorer.getAddressUrl("NEAR Intents", any()) }
+        verify(exactly = 2) { explorerService.getAddressUrl(Chain.Near.string, any()) }
     }
 }

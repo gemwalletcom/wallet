@@ -1,12 +1,12 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemExplorerService
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.WalletConnectJsonRpcResponse
@@ -54,7 +54,7 @@ class WCRequestViewModel @Inject constructor(
     private val passwordStore: PasswordStore,
     private val signMessageOperator: GemSignMessageOperator,
     private val simulationService: TransactionSimulationServiceInterface,
-    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
+    private val explorerService: GemExplorerService,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
 ) : ViewModel() {
@@ -203,7 +203,7 @@ class WCRequestViewModel @Inject constructor(
             appMetadata = appMetadata,
             action = action,
             simulation = simulationService.simulateSignMessage(action.chain, action.signType, action.data, sessionDomain).decodeJson(),
-            explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chain),
+            explorerName = explorerService.getExplorerName(chain.string),
         )
 
         is WalletConnectAction.SendTransaction -> WCRequest.Transaction.SendTransaction(

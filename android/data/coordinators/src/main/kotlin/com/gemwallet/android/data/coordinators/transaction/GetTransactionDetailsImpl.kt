@@ -1,8 +1,9 @@
 package com.gemwallet.android.data.coordinators.transaction
 
+import com.gemwallet.android.ext.hash
+import uniffi.gemstone.GemExplorerService
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
@@ -46,7 +47,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
-import uniffi.gemstone.Explorer
 import uniffi.gemstone.SwapperProviderMode
 import uniffi.gemstone.SwapperProviderType
 import uniffi.gemstone.swapperProviderConfig
@@ -57,8 +57,7 @@ class GetTransactionDetailsImpl(
     private val sessionRepository: SessionRepository,
     private val transactionRepository: TransactionRepository,
     private val assetsRepository: AssetsRepository,
-    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
-    private val createExplorer: (String) -> Explorer = ::Explorer,
+    private val explorerService: GemExplorerService,
 ) : GetTransactionDetails {
 
     override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> {
@@ -68,13 +67,15 @@ class GetTransactionDetailsImpl(
         ) { session, data -> Pair(session, data) }
             .flatMapLatest { (session, data) ->
                 val ids = data?.transaction?.getAssociatedAssetIds() ?: return@flatMapLatest emptyFlow()
-                val explorerInfo = getCurrentBlockExplorer.getBlockExplorerInfo(data.transaction).let { (url, name) ->
-                    TransactionDetailsValue.Explorer(url, name)
-                }
-                val chainExplorer = createExplorer(data.asset.chain.string)
-                val addressExplorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(data.asset.chain)
+                val swapMetadata = data.transaction.getSwapMetadata()
+                val explorerInfo = explorerService.getTransactionLink(
+                    chain = data.transaction.assetId.chain.string,
+                    hash = data.transaction.hash,
+                    provider = swapMetadata?.provider,
+                    recipient = data.transaction.to,
+                    memo = data.transaction.memo,
+                ).let { TransactionDetailsValue.Explorer(it.link, it.name) }
                 assetsRepository.getAssetsInfo(ids).mapLatest { assets ->
-                    val swapMetadata = data.transaction.getSwapMetadata()
                     val swapProvider = swapMetadata?.provider
                         ?.let(::swapperProviderFromStr)
                         ?.let(::swapperProviderConfig)
@@ -85,14 +86,8 @@ class GetTransactionDetailsImpl(
                         currency = session.currency,
                         swapProvider = swapProvider,
                         swapMetadata = swapMetadata,
-                        senderExplorerLink = BlockExplorerLink(
-                            name = addressExplorerName,
-                            link = chainExplorer.getAddressUrl(addressExplorerName, data.transaction.from),
-                        ),
-                        recipientExplorerLink = BlockExplorerLink(
-                            name = addressExplorerName,
-                            link = chainExplorer.getAddressUrl(addressExplorerName, data.transaction.to),
-                        ),
+                        senderExplorerLink = explorerService.getAddressUrl(data.asset.chain.string, data.transaction.from).let { BlockExplorerLink(it.name, it.link) },
+                        recipientExplorerLink = explorerService.getAddressUrl(data.asset.chain.string, data.transaction.to).let { BlockExplorerLink(it.name, it.link) },
                     )
                 }
             }

@@ -13,6 +13,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "Components", path: "../../Packages/Components"),
@@ -32,9 +33,9 @@ let package = Package(
         .target(
             name: "WalletConnector",
             dependencies: [
+                "GemstonePrimitives",
                 "Primitives",
                 .product(name: "WalletConnectorService", package: "ChainServices"),
-                .product(name: "ExplorerService", package: "ChainServices"),
                 "Components",
                 "Localization",
                 "Style",

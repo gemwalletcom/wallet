@@ -11,7 +11,6 @@ let package = Package(
     products: [
         .library(name: "WalletConnectorService", targets: ["WalletConnectorService"]),
         .library(name: "WalletConnectorServiceTestKit", targets: ["WalletConnectorServiceTestKit"]),
-        .library(name: "ExplorerService", targets: ["ExplorerService"]),
         .library(name: "ChainService", targets: ["ChainService"]),
         .library(name: "ChainServiceTestKit", targets: ["ChainServiceTestKit"]),
     ],
@@ -22,7 +21,6 @@ let package = Package(
         .package(name: "Blockchain", path: "../Blockchain"),
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
-        .package(name: "Preferences", path: "../Preferences"),
         .package(name: "NativeProviderService", path: "../NativeProviderService"),
         .package(name: "reown-swift", path: "../../Submodules/reown-swift"),
     ],
@@ -47,16 +45,6 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "WalletConnectorService/TestKit",
-        ),
-        .target(
-            name: "ExplorerService",
-            dependencies: [
-                "Primitives",
-                "GemstonePrimitives",
-                "Preferences",
-            ],
-            path: "ExplorerService",
-            exclude: ["TestKit"],
         ),
         .target(
             name: "ChainService",

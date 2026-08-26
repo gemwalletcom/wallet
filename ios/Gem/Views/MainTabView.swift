@@ -13,6 +13,7 @@ import WalletTab
 
 struct MainTabView: View {
     @Environment(\.assetDiscoveryService) private var assetDiscoveryService
+    @Environment(\.explorerService) private var explorerService
     @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.balanceService) private var balanceService
     @Environment(\.bannerService) private var bannerService
@@ -78,6 +79,7 @@ struct MainTabView: View {
                 TransactionsNavigationView(
                     model: TransactionsViewModel(
                         transactionsService: transactionsService,
+                        explorerService: explorerService,
                         wallet: wallet,
                         type: .all,
                     ),

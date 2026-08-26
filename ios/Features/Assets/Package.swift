@@ -19,6 +19,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "Localization", path: "../../Packages/Localization"),
@@ -41,6 +42,7 @@ let package = Package(
         .target(
             name: "Assets",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "Formatters",
                 "Localization",
@@ -55,7 +57,6 @@ let package = Package(
                 "QRScanner",
                 "Recents",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
-                .product(name: "ExplorerService", package: "ChainServices"),
                 .product(name: "ChainService", package: "ChainServices"),
                 .product(name: "ActivityService", package: "FeatureServices"),
             ],

@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemChartServiceProtocol
 import GemstonePrimitives
 import InfoSheet
@@ -23,6 +24,7 @@ public final class ChartSceneViewModel: ChartListViewable {
 
     let walletId: WalletId
     let assetModel: AssetViewModel
+    private let explorerService: any GemExplorerServiceProtocol
     let priceAlertService: PriceAlertService
 
     public var chartState: StateViewType<ChartValuesViewModel> = .loading
@@ -55,6 +57,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     }
 
     public init(
+        explorerService: any GemExplorerServiceProtocol,
         service: any GemChartServiceProtocol,
         priceService: PriceService,
         assetModel: AssetViewModel,
@@ -68,6 +71,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         self.preferences = preferences
         self.assetModel = assetModel
         self.priceAlertService = priceAlertService
+        self.explorerService = explorerService
         self.walletId = walletId
         selectedPeriod = preferences.chartPeriod
         priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: nil)
@@ -76,7 +80,7 @@ public final class ChartSceneViewModel: ChartListViewable {
 
     var priceDataModel: AssetDetailsInfoViewModel? {
         guard let priceData else { return nil }
-        return AssetDetailsInfoViewModel(priceData: priceData)
+        return AssetDetailsInfoViewModel(explorerService: explorerService, priceData: priceData)
     }
 }
 

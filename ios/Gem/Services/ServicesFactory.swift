@@ -8,7 +8,6 @@ import Blockchain
 import ChainService
 import ConnectionsService
 import ConnectionStatusService
-import ExplorerService
 import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
 import GemAPI
@@ -213,7 +212,8 @@ struct ServicesFactory {
             eventService: streamEventService,
             webSocket: webSocket,
         )
-        let explorerService = ExplorerService.standard
+        let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
+        ExplorerPreferencesMigration(service: explorerService).migrate()
         let swapService = SwapService(nodeProvider: nodeProvider)
 
         let presenter = WalletConnectorPresenter()
@@ -350,6 +350,7 @@ struct ServicesFactory {
             priceUpdater: streamSubscriptionService,
             walletSessionService: walletSessionService,
             stakeService: stakeService,
+            explorerService: explorerService,
             amountService: AmountService(stakeService: stakeService),
             nameService: GemstoneNameService(service: gemNameService),
             balanceService: balanceService,
@@ -393,6 +394,7 @@ struct ServicesFactory {
             assetDiscoveryService: assetDiscoveryService,
             walletSetupService: walletSetupService,
             explorerService: explorerService,
+            gatewayService: gatewayService,
             nftService: nftService,
             avatarService: avatarService,
             swapService: swapService,

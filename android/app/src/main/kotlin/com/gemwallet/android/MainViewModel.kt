@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import com.gemwallet.android.data.repositories.nodes.MigrateExplorerPreference
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -36,6 +37,7 @@ class MainViewModel @Inject constructor(
     private val syncService: SyncService,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
     private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
+    private val migrateExplorerPreference: MigrateExplorerPreference,
     private val checkAccountsService: CheckAccountsService,
     private val lockTimer: LockTimer,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
@@ -105,6 +107,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) { syncService.sync() }
         viewModelScope.launch(Dispatchers.IO) {
             migratePriceAlertsPreference()
+            migrateExplorerPreference()
             migrateV3KeystoreService()
             checkAccountsService()
         }

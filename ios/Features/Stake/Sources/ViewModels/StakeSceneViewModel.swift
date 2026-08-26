@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import InfoSheet
@@ -18,6 +19,7 @@ import SwiftUI
 @Observable
 public final class StakeSceneViewModel {
     private let stakeService: any GemStakeServiceProtocol
+    private let explorerService: any GemExplorerServiceProtocol
 
     private var delegationsState: StateViewType<Bool> = .loading
     private let chain: StakeChain
@@ -50,11 +52,13 @@ public final class StakeSceneViewModel {
         chain: StakeChain,
         currencyCode: String,
         stakeService: any GemStakeServiceProtocol,
+        explorerService: any GemExplorerServiceProtocol,
     ) {
         self.wallet = wallet
         self.chain = chain
         self.currencyCode = currencyCode
         self.stakeService = stakeService
+        self.explorerService = explorerService
         delegationsQuery = ObservableQuery(DelegationsRequest(walletId: wallet.id, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
         validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain.chain, providerType: .stake), initialValue: [])
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
@@ -161,7 +165,7 @@ public final class StakeSceneViewModel {
     }
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
-        let delegationModels = delegations.map { DelegationViewModel(delegation: $0, asset: asset, currencyCode: currencyCode) }
+        let delegationModels = delegations.map { DelegationViewModel(explorerService: explorerService, delegation: $0, asset: asset, currencyCode: currencyCode) }
 
         switch delegationsState {
         case .noData: return .noData

@@ -1,7 +1,8 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
+import uniffi.gemstone.GemBlockExplorerLink
+import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
@@ -38,8 +39,8 @@ class DelegationViewModelTest {
         every { getAssetInfo(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
     }
     private val stakeRepository = mockk<StakeRepository>()
-    private val getCurrentBlockExplorer = mockk<GetCurrentBlockExplorer>(relaxed = true) {
-        every { getCurrentBlockExplorer(asset.id.chain) } returns "Mintscan"
+    private val explorerService = mockk<GemExplorerService>(relaxed = true) {
+        every { getValidatorUrl(asset.id.chain.string, any()) } answers { GemBlockExplorerLink("Mintscan", "https://mintscan.io/validators/${secondArg<String>()}") }
     }
 
     @Before
@@ -65,7 +66,7 @@ class DelegationViewModelTest {
         val viewModel = DelegationViewModel(
             assetsRepository = assetsRepository,
             stakeRepository = stakeRepository,
-            getCurrentBlockExplorer = getCurrentBlockExplorer,
+            explorerService = explorerService,
             sessionRepository = sessionRepository,
             savedStateHandle = SavedStateHandle(
                 mapOf(

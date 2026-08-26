@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
 import Foundation
 import Primitives
 import PrimitivesTestKit
@@ -39,6 +40,7 @@ extension DelegationViewModel {
         completionDate: Date? = nil,
     ) -> DelegationViewModel {
         DelegationViewModel(
+            explorerService: GemExplorerServiceMock(),
             delegation: .mock(
                 state: state,
                 price: Price.mock(price: 2.0),

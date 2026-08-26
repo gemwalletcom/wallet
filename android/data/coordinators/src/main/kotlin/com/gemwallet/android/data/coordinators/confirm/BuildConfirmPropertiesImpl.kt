@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.confirm
 
+import uniffi.gemstone.GemExplorerService
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.isMemoSupport
@@ -16,11 +16,10 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.Wallet
-import uniffi.gemstone.Explorer
 
 class BuildConfirmPropertiesImpl(
     private val stakeRepository: StakeRepository,
-    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
+    private val explorerService: GemExplorerService,
 ) : BuildConfirmProperties {
 
     override suspend fun invoke(
@@ -31,8 +30,6 @@ class BuildConfirmPropertiesImpl(
     ): List<ConfirmProperty> {
         val assetInfo = assetsInfo.getByAssetId(request.assetId) ?: return emptyList()
         val chain = assetInfo.asset.id.chain
-        val explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chain)
-        val chainExplorer = Explorer(chain.string)
         return mutableListOf<ConfirmProperty?>().apply {
             add(ConfirmProperty.Source(wallet.name, wallet.type, assetInfo.owner?.chain, wallet.imageUrl))
             val destination = ConfirmProperty.Destination.map(request, getValidator(request), addressName)
@@ -44,13 +41,13 @@ class BuildConfirmPropertiesImpl(
                         chain = destination.chain,
                         addressType = destination.addressType,
                         imageUrl = destination.imageUrl,
-                        explorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, destination.address)),
+                        explorerLink = explorerService.getAddressUrl(chain.string, destination.address).let { BlockExplorerLink(it.name, it.link) },
                     )
                     is ConfirmProperty.Destination.Stake -> destination.address?.let { address ->
                         ConfirmProperty.Destination.Stake(
                             data = destination.data,
                             address = address,
-                            explorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, address)),
+                            explorerLink = explorerService.getAddressUrl(chain.string, address).let { BlockExplorerLink(it.name, it.link) },
                         )
                     } ?: destination
                     else -> destination

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Blockchain
-import ChainService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -14,15 +14,17 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AddAssetSceneViewModel {
-    private let service: any AddAssetServiceable
+    private let gatewayService: GatewayService
+    private let explorerService: any GemExplorerServiceProtocol
 
     var state: StateViewType<AddAssetViewModel> = .noData
     var input: AddAssetInput
 
     var isPresentingScanner = false
 
-    public init(wallet: Wallet, service: any AddAssetServiceable) {
-        self.service = service
+    public init(wallet: Wallet, gatewayService: GatewayService, explorerService: any GemExplorerServiceProtocol) {
+        self.gatewayService = gatewayService
+        self.explorerService = explorerService
         input = AddAssetInput(chains: wallet.chainsWithTokens)
     }
 
@@ -103,8 +105,8 @@ extension AddAssetSceneViewModel {
         state = .loading
 
         do {
-            let asset = try await service.getTokenData(chain: chain, tokenId: address)
-            state = .data(AddAssetViewModel(asset: asset))
+            let asset = try await gatewayService.tokenData(chain: chain, tokenId: address)
+            state = .data(AddAssetViewModel(asset: asset, explorerService: explorerService))
         } catch {
             state.setError(error)
         }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemExplorerServiceProtocol
 import Components
 import Primitives
 import SwiftUI
@@ -7,7 +8,7 @@ import SwiftUI
 public struct TransactionsList: View {
     let transactions: [Primitives.TransactionExtended]
     let showSections: Bool
-    let explorerService: any ExplorerLinkFetchable
+    let explorerService: any GemExplorerServiceProtocol
     let currency: String
 
     private var sections: [ListSection<Primitives.TransactionExtended>] {
@@ -15,7 +16,7 @@ public struct TransactionsList: View {
     }
 
     public init(
-        explorerService: any ExplorerLinkFetchable,
+        explorerService: any GemExplorerServiceProtocol,
         _ transactions: [Primitives.TransactionExtended],
         currency: String,
         showSections: Bool = true,
@@ -51,10 +52,10 @@ public struct TransactionsList: View {
 
 private struct TransactionsListView: View {
     let transactions: [Primitives.TransactionExtended]
-    let explorerService: any ExplorerLinkFetchable
+    let explorerService: any GemExplorerServiceProtocol
     let currency: String
 
-    init(explorerService: any ExplorerLinkFetchable,
+    init(explorerService: any GemExplorerServiceProtocol,
          transactions: [Primitives.TransactionExtended],
          currency: String)
     {

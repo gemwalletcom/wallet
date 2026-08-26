@@ -21,6 +21,7 @@ struct SettingsNavigationView: View {
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.stakeStore) private var stakeStore
+    @Environment(\.explorerService) private var explorerService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.connectionsService) private var connectionsService
     @Environment(\.assetsEnabler) private var assetsEnabler
@@ -106,6 +107,7 @@ struct SettingsNavigationView: View {
         .navigationDestination(for: Scenes.Price.self) { scene in
             ChartScene(
                 model: ChartSceneViewModel(
+                    explorerService: explorerService,
                     service: chartService,
                     priceService: priceService,
                     assetModel: AssetViewModel(asset: scene.asset),
@@ -191,6 +193,7 @@ struct SettingsNavigationView: View {
                 model: ChainSettingsSceneViewModel(
                     nodeService: nodeService,
                     chainServiceFactory: chainServiceFactory,
+                    explorerService: explorerService,
                     chain: $0.chain,
                 ),
             )

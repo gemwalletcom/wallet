@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
+import uniffi.gemstone.GemExplorerService
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
@@ -9,7 +10,6 @@ import com.gemwallet.android.application.add_asset.coordinators.AddCustomToken
 import com.gemwallet.android.application.add_asset.coordinators.GetAvailableTokenChains
 import com.gemwallet.android.application.add_asset.coordinators.ObserveToken
 import com.gemwallet.android.application.add_asset.coordinators.SearchCustomToken
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.filter
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
@@ -19,7 +19,6 @@ import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.Explorer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -45,7 +44,7 @@ class AddAssetViewModel @Inject constructor(
     private val observeToken: ObserveToken,
     private val addCustomToken: AddCustomToken,
     getAvailableTokenChains: GetAvailableTokenChains,
-    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
+    private val explorerService: GemExplorerService,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
@@ -114,9 +113,8 @@ class AddAssetViewModel @Inject constructor(
 
     val explorerLink = token.combine(selectedChain) { token, chain ->
         val tokenId = token?.id?.tokenId ?: return@combine null
-        val explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chain)
-        val url = Explorer(chain.string).getTokenUrl(explorerName, tokenId) ?: return@combine null
-        BlockExplorerLink(name = explorerName, link = url)
+        val link = explorerService.getTokenUrl(chain.string, tokenId) ?: return@combine null
+        BlockExplorerLink(name = link.name, link = link.link)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

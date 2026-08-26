@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemExplorerServiceProtocol
 import BigInt
 import Components
 import Formatters
@@ -13,13 +14,13 @@ import SwiftUI
 public struct TransactionViewModel: Sendable {
     public let transaction: TransactionExtended
 
-    private let explorerService: any ExplorerLinkFetchable
+    private let explorerService: any GemExplorerServiceProtocol
     private let assetImageFormatter = AssetImageFormatter()
     private let currency: String
     private let formatter: ValueFormatter = .short
 
     public init(
-        explorerService: any ExplorerLinkFetchable,
+        explorerService: any GemExplorerServiceProtocol,
         transaction: TransactionExtended,
         currency: String,
     ) {
@@ -331,7 +332,7 @@ public struct TransactionViewModel: Sendable {
     }
 
     public func addressLink(account: SimpleAccount) -> BlockExplorerLink {
-        explorerService.addressUrl(chain: account.chain, address: account.address)
+        BlockExplorerLink(explorerService.getAddressUrl(chain: account.chain.rawValue, address: account.address))
     }
 
     // MARK: - Private methods

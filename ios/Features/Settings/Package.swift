@@ -15,6 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "Style", path: "../../Packages/Style"),
@@ -34,6 +35,7 @@ let package = Package(
         .target(
             name: "Settings",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "Components",
                 "Style",
@@ -49,7 +51,6 @@ let package = Package(
                 "Formatters",
                 "Validators",
                 .product(name: "ChainService", package: "ChainServices"),
-                .product(name: "ExplorerService", package: "ChainServices"),
                 "QRScanner",
             ],
             path: "Sources",

@@ -193,18 +193,6 @@ public final class Preferences: @unchecked Sendable {
         subscriptionsVersion += 1
     }
 
-    private enum ExplorerKeys {
-        static let explorerName = "explorer_name"
-    }
-
-    public func setExplorerName(chain: Chain, name: String) {
-        defaults.setValue(name, forKey: "\(ExplorerKeys.explorerName)_\(chain.rawValue)")
-    }
-
-    public func explorerName(chain: Chain) -> String? {
-        defaults.string(forKey: "\(ExplorerKeys.explorerName)_\(chain.rawValue)")
-    }
-
     public var swapSlippage: SwapSlippage {
         get { swapSlippageBpsRawValue > 0 ? .manual(bps: UInt32(swapSlippageBpsRawValue)) : .auto }
         set {

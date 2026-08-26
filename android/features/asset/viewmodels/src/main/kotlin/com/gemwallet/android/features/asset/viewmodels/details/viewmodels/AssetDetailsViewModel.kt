@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 
+import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,7 +14,6 @@ import com.gemwallet.android.application.transactions.coordinators.GetTransactio
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.cases.banners.HasMultiSign
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.model.ChainAssetInfo
@@ -39,7 +39,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.Explorer
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -53,7 +52,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val syncAssetInfo: SyncAssetInfo,
     private val getTransactions: GetTransactions,
     private val syncAssetPriceAlerts: SyncAssetPriceAlerts,
-    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
+    private val explorerService: GemExplorerService,
     private val hasMultiSign: HasMultiSign,
     private val syncAssetTransactions: SyncAssetTransactions,
 ) : ViewModel() {
@@ -78,7 +77,7 @@ class AssetDetailsViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     private val model = chainAssetInfo.map { chainInfo ->
-        val explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chainInfo.assetInfo.asset.chain)
+        val explorerName = explorerService.getExplorerName(chainInfo.assetInfo.asset.chain.string)
         Model(
             chainAssetInfo = chainInfo,
             explorerName = explorerName,

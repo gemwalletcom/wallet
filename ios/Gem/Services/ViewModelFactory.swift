@@ -6,6 +6,7 @@ import Assets
 import ChainService
 import FiatConnect
 import Foundation
+import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import class Gemstone.GemConfirmService
 import Keystore
@@ -32,6 +33,7 @@ public struct ViewModelFactory: Sendable {
     let priceUpdater: any PriceUpdater
     let walletSessionService: any WalletSessionManageable
     let stakeService: any GemStakeServiceProtocol
+    let explorerService: any GemExplorerServiceProtocol
     let amountService: AmountService
     let nameService: any NameServiceable
     let balanceService: BalanceService
@@ -102,6 +104,7 @@ public struct ViewModelFactory: Sendable {
                 delegate: confirmTransferDelegate,
             ),
             confirmService: ConfirmServiceFactory.create(
+                explorerService: explorerService,
                 keystore: keystore,
                 chainServiceFactory: chainServiceFactory,
                 assetsEnabler: assetsEnabler,
@@ -197,6 +200,7 @@ public struct ViewModelFactory: Sendable {
             chain: StakeChain(rawValue: chain.rawValue)!, // Expected Only StakeChain accepted.
             currencyCode: Preferences.standard.currency,
             stakeService: stakeService,
+            explorerService: explorerService,
         )
     }
 
@@ -210,6 +214,7 @@ public struct ViewModelFactory: Sendable {
             asset: asset,
             currencyCode: Preferences.standard.currency,
             stakeService: stakeService,
+            explorerService: explorerService,
         )
     }
 
@@ -224,7 +229,7 @@ public struct ViewModelFactory: Sendable {
     ) -> DelegationSceneViewModel {
         DelegationSceneViewModel(
             wallet: wallet,
-            model: DelegationViewModel(delegation: delegation, asset: asset, formatter: .auto, currencyCode: Preferences.standard.currency),
+            model: DelegationViewModel(explorerService: explorerService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: Preferences.standard.currency),
             asset: asset,
             validators: validators,
             onAmountInputAction: onAmountInputAction,
@@ -238,6 +243,7 @@ public struct ViewModelFactory: Sendable {
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
     ) -> SignMessageSceneViewModel {
         SignMessageSceneViewModel(
+            explorerService: explorerService,
             keystore: keystore,
             addressNameService: addressNameService,
             payload: payload,

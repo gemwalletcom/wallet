@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
 import Localization
 @testable import MarketInsight
 import Primitives
@@ -10,6 +11,7 @@ struct AssetDetailsInfoViewModelTests {
     @Test
     func marketValuesKeepFDVUnderMarketCapAndSeparateContract() {
         let model = AssetDetailsInfoViewModel(
+            explorerService: GemExplorerServiceMock(),
             priceData: PriceData(
                 asset: .mockEthereumUSDT(),
                 price: .none,
