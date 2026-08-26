@@ -297,6 +297,7 @@ let package = Package(
                 "Primitives",
                 "Store",
                 "Blockchain",
+                "Gemstone",
                 .product(name: "StakeService", package: "ChainServices"),
                 "BalanceService",
                 "EarnService",
@@ -783,6 +784,8 @@ let package = Package(
         .testTarget(
             name: "TransactionStateServiceTests",
             dependencies: [
+                "Gemstone",
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "TransactionStateService",
                 "TransactionStateServiceTestKit",
                 "BalanceServiceTestKit",

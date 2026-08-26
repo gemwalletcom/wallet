@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
-import com.gemwallet.android.blockchain.services.TransactionStatusService
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.cases.transactions.SaveTransactions
@@ -9,7 +8,7 @@ import com.gemwallet.android.data.repositories.assets.TransactionPostProcessingS
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionStateScheduler
-import com.gemwallet.android.data.repositories.transactions.TransactionStateService
+import com.gemwallet.android.data.repositories.transactions.GemstoneTransactionStateStore
 import com.gemwallet.android.data.repositories.transactions.TransactionsRepositoryImpl
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import dagger.Module
@@ -17,6 +16,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemTransactionStateService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -38,19 +38,14 @@ object TransactionsModule {
     fun provideTransactionStateService(
         transactionsDao: TransactionsDao,
         gateway: GemGateway,
-    ): TransactionStateService = TransactionStateService(
-        transactionsDao = transactionsDao,
-        transactionStatusService = TransactionStatusService(
-            gateway = gateway,
-        ),
-    )
+    ): GemTransactionStateService = GemTransactionStateService(gateway, GemstoneTransactionStateStore(transactionsDao))
 
     @Singleton
     @Provides
     fun provideTransactionStateScheduler(
         sessionRepository: SessionRepository,
         transactionsDao: TransactionsDao,
-        stateService: TransactionStateService,
+        stateService: GemTransactionStateService,
         postProcessingService: TransactionPostProcessingService,
     ): TransactionStateScheduler = TransactionStateScheduler(
         sessionRepository = sessionRepository,

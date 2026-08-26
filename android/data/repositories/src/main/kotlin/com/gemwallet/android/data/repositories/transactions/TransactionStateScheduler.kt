@@ -8,6 +8,8 @@ import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.ext.isCompleted
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
@@ -20,10 +22,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.transactionStateConfig
 import java.util.concurrent.ConcurrentHashMap
 
@@ -34,7 +38,7 @@ private const val TAG = "TransactionStateScheduler"
 class TransactionStateScheduler(
     private val sessionRepository: SessionRepository,
     private val transactionsDao: TransactionsDao,
-    private val stateService: TransactionStateService,
+    private val stateService: GemTransactionStateService,
     private val postProcessingService: TransactionPostProcessingService,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) {
@@ -77,6 +81,7 @@ class TransactionStateScheduler(
         val jobKeys = mutableSetOf(transaction.transaction.id)
         try {
             var currentTransaction = transaction
+            val walletId = transaction.transaction.walletId
             val jobConfig = transactionStateConfig(currentTransaction.transaction.assetId.chain.string)
             var pollingDelay = jobConfig.initialIntervalMs
 
@@ -84,33 +89,23 @@ class TransactionStateScheduler(
                 delay(pollingDelay.toLong())
                 pollingDelay = jobConfig.nextIntervalMs(pollingDelay)
 
-                val transactionRecord = currentTransaction.transaction
-                if (transactionsDao.getTransactionState(transactionRecord.id, transactionRecord.walletId) == null) {
-                    return@launch
-                }
-
-                stateService.checkTransaction(currentTransaction)?.let { updatedTransaction ->
-                    val previousTransaction = currentTransaction
-                    if (updatedTransaction.transaction.id != currentTransaction.transaction.id) {
-                        coroutineContext[Job]?.let { runningJob ->
-                            pollingTransactionJobs[updatedTransaction.transaction.id] = runningJob
-                            jobKeys.add(updatedTransaction.transaction.id)
-                        }
+                val result = try {
+                    stateService.update(walletId.id, currentTransaction.transaction.toDTO().toJson())
+                } catch (err: Exception) {
+                    Log.d(TAG, "transaction status check failed: id=${currentTransaction.transaction.id.identifier}, error=${err.message}")
+                    continue
+                } ?: return@launch
+                val transactionId = result.transactionId.decodeJson<TransactionId>()
+                if (transactionId != currentTransaction.transaction.id) {
+                    coroutineContext[Job]?.let { runningJob ->
+                        pollingTransactionJobs[transactionId] = runningJob
+                        jobKeys.add(transactionId)
                     }
-                    currentTransaction = stateService.storeTransactionUpdate(
-                        currentTransaction = currentTransaction,
-                        updatedTransaction = updatedTransaction,
-                    ) ?: return@launch
-                    notifyEnteringInTransit(previousTransaction, currentTransaction)
                 }
+                val previousTransaction = currentTransaction
+                currentTransaction = transactionsDao.getExtendedTransaction(walletId, transactionId).first() ?: return@launch
+                notifyEnteringInTransit(previousTransaction, currentTransaction)
 
-                val hasTimedOut = !currentTransaction.transaction.state.isCompleted() &&
-                    currentTransaction.transaction.createdAt < System.currentTimeMillis() - stateService.transactionTimeout(currentTransaction.transaction)
-                if (hasTimedOut) {
-                    currentTransaction = currentTransaction.copy(transaction = currentTransaction.transaction.copy(state = TransactionState.Failed))
-                    currentTransaction = stateService.storeTransactionUpdate(currentTransaction, currentTransaction) ?: return@launch
-                    break
-                }
                 if (currentTransaction.transaction.state.isCompleted()) {
                     Log.d(
                         TAG,

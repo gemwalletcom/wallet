@@ -1,15 +1,21 @@
 use chrono::{DateTime, Utc};
 use primitives::{
-    Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionUpdate, chain_transaction_timeout,
-    swap_transaction_timeout,
+    Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate,
+    chain_transaction_timeout, swap_transaction_timeout,
 };
 use std::sync::Arc;
 use swapper::{SwapResult, SwapperProvider, swapper::GemSwapper};
 
 use crate::gateway::ChainClientFactory;
-use crate::models::{GemTransactionStateRequest, GemTransactionSwapStateRequest};
 
 use super::TransactionStatusError;
+
+pub struct SwapStateRequest {
+    pub transaction: TransactionStateRequest,
+    pub state: TransactionState,
+    pub swap_provider: SwapperProvider,
+    pub destination_chain: Chain,
+}
 
 pub struct StatusProvider {
     chain_factory: Arc<ChainClientFactory>,
@@ -21,13 +27,13 @@ impl StatusProvider {
         Self { chain_factory, swapper }
     }
 
-    pub async fn get(&self, chain: Chain, request: GemTransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    pub async fn get(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         let created_at = request.created_at;
         let result = self.chain_status(chain, request).await;
         get_transaction_update(chain, None, created_at, result)
     }
 
-    pub async fn get_swap_status(&self, chain: Chain, request: GemTransactionSwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    pub async fn get_swap_status(&self, chain: Chain, request: SwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         let created_at = request.transaction.created_at;
         let destination_chain = request.destination_chain;
         let result = self.swap_transaction_status(chain, request).await;
@@ -36,7 +42,7 @@ impl StatusProvider {
 
     pub async fn get_update(&self, transaction: &Transaction) -> Result<TransactionUpdate, TransactionStatusError> {
         let chain = transaction.asset_id.chain;
-        let request = GemTransactionStateRequest {
+        let request = TransactionStateRequest {
             id: transaction.id.hash.clone(),
             sender_address: transaction.from.clone(),
             created_at: transaction.created_at,
@@ -50,7 +56,7 @@ impl StatusProvider {
 
         let update = match route {
             Some((swap_provider, destination_chain)) => {
-                let request = GemTransactionSwapStateRequest {
+                let request = SwapStateRequest {
                     transaction: request,
                     state: transaction.state,
                     swap_provider,
@@ -67,14 +73,14 @@ impl StatusProvider {
         })
     }
 
-    async fn swap_transaction_status(&self, chain: Chain, request: GemTransactionSwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    async fn swap_transaction_status(&self, chain: Chain, request: SwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         if !request.swap_provider.is_cross_chain() {
             return self.chain_status(chain, request.transaction).await;
         }
         self.cross_chain_swap_status(chain, request).await
     }
 
-    async fn cross_chain_swap_status(&self, chain: Chain, request: GemTransactionSwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    async fn cross_chain_swap_status(&self, chain: Chain, request: SwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         match request.state {
             TransactionState::Pending => {
                 let source_chain_update = self.chain_status(chain, request.transaction).await?;
@@ -85,10 +91,10 @@ impl StatusProvider {
         }
     }
 
-    async fn chain_status(&self, chain: Chain, request: GemTransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    async fn chain_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         let provider = self.chain_factory.create(chain).await?;
         provider
-            .get_transaction_status(request.into())
+            .get_transaction_status(request)
             .await
             .map_err(|e| TransactionStatusError::NetworkError(e.to_string()))
     }

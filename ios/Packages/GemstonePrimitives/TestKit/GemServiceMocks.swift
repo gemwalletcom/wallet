@@ -296,3 +296,15 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String, apr _: Double) async throws {}
 }
+
+public final class GemTransactionStateServiceMock: GemTransactionStateServiceProtocol, @unchecked Sendable {
+    private let update: @Sendable (String, Gemstone.Transaction) async throws -> GemTransactionStateResult?
+
+    public init(update: @escaping @Sendable (String, Gemstone.Transaction) async throws -> GemTransactionStateResult?) {
+        self.update = update
+    }
+
+    public func update(walletId: String, transaction: Gemstone.Transaction) async throws -> GemTransactionStateResult? {
+        try await update(walletId, transaction)
+    }
+}

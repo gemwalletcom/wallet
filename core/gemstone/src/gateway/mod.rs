@@ -19,7 +19,7 @@ use std::sync::Arc;
 use swapper::swapper::GemSwapper as Swapper;
 use yielder::Yielder;
 
-use primitives::{AssetId, Chain, ChartPeriod, Transaction};
+use primitives::{AssetId, Chain, ChartPeriod, Transaction, TransactionUpdate};
 
 #[derive(uniffi::Object)]
 pub struct GemGateway {
@@ -35,6 +35,10 @@ impl std::fmt::Debug for GemGateway {
 }
 
 impl GemGateway {
+    pub async fn get_transaction_update(&self, transaction: Transaction) -> Result<TransactionUpdate, GatewayError> {
+        Ok(self.status_provider.get_update(&transaction).await?)
+    }
+
     async fn with_provider<T, F, Fut>(&self, chain: Chain, call: F) -> Result<T, GatewayError>
     where
         F: FnOnce(Arc<dyn ChainTraits>) -> Fut,
@@ -91,18 +95,6 @@ impl GemGateway {
     pub async fn transaction_broadcast(&self, chain: Chain, data: String, options: GemBroadcastOptions) -> Result<String, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.transaction_broadcast(data, options).await })
             .await
-    }
-
-    pub async fn get_transaction_status(&self, chain: Chain, request: GemTransactionStateRequest) -> Result<GemTransactionUpdate, GatewayError> {
-        Ok(self.status_provider.get(chain, request).await?)
-    }
-
-    pub async fn get_transaction_swap_status(&self, chain: Chain, request: GemTransactionSwapStateRequest) -> Result<GemTransactionUpdate, GatewayError> {
-        Ok(self.status_provider.get_swap_status(chain, request).await?)
-    }
-
-    pub async fn get_transaction_update(&self, transaction: Transaction) -> Result<GemTransactionUpdate, GatewayError> {
-        Ok(self.status_provider.get_update(&transaction).await?)
     }
 
     pub async fn get_chain_id(&self, chain: Chain) -> Result<String, GatewayError> {

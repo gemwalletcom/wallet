@@ -112,6 +112,9 @@ interface TransactionsDao {
     @Query("SELECT state FROM transactions WHERE id = :id AND walletId = :walletId")
     fun getTransactionState(id: TransactionId, walletId: WalletId): TransactionState?
 
+    @Query("SELECT * FROM transactions WHERE id = :id AND walletId = :walletId")
+    fun getTransaction(id: TransactionId, walletId: WalletId): DbTransaction?
+
     @Query("UPDATE transactions SET id = :newId, hash = :hash, updatedAt = :updatedAt WHERE id = :oldId AND walletId = :walletId")
     fun updateTransactionId(
         oldId: TransactionId,
@@ -121,21 +124,17 @@ interface TransactionsDao {
         updatedAt: Long = System.currentTimeMillis(),
     )
 
-    @Query("UPDATE transactions SET state = :state, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateState(id: TransactionId, walletId: WalletId, state: TransactionState, updatedAt: Long = System.currentTimeMillis())
-
-    @Query("UPDATE transactions SET fee = :fee, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateFee(id: TransactionId, walletId: WalletId, fee: String, updatedAt: Long = System.currentTimeMillis())
-
-    @Query("UPDATE transactions SET metadata = :metadata, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateMetadata(id: TransactionId, walletId: WalletId, metadata: String, updatedAt: Long = System.currentTimeMillis())
-
-    @Query("UPDATE transactions SET state = :state, fee = :fee, metadata = :metadata, estimatedConfirmationInSeconds = :confirmationEtaSeconds, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateTransaction(
+    @Query(
+        "UPDATE transactions SET state = :state, fee = COALESCE(:fee, fee), blockNumber = COALESCE(:blockNumber, blockNumber), " +
+            "metadata = COALESCE(:metadata, metadata), estimatedConfirmationInSeconds = COALESCE(:confirmationEtaSeconds, estimatedConfirmationInSeconds), " +
+            "updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId"
+    )
+    fun updateTransactionState(
         id: TransactionId,
         walletId: WalletId,
         state: TransactionState,
-        fee: String,
+        fee: String?,
+        blockNumber: String?,
         metadata: String?,
         confirmationEtaSeconds: Long?,
         updatedAt: Long = System.currentTimeMillis(),

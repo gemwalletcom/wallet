@@ -82,61 +82,49 @@ public struct TransactionStore: Sendable {
         }
     }
 
-    public func updateState(id: TransactionId, state: TransactionState) throws -> Int {
-        try updateValues(id: id, values: [TransactionRecord.Columns.state.set(to: state.rawValue)])
-    }
-
-    public func updateNetworkFee(transactionId: TransactionId, networkFee: String) throws -> Int {
-        try updateValues(id: transactionId, values: [TransactionRecord.Columns.fee.set(to: networkFee)])
-    }
-
-    public func updateBlockNumber(transactionId: TransactionId, block: Int) throws -> Int {
-        try updateValues(id: transactionId, values: [TransactionRecord.Columns.blockNumber.set(to: block)])
-    }
-
-    public func updateCreatedAt(transactionId: TransactionId, date: Date) throws -> Int {
-        try updateValues(id: transactionId, values: [TransactionRecord.Columns.createdAt.set(to: date)])
-    }
-
-    public func updateConfirmationEtaSeconds(transactionId: TransactionId, seconds: UInt32) throws -> Int {
-        try updateValues(id: transactionId, values: [TransactionRecord.Columns.confirmationEtaSeconds.set(to: seconds)])
-    }
-
-    public func updateMetadata(transactionId: TransactionId, metadata: AnyCodableValue) throws -> Int {
-        let string = try JSONEncoder().encode(metadata).encodeString()
-        return try updateValues(
-            id: transactionId,
-            values: [TransactionRecord.Columns.metadata.set(to: string)],
-        )
-    }
-
-    public func updateTransactionId(oldTransactionId: TransactionId, transactionId: TransactionId, hash: String) throws -> TransactionState? {
-        try db.write { db in
-            let oldRecord = try TransactionRecord
-                .filter(TransactionRecord.Columns.transactionId == oldTransactionId.identifier)
-                .fetchOne(db)
-
-            if let oldRecord {
-                let existingRecord = try TransactionRecord
-                    .filter(TransactionRecord.Columns.walletId == oldRecord.walletId)
-                    .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
-                    .fetchOne(db)
-                if let existingRecord {
-                    _ = try TransactionRecord
-                        .filter(TransactionRecord.Columns.id == oldRecord.id)
-                        .deleteAll(db)
-                    return TransactionState(rawValue: existingRecord.state)
-                }
-            }
-
+    public func getTransactionState(walletId: WalletId, transactionId: TransactionId) throws -> TransactionState? {
+        try db.read { db in
             try TransactionRecord
-                .filter(TransactionRecord.Columns.transactionId == oldTransactionId.identifier)
-                .updateAll(db, [
-                    TransactionRecord.Columns.transactionId.set(to: transactionId.identifier),
-                    TransactionRecord.Columns.hash.set(to: hash),
-                ])
-            return nil
+                .filter(TransactionRecord.Columns.walletId == walletId.id)
+                .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
+                .fetchOne(db)
+                .flatMap { TransactionState(rawValue: $0.state) }
         }
+    }
+
+    public func renameTransaction(walletId: WalletId, transactionId: TransactionId, newTransactionId: TransactionId) throws {
+        try updateValues(walletId: walletId, transactionId: transactionId, values: [
+            TransactionRecord.Columns.transactionId.set(to: newTransactionId.identifier),
+            TransactionRecord.Columns.hash.set(to: newTransactionId.hash),
+        ])
+    }
+
+    public func deleteTransaction(walletId: WalletId, transactionId: TransactionId) throws {
+        _ = try db.write { db in
+            try TransactionRecord
+                .filter(TransactionRecord.Columns.walletId == walletId.id)
+                .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
+                .deleteAll(db)
+        }
+    }
+
+    public func updateTransaction(
+        walletId: WalletId,
+        transactionId: TransactionId,
+        state: TransactionState,
+        fee: String?,
+        blockNumber: Int?,
+        metadata: String?,
+        confirmationEtaSeconds: UInt32?,
+    ) throws -> Int {
+        let values: [ColumnAssignment?] = [
+            TransactionRecord.Columns.state.set(to: state.rawValue),
+            fee.map { TransactionRecord.Columns.fee.set(to: $0) },
+            blockNumber.map { TransactionRecord.Columns.blockNumber.set(to: $0) },
+            metadata.map { TransactionRecord.Columns.metadata.set(to: $0) },
+            confirmationEtaSeconds.map { TransactionRecord.Columns.confirmationEtaSeconds.set(to: $0) },
+        ]
+        return try updateValues(walletId: walletId, transactionId: transactionId, values: values.compactMap { $0 })
     }
 
     public func deleteTransactionId(ids: [String]) throws -> Int {
@@ -147,10 +135,12 @@ public struct TransactionStore: Sendable {
         }
     }
 
-    private func updateValues(id: TransactionId, values: [ColumnAssignment]) throws -> Int {
+    @discardableResult
+    private func updateValues(walletId: WalletId, transactionId: TransactionId, values: [ColumnAssignment]) throws -> Int {
         try db.write { db in
             try TransactionRecord
-                .filter(TransactionRecord.Columns.transactionId == id.identifier)
+                .filter(TransactionRecord.Columns.walletId == walletId.id)
+                .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
                 .updateAll(db, values)
         }
     }

@@ -32,7 +32,7 @@ public extension TransactionStateScheduler {
         )
         let service = TransactionStateService(
             transactionStore: transactionStore,
-            gatewayService: gatewayService,
+            service: gatewayService.transactionStateService(store: GemstoneTransactionStateStore(store: transactionStore)),
             postProcessingService: postProcessingService,
         )
         return TransactionStateScheduler(

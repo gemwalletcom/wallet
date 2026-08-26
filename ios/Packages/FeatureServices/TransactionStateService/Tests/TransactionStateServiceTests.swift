@@ -4,7 +4,9 @@ import BalanceServiceTestKit
 import EarnService
 import EarnServiceTestKit
 import Foundation
-import GemAPITestKit
+import struct Gemstone.GemTransactionStateResult
+import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import NFTServiceTestKit
 import Primitives
 import PrimitivesTestKit
@@ -17,151 +19,18 @@ import TransactionStateServiceTestKit
 
 struct TransactionStateServiceTests {
     @Test
-    func inTransitSavesMetadataAndRetries() async throws {
-        let finalMetadata = try #require(AnyCodableValue.encode(TransactionSwapMetadata(
-            fromAsset: .mock(.bitcoin),
-            fromValue: "100000000",
-            toAsset: .mock(.ethereum),
-            toValue: "9900000000000000000",
-            provider: SwapProvider.thorchain.rawValue,
-        )))
-        let fixture = try makeFixture(stateChanges: TransactionChanges(
-            state: .inTransit,
-            changes: [.metadata(finalMetadata)],
-        ))
-
-        let status = await fixture.service.update(for: fixture.transaction).status
-
-        expectRetry(status)
-        let saved = try #require(fixture.store.getTransactions(states: [.inTransit]).first)
-        let savedMetadata = try #require(saved.metadata?.decode(TransactionSwapMetadata.self))
-        #expect(savedMetadata.toValue == "9900000000000000000")
-    }
-
-    @Test
-    func terminalStatesSaveAndComplete() async throws {
-        for state in [TransactionState.confirmed, .failed, .reverted] {
-            let fixture = try makeFixture(stateChanges: TransactionChanges(state: state))
-
-            let status = await fixture.service.update(for: fixture.transaction).status
-
-            expectComplete(status)
-            #expect(try fixture.store.getTransactions(states: [state]).count == 1)
-        }
-    }
-
-    @Test
-    func hashChangeWritesChangesToRenamedTransaction() async throws {
-        let finalMetadata = try #require(AnyCodableValue.encode(TransactionSwapMetadata(
-            fromAsset: .mock(.bitcoin),
-            fromValue: "100000000",
-            toAsset: .mock(.ethereum),
-            toValue: "9900000000000000000",
-            provider: SwapProvider.thorchain.rawValue,
-        )))
-        let fixture = try makeFixture(stateChanges: TransactionChanges(
-            state: .inTransit,
-            changes: [
-                .metadata(finalMetadata),
-                .hashChange(old: "hash", new: "new-hash"),
-            ],
-        ))
-
-        let status = await fixture.service.update(for: fixture.transaction).status
-
-        expectRetry(status)
-        let saved = try #require(fixture.store.getTransactions(states: [.inTransit]).first)
-        let savedMetadata = try #require(saved.metadata?.decode(TransactionSwapMetadata.self))
-        #expect(saved.id.hash == "new-hash")
-        #expect(savedMetadata.toValue == "9900000000000000000")
-    }
-
-    @Test
-    func hashChangeUpdatesExistingTransaction() async throws {
-        let finalMetadata = try #require(AnyCodableValue.encode(TransactionSwapMetadata(
-            fromAsset: .mock(.bitcoin),
-            fromValue: "100000000",
-            toAsset: .mock(.ethereum),
-            toValue: "9900000000000000000",
-            provider: SwapProvider.thorchain.rawValue,
-        )))
-        let fixture = try makeFixture(stateChanges: TransactionChanges(
-            state: .inTransit,
-            changes: [
-                .hashChange(old: "hash", new: "new-hash"),
-                .metadata(finalMetadata),
-            ],
-        ))
-        let existingTransaction = try makeSwapTransaction(
-            hash: "new-hash",
-            fromAsset: .mock(.bitcoin),
-            toAsset: .mock(.ethereum),
-            state: .pending,
-        )
-        try fixture.store.addTransactions(walletId: fixture.walletId, transactions: [existingTransaction])
-
-        let status = await fixture.service.update(for: fixture.transaction).status
-
-        expectRetry(status)
-        #expect(try fixture.store.getTransactions(states: [.pending]).isEmpty)
-        let saved = try #require(fixture.store.getTransactions(states: [.inTransit]).first)
-        let savedMetadata = try #require(saved.metadata?.decode(TransactionSwapMetadata.self))
-        #expect(saved.id.hash == "new-hash")
-        #expect(savedMetadata.toValue == "9900000000000000000")
-    }
-
-    @Test
-    func hashChangeDoesNotDowngradeCompletedTransaction() async throws {
-        let fixture = try makeFixture(stateChanges: TransactionChanges(
-            state: .inTransit,
-            changes: [
-                .hashChange(old: "hash", new: "new-hash"),
-            ],
-        ))
-        let existingTransaction = try makeSwapTransaction(
-            hash: "new-hash",
-            fromAsset: .mock(.bitcoin),
-            toAsset: .mock(.ethereum),
-            state: .confirmed,
-        )
-        try fixture.store.addTransactions(walletId: fixture.walletId, transactions: [existingTransaction])
-
-        let status = await fixture.service.update(for: fixture.transaction).status
-
-        expectComplete(status)
-        #expect(try fixture.store.getTransactions(states: [.pending]).isEmpty)
-        let saved = try #require(fixture.store.getTransactions(states: [.confirmed]).first)
-        #expect(saved.id.hash == "new-hash")
-    }
-
-    @Test
-    func inTransitDoesNotDowngradeToPending() async throws {
-        let fixture = try makeFixture(
-            state: .inTransit,
-            statusService: TransactionStatusServiceMock(stateChanges: TransactionChanges(state: .pending)),
-        )
-
-        let status = await fixture.service.update(for: fixture.transaction).status
-
-        expectRetry(status)
-        #expect(try fixture.store.getTransactions(states: [.pending]).isEmpty)
-        #expect(try fixture.store.getTransactions(states: [.inTransit]).count == 1)
-    }
-
-    @Test
     func jobRefreshesTransactionAfterHashChange() async throws {
-        let statusService = TransactionStatusServiceMock(
-            update: { transaction in
-                if transaction.id.hash == "hash" {
-                    return TransactionChanges(
-                        state: .inTransit,
-                        changes: [.hashChange(old: "hash", new: "new-hash")],
-                    )
-                }
-                return TransactionChanges(state: .confirmed)
-            },
-        )
-        let fixture = try makeFixture(statusService: statusService)
+        let requests = RequestedHashes()
+        let fixture = try makeFixture { store, walletId, transaction in
+            await requests.record(transaction.id.hash)
+            if transaction.id.hash == "hash" {
+                let newId = TransactionId(chain: transaction.assetId.chain, hash: "new-hash")
+                try store.renameTransaction(walletId: walletId, transactionId: transaction.id, newTransactionId: newId)
+                return try GemTransactionStateResult(transactionId: newId.json(), state: TransactionState.inTransit.json())
+            }
+            _ = try store.updateTransaction(walletId: walletId, transactionId: transaction.id, state: .confirmed, fee: nil, blockNumber: nil, metadata: nil, confirmationEtaSeconds: nil)
+            return try GemTransactionStateResult(transactionId: transaction.id.json(), state: TransactionState.confirmed.json())
+        }
         let job = TransactionStateJob(
             wallet: TransactionWallet(transaction: fixture.transaction, wallet: fixture.wallet),
             service: fixture.service,
@@ -170,7 +39,7 @@ struct TransactionStateServiceTests {
         await expectRetry(job.run())
         await expectComplete(job.run())
 
-        #expect(await statusService.requestedHashes() == ["hash", "new-hash"])
+        #expect(await requests.hashes == ["hash", "new-hash"])
     }
 
     @Test
@@ -179,12 +48,14 @@ struct TransactionStateServiceTests {
         try await confirmation("updates balances once") { updatedBalances in
             let fixture = try makeFixture(
                 type: .transfer,
-                statusService: TransactionStatusServiceMock(stateChanges: TransactionChanges(state: .inTransit)),
                 balanceUpdater: BalanceUpdaterMock { _, assetIds in
                     #expect(assetIds == [sourceAsset])
                     updatedBalances()
                 },
-            )
+            ) { store, walletId, transaction in
+                _ = try store.updateTransaction(walletId: walletId, transactionId: transaction.id, state: .inTransit, fee: nil, blockNumber: nil, metadata: nil, confirmationEtaSeconds: nil)
+                return try GemTransactionStateResult(transactionId: transaction.id.json(), state: TransactionState.inTransit.json())
+            }
             let job = TransactionStateJob(
                 wallet: TransactionWallet(transaction: fixture.transaction, wallet: fixture.wallet),
                 service: fixture.service,
@@ -197,7 +68,9 @@ struct TransactionStateServiceTests {
 
     @Test
     func jobStopsWhenWalletRemoved() async throws {
-        let fixture = try makeFixture(stateChanges: TransactionChanges(state: .confirmed))
+        let fixture = try makeFixture { _, _, transaction in
+            try GemTransactionStateResult(transactionId: transaction.id.json(), state: TransactionState.confirmed.json())
+        }
         let job = TransactionStateJob(
             wallet: TransactionWallet(transaction: fixture.transaction, wallet: fixture.wallet),
             service: fixture.service,
@@ -205,8 +78,25 @@ struct TransactionStateServiceTests {
         _ = try WalletStore.mock(db: fixture.db).deleteWallet(for: fixture.walletId)
 
         await expectCancelled(job.run())
+    }
 
-        #expect(try fixture.store.getTransactions(states: [.confirmed]).isEmpty)
+    @Test
+    func updateStopsWhenTransactionRowIsGone() async throws {
+        let fixture = try makeFixture { _, _, _ in nil }
+
+        let result = await fixture.service.update(walletId: fixture.walletId, transaction: fixture.transaction)
+
+        expectCancelled(result.status)
+    }
+
+    @Test
+    func updateRetriesOnServiceFailure() async throws {
+        let fixture = try makeFixture { _, _, _ in throw AnyError("offline") }
+
+        let result = await fixture.service.update(walletId: fixture.walletId, transaction: fixture.transaction)
+
+        expectRetry(result.status)
+        #expect(result.transactionId == fixture.transaction.id)
     }
 
     @Test
@@ -275,6 +165,8 @@ struct TransactionStateServiceTests {
 // MARK: - Private
 
 private extension TransactionStateServiceTests {
+    typealias Update = @Sendable (TransactionStore, WalletId, Transaction) async throws -> GemTransactionStateResult?
+
     struct Fixture {
         let db: DB
         let store: TransactionStore
@@ -284,16 +176,10 @@ private extension TransactionStateServiceTests {
         let service: TransactionStateService
     }
 
-    func makeFixture(stateChanges: TransactionChanges) throws -> Fixture {
-        try makeFixture(statusService: TransactionStatusServiceMock(stateChanges: stateChanges))
-    }
-
     func makeFixture(
-        state: TransactionState = .pending,
         type: TransactionType = .swap,
-        provider: SwapProvider? = .thorchain,
-        statusService: any TransactionStatusServiceable,
         balanceUpdater: BalanceUpdaterMock = .init(),
+        update: @escaping Update,
     ) throws -> Fixture {
         let fromAsset = AssetId.mock(.bitcoin)
         let toAsset = AssetId.mock(.ethereum)
@@ -305,17 +191,12 @@ private extension TransactionStateServiceTests {
         let wallet = Wallet.mock()
         let walletId = wallet.id
         let transaction = if type == .swap {
-            try makeSwapTransaction(
-                fromAsset: fromAsset,
-                toAsset: toAsset,
-                state: state,
-                provider: provider,
-            )
+            try makeSwapTransaction(fromAsset: fromAsset, toAsset: toAsset, state: .pending)
         } else {
             Transaction.mock(
                 transactionId: TransactionId(chain: fromAsset.chain, hash: "hash"),
                 type: type,
-                state: state,
+                state: .pending,
                 assetId: fromAsset,
             )
         }
@@ -330,8 +211,10 @@ private extension TransactionStateServiceTests {
         )
         let service = TransactionStateService(
             transactionStore: store,
+            service: GemTransactionStateServiceMock { walletId, transaction in
+                try await update(store, WalletId.from(id: walletId), Transaction(transaction))
+            },
             postProcessingService: postProcessingService,
-            statusService: statusService,
         )
         return Fixture(db: db, store: store, walletId: walletId, wallet: wallet, transaction: transaction, service: service)
     }
@@ -341,14 +224,13 @@ private extension TransactionStateServiceTests {
         fromAsset: AssetId,
         toAsset: AssetId,
         state: TransactionState,
-        provider: SwapProvider? = .thorchain,
     ) throws -> Transaction {
         let metadata = try #require(AnyCodableValue.encode(TransactionSwapMetadata(
             fromAsset: fromAsset,
             fromValue: "100000000",
             toAsset: toAsset,
             toValue: "10000000000000000000",
-            provider: provider?.rawValue,
+            provider: SwapProvider.thorchain.rawValue,
         )))
         return Transaction.mock(
             transactionId: TransactionId(chain: fromAsset.chain, hash: hash),
@@ -387,24 +269,10 @@ private extension TransactionStateServiceTests {
     }
 }
 
-private actor TransactionStatusServiceMock: TransactionStatusServiceable {
-    private let update: @Sendable (Transaction) -> TransactionChanges
-    private var requests: [Transaction] = []
+private actor RequestedHashes {
+    private(set) var hashes: [String] = []
 
-    init(stateChanges: TransactionChanges) {
-        update = { _ in stateChanges }
-    }
-
-    init(update: @escaping @Sendable (Transaction) -> TransactionChanges) {
-        self.update = update
-    }
-
-    func transactionUpdate(_ transaction: Transaction) async throws -> TransactionChanges {
-        requests.append(transaction)
-        return update(transaction)
-    }
-
-    func requestedHashes() -> [String] {
-        requests.map(\.id.hash)
+    func record(_ hash: String) {
+        hashes.append(hash)
     }
 }

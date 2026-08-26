@@ -13,6 +13,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import uniffi.gemstone.GemTransactionStateService
 
 class TransactionStateSchedulerTest {
 
@@ -24,7 +25,7 @@ class TransactionStateSchedulerTest {
     private val subject = TransactionStateScheduler(
         sessionRepository = sessionRepository,
         transactionsDao = mockk<TransactionsDao>(relaxed = true),
-        stateService = mockk<TransactionStateService>(),
+        stateService = mockk<GemTransactionStateService>(),
         postProcessingService = postProcessingService,
     )
 

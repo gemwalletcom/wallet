@@ -17,6 +17,7 @@ pub mod scan;
 pub mod stake;
 pub mod subscription;
 pub mod support;
+pub mod transaction_state;
 pub mod transactions;
 pub mod wallet_configuration;
 
@@ -39,5 +40,6 @@ pub use scan::GemScanService;
 pub use stake::{GemStakeService, GemStakeStore};
 pub use subscription::GemSubscriptionService;
 pub use support::GemSupportService;
+pub use transaction_state::{GemTransactionStateService, GemTransactionStateStore};
 pub use transactions::GemTransactionsService;
 pub use wallet_configuration::GemWalletConfigurationService;

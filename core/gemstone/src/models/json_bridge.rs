@@ -1,3 +1,4 @@
+use primitives::TransactionId;
 use primitives::asset_balance::BalanceMetadata;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
 use primitives::currency::Currency;
@@ -157,6 +158,7 @@ json_bridge!(
     TPSLOrderData,
     Transaction,
     TransactionPerpetualMetadata,
+    TransactionId,
     TransactionState,
     TransactionType,
     TransactionsResponse,

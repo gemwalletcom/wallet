@@ -1,6 +1,5 @@
 use crate::address::checksum_address;
 use crate::models::*;
-use chrono::{DateTime, Utc};
 use num_bigint::BigInt;
 use primitives::ApplicationMetadata;
 use primitives::contract_call_data::ContractCallData;
@@ -8,15 +7,13 @@ use primitives::nft::NFTAsset;
 use primitives::solana_nft::SolanaNftStandard;
 use primitives::solana_token_program::SolanaTokenProgramId;
 use primitives::{
-    AccountDataType, AssetId, Chain, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, SignerInput,
-    StakeType, TransactionChange, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionMetadata, TransactionPerpetualMetadata,
-    TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType,
-    TronStakeData, TronUnfreeze, TronVote, UInt64, perpetual::PerpetualReduceData,
+    AccountDataType, AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, SignerInput,
+    StakeType, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionMetadata, TransactionPerpetualMetadata, TransactionState,
+    TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, perpetual::PerpetualReduceData,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swap::{GemApprovalData, GemSwapData};
-use swapper::SwapperProvider;
 
 pub type GemPerpetualDirection = PerpetualDirection;
 pub type GemPerpetualProvider = PerpetualProvider;
@@ -33,8 +30,6 @@ pub enum PerpetualProvider {
 pub type GemTransactionPerpetualMetadata = TransactionPerpetualMetadata;
 pub type GemTransactionMetadata = TransactionMetadata;
 pub type GemTransactionState = TransactionState;
-pub type GemTransactionChange = TransactionChange;
-pub type GemTransactionUpdate = TransactionUpdate;
 pub type GemTransactionType = TransactionType;
 pub type GemTronVote = TronVote;
 pub type GemTronUnfreeze = TronUnfreeze;
@@ -45,44 +40,7 @@ pub enum FeeOption {
     TokenAccountCreation,
 }
 
-#[uniffi::remote(Enum)]
-pub enum TransactionMetadata {
-    Perpetual(TransactionPerpetualMetadata),
-    Swap(TransactionSwapMetadata),
-}
-
-#[uniffi::remote(Enum)]
-pub enum TransactionChange {
-    HashChange { old: String, new: String },
-    Metadata(TransactionMetadata),
-    BlockNumber(String),
-    NetworkFee(BigInt),
-    ConfirmationEtaSeconds(u32),
-}
-
-#[uniffi::remote(Record)]
-pub struct TransactionUpdate {
-    pub state: TransactionState,
-    pub changes: Vec<TransactionChange>,
-}
-
 pub type GemAccountDataType = AccountDataType;
-
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemTransactionStateRequest {
-    pub id: String,
-    pub sender_address: String,
-    pub created_at: DateTime<Utc>,
-    pub block_number: UInt64,
-}
-
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemTransactionSwapStateRequest {
-    pub transaction: GemTransactionStateRequest,
-    pub state: TransactionState,
-    pub swap_provider: SwapperProvider,
-    pub destination_chain: Chain,
-}
 
 pub type GemHyperliquidOrder = HyperliquidOrder;
 
@@ -339,17 +297,6 @@ pub enum GemTransactionLoadMetadata {
     Hyperliquid {
         order: Option<GemHyperliquidOrder>,
     },
-}
-
-impl From<GemTransactionStateRequest> for TransactionStateRequest {
-    fn from(value: GemTransactionStateRequest) -> Self {
-        TransactionStateRequest {
-            id: value.id,
-            sender_address: value.sender_address,
-            created_at: value.created_at,
-            block_number: value.block_number,
-        }
-    }
 }
 
 impl From<GemTransactionLoadInput> for TransactionLoadInput {

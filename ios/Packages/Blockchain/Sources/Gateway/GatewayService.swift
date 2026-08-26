@@ -25,6 +25,10 @@ public actor GatewayService: Sendable {
         GemStakeService(gateway: gateway, staticApi: staticApi, store: store)
     }
 
+    public nonisolated func transactionStateService(store: any GemTransactionStateStore) -> GemTransactionStateService {
+        GemTransactionStateService(gateway: gateway, store: store)
+    }
+
     public nonisolated func confirmService(
         simulation: TransactionSimulationService,
         scanner: GemScanService,
@@ -59,9 +63,6 @@ public extension GatewayService {
 // MARK: - Transactions
 
 public extension GatewayService {
-    func transactionUpdate(_ transaction: Primitives.Transaction) async throws -> TransactionChanges {
-        try await gateway.getTransactionUpdate(transaction: transaction.json()).map()
-    }
 }
 
 // MARK: - Account

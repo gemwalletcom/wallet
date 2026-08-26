@@ -264,7 +264,7 @@ impl Transaction {
         values.iter().filter(|x| addresses.contains(&x.address)).map(|x| &x.value).sum()
     }
 
-    fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
+    pub fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
         self.metadata.as_ref().and_then(|value| TransactionSwapMetadata::deserialize(value).ok())
     }
 

@@ -1,0 +1,46 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Foundation
+import typealias Gemstone.TransactionId
+import typealias Gemstone.TransactionState
+import protocol Gemstone.GemTransactionStateStore
+import struct Gemstone.GemTransactionStateUpdate
+import GemstonePrimitives
+import Primitives
+import Store
+
+public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unchecked Sendable {
+    private let store: TransactionStore
+
+    public init(store: TransactionStore) {
+        self.store = store
+    }
+
+    public func getState(walletId: String, transactionId: Gemstone.TransactionId) async throws -> Gemstone.TransactionState? {
+        try store.getTransactionState(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(transactionId)).map { try $0.json() }
+    }
+
+    public func renameTransaction(walletId: String, transactionId: Gemstone.TransactionId, newTransactionId: Gemstone.TransactionId) async throws {
+        try store.renameTransaction(
+            walletId: WalletId.from(id: walletId),
+            transactionId: Primitives.TransactionId(transactionId),
+            newTransactionId: Primitives.TransactionId(newTransactionId),
+        )
+    }
+
+    public func deleteTransaction(walletId: String, transactionId: Gemstone.TransactionId) async throws {
+        try store.deleteTransaction(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(transactionId))
+    }
+
+    public func updateTransaction(walletId: String, transactionId: Gemstone.TransactionId, update: GemTransactionStateUpdate) async throws -> Bool {
+        try store.updateTransaction(
+            walletId: WalletId.from(id: walletId),
+            transactionId: Primitives.TransactionId(transactionId),
+            state: Primitives.TransactionState(update.state),
+            fee: update.fee,
+            blockNumber: update.blockNumber.flatMap { Int($0) },
+            metadata: update.metadata,
+            confirmationEtaSeconds: update.confirmationEtaSeconds,
+        ) > 0
+    }
+}
