@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Primitives
 import SwiftUI
 
@@ -31,6 +32,7 @@ private struct ScanReceiveSheet: ViewModifier {
                         onScan: { code = $0 },
                     ),
                 )
+                .orientationLock(.portrait)
             }
         }
     }
