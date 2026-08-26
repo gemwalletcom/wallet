@@ -1,6 +1,5 @@
 pub mod asset;
 pub mod balance;
-pub mod chain_address;
 pub mod connection;
 pub(crate) mod custom_types;
 pub mod gateway;
@@ -14,7 +13,6 @@ pub mod transaction;
 
 pub use asset::*;
 pub use balance::*;
-pub use chain_address::*;
 pub use connection::*;
 pub use gateway::*;
 pub use node::*;

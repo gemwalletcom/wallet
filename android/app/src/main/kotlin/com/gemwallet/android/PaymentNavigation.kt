@@ -24,7 +24,7 @@ import com.wallet.core.primitives.TransactionType
 import java.math.BigInteger
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
-import uniffi.gemstone.ChainAddress
+import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.PaymentServiceInterface
 import uniffi.gemstone.paymentDecodedTransfer
 
@@ -53,10 +53,11 @@ class PaymentNavigation @Inject constructor(
         val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
         val payment = paymentService.load(
             link.toJson(),
-            accounts.map { ChainAddress(chain = it.chain.string, address = it.address) },
+            accounts.map { ChainAddress(chain = it.chain, address = it.address).toJson() },
         )
+        val paymentAccount = payment.account.decodeJson<ChainAddress>()
         val account = accounts.firstOrNull {
-            it.chain.string == payment.account.chain && it.address == payment.account.address
+            it.chain == paymentAccount.chain && it.address == paymentAccount.address
         } ?: return emptyList()
         val transfer = payment.request?.let { request ->
             val decoded = request.decodeJson<PaymentRequest>()

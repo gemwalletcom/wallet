@@ -10,7 +10,7 @@ import com.gemwallet.android.ext.referralChain
 import com.wallet.core.primitives.AuthPayload
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
-import uniffi.gemstone.GemAuthNonce
+import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.createAuthMessage
 import java.io.IOException
 
@@ -29,7 +29,7 @@ class GetAuthPayloadImpl(
         val nonce = gemDeviceApiClient.getAuthNonce() ?: throw IOException("Auth nonce unavailable")
         val message = createAuthMessage(
             address = account.address,
-            authNonce = GemAuthNonce(nonce.nonce, nonce.timestamp)
+            authNonce = nonce.toJson()
         )
 
         val signature = signAuthOperator(wallet, chain, message.hash, passwordStore.getPassword(wallet.id.id))

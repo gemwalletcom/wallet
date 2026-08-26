@@ -87,7 +87,7 @@ public struct DeviceService: DeviceServiceable {
         return remainingTime < Self.nodeAuthTokenRefreshThreshold
     }
 
-    private func getOrCreateDevice(_ deviceId: String) async throws -> Device {
+    private func getOrCreateDevice(_ deviceId: String) async throws -> Primitives.Device {
         var shouldFetchDevice = preferences.isDeviceRegistered
         if !shouldFetchDevice {
             shouldFetchDevice = try await deviceProvider.isDeviceRegistered()
@@ -131,7 +131,7 @@ public struct DeviceService: DeviceServiceable {
     private func currentDevice(
         deviceId: String,
         ignoreSubscriptionsVersion: Bool = false,
-    ) throws -> Device {
+    ) throws -> Primitives.Device {
         let deviceToken = try securePreferences.get(key: .deviceToken) ?? .empty
         #if targetEnvironment(simulator)
             let platformStore = PlatformStore.local
@@ -139,7 +139,7 @@ public struct DeviceService: DeviceServiceable {
             let platformStore = PlatformStore.appStore
         #endif
 
-        return Device(
+        return Primitives.Device(
             id: deviceId,
             platform: .ios,
             platformStore: platformStore,
@@ -155,17 +155,17 @@ public struct DeviceService: DeviceServiceable {
         )
     }
 
-    private func getDevice() async throws -> Device? {
+    private func getDevice() async throws -> Primitives.Device? {
         try await deviceProvider.getDevice()
     }
 
     @discardableResult
-    private func addDevice(_ device: Device) async throws -> Device {
+    private func addDevice(_ device: Primitives.Device) async throws -> Primitives.Device {
         try await deviceProvider.addDevice(device: device)
     }
 
     @discardableResult
-    private func updateDevice(_ device: Device) async throws -> Device {
+    private func updateDevice(_ device: Primitives.Device) async throws -> Primitives.Device {
         try await deviceProvider.updateDevice(device: device)
     }
 }

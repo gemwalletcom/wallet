@@ -1,9 +1,11 @@
 use primitives::asset_balance::BalanceMetadata;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
 use primitives::currency::Currency;
+use primitives::name::NameRecord;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
 use primitives::perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
+use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::stake_type::Resource;
 use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType};
 use primitives::{
@@ -12,6 +14,11 @@ use primitives::{
     PaymentRequest, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget,
     ScanTransaction, ScanTransactionPayload, SimulationPayloadField, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeValidator,
     TransactionPerpetualMetadata, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
+};
+use primitives::{
+    AddressName, AuthNonce, ChainAddress, Device, DeviceToken, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAssets,
+    PortfolioAssetsRequest, PriceAlert, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription,
+    WalletSubscriptionChains,
 };
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
 use primitives::{AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, FiatAssets, FiatQuoteType, Markets, SearchResponse};
@@ -39,6 +46,7 @@ macro_rules! json_bridge {
 
 json_bridge!(
     AccountDataType,
+    AddressName,
     ApplicationMetadata,
     ApplicationMetadataSource,
     ApprovalData,
@@ -48,10 +56,12 @@ json_bridge!(
     AssetMarket,
     AssetPrice,
     AssetType,
+    AuthNonce,
     BalanceMetadata,
     BannerEvent,
     BannerState,
     CancelOrderData,
+    ChainAddress,
     ChainAsset,
     ChartCandleStick,
     ChartCandleUpdate,
@@ -67,9 +77,16 @@ json_bridge!(
     DelegationBase,
     DelegationState,
     DelegationValidator,
+    Device,
+    DeviceToken,
     EarnType,
     FiatAssets,
+    FiatQuoteRequest,
     FiatQuoteType,
+    FiatQuoteUrl,
+    FiatQuotes,
+    FiatTransactionData,
+    InAppNotification,
     Markets,
     NFTAsset,
     NFTAssetData,
@@ -79,6 +96,7 @@ json_bridge!(
     NFTImages,
     NFTResource,
     NFTType,
+    NameRecord,
     Payment,
     PaymentAmount,
     PaymentLink,
@@ -102,9 +120,16 @@ json_bridge!(
     PerpetualReduceData,
     PerpetualTriggerOrder,
     PerpetualType,
+    PortfolioAssets,
+    PortfolioAssetsRequest,
     Price,
+    PriceAlert,
+    RedemptionRequest,
+    RedemptionResult,
+    ReferralCode,
     ReportNft,
     Resource,
+    Rewards,
     ScanAddressTarget,
     ScanTransaction,
     ScanTransactionPayload,
@@ -116,6 +141,8 @@ json_bridge!(
     StakeProviderType,
     StakeType,
     StakeValidator,
+    SupportMessage,
+    SupportMessageInput,
     SwapData,
     SwapPriceImpact,
     SwapPriceImpactType,
@@ -128,10 +155,14 @@ json_bridge!(
     TransactionPerpetualMetadata,
     TransactionState,
     TransactionType,
+    TransactionsResponse,
     TransferDataOutputAction,
     TransferDataOutputType,
     TronStakeData,
     TronUnfreeze,
     TronVote,
     UTXO,
+    WalletConfigurationResult,
+    WalletSubscription,
+    WalletSubscriptionChains,
 );

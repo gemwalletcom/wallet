@@ -29,6 +29,6 @@ extension WalletConnectUtils.Account {
         guard let account = WalletConnect.shared.parseAccount(account: absoluteString) else {
             return .none
         }
-        return Primitives.Chain(rawValue: account.chain)
+        return try? Primitives.ChainAddress(account).chain
     }
 }

@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.bridge
 
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.secondsToMillis
@@ -12,7 +13,6 @@ import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.WalletConnectionState
 import com.wallet.core.primitives.Wallet as GemWallet
-import uniffi.gemstone.ChainAddress as WalletConnectChainAddress
 import uniffi.gemstone.WalletConnect
 
 internal fun WalletConnectSession.toConnectionRecord(
@@ -40,13 +40,9 @@ internal fun WalletConnectSession.accounts(): List<ChainAddress> {
     val walletConnect = WalletConnect()
     return namespaces.values
         .flatMap { it.accounts }
-        .mapNotNull { walletConnect.parseAccount(it)?.toPrimitives() }
+        .mapNotNull { walletConnect.parseAccount(it)?.decodeJson<ChainAddress>() }
 }
 
-private fun WalletConnectChainAddress.toPrimitives(): ChainAddress? {
-    val chain = chain.toChain() ?: return null
-    return ChainAddress(chain, address)
-}
 
 internal fun WalletConnectSession.belongsTo(wallet: GemWallet): Boolean {
     return accounts().belongsTo(wallet)

@@ -34,7 +34,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.ChainAddress
+import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemPaymentConfirmTransfer
 import uniffi.gemstone.GemPaymentTransaction
 import uniffi.gemstone.PaymentServiceInterface
@@ -187,7 +187,7 @@ class PaymentNavigationTest {
             icon = "https://example.com/icon.png",
             source = ApplicationMetadataSource.Payment,
         ).toJson(),
-        account = ChainAddress(account.chain.string, account.address),
+        account = ChainAddress(account.chain, account.address).toJson(),
         transaction = "encoded-transaction",
         transactionType = TransactionType.Transfer.toJson(),
         memo = memo,

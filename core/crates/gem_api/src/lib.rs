@@ -8,7 +8,7 @@ pub mod target;
 
 pub use client::GemApiClient;
 pub use device_client::GemDeviceApiClient;
-pub use device_target::GemDeviceApiTarget;
+pub use device_target::{GemDeviceApiBody, GemDeviceApiTarget};
 pub use method::GemApiMethod;
 pub use static_client::GemStaticApiClient;
 pub use static_target::GemStaticApiTarget;

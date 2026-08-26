@@ -203,7 +203,7 @@ struct PaymentTransferTests {
                 icon: "https://example.com/icon.png",
                 source: .payment,
             ).json(),
-            account: Gemstone.ChainAddress(chain: Primitives.Chain.solana.rawValue, address: "account"),
+            account: try Primitives.ChainAddress(chain: .solana, address: "account").json(),
             transaction: "encoded-transaction",
             transactionType: Primitives.TransactionType.transfer.json(),
             memo: memo,

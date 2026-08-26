@@ -1,9 +1,9 @@
 use crate::chain::Chain;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
 use typeshare::typeshare;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Sendable, Hashable")]
 pub struct NameRecord {
     pub name: String,
@@ -12,7 +12,7 @@ pub struct NameRecord {
     pub provider: NameProvider,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, AsRefStr, EnumString)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, AsRefStr, EnumString)]
 #[typeshare(swift = "Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]

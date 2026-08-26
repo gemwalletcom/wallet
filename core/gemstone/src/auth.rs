@@ -6,14 +6,6 @@ use zeroize::Zeroizing;
 
 const AUTH_SIGNING_BYTES_LENGTH: usize = 32;
 
-pub type GemAuthNonce = AuthNonce;
-
-#[uniffi::remote(Record)]
-pub struct GemAuthNonce {
-    pub nonce: String,
-    pub timestamp: u32,
-}
-
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAuthMessage {
     pub message: String,
@@ -21,7 +13,7 @@ pub struct GemAuthMessage {
 }
 
 #[uniffi::export]
-pub fn create_auth_message(address: &str, auth_nonce: GemAuthNonce) -> GemAuthMessage {
+pub fn create_auth_message(address: &str, auth_nonce: AuthNonce) -> GemAuthMessage {
     let auth_message = AuthMessage {
         chain: Chain::Ethereum,
         address: address.to_string(),

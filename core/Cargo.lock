@@ -3586,6 +3586,8 @@ version = "2.114.11"
 dependencies = [
  "gem_auth",
  "gem_client",
+ "gem_jsonrpc",
+ "percent-encoding",
  "primitives",
  "serde",
  "serde_json",

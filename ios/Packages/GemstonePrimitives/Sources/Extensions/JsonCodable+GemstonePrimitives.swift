@@ -24,6 +24,7 @@ public extension JsonCodable {
 }
 
 extension Primitives.AccountDataType: JsonCodable {}
+extension Primitives.AddressName: JsonCodable {}
 extension Primitives.ApplicationMetadata: JsonCodable {}
 extension Primitives.ApplicationMetadataSource: JsonCodable {}
 extension Primitives.ApprovalData: JsonCodable {}
@@ -33,10 +34,12 @@ extension Primitives.AssetFull: JsonCodable {}
 extension Primitives.AssetMarket: JsonCodable {}
 extension Primitives.AssetPrice: JsonCodable {}
 extension Primitives.AssetType: JsonCodable {}
+extension Primitives.AuthNonce: JsonCodable {}
 extension Primitives.BalanceMetadata: JsonCodable {}
 extension Primitives.BannerEvent: JsonCodable {}
 extension Primitives.BannerState: JsonCodable {}
 extension Primitives.CancelOrderData: JsonCodable {}
+extension Primitives.ChainAddress: JsonCodable {}
 extension Primitives.ChainAsset: JsonCodable {}
 extension Primitives.ChartCandleStick: JsonCodable {}
 extension Primitives.ChartCandleUpdate: JsonCodable {}
@@ -52,9 +55,16 @@ extension Primitives.Delegation: JsonCodable {}
 extension Primitives.DelegationBase: JsonCodable {}
 extension Primitives.DelegationState: JsonCodable {}
 extension Primitives.DelegationValidator: JsonCodable {}
+extension Primitives.Device: JsonCodable {}
+extension Primitives.DeviceToken: JsonCodable {}
 extension Primitives.EarnType: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
+extension Primitives.FiatQuoteRequest: JsonCodable {}
 extension Primitives.FiatQuoteType: JsonCodable {}
+extension Primitives.FiatQuoteUrl: JsonCodable {}
+extension Primitives.FiatQuotes: JsonCodable {}
+extension Primitives.FiatTransactionData: JsonCodable {}
+extension Primitives.InAppNotification: JsonCodable {}
 extension Primitives.Markets: JsonCodable {}
 extension Primitives.NFTAsset: JsonCodable {}
 extension Primitives.NFTAssetData: JsonCodable {}
@@ -64,6 +74,7 @@ extension Primitives.NFTData: JsonCodable {}
 extension Primitives.NFTImages: JsonCodable {}
 extension Primitives.NFTResource: JsonCodable {}
 extension Primitives.NFTType: JsonCodable {}
+extension Primitives.NameRecord: JsonCodable {}
 extension Primitives.Payment: JsonCodable {}
 extension Primitives.PaymentAmount: JsonCodable {}
 extension Primitives.PaymentLink: JsonCodable {}
@@ -87,9 +98,16 @@ extension Primitives.PerpetualPositionsSummary: JsonCodable {}
 extension Primitives.PerpetualReduceData: JsonCodable {}
 extension Primitives.PerpetualTriggerOrder: JsonCodable {}
 extension Primitives.PerpetualType: JsonCodable {}
+extension Primitives.PortfolioAssets: JsonCodable {}
+extension Primitives.PortfolioAssetsRequest: JsonCodable {}
 extension Primitives.Price: JsonCodable {}
+extension Primitives.PriceAlert: JsonCodable {}
+extension Primitives.RedemptionRequest: JsonCodable {}
+extension Primitives.RedemptionResult: JsonCodable {}
+extension Primitives.ReferralCode: JsonCodable {}
 extension Primitives.ReportNft: JsonCodable {}
 extension Primitives.Resource: JsonCodable {}
+extension Primitives.Rewards: JsonCodable {}
 extension Primitives.ScanAddressTarget: JsonCodable {}
 extension Primitives.ScanTransaction: JsonCodable {}
 extension Primitives.ScanTransactionPayload: JsonCodable {}
@@ -101,6 +119,8 @@ extension Primitives.SolanaTokenProgramId: JsonCodable {}
 extension Primitives.StakeProviderType: JsonCodable {}
 extension Primitives.StakeType: JsonCodable {}
 extension Primitives.StakeValidator: JsonCodable {}
+extension Primitives.SupportMessage: JsonCodable {}
+extension Primitives.SupportMessageInput: JsonCodable {}
 extension Primitives.SwapData: JsonCodable {}
 extension Primitives.SwapPriceImpact: JsonCodable {}
 extension Primitives.SwapPriceImpactType: JsonCodable {}
@@ -113,9 +133,13 @@ extension Primitives.Transaction: JsonCodable {}
 extension Primitives.TransactionPerpetualMetadata: JsonCodable {}
 extension Primitives.TransactionState: JsonCodable {}
 extension Primitives.TransactionType: JsonCodable {}
+extension Primitives.TransactionsResponse: JsonCodable {}
 extension Primitives.TransferDataOutputAction: JsonCodable {}
 extension Primitives.TransferDataOutputType: JsonCodable {}
 extension Primitives.TronStakeData: JsonCodable {}
 extension Primitives.TronUnfreeze: JsonCodable {}
 extension Primitives.TronVote: JsonCodable {}
 extension Primitives.UTXO: JsonCodable {}
+extension Primitives.WalletConfigurationResult: JsonCodable {}
+extension Primitives.WalletSubscription: JsonCodable {}
+extension Primitives.WalletSubscriptionChains: JsonCodable {}

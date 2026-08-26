@@ -165,12 +165,12 @@ public final class SetPriceAlertViewModel {
         }
     }
 
-    private func priceAlert() throws -> PriceAlert {
+    private func priceAlert() throws -> Primitives.PriceAlert {
         let (price, pricePercentChange): (Double?, Double?) = switch state.type {
         case .price: (amountValue, nil)
         case .percentage: (nil, amountValue)
         }
-        return PriceAlert(
+        return Primitives.PriceAlert(
             assetId: asset.id,
             currency: try Currency(id: preferences.currency),
             price: price,
