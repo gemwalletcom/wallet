@@ -71,7 +71,6 @@ extension AppResolver {
         let appReleaseService: AppReleaseService
         let releaseAlertService: ReleaseAlertService
         let rateService: RateService
-        let subscriptionsService: SubscriptionService
         let deviceObserverService: DeviceObserverService
         let onstartService: OnstartService
         let onstartAsyncService: OnstartAsyncService

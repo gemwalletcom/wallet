@@ -5,18 +5,15 @@ import Store
 
 public actor DeviceObserverService {
     private let deviceService: any DeviceServiceable
-    private let subscriptionsService: SubscriptionService
     private let subscriptionsObserver: SubscriptionsObserver
 
     private var nodeAuthTokenUpdateTask: Task<Void, Never>?
 
     public init(
         deviceService: any DeviceServiceable,
-        subscriptionsService: SubscriptionService,
         subscriptionsObserver: SubscriptionsObserver,
     ) {
         self.deviceService = deviceService
-        self.subscriptionsService = subscriptionsService
         self.subscriptionsObserver = subscriptionsObserver
     }
 
@@ -48,7 +45,6 @@ public actor DeviceObserverService {
     }
 
     func handleSubscriptionsChange() async throws {
-        subscriptionsService.invalidateSubscriptions()
         try await deviceService.update()
     }
 }

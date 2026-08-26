@@ -63,15 +63,15 @@ struct ServicesFactory {
         let nativeProvider = NativeProvider(nodeProvider: nodeService, requestInterceptor: nodeAuthProvider)
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, securePreferences: securePreferences)
 
-        let subscriptionService = SubscriptionService(
-            subscriptionProvider: Gemstone.GemSubscriptionService(
-                api: deviceRegistrationClient,
-                store: GemstoneWalletStore(store: storeManager.walletStore),
-            ),
+        let gemWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
+        let gemDeviceService = Gemstone.GemDeviceService(
+            api: deviceRegistrationClient,
+            subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, store: gemWalletStore),
+            walletStore: gemWalletStore,
+            store: GemstoneDeviceStore(),
         )
         let deviceService = DeviceService(
-            deviceProvider: Gemstone.GemDeviceService(api: deviceRegistrationClient),
-            subscriptionsService: subscriptionService,
+            deviceProvider: gemDeviceService,
             securePreferences: securePreferences,
         )
         let gemDeviceApiClient = Self.makeDeviceApiClient(
@@ -81,7 +81,6 @@ struct ServicesFactory {
         )
         let deviceObserverService = Self.makeDeviceObserverService(
             deviceService: deviceService,
-            subscriptionService: subscriptionService,
             walletStore: storeManager.walletStore,
         )
 
@@ -141,7 +140,7 @@ struct ServicesFactory {
         let balanceService = BalanceService(
             balanceStore: storeManager.balanceStore,
             service: gatewayService.balanceService(
-                walletStore: GemstoneWalletStore(store: storeManager.walletStore),
+                walletStore: gemWalletStore,
                 assetStore: gemAssetStore,
                 store: GemstoneBalanceStore(store: storeManager.balanceStore),
             ),
@@ -411,7 +410,6 @@ struct ServicesFactory {
             appReleaseService: releaseService,
             releaseAlertService: releaseAlertService,
             rateService: rateService,
-            subscriptionsService: subscriptionService,
             deviceObserverService: deviceObserverService,
             onstartService: onStartService,
             onstartAsyncService: onstartAsyncService,
@@ -474,12 +472,10 @@ extension ServicesFactory {
 
     private static func makeDeviceObserverService(
         deviceService: any DeviceServiceable,
-        subscriptionService: SubscriptionService,
         walletStore: WalletStore,
     ) -> DeviceObserverService {
         DeviceObserverService(
             deviceService: deviceService,
-            subscriptionsService: subscriptionService,
             subscriptionsObserver: walletStore.observer(),
         )
     }

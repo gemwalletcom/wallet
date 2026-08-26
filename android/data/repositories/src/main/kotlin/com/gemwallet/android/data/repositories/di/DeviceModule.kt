@@ -11,6 +11,7 @@ import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.device.DeviceObserverService
 import com.gemwallet.android.data.repositories.device.DeviceRepository
+import com.gemwallet.android.data.repositories.device.GemstoneDeviceStore
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.wallets.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -36,6 +37,20 @@ object DeviceModule {
 
     @Provides
     @Singleton
+    fun provideGemstoneDeviceStore(@ApplicationContext context: Context): GemstoneDeviceStore =
+        GemstoneDeviceStore(ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)))
+
+    @Provides
+    @Singleton
+    fun provideGemDeviceService(
+        @Named("registration") apiClient: GemDeviceApiClient,
+        subscriptionService: GemSubscriptionService,
+        walletsRepository: Lazy<WalletsRepository>,
+        deviceStore: GemstoneDeviceStore,
+    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, GemstoneWalletStore(walletsRepository), deviceStore)
+
+    @Provides
+    @Singleton
     fun provideGemSubscriptionService(
         @Named("registration") apiClient: GemDeviceApiClient,
         walletsRepository: Lazy<WalletsRepository>,
@@ -47,17 +62,16 @@ object DeviceModule {
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
         deviceService: GemDeviceService,
-        subscriptionService: GemSubscriptionService,
+        deviceStore: GemstoneDeviceStore,
         getDeviceId: GetDeviceId,
         priceAlertRepository: PriceAlertRepository,
         getCurrentCurrency: GetCurrentCurrency,
-        walletsRepository: WalletsRepository,
         notificationsAvailable: NotificationsAvailable,
     ): DeviceRepository {
         return DeviceRepository(
             context = context,
             deviceService = deviceService,
-            subscriptionService = subscriptionService,
+            deviceStore = deviceStore,
             getDeviceId = getDeviceId,
             configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
             requestPushToken = buildInfo.requestPushToken,
@@ -66,7 +80,6 @@ object DeviceModule {
             versionName = buildInfo.versionName,
             priceAlertRepository = priceAlertRepository,
             getCurrentCurrency = getCurrentCurrency,
-            walletsRepository = walletsRepository,
         )
     }
 

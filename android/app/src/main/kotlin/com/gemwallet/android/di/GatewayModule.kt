@@ -130,9 +130,6 @@ object GatewayModule {
         DeviceSyncPreflight(syncDevice),
     )
 
-    @Provides
-    @Singleton
-    fun provideGemDeviceService(@Named("registration") apiClient: GemstoneDeviceApiClient): GemDeviceService = GemDeviceService(apiClient)
 
 
     @Provides

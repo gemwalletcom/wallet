@@ -225,7 +225,6 @@ struct WalletServiceTests {
     func loadOrCreateWalletMarksSubscriptionsDirty() async throws {
         let rawPreferences = Preferences.mock()
         rawPreferences.subscriptionsVersion = 4
-        rawPreferences.subscriptionsVersionHasChange = false
 
         let service = WalletService.mock(
             walletStore: .mock(db: .mockWithChains([.ethereum])),
@@ -239,7 +238,6 @@ struct WalletServiceTests {
         )
 
         #expect(rawPreferences.subscriptionsVersion == 5)
-        #expect(rawPreferences.subscriptionsVersionHasChange)
     }
 
     @Test
@@ -262,12 +260,10 @@ struct WalletServiceTests {
         )
 
         rawPreferences.subscriptionsVersion = 7
-        rawPreferences.subscriptionsVersionHasChange = false
 
         try await service.delete(wallet)
 
         #expect(rawPreferences.subscriptionsVersion == 8)
-        #expect(rawPreferences.subscriptionsVersionHasChange)
     }
 
     @Test
@@ -285,12 +281,10 @@ struct WalletServiceTests {
         ).wallet
 
         rawPreferences.subscriptionsVersion = 7
-        rawPreferences.subscriptionsVersionHasChange = false
 
         try await service.delete(wallet)
 
         #expect(rawPreferences.subscriptionsVersion == 1)
-        #expect(rawPreferences.subscriptionsVersionHasChange)
     }
 
     @Test
@@ -308,12 +302,10 @@ struct WalletServiceTests {
         )
 
         rawPreferences.subscriptionsVersion = 10
-        rawPreferences.subscriptionsVersionHasChange = false
 
         try service.setup(chains: [.bitcoin])
 
         #expect(rawPreferences.subscriptionsVersion == 11)
-        #expect(rawPreferences.subscriptionsVersionHasChange)
     }
 
     @Test

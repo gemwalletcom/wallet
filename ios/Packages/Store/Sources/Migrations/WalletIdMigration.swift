@@ -19,7 +19,6 @@ enum WalletIdMigration {
     ]
 
     private static let currentWalletKey = "currentWallet"
-    private static let subscriptionsVersionHasChangeKey = "subscriptions_version_has_change"
 
     static func migrate(db: Database, userDefaults: UserDefaults = .standard) throws {
         let mappings = try buildWalletMappings(db: db)
@@ -62,7 +61,6 @@ enum WalletIdMigration {
         cleanupOrphanedRecords(db: db)
 
         migrateCurrentWalletPreference(mappings: remainingMappings, userDefaults: userDefaults)
-        userDefaults.set(true, forKey: subscriptionsVersionHasChangeKey)
     }
 
     private static func deleteUnmappedInvalidWallets(db: Database, mappedOldIds: Set<String>) throws {

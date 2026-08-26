@@ -19,7 +19,8 @@ public final class Preferences: @unchecked Sendable {
         static let swapSlippageBps = "swap_slippage_bps"
         static let launchesCount = "launches_count"
         static let subscriptionsVersion = "subscriptions_version"
-        static let subscriptionsVersionHasChange = "subscriptions_version_has_change"
+        static let pushedDevice = "pushed_device"
+        static let pushedSubscriptions = "pushed_subscriptions"
         static let currentWalletId = "currentWallet"
         static let isPushNotificationsEnabled = "is_push_notifications_enabled"
         static let isPriceAlertsEnabled = "is_price_alerts_enabled"
@@ -73,8 +74,11 @@ public final class Preferences: @unchecked Sendable {
     @ConfigurableDefaults(key: Keys.subscriptionsVersion, defaultValue: 0)
     public var subscriptionsVersion: Int
 
-    @ConfigurableDefaults(key: Keys.subscriptionsVersionHasChange, defaultValue: true)
-    public var subscriptionsVersionHasChange: Bool
+    @ConfigurableDefaults(key: Keys.pushedDevice, defaultValue: .none)
+    public var pushedDevice: String?
+
+    @ConfigurableDefaults(key: Keys.pushedSubscriptions, defaultValue: .none)
+    public var pushedSubscriptions: String?
 
     @ConfigurableDefaults(key: Keys.currentWalletId, defaultValue: .none)
     public var currentWalletId: String?
@@ -163,7 +167,8 @@ public final class Preferences: @unchecked Sendable {
         configure(\._swapSlippageBpsRawValue, key: Keys.swapSlippageBps, defaultValue: 0)
         configure(\._launchesCount, key: Keys.launchesCount, defaultValue: 0)
         configure(\._subscriptionsVersion, key: Keys.subscriptionsVersion, defaultValue: 0)
-        configure(\._subscriptionsVersionHasChange, key: Keys.subscriptionsVersionHasChange, defaultValue: true)
+        configure(\._pushedDevice, key: Keys.pushedDevice, defaultValue: nil)
+        configure(\._pushedSubscriptions, key: Keys.pushedSubscriptions, defaultValue: nil)
         configure(\._currentWalletId, key: Keys.currentWalletId, defaultValue: nil)
         configure(\._isPushNotificationsEnabled, key: Keys.isPushNotificationsEnabled, defaultValue: false)
         configure(\._isPriceAlertsEnabled, key: Keys.isPriceAlertsEnabled, defaultValue: false)
@@ -201,10 +206,9 @@ public final class Preferences: @unchecked Sendable {
         }
     }
 
+
     public func invalidateSubscriptions() {
-        guard !subscriptionsVersionHasChange else { return }
         subscriptionsVersion += 1
-        subscriptionsVersionHasChange = true
     }
 
     private enum ExplorerKeys {

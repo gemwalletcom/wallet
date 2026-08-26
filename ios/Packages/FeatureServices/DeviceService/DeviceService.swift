@@ -14,7 +14,6 @@ public struct DeviceService: DeviceServiceable {
     private static let nodeAuthTokenRefreshThreshold = UInt64(nodeAuthConfiguration.refreshThresholdSeconds)
 
     private let deviceProvider: any GemDeviceServiceProtocol
-    private let subscriptionsService: SubscriptionService
     private let preferences: Preferences
     private let securePreferences: SecurePreferences
     private let syncCoordinator: DeviceSyncCoordinator
@@ -22,12 +21,10 @@ public struct DeviceService: DeviceServiceable {
 
     public init(
         deviceProvider: any GemDeviceServiceProtocol,
-        subscriptionsService: SubscriptionService,
         preferences: Preferences = .standard,
         securePreferences: SecurePreferences = SecurePreferences(),
     ) {
         self.deviceProvider = deviceProvider
-        self.subscriptionsService = subscriptionsService
         self.preferences = preferences
         self.securePreferences = securePreferences
         syncCoordinator = DeviceSyncCoordinator()
@@ -50,26 +47,9 @@ public struct DeviceService: DeviceServiceable {
 
     public func synchronizeIfNeeded() async throws {
         try await syncCoordinator.waitForSyncIfNeeded()
-        _ = try getOrCreateDeviceId()
-        guard !isSynchronized else { return }
-        try await synchronizeDevice()
-    }
-
-    private func updateDevice() async throws {
         let deviceId = try getOrCreateDeviceId()
-        var device = try await getOrCreateDevice(deviceId)
-        let localDevice = try await currentDevice(deviceId: deviceId)
-
-        let needsSubscriptionUpdate = device.subscriptionsVersion != localDevice.subscriptionsVersion || preferences.subscriptionsVersionHasChange
-        let needsDeviceUpdate = device != localDevice
-
-        if needsSubscriptionUpdate {
-            try await subscriptionsService.update()
-        }
-
-        if needsSubscriptionUpdate || needsDeviceUpdate {
-            device = try await updateDevice(localDevice)
-        }
+        guard try await deviceProvider.needsSync(device: currentDevice(deviceId: deviceId).json()) else { return }
+        try await synchronizeDevice()
     }
 
     public func updateNodeAuthTokenIfNeeded() async throws {
@@ -87,26 +67,6 @@ public struct DeviceService: DeviceServiceable {
         return remainingTime < Self.nodeAuthTokenRefreshThreshold
     }
 
-    private func getOrCreateDevice(_ deviceId: String) async throws -> Primitives.Device {
-        var shouldFetchDevice = preferences.isDeviceRegistered
-        if !shouldFetchDevice {
-            shouldFetchDevice = try await deviceProvider.isRegistered()
-        }
-
-        if shouldFetchDevice {
-            if let device = try await getDevice() {
-                preferences.isDeviceRegistered = true
-                return device
-            }
-            preferences.isDeviceRegistered = false
-        }
-
-        let device = try await currentDevice(deviceId: deviceId, ignoreSubscriptionsVersion: true)
-        let result = try await addDevice(device)
-        preferences.isDeviceRegistered = true
-        return result
-    }
-
     private func getOrCreateDeviceId() throws -> String {
         let storedDeviceId = try securePreferences.get(key: .deviceId)
         let deviceId = try Self.getOrCreateDeviceId(securePreferences: securePreferences)
@@ -116,22 +76,15 @@ public struct DeviceService: DeviceServiceable {
         return deviceId
     }
 
-    private var isSynchronized: Bool {
-        preferences.isDeviceRegistered
-            && !preferences.subscriptionsVersionHasChange
-    }
-
     private func synchronizeDevice() async throws {
         try await syncCoordinator.coordinate {
-            try await updateDevice()
+            let deviceId = try getOrCreateDeviceId()
+            _ = try await deviceProvider.sync(device: currentDevice(deviceId: deviceId).json())
         }
     }
 
     @MainActor
-    private func currentDevice(
-        deviceId: String,
-        ignoreSubscriptionsVersion: Bool = false,
-    ) throws -> Primitives.Device {
+    private func currentDevice(deviceId: String) throws -> Primitives.Device {
         let deviceToken = try securePreferences.get(key: .deviceToken) ?? .empty
         #if targetEnvironment(simulator)
             let platformStore = PlatformStore.local
@@ -151,21 +104,7 @@ public struct DeviceService: DeviceServiceable {
             currency: try Currency(id: preferences.currency),
             isPushEnabled: preferences.isPushNotificationsEnabled,
             isPriceAlertsEnabled: preferences.isPriceAlertsEnabled,
-            subscriptionsVersion: ignoreSubscriptionsVersion ? 0 : preferences.subscriptionsVersion.asInt32,
+            subscriptionsVersion: 0,
         )
-    }
-
-    private func getDevice() async throws -> Primitives.Device? {
-        try await deviceProvider.getDevice().map { try Primitives.Device($0) }
-    }
-
-    @discardableResult
-    private func addDevice(_ device: Primitives.Device) async throws -> Primitives.Device {
-        try await Primitives.Device(deviceProvider.addDevice(device: device.json()))
-    }
-
-    @discardableResult
-    private func updateDevice(_ device: Primitives.Device) async throws -> Primitives.Device {
-        try await Primitives.Device(deviceProvider.updateDevice(device: device.json()))
     }
 }

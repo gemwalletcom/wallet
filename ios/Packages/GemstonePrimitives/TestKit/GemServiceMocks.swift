@@ -7,48 +7,40 @@ import Primitives
 
 public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     private let delay: Duration?
-    private let isRegisteredResult: Bool
-    private let getDeviceResult: Primitives.Device?
+    private let needsSyncResult: Bool
+    private let syncError: Error?
     private let token: Primitives.DeviceToken
 
-    public private(set) var isRegisteredCalls = 0
-    public private(set) var getDeviceCalls = 0
-    public private(set) var addDeviceCalls = 0
-    public private(set) var updateDeviceCalls = 0
+    public private(set) var needsSyncCalls = 0
+    public private(set) var syncCalls = 0
     public private(set) var getTokenCalls = 0
+    public private(set) var syncedDeviceIds: [String] = []
 
     public init(
         delay: Duration? = nil,
-        isRegistered: Bool = true,
-        getDeviceResult: Primitives.Device? = nil,
+        needsSync: Bool = true,
+        syncError: Error? = nil,
         token: Primitives.DeviceToken = .init(token: "", expiresAt: 0),
     ) {
         self.delay = delay
-        isRegisteredResult = isRegistered
-        self.getDeviceResult = getDeviceResult
+        needsSyncResult = needsSync
+        self.syncError = syncError
         self.token = token
     }
 
-    public func getDevice() async throws -> Gemstone.Device? {
-        getDeviceCalls += 1
-        return try getDeviceResult?.json()
+    public func needsSync(device _: Gemstone.Device) async throws -> Bool {
+        needsSyncCalls += 1
+        return needsSyncResult
     }
 
-    public func addDevice(device: Gemstone.Device) async throws -> Gemstone.Device {
-        addDeviceCalls += 1
+    public func sync(device: Gemstone.Device) async throws -> Gemstone.Device {
+        syncCalls += 1
+        syncedDeviceIds.append(try Primitives.Device(device).id)
         try await sleepIfNeeded()
+        if let syncError {
+            throw syncError
+        }
         return device
-    }
-
-    public func updateDevice(device: Gemstone.Device) async throws -> Gemstone.Device {
-        updateDeviceCalls += 1
-        try await sleepIfNeeded()
-        return device
-    }
-
-    public func isRegistered() async throws -> Bool {
-        isRegisteredCalls += 1
-        return isRegisteredResult
     }
 
     public func getToken() async throws -> Gemstone.DeviceToken {

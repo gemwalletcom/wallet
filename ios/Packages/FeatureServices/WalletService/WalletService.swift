@@ -81,7 +81,6 @@ public struct WalletService: Sendable {
 
         if walletSessionService.wallets.isEmpty {
             preferences.preferences.clear()
-            preferences.preferences.subscriptionsVersionHasChange = false
         }
 
         preferences.invalidateSubscriptions()

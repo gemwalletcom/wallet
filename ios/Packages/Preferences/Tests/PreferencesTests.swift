@@ -38,25 +38,21 @@ struct PreferencesTests {
     }
 
     @Test
+    func invalidateSubscriptionsBumpsVersion() {
+        preferences.subscriptionsVersion = 8
+
+        preferences.invalidateSubscriptions()
+
+        #expect(preferences.subscriptionsVersion == 9)
+    }
+
+    @Test
     func testIncrementLaunchesCount() {
         #expect(preferences.launchesCount == 0)
         preferences.incrementLaunchesCount()
         #expect(preferences.launchesCount == 1)
     }
 
-    @Test
-    func invalidateSubscriptionsIsIdempotent() {
-        preferences.subscriptionsVersion = 8
-        preferences.subscriptionsVersionHasChange = false
-
-        preferences.invalidateSubscriptions()
-        let version = preferences.subscriptionsVersion
-        preferences.invalidateSubscriptions()
-
-        #expect(version == 9)
-        #expect(preferences.subscriptionsVersion == version)
-        #expect(preferences.subscriptionsVersionHasChange)
-    }
 
     @Test
     func updatePreferences() {
