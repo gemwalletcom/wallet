@@ -204,7 +204,7 @@ mod tests {
     fn test_get_node_status_http_404_error() {
         let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(404));
         let preferences: Arc<dyn GemPreferences> = Arc::new(EmptyPreferences {});
-        let gateway = GemGateway::new(provider, preferences.clone(), preferences.clone(), "https://example.invalid".to_string());
+        let gateway = GemGateway::new(provider, preferences.clone(), preferences.clone());
 
         let result = futures::executor::block_on(gateway.get_node_status(Chain::Bitcoin, "https://httpbin.org/status/404"));
 
