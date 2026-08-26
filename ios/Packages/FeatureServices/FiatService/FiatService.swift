@@ -2,17 +2,23 @@
 
 import AssetsService
 import Foundation
-import GemAPI
+import protocol Gemstone.GemFiatServiceProtocol
+import GemstonePrimitives
 import Primitives
 import Store
 
+public protocol FiatQuoting: Sendable {
+    func getQuotes(walletId: WalletId, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote]
+    func getQuoteUrl(walletId: WalletId, quoteId: String) async throws -> FiatQuoteUrl
+}
+
 public struct FiatService: Sendable {
-    private let apiService: any GemAPIFiatService
+    private let apiService: any GemFiatServiceProtocol
     private let assetsService: AssetsService
     private let store: FiatTransactionStore
 
     public init(
-        apiService: any GemAPIFiatService,
+        apiService: any GemFiatServiceProtocol,
         assetsService: AssetsService,
         store: FiatTransactionStore,
     ) {
@@ -22,23 +28,29 @@ public struct FiatService: Sendable {
     }
 
     public func updateTransactions(walletId: WalletId) async throws {
-        let transactions = try await apiService.getFiatTransactions(walletId: walletId)
+        let transactions = try await getFiatTransactions(walletId: walletId)
         try await prefetchAssets(transactions: transactions)
         try store.addTransactions(walletId: walletId, transactions: transactions)
     }
+
+    public func getFiatTransactions(walletId: WalletId) async throws -> [FiatTransactionData] {
+        try await apiService.getTransactions(walletId: walletId.id).map { try FiatTransactionData($0) }
+    }
 }
 
-extension FiatService: GemAPIFiatService {
+extension FiatService: FiatQuoting {
     public func getQuotes(walletId: WalletId, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote] {
-        try await apiService.getQuotes(walletId: walletId, type: type, assetId: assetId, request: request)
+        try await apiService.getQuotes(
+            walletId: walletId.id,
+            quoteType: type.json(),
+            assetId: assetId.identifier,
+            amount: request.amount,
+            currency: request.currency,
+        ).map { try FiatQuote($0) }
     }
 
     public func getQuoteUrl(walletId: WalletId, quoteId: String) async throws -> FiatQuoteUrl {
-        try await apiService.getQuoteUrl(walletId: walletId, quoteId: quoteId)
-    }
-
-    public func getFiatTransactions(walletId: WalletId) async throws -> [FiatTransactionData] {
-        try await apiService.getFiatTransactions(walletId: walletId)
+        try await FiatQuoteUrl(apiService.getQuoteUrl(walletId: walletId.id, quoteId: quoteId))
     }
 }
 

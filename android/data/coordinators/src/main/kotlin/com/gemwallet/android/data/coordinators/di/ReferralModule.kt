@@ -11,11 +11,11 @@ import com.gemwallet.android.data.coordinators.referral.GetRewardsImpl
 import com.gemwallet.android.data.coordinators.referral.RedeemImpl
 import com.gemwallet.android.data.coordinators.referral.UseReferralCodeImpl
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemRewardsService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -24,11 +24,11 @@ object ReferralModule {
     @Provides
     @Singleton
     fun provideCreateReferral(
-        gemDeviceApiClient: GemDeviceApiClient,
+        rewardsService: GemRewardsService,
         getAuthPayload: GetAuthPayload,
     ): CreateReferral {
         return CreateReferralImpl(
-            gemDeviceApiClient = gemDeviceApiClient,
+            rewardsService = rewardsService,
             getAuthPayload = getAuthPayload
         )
     }
@@ -36,10 +36,10 @@ object ReferralModule {
     @Provides
     @Singleton
     fun provideGetRewards(
-        gemDeviceApiClient: GemDeviceApiClient,
+        rewardsService: GemRewardsService,
     ): GetRewards {
         return GetRewardsImpl(
-            gemDeviceApiClient = gemDeviceApiClient,
+            rewardsService = rewardsService,
         )
     }
 
@@ -47,13 +47,13 @@ object ReferralModule {
     @Singleton
     fun provideRedeem(
         sessionRepository: SessionRepository,
-        gemDeviceApiClient: GemDeviceApiClient,
+        rewardsService: GemRewardsService,
         getAuthPayload: GetAuthPayload,
         enableAsset: EnableAsset,
     ): Redeem {
         return RedeemImpl(
             sessionRepository = sessionRepository,
-            gemDeviceApiClient = gemDeviceApiClient,
+            rewardsService = rewardsService,
             getAuthPayload = getAuthPayload,
             enableAsset = enableAsset,
         )
@@ -62,11 +62,11 @@ object ReferralModule {
     @Provides
     @Singleton
     fun provideUseReferralCode(
-        gemDeviceApiClient: GemDeviceApiClient,
+        rewardsService: GemRewardsService,
         getAuthPayload: GetAuthPayload
     ): UseReferralCode {
         return UseReferralCodeImpl(
-            gemDeviceApiClient = gemDeviceApiClient,
+            rewardsService = rewardsService,
             getAuthPayload = getAuthPayload
         )
     }

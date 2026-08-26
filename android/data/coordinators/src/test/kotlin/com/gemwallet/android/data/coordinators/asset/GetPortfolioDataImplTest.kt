@@ -4,7 +4,6 @@ import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
@@ -28,18 +27,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import uniffi.gemstone.GemPortfolioService
+import com.gemwallet.android.serializer.toJson
 import org.junit.Test
 
 class GetPortfolioDataImplTest {
 
-    private val gemDeviceApiClient = mockk<GemDeviceApiClient>()
+    private val portfolioService = mockk<GemPortfolioService>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
     private val currencyRatesService = mockk<CurrencyRatesService>(relaxed = true)
     private val perpetualService = mockk<PerpetualService>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>(relaxed = true)
 
     private val subject = GetPortfolioDataImpl(
-        gemDeviceApiClient = gemDeviceApiClient,
+        portfolioService = portfolioService,
         assetsRepository = assetsRepository,
         currencyRatesService = currencyRatesService,
         perpetualService = perpetualService,
@@ -68,14 +69,14 @@ class GetPortfolioDataImplTest {
         val empty = mockAssetInfo(asset = ethereum, balance = AssetBalance.create(ethereum))
         every { assetsRepository.getAssetsInfo() } returns flowOf(listOf(held, empty))
         every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate(Currency.EUR, 2.0))
-        coEvery { gemDeviceApiClient.getPortfolioAssets("day", any()) } returns portfolio()
+        coEvery { portfolioService.getAssets(ChartPeriod.Day.toJson(), any()) } returns portfolio().toJson()
 
         val result = subject.getPortfolioData(PortfolioType.Wallet, period = ChartPeriod.Day, currency = Currency.EUR)
 
         coVerify {
-            gemDeviceApiClient.getPortfolioAssets(
-                "day",
-                PortfolioAssetsRequest(assets = listOf(PortfolioAsset(assetId = bitcoin.id, value = "1000"))),
+            portfolioService.getAssets(
+                ChartPeriod.Day.toJson(),
+                PortfolioAssetsRequest(assets = listOf(PortfolioAsset(assetId = bitcoin.id, value = "1000"))).toJson(),
             )
         }
         val values = result.charts.single().values
@@ -91,8 +92,8 @@ class GetPortfolioDataImplTest {
         every { currencyRatesService.getCurrencyRate(Currency.EUR) } returns flowOf(FiatRate(Currency.EUR, 2.0))
         val allTimeHigh = ChartValuePercentage(date = 10L, value = 99f, percentage = 5f)
         val allTimeLow = ChartValuePercentage(date = 20L, value = 10f, percentage = -3f)
-        coEvery { gemDeviceApiClient.getPortfolioAssets(any(), any()) } returns
-            portfolio(allTimeHigh = allTimeHigh, allTimeLow = allTimeLow)
+        coEvery { portfolioService.getAssets(any(), any()) } returns
+            portfolio(allTimeHigh = allTimeHigh, allTimeLow = allTimeLow).toJson()
 
         val result = subject.getPortfolioData(PortfolioType.Wallet, period = ChartPeriod.Day, currency = Currency.EUR)
 

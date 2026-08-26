@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitivesTestKit
 import PriceService
 import PriceServiceTestKit
 import Primitives
@@ -21,7 +22,7 @@ struct PortfolioDataServiceTests {
         try FiatRateStore(db: db).add([FiatRate(symbol: .eur, rate: Double(rate))])
 
         let service = PortfolioDataService.mock(
-            portfolioService: .mock(apiService: GemAPIPortfolioServiceMock(
+            portfolioService: .mock(apiService: GemPortfolioServiceMock(
                 allTimeHigh: .mock(date: date, value: 100),
                 allTimeLow: .mock(date: date, value: 20),
             )),

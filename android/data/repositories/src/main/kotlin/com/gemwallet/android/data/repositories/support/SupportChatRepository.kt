@@ -3,7 +3,6 @@ package com.gemwallet.android.data.repositories.support
 import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.service.store.database.entities.toModel
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.wallet.core.primitives.SupportAgent
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageImage
@@ -14,12 +13,13 @@ import com.wallet.core.primitives.SupportTyping
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.UUID
+import uniffi.gemstone.GemSupportService
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 
 class SupportChatRepository(
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val supportService: GemSupportService,
     private val supportMessagesDao: SupportMessagesDao,
     private val supportTypingState: SupportTypingState,
 ) {
@@ -34,7 +34,7 @@ class SupportChatRepository(
         supportMessagesDao.getMessages().map { records -> records.map { it.toModel() } }
 
     suspend fun syncMessages(fromTimestamp: Long) {
-        addMessages(gemDeviceApiClient.getSupportMessages(fromTimestamp))
+        addMessages(supportService.getMessages(fromTimestamp.toULong()).map { it.decodeJson<SupportMessage>() })
     }
 
     suspend fun addMessages(messages: List<SupportMessage>) {
@@ -51,7 +51,7 @@ class SupportChatRepository(
     suspend fun sendText(content: String) {
         val message = pendingMessage()
         deliver(message.copy(content = content)) {
-            gemDeviceApiClient.sendSupportMessage(SupportMessageInput(content = content))
+            supportService.sendMessage(SupportMessageInput(content = content).toJson()).decodeJson<SupportMessage>()
         }
     }
 
@@ -68,16 +68,17 @@ class SupportChatRepository(
             ),
         )
         deliver(message) {
-            gemDeviceApiClient.sendSupportImage(
+            supportService.sendImage(
+                image = attachment.data,
                 fileName = attachment.fileName,
-                image = attachment.data.toRequestBody(attachment.mimeType.toMediaType()),
-            )
+                mimeType = attachment.mimeType,
+            ).decodeJson<SupportMessage>()
         }
     }
 
     suspend fun retryMessage(message: SupportMessage) {
         deliver(message.copy(status = SupportMessageStatus.Sending)) {
-            gemDeviceApiClient.sendSupportMessage(SupportMessageInput(content = message.content))
+            supportService.sendMessage(SupportMessageInput(content = message.content).toJson()).decodeJson<SupportMessage>()
         }
     }
 

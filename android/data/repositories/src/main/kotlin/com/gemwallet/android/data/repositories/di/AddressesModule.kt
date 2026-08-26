@@ -6,11 +6,11 @@ import com.gemwallet.android.cases.addresses.RenameWalletAddresses
 import com.gemwallet.android.cases.addresses.SaveAddressNames
 import com.gemwallet.android.data.repositories.addresses.AddressesRepository
 import com.gemwallet.android.data.service.store.database.AddressesDao
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemNameService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -21,9 +21,9 @@ object AddressesModule {
     @Provides
     fun provideAddressesRepository(
         addressesDao: AddressesDao,
-        gemDeviceApiClient: GemDeviceApiClient,
+        nameService: GemNameService,
     ): AddressesRepository =
-        AddressesRepository(addressesDao, gemDeviceApiClient)
+        AddressesRepository(addressesDao, nameService)
 
     @Singleton
     @Provides

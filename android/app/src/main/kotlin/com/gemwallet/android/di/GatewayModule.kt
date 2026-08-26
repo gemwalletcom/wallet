@@ -9,13 +9,15 @@ import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.repositories.config.SharedGemPreferences
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.cases.device.SyncDevice
+import com.gemwallet.android.services.DeviceSyncPreflight
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.runBlocking
 import com.gemwallet.android.data.services.gemapi.NativeProvider
 import com.gemwallet.android.data.services.gemapi.NativeProviderConfig
 import com.gemwallet.android.ui.R as UiR
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,7 +30,20 @@ import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
+import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemFiatService
+import uniffi.gemstone.GemNameService
+import uniffi.gemstone.GemNotificationService
+import uniffi.gemstone.GemPortfolioService
+import uniffi.gemstone.GemPriceAlertService
+import uniffi.gemstone.GemRewardsService
+import uniffi.gemstone.GemSubscriptionService
+import uniffi.gemstone.GemSupportService
+import uniffi.gemstone.GemTransactionsService
+import uniffi.gemstone.GemWalletConfigurationService
+import javax.inject.Named
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemApiClient as GemstoneApiClient
 import uniffi.gemstone.GemNftService
@@ -55,10 +70,10 @@ object GatewayModule {
     @Singleton
     @Provides
     fun provideNodeAuthTokenService(
-        deviceApiClient: GemDeviceApiClient,
+        deviceService: GemDeviceService,
         isDeviceRegistered: IsDeviceRegistered,
         preferences: GemPreferences,
-    ): NodeAuthTokenService = NodeAuthTokenService(deviceApiClient, isDeviceRegistered, preferences)
+    ): NodeAuthTokenService = NodeAuthTokenService(deviceService, isDeviceRegistered, preferences)
 
     @Singleton
     @Provides
@@ -101,7 +116,8 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemstoneDeviceApiClient(
+    @Named("registration")
+    fun provideDeviceRegistrationApiClient(
         alienProvider: AlienProvider,
         getDeviceId: GetDeviceId,
     ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
@@ -109,6 +125,67 @@ object GatewayModule {
         Constants.API_URL,
         runBlocking { getDeviceId.getDeviceKey().fromHex() },
     )
+
+    @Provides
+    @Singleton
+    fun provideGemstoneDeviceApiClient(
+        alienProvider: AlienProvider,
+        getDeviceId: GetDeviceId,
+        syncDevice: Lazy<SyncDevice>,
+    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient.withPreflight(
+        alienProvider,
+        Constants.API_URL,
+        runBlocking { getDeviceId.getDeviceKey().fromHex() },
+        DeviceSyncPreflight(syncDevice),
+    )
+
+    @Provides
+    @Singleton
+    fun provideGemDeviceService(@Named("registration") apiClient: GemstoneDeviceApiClient): GemDeviceService = GemDeviceService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemSubscriptionService(@Named("registration") apiClient: GemstoneDeviceApiClient): GemSubscriptionService = GemSubscriptionService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemAuthService(apiClient: GemstoneDeviceApiClient): GemAuthService = GemAuthService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemTransactionsService(apiClient: GemstoneDeviceApiClient): GemTransactionsService = GemTransactionsService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemWalletConfigurationService(apiClient: GemstoneDeviceApiClient): GemWalletConfigurationService = GemWalletConfigurationService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemPriceAlertService(apiClient: GemstoneDeviceApiClient): GemPriceAlertService = GemPriceAlertService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemSupportService(apiClient: GemstoneDeviceApiClient): GemSupportService = GemSupportService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemRewardsService(apiClient: GemstoneDeviceApiClient): GemRewardsService = GemRewardsService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemNotificationService(apiClient: GemstoneDeviceApiClient): GemNotificationService = GemNotificationService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemFiatService(apiClient: GemstoneDeviceApiClient): GemFiatService = GemFiatService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemNameService(apiClient: GemstoneDeviceApiClient): GemNameService = GemNameService(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideGemPortfolioService(apiClient: GemstoneDeviceApiClient): GemPortfolioService = GemPortfolioService(apiClient)
 
     @Provides
     @Singleton

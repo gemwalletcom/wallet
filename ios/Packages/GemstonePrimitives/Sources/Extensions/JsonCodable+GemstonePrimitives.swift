@@ -35,6 +35,7 @@ extension Primitives.AssetMarket: JsonCodable {}
 extension Primitives.AssetPrice: JsonCodable {}
 extension Primitives.AssetType: JsonCodable {}
 extension Primitives.AuthNonce: JsonCodable {}
+extension Primitives.AuthPayload: JsonCodable {}
 extension Primitives.BalanceMetadata: JsonCodable {}
 extension Primitives.BannerEvent: JsonCodable {}
 extension Primitives.BannerState: JsonCodable {}
@@ -59,6 +60,7 @@ extension Primitives.Device: JsonCodable {}
 extension Primitives.DeviceToken: JsonCodable {}
 extension Primitives.EarnType: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
+extension Primitives.FiatQuote: JsonCodable {}
 extension Primitives.FiatQuoteRequest: JsonCodable {}
 extension Primitives.FiatQuoteType: JsonCodable {}
 extension Primitives.FiatQuoteUrl: JsonCodable {}

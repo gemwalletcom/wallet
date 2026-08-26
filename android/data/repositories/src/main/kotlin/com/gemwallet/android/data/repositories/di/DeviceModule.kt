@@ -14,7 +14,6 @@ import com.gemwallet.android.data.repositories.device.DeviceRepository
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Module
@@ -22,6 +21,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemSubscriptionService
 import javax.inject.Singleton
 
 
@@ -34,7 +35,8 @@ object DeviceModule {
     fun provideDeviceRepository(
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
-        gemDeviceApiClient: GemDeviceApiClient,
+        deviceService: GemDeviceService,
+        subscriptionService: GemSubscriptionService,
         getDeviceId: GetDeviceId,
         priceAlertRepository: PriceAlertRepository,
         getCurrentCurrency: GetCurrentCurrency,
@@ -43,7 +45,8 @@ object DeviceModule {
     ): DeviceRepository {
         return DeviceRepository(
             context = context,
-            gemDeviceApiClient = gemDeviceApiClient,
+            deviceService = deviceService,
+            subscriptionService = subscriptionService,
             getDeviceId = getDeviceId,
             configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
             requestPushToken = buildInfo.requestPushToken,

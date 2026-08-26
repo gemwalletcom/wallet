@@ -1,18 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
+import protocol Gemstone.GemSupportServiceProtocol
+import GemstonePrimitives
 import Primitives
 import Store
 
 public struct SupportChatService: Sendable {
     private let store: SupportChatStore
-    private let provider: any GemAPISupportService
+    private let provider: any GemSupportServiceProtocol
     public let typing: SupportTypingState
 
     public init(
         store: SupportChatStore,
-        provider: any GemAPISupportService = GemAPIService.shared,
+        provider: any GemSupportServiceProtocol,
         typing: SupportTypingState,
     ) {
         self.store = store
@@ -34,7 +35,7 @@ public struct SupportChatService: Sendable {
     }
 
     public func syncMessages(fromTimestamp: Int) async throws {
-        try await store.addMessages(provider.getSupportMessages(fromTimestamp: fromTimestamp))
+        try await store.addMessages(provider.getMessages(fromTimestamp: UInt64(fromTimestamp)).map { try SupportMessage($0) })
     }
 
     public func sendMessage(_ content: SupportMessageContent) async throws {
@@ -76,9 +77,9 @@ private extension SupportChatService {
     func send(_ content: SupportMessageContent) async throws -> SupportMessage {
         switch content {
         case let .text(text):
-            try await provider.sendSupportMessage(input: SupportMessageInput(content: text))
+            try await SupportMessage(provider.sendMessage(input: SupportMessageInput(content: text).json()))
         case let .image(attachment):
-            try await provider.sendSupportImage(image: attachment.data, fileName: attachment.fileName, mimeType: attachment.mimeType)
+            try await SupportMessage(provider.sendImage(image: attachment.data, fileName: attachment.fileName, mimeType: attachment.mimeType))
         }
     }
 }

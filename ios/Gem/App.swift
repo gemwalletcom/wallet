@@ -3,7 +3,6 @@
 import AppService
 import AssetsService
 import DeviceService
-import GemAPI
 import LockManager
 import NodeService
 import Preferences

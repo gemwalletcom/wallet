@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
-import GemAPITestKit
+import protocol Gemstone.GemNotificationServiceProtocol
+import GemstonePrimitivesTestKit
 import NotificationService
 import Store
 import StoreTestKit
 
 public extension InAppNotificationService {
     static func mock(
-        apiService: GemAPINotificationService = GemAPINotificationServiceMock(),
+        apiService: any GemNotificationServiceProtocol = GemNotificationServiceMock(),
         store: InAppNotificationStore = .mock(),
     ) -> Self {
         InAppNotificationService(

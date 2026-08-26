@@ -2,19 +2,20 @@
 
 import AssetsService
 import Foundation
-import GemAPI
+import protocol Gemstone.GemTransactionsServiceProtocol
+import GemstonePrimitives
 import Preferences
 import Primitives
 import Store
 
 public final class TransactionsService: Sendable {
-    let provider: any GemAPITransactionService
+    let provider: any GemTransactionsServiceProtocol
     public let transactionStore: TransactionStore
     let assetsService: AssetsService
     private let addressStore: AddressStore
 
     public init(
-        provider: any GemAPITransactionService,
+        provider: any GemTransactionsServiceProtocol,
         transactionStore: TransactionStore,
         assetsService: AssetsService,
         addressStore: AddressStore,
@@ -29,10 +30,11 @@ public final class TransactionsService: Sendable {
         let store = WalletPreferences(walletId: walletId)
         let newTimestamp = Int(Date.now.timeIntervalSince1970)
 
-        let response = try await provider.getDeviceTransactions(
-            walletId: walletId,
-            fromTimestamp: store.transactionsTimestamp,
-        )
+        let response = try await TransactionsResponse(provider.getTransactions(
+            walletId: walletId.id,
+            assetId: nil,
+            fromTimestamp: UInt64(store.transactionsTimestamp),
+        ))
 
         try await prefetchAssets(walletId: walletId, transactions: response.transactions)
         try transactionStore.addTransactions(walletId: walletId, transactions: response.transactions)
@@ -44,11 +46,11 @@ public final class TransactionsService: Sendable {
     public func updateForAsset(walletId: WalletId, assetId: AssetId) async throws {
         let store = WalletPreferences(walletId: walletId)
         let newTimestamp = Int(Date.now.timeIntervalSince1970)
-        let response = try await provider.getDeviceTransactionsForAsset(
-            walletId: walletId,
-            asset: assetId,
-            fromTimestamp: store.transactionsForAssetTimestamp(assetId: assetId.identifier),
-        )
+        let response = try await TransactionsResponse(provider.getTransactions(
+            walletId: walletId.id,
+            assetId: assetId.identifier,
+            fromTimestamp: UInt64(store.transactionsForAssetTimestamp(assetId: assetId.identifier)),
+        ))
 
         try await prefetchAssets(walletId: walletId, transactions: response.transactions)
         try transactionStore.addTransactions(walletId: walletId, transactions: response.transactions)

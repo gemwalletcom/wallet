@@ -2,7 +2,8 @@
 
 import BannerService
 import DeviceService
-import GemAPI
+import protocol Gemstone.GemWalletConfigurationServiceProtocol
+import GemstonePrimitives
 import NotificationService
 import Preferences
 import Primitives
@@ -10,13 +11,13 @@ import Primitives
 public final class OnstartWalletService: Sendable {
     private let deviceService: any DeviceServiceable
     private let bannerSetupService: BannerSetupService
-    private let walletConfigurationService: any GemAPIWalletConfigurationService
+    private let walletConfigurationService: any GemWalletConfigurationServiceProtocol
     private let pushNotificationEnablerService: PushNotificationEnablerService
 
     public init(
         deviceService: any DeviceServiceable,
         bannerSetupService: BannerSetupService,
-        walletConfigurationService: any GemAPIWalletConfigurationService,
+        walletConfigurationService: any GemWalletConfigurationServiceProtocol,
         pushNotificationEnablerService: PushNotificationEnablerService,
     ) {
         self.deviceService = deviceService
@@ -57,7 +58,7 @@ public final class OnstartWalletService: Sendable {
         let walletPreferences = WalletPreferences(walletId: wallet.id)
         guard !walletPreferences.completeInitialWalletConfiguration else { return }
 
-        guard let result = try? await walletConfigurationService.getWalletConfiguration(walletId: wallet.id) else { return }
+        guard let result = try? await WalletConfigurationResult(walletConfigurationService.getConfiguration(walletId: wallet.id.id)) else { return }
 
         for account in result.configuration.multiSignatureAccounts {
             try? bannerSetupService.setupAccountMultiSignatureWallet(walletId: wallet.id, chain: account.chain)

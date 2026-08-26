@@ -1,16 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemAPI
+import protocol Gemstone.GemNameServiceProtocol
+import GemstonePrimitives
 import Primitives
 import Store
 
 public struct AddressNameService: Sendable {
     private let addressStore: AddressStore
-    private let apiService: any GemAPIAddressNamesService
+    private let apiService: any GemNameServiceProtocol
 
     public init(
         addressStore: AddressStore,
-        apiService: any GemAPIAddressNamesService = GemAPIService(),
+        apiService: any GemNameServiceProtocol,
     ) {
         self.addressStore = addressStore
         self.apiService = apiService
@@ -49,7 +50,7 @@ private extension AddressNameService {
     func remoteAddressNames(requests: [ChainAddress]) async throws -> [ChainAddress: AddressName] {
         let remoteAddressNames: [AddressName]
         do {
-            remoteAddressNames = try await apiService.getAddressNames(requests: requests)
+            remoteAddressNames = try await apiService.getAddressNames(requests: requests.map { try $0.json() }).map { try AddressName($0) }
         } catch {
             guard !error.isCancelled else {
                 throw error

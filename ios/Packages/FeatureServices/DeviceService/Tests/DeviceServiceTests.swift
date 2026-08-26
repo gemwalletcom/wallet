@@ -2,8 +2,9 @@
 
 @testable import DeviceService
 import Foundation
-import GemAPI
-import GemAPITestKit
+import protocol Gemstone.GemDeviceServiceProtocol
+import protocol Gemstone.GemSubscriptionServiceProtocol
+import GemstonePrimitivesTestKit
 import Preferences
 import PreferencesTestKit
 import Primitives
@@ -22,20 +23,20 @@ struct DeviceServiceTests {
         let keyPair = try DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
         try securePreferences.set(value: keyPair.publicKey.hex, key: .deviceId)
 
-        let deviceProvider = GemAPIDeviceServiceMock(
-            isDeviceRegistered: false,
+        let deviceProvider = GemDeviceServiceMock(
+            isRegistered: false,
             getDeviceResult: nil,
         )
         let service = makeService(
             preferences: preferences,
             deviceProvider: deviceProvider,
-            subscriptionProvider: GemAPISubscriptionServiceMock(),
+            subscriptionProvider: GemSubscriptionServiceMock(),
             securePreferences: securePreferences,
         )
 
         try await service.synchronizeIfNeeded()
 
-        #expect(await deviceProvider.isDeviceRegisteredCalls == 0)
+        #expect(await deviceProvider.isRegisteredCalls == 0)
         #expect(await deviceProvider.getDeviceCalls == 0)
         #expect(await deviceProvider.addDeviceCalls == 0)
         #expect(await deviceProvider.updateDeviceCalls == 0)
@@ -47,12 +48,12 @@ struct DeviceServiceTests {
         preferences.isDeviceRegistered = false
         preferences.subscriptionsVersionHasChange = true
 
-        let deviceProvider = GemAPIDeviceServiceMock(
+        let deviceProvider = GemDeviceServiceMock(
             delay: .milliseconds(50),
-            isDeviceRegistered: false,
+            isRegistered: false,
             getDeviceResult: nil,
         )
-        let subscriptionProvider = GemAPISubscriptionServiceMock(delay: .milliseconds(50))
+        let subscriptionProvider = GemSubscriptionServiceMock(delay: .milliseconds(50))
         let service = makeService(
             preferences: preferences,
             deviceProvider: deviceProvider,
@@ -63,7 +64,7 @@ struct DeviceServiceTests {
         async let second: Void = service.synchronizeIfNeeded()
         _ = try await (first, second)
 
-        #expect(await deviceProvider.isDeviceRegisteredCalls == 1)
+        #expect(await deviceProvider.isRegisteredCalls == 1)
         #expect(await deviceProvider.addDeviceCalls == 1)
         #expect(await deviceProvider.updateDeviceCalls == 1)
         #expect(await subscriptionProvider.getSubscriptionsCalls == 1)
@@ -79,14 +80,14 @@ struct DeviceServiceTests {
         let securePreferences = SecurePreferences.mock()
         try securePreferences.set(value: "legacy-device-id", key: .deviceId)
 
-        let deviceProvider = GemAPIDeviceServiceMock(
-            isDeviceRegistered: false,
+        let deviceProvider = GemDeviceServiceMock(
+            isRegistered: false,
             getDeviceResult: nil,
         )
         let service = makeService(
             preferences: preferences,
             deviceProvider: deviceProvider,
-            subscriptionProvider: GemAPISubscriptionServiceMock(),
+            subscriptionProvider: GemSubscriptionServiceMock(),
             securePreferences: securePreferences,
         )
 
@@ -106,14 +107,14 @@ struct DeviceServiceTests {
         let securePreferences = SecurePreferences.mock()
         _ = try DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
 
-        let deviceProvider = GemAPIDeviceServiceMock(
-            isDeviceRegistered: false,
+        let deviceProvider = GemDeviceServiceMock(
+            isRegistered: false,
             getDeviceResult: nil,
         )
         let service = makeService(
             preferences: preferences,
             deviceProvider: deviceProvider,
-            subscriptionProvider: GemAPISubscriptionServiceMock(),
+            subscriptionProvider: GemSubscriptionServiceMock(),
             securePreferences: securePreferences,
         )
 
@@ -134,12 +135,12 @@ struct DeviceServiceTests {
         let keyPair = try DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
         try securePreferences.set(value: keyPair.publicKey.hex, key: .deviceId)
 
-        let deviceProvider = GemAPIDeviceServiceMock(
+        let deviceProvider = GemDeviceServiceMock(
             delay: .milliseconds(50),
-            isDeviceRegistered: true,
+            isRegistered: true,
             getDeviceResult: Device.mock(),
         )
-        let subscriptionProvider = GemAPISubscriptionServiceMock(delay: .milliseconds(50))
+        let subscriptionProvider = GemSubscriptionServiceMock(delay: .milliseconds(50))
         let service = makeService(
             preferences: preferences,
             deviceProvider: deviceProvider,
@@ -151,11 +152,11 @@ struct DeviceServiceTests {
         async let ready: Void = service.synchronizeIfNeeded()
         _ = try await (update, ready)
 
-        #expect(await deviceProvider.isDeviceRegisteredCalls == 0)
+        #expect(await deviceProvider.isRegisteredCalls == 0)
         #expect(await deviceProvider.getDeviceCalls == 1)
         #expect(await deviceProvider.addDeviceCalls == 0)
         #expect(await deviceProvider.updateDeviceCalls == 1)
-        #expect(await deviceProvider.getNodeAuthTokenCalls == 1)
+        #expect(await deviceProvider.getTokenCalls == 1)
         #expect(await subscriptionProvider.getSubscriptionsCalls == 1)
         #expect(!preferences.subscriptionsVersionHasChange)
     }
@@ -168,11 +169,11 @@ struct DeviceServiceTests {
 
         let service = makeService(
             preferences: preferences,
-            deviceProvider: GemAPIDeviceServiceMock(
-                isDeviceRegistered: false,
+            deviceProvider: GemDeviceServiceMock(
+                isRegistered: false,
                 getDeviceResult: nil,
             ),
-            subscriptionProvider: GemAPISubscriptionServiceMock(getSubscriptionsError: TestError.failed),
+            subscriptionProvider: GemSubscriptionServiceMock(getSubscriptionsError: TestError.failed),
         )
 
         await #expect(throws: TestError.self) {
@@ -186,8 +187,8 @@ struct DeviceServiceTests {
 private extension DeviceServiceTests {
     func makeService(
         preferences: Preferences,
-        deviceProvider: any GemAPIDeviceService,
-        subscriptionProvider: any GemAPISubscriptionService,
+        deviceProvider: any GemDeviceServiceProtocol,
+        subscriptionProvider: any GemSubscriptionServiceProtocol,
         securePreferences: SecurePreferences = .mock(),
     ) -> DeviceService {
         DeviceService(

@@ -3,13 +3,13 @@
 import AssetsServiceTestKit
 import FiatService
 import Foundation
-import GemAPITestKit
+import GemstonePrimitivesTestKit
 import StoreTestKit
 
 public extension FiatService {
     static func mock() -> FiatService {
         FiatService(
-            apiService: GemAPIFiatServiceMock(),
+            apiService: GemFiatServiceMock(),
             assetsService: .mock(),
             store: .mock(),
         )

@@ -3,21 +3,21 @@
 import AssetsService
 import BalanceService
 import Foundation
-import GemAPI
+import protocol Gemstone.GemTransactionsServiceProtocol
 import NFTService
 import Preferences
 import Primitives
 import TransactionsService
 
 public struct AssetDiscoveryService: AssetDiscoverable {
-    private let assetsListService: any GemAPIAssetsListService
+    private let assetsListService: any GemTransactionsServiceProtocol
     private let assetService: AssetsService
     private let assetsEnabler: any AssetsEnabler
     private let transactionsService: TransactionsService
     private let nftService: NFTService
 
     public init(
-        assetsListService: any GemAPIAssetsListService,
+        assetsListService: any GemTransactionsServiceProtocol,
         assetService: AssetsService,
         assetsEnabler: any AssetsEnabler,
         transactionsService: TransactionsService,
@@ -40,7 +40,7 @@ public struct AssetDiscoveryService: AssetDiscoverable {
     }
 
     private func discoverAssets(wallet: Wallet, preferences: WalletPreferences) async throws {
-        let assetIds = try await assetsListService.getDeviceAssets(walletId: wallet.id, fromTimestamp: preferences.assetsTimestamp)
+        let assetIds = try await assetsListService.getAssetsList(walletId: wallet.id.id, fromTimestamp: UInt64(preferences.assetsTimestamp)).compactMap { try? AssetId(id: $0) }
         if assetIds.isNotEmpty {
             try await assetService.prefetchAssets(assetIds: assetIds)
             try await assetsEnabler.enableAssets(wallet: wallet, assetIds: assetIds, enabled: true)

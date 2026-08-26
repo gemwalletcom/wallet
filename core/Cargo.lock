@@ -3584,6 +3584,7 @@ dependencies = [
 name = "gem_api"
 version = "2.114.11"
 dependencies = [
+ "async-trait",
  "gem_auth",
  "gem_client",
  "gem_jsonrpc",

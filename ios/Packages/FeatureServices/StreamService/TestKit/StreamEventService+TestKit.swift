@@ -5,6 +5,7 @@ import BalanceServiceTestKit
 import FiatService
 import FiatServiceTestKit
 import Foundation
+import GemstonePrimitivesTestKit
 import NFTService
 import NFTServiceTestKit
 import PerpetualService
@@ -33,7 +34,7 @@ public extension StreamEventService {
         nftService: NFTService = .mock(),
         perpetualService: any HyperliquidPerpetualServiceable = PerpetualServiceMock(),
         fiatService: FiatService = .mock(),
-        supportChatService: SupportChatService = SupportChatService(store: .mock(), typing: SupportTypingState()),
+        supportChatService: SupportChatService = SupportChatService(store: .mock(), provider: GemSupportServiceMock(), typing: SupportTypingState()),
         preferences: Preferences = .mock(),
     ) -> StreamEventService {
         StreamEventService(

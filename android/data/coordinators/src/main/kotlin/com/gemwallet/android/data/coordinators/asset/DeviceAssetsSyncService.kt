@@ -7,7 +7,6 @@ import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.currentTimestamp
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toAssetId
@@ -17,11 +16,14 @@ import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
+import uniffi.gemstone.GemTransactionsService
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 
 @Singleton
 class DeviceAssetsSyncService @Inject constructor(
     private val walletPreferencesFactory: WalletPreferencesFactory,
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val transactionsService: GemTransactionsService,
     private val prefetchAssets: PrefetchAssets,
     private val ensureWalletAssets: EnsureWalletAssets,
     private val enableAsset: EnableAsset,
@@ -35,9 +37,9 @@ class DeviceAssetsSyncService @Inject constructor(
 
         val walletIdentifier = WalletId(walletId)
         val preferences = walletPreferencesFactory.create(walletId)
-        val assetIds = gemDeviceApiClient.getAssets(
-            walletId = walletIdentifier,
-            fromTimestamp = preferences.assetsTimestamp,
+        val assetIds = transactionsService.getAssetsList(
+            walletId = walletIdentifier.id,
+            fromTimestamp = preferences.assetsTimestamp.toULong(),
         ).mapNotNull(String::toAssetId)
             .distinct()
 

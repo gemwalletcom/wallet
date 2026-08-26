@@ -3,7 +3,6 @@ package com.gemwallet.android.data.coordinators.wallet_import
 import com.gemwallet.android.cases.banners.AddBanner
 import com.gemwallet.android.data.service.store.WalletPreferences
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
 import com.wallet.core.primitives.Chain
@@ -17,11 +16,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import uniffi.gemstone.GemWalletConfigurationService
+import com.gemwallet.android.serializer.toJson
 import org.junit.Test
 
 class SyncWalletConfigurationImplTest {
 
-    private val gemDeviceApiClient = mockk<GemDeviceApiClient>()
+    private val walletConfigurationService = mockk<GemWalletConfigurationService>()
     private val addBanner = mockk<AddBanner>(relaxed = true)
     private val walletPreferences = mockk<WalletPreferences>(relaxed = true) {
         every { completeInitialWalletConfiguration } returns false
@@ -30,7 +31,7 @@ class SyncWalletConfigurationImplTest {
         every { create(any()) } returns walletPreferences
     }
     private val subject = SyncWalletConfigurationImpl(
-        gemDeviceApiClient = gemDeviceApiClient,
+        walletConfigurationService = walletConfigurationService,
         addBanner = addBanner,
         walletPreferencesFactory = walletPreferencesFactory,
     )
@@ -38,7 +39,7 @@ class SyncWalletConfigurationImplTest {
 
     @Test
     fun sync_addsMultisigBannerForEachReturnedAccountAndMarksComplete() = runTest {
-        coEvery { gemDeviceApiClient.getWalletConfiguration(walletId) } returns WalletConfigurationResult(
+        coEvery { walletConfigurationService.getConfiguration(walletId.id) } returns WalletConfigurationResult(
             walletId = walletId,
             configuration = WalletConfiguration(
                 multiSignatureAccounts = listOf(
@@ -46,7 +47,7 @@ class SyncWalletConfigurationImplTest {
                     ChainAddress(chain = Chain.Solana, address = "sol-address"),
                 ),
             ),
-        )
+        ).toJson()
 
         subject.sync(walletId)
 
@@ -71,10 +72,10 @@ class SyncWalletConfigurationImplTest {
 
     @Test
     fun sync_doesNothingWhenMultiSignatureAccountsIsEmpty() = runTest {
-        coEvery { gemDeviceApiClient.getWalletConfiguration(walletId) } returns WalletConfigurationResult(
+        coEvery { walletConfigurationService.getConfiguration(walletId.id) } returns WalletConfigurationResult(
             walletId = walletId,
             configuration = WalletConfiguration(multiSignatureAccounts = emptyList()),
-        )
+        ).toJson()
 
         subject.sync(walletId)
 
@@ -84,7 +85,7 @@ class SyncWalletConfigurationImplTest {
 
     @Test
     fun sync_swallowsApiFailuresAndDoesNotMarkComplete() = runTest {
-        coEvery { gemDeviceApiClient.getWalletConfiguration(walletId) } throws RuntimeException("network down")
+        coEvery { walletConfigurationService.getConfiguration(walletId.id) } throws RuntimeException("network down")
 
         subject.sync(walletId)
 
@@ -98,7 +99,7 @@ class SyncWalletConfigurationImplTest {
 
         subject.sync(walletId)
 
-        coVerify(exactly = 0) { gemDeviceApiClient.getWalletConfiguration(any()) }
+        coVerify(exactly = 0) { walletConfigurationService.getConfiguration(any()) }
         coVerify(exactly = 0) { addBanner.addBanner(any(), any(), any(), any(), any()) }
     }
 }

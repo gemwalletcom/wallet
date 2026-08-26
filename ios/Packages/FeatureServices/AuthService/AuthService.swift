@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
-import Gemstone
+import protocol Gemstone.GemAuthServiceProtocol
+import func Gemstone.createAuthMessage
 import GemstonePrimitives
 import Keystore
 import Preferences
@@ -13,12 +13,12 @@ public protocol AuthServiceable: Sendable {
 }
 
 public struct AuthService: AuthServiceable, Sendable {
-    private let apiService: GemAPIAuthService
+    private let apiService: any GemAuthServiceProtocol
     private let keystore: any Keystore
     private let securePreferences: SecurePreferences
 
     public init(
-        apiService: GemAPIAuthService = GemAPIService.shared,
+        apiService: any GemAuthServiceProtocol,
         keystore: any Keystore,
         securePreferences: SecurePreferences = SecurePreferences(),
     ) {
@@ -32,8 +32,9 @@ public struct AuthService: AuthServiceable, Sendable {
         let chain = Chain.ethereum
         let account = try wallet.account(for: chain)
 
-        let authNonce = try await apiService.getAuthNonce()
-        let authMessage = try Gemstone.createAuthMessage(address: account.address, authNonce: authNonce.json())
+        let nonce = try await apiService.getNonce()
+        let authNonce = try AuthNonce(nonce)
+        let authMessage = Gemstone.createAuthMessage(address: account.address, authNonce: nonce)
         let signature = try await keystore.signAuthMessageHash(wallet: wallet, chain: chain, hash: Data(authMessage.hash))
 
         return AuthPayload(

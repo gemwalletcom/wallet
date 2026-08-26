@@ -3,16 +3,18 @@ package com.gemwallet.android.data.coordinators.pricealerts
 import com.gemwallet.android.application.pricealerts.coordinators.ExcludePriceAlert
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import uniffi.gemstone.GemPriceAlertService
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 
 class ExcludePriceAlertImpl(
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val priceAlertService: GemPriceAlertService,
     private val sessionRepository: SessionRepository,
     private val priceAlertRepository: PriceAlertRepository,
 ) : ExcludePriceAlert {
@@ -46,7 +48,7 @@ class ExcludePriceAlertImpl(
         val priceAlertInfo = priceAlertRepository.getSamePriceAlert(priceAlert) ?: return
         priceAlertRepository.disable(priceAlertInfo.id)
         try {
-            gemDeviceApiClient.excludePriceAlert(listOf(priceAlertInfo.priceAlert))
+            priceAlertService.deletePriceAlerts(listOf(priceAlertInfo.priceAlert.toJson()))
         } catch (_: Exception) {
             currentCoroutineContext().ensureActive()
         }

@@ -4,7 +4,7 @@ import AssetsServiceTestKit
 import DiscoverAssetsService
 import DiscoverAssetsServiceTestKit
 import Foundation
-import GemAPITestKit
+import GemstonePrimitivesTestKit
 import NFTServiceTestKit
 import Preferences
 import Primitives
@@ -60,12 +60,11 @@ struct AssetDiscoveryServiceTests {
             collection: .mock(id: collectionOneId, chain: .ethereum),
             assets: [.mock(id: assetOneId, collectionId: collectionOneId, chain: .ethereum)],
         )
-        let transactionProvider = GemAPITransactionServiceMock(
+        let transactionProvider = GemTransactionsServiceMock(
             walletTransactionsResponse: TransactionsResponse(transactions: [initialTransaction], addressNames: []),
         )
         let nftProvider = GemNftServiceMock(assets: [initialNFT])
         let service = AssetDiscoveryService.mock(
-            assetsListService: GemAPIAssetsListServiceMock(assetsByDeviceIdResult: []),
             transactionsService: .mock(
                 provider: transactionProvider,
                 transactionStore: transactionStore,

@@ -3,8 +3,8 @@
 import DeviceService
 import DeviceServiceTestKit
 import Foundation
-import GemAPI
-import GemAPITestKit
+import protocol Gemstone.GemPriceAlertServiceProtocol
+import GemstonePrimitivesTestKit
 import NotificationService
 import NotificationServiceTestKit
 import Preferences
@@ -18,7 +18,7 @@ import StoreTestKit
 public extension PriceAlertService {
     static func mock(
         store: PriceAlertStore = .mock(),
-        apiService: any GemAPIPriceAlertService = GemAPIPriceAlertServiceMock(),
+        apiService: any GemPriceAlertServiceProtocol = GemPriceAlertServiceMock(),
         deviceService: any DeviceServiceable = DeviceServiceMock(),
         priceUpdater: any PriceUpdater = .mock(),
         preferences: Preferences = .mock(),

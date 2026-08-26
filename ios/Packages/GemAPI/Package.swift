@@ -53,10 +53,8 @@ let package = Package(
         .testTarget(
             name: "GemAPITests",
             dependencies: [
-                "GemAPI",
                 "GemAPIDevice",
                 "Primitives",
-                "SwiftHTTPClient",
             ],
         ),
     ],

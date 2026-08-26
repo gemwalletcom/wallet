@@ -2,7 +2,8 @@
 
 import AuthService
 import Foundation
-import GemAPI
+import protocol Gemstone.GemRewardsServiceProtocol
+import GemstonePrimitives
 import Primitives
 
 public protocol RewardsServiceable: Sendable {
@@ -14,11 +15,11 @@ public protocol RewardsServiceable: Sendable {
 }
 
 public struct RewardsService: RewardsServiceable, Sendable {
-    private let apiService: GemAPIRewardsService
+    private let apiService: any GemRewardsServiceProtocol
     private let authService: AuthServiceable
 
     public init(
-        apiService: GemAPIRewardsService = GemAPIService.shared,
+        apiService: any GemRewardsServiceProtocol,
         authService: AuthServiceable,
     ) {
         self.apiService = apiService
@@ -26,19 +27,17 @@ public struct RewardsService: RewardsServiceable, Sendable {
     }
 
     public func getRewards(wallet: Wallet) async throws -> Rewards {
-        try await apiService.getRewards(walletId: wallet.id)
+        try await Rewards(apiService.getRewards(walletId: wallet.id.id))
     }
 
     public func useReferralCode(wallet: Wallet, referralCode: String) async throws {
         let auth = try await authService.getAuthPayload(wallet: wallet)
-        let request = AuthenticatedRequest(auth: auth, data: ReferralCode(code: referralCode))
-        try await apiService.useReferralCode(walletId: wallet.id, request: request)
+        try await apiService.useReferralCode(walletId: wallet.id.id, auth: auth.json(), code: referralCode)
     }
 
     public func createReferral(wallet: Wallet, code: String) async throws -> Rewards {
         let auth = try await authService.getAuthPayload(wallet: wallet)
-        let request = AuthenticatedRequest(auth: auth, data: ReferralCode(code: code))
-        return try await apiService.createReferral(walletId: wallet.id, request: request)
+        return try await Rewards(apiService.createReferral(walletId: wallet.id.id, auth: auth.json(), code: code))
     }
 
     public func generateReferralLink(code: String) -> URL {
@@ -47,7 +46,6 @@ public struct RewardsService: RewardsServiceable, Sendable {
 
     public func redeem(wallet: Wallet, redemptionId: String) async throws -> RedemptionResult {
         let auth = try await authService.getAuthPayload(wallet: wallet)
-        let request = AuthenticatedRequest(auth: auth, data: RedemptionRequest(id: redemptionId))
-        return try await apiService.redeem(walletId: wallet.id, request: request)
+        return try await RedemptionResult(apiService.redeem(walletId: wallet.id.id, auth: auth.json(), redemptionId: redemptionId))
     }
 }

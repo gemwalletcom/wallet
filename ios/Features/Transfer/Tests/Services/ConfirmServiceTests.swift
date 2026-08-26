@@ -8,6 +8,7 @@ import BigInt
 import BlockchainTestKit
 import ChainServiceTestKit
 import Foundation
+import GemstonePrimitivesTestKit
 import GemAPITestKit
 import KeystoreTestKit
 import PriceServiceTestKit
@@ -145,7 +146,7 @@ struct ConfirmServiceTests {
         let service = ConfirmSimulationService(
             addressNameService: .mock(
                 addressStore: .mock(),
-                apiService: GemAPIAddressNamesServiceMock(error: NSError(domain: "test", code: 404)),
+                apiService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
             ),
             assetsService: .mock(),
         )

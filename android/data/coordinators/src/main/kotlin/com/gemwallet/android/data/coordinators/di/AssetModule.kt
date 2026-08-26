@@ -67,12 +67,12 @@ import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemPortfolioService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -167,13 +167,13 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideGetPortfolioData(
-        gemDeviceApiClient: GemDeviceApiClient,
+        portfolioService: GemPortfolioService,
         assetsRepository: AssetsRepository,
         currencyRatesService: CurrencyRatesService,
         perpetualService: PerpetualService,
         sessionRepository: SessionRepository,
     ): GetPortfolioData = GetPortfolioDataImpl(
-        gemDeviceApiClient = gemDeviceApiClient,
+        portfolioService = portfolioService,
         assetsRepository = assetsRepository,
         currencyRatesService = currencyRatesService,
         perpetualService = perpetualService,

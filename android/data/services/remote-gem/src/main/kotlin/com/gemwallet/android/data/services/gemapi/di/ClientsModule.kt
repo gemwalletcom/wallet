@@ -2,14 +2,7 @@ package com.gemwallet.android.data.services.gemapi.di
 
 import android.content.Context
 import android.os.Build
-import com.gemwallet.android.Constants
-import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
-import com.gemwallet.android.data.services.gemapi.Mime
-import com.gemwallet.android.data.services.gemapi.http.GemApiErrorInterceptor
-import com.gemwallet.android.data.services.gemapi.http.SecurityInterceptor
 import com.gemwallet.android.model.BuildInfo
-import com.gemwallet.android.serializer.jsonEncoder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,8 +11,6 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.Cache
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -27,20 +18,13 @@ import javax.inject.Singleton
 @Module
 object ClientsModule {
 
-    @Provides
-    @Singleton
-    fun provideSecurityInterceptor(getDeviceId: GetDeviceId) = SecurityInterceptor(getDeviceId)
 
-    @Provides
-    @Singleton
-    fun provideGemApiErrorInterceptor() = GemApiErrorInterceptor()
 
     @Provides
     @Singleton
     fun provideGemHttpClient(
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
-        gemApiErrorInterceptor: GemApiErrorInterceptor,
     ): OkHttpClient = OkHttpClient.Builder()
         .connectionPool(ConnectionPool(32, 5, TimeUnit.MINUTES))
         .cache(Cache(context.cacheDir, 10 * 1024 * 1024))
@@ -55,25 +39,7 @@ object ClientsModule {
                     .build()
             )
         }
-        .addInterceptor(gemApiErrorInterceptor)
         .build()
 
-
-    @Provides
-    @Singleton
-    fun provideGemDeviceApiClient(
-        httpClient: OkHttpClient,
-        securityInterceptor: SecurityInterceptor,
-    ): GemDeviceApiClient {
-        val httpClient = httpClient.newBuilder()
-            .addInterceptor(securityInterceptor)
-            .build()
-        return Retrofit.Builder()
-            .baseUrl(Constants.API_URL)
-            .client(httpClient)
-            .addConverterFactory(jsonEncoder.asConverterFactory(Mime.Json.value))
-            .build()
-            .create(GemDeviceApiClient::class.java)
-    }
 
 }

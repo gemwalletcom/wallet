@@ -4,20 +4,20 @@ import com.gemwallet.android.application.GetAuthPayload
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.referral.coordinators.Redeem
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.ext.getAccount
-import com.wallet.core.primitives.AuthenticatedRequest
-import com.wallet.core.primitives.RedemptionRequest
 import com.wallet.core.primitives.RedemptionResult
 import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.flow.firstOrNull
+import uniffi.gemstone.GemRewardsService
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 
 class RedeemImpl(
     private val sessionRepository: SessionRepository,
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val rewardsService: GemRewardsService,
     private val getAuthPayload: GetAuthPayload,
     private val enableAsset: EnableAsset,
 ) : Redeem {
@@ -27,13 +27,11 @@ class RedeemImpl(
         if (rewards.points < option.points) {
             throw ReferralError.InsufficientPoints
         }
-        val result = gemDeviceApiClient.redeem(
-            walletId = wallet.id,
-            request = AuthenticatedRequest(
-                auth = authPayload,
-                data = RedemptionRequest(option.id)
-            )
-        )
+        val result = rewardsService.redeem(
+            walletId = wallet.id.id,
+            auth = authPayload.toJson(),
+            redemptionId = option.id,
+        ).decodeJson<RedemptionResult>()
         sessionRepository.session().firstOrNull()?.let { session ->
             val assetId = option.asset?.id ?: return@let
             session.wallet.getAccount(assetId.chain) ?: return@let

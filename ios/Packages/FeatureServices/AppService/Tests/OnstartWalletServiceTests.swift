@@ -4,7 +4,7 @@
 import BannerService
 import DeviceServiceTestKit
 import Foundation
-import GemAPITestKit
+import GemstonePrimitivesTestKit
 import NotificationService
 import Preferences
 import PreferencesTestKit
@@ -29,7 +29,7 @@ struct OnstartWalletServiceTests {
         let db = DB.mockWithChains([.tron, .xrp, .stellar, .algorand])
         let bannerStore = BannerStore.mock(db: db)
         try WalletStore.mock(db: db).addWallet(wallet)
-        let walletConfigurationService = GemAPIWalletConfigurationServiceMock(
+        let walletConfigurationService = GemWalletConfigurationServiceMock(
             result: WalletConfigurationResult(
                 walletId: walletId,
                 configuration: WalletConfiguration(
@@ -50,7 +50,7 @@ struct OnstartWalletServiceTests {
         #expect(banner?.event == .accountBlockedMultiSignature)
         #expect(banner?.state == .alwaysActive)
         #expect(walletPreferences.completeInitialWalletConfiguration)
-        #expect(await walletConfigurationService.walletIds == [walletId])
+        #expect(await walletConfigurationService.walletIds == [walletId.id])
     }
 
     @Test
@@ -65,7 +65,7 @@ struct OnstartWalletServiceTests {
         let db = DB.mockWithChains([.tron])
         let bannerStore = BannerStore.mock(db: db)
         try WalletStore.mock(db: db).addWallet(wallet)
-        let walletConfigurationService = GemAPIWalletConfigurationServiceMock()
+        let walletConfigurationService = GemWalletConfigurationServiceMock()
         let service = OnstartWalletService(
             deviceService: DeviceServiceMock(),
             bannerSetupService: BannerSetupService(store: bannerStore, preferences: preferences),

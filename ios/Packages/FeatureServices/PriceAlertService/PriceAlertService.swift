@@ -2,7 +2,8 @@
 
 import DeviceService
 import Foundation
-import GemAPI
+import protocol Gemstone.GemPriceAlertServiceProtocol
+import GemstonePrimitives
 import NotificationService
 import Preferences
 import PriceService
@@ -11,7 +12,7 @@ import Store
 
 public struct PriceAlertService: Sendable {
     private let store: PriceAlertStore
-    private let apiService: any GemAPIPriceAlertService
+    private let apiService: any GemPriceAlertServiceProtocol
     private let deviceService: any DeviceServiceable
     private let priceUpdater: any PriceUpdater
     private let preferences: Preferences
@@ -19,7 +20,7 @@ public struct PriceAlertService: Sendable {
 
     public init(
         store: PriceAlertStore,
-        apiService: any GemAPIPriceAlertService,
+        apiService: any GemPriceAlertServiceProtocol,
         deviceService: any DeviceServiceable,
         priceUpdater: any PriceUpdater,
         preferences: Preferences = .standard,
@@ -43,13 +44,13 @@ public struct PriceAlertService: Sendable {
     }
 
     public func update() async throws {
-        let remote = try await apiService.getPriceAlerts(assetId: .none)
+        let remote = try await apiService.getPriceAlerts(assetId: .none).map { try PriceAlert($0) }
         let local = try store.getPriceAlerts()
         try syncChanges(remote: remote, local: local)
     }
 
     public func update(assetId: String) async throws {
-        let remote = try await apiService.getPriceAlerts(assetId: assetId)
+        let remote = try await apiService.getPriceAlerts(assetId: assetId).map { try PriceAlert($0) }
         let local = try store.getPriceAlerts(for: assetId)
         try syncChanges(remote: remote, local: local)
     }
@@ -79,7 +80,7 @@ public struct PriceAlertService: Sendable {
     }
 
     public func add(priceAlerts: [PriceAlert]) async throws {
-        try await apiService.addPriceAlerts(priceAlerts: priceAlerts)
+        try await apiService.addPriceAlerts(alerts: priceAlerts.map { try $0.json() })
     }
 
     public func enablePriceAlerts() async throws {
@@ -89,6 +90,6 @@ public struct PriceAlertService: Sendable {
 
     public func delete(priceAlerts: [PriceAlert]) async throws {
         try store.deletePriceAlerts(priceAlerts.ids)
-        try await apiService.deletePriceAlerts(priceAlerts: priceAlerts)
+        try await apiService.deletePriceAlerts(alerts: priceAlerts.map { try $0.json() })
     }
 }

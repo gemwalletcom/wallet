@@ -16,6 +16,13 @@ use serde::de::DeserializeOwned;
 
 use crate::device_target::{GemDeviceApiBody, GemDeviceApiTarget};
 
+/// Runs before any request scoped to a wallet, so the app can make sure the
+/// backend already knows that wallet before the call goes out.
+#[async_trait::async_trait]
+pub trait WalletRequestPreflight: Send + Sync + std::fmt::Debug {
+    async fn prepare(&self) -> Result<(), ClientError>;
+}
+
 /// Signs `/v2/devices/*` requests with the device Ed25519 key.
 ///
 /// The key is passed in once at construction and is expected to stay in memory for
@@ -27,6 +34,7 @@ pub struct GemDeviceApiClient<E: RpcClientError> {
     base_url: String,
     provider: Arc<dyn RpcProvider<Error = E>>,
     device_private_key: Vec<u8>,
+    preflight: Option<Arc<dyn WalletRequestPreflight>>,
 }
 
 impl<E: RpcClientError> GemDeviceApiClient<E> {
@@ -35,7 +43,13 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
             base_url,
             provider,
             device_private_key,
+            preflight: None,
         }
+    }
+
+    pub fn with_preflight(mut self, preflight: Arc<dyn WalletRequestPreflight>) -> Self {
+        self.preflight = Some(preflight);
+        self
     }
 
     pub async fn get_device(&self) -> Result<Option<Device>, ClientError> {
@@ -206,6 +220,9 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
     }
 
     async fn request(&self, target: GemDeviceApiTarget) -> Result<gem_client::Response, ClientError> {
+        if let Some(preflight) = self.preflight.as_ref().filter(|_| !target.wallet_id().is_empty()) {
+            preflight.prepare().await?;
+        }
         let path = target.path();
         let body = target.body()?;
         let (bytes, content_type) = match &body {

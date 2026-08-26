@@ -2,7 +2,7 @@
 
 import DeviceServiceTestKit
 import Foundation
-import GemAPITestKit
+import GemstonePrimitivesTestKit
 import NotificationServiceTestKit
 import Preferences
 import PreferencesTestKit
@@ -54,7 +54,7 @@ struct PriceAlertServiceTests {
         let updatedBitcoinAlert = PriceAlert.mock(assetId: bitcoinAssetId, lastNotifiedAt: Date(timeIntervalSince1970: 1000))
 
         let store = try createStore(with: [bitcoinAlert, ethereumAlert])
-        let apiService = GemAPIPriceAlertServiceMock(priceAlerts: [updatedBitcoinAlert])
+        let apiService = GemPriceAlertServiceMock(priceAlerts: [updatedBitcoinAlert])
         let service = PriceAlertService.mock(store: store, apiService: apiService)
 
         try await service.update(assetId: bitcoinAssetId.identifier)
@@ -116,7 +116,7 @@ struct PriceAlertServiceTests {
 
     private func performUpdate(localAlerts: [PriceAlert], remoteAlerts: [PriceAlert]) async throws -> [PriceAlert] {
         let store = try createStore(with: localAlerts)
-        let apiService = GemAPIPriceAlertServiceMock(priceAlerts: remoteAlerts)
+        let apiService = GemPriceAlertServiceMock(priceAlerts: remoteAlerts)
         let service = PriceAlertService.mock(store: store, apiService: apiService)
 
         try await service.update()

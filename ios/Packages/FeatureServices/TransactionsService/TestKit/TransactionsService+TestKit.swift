@@ -2,15 +2,15 @@
 
 import AssetsService
 import AssetsServiceTestKit
-import GemAPI
-import GemAPITestKit
+import protocol Gemstone.GemTransactionsServiceProtocol
+import GemstonePrimitivesTestKit
 import Store
 import StoreTestKit
 import TransactionsService
 
 public extension TransactionsService {
     static func mock(
-        provider: any GemAPITransactionService = GemAPITransactionServiceMock(),
+        provider: any GemTransactionsServiceProtocol = GemTransactionsServiceMock(),
         transactionStore: TransactionStore = .mock(),
         assetsService: AssetsService = .mock(),
         addressStore: AddressStore = .mock(),

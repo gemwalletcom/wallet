@@ -1,18 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
+import protocol Gemstone.GemSubscriptionServiceProtocol
+import GemstonePrimitives
 import Preferences
 import Primitives
 import Store
 
 public struct SubscriptionService: Sendable {
-    private let subscriptionProvider: any GemAPISubscriptionService
+    private let subscriptionProvider: any GemSubscriptionServiceProtocol
     private let preferences: Preferences
     private let walletStore: WalletStore
 
     public init(
-        subscriptionProvider: any GemAPISubscriptionService,
+        subscriptionProvider: any GemSubscriptionServiceProtocol,
         walletStore: WalletStore,
         preferences: Preferences = .standard,
     ) {
@@ -33,7 +34,7 @@ public struct SubscriptionService: Sendable {
                 subscriptions: wallet.addressChains,
             )
         }
-        let remote = try await subscriptionProvider.getSubscriptions()
+        let remote = try await subscriptionProvider.getSubscriptions().map { try WalletSubscriptionChains($0) }
         let changes = Self.calculateChanges(local: local, remote: remote)
 
         guard changes.hasChanges else {
@@ -42,11 +43,11 @@ public struct SubscriptionService: Sendable {
         }
 
         if !changes.toAdd.isEmpty {
-            try await subscriptionProvider.addSubscriptions(subscriptions: changes.toAdd)
+            try await subscriptionProvider.addSubscriptions(subscriptions: changes.toAdd.map { try $0.json() })
         }
 
         if !changes.toDelete.isEmpty {
-            try await subscriptionProvider.deleteSubscriptions(subscriptions: changes.toDelete)
+            try await subscriptionProvider.deleteSubscriptions(subscriptions: changes.toDelete.map { try $0.json() })
         }
 
         preferences.subscriptionsVersionHasChange = false

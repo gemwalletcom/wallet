@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import DeviceService
-import GemAPI
-import GemAPITestKit
+import protocol Gemstone.GemSubscriptionServiceProtocol
+import GemstonePrimitivesTestKit
 import Preferences
 import Store
 import StoreTestKit
 
 public extension SubscriptionService {
     static func mock(
-        subscriptionProvider: any GemAPISubscriptionService = GemAPISubscriptionServiceMock(),
+        subscriptionProvider: any GemSubscriptionServiceProtocol = GemSubscriptionServiceMock(),
         walletStore: WalletStore = .mock(),
         preferences: Preferences = .standard,
     ) -> SubscriptionService {

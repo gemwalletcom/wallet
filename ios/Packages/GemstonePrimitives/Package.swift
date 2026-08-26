@@ -9,6 +9,10 @@ let package = Package(
             name: "GemstonePrimitives",
             targets: ["GemstonePrimitives"],
         ),
+        .library(
+            name: "GemstonePrimitivesTestKit",
+            targets: ["GemstonePrimitivesTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Gemstone", path: "../Gemstone"),
@@ -22,6 +26,15 @@ let package = Package(
                 "Primitives",
             ],
             path: "Sources",
+        ),
+        .target(
+            name: "GemstonePrimitivesTestKit",
+            dependencies: [
+                "Gemstone",
+                "GemstonePrimitives",
+                "Primitives",
+            ],
+            path: "TestKit",
         ),
         .testTarget(
             name: "GemstonePrimitivesTests",

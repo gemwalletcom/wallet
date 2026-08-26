@@ -17,7 +17,10 @@ import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemSubscriptionService
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
@@ -43,7 +46,8 @@ import java.util.Locale
 
 class DeviceRepository(
     private val context: Context,
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val deviceService: GemDeviceService,
+    private val subscriptionService: GemSubscriptionService,
     private val configStore: ConfigStore,
     private val requestPushToken: RequestPushToken,
     private val platformStore: PlatformStore,
@@ -138,7 +142,7 @@ class DeviceRepository(
 
         val requestDevice = localDevice.copy(subscriptionsVersion = version)
         if (remoteDevice.hasChanges(requestDevice)) {
-            gemDeviceApiClient.updateDevice(request = requestDevice)
+            deviceService.updateDevice(requestDevice.toJson())
             setDeviceRegistered(true)
         }
         recordPushedState(requestDevice, signature)
@@ -153,17 +157,17 @@ class DeviceRepository(
     }
 
     private suspend fun getOrCreateDevice(device: Device): Device {
-        if (isDeviceRegistered() || gemDeviceApiClient.isDeviceRegistered()) {
-            gemDeviceApiClient.getDevice()?.let { remoteDevice ->
+        if (isDeviceRegistered() || deviceService.isRegistered()) {
+            deviceService.getDevice()?.decodeJson<Device>()?.let { remoteDevice ->
                 setDeviceRegistered(true)
                 return remoteDevice
             }
             setDeviceRegistered(false)
         }
 
-        val registeredDevice = gemDeviceApiClient.registerDevice(device)
-        setDeviceRegistered(registeredDevice != null)
-        return registeredDevice ?: device
+        val registeredDevice = deviceService.addDevice(device.toJson()).decodeJson<Device>()
+        setDeviceRegistered(true)
+        return registeredDevice
     }
 
     private suspend fun setDeviceRegistered(isRegistered: Boolean = true) {
@@ -171,15 +175,15 @@ class DeviceRepository(
     }
 
     private suspend fun reconcileSubscriptions(wallets: List<Wallet>) {
-        val remoteSubscriptions = gemDeviceApiClient.getSubscriptions() ?: emptyList()
+        val remoteSubscriptions = subscriptionService.getSubscriptions().map { it.decodeJson<WalletSubscriptionChains>() }
         val (toAdd, toRemove) = wallets.subscriptionsDiff(remoteSubscriptions)
 
         if (toAdd.isNotEmpty()) {
-            gemDeviceApiClient.addSubscriptions(toAdd)
+            subscriptionService.addSubscriptions(toAdd.map { it.toJson() })
         }
 
         if (toRemove.isNotEmpty()) {
-            gemDeviceApiClient.deleteSubscriptions(toRemove)
+            subscriptionService.deleteSubscriptions(toRemove.map { it.toJson() })
         }
     }
 

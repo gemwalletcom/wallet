@@ -3,14 +3,14 @@
 import BigInt
 import Formatters
 import Foundation
-import GemAPI
+import FiatService
 import GemstonePrimitives
 import Localization
 import Primitives
 import Validators
 
 struct SellOperation: FiatOperation {
-    private let service: any GemAPIFiatService
+    private let service: any FiatQuoting
     private let asset: Asset
     private let currencyFormatter: CurrencyFormatter
     private let walletId: WalletId
@@ -30,7 +30,7 @@ struct SellOperation: FiatOperation {
     }
 
     init(
-        service: any GemAPIFiatService,
+        service: any FiatQuoting,
         asset: Asset,
         currencyFormatter: CurrencyFormatter,
         walletId: WalletId,

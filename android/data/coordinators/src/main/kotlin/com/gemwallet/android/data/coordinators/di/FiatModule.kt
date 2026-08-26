@@ -28,7 +28,6 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,6 +35,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Qualifier
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemFiatService
 import javax.inject.Singleton
 
 @Qualifier
@@ -82,10 +82,10 @@ object FiatModule {
     @Provides
     @Singleton
     fun provideGetFiatTransactions(
-        gemDeviceApiClient: GemDeviceApiClient,
+        fiatService: GemFiatService,
     ): GetFiatTransactions {
         return GetFiatTransactionsImpl(
-            gemDeviceApiClient = gemDeviceApiClient,
+            fiatService = fiatService,
         )
     }
 
@@ -152,17 +152,17 @@ object FiatModule {
     @Provides
     @Singleton
     fun provideGetBuyQuotes(
-        gemDeviceApiClient: GemDeviceApiClient,
+        fiatService: GemFiatService,
     ): GetBuyQuotes {
-        return GetBuyQuotesImpl(gemDeviceApiClient)
+        return GetBuyQuotesImpl(fiatService)
     }
 
     @Provides
     @Singleton
     fun provideGetBuyQuoteUrl(
-        gemDeviceApiClient: GemDeviceApiClient,
+        fiatService: GemFiatService,
     ): GetBuyQuoteUrl {
-        return GetBuyQuoteUrlImpl(gemDeviceApiClient)
+        return GetBuyQuoteUrlImpl(fiatService)
     }
 
 }

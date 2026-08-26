@@ -2,11 +2,11 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.cases.name.ResolveName
 import com.gemwallet.android.data.coordinators.name.ResolveNameImpl
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemNameService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -16,8 +16,8 @@ object NameModule {
     @Provides
     @Singleton
     fun provideResolveName(
-        gemDeviceApiClient: GemDeviceApiClient,
+        nameService: GemNameService,
     ): ResolveName {
-        return ResolveNameImpl(gemDeviceApiClient)
+        return ResolveNameImpl(nameService)
     }
 }

@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
 import protocol Gemstone.GemAssetsServiceProtocol
 import GemstonePrimitives
 import GemstonePrimitives
@@ -10,20 +9,17 @@ import Primitives
 import Store
 
 public struct ImportAssetsService: Sendable {
-    let assetListService: any GemAPIAssetsListService
     let assetsProvider: any GemAssetsServiceProtocol
     let assetsService: AssetsService
     let assetStore: AssetStore
     let preferences: Preferences
 
     public init(
-        assetListService: any GemAPIAssetsListService,
         assetsProvider: any GemAssetsServiceProtocol,
         assetsService: AssetsService,
         assetStore: AssetStore,
         preferences: Preferences,
     ) {
-        self.assetListService = assetListService
         self.assetsProvider = assetsProvider
         self.assetsService = assetsService
         self.assetStore = assetStore

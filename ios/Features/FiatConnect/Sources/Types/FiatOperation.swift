@@ -3,7 +3,6 @@
 import BigInt
 import Formatters
 import Foundation
-import GemAPI
 import Primitives
 import Validators
 

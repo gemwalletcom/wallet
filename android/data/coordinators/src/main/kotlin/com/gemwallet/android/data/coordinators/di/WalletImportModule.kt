@@ -14,12 +14,12 @@ import com.gemwallet.android.data.coordinators.wallet_import.services.ImportWall
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
-import com.wallet.core.primitives.WalletId
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemTransactionsService
+import uniffi.gemstone.GemWalletConfigurationService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -29,19 +29,19 @@ object WalletImportModule {
     @Provides
     @Singleton
     fun provideGetAvailableAssetIds(
-        gemDeviceApiClient: GemDeviceApiClient,
+        transactionsService: GemTransactionsService,
     ): GetAvailableAssetIds = GetAvailableAssetIds { walletId ->
-        gemDeviceApiClient.getAssets(walletId = WalletId(walletId), fromTimestamp = 0)
+        transactionsService.getAssetsList(walletId = walletId, fromTimestamp = 0u)
     }
 
     @Provides
     @Singleton
     fun provideSyncWalletConfiguration(
-        gemDeviceApiClient: GemDeviceApiClient,
+        walletConfigurationService: GemWalletConfigurationService,
         addBanner: AddBanner,
         walletPreferencesFactory: WalletPreferencesFactory,
     ): SyncWalletConfiguration = SyncWalletConfigurationImpl(
-        gemDeviceApiClient = gemDeviceApiClient,
+        walletConfigurationService = walletConfigurationService,
         addBanner = addBanner,
         walletPreferencesFactory = walletPreferencesFactory,
     )

@@ -4,7 +4,6 @@ import BigInt
 import Components
 import Formatters
 import Foundation
-import GemAPI
 import Localization
 import Primitives
 import PrimitivesComponents

@@ -4,7 +4,6 @@ import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAl
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlert
@@ -12,9 +11,12 @@ import com.wallet.core.primitives.PriceAlertDirection
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.firstOrNull
+import uniffi.gemstone.GemPriceAlertService
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 
 class IncludePriceAlertImpl(
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val priceAlertService: GemPriceAlertService,
     private val sessionRepository: SessionRepository,
     private val priceAlertRepository: PriceAlertRepository,
     private val syncDevice: SyncDevice,
@@ -41,7 +43,7 @@ class IncludePriceAlertImpl(
         enablePriceAlertsIfNeeded()
 
         try {
-            gemDeviceApiClient.includePriceAlert(alerts = listOf(priceAlert))
+            priceAlertService.addPriceAlerts(alerts = listOf(priceAlert.toJson()))
         } catch (_: Exception) {
             currentCoroutineContext().ensureActive()
         }

@@ -8,7 +8,6 @@ import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.entities.toAddressRecords
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
@@ -16,10 +15,13 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import uniffi.gemstone.GemNameService
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 
 class AddressesRepository(
     private val addressesDao: AddressesDao,
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val nameService: GemNameService,
 ) : SaveAddressNames, GetAddressName, GetAddressNames, RenameWalletAddresses {
 
     override suspend fun saveAddressNames(addressNames: List<AddressName>) {
@@ -38,7 +40,7 @@ class AddressesRepository(
         val remote = if (missing.isEmpty()) {
             emptyList()
         } else {
-            runCatching { gemDeviceApiClient.getAddressNames(missing) }.getOrDefault(emptyList())
+            runCatching { nameService.getAddressNames(missing.map { it.toJson() }).map { it.decodeJson<AddressName>() } }.getOrDefault(emptyList())
         }
         runCatching { saveAddressNames(remote) }
         return cached + remote

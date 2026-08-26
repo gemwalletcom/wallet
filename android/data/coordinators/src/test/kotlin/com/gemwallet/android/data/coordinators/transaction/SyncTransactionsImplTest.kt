@@ -7,7 +7,6 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.WalletPreferences
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockTransaction
@@ -19,6 +18,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import uniffi.gemstone.GemTransactionsService
+import com.gemwallet.android.serializer.toJson
 import org.junit.Test
 
 class SyncTransactionsImplTest {
@@ -29,7 +30,7 @@ class SyncTransactionsImplTest {
     private val walletPreferencesFactory = mockk<WalletPreferencesFactory> {
         every { create(any()) } returns walletPreferences
     }
-    private val gemDeviceApiClient = mockk<GemDeviceApiClient>()
+    private val transactionsService = mockk<GemTransactionsService>()
     private val saveTransactions = mockk<SaveTransactions>(relaxed = true)
     private val saveAddressNames = mockk<SaveAddressNames>(relaxed = true)
     private val prefetchAssets = mockk<PrefetchAssets>(relaxed = true)
@@ -38,7 +39,7 @@ class SyncTransactionsImplTest {
 
     private val subject = SyncTransactionsImpl(
         walletPreferencesFactory = walletPreferencesFactory,
-        gemDeviceApiClient = gemDeviceApiClient,
+        transactionsService = transactionsService,
         saveTransactions = saveTransactions,
         saveAddressNames = saveAddressNames,
         prefetchAssets = prefetchAssets,
@@ -57,11 +58,11 @@ class SyncTransactionsImplTest {
         )
 
         coEvery {
-            gemDeviceApiClient.getTransactions(wallet.id, 42L)
+            transactionsService.getTransactions(wallet.id.id, null, 42uL)
         } returns TransactionsResponse(
             transactions = listOf(transaction),
             addressNames = emptyList(),
-        )
+        ).toJson()
         coEvery { prefetchAssets.prefetchAssets(listOf(solana.id, ethereum.id)) } returns listOf(solana.id)
 
         subject.syncTransactions(wallet)

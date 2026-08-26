@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
+import GemstonePrimitives
 import Gemstone
 import Preferences
 import Primitives
@@ -13,7 +13,7 @@ public struct DeviceService: DeviceServiceable {
     public static let nodeAuthTokenUpdateInterval: Duration = .seconds(nodeAuthConfiguration.checkIntervalSeconds)
     private static let nodeAuthTokenRefreshThreshold = UInt64(nodeAuthConfiguration.refreshThresholdSeconds)
 
-    private let deviceProvider: any GemAPIDeviceService
+    private let deviceProvider: any GemDeviceServiceProtocol
     private let subscriptionsService: SubscriptionService
     private let preferences: Preferences
     private let securePreferences: SecurePreferences
@@ -21,7 +21,7 @@ public struct DeviceService: DeviceServiceable {
     private static let nodeAuthTokenUpdateExecutor = SerialExecutor()
 
     public init(
-        deviceProvider: any GemAPIDeviceService,
+        deviceProvider: any GemDeviceServiceProtocol,
         subscriptionsService: SubscriptionService,
         preferences: Preferences = .standard,
         securePreferences: SecurePreferences = SecurePreferences(),
@@ -75,7 +75,7 @@ public struct DeviceService: DeviceServiceable {
     public func updateNodeAuthTokenIfNeeded() async throws {
         try await Self.nodeAuthTokenUpdateExecutor.execute {
             guard preferences.isDeviceRegistered, shouldUpdateNodeAuthToken() else { return }
-            let nodeAuthToken = try await deviceProvider.getNodeAuthToken()
+            let nodeAuthToken = try await DeviceToken(deviceProvider.getToken())
             try securePreferences.setNodeAuthToken(nodeAuthToken)
         }
     }
@@ -90,7 +90,7 @@ public struct DeviceService: DeviceServiceable {
     private func getOrCreateDevice(_ deviceId: String) async throws -> Primitives.Device {
         var shouldFetchDevice = preferences.isDeviceRegistered
         if !shouldFetchDevice {
-            shouldFetchDevice = try await deviceProvider.isDeviceRegistered()
+            shouldFetchDevice = try await deviceProvider.isRegistered()
         }
 
         if shouldFetchDevice {
@@ -156,16 +156,16 @@ public struct DeviceService: DeviceServiceable {
     }
 
     private func getDevice() async throws -> Primitives.Device? {
-        try await deviceProvider.getDevice()
+        try await deviceProvider.getDevice().map { try Primitives.Device($0) }
     }
 
     @discardableResult
     private func addDevice(_ device: Primitives.Device) async throws -> Primitives.Device {
-        try await deviceProvider.addDevice(device: device)
+        try await Primitives.Device(deviceProvider.addDevice(device: device.json()))
     }
 
     @discardableResult
     private func updateDevice(_ device: Primitives.Device) async throws -> Primitives.Device {
-        try await deviceProvider.updateDevice(device: device)
+        try await Primitives.Device(deviceProvider.updateDevice(device: device.json()))
     }
 }

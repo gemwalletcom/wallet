@@ -24,11 +24,11 @@ import com.gemwallet.android.data.coordinators.pricealerts.UpdatePriceAlertsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemPriceAlertService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -37,13 +37,13 @@ object PriceAlertModule {
     @Provides
     @Singleton
     fun provideAddPriceAlerts(
-        gemDeviceApiClient: GemDeviceApiClient,
+        priceAlertService: GemPriceAlertService,
         priceAlertRepository: PriceAlertRepository,
         sessionRepository: SessionRepository,
         syncDevice: SyncDevice,
     ): IncludePriceAlert {
         return IncludePriceAlertImpl(
-            gemDeviceApiClient = gemDeviceApiClient,
+            priceAlertService = priceAlertService,
             priceAlertRepository = priceAlertRepository,
             sessionRepository = sessionRepository,
             syncDevice = syncDevice,
@@ -99,12 +99,12 @@ object PriceAlertModule {
     @Provides
     @Singleton
     fun providePriceAlertExclude(
-        gemDeviceApiClient: GemDeviceApiClient,
+        priceAlertService: GemPriceAlertService,
         sessionRepository: SessionRepository,
         priceAlertRepository: PriceAlertRepository,
     ): ExcludePriceAlert {
         return ExcludePriceAlertImpl(
-            gemDeviceApiClient = gemDeviceApiClient,
+            priceAlertService = priceAlertService,
             sessionRepository = sessionRepository,
             priceAlertRepository = priceAlertRepository,
         )
@@ -122,11 +122,11 @@ object PriceAlertModule {
 
     @Provides
     fun provideUpdatePriceAlerts(
-        gemDeviceApiClient: GemDeviceApiClient,
+        priceAlertService: GemPriceAlertService,
         priceAlertRepository: PriceAlertRepository,
     ): UpdatePriceAlerts {
         return UpdatePriceAlertsImpl(
-            gemDeviceApiClient = gemDeviceApiClient,
+            priceAlertService = priceAlertService,
             priceAlertRepository = priceAlertRepository,
         )
     }

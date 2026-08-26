@@ -1,7 +1,6 @@
 package com.gemwallet.android
 
 import com.gemwallet.android.cases.device.IsDeviceRegistered
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.runCatchingCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,9 +11,12 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemNodeAuthConfig
 import uniffi.gemstone.GemPreferences
 import uniffi.gemstone.nodeAuthConfig
+import uniffi.gemstone.GemDeviceService
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 
 class NodeAuthTokenService(
-    private val deviceApiClient: GemDeviceApiClient,
+    private val deviceService: GemDeviceService,
     private val isDeviceRegistered: IsDeviceRegistered,
     private val preferences: GemPreferences,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
@@ -47,6 +49,6 @@ class NodeAuthTokenService(
             if (expiry > now) expiry - now else 0uL
         } ?: 0uL
         if (remainingTime >= config.refreshThresholdSeconds.toULong()) return
-        preferences.setAuthToken(deviceApiClient.getDeviceToken())
+        preferences.setAuthToken(deviceService.getToken().decodeJson())
     }
 }

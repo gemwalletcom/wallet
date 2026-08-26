@@ -3,12 +3,13 @@ package com.gemwallet.android.data.coordinators.asset
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.service.store.WalletPreferences
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import io.mockk.coEvery
 import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import uniffi.gemstone.GemTransactionsService
+import com.gemwallet.android.serializer.toJson
 import org.junit.Test
 
 class DeviceAssetsSyncServiceTest {
@@ -17,12 +18,12 @@ class DeviceAssetsSyncServiceTest {
     private val walletPreferencesFactory = mockk<WalletPreferencesFactory> {
         every { create(any()) } returns walletPreferences
     }
-    private val gemDeviceApiClient = mockk<GemDeviceApiClient>()
+    private val transactionsService = mockk<GemTransactionsService>()
     private val syncDevice = mockk<SyncDevice>(relaxed = true)
 
     private val subject = DeviceAssetsSyncService(
         walletPreferencesFactory = walletPreferencesFactory,
-        gemDeviceApiClient = gemDeviceApiClient,
+        transactionsService = transactionsService,
         prefetchAssets = mockk(relaxed = true),
         ensureWalletAssets = mockk(relaxed = true),
         enableAsset = mockk(relaxed = true),
@@ -33,13 +34,13 @@ class DeviceAssetsSyncServiceTest {
 
     @Test
     fun sync_synchronizesDeviceBeforeRequestingAssets() = runTest {
-        coEvery { gemDeviceApiClient.getAssets(any(), any()) } returns emptyList()
+        coEvery { transactionsService.getAssetsList(any(), any()) } returns emptyList()
 
         subject.sync("wallet-1")
 
         coVerifyOrder {
             syncDevice.syncDevice()
-            gemDeviceApiClient.getAssets(any(), any())
+            transactionsService.getAssetsList(any(), any())
         }
     }
 }

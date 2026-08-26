@@ -2,7 +2,6 @@
 
 import AssetsService
 import Foundation
-import GemAPI
 import protocol Gemstone.GemAssetsServiceProtocol
 import NodeService
 import Preferences
@@ -14,7 +13,6 @@ import WalletService
 /// OnstartService runs services before the app starts.
 /// See OnstartAsyncService for any background tasks to run after start
 public struct OnstartService: Sendable {
-    private let assetListService: any GemAPIAssetsListService
     private let assetsProvider: any GemAssetsServiceProtocol
     private let assetsService: AssetsService
     private let assetStore: AssetStore
@@ -23,7 +21,6 @@ public struct OnstartService: Sendable {
     private let walletService: WalletService
 
     public init(
-        assetListService: any GemAPIAssetsListService,
         assetsProvider: any GemAssetsServiceProtocol,
         assetsService: AssetsService,
         assetStore: AssetStore,
@@ -31,7 +28,6 @@ public struct OnstartService: Sendable {
         preferences: Preferences,
         walletService: WalletService,
     ) {
-        self.assetListService = assetListService
         self.assetsProvider = assetsProvider
         self.assetsService = assetsService
         self.assetStore = assetStore
@@ -77,7 +73,6 @@ public struct OnstartService: Sendable {
 extension OnstartService {
     private func migrateAssets() throws {
         try ImportAssetsService(
-            assetListService: assetListService,
             assetsProvider: assetsProvider,
             assetsService: assetsService,
             assetStore: assetStore,

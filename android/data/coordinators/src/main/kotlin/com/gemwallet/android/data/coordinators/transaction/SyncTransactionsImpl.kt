@@ -8,7 +8,6 @@ import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.currentTimestamp
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.toIdentifier
@@ -17,11 +16,14 @@ import com.wallet.core.primitives.TransactionsResponse
 import com.wallet.core.primitives.Wallet
 import javax.inject.Inject
 import javax.inject.Singleton
+import uniffi.gemstone.GemTransactionsService
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 
 @Singleton
 class SyncTransactionsImpl @Inject constructor(
     private val walletPreferencesFactory: WalletPreferencesFactory,
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val transactionsService: GemTransactionsService,
     private val saveTransactions: SaveTransactions,
     private val saveAddressNames: SaveAddressNames,
     private val prefetchAssets: PrefetchAssets,
@@ -33,7 +35,7 @@ class SyncTransactionsImpl @Inject constructor(
         val walletId = wallet.id
         val preferences = walletPreferencesFactory.create(walletId.id)
         val response = runCatching {
-            gemDeviceApiClient.getTransactions(walletId, preferences.transactionsTimestamp)
+            transactionsService.getTransactions(walletId.id, null, preferences.transactionsTimestamp.toULong()).decodeJson<TransactionsResponse>()
         }.getOrNull() ?: return
 
         sync(wallet, response)
@@ -52,7 +54,7 @@ class SyncTransactionsImpl @Inject constructor(
         val assetIdentifier = assetId.toIdentifier()
         val timestamp = preferences.transactionsForAssetTimestamp(assetIdentifier)
         val response = runCatching {
-            gemDeviceApiClient.getTransactions(walletId, assetIdentifier, timestamp)
+            transactionsService.getTransactions(walletId.id, assetIdentifier, timestamp.toULong()).decodeJson<TransactionsResponse>()
         }.getOrNull() ?: return
 
         sync(wallet, response)
