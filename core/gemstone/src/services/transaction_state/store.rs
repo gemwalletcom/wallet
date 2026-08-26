@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use primitives::WalletId;
-use primitives::{TransactionId, TransactionState};
+use primitives::{TransactionId, TransactionState, WalletId};
 
 use super::error::GemTransactionStateError;
 use super::model::GemTransactionStateUpdate;

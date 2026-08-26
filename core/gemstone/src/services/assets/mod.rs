@@ -2,11 +2,10 @@ pub mod error;
 pub mod rules;
 pub mod store;
 
-use primitives::WalletId;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetBasic, AssetFull, AssetId, AssetPrice, Chain, FiatAssets, FiatQuoteType, SearchResponse};
+use primitives::{AssetBasic, AssetFull, AssetId, AssetPrice, Chain, FiatAssets, FiatQuoteType, SearchResponse, WalletId};
 
 pub use error::GemAssetError;
 pub use store::GemAssetStore;

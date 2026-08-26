@@ -2,9 +2,7 @@ package com.gemwallet.android.data.coordinators.pricealerts
 
 import com.gemwallet.android.cases.device.SyncDevice
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking

@@ -55,7 +55,7 @@ struct ServicesFactory {
     func makeServices(storages: AppResolver.Storages, navigation: NavigationStateManager) -> AppResolver.Services {
         let storeManager = StoreManager(db: storages.db)
         let securePreferences = SecurePreferences()
-        let preferencesService = Gemstone.GemPreferencesService(store: GemstonePreferences(namespace: "gemstone_"))
+        let preferencesService = Gemstone.GemPreferencesService(store: GemstonePreferencesStore(namespace: "gemstone_"))
         let nodeService = NodeService(
             nodeStore: storeManager.nodeStore,
             service: GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore)),

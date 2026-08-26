@@ -9,7 +9,6 @@ import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import okio.IOException
 import uniffi.gemstone.GemFiatService
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson

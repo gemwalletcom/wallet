@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use primitives::AssetId;
-use primitives::WalletId;
+use primitives::{AssetId, WalletId};
 
 use super::error::GemAssetDiscoveryError;
 

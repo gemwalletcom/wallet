@@ -1,7 +1,6 @@
 use async_trait::async_trait;
-use primitives::WalletId;
 use primitives::perpetual::{PerpetualBalance, PerpetualData};
-use primitives::{PerpetualPosition, PerpetualProvider};
+use primitives::{PerpetualPosition, PerpetualProvider, WalletId};
 
 use super::error::GemPerpetualError;
 

@@ -1,8 +1,7 @@
-use primitives::WalletId;
 use std::sync::Arc;
 
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::{AuthPayload, AuthenticatedRequest, ReferralCode, Rewards};
+use primitives::{AuthPayload, AuthenticatedRequest, ReferralCode, Rewards, WalletId};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 

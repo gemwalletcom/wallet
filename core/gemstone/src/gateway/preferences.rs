@@ -21,20 +21,23 @@ impl primitives::Preferences for PreferencesWrapper {
 }
 
 #[cfg(test)]
+use crate::services::preferences::GemPreferencesError;
+
+#[cfg(test)]
 #[derive(Debug, Default)]
 pub struct EmptyPreferences;
 
 #[cfg(test)]
 impl GemPreferencesStore for EmptyPreferences {
-    fn get(&self, _key: String) -> Result<Option<String>, crate::services::preferences::GemPreferencesError> {
+    fn get(&self, _key: String) -> Result<Option<String>, GemPreferencesError> {
         Ok(None)
     }
 
-    fn set(&self, _key: String, _value: String) -> Result<(), crate::services::preferences::GemPreferencesError> {
+    fn set(&self, _key: String, _value: String) -> Result<(), GemPreferencesError> {
         Ok(())
     }
 
-    fn remove(&self, _key: String) -> Result<(), crate::services::preferences::GemPreferencesError> {
+    fn remove(&self, _key: String) -> Result<(), GemPreferencesError> {
         Ok(())
     }
 }

@@ -3,11 +3,10 @@ pub mod model;
 pub mod rules;
 pub mod store;
 
-use primitives::WalletId;
 use std::sync::Arc;
 
 use futures::future::join_all;
-use primitives::{AssetBalance, AssetId};
+use primitives::{AssetBalance, AssetId, WalletId};
 
 pub use error::GemBalanceError;
 pub use model::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};

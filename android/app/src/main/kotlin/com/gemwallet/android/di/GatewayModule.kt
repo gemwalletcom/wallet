@@ -8,7 +8,7 @@ import com.gemwallet.android.blockchain.services.ServiceStatusService
 import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
-import com.gemwallet.android.data.repositories.config.SharedGemPreferences
+import com.gemwallet.android.data.repositories.config.GemstonePreferencesStore
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.services.DeviceSyncPreflight
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
@@ -94,7 +94,7 @@ object GatewayModule {
     ): GemGateway {
         return GemGateway(
             alienProvider,
-            preferences = SharedGemPreferences(
+            preferences = GemstonePreferencesStore(
                 sharedPreferences = context.getSharedPreferences("gateway_preferences", Context.MODE_PRIVATE)
             ),
             securePreferences = securePreferences,

@@ -11,7 +11,6 @@ import com.wallet.core.primitives.PriceAlertDirection
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import uniffi.gemstone.GemPriceAlertService
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 
 class IncludePriceAlertImpl(
@@ -39,18 +38,9 @@ class IncludePriceAlertImpl(
         priceAlertRepository.getSamePriceAlert(priceAlert)?.let {
             priceAlertRepository.enable(it.id)
         } ?: priceAlertRepository.addPriceAlert(priceAlert)
-        enablePriceAlertsIfNeeded()
-
-        try {
-            priceAlertService.addPriceAlerts(alerts = listOf(priceAlert.toJson()))
-        } catch (_: Exception) {
-            currentCoroutineContext().ensureActive()
-        }
-    }
-
-    private suspend fun enablePriceAlertsIfNeeded() {
         try {
             setPriceAlertsEnabled(true)
+            priceAlertService.addPriceAlerts(alerts = listOf(priceAlert.toJson()))
         } catch (_: Exception) {
             currentCoroutineContext().ensureActive()
         }

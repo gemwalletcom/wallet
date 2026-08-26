@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
-import com.gemwallet.android.data.repositories.config.SharedGemPreferences
+import com.gemwallet.android.data.repositories.config.GemstonePreferencesStore
 import com.gemwallet.android.data.repositories.pricealerts.MigratePriceAlertsPreference
 import dagger.Module
 import dagger.Provides
@@ -18,7 +18,7 @@ object PreferencesModule {
     @Singleton
     @Provides
     fun provideGemPreferencesService(@ApplicationContext context: Context): GemPreferencesService = GemPreferencesService(
-        SharedGemPreferences(context.getSharedPreferences("gemstone_preferences", Context.MODE_PRIVATE))
+        GemstonePreferencesStore(context.getSharedPreferences("gemstone_preferences", Context.MODE_PRIVATE))
     )
 
     @Singleton

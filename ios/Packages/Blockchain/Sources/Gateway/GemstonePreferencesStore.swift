@@ -3,7 +3,7 @@
 import Foundation
 import Gemstone
 
-public final class GemstonePreferences: GemPreferencesStore, @unchecked Sendable {
+public final class GemstonePreferencesStore: GemPreferencesStore, @unchecked Sendable {
     private let userDefaults: UserDefaults
     private let namespace: String
 

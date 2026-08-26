@@ -16,10 +16,8 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.model.getStakedAmount
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
-import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

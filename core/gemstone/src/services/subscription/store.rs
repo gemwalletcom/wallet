@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use primitives::Wallet;
-use primitives::WalletId;
+use primitives::{Wallet, WalletId};
 
 use super::error::GemSubscriptionError;
 

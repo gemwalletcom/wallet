@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use primitives::InAppNotification;
-use primitives::WalletId;
+use primitives::{InAppNotification, WalletId};
 
 use super::error::GemNotificationError;
 

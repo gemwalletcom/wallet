@@ -4,7 +4,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import uniffi.gemstone.GemPreferencesStore
 
-class SharedGemPreferences(
+class GemstonePreferencesStore(
     private val sharedPreferences: SharedPreferences
 ) : GemPreferencesStore {
 

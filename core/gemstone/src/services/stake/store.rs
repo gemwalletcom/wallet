@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use primitives::WalletId;
-use primitives::{AddressName, AssetId, DelegationBase, DelegationValidator};
+use primitives::{AddressName, AssetId, DelegationBase, DelegationValidator, WalletId};
 
 use super::error::GemStakeError;
 

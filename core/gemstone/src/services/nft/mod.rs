@@ -1,11 +1,10 @@
 pub mod error;
 pub mod store;
 
-use primitives::WalletId;
 use std::future::Future;
 use std::sync::Arc;
 
-use primitives::{NFTAssetData, NFTAssetId, ReportNft};
+use primitives::{NFTAssetData, NFTAssetId, ReportNft, WalletId};
 
 pub use error::GemNftError;
 pub use store::GemNftStore;

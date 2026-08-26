@@ -3,11 +3,10 @@ pub mod model;
 pub mod rules;
 pub mod store;
 
-use primitives::WalletId;
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
-use primitives::{Transaction, TransactionId, TransactionState, TransactionUpdate};
+use primitives::{Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
 
 pub use error::GemTransactionStateError;
 pub use model::{GemTransactionStateResult, GemTransactionStateUpdate};

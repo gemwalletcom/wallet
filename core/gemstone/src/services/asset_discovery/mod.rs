@@ -2,11 +2,10 @@ pub mod error;
 pub mod rules;
 pub mod store;
 
-use primitives::WalletId;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::AssetId;
+use primitives::{AssetId, WalletId};
 
 pub use error::GemAssetDiscoveryError;
 pub use store::GemAssetDiscoveryStore;

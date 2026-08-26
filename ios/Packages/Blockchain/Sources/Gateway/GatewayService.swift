@@ -16,8 +16,8 @@ public actor GatewayService: Sendable {
     ) {
         gateway = GemGateway(
             provider: provider,
-            preferences: GemstonePreferences(namespace: "gateway"),
-            securePreferences: GemstoneSecurePreferences(namespace: "gateway"),
+            preferences: GemstonePreferencesStore(namespace: "gateway"),
+            securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
         )
     }
 

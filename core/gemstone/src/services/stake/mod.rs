@@ -2,11 +2,10 @@ pub mod error;
 pub mod rules;
 pub mod store;
 
-use primitives::WalletId;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{AssetId, Chain, DelegationValidator};
+use primitives::{AssetId, Chain, DelegationValidator, WalletId};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;

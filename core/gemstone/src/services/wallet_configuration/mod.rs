@@ -2,9 +2,8 @@ pub mod error;
 pub mod rules;
 pub mod store;
 
-use std::sync::Arc;
-
 use primitives::WalletId;
+use std::sync::Arc;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::banner::{GemBannerStore, rules as banner_rules};

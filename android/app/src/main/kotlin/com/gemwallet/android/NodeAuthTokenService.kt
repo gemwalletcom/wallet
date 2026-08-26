@@ -13,7 +13,6 @@ import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.nodeAuthConfig
 import uniffi.gemstone.GemDeviceService
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 
 class NodeAuthTokenService(
     private val deviceService: GemDeviceService,

@@ -6,8 +6,6 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinkRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetBasic

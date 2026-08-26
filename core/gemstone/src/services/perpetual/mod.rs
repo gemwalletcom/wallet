@@ -2,11 +2,10 @@ pub mod error;
 pub mod rules;
 pub mod store;
 
-use primitives::WalletId;
 use std::sync::Arc;
 
-use primitives::Chain;
 use primitives::currency::Currency;
+use primitives::{Chain, WalletId};
 
 pub use error::GemPerpetualError;
 pub use store::GemPerpetualStore;

@@ -21,21 +21,11 @@ impl GemPreferencesService {
     }
 
     pub fn is_price_alerts_enabled(&self) -> Result<bool, GemPreferencesError> {
-        self.get_bool(PRICE_ALERTS_ENABLED)
+        Ok(self.store.get(PRICE_ALERTS_ENABLED.to_string())?.as_deref() == Some("true"))
     }
 
     pub fn set_price_alerts_enabled(&self, enabled: bool) -> Result<(), GemPreferencesError> {
-        self.set_bool(PRICE_ALERTS_ENABLED, enabled)
-    }
-}
-
-impl GemPreferencesService {
-    fn get_bool(&self, key: &str) -> Result<bool, GemPreferencesError> {
-        Ok(self.store.get(key.to_string())?.as_deref() == Some("true"))
-    }
-
-    fn set_bool(&self, key: &str, value: bool) -> Result<(), GemPreferencesError> {
-        self.store.set(key.to_string(), value.to_string())
+        self.store.set(PRICE_ALERTS_ENABLED.to_string(), enabled.to_string())
     }
 }
 

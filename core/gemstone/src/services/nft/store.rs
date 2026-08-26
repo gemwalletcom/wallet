@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use primitives::WalletId;
-use primitives::{NFTAssetData, NFTAssetId, NFTData};
+use primitives::{NFTAssetData, NFTAssetId, NFTData, WalletId};
 
 use super::error::GemNftError;
 
