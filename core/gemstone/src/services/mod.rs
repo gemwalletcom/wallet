@@ -21,7 +21,7 @@ pub mod transaction_state;
 pub mod transactions;
 pub mod wallet_configuration;
 
-pub use assets::GemAssetsService;
+pub use assets::{GemAssetStore, GemAssetsService};
 pub use auth::GemAuthService;
 pub use banner::{GemBannerService, GemBannerStore};
 pub use chart::GemChartService;
@@ -41,5 +41,5 @@ pub use stake::{GemStakeService, GemStakeStore};
 pub use subscription::GemSubscriptionService;
 pub use support::GemSupportService;
 pub use transaction_state::{GemTransactionStateService, GemTransactionStateStore};
-pub use transactions::GemTransactionsService;
+pub use transactions::{GemTransactionStore, GemTransactionsService};
 pub use wallet_configuration::GemWalletConfigurationService;

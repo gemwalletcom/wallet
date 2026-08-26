@@ -1,19 +1,42 @@
+pub mod error;
+pub mod rules;
+pub mod store;
+
 use std::sync::Arc;
 
 use primitives::{AssetBasic, AssetFull, AssetId, Chain, FiatAssets, FiatQuoteType, SearchResponse};
 
+pub use error::GemAssetError;
+pub use store::GemAssetStore;
+
 use crate::api::{GemApiClient, GemApiError};
 
-#[derive(Debug, uniffi::Object)]
+#[derive(uniffi::Object)]
 pub struct GemAssetsService {
     api: Arc<GemApiClient>,
+    store: Arc<dyn GemAssetStore>,
 }
 
 #[uniffi::export]
 impl GemAssetsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemApiClient>) -> Self {
-        Self { api }
+    pub fn new(api: Arc<GemApiClient>, store: Arc<dyn GemAssetStore>) -> Self {
+        Self { api, store }
+    }
+
+    pub async fn prefetch_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemAssetError> {
+        let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
+        let missing = rules::missing_asset_ids(asset_ids, existing);
+        if missing.is_empty() {
+            return Ok(vec![]);
+        }
+        let assets = self.get_assets(missing, None).await?;
+        self.store.add_assets(assets.clone()).await?;
+        Ok(assets.into_iter().map(|asset| asset.asset.id).collect())
+    }
+
+    pub async fn add_missing_balances(&self, wallet_id: String, asset_ids: Vec<AssetId>) -> Result<(), GemAssetError> {
+        self.store.add_missing_balances(wallet_id, asset_ids).await
     }
 
     pub async fn get_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemApiError> {

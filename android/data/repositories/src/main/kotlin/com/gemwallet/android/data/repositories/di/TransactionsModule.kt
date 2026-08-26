@@ -8,15 +8,22 @@ import com.gemwallet.android.data.repositories.assets.TransactionPostProcessingS
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionStateScheduler
+import com.gemwallet.android.data.repositories.addresses.GemstoneAddressStore
 import com.gemwallet.android.data.repositories.transactions.GemstoneTransactionStateStore
+import com.gemwallet.android.data.repositories.transactions.GemstoneTransactionStore
 import com.gemwallet.android.data.repositories.transactions.TransactionsRepositoryImpl
+import com.gemwallet.android.data.service.store.WalletPreferencesFactory
+import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemTransactionStateService
+import uniffi.gemstone.GemTransactionsService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -31,6 +38,21 @@ object TransactionsModule {
     ): TransactionsRepositoryImpl = TransactionsRepositoryImpl(
         sessionRepository = sessionRepository,
         transactionsDao = transactionsDao,
+    )
+
+    @Singleton
+    @Provides
+    fun provideTransactionsService(
+        apiClient: GemDeviceApiClient,
+        assetsService: GemAssetsService,
+        walletPreferencesFactory: WalletPreferencesFactory,
+        transactionsRepository: TransactionsRepositoryImpl,
+        addressesDao: AddressesDao,
+    ): GemTransactionsService = GemTransactionsService(
+        apiClient,
+        assetsService,
+        GemstoneTransactionStore(walletPreferencesFactory, transactionsRepository),
+        GemstoneAddressStore(addressesDao),
     )
 
     @Singleton

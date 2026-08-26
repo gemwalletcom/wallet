@@ -309,6 +309,15 @@ impl Transaction {
         asset_ids.into_iter().collect::<HashSet<_>>().into_iter().collect()
     }
 
+    pub fn associated_asset_ids(&self) -> Vec<AssetId> {
+        self.asset_ids()
+            .into_iter()
+            .chain([self.asset_id.clone(), self.fee_asset_id.clone()])
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect()
+    }
+
     pub fn assets_addresses(&self) -> Vec<AssetAddress> {
         if let Some(metadata) = self.asset_transfers_metadata() {
             return metadata

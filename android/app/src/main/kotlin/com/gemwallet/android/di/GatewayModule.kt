@@ -26,7 +26,6 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import uniffi.gemstone.AlienProvider
-import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemPriceService
@@ -38,7 +37,6 @@ import uniffi.gemstone.GemPortfolioService
 import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemSubscriptionService
 import uniffi.gemstone.GemSupportService
-import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemWalletConfigurationService
 import javax.inject.Named
 import uniffi.gemstone.GemGateway
@@ -147,9 +145,6 @@ object GatewayModule {
     @Singleton
     fun provideGemAuthService(apiClient: GemstoneDeviceApiClient): GemAuthService = GemAuthService(apiClient)
 
-    @Provides
-    @Singleton
-    fun provideGemTransactionsService(apiClient: GemstoneDeviceApiClient): GemTransactionsService = GemTransactionsService(apiClient)
 
     @Provides
     @Singleton
@@ -188,9 +183,6 @@ object GatewayModule {
     @Singleton
     fun provideGemConfigService(apiClient: GemstoneApiClient): GemConfigService = GemConfigService(apiClient)
 
-    @Provides
-    @Singleton
-    fun provideGemAssetsService(apiClient: GemstoneApiClient): GemAssetsService = GemAssetsService(apiClient)
 
     @Provides
     @Singleton

@@ -16,14 +16,14 @@ public extension AssetsService {
         balanceStore: BalanceStore = .mock(),
         priceStore: PriceStore = .mock(),
         chainServiceFactory: any ChainServiceFactorable = ChainServiceFactoryMock(),
-        assetsProvider: any GemAssetsServiceProtocol = GemAssetsService.mock(),
+        assetsProvider: (any GemAssetsServiceProtocol)? = nil,
     ) -> AssetsService {
         AssetsService(
             assetStore: assetStore,
             balanceStore: balanceStore,
             priceStore: priceStore,
             chainServiceFactory: chainServiceFactory,
-            assetsProvider: assetsProvider,
+            assetsProvider: assetsProvider ?? GemAssetsService.mock(assetStore: assetStore, balanceStore: balanceStore),
         )
     }
 }

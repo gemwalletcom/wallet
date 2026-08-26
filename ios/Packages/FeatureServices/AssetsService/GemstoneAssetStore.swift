@@ -1,0 +1,35 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Foundation
+import typealias Gemstone.AssetBasic
+import typealias Gemstone.AssetId
+import protocol Gemstone.GemAssetStore
+import GemstonePrimitives
+import Primitives
+import Store
+
+public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
+    private let assetStore: AssetStore
+    private let balanceStore: BalanceStore
+
+    public init(assetStore: AssetStore, balanceStore: BalanceStore) {
+        self.assetStore = assetStore
+        self.balanceStore = balanceStore
+    }
+
+    public func getAssetIds(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
+        try assetStore.getAssets(for: assetIds).map(\.id.identifier)
+    }
+
+    public func addAssets(assets: [Gemstone.AssetBasic]) async throws {
+        try assetStore.add(assets: assets.map { try Primitives.AssetBasic($0) })
+    }
+
+    public func addMissingBalances(walletId: String, assetIds: [Gemstone.AssetId]) async throws {
+        try balanceStore.addBalance(
+            assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
+            isEnabled: false,
+            for: WalletId.from(id: walletId),
+        )
+    }
+}

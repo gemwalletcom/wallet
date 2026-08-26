@@ -184,10 +184,8 @@ object AssetModule {
     @Singleton
     fun providePrefetchAssets(
         assetsService: GemAssetsService,
-        assetsRepository: AssetsRepository,
     ): PrefetchAssets = PrefetchAssetsImpl(
         assetsService = assetsService,
-        assetsRepository = assetsRepository,
     )
 
     @Provides

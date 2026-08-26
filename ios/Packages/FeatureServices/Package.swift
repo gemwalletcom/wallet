@@ -327,22 +327,18 @@ let package = Package(
             name: "TransactionsService",
             dependencies: [
                 "Primitives",
-                "GemAPI",
                 "Store",
                 "Preferences",
-                "AssetsService",
                 "Gemstone",
                 "GemstonePrimitives",
             ],
             path: "TransactionsService",
-            exclude: ["TestKit", "Tests"],
+            exclude: ["TestKit"],
         ),
         .target(
             name: "TransactionsServiceTestKit",
             dependencies: [
                 .product(name: "StoreTestKit", package: "Store"),
-                .product(name: "GemAPITestKit", package: "GemAPI"),
-                "AssetsServiceTestKit",
                 "TransactionsService",
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Gemstone",
@@ -406,6 +402,7 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
+                "Gemstone",
                 "GemAPI",
                 .product(name: "ChainService", package: "ChainServices"),
                 "Preferences",
@@ -812,16 +809,6 @@ let package = Package(
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
             ],
             path: "DiscoverAssetsService/Tests",
-        ),
-        .testTarget(
-            name: "TransactionsServiceTests",
-            dependencies: [
-                "TransactionsService",
-                "TransactionsServiceTestKit",
-                .product(name: "GemAPITestKit", package: "GemAPI"),
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
-            ],
-            path: "TransactionsService/Tests",
         ),
         .testTarget(
             name: "BalanceServiceTests",

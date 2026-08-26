@@ -77,7 +77,6 @@ struct ServicesFactory {
             securePreferences: securePreferences,
             preflight: DeviceSyncPreflight(deviceService: deviceService),
         )
-        let gemTransactionsService = Gemstone.GemTransactionsService(api: gemDeviceApiClient)
         let deviceObserverService = Self.makeDeviceObserverService(
             deviceService: deviceService,
             subscriptionService: subscriptionService,
@@ -94,7 +93,16 @@ struct ServicesFactory {
         let gemStaticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
         let chartService = ChartService(service: Gemstone.GemChartService(api: gemApiClient))
         let marketService = MarketService(service: Gemstone.GemPriceService(api: gemApiClient))
-        let gemAssetsService = Gemstone.GemAssetsService(api: gemApiClient)
+        let gemAssetsService = Gemstone.GemAssetsService(
+            api: gemApiClient,
+            store: GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore),
+        )
+        let gemTransactionsService = Gemstone.GemTransactionsService(
+            api: gemDeviceApiClient,
+            assets: gemAssetsService,
+            store: GemstoneTransactionStore(store: storeManager.transactionStore),
+            addressStore: GemstoneAddressStore(store: storeManager.addressStore),
+        )
         let gemScanService = Gemstone.GemScanService(api: gemDeviceApiClient)
         let gatewayService = GatewayService(provider: nativeProvider)
         let paymentService = PaymentService(provider: nativeProvider)
@@ -146,10 +154,8 @@ struct ServicesFactory {
             nftStore: storeManager.nftStore,
         )
         let transactionsService = TransactionsService(
-            provider: gemTransactionsService,
+            service: gemTransactionsService,
             transactionStore: storeManager.transactionStore,
-            assetsService: assetsService,
-            addressStore: storeManager.addressStore,
         )
         let transactionStateScheduler = Self.makeTransactionService(
             transactionStore: storeManager.transactionStore,

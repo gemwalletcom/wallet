@@ -60,20 +60,12 @@ struct AssetDiscoveryServiceTests {
             collection: .mock(id: collectionOneId, chain: .ethereum),
             assets: [.mock(id: assetOneId, collectionId: collectionOneId, chain: .ethereum)],
         )
-        let transactionProvider = GemTransactionsServiceMock(
-            walletTransactionsResponse: TransactionsResponse(transactions: [initialTransaction], addressNames: []),
-        )
+        let transactionProvider = GemTransactionsServiceMock { walletId, _ in
+            try transactionStore.addTransactions(walletId: WalletId.from(id: walletId), transactions: [initialTransaction])
+        }
         let nftProvider = GemNftServiceMock(assets: [initialNFT])
         let service = AssetDiscoveryService.mock(
-            transactionsService: .mock(
-                provider: transactionProvider,
-                transactionStore: transactionStore,
-                assetsService: .mock(
-                    assetStore: .mock(db: db),
-                    balanceStore: .mock(db: db),
-                ),
-                addressStore: .mock(db: db),
-            ),
+            transactionsService: .mock(service: transactionProvider, transactionStore: transactionStore),
             nftService: .mock(service: nftProvider, nftStore: nftStore),
         )
 
@@ -86,7 +78,6 @@ struct AssetDiscoveryServiceTests {
         #expect(preferences.completeInitialLoadTransactions)
         #expect(preferences.completeInitialLoadNFTs)
         #expect(preferences.assetsTimestamp > 0)
-        #expect(preferences.transactionsTimestamp > 0)
         #expect(initialSavedTransactions.map(\.id.hash) == [initialTransaction.id.hash])
         #expect(initialSavedNFTs.map(\.collection.id) == [initialNFT.collection.id])
         #expect(initialSavedNFTs.flatMap(\.assets).map(\.id) == initialNFT.assets.map(\.id))
@@ -118,9 +109,9 @@ struct AssetDiscoveryServiceTests {
             assets: [.mock(id: assetTwoId, collectionId: collectionTwoId, chain: .ethereum)],
         )
 
-        transactionProvider.setWalletTransactionsResponse(
-            TransactionsResponse(transactions: [nextTransaction], addressNames: []),
-        )
+        transactionProvider.setOnSync { walletId, _ in
+            try transactionStore.addTransactions(walletId: WalletId.from(id: walletId), transactions: [nextTransaction])
+        }
         nftProvider.setAssets([nextNFT])
 
         try await service.discoverAssets(wallet: wallet)

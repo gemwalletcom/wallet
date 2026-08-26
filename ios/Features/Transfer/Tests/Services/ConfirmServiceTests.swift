@@ -2,6 +2,7 @@
 
 import ActivityServiceTestKit
 import AddressNameServiceTestKit
+import AssetsService
 import AssetsServiceTestKit
 import BalanceServiceTestKit
 import BigInt
@@ -130,9 +131,16 @@ struct ConfirmServiceTests {
             SimulationAssetChange(asset: dust, value: 2_244_508_455),
         ]
 
+        let assetStore = AssetStore.mock()
         let fetchedState = await ConfirmSimulationService(
             addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(assetsProvider: GemAssetsServiceMock(assetsResult: [.mock(asset: dust)])),
+            assetsService: .mock(
+                assetStore: assetStore,
+                assetsProvider: GemAssetsServiceMock(
+                    assetsResult: [.mock(asset: dust)],
+                    store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock()),
+                ),
+            ),
         ).updateState(
             data: TransferData.mock(type: .transfer(.mock())),
             simulation: simulation,

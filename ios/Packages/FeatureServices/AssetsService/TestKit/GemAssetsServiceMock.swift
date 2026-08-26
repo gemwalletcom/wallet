@@ -12,6 +12,7 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
     private let buyableFiatAssets: Primitives.FiatAssets?
     private let sellableFiatAssets: Primitives.FiatAssets?
     private let swapAssets: Primitives.FiatAssets?
+    private let store: (any GemAssetStore)?
 
     public init(
         searchAssetsResult: [Primitives.AssetBasic] = [],
@@ -20,6 +21,7 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         buyableFiatAssets: Primitives.FiatAssets? = nil,
         sellableFiatAssets: Primitives.FiatAssets? = nil,
         swapAssets: Primitives.FiatAssets? = nil,
+        store: (any GemAssetStore)? = nil,
     ) {
         self.searchAssetsResult = searchAssetsResult
         self.assetsResult = assetsResult
@@ -27,6 +29,7 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         self.buyableFiatAssets = buyableFiatAssets
         self.sellableFiatAssets = sellableFiatAssets
         self.swapAssets = swapAssets
+        self.store = store
     }
 
     public func getAsset(assetId _: Gemstone.AssetId) async throws -> Gemstone.AssetFull {
@@ -56,4 +59,14 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
     public func searchAssets(query _: String, chains _: [Gemstone.Chain]) async throws -> [Gemstone.AssetBasic] {
         try searchAssetsResult.map { try $0.json() }
     }
+
+    public func prefetchAssets(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
+        guard let store else { return [] }
+        let existing = try await store.getAssetIds(assetIds: assetIds).asSet()
+        let missing = assetsResult.filter { assetIds.contains($0.asset.id.identifier) && !existing.contains($0.asset.id.identifier) }
+        try await store.addAssets(assets: missing.map { try $0.json() })
+        return missing.map(\.asset.id.identifier)
+    }
+
+    public func addMissingBalances(walletId _: String, assetIds _: [Gemstone.AssetId]) async throws {}
 }

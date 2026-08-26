@@ -31,6 +31,9 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
 import com.gemwallet.android.data.services.gemapi.http.GemDeviceRequestSigner
+import com.gemwallet.android.data.repositories.assets.GemstoneAssetStore
+import uniffi.gemstone.GemApiClient
+import uniffi.gemstone.GemAssetsService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -165,4 +168,11 @@ object AssetsModule {
     ): PerpetualService = PerpetualService(
         gateway = gateway,
     )
+
+    @Provides
+    @Singleton
+    fun provideGemAssetsService(
+        apiClient: GemApiClient,
+        assetsDao: AssetsDao,
+    ): GemAssetsService = GemAssetsService(apiClient, GemstoneAssetStore(assetsDao))
 }

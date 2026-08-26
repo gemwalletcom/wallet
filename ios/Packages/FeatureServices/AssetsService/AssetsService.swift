@@ -82,20 +82,7 @@ public final class AssetsService: Sendable {
 
     @discardableResult
     public func prefetchAssets(assetIds: [AssetId]) async throws -> [AssetId] {
-        guard !assetIds.isEmpty else { return [] }
-
-        let assets = try getAssets(for: assetIds).map(\.id).asSet()
-        let missingAssetIds = assetIds.asSet().subtracting(assets)
-
-        if missingAssetIds.isEmpty {
-            return []
-        }
-
-        // add missing assets to local storage
-        let newAssets = try await getAssets(assetIds: missingAssetIds.asArray())
-        try addAssets(assets: newAssets)
-
-        return newAssets.map(\.asset.id)
+        try await assetsProvider.prefetchAssets(assetIds: assetIds.ids).map { try AssetId(id: $0) }
     }
 
     public func addBalanceIfMissing(walletId: WalletId, assetId: AssetId) throws {

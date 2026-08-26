@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import AssetsService
 import AssetsServiceTestKit
 import BalanceService
 import BalanceServiceTestKit
@@ -64,7 +65,7 @@ struct AssetsEnablerServiceTests {
     @Test
     func enablingUnknownAssetFetchesIt() async throws {
         let db = DB.mockAssets()
-        let service = makeService(db: db, assetsProvider: providerReturningUnknownAsset)
+        let service = makeService(db: db, assetsProvider: providerReturningUnknownAsset(db: db))
 
         try await service.enableAssets(wallet: .mock(), assetIds: [unknownAssetId], enabled: true)
 
@@ -76,7 +77,7 @@ struct AssetsEnablerServiceTests {
     @Test
     func pinningUnknownAssetShowsAndPinsIt() async throws {
         let db = DB.mockAssets()
-        let service = makeService(db: db, assetsProvider: providerReturningUnknownAsset)
+        let service = makeService(db: db, assetsProvider: providerReturningUnknownAsset(db: db))
 
         try await service.pinAsset(wallet: .mock(), assetId: unknownAssetId, pinned: true)
 
@@ -85,8 +86,11 @@ struct AssetsEnablerServiceTests {
         #expect(metadata?.isBalanceEnabled == true)
     }
 
-    private var providerReturningUnknownAsset: GemAssetsServiceMock {
-        GemAssetsServiceMock(assetsResult: [.mock(asset: .mock(id: unknownAssetId))])
+    private func providerReturningUnknownAsset(db: DB) -> GemAssetsServiceMock {
+        GemAssetsServiceMock(
+            assetsResult: [.mock(asset: .mock(id: unknownAssetId))],
+            store: GemstoneAssetStore(assetStore: .mock(db: db), balanceStore: .mock(db: db)),
+        )
     }
 
     private func makeService(
