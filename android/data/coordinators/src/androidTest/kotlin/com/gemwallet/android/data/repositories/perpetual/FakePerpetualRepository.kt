@@ -57,18 +57,6 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
         }
     }
 
-    override suspend fun diffPositions(walletId: WalletId, items: List<PerpetualPosition>) {
-        val currentPositions = positionsFlow.value.toMutableMap()
-        currentPositions[walletId.id] = items.mapNotNull { position ->
-            val perpetual = perpetualsFlow.value.firstOrNull { it.perpetual.id == position.perpetualId } ?: return@mapNotNull null
-            PerpetualPositionData(
-                perpetual = perpetual.perpetual,
-                asset = perpetual.asset,
-                position = position,
-            )
-        }
-        positionsFlow.value = currentPositions
-    }
 
     override suspend fun applyPositionsDiff(walletId: WalletId, deleteIds: List<String>, positions: List<PerpetualPosition>) {
         val current = positionsFlow.value[walletId.id].orEmpty()
@@ -123,9 +111,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
         }
     }
 
-    override suspend fun putAsset(asset: Asset) {}
 
-    override suspend fun putBalance(walletId: WalletId, asset: Asset, balance: PerpetualBalance) {
+    override suspend fun putBalance(walletId: WalletId, balance: PerpetualBalance) {
         balancesFlow.value = balancesFlow.value.toMutableMap().apply { put(walletId.id, balance) }
     }
 

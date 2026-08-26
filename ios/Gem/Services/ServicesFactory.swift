@@ -185,8 +185,9 @@ struct ServicesFactory {
         let perpetualService = Self.makePerpetualService(
             perpetualStore: storeManager.perpetualStore,
             assetStore: storeManager.assetStore,
-            priceService: priceService,
             balanceStore: storeManager.balanceStore,
+            gatewayService: gatewayService,
+            gemPriceService: gemPriceService,
             nodeProvider: nodeProvider,
             requestInterceptor: nodeAuthProvider,
             preferences: preferences,
@@ -575,18 +576,20 @@ extension ServicesFactory {
     private static func makePerpetualService(
         perpetualStore: PerpetualStore,
         assetStore: AssetStore,
-        priceService: PriceService,
         balanceStore: BalanceStore,
+        gatewayService: GatewayService,
+        gemPriceService: Gemstone.GemPriceService,
         nodeProvider: any NodeURLFetchable,
         requestInterceptor: any RequestInterceptable,
         preferences: Preferences,
     ) -> PerpetualService {
-        PerpetualService(
+        let gemPerpetualStore = GemstonePerpetualStore(store: perpetualStore, assetStore: assetStore, balanceStore: balanceStore)
+        return PerpetualService(
             store: perpetualStore,
-            assetStore: assetStore,
-            priceService: priceService,
+            perpetualStore: gemPerpetualStore,
             balanceStore: balanceStore,
             provider: PerpetualProviderFactory(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor).createProvider(),
+            service: gatewayService.perpetualService(price: gemPriceService, store: gemPerpetualStore),
             preferences: preferences,
         )
     }

@@ -34,6 +34,7 @@ import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemPerpetualService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -46,14 +47,10 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideSyncPerpetuals(
-        perpetualService: PerpetualService,
-        perpetualRepository: PerpetualRepository,
-        pricesRepository: PricesRepository,
+        perpetualService: GemPerpetualService,
     ): SyncPerpetuals {
         return SyncPerpetualsImpl(
             perpetualService = perpetualService,
-            perpetualRepository = perpetualRepository,
-            pricesRepository = pricesRepository,
             chains = listOf(Chain.HyperCore)
         )
     }
@@ -74,13 +71,11 @@ object PerpetualModule {
     @Singleton
     fun provideSyncPerpetualPositions(
         sessionRepository: SessionRepository,
-        perpetualService: PerpetualService,
-        perpetualRepository: PerpetualRepository,
+        perpetualService: GemPerpetualService,
     ): SyncPerpetualPositions {
         return SyncPerpetualPositionsImpl(
             sessionRepository = sessionRepository,
             perpetualService = perpetualService,
-            perpetualRepository = perpetualRepository,
         )
     }
 

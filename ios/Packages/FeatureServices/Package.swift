@@ -83,7 +83,7 @@ let package = Package(
         .target(
             name: "PerpetualService",
             dependencies: [
-                "PriceService",
+                "Gemstone",
                 "Primitives",
                 "GemstonePrimitives",
                 "Store",
@@ -99,6 +99,10 @@ let package = Package(
         .target(
             name: "PerpetualServiceTestKit",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+                .product(name: "BlockchainTestKit", package: "Blockchain"),
+                "Blockchain",
+                "Gemstone",
                 "PriceServiceTestKit",
                 "PerpetualService",
                 "Primitives",

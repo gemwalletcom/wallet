@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use gem_hypercore::models::order::OpenOrder;
 use gem_hypercore::models::websocket::{HyperliquidSocketMessage, PositionsDiff};
 use primitives::{
-    AssetId, PerpetualId, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
+    PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder,
     chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue},
-    perpetual::{Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
+    perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
 };
 
 pub type GemHyperliquidOpenOrder = OpenOrder;
@@ -16,7 +16,6 @@ pub type GemPerpetualPositionsSummary = PerpetualPositionsSummary;
 pub type GemPerpetualBalance = PerpetualBalance;
 pub type GemPerpetualAccountMode = PerpetualAccountMode;
 pub type GemPerpetualPosition = PerpetualPosition;
-pub type GemPerpetual = Perpetual;
 pub type GemPerpetualMetadata = PerpetualMetadata;
 pub type GemChartCandleStick = ChartCandleStick;
 pub type GemChartCandleUpdate = ChartCandleUpdate;
@@ -82,20 +81,4 @@ pub enum GemHyperliquidSocketMessage {
         message: String,
     },
     Unknown,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemPerpetual {
-    pub id: PerpetualId,
-    pub name: String,
-    pub provider: PerpetualProvider,
-    pub asset_id: AssetId,
-    pub identifier: String,
-    pub price: f64,
-    pub price_percent_change_24h: f64,
-    pub open_interest: f64,
-    pub volume_24h: f64,
-    pub funding: f64,
-    pub max_leverage: u8,
-    pub is_isolated_only: bool,
 }

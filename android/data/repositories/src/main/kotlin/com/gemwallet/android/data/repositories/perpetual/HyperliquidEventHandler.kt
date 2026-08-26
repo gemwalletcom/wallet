@@ -4,7 +4,6 @@ import android.util.Log
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.domains.perpetual.toGem
-import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.PerpetualAccountMode
@@ -64,8 +63,7 @@ class HyperliquidEventHandler(
     }
 
     private suspend fun putBalance(walletId: WalletId, balance: GemPerpetualBalance) {
-        perpetualRepository.putAsset(HypercoreUSDC)
-        perpetualRepository.putBalance(walletId, HypercoreUSDC, balance.decodeJson())
+        perpetualRepository.putBalance(walletId, balance.decodeJson())
     }
 
     private suspend fun handleOpenOrders(walletId: WalletId, orders: List<GemHyperliquidOpenOrder>) {

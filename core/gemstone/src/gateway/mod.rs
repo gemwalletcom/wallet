@@ -19,6 +19,7 @@ use std::sync::Arc;
 use swapper::swapper::GemSwapper as Swapper;
 use yielder::Yielder;
 
+use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
 use primitives::{AssetBalance, AssetId, Chain, ChartPeriod, Transaction, TransactionUpdate};
 
 #[derive(uniffi::Object)]
@@ -35,6 +36,14 @@ impl std::fmt::Debug for GemGateway {
 }
 
 impl GemGateway {
+    pub async fn get_positions(&self, chain: Chain, address: String) -> Result<PerpetualPositionsSummary, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_positions(address).await }).await
+    }
+
+    pub async fn get_perpetuals_data(&self, chain: Chain) -> Result<Vec<PerpetualData>, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_perpetuals_data().await }).await
+    }
+
     pub async fn get_balance_coin(&self, chain: Chain, address: String) -> Result<AssetBalance, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_balance_coin(address).await }).await
     }
@@ -139,17 +148,9 @@ impl GemGateway {
         })
     }
 
-    pub async fn get_positions(&self, chain: Chain, address: String) -> Result<GemPerpetualPositionsSummary, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_positions(address).await }).await
-    }
-
     pub async fn get_perpetual_account_mode(&self, chain: Chain, address: String) -> Result<GemPerpetualAccountMode, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_perpetual_account_mode(address).await })
             .await
-    }
-
-    pub async fn get_perpetuals_data(&self, chain: Chain) -> Result<Vec<GemPerpetualData>, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_perpetuals_data().await }).await
     }
 
     pub async fn get_perpetual_candlesticks(&self, chain: Chain, symbol: String, period: String) -> Result<Vec<GemChartCandleStick>, GatewayError> {

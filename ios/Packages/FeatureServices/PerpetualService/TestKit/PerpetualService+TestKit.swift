@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import PerpetualService
+import protocol Gemstone.GemPerpetualServiceProtocol
+import GemstonePrimitivesTestKit
 import Preferences
-import PriceService
-import PriceServiceTestKit
 import PreferencesTestKit
 import Primitives
 import Store
@@ -13,14 +13,15 @@ public extension PerpetualService {
     static func mock(
         db: DB = .mock(),
         provider: PerpetualProvidable = PerpetualProviderMock(),
+        service: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         preferences: Preferences = .mock(),
     ) -> PerpetualService {
         PerpetualService(
             store: PerpetualStore(db: db),
-            assetStore: AssetStore(db: db),
-            priceService: .mock(db: db),
+            perpetualStore: GemstonePerpetualStore(store: PerpetualStore(db: db), assetStore: AssetStore(db: db), balanceStore: BalanceStore(db: db)),
             balanceStore: BalanceStore(db: db),
             provider: provider,
+            service: service,
             preferences: preferences,
         )
     }
@@ -33,19 +34,8 @@ public struct PerpetualProviderMock: PerpetualProvidable {
         .hypercore
     }
 
-    public func getPositions(address _: String) async throws -> PerpetualPositionsSummary {
-        PerpetualPositionsSummary(
-            positions: [],
-            balance: PerpetualBalance(available: 0, reserved: 0, withdrawable: 0),
-        )
-    }
-
     public func getAccountMode(address _: String) async throws -> PerpetualAccountMode {
         .standard
-    }
-
-    public func getPerpetualsData() async throws -> [PerpetualData] {
-        []
     }
 
     public func getCandlesticks(symbol _: String, period _: ChartPeriod) async throws -> [ChartCandleStick] {

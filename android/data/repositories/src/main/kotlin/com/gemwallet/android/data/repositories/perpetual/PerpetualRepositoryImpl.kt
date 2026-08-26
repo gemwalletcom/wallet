@@ -1,19 +1,13 @@
 package com.gemwallet.android.data.repositories.perpetual
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.SearchDao
-import com.gemwallet.android.data.service.store.database.entities.toDB
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toDto
-import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbPerpetualData
-import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.Crypto
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
@@ -32,14 +26,13 @@ import kotlinx.coroutines.flow.map
 class PerpetualRepositoryImpl(
     private val perpetualDao: PerpetualDao,
     private val perpetualPositionDao: PerpetualPositionDao,
-    private val assetsDao: AssetsDao,
     private val balancesDao: BalancesDao,
     private val searchDao: SearchDao,
+    private val perpetualStore: GemstonePerpetualStore,
 ) : PerpetualRepository {
 
     override suspend fun putPerpetuals(items: List<PerpetualData>) {
-        assetsDao.insert(items.map { it.asset.toRecord() })
-        perpetualDao.upsert(items.map { it.perpetual.toDB() })
+        perpetualStore.savePerpetuals(items)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -76,13 +69,8 @@ class PerpetualRepositoryImpl(
         return perpetualDao.getPerpetualByAssetId(assetId.toIdentifier()).map { it?.toDTO() }
     }
 
-    override suspend fun diffPositions(walletId: WalletId, items: List<PerpetualPosition>) {
-        perpetualPositionDao.diffPositions(walletId.id, items.map { it.toDB(walletId.id) })
-    }
-
     override suspend fun applyPositionsDiff(walletId: WalletId, deleteIds: List<String>, positions: List<PerpetualPosition>) {
-        if (deleteIds.isEmpty() && positions.isEmpty()) return
-        perpetualPositionDao.applyDiff(walletId.id, deleteIds, positions.map { it.toDB(walletId.id) })
+        perpetualStore.savePositions(walletId, deleteIds, positions)
     }
 
     override suspend fun getProviderPositions(walletId: WalletId, provider: PerpetualProvider): List<PerpetualPosition> {
@@ -113,12 +101,8 @@ class PerpetualRepositoryImpl(
         return perpetualPositionDao.getPositionDataByPerpetual(walletId.id, id.toIdentifier()).map { it?.toDTO() }
     }
 
-    override suspend fun putAsset(asset: Asset) {
-        assetsDao.insert(asset.toRecord())
-    }
-
-    override suspend fun putBalance(walletId: WalletId, asset: Asset, balance: PerpetualBalance) {
-        balancesDao.insert(balance.toDbBalance(walletId, asset, System.currentTimeMillis()))
+    override suspend fun putBalance(walletId: WalletId, balance: PerpetualBalance) {
+        perpetualStore.saveBalance(walletId, balance)
     }
 
     override fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?> {
@@ -130,24 +114,3 @@ class PerpetualRepositoryImpl(
         perpetualDao.setPinned(perpetualId.toIdentifier(), isPinned)
     }
 }
-
-internal fun PerpetualBalance.toDbBalance(
-    walletId: WalletId,
-    asset: Asset,
-    updatedAt: Long,
-): DbBalance = DbBalance(
-    assetId = asset.id.toIdentifier(),
-    walletId = walletId.id,
-    available = available.toAtomicUnits(asset.decimals),
-    availableAmount = available,
-    reserved = reserved.toAtomicUnits(asset.decimals),
-    reservedAmount = reserved,
-    withdrawable = withdrawable.toAtomicUnits(asset.decimals),
-    withdrawableAmount = withdrawable,
-    totalAmount = available + reserved,
-    isActive = true,
-    updatedAt = updatedAt,
-)
-
-private fun Double.toAtomicUnits(decimals: Int): String =
-    Crypto(toBigDecimal(), decimals).atomicValue.toString()

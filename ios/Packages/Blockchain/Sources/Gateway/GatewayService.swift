@@ -33,6 +33,10 @@ public actor GatewayService: Sendable {
         GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store)
     }
 
+    public nonisolated func perpetualService(price: GemPriceService, store: any GemPerpetualStore) -> GemPerpetualService {
+        GemPerpetualService(gateway: gateway, price: price, store: store)
+    }
+
     public nonisolated func confirmService(
         simulation: TransactionSimulationService,
         scanner: GemScanService,
@@ -147,18 +151,9 @@ public extension GatewayService {
 // MARK: - Perpetual
 
 public extension GatewayService {
-    func getPositions(chain: Primitives.Chain, address: String) async throws -> Primitives.PerpetualPositionsSummary {
-        try await Primitives.PerpetualPositionsSummary(gateway.getPositions(chain: chain.rawValue, address: address))
-    }
 
     func getPerpetualAccountMode(chain: Primitives.Chain, address: String) async throws -> Primitives.PerpetualAccountMode {
         try await Primitives.PerpetualAccountMode(gateway.getPerpetualAccountMode(chain: chain.rawValue, address: address))
-    }
-
-    func getPerpetualsData(chain: Primitives.Chain) async throws -> [Primitives.PerpetualData] {
-        try await gateway.getPerpetualsData(chain: chain.rawValue).map {
-            try Primitives.PerpetualData($0)
-        }
     }
 
     func getPerpetualCandlesticks(chain: Primitives.Chain, symbol: String, period: Primitives.ChartPeriod) async throws -> [Primitives.ChartCandleStick] {

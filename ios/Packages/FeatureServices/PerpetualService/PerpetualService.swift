@@ -2,33 +2,33 @@
 
 import Formatters
 import Foundation
+import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstonePrimitives
 import Preferences
-import PriceService
 import Primitives
 import Store
 
 public struct PerpetualService: PerpetualServiceable {
     private let store: PerpetualStore
-    private let assetStore: AssetStore
-    private let priceService: PriceService
+    private let perpetualStore: GemstonePerpetualStore
     private let balanceStore: BalanceStore
     private let provider: PerpetualProvidable
+    private let service: any GemPerpetualServiceProtocol
     private let preferences: Preferences
 
     public init(
         store: PerpetualStore,
-        assetStore: AssetStore,
-        priceService: PriceService,
+        perpetualStore: GemstonePerpetualStore,
         balanceStore: BalanceStore,
         provider: PerpetualProvidable,
+        service: any GemPerpetualServiceProtocol,
         preferences: Preferences,
     ) {
         self.store = store
-        self.assetStore = assetStore
-        self.priceService = priceService
+        self.perpetualStore = perpetualStore
         self.balanceStore = balanceStore
         self.provider = provider
+        self.service = service
         self.preferences = preferences
     }
 
@@ -37,19 +37,7 @@ public struct PerpetualService: PerpetualServiceable {
     }
 
     public func updateMarkets() async throws {
-        let perpetualsData = try await provider.getPerpetualsData()
-        let perpetuals = perpetualsData.map(\.perpetual)
-        let assets = perpetualsData.map { createPerpetualAssetBasic(from: $0.asset) }
-
-        try assetStore.add(assets: assets)
-        try store.upsertPerpetuals(perpetuals)
-        // setup prices
-        try await priceService.updatePrices([AssetPrice(
-            assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
-            price: 1,
-            priceChangePercentage24h: 0,
-            updatedAt: .now,
-        )], currency: Currency.usd.rawValue)
+        try await service.syncMarkets(chain: Chain.hyperCore.rawValue)
         preferences.perpetualMarketsUpdatedAt = .now
     }
 
@@ -72,13 +60,7 @@ public struct PerpetualService: PerpetualServiceable {
     }
 
     public func getPositions(walletId: WalletId, address: String) async throws {
-        let summary = try await provider.getPositions(address: address)
-        let existingPositionIds = try Set(store.getPositions(walletId: walletId, provider: .hypercore).map(\.id))
-        let newPositionIds = Set(summary.positions.map(\.id))
-        let deleteIds = Array(existingPositionIds.subtracting(newPositionIds))
-
-        try store.diffPositions(deleteIds: deleteIds, positions: summary.positions, walletId: walletId)
-        try syncProviderBalances(walletId: walletId, balance: summary.balance)
+        try await service.syncPositions(walletId: walletId.id, chain: Chain.hyperCore.rawValue, address: address)
     }
 
     // MARK: - Private
@@ -91,58 +73,6 @@ public struct PerpetualService: PerpetualServiceable {
         try balanceStore.deleteBalance(assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id)
     }
 
-    private func syncProviderBalances(walletId: WalletId, balance: PerpetualBalance) throws {
-        let usd = Chain.hyperCore.defaultAsset(type: .perpetual)
-        try balanceStore.addMissingBalances(walletId: walletId, assetIds: [usd.id], isEnabled: false)
-
-        let perpetuals = try store.getPerpetuals().map(\.assetId)
-        try balanceStore.addMissingBalances(walletId: walletId, assetIds: perpetuals, isEnabled: false)
-
-        let balanceType = try UpdateBalanceType.perpetual(UpdatePerpetualBalance(
-            available: perpetualBalanceValue(balance.available),
-            reserved: perpetualBalanceValue(balance.reserved),
-            withdrawable: perpetualBalanceValue(balance.withdrawable),
-        ))
-        debugLog("update balance: \(usd.id.identifier): \(balanceType)")
-
-        try balanceStore.updateBalances(
-            [
-                UpdateBalance(
-                    assetId: usd.id,
-                    type: balanceType,
-                    updatedAt: .now,
-                    isActive: true,
-                ),
-            ],
-            for: walletId,
-        )
-    }
-
-    private func perpetualBalanceValue(_ amount: Double) throws -> UpdateBalanceValue {
-        try UpdateBalanceValue(
-            value: BigNumberFormatter.standard.number(from: amount.description, decimals: 6).description,
-            amount: amount,
-        )
-    }
-
-    private func createPerpetualAssetBasic(from asset: Asset) -> AssetBasic {
-        AssetBasic(
-            asset: asset,
-            properties: AssetProperties(
-                isEnabled: false,
-                isBuyable: false,
-                isSellable: false,
-                isSwapable: false,
-                isStakeable: false,
-                stakingApr: nil,
-                isEarnable: false,
-                earnApr: nil,
-                hasImage: false,
-            ),
-            score: AssetScore(rank: 0),
-            price: nil,
-        )
-    }
 }
 
 // MARK: - HyperliquidPerpetualServiceable
@@ -165,7 +95,7 @@ extension PerpetualService: HyperliquidPerpetualServiceable {
     }
 
     public func updateBalance(walletId: WalletId, balance: Primitives.PerpetualBalance) throws {
-        try syncProviderBalances(walletId: walletId, balance: balance)
+        try perpetualStore.updateBalance(walletId: walletId, balance: balance)
     }
 
     public func diffPositions(deleteIds: [String], positions: [Primitives.PerpetualPosition], walletId: WalletId) throws {

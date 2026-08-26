@@ -21,6 +21,10 @@ import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.SearchDao
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.data.repositories.perpetual.GemstonePerpetualStore
+import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPriceService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,19 +40,36 @@ object PerpetualModule {
 
     @Provides
     @Singleton
-    fun providePerpetualRepository(
+    fun provideGemstonePerpetualStore(
         perpetualDao: PerpetualDao,
         perpetualPositionDao: PerpetualPositionDao,
         assetsDao: AssetsDao,
         balancesDao: BalancesDao,
+    ): GemstonePerpetualStore = GemstonePerpetualStore(perpetualDao, perpetualPositionDao, assetsDao, balancesDao)
+
+    @Provides
+    @Singleton
+    fun provideGemPerpetualService(
+        gateway: GemGateway,
+        priceService: GemPriceService,
+        perpetualStore: GemstonePerpetualStore,
+    ): GemPerpetualService = GemPerpetualService(gateway, priceService, perpetualStore)
+
+    @Provides
+    @Singleton
+    fun providePerpetualRepository(
+        perpetualDao: PerpetualDao,
+        perpetualPositionDao: PerpetualPositionDao,
+        balancesDao: BalancesDao,
         searchDao: SearchDao,
+        perpetualStore: GemstonePerpetualStore,
     ): PerpetualRepository {
         return PerpetualRepositoryImpl(
             perpetualDao = perpetualDao,
             perpetualPositionDao = perpetualPositionDao,
-            assetsDao = assetsDao,
             balancesDao = balancesDao,
             searchDao = searchDao,
+            perpetualStore = perpetualStore,
         )
     }
 

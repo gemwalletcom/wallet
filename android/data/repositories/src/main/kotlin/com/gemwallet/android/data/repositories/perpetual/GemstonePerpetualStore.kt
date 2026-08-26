@@ -1,0 +1,81 @@
+package com.gemwallet.android.data.repositories.perpetual
+
+import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.BalancesDao
+import com.gemwallet.android.data.service.store.database.PerpetualDao
+import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
+import com.gemwallet.android.data.service.store.database.entities.DbBalance
+import com.gemwallet.android.data.service.store.database.entities.toDB
+import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.ext.HypercoreUSDC
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.serializer.decodeJson
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.PerpetualBalance
+import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualPosition
+import com.wallet.core.primitives.PerpetualProvider
+import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemPerpetualStore
+import uniffi.gemstone.PerpetualProvider as GemPerpetualProvider
+
+class GemstonePerpetualStore(
+    private val perpetualDao: PerpetualDao,
+    private val perpetualPositionDao: PerpetualPositionDao,
+    private val assetsDao: AssetsDao,
+    private val balancesDao: BalancesDao,
+) : GemPerpetualStore {
+
+    override suspend fun upsertPerpetuals(data: List<String>) =
+        savePerpetuals(data.map { it.decodeJson<PerpetualData>() })
+
+    suspend fun savePerpetuals(items: List<PerpetualData>) {
+        assetsDao.insert(items.map { it.asset.toRecord() })
+        perpetualDao.upsert(items.map { it.perpetual.toDB() })
+    }
+
+    override suspend fun getPositionIds(walletId: String, provider: GemPerpetualProvider): List<String> =
+        perpetualPositionDao.getPositionsByProvider(walletId, provider.toPrimitives()).map { it.id }
+
+    override suspend fun applyPositions(walletId: String, deleteIds: List<String>, positions: List<String>) =
+        savePositions(WalletId(walletId), deleteIds, positions.map { it.decodeJson<PerpetualPosition>() })
+
+    suspend fun savePositions(walletId: WalletId, deleteIds: List<String>, positions: List<PerpetualPosition>) {
+        if (deleteIds.isEmpty() && positions.isEmpty()) return
+        perpetualPositionDao.applyDiff(walletId.id, deleteIds, positions.map { it.toDB(walletId.id) })
+    }
+
+    override suspend fun updateBalance(walletId: String, balance: String) =
+        saveBalance(WalletId(walletId), balance.decodeJson<PerpetualBalance>())
+
+    suspend fun saveBalance(walletId: WalletId, balance: PerpetualBalance) {
+        assetsDao.insert(HypercoreUSDC.toRecord())
+        balancesDao.insert(balance.toDbBalance(walletId, HypercoreUSDC, System.currentTimeMillis()))
+    }
+
+    private fun GemPerpetualProvider.toPrimitives(): PerpetualProvider = when (this) {
+        GemPerpetualProvider.HYPERCORE -> PerpetualProvider.Hypercore
+    }
+}
+
+internal fun PerpetualBalance.toDbBalance(
+    walletId: WalletId,
+    asset: Asset,
+    updatedAt: Long,
+): DbBalance = DbBalance(
+    assetId = asset.id.toIdentifier(),
+    walletId = walletId.id,
+    available = available.toAtomicUnits(asset.decimals),
+    availableAmount = available,
+    reserved = reserved.toAtomicUnits(asset.decimals),
+    reservedAmount = reserved,
+    withdrawable = withdrawable.toAtomicUnits(asset.decimals),
+    withdrawableAmount = withdrawable,
+    totalAmount = available + reserved,
+    isActive = true,
+    updatedAt = updatedAt,
+)
+
+private fun Double.toAtomicUnits(decimals: Int): String =
+    Crypto(toBigDecimal(), decimals).atomicValue.toString()

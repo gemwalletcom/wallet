@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.perpetual
 
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
@@ -21,7 +20,6 @@ interface PerpetualRepository {
 
     fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?>
 
-    suspend fun diffPositions(walletId: WalletId, items: List<PerpetualPosition>)
 
     suspend fun applyPositionsDiff(walletId: WalletId, deleteIds: List<String>, positions: List<PerpetualPosition>)
 
@@ -35,9 +33,8 @@ interface PerpetualRepository {
 
     fun getPositionByPerpetualId(walletId: WalletId, id: PerpetualId): Flow<PerpetualPositionData?>
 
-    suspend fun putAsset(asset: Asset)
 
-    suspend fun putBalance(walletId: WalletId, asset: Asset, balance: PerpetualBalance)
+    suspend fun putBalance(walletId: WalletId, balance: PerpetualBalance)
 
     fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?>
 

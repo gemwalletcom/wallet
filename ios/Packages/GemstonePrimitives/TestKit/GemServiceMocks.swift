@@ -296,3 +296,11 @@ public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked 
 
     public func update(walletId _: String, assetIds _: [Gemstone.AssetId]) async throws {}
 }
+
+public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchecked Sendable {
+    public init() {}
+
+    public func syncMarkets(chain _: Gemstone.Chain) async throws {}
+
+    public func syncPositions(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}
+}
