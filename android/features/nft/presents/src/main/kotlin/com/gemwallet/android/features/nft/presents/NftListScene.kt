@@ -88,24 +88,14 @@ internal fun NftListScene(
     listState: LazyGridState = rememberLazyGridState(),
     onAction: (NftListAction) -> Unit,
 ) {
-    val showReceiveAction = when (mode) {
-        NftListMode.Collections,
-        is NftListMode.Collection -> true
-        NftListMode.Unverified -> false
-    }
-    val showUnverifiedAction = when (mode) {
-        NftListMode.Collections -> true
-        is NftListMode.Collection,
-        NftListMode.Unverified -> false
-    }
-    val title = when (mode) {
-        NftListMode.Collections,
-        is NftListMode.Collection -> stringResource(R.string.nft_collections)
-        NftListMode.Unverified -> stringResource(R.string.asset_verification_unverified)
-    }
+    val showReceiveAction = mode != NftListMode.Unverified
 
     Scene(
-        title = title,
+        title = when (mode) {
+            NftListMode.Collections,
+            is NftListMode.Collection -> stringResource(R.string.nft_collections)
+            NftListMode.Unverified -> stringResource(R.string.asset_verification_unverified)
+        },
         actions = {
             if (showReceiveAction) {
                 IconButton(onClick = { onAction(NftListAction.Receive) }) {
@@ -123,7 +113,7 @@ internal fun NftListScene(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(NftListAction.Refresh) },
         ) {
-            val showUnverifiedRow = showUnverifiedAction && unverifiedCount > 0
+            val showUnverifiedRow = mode == NftListMode.Collections && unverifiedCount > 0
 
             if (items.isEmpty() && !showUnverifiedRow) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
