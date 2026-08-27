@@ -1,4 +1,3 @@
-mod monad;
 mod smartchain;
 mod transaction;
 
@@ -14,7 +13,6 @@ use crate::rpc::model::{Transaction, TransactionReceipt};
 use super::ProtocolParsers;
 pub(super) use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
 
-pub use monad::MonadStakingParser;
 pub use smartchain::SmartChainStakingParser;
 pub use transaction::make_staking_transaction;
 

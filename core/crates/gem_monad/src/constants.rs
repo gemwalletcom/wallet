@@ -1,7 +1,8 @@
 pub use primitives::contract_constants::{MONAD_STAKING_CONTRACT as STAKING_CONTRACT, MONAD_STAKING_LENS_CONTRACT as STAKING_LENS_CONTRACT};
-pub const DEFAULT_WITHDRAW_ID: u8 = 0;
 
-pub const MONAD_SCALE: f64 = 1e18;
+pub const DEFAULT_WITHDRAW_ID: u8 = 0;
+pub const COMMISSION_SCALE: f64 = 1e18;
+pub const VALIDATOR_NAMES: &[(u64, &str)] = &[(16, "MonadVision"), (5, "Alchemy"), (10, "Stakin"), (9, "Everstake")];
 
 pub const EVENT_DELEGATE: &str = "0xe4d4df1e1827dd28252fd5c3cd7ebccd3da6e0aa31f74c828f3c8542af49d840";
 pub const EVENT_UNDELEGATE: &str = "0x3e53c8b91747e1b72a44894db10f2a45fa632b161fdcdd3a17bd6be5482bac62";

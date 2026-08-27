@@ -1,9 +1,9 @@
 use std::error::Error;
 
-use alloy_primitives::U256;
 use alloy_sol_types::SolCall;
 use gem_evm::transaction_params::TransactionParams;
-use num_bigint::{BigInt, Sign};
+use gem_evm::u256::bigint_to_u256;
+use num_bigint::BigInt;
 use primitives::StakeType;
 
 use crate::constants::{DEFAULT_ALLOWED_INTERCHANGE_NUM, EVERSTAKE_ACCOUNTING_ADDRESS, EVERSTAKE_POOL_ADDRESS, EVERSTAKE_SOURCE};
@@ -25,13 +25,6 @@ pub fn encode_stake(stake_type: &StakeType, amount: &BigInt) -> Result<Transacti
         StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => return Err("Unsupported stake type for Everstake".into()),
     };
     Ok(TransactionParams::new(to, data, value))
-}
-
-fn bigint_to_u256(value: &BigInt) -> Result<U256, Box<dyn Error + Send + Sync>> {
-    if value.sign() == Sign::Minus {
-        return Err("Negative values are not supported".into());
-    }
-    Ok(U256::from_be_slice(&value.to_bytes_be().1))
 }
 
 #[cfg(test)]

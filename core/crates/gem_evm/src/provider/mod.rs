@@ -9,7 +9,6 @@ pub mod request_classifier;
 pub mod simulation;
 pub mod simulation_mapper;
 pub mod staking;
-pub mod staking_monad;
 pub mod staking_smartchain;
 pub mod state;
 #[cfg(any(test, feature = "testkit"))]

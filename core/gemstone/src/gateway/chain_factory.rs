@@ -10,6 +10,7 @@ use gem_everstake::EverstakeStakingClient;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
+use gem_monad::MonadStakingClient;
 use gem_near::rpc::{NearClient, NearProvider};
 use gem_optimism::OptimismGasOracle;
 use gem_polkadot::rpc::{PolkadotClient, PolkadotProvider};
@@ -87,6 +88,7 @@ impl ChainClientFactory {
                     } else {
                         Box::new(match evm_chain {
                             EVMChain::Ethereum => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, String::new()))),
+                            EVMChain::Monad => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(MonadStakingClient::new(client))),
                             _ => EthereumProvider::new_rpc_only(client),
                         })
                     }

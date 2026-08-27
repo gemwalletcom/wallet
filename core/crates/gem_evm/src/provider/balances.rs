@@ -25,7 +25,6 @@ impl<C: Client + Clone> ChainBalances for EthereumProvider<C> {
     async fn get_balance_staking(&self, address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
         match self.chain {
             EVMChain::SmartChain => self.get_smartchain_staking_balance(&address).await,
-            EVMChain::Monad => self.get_monad_staking_balance(&address).await,
             _ => self.provider.get_staking_balance(&address).await,
         }
     }

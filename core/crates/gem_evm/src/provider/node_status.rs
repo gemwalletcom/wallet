@@ -8,12 +8,10 @@ use chain_traits::{
     node_check::{ChainNodeStatus, NodeCheckRecorder, record_node_state},
 };
 use gem_client::Client;
-use primitives::{Chain, NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
+use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
 
 use crate::{jsonrpc::TransactionObject, method, rpc::EthereumProvider};
 use receipt_history::record_receipt_checks;
-
-const ETH_CALL_MONAD_DELEGATIONS_CHECK: &str = "eth_call_monad_delegations";
 
 #[async_trait]
 impl<C: Client + Clone> ChainTraits for EthereumProvider<C> {
@@ -49,12 +47,9 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
         let recorder = recorder.record_timed(method::ETH_GAS_PRICE, self.get_gas_price()).await;
         let recorder = recorder.record_timed(method::ETH_GET_CODE, self.get_code(address)).await;
         let recorder = recorder.record_available_timed(method::ETH_CALL, self.eth_call(address, &[])).await;
-        let recorder = if self.get_chain() == Chain::Monad {
-            recorder
-                .record_available_timed(ETH_CALL_MONAD_DELEGATIONS_CHECK, self.call_monad_delegations(address))
-                .await
-        } else {
-            recorder
+        let recorder = match self.provider.node_check_method() {
+            Some(method_name) => recorder.record_available_timed(method_name, self.provider.node_check_probe(address)).await,
+            None => recorder,
         };
         let recorder = recorder
             .record_timed(method::ETH_ESTIMATE_GAS, self.estimate_gas(Some(address), address, None, Some("0x")))
