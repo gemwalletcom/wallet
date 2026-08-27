@@ -36,6 +36,10 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
         try store.updateValidators(validators.map { try Primitives.DelegationValidator($0) })
     }
 
+    public func deactivateValidators(assetId: Gemstone.AssetId, validatorIds: [String]) async throws {
+        try store.deactivateValidators(assetId: Primitives.AssetId(id: assetId), validatorIds: validatorIds)
+    }
+
     public func getDelegationIds(walletId: String, assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [String] {
         try store.getDelegations(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), providerType: Primitives.StakeProviderType(providerType)).map(\.id)
     }

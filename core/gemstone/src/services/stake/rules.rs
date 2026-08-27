@@ -67,6 +67,15 @@ pub fn stale_delegation_ids(existing_ids: Vec<String>, incoming: &[DelegationBas
     existing_ids.into_iter().filter(|id| !incoming_ids.contains(id)).collect()
 }
 
+pub fn stale_validator_ids(existing: Vec<DelegationValidator>, incoming: &[DelegationValidator]) -> Vec<String> {
+    let incoming_ids: HashSet<&str> = incoming.iter().map(|validator| validator.id.as_str()).collect();
+    existing
+        .into_iter()
+        .filter(|validator| validator.is_active && !incoming_ids.contains(validator.id.as_str()))
+        .map(|validator| validator.id)
+        .collect()
+}
+
 pub fn validator_address_names(validators: &[DelegationValidator]) -> Vec<AddressName> {
     validators
         .iter()

@@ -17,6 +17,9 @@ interface StakeDao {
     @Upsert
     suspend fun upsertValidators(validators: List<DbDelegationValidator>)
 
+    @Query("UPDATE stake_validators SET isActive=0, apr=0 WHERE assetId=:assetId AND validatorId IN (:validatorIds)")
+    suspend fun deactivateValidators(assetId: AssetId, validatorIds: List<String>)
+
     @Upsert
     suspend fun upsertDelegations(delegations: List<DbDelegationBase>)
 
