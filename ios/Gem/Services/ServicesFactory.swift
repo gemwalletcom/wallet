@@ -101,10 +101,7 @@ struct ServicesFactory {
         )
         let chainServiceFactory = ChainServiceFactory(gatewayService: gatewayService)
         let gemWalletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: storages.observablePreferences), wallets: gemWalletStore)
-        let walletSessionService = WalletSessionService(
-            service: gemWalletSessionService,
-            walletStore: storeManager.walletStore,
-        )
+        let walletSessionService = WalletSessionService(service: gemWalletSessionService)
         let gemWalletService = Gemstone.GemWalletService(
             keystore: storages.keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: storages.keystore, walletStore: storeManager.walletStore),
@@ -112,7 +109,7 @@ struct ServicesFactory {
             session: gemWalletSessionService,
             deviceStore: gemDeviceStore,
         )
-        let avatarService = AvatarService(service: gemWalletService)
+        let avatarService = Gemstone.GemAvatarService(wallets: gemWalletStore, files: GemstoneFileStore(), provider: nativeProvider)
         let walletService = WalletService(
             service: gemWalletService,
             keystore: storages.keystore,
@@ -232,9 +229,7 @@ struct ServicesFactory {
         )
 
         let gemConfigService = Gemstone.GemConfigService(api: gemApiClient, preferences: preferencesService)
-        let releaseAlertService = ReleaseAlertService(
-            appUpdateService: Gemstone.GemAppUpdateService(config: gemConfigService, preferences: preferencesService),
-        )
+        let appUpdateService = Gemstone.GemAppUpdateService(config: gemConfigService, preferences: preferencesService)
         let rateService = RateService(preferences: preferences)
 
         let onStartService = OnstartService(
@@ -381,7 +376,7 @@ struct ServicesFactory {
             nftService: nftService,
             avatarService: avatarService,
             swapService: swapService,
-            releaseAlertService: releaseAlertService,
+            appUpdateService: appUpdateService,
             rateService: rateService,
             deviceObserverService: deviceObserverService,
             onstartService: onStartService,

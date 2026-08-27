@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAvatarServiceProtocol
 import Foundation
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
@@ -10,7 +11,7 @@ public struct WalletService: Sendable {
     private let service: any GemWalletServiceProtocol
     private let keystore: any Keystore
     private let walletSessionService: any WalletSessionManageable
-    private let avatarService: AvatarService
+    private let avatarService: any GemAvatarServiceProtocol
     private let preferences: ObservablePreferences
 
     public init(
@@ -18,7 +19,7 @@ public struct WalletService: Sendable {
         keystore: any Keystore,
         walletSessionService: any WalletSessionManageable,
         preferences: ObservablePreferences,
-        avatarService: AvatarService,
+        avatarService: any GemAvatarServiceProtocol,
     ) {
         self.service = service
         self.keystore = keystore
@@ -53,7 +54,7 @@ public struct WalletService: Sendable {
     public func delete(_ wallet: Wallet) async throws {
         try await keystore.deleteKey(for: wallet)
         let hasWallets = try await service.deleteWallet(wallet: wallet.json())
-        try await avatarService.remove(for: wallet)
+        try await avatarService.removeImage(for: wallet)
         WalletPreferences(walletId: wallet.id).clear()
         if !hasWallets {
             preferences.preferences.clear()

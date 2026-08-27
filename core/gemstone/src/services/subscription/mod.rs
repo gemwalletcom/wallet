@@ -21,7 +21,7 @@ impl GemSubscriptionService {
     }
 
     pub async fn sync(&self) -> Result<bool, GemServiceError> {
-        let local = rules::wallet_subscriptions(&self.store.get_wallets().await?);
+        let local = rules::wallet_subscriptions(&self.store.get_wallets()?);
         let remote = self.api.client.get_subscriptions().await.map_err(GemApiError::from)?;
         let changes = rules::subscription_changes(local, remote);
         if changes.is_empty() {

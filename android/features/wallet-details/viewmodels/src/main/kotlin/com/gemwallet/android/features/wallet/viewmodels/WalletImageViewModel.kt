@@ -38,14 +38,14 @@ class WalletImageViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun setEmoji(emoji: String, backgroundColor: Int) = viewModelScope.launch(Dispatchers.IO) {
-        avatarService.setEmoji(walletId, wallet.value?.imageUrl, emoji, backgroundColor)
+        runCatching { avatarService.setEmoji(walletId, emoji, backgroundColor) }
     }
 
     fun setNftImage(url: String) = viewModelScope.launch(Dispatchers.IO) {
-        runCatching { avatarService.setNftImage(walletId, wallet.value?.imageUrl, url) }
+        runCatching { avatarService.setNftImage(walletId, url) }
     }
 
     fun resetToDefault() = viewModelScope.launch(Dispatchers.IO) {
-        avatarService.reset(walletId, wallet.value?.imageUrl)
+        runCatching { avatarService.reset(walletId) }
     }
 }

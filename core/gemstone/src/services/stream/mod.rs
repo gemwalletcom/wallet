@@ -80,7 +80,7 @@ impl GemStreamService {
             StreamEvent::PriceAlerts(_) => self.price_alert.sync(None).await,
             StreamEvent::Nft(update) => self.nft.sync(update.wallet_id).await.map(|_| ()),
             StreamEvent::Perpetual(update) => {
-                let Some(wallet) = self.wallet_store.get_wallet(update.wallet_id.clone()).await? else {
+                let Some(wallet) = self.wallet_store.get_wallet(update.wallet_id.clone())? else {
                     return Ok(());
                 };
                 let Some(account) = rules::hyperliquid_account(&wallet.accounts) else {

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAppUpdateServiceProtocol
 import AppService
 import Components
 import enum Gemstone.SocialUrl
@@ -15,14 +16,14 @@ import SwiftUI
 @MainActor
 public final class AboutUsViewModel: Sendable {
     private let preferences: ObservablePreferences
-    private let releaseAlertService: ReleaseAlertService
+    private let appUpdateService: any GemAppUpdateServiceProtocol
 
     public init(
         preferences: ObservablePreferences,
-        releaseAlertService: ReleaseAlertService,
+        appUpdateService: any GemAppUpdateServiceProtocol,
     ) {
         self.preferences = preferences
-        self.releaseAlertService = releaseAlertService
+        self.appUpdateService = appUpdateService
     }
 
     var title: String {
@@ -120,10 +121,10 @@ extension AboutUsViewModel {
     }
 
     func fetch() async {
-        release = await releaseAlertService.newestRelease()
+        release = await appUpdateService.newestRelease()
     }
 
     func onUpdate() {
-        releaseAlertService.openAppStore()
+        UIApplication.shared.open(AppUrl.page(.appStore))
     }
 }

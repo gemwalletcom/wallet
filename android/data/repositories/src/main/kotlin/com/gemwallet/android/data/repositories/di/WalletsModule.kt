@@ -22,6 +22,10 @@ import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
+import com.gemwallet.android.data.repositories.gemstone.GemstoneFileStore
+import com.gemwallet.android.data.service.store.LocalStore
+import uniffi.gemstone.AlienProvider
+import uniffi.gemstone.GemAvatarService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -62,5 +66,17 @@ object WalletsModule {
         GemstoneWalletStore(walletsRepository),
         walletSessionService,
         deviceStore,
+    )
+
+    @Provides
+    @Singleton
+    fun provideGemAvatarService(
+        walletsRepository: Lazy<WalletsRepository>,
+        localStore: LocalStore,
+        alienProvider: AlienProvider,
+    ): GemAvatarService = GemAvatarService(
+        wallets = GemstoneWalletStore(walletsRepository),
+        files = GemstoneFileStore(localStore),
+        provider = alienProvider,
     )
 }

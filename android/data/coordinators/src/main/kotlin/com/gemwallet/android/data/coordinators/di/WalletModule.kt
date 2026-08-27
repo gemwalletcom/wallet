@@ -6,7 +6,6 @@ import com.gemwallet.android.application.wallet.coordinators.GetAllWallets
 import com.gemwallet.android.application.wallet.coordinators.GetWalletDetails
 import com.gemwallet.android.application.wallet.coordinators.GetWalletSecretData
 import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
-import com.gemwallet.android.application.wallet.coordinators.SetWalletAvatar
 import com.gemwallet.android.application.wallet.coordinators.SetWalletName
 import com.gemwallet.android.application.wallet.coordinators.ToggleWalletPin
 import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
@@ -18,7 +17,6 @@ import com.gemwallet.android.data.coordinators.wallet.GetAllWalletsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletDetailsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletSecretDataImpl
 import com.gemwallet.android.data.coordinators.wallet.SetCurrentWalletImpl
-import com.gemwallet.android.data.coordinators.wallet.SetWalletAvatarImpl
 import com.gemwallet.android.data.coordinators.wallet.SetWalletNameImpl
 import com.gemwallet.android.data.coordinators.wallet.ToggleWalletPinImpl
 import com.gemwallet.android.data.coordinators.wallet.WalletIdGeneratorImpl
@@ -65,14 +63,6 @@ object WalletModule {
         renameWalletAddresses: RenameWalletAddresses,
     ): SetWalletName {
         return SetWalletNameImpl(walletService, renameWalletAddresses)
-    }
-
-    @Provides
-    @Singleton
-    fun provideSetWalletAvatar(
-        walletsRepository: WalletsRepository,
-    ): SetWalletAvatar {
-        return SetWalletAvatarImpl(walletsRepository)
     }
 
     @Provides

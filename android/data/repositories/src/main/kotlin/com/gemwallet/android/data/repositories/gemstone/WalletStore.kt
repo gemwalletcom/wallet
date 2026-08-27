@@ -7,17 +7,20 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import dagger.Lazy
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
 import uniffi.gemstone.GemWalletStore
 
 class GemstoneWalletStore(
     private val walletsRepository: Lazy<WalletsRepository>,
 ) : GemWalletStore {
 
-    override suspend fun getWallets(): List<String> =
+    override fun getWallets(): List<String> = runBlocking {
         walletsRepository.get().getAll().firstOrNull().orEmpty().map { it.toJson() }
+    }
 
-    override suspend fun getWallet(walletId: String): String? =
+    override fun getWallet(walletId: String): String? = runBlocking {
         walletsRepository.get().getWallet(WalletId(walletId)).firstOrNull()?.toJson()
+    }
 
     override suspend fun nextWalletIndex(): Int = walletsRepository.get().getNextWalletNumber()
 

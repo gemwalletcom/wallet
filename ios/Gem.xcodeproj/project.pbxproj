@@ -239,7 +239,6 @@
 		D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelFactory.swift; sourceTree = "<group>"; };
 		D852CAFC2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddAssetPriceAlertNavigationStack.swift; sourceTree = "<group>"; };
 		D852CB002C9CC315004121D3 /* PriceAlertsNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlertsNavigationView.swift; sourceTree = "<group>"; };
-		D87316532E3AF1F000C11634 /* ChainServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ChainServices; sourceTree = "<group>"; };
 		D87316542E3AF1F000C11634 /* FeatureServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = FeatureServices; sourceTree = "<group>"; };
 		D87316552E3AF1F000C11634 /* SystemServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = SystemServices; sourceTree = "<group>"; };
 		D87316B62E3AF2FA00C11634 /* Gemstone */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Gemstone; sourceTree = "<group>"; };
@@ -613,7 +612,6 @@
 				D829BF2B2CBDB82600DEB2E8 /* Localization */,
 				83518CCC2D1C998300B339E5 /* PrimitivesComponents */,
 				8311A89A2DF9D35D00598C43 /* Validators */,
-				D87316532E3AF1F000C11634 /* ChainServices */,
 				D87316542E3AF1F000C11634 /* FeatureServices */,
 				D87316552E3AF1F000C11634 /* SystemServices */,
 				D87316B62E3AF2FA00C11634 /* Gemstone */,

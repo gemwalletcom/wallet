@@ -4,7 +4,7 @@ import Testing
 @testable import WalletConnectorService
 import WalletConnectSign
 
-struct RejectionReasonChainServicesTests {
+struct RejectionReasonWalletConnectorServiceTests {
     @Test
     func mapsErrors() {
         #expect(RejectionReason(from: AutoNamespacesError.requiredMethodsNotSatisfied) == .unsupportedMethods)

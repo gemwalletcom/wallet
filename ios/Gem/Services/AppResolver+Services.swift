@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAppUpdateServiceProtocol
+import protocol Gemstone.GemAvatarServiceProtocol
 import class Gemstone.GemStreamSubscriptionService
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
@@ -61,9 +63,9 @@ extension AppResolver {
         let explorerService: any GemExplorerServiceProtocol
         let gatewayService: GatewayService
         let nftService: any GemNftServiceProtocol
-        let avatarService: AvatarService
+        let avatarService: any GemAvatarServiceProtocol
         let swapService: any GemSwapServiceProtocol
-        let releaseAlertService: ReleaseAlertService
+        let appUpdateService: any GemAppUpdateServiceProtocol
         let rateService: RateService
         let deviceObserverService: DeviceObserverService
         let onstartService: OnstartService

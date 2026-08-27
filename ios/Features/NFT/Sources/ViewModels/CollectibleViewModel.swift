@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAvatarServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
 import Components
@@ -18,7 +19,7 @@ import SwiftUI
 @MainActor
 public final class CollectibleViewModel {
     private let wallet: Wallet
-    private let avatarService: AvatarService
+    private let avatarService: any GemAvatarServiceProtocol
     private let explorerService: any GemExplorerServiceProtocol
 
     let assetData: NFTAssetData
@@ -34,7 +35,7 @@ public final class CollectibleViewModel {
     public init(
         wallet: Wallet,
         assetData: NFTAssetData,
-        avatarService: AvatarService,
+        avatarService: any GemAvatarServiceProtocol,
         nftService: any GemNftServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
@@ -318,7 +319,7 @@ extension CollectibleViewModel {
 
     private func setWalletAvatar() async throws {
         guard let url = assetData.asset.images.preview.url.asURL else { return }
-        try await avatarService.save(url: url, for: wallet)
+        try await avatarService.setImage(url: url, for: wallet)
     }
 
     private func saveImageToGallery() async throws(ImageGalleryServiceError) {

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAvatarServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import GemstoneServices
 import Foundation
@@ -12,7 +13,7 @@ import SwiftUI
 public final class ImportWalletViewModel {
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
-    let avatarService: AvatarService
+    let avatarService: any GemAvatarServiceProtocol
     let nameService: any GemNameServiceProtocol
     let onComplete: VoidAction
 
@@ -21,7 +22,7 @@ public final class ImportWalletViewModel {
     public init(
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
-        avatarService: AvatarService,
+        avatarService: any GemAvatarServiceProtocol,
         nameService: any GemNameServiceProtocol,
         onComplete: VoidAction,
     ) {

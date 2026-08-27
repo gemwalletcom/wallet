@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAppUpdateServiceProtocol
+import protocol Gemstone.GemAvatarServiceProtocol
 import class Gemstone.GemStreamSubscriptionService
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
@@ -63,8 +65,8 @@ extension EnvironmentValues {
     @Entry var walletConnectorManager: WalletConnectorManager = AppResolver.main.services.walletConnectorManager
     @Entry var chainServiceFactory: ChainServiceFactory = AppResolver.main.services.chainServiceFactory
     @Entry var nftService: any GemNftServiceProtocol = AppResolver.main.services.nftService
-    @Entry var avatarService: AvatarService = AppResolver.main.services.avatarService
-    @Entry var releaseAlertService: ReleaseAlertService = AppResolver.main.services.releaseAlertService
+    @Entry var avatarService: any GemAvatarServiceProtocol = AppResolver.main.services.avatarService
+    @Entry var appUpdateService: any GemAppUpdateServiceProtocol = AppResolver.main.services.appUpdateService
     @Entry var perpetualService: PerpetualService = AppResolver.main.services.perpetualService
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
     @Entry var nameService: any GemNameServiceProtocol = AppResolver.main.services.nameService

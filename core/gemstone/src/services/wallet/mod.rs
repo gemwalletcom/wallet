@@ -74,7 +74,7 @@ impl GemWalletService {
         let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Status {
             msg: "invalid wallet id".to_string(),
         })?;
-        let wallets = self.store.get_wallets().await?;
+        let wallets = self.store.get_wallets()?;
         if let Some(wallet) = rules::existing_wallet(&wallets, &wallet_id, preview.wallet_type) {
             return Ok(GemWalletImportResult::Existing { wallet });
         }
@@ -110,7 +110,7 @@ impl GemWalletService {
             self.keystore.delete(keystore_id_for_wallet(wallet.id.id()))?;
         }
         self.store.delete_wallet(wallet.id.clone()).await?;
-        let remaining = self.store.get_wallets().await?;
+        let remaining = self.store.get_wallets()?;
         if self.session.get_current_wallet_id()? == Some(wallet.id) {
             self.session.set_current_wallet_id(rules::next_current_wallet(&remaining))?;
         }
@@ -119,7 +119,7 @@ impl GemWalletService {
     }
 
     pub async fn setup_chains(&self, chains: Vec<Chain>) -> Result<Vec<Wallet>, GemServiceError> {
-        let candidates: Vec<(Wallet, Vec<Chain>)> = rules::wallets_missing_chains(self.store.get_wallets().await?, &chains)
+        let candidates: Vec<(Wallet, Vec<Chain>)> = rules::wallets_missing_chains(self.store.get_wallets()?, &chains)
             .into_iter()
             .filter(|(wallet, _)| self.keystore.exists(keystore_id_for_wallet(wallet.id.id())))
             .take(SETUP_CHAINS_WALLETS_LIMIT)

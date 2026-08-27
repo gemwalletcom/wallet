@@ -30,18 +30,18 @@ impl GemWalletSessionService {
         self.store.set_current_wallet_id(wallet_id)
     }
 
-    pub async fn get_current_wallet(&self) -> Result<Option<Wallet>, GemServiceError> {
+    pub fn get_current_wallet(&self) -> Result<Option<Wallet>, GemServiceError> {
         match self.store.get_current_wallet_id()? {
-            Some(wallet_id) => self.wallets.get_wallet(wallet_id).await,
+            Some(wallet_id) => self.wallets.get_wallet(wallet_id),
             None => Ok(None),
         }
     }
 
-    pub async fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
-        self.wallets.get_wallets().await
+    pub fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        self.wallets.get_wallets()
     }
 
-    pub async fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
-        self.wallets.get_wallet(wallet_id).await
+    pub fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
+        self.wallets.get_wallet(wallet_id)
     }
 }

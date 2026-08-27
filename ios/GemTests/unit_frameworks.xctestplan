@@ -226,13 +226,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Packages\/FeatureServices",
-        "identifier": "StreamServiceTests",
-        "name": "StreamServiceTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Features\/ManageWallets",
         "identifier": "ManageWalletsTests",
         "name": "ManageWalletsTests"
@@ -257,7 +250,7 @@
         "WebSocketTests"
       ],
       "target": {
-        "containerPath": "container:Packages\/ChainServices",
+        "containerPath": "container:Packages\/FeatureServices",
         "identifier": "WalletConnectorServiceTests",
         "name": "WalletConnectorServiceTests"
       }

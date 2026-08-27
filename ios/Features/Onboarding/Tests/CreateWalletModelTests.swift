@@ -19,7 +19,7 @@ struct CreateWalletModelTests {
         let model = CreateWalletModel(
             walletService: .mock(walletStore: walletStore),
             walletSessionService: WalletSessionService.mock(store: walletStore),
-            avatarService: .init(service: GemWalletServiceMock()),
+            avatarService: GemAvatarServiceMock(),
             onComplete: nil,
         )
 
@@ -39,7 +39,7 @@ struct CreateWalletModelTests {
         let model = CreateWalletModel(
             walletService: .mock(),
             walletSessionService: WalletSessionService.mock(),
-            avatarService: .init(service: GemWalletServiceMock()),
+            avatarService: GemAvatarServiceMock(),
             onComplete: nil,
         )
 

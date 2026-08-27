@@ -134,7 +134,7 @@ extension CollectibleViewModel {
         CollectibleViewModel(
             wallet: wallet,
             assetData: assetData,
-            avatarService: AvatarService(service: GemWalletServiceMock()),
+            avatarService: GemAvatarServiceMock(),
             nftService: GemNftService.mock(),
             explorerService: explorerService,
             isPresentingSelectedAssetInput: .constant(.none),

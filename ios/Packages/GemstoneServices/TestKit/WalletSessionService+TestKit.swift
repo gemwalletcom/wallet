@@ -16,8 +16,10 @@ public extension WalletSessionService {
         preferences: ObservablePreferences = .mock(),
     ) -> any WalletSessionManageable {
         WalletSessionService(
-            service: GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: preferences), wallets: GemstoneWalletStore(store: store)),
-            walletStore: store,
+            service: GemWalletSessionService(
+                store: GemstoneWalletSessionStore(preferences: preferences),
+                wallets: GemstoneWalletStore(store: store),
+            ),
         )
     }
 
@@ -26,8 +28,10 @@ public extension WalletSessionService {
         let store = WalletStore.mock(db: db)
         try store.addWallet(wallet)
         return WalletSessionService(
-            service: GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: .mock()), wallets: GemstoneWalletStore(store: store)),
-            walletStore: store,
+            service: GemWalletSessionService(
+                store: GemstoneWalletSessionStore(preferences: .mock()),
+                wallets: GemstoneWalletStore(store: store),
+            ),
         )
     }
 }

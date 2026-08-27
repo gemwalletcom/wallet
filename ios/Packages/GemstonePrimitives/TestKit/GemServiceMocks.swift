@@ -589,3 +589,13 @@ public final class GemStreamSubscriptionServiceMock: GemStreamSubscriptionServic
 
     public func reset() {}
 }
+
+public final class GemAvatarServiceMock: GemAvatarServiceProtocol, @unchecked Sendable {
+    public init() {}
+
+    public func setImage(walletId _: Gemstone.WalletId, image _: Data) async throws {}
+
+    public func setImageUrl(walletId _: Gemstone.WalletId, url _: String) async throws {}
+
+    public func removeImage(walletId _: Gemstone.WalletId) async throws {}
+}

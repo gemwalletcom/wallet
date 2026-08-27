@@ -62,7 +62,7 @@ impl GemAssetDiscoveryService {
 
 impl GemAssetDiscoveryService {
     async fn discover_assets(&self, wallet_id: WalletId, currency: Currency) -> Result<Vec<AssetId>, GemServiceError> {
-        let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone()).await? else {
+        let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone())? else {
             return Ok(vec![]);
         };
         let from_timestamp = self.store.get_assets_timestamp(wallet_id.clone()).await?;

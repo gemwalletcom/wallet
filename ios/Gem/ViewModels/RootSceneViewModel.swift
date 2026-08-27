@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAppUpdateServiceProtocol
+import protocol Gemstone.GemAvatarServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
 import protocol Gemstone.GemAppStartServiceProtocol
@@ -25,7 +27,7 @@ final class RootSceneViewModel {
     private let transactionStateScheduler: TransactionStateScheduler
     private let appLifecycleService: AppLifecycleService
     private let navigationHandler: NavigationHandler
-    private let releaseAlertService: ReleaseAlertService
+    private let appUpdateService: any GemAppUpdateServiceProtocol
     private let rateService: RateService
     private let toastPresenter: ToastPresenter
     private let deviceService: any DeviceServiceable
@@ -34,7 +36,7 @@ final class RootSceneViewModel {
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
     let nameService: any GemNameServiceProtocol
-    let avatarService: AvatarService
+    let avatarService: any GemAvatarServiceProtocol
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
 
@@ -83,10 +85,10 @@ final class RootSceneViewModel {
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
         nameService: any GemNameServiceProtocol,
-        releaseAlertService: ReleaseAlertService,
+        appUpdateService: any GemAppUpdateServiceProtocol,
         rateService: RateService,
         toastPresenter: ToastPresenter,
-        avatarService: AvatarService,
+        avatarService: any GemAvatarServiceProtocol,
         deviceService: any DeviceServiceable,
     ) {
         self.observablePreferences = observablePreferences
@@ -101,7 +103,7 @@ final class RootSceneViewModel {
         self.walletService = walletService
         self.walletSessionService = walletSessionService
         self.nameService = nameService
-        self.releaseAlertService = releaseAlertService
+        self.appUpdateService = appUpdateService
         self.rateService = rateService
         self.toastPresenter = toastPresenter
         self.avatarService = avatarService
@@ -183,24 +185,32 @@ extension RootSceneViewModel {
     }
 
     private func checkForUpdate() async {
-        guard let release = await releaseAlertService.checkForUpdate() else { return }
-        updateVersionAlertMessage = makeUpdateAlert(for: release)
+        do {
+            guard let release = try await appUpdateService.checkForUpdate() else { return }
+            updateVersionAlertMessage = makeUpdateAlert(for: release)
+        } catch {
+            debugLog("checkForUpdate error: \(error)")
+        }
     }
 
     private func makeUpdateAlert(for release: Release) -> AlertMessage {
         let skipAction = AlertAction(
             title: Localized.Common.skip,
             role: .cancel,
-            action: { [releaseAlertService] in
-                releaseAlertService.skipRelease(release)
+            action: { [appUpdateService] in
+                do {
+                    try appUpdateService.skip(version: release.version)
+                } catch {
+                    debugLog("skipRelease error: \(error)")
+                }
             },
         )
         let updateAction = AlertAction(
             title: Localized.UpdateApp.action,
             isDefaultAction: true,
-            action: { [releaseAlertService] in
+            action: {
                 Task { @MainActor in
-                    releaseAlertService.openAppStore()
+                    UIApplication.shared.open(AppUrl.page(.appStore))
                 }
             },
         )
