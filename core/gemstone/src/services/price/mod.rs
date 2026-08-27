@@ -64,9 +64,10 @@ impl GemPriceService {
 }
 
 impl GemPriceService {
-    pub async fn observable_asset_ids(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
+    pub async fn observable_asset_ids(&self, wallet_id: WalletId, alert_asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         Ok(rules::observable_asset_ids(
             self.store.get_enabled_price_asset_ids(wallet_id).await?,
+            alert_asset_ids,
             asset_ids_enabled_by_default(),
         ))
     }

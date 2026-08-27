@@ -156,14 +156,16 @@ struct ServicesFactory {
             preferences: walletPreferencesService,
         )
         let webSocket = Self.makeWebSocket(securePreferences: securePreferences)
+        let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
         let streamSubscriptionService = Gemstone.GemStreamSubscriptionService(
             price: gemPriceService,
+            alerts: gemPriceAlertStore,
             connection: GemstoneStreamConnection(webSocket: webSocket),
         )
         let priceAlertService = Gemstone.GemPriceAlertService(
             api: gemDeviceApiClient,
             preferences: preferencesService,
-            store: GemstonePriceAlertStore(store: storeManager.priceAlertStore),
+            store: gemPriceAlertStore,
             device: deviceService,
             permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
         )

@@ -10,7 +10,6 @@ interface PriceAlertRepository {
 
     fun getPriceAlerts(assetId: AssetId? = null): Flow<List<PriceAlertInfo>>
 
-    fun getPriceAlertAssetIds(): Flow<List<AssetId>>
 
     fun getAssetPriceAlert(assetId: AssetId): Flow<PriceAlertInfo?>
 

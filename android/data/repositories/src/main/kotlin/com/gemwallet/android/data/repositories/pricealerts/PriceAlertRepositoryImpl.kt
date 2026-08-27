@@ -29,9 +29,6 @@ class PriceAlertRepositoryImpl(
             .map { it.toDTO() }
     }
 
-    override fun getPriceAlertAssetIds(): Flow<List<AssetId>> {
-        return priceAlertsDao.getAlerts().map { alerts -> alerts.mapNotNull { it.assetId.toAssetId() } }
-    }
 
     override fun getAssetPriceAlert(assetId: AssetId): Flow<PriceAlertInfo?> {
         return priceAlertsDao.getAssetPriceAlert(assetId.toIdentifier()).mapLatest { it?.toDTO() }

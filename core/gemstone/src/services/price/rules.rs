@@ -32,8 +32,10 @@ pub fn fiat_prices(prices: Vec<AssetPrice>, rate: &FiatRate) -> Vec<GemPriceUpda
         .collect()
 }
 
-pub fn observable_asset_ids(enabled: Vec<AssetId>, defaults: Vec<AssetId>) -> Vec<AssetId> {
-    if enabled.is_empty() { defaults } else { enabled }
+pub fn observable_asset_ids(enabled: Vec<AssetId>, alerts: Vec<AssetId>, defaults: Vec<AssetId>) -> Vec<AssetId> {
+    let mut seen = std::collections::HashSet::new();
+    let asset_ids: Vec<AssetId> = enabled.into_iter().chain(alerts).filter(|asset_id| seen.insert(asset_id.clone())).collect();
+    if asset_ids.is_empty() { defaults } else { asset_ids }
 }
 
 #[cfg(test)]
@@ -81,7 +83,11 @@ mod observable_tests {
     fn test_observable_asset_ids_falls_back_to_defaults() {
         let bitcoin = AssetId::from_chain(Chain::Bitcoin);
         let ethereum = AssetId::from_chain(Chain::Ethereum);
-        assert_eq!(observable_asset_ids(vec![bitcoin.clone()], vec![ethereum.clone()]), vec![bitcoin]);
-        assert_eq!(observable_asset_ids(vec![], vec![ethereum.clone()]), vec![ethereum]);
+        assert_eq!(observable_asset_ids(vec![bitcoin.clone()], vec![], vec![ethereum.clone()]), vec![bitcoin.clone()]);
+        assert_eq!(observable_asset_ids(vec![], vec![], vec![ethereum.clone()]), vec![ethereum.clone()]);
+        assert_eq!(
+            observable_asset_ids(vec![bitcoin.clone()], vec![bitcoin.clone(), ethereum.clone()], vec![]),
+            vec![bitcoin, ethereum]
+        );
     }
 }
