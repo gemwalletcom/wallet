@@ -9,6 +9,7 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.confirm.toTransferData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import uniffi.gemstone.defaultFeePriority
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
@@ -325,6 +326,7 @@ class ConfirmViewModel @Inject constructor(
 
     fun init(params: ConfirmParams, simulationResult: SimulationResult? = null) {
         this.simulationResult.value = simulationResult
+        feeSelection.value = FeeSelection.Preset(defaultFeePriority(params.toTransferData().inputType).toFeePriority())
         viewModelScope.launch(Dispatchers.IO) {
             val assetIds = simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(params.approvalAssetId())
             prefetchAssets.prefetchAssets(assetIds.distinct())
@@ -469,3 +471,5 @@ private fun ConfirmParams?.approvalAssetId(): AssetId? =
                 ?.decodeJson<ApprovalData>()
                 ?.let { approval -> AssetId(generic.assetId.chain, tokenId = approval.token) }
         }
+
+private fun String.toFeePriority(): FeePriority = FeePriority.entries.firstOrNull { it.string == this } ?: FeePriority.Normal

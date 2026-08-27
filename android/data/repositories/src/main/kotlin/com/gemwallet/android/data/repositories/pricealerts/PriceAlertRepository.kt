@@ -14,7 +14,7 @@ interface PriceAlertRepository {
     fun getAssetPriceAlert(assetId: AssetId): Flow<PriceAlertInfo?>
 
 
-    suspend fun getPriceAlert(priceAlertId: Int): PriceAlertInfo?
+    suspend fun getPriceAlert(priceAlertId: String): PriceAlertInfo?
 
 
 }

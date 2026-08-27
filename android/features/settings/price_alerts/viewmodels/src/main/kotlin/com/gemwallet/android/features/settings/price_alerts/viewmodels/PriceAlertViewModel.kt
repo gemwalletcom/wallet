@@ -124,7 +124,7 @@ class PriceAlertViewModel @Inject constructor(
         }
     }
 
-    fun excludeAsset(priceAlertId: Int) = viewModelScope.launch(Dispatchers.IO) {
+    fun excludeAsset(priceAlertId: String) = viewModelScope.launch(Dispatchers.IO) {
         val alert = data.value.values.flatten().firstOrNull { it.id == priceAlertId } ?: return@launch
         excludePriceAlert(alert.priceAlert)
     }

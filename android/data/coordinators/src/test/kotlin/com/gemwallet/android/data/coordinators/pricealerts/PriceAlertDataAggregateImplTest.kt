@@ -81,7 +81,7 @@ class PriceAlertDataAggregateImplTest {
     )
 
     private fun createAggregate(
-        id: Int = 1,
+        id: String = "1",
         asset: Asset = btcAsset,
         assetPrice: AssetPriceInfo? = createAssetPriceInfo(asset.id),
         priceAlert: PriceAlert = createPriceAlert(asset.id),
@@ -95,11 +95,11 @@ class PriceAlertDataAggregateImplTest {
     @Test
     fun testBasicPropertyDelegation() {
         val aggregate = createAggregate(
-            id = 123,
+            id = "123",
             asset = ethAsset,
         )
 
-        assertEquals(123, aggregate.id)
+        assertEquals("123", aggregate.id)
         assertEquals(ethAsset, aggregate.asset)
         assertEquals(ethAsset.id, aggregate.assetId)
         assertEquals("Ethereum", aggregate.title)
@@ -448,24 +448,24 @@ class PriceAlertDataAggregateImplTest {
     @Test
     fun testMultipleAssets() {
         val btcAggregate = createAggregate(
-            id = 1,
+            id = "1",
             asset = btcAsset,
             assetPrice = createAssetPriceInfo(btcAsset.id, 45000.0),
         )
         val ethAggregate = createAggregate(
-            id = 2,
+            id = "2",
             asset = ethAsset,
             assetPrice = createAssetPriceInfo(ethAsset.id, 2500.0),
         )
         val solAggregate = createAggregate(
-            id = 3,
+            id = "3",
             asset = solAsset,
             assetPrice = createAssetPriceInfo(solAsset.id, 98.5),
         )
 
-        assertEquals(1, btcAggregate.id)
-        assertEquals(2, ethAggregate.id)
-        assertEquals(3, solAggregate.id)
+        assertEquals("1", btcAggregate.id)
+        assertEquals("2", ethAggregate.id)
+        assertEquals("3", solAggregate.id)
         assertEquals("Bitcoin", btcAggregate.title)
         assertEquals("Ethereum", ethAggregate.title)
         assertEquals("Solana", solAggregate.title)

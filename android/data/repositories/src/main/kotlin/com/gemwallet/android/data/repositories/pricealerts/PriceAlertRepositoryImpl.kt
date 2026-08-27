@@ -20,7 +20,7 @@ class PriceAlertRepositoryImpl(
         return priceAlertsDao.hasAssetPriceAlerts(assetId.toIdentifier())
     }
 
-    override suspend fun getPriceAlert(priceAlertId: Int): PriceAlertInfo? {
+    override suspend fun getPriceAlert(priceAlertId: String): PriceAlertInfo? {
         return priceAlertsDao.getPriceAlert(priceAlertId)?.toDTO()
     }
 

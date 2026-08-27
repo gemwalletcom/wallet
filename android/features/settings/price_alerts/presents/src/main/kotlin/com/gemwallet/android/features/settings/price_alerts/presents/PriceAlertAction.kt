@@ -8,7 +8,7 @@ internal sealed interface PriceAlertAction {
     data object Add : PriceAlertAction
     data class TogglePriceAlerts(val enabled: Boolean) : PriceAlertAction
     data class ToggleAutoAlert(val enabled: Boolean) : PriceAlertAction
-    data class Exclude(val id: Int) : PriceAlertAction
+    data class Exclude(val id: String) : PriceAlertAction
     data class OpenChart(val assetId: AssetId) : PriceAlertAction
     data class AddTarget(val assetId: AssetId) : PriceAlertAction
 }

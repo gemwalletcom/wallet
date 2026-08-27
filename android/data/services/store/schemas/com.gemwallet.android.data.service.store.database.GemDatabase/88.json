@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 88,
-    "identityHash": "f5b3acb5923bb8f6fa0cb35f651bcfac",
+    "identityHash": "19d8d9e5bc51a06db306747e13241c65",
     "entities": [
       {
         "tableName": "wallets",
@@ -356,7 +356,7 @@
       },
       {
         "tableName": "asset",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `symbol` TEXT NOT NULL, `decimals` INTEGER NOT NULL, `type` TEXT NOT NULL, `chain` TEXT NOT NULL, `is_enabled` INTEGER NOT NULL, `is_buy_enabled` INTEGER NOT NULL, `is_sell_enabled` INTEGER NOT NULL, `is_swap_enabled` INTEGER NOT NULL, `is_stake_enabled` INTEGER NOT NULL, `staking_apr` REAL, `rank` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `associations` TEXT NOT NULL DEFAULT '[]', PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `symbol` TEXT NOT NULL, `decimals` INTEGER NOT NULL, `type` TEXT NOT NULL, `chain` TEXT NOT NULL, `is_enabled` INTEGER NOT NULL, `is_buy_enabled` INTEGER NOT NULL, `is_sell_enabled` INTEGER NOT NULL, `is_swap_enabled` INTEGER NOT NULL, `is_stake_enabled` INTEGER NOT NULL, `staking_apr` REAL, `is_earn_enabled` INTEGER NOT NULL DEFAULT 0, `earn_apr` REAL, `rank` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `associations` TEXT NOT NULL DEFAULT '[]', PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -430,6 +430,18 @@
             "affinity": "REAL"
           },
           {
+            "fieldPath": "isEarnEnabled",
+            "columnName": "is_earn_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "earnApr",
+            "columnName": "earn_apr",
+            "affinity": "REAL"
+          },
+          {
             "fieldPath": "rank",
             "columnName": "rank",
             "affinity": "INTEGER",
@@ -458,7 +470,7 @@
       },
       {
         "tableName": "balances",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`asset_id` TEXT NOT NULL, `wallet_id` TEXT NOT NULL, `available` TEXT NOT NULL, `available_amount` REAL NOT NULL, `frozen` TEXT NOT NULL, `frozen_amount` REAL NOT NULL, `locked` TEXT NOT NULL, `locked_amount` REAL NOT NULL, `staked` TEXT NOT NULL, `staked_amount` REAL NOT NULL, `pending` TEXT NOT NULL, `pending_amount` REAL NOT NULL, `rewards` TEXT NOT NULL, `rewards_amount` REAL NOT NULL, `reserved` TEXT NOT NULL, `reserved_amount` REAL NOT NULL, `withdrawable` TEXT NOT NULL, `withdrawableAmount` REAL NOT NULL, `total_amount` REAL NOT NULL, `is_active` INTEGER NOT NULL, `is_pinned` INTEGER NOT NULL, `is_visible` INTEGER NOT NULL, `list_position` INTEGER NOT NULL, `votes` INTEGER NOT NULL DEFAULT 0, `energy_available` INTEGER NOT NULL DEFAULT 0, `energy_total` INTEGER NOT NULL DEFAULT 0, `bandwidth_available` INTEGER NOT NULL DEFAULT 0, `bandwidth_total` INTEGER NOT NULL DEFAULT 0, `updated_at` INTEGER, PRIMARY KEY(`asset_id`, `wallet_id`), FOREIGN KEY(`asset_id`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`asset_id` TEXT NOT NULL, `wallet_id` TEXT NOT NULL, `available` TEXT NOT NULL, `available_amount` REAL NOT NULL, `frozen` TEXT NOT NULL, `frozen_amount` REAL NOT NULL, `locked` TEXT NOT NULL, `locked_amount` REAL NOT NULL, `staked` TEXT NOT NULL, `staked_amount` REAL NOT NULL, `pending` TEXT NOT NULL, `pending_amount` REAL NOT NULL, `rewards` TEXT NOT NULL, `rewards_amount` REAL NOT NULL, `reserved` TEXT NOT NULL, `reserved_amount` REAL NOT NULL, `withdrawable` TEXT NOT NULL, `withdrawableAmount` REAL NOT NULL, `pending_unconfirmed` TEXT NOT NULL DEFAULT '0', `pending_unconfirmed_amount` REAL NOT NULL DEFAULT 0.0, `earn` TEXT NOT NULL DEFAULT '0', `earn_amount` REAL NOT NULL DEFAULT 0.0, `total_amount` REAL NOT NULL, `is_active` INTEGER NOT NULL, `is_pinned` INTEGER NOT NULL, `is_visible` INTEGER NOT NULL, `list_position` INTEGER NOT NULL, `votes` INTEGER NOT NULL DEFAULT 0, `energy_available` INTEGER NOT NULL DEFAULT 0, `energy_total` INTEGER NOT NULL DEFAULT 0, `bandwidth_available` INTEGER NOT NULL DEFAULT 0, `bandwidth_total` INTEGER NOT NULL DEFAULT 0, `updated_at` INTEGER, PRIMARY KEY(`asset_id`, `wallet_id`), FOREIGN KEY(`asset_id`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "assetId",
@@ -567,6 +579,34 @@
             "columnName": "withdrawableAmount",
             "affinity": "REAL",
             "notNull": true
+          },
+          {
+            "fieldPath": "pendingUnconfirmed",
+            "columnName": "pending_unconfirmed",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'0'"
+          },
+          {
+            "fieldPath": "pendingUnconfirmedAmount",
+            "columnName": "pending_unconfirmed_amount",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "0.0"
+          },
+          {
+            "fieldPath": "earn",
+            "columnName": "earn",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'0'"
+          },
+          {
+            "fieldPath": "earnAmount",
+            "columnName": "earn_amount",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "0.0"
           },
           {
             "fieldPath": "totalAmount",
@@ -1423,12 +1463,12 @@
       },
       {
         "tableName": "price_alerts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `assetId` TEXT NOT NULL, `currency` TEXT NOT NULL, `price` REAL, `pricePercentChange` REAL, `priceDirection` TEXT, `lastNotifiedAt` INTEGER, `enabled` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `assetId` TEXT NOT NULL, `currency` TEXT NOT NULL, `price` REAL, `pricePercentChange` REAL, `priceDirection` TEXT, `lastNotifiedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -1462,16 +1502,10 @@
             "fieldPath": "lastNotifiedAt",
             "columnName": "lastNotifiedAt",
             "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "enabled",
-            "columnName": "enabled",
-            "affinity": "INTEGER",
-            "notNull": true
           }
         ],
         "primaryKey": {
-          "autoGenerate": true,
+          "autoGenerate": false,
           "columnNames": [
             "id"
           ]
@@ -2714,7 +2748,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f5b3acb5923bb8f6fa0cb35f651bcfac')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '19d8d9e5bc51a06db306747e13241c65')"
     ]
   }
 }
