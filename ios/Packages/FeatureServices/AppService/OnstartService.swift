@@ -7,7 +7,6 @@ import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import Preferences
 import Primitives
-import Store
 import UIKit
 
 /// OnstartService runs services before the app starts.
@@ -15,20 +14,17 @@ import UIKit
 public struct OnstartService: Sendable {
     private let appStartService: any GemAppStartServiceProtocol
     private let preferencesService: any GemPreferencesServiceProtocol
-    private let nodeStore: NodeStore
     private let preferences: Preferences
     private let walletService: WalletService
 
     public init(
         appStartService: any GemAppStartServiceProtocol,
         preferencesService: any GemPreferencesServiceProtocol,
-        nodeStore: NodeStore,
         preferences: Preferences,
         walletService: WalletService,
     ) {
         self.appStartService = appStartService
         self.preferencesService = preferencesService
-        self.nodeStore = nodeStore
         self.preferences = preferences
         self.walletService = walletService
     }

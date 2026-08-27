@@ -252,7 +252,6 @@ struct ServicesFactory {
         let onStartService = OnstartService(
             appStartService: appStartService,
             preferencesService: preferencesService,
-            nodeStore: storeManager.nodeStore,
             preferences: preferences,
             walletService: walletService,
         )

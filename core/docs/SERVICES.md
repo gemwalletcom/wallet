@@ -135,7 +135,6 @@ State on 2026-08-28: every app service forwards to a Core service or is platform
 
 ### iOS
 
-- `OnstartService` reads `NodeStore` next to Core services; route the node lookups through `GemNodeService` (only `NodeService.node(for:)` keeps the documented sync exception).
 
 ### Android
 
