@@ -26,7 +26,7 @@ class GemstoneStakeStore(
         val asset = assetsDao.getAsset(assetId).first() ?: return null
         return when (providerType.decodeJson<StakeProviderType>()) {
             StakeProviderType.Stake -> asset.stakingApr
-            StakeProviderType.Earn -> null
+            StakeProviderType.Earn -> asset.earnApr
         }
     }
 

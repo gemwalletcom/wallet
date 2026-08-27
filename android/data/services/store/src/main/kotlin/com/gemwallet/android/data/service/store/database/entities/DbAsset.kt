@@ -36,6 +36,8 @@ data class DbAsset(
     @ColumnInfo("is_swap_enabled") val isSwapEnabled: Boolean = false,
     @ColumnInfo("is_stake_enabled") val isStakeEnabled: Boolean = false,
     @ColumnInfo("staking_apr") val stakingApr: Double? = null,
+    @ColumnInfo("is_earn_enabled", defaultValue = "0") val isEarnEnabled: Boolean = false,
+    @ColumnInfo("earn_apr") val earnApr: Double? = null,
     @ColumnInfo("rank") val rank: Int = 0,
     @ColumnInfo("updated_at") val updatedAt: Long = 0,
     @ColumnInfo("associations", defaultValue = "[]") val associations: List<AssetAssociation> = emptyList(),
@@ -54,6 +56,8 @@ data class DbAssetBasicUpdate(
     @ColumnInfo("is_swap_enabled") val isSwapEnabled: Boolean = false,
     @ColumnInfo("is_stake_enabled") val isStakeEnabled: Boolean = false,
     @ColumnInfo("staking_apr") val stakingApr: Double? = null,
+    @ColumnInfo("is_earn_enabled", defaultValue = "0") val isEarnEnabled: Boolean = false,
+    @ColumnInfo("earn_apr") val earnApr: Double? = null,
     @ColumnInfo("rank") val rank: Int = 0,
 )
 
@@ -152,6 +156,8 @@ fun AssetFull.toRecord() = DbAsset(
     isStakeEnabled = properties.isStakeable,
     isSwapEnabled = properties.isSwapable,
     stakingApr = properties.stakingApr,
+    isEarnEnabled = properties.isEarnable,
+    earnApr = properties.earnApr,
     rank = score.rank,
     associations = associations,
 )
@@ -178,6 +184,8 @@ fun AssetBasic.toRecord() = DbAsset(
     isStakeEnabled = properties.isStakeable,
     isSwapEnabled = properties.isSwapable,
     stakingApr = properties.stakingApr,
+    isEarnEnabled = properties.isEarnable,
+    earnApr = properties.earnApr,
     rank = score.rank,
 )
 
@@ -194,6 +202,8 @@ fun AssetBasic.toUpdateRecord() = DbAssetBasicUpdate(
     isSwapEnabled = properties.isSwapable,
     isStakeEnabled = properties.isStakeable,
     stakingApr = properties.stakingApr,
+    isEarnEnabled = properties.isEarnable,
+    earnApr = properties.earnApr,
     rank = score.rank,
 )
 

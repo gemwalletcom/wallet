@@ -32,6 +32,8 @@ private const val ASSET_INFO_COLUMNS = """
     asset.is_swap_enabled AS isSwapEnabled,
     asset.is_stake_enabled AS isStakeEnabled,
     asset.staking_apr AS stakingApr,
+    asset.is_earn_enabled AS isEarnEnabled,
+    asset.earn_apr AS earnApr,
     asset.rank AS assetRank,
     asset.chain AS chain,
     asset.associations AS associations,
