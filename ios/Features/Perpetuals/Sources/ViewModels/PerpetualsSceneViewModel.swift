@@ -14,7 +14,6 @@ import SwiftUI
 @Observable
 @MainActor
 final class PerpetualsSceneViewModel {
-    private static let marketsUpdateIntervalHours = 1
 
     private let observerService: any PerpetualObservable
     let perpetualService: PerpetualServiceable
@@ -155,8 +154,6 @@ extension PerpetualsSceneViewModel {
     }
 
     func updateMarkets() async {
-        guard perpetualService.marketsUpdatedAt.isOutdated(byHours: Self.marketsUpdateIntervalHours) else { return }
-
         do {
             try await perpetualService.updateMarkets()
         } catch {

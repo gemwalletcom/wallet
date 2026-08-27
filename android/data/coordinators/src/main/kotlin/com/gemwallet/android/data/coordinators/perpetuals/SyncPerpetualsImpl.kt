@@ -15,7 +15,7 @@ class SyncPerpetualsImpl @Inject constructor(
     override suspend fun syncPerpetuals() {
         val currency = getCurrentCurrency.getCurrentCurrency().toJson()
         chains.forEach { chain ->
-            runCatching { perpetualService.syncMarkets(chain.string, currency) }
+            runCatching { perpetualService.syncMarketsIfStale(chain.string, currency) }
         }
     }
 }

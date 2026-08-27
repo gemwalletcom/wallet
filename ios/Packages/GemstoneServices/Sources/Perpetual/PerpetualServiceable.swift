@@ -4,7 +4,6 @@ import Foundation
 import Primitives
 
 public protocol PerpetualServiceable: Sendable {
-    var marketsUpdatedAt: Date? { get }
     func updateMarkets() async throws
     func clearMarkets() async throws
     func candlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick]

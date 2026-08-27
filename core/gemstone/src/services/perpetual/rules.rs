@@ -8,6 +8,12 @@ use crate::models::asset::wallet_default_assets;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 use crate::services::collections::stale;
 
+const MARKETS_REFRESH_INTERVAL_SECONDS: i64 = 60 * 60;
+
+pub fn is_markets_stale(updated_at: Option<i64>, now: i64) -> bool {
+    updated_at.is_none_or(|updated_at| now - updated_at >= MARKETS_REFRESH_INTERVAL_SECONDS)
+}
+
 pub fn balance_update(balance: &PerpetualBalance) -> Result<GemBalanceUpdate, NumberFormatterError> {
     let asset = &*HYPERCORE_PERPETUAL_USDC;
     let value = |amount: f64| -> Result<GemBalanceValue, NumberFormatterError> {
@@ -56,6 +62,13 @@ pub fn collateral_price(chain: Chain) -> Option<AssetPrice> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_markets_stale_after_an_hour_or_when_never_synced() {
+        assert!(is_markets_stale(None, 10_000));
+        assert!(!is_markets_stale(Some(10_000 - 3_599), 10_000));
+        assert!(is_markets_stale(Some(10_000 - 3_600), 10_000));
+    }
 
     use primitives::{PerpetualDirection, PerpetualId, PerpetualMarginType};
 

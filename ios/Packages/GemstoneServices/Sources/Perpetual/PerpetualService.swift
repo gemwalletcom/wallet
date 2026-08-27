@@ -22,12 +22,8 @@ public struct PerpetualService: PerpetualServiceable {
         self.appPreferences = appPreferences
     }
 
-    public var marketsUpdatedAt: Date? {
-        ((try? service.marketsUpdatedAt()) ?? nil).map { Date(timeIntervalSince1970: TimeInterval($0)) }
-    }
-
     public func updateMarkets() async throws {
-        try await service.syncMarkets(chain: Chain.hyperCore.rawValue, currency: Currency(id: appPreferences.currency).json())
+        try await service.syncMarketsIfStale(chain: Chain.hyperCore.rawValue, currency: Currency(id: appPreferences.currency).json())
     }
 
     public func clearMarkets() async throws {

@@ -78,6 +78,14 @@ impl GemPerpetualService {
         self.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp()))
     }
 
+    pub async fn sync_markets_if_stale(&self, chain: Chain, currency: Currency) -> Result<bool, GemServiceError> {
+        if !rules::is_markets_stale(self.markets_updated_at()?, Utc::now().timestamp()) {
+            return Ok(false);
+        }
+        self.sync_markets(chain, currency).await?;
+        Ok(true)
+    }
+
     pub async fn clear_markets(&self) -> Result<(), GemServiceError> {
         self.store.clear().await?;
         self.preferences.set_perpetual_markets_updated_at(None)

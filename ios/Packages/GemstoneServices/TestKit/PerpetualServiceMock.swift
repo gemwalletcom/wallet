@@ -8,7 +8,6 @@ import Primitives
 public struct PerpetualServiceMock: PerpetualServiceable {
     public init() {}
 
-    public var marketsUpdatedAt: Date? { nil }
 
     public func updateMarkets() async throws {}
 
