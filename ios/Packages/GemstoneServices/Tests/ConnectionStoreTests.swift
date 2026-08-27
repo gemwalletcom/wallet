@@ -27,6 +27,7 @@ struct ConnectionStoreTests {
         let connectionB = try #require(try await store.getConnection(sessionId: "b").map { try WalletConnection($0) })
         #expect(connectionA.wallet.id == walletA.id)
         #expect(connectionB.wallet.id == walletB.id)
+        #expect(connectionA.wallet.accounts.map(\.chain) == [.ethereum])
         #expect(try await store.getConnection(sessionId: "missing") == nil)
     }
 
