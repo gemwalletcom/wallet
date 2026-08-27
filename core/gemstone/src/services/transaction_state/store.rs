@@ -4,7 +4,7 @@ use primitives::{Transaction, TransactionId, TransactionState, WalletId};
 
 use super::model::{GemPendingTransaction, GemTransactionStateUpdate};
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemTransactionStateStore: Send + Sync {
     async fn get_pending_transactions(&self) -> Result<Vec<GemPendingTransaction>, GemServiceError>;

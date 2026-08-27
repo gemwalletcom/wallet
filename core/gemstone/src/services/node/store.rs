@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use primitives::Chain;
 use primitives::node::Node;
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemNodeStore: Send + Sync {
     async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError>;

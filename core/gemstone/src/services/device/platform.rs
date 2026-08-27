@@ -13,7 +13,7 @@ pub struct GemDeviceInfo {
     pub locale: DeviceLocale,
 }
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 pub trait GemDevicePlatform: Send + Sync {
     fn device_id(&self) -> Result<String, GemServiceError>;
     fn device_info(&self) -> Result<GemDeviceInfo, GemServiceError>;

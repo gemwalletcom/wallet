@@ -4,7 +4,7 @@ use primitives::{AssetId, WalletId};
 
 use super::model::GemBalanceUpdate;
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemBalanceStore: Send + Sync {
     async fn update_balances(&self, wallet_id: WalletId, updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError>;

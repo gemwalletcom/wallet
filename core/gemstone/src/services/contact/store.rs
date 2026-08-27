@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use primitives::Contact;
 use primitives::contact::ContactAddress;
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemContactStore: Send + Sync {
     async fn get_address_ids(&self, contact_id: String) -> Result<Vec<String>, GemServiceError>;

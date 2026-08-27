@@ -7,7 +7,7 @@ use gem_client::ClientError;
 use crate::alien::{AlienError, AlienProvider, AlienProviderWrapper};
 use crate::api::GemApiError;
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemWalletRequestPreflight: Send + Sync + std::fmt::Debug {
     async fn prepare(&self) -> Result<(), GemApiError>;
