@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "ID token non valido";
 "errors.import.invalid_secret_phrase" = "Frase segreta non valida";
 "errors.import.invalid_secret_phrase_word" = "Parola frase segreta non valida: %@";
+"errors.import.invalid_private_key" = "Chiave privata non valida";
 "errors.invalid_url" = "URL non valido";
 "errors.error_occurred" = "Si è verificato un errore!";
 "errors.invalid_network_id" = "ID di rete non valido";

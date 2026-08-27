@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "ID Token Tidak Valid";
 "errors.import.invalid_secret_phrase" = "Frasa Rahasia Tidak Valid";
 "errors.import.invalid_secret_phrase_word" = "Kata Frasa Rahasia Tidak Valid: %@";
+"errors.import.invalid_private_key" = "Kunci privat tidak valid";
 "errors.invalid_url" = "URL Tidak Valid";
 "errors.error_occurred" = "Terjadi kesalahan!";
 "errors.invalid_network_id" = "ID Jaringan Tidak Valid";

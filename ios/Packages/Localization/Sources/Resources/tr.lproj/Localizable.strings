@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "Geçersiz Jeton Kimliği";
 "errors.import.invalid_secret_phrase" = "Geçersiz Gizli İfade";
 "errors.import.invalid_secret_phrase_word" = "Geçersiz Gizli İfade kelimesi: %@";
+"errors.import.invalid_private_key" = "Geçersiz özel anahtar";
 "errors.invalid_url" = "Geçersiz URL";
 "errors.error_occurred" = "Bir hata oluştu!";
 "errors.invalid_network_id" = "Geçersiz Ağ Kimliği";

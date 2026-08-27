@@ -182,6 +182,7 @@
   <string name="errors_token_invalid_id">غلط ٹوکن ID</string>
   <string name="errors_import_invalid_secret_phrase">غلط خفیہ جملہ</string>
   <string name="errors_import_invalid_secret_phrase_word">غلط خفیہ جملہ کا لفظ: %1$s</string>
+  <string name="errors_import_invalid_private_key">غلط پرائیویٹ کلید</string>
   <string name="errors_invalid_url">غلط URL</string>
   <string name="errors_error_occurred">ایک خرابی پیش آگئی!</string>
   <string name="errors_invalid_network_id">غلط نیٹ ورک ID</string>

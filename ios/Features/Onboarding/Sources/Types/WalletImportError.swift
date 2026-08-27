@@ -1,21 +1,19 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import enum Gemstone.GemWalletImportError
 import Foundation
 import Localization
 
-enum WalletImportError: LocalizedError {
-    case emptyName // TODO: Remove this case, auto generate name
-    case invalidSecretPhrase
-    case invalidSecretPhraseWord(word: String)
-    case invalidAddress
-
-    var errorDescription: String? {
+extension GemWalletImportError: @retroactive LocalizedError {
+    public var errorDescription: String? {
         switch self {
-        case .emptyName:
-            "Empty Name"
-        case .invalidSecretPhrase:
+        case .InvalidSecretPhrase:
             Localized.Errors.Import.invalidSecretPhrase
-        case let .invalidSecretPhraseWord(word):
-            Localized.Errors.Import.invalidSecretPhraseWord(word)
-        case .invalidAddress:
+        case let .InvalidSecretPhraseWords(words):
+            Localized.Errors.Import.invalidSecretPhraseWord(words.joined(separator: ", "))
+        case .InvalidPrivateKey:
+            Localized.Errors.Import.invalidPrivateKey
+        case .InvalidAddress:
             Localized.Errors.invalidAddressName
         }
     }

@@ -212,6 +212,7 @@ errors_invalid_amount = Ongeldig bedrag
 errors_token_invalid_id = Ongeldige token-ID
 errors_import_invalid_secret_phrase = Ongeldige geheime zin
 errors_import_invalid_secret_phrase_word = Ongeldig woord in geheime zin: %@
+errors_import_invalid_private_key = Ongeldige privésleutel
 errors_invalid_url = Ongeldige URL
 errors_error_occurred = Er is een fout opgetreden!
 errors_invalid_network_id = Ongeldige netwerk-ID

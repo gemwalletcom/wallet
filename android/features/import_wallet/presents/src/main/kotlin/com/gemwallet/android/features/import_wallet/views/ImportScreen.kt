@@ -333,7 +333,7 @@ private fun ErrorMessage(error: ImportError?) {
         )
         ImportError.InvalidationSecretPhrase -> stringResource(R.string.errors_import_invalid_secret_phrase)
         ImportError.InvalidAddress -> stringResource(R.string.errors_invalid_address_name)
-        ImportError.InvalidationPrivateKey -> "Invalid private key"
+        ImportError.InvalidationPrivateKey -> stringResource(R.string.errors_import_invalid_private_key)
         is ImportError.DuplicatedWallet -> "Duplicated wallet"
         null -> return
     }

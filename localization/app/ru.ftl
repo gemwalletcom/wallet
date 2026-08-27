@@ -212,6 +212,7 @@ errors_invalid_amount = Недопустимая сумма
 errors_token_invalid_id = Неверный идентификатор токена
 errors_import_invalid_secret_phrase = Неверная секретная фраза
 errors_import_invalid_secret_phrase_word = Неверное слово секретной фразы: %@
+errors_import_invalid_private_key = Недействительный приватный ключ
 errors_invalid_url = Неверная ссылка
 errors_error_occurred = Произошла ошибка!
 errors_invalid_network_id = Неверный идентификатор сети

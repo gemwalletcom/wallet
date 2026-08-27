@@ -212,6 +212,7 @@ errors_invalid_amount = Importo non valido
 errors_token_invalid_id = ID token non valido
 errors_import_invalid_secret_phrase = Frase segreta non valida
 errors_import_invalid_secret_phrase_word = Parola frase segreta non valida: %@
+errors_import_invalid_private_key = Chiave privata non valida
 errors_invalid_url = URL non valido
 errors_error_occurred = Si è verificato un errore!
 errors_invalid_network_id = ID di rete non valido

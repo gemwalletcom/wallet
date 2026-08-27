@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "Ugyldigt token-id";
 "errors.import.invalid_secret_phrase" = "Ugyldig hemmelig sætning";
 "errors.import.invalid_secret_phrase_word" = "Ugyldigt ord i hemmelig sætning: %@";
+"errors.import.invalid_private_key" = "Ugyldig privat nøgle";
 "errors.invalid_url" = "Ugyldig URL";
 "errors.error_occurred" = "Der opstod en fejl!";
 "errors.invalid_network_id" = "Ugyldigt netværks-id";

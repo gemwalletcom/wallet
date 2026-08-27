@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "Neplatné ID tokenu";
 "errors.import.invalid_secret_phrase" = "Neplatná tajná fráze";
 "errors.import.invalid_secret_phrase_word" = "Neplatné slovo tajné fráze: %@";
+"errors.import.invalid_private_key" = "Neplatný soukromý klíč";
 "errors.invalid_url" = "Neplatná adresa URL";
 "errors.error_occurred" = "Došlo k chybě!";
 "errors.invalid_network_id" = "Neplatné ID sítě";

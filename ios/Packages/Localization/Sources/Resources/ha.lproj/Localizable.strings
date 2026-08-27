@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "ID na Token mara inganci";
 "errors.import.invalid_secret_phrase" = "Kalmomin sirri mara inganci";
 "errors.import.invalid_secret_phrase_word" = "Kalmar Sirri mara inganci: %@";
+"errors.import.invalid_private_key" = "Maɓallin sirri mara inganci";
 "errors.invalid_url" = "URL mara inganci";
 "errors.error_occurred" = "An sami kuskure!";
 "errors.invalid_network_id" = "ID na hanyar sadarwa mara inganci";

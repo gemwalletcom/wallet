@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "Invalid Token ID";
 "errors.import.invalid_secret_phrase" = "Invalid Secret Phrase";
 "errors.import.invalid_secret_phrase_word" = "Invalid Secret Phrase word: %@";
+"errors.import.invalid_private_key" = "Invalid private key";
 "errors.invalid_url" = "Invalid URL";
 "errors.error_occurred" = "An error occurred!";
 "errors.invalid_network_id" = "Invalid Network ID";

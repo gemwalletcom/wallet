@@ -212,6 +212,7 @@ errors_invalid_amount = Недійсна сума
 errors_token_invalid_id = Невірний ідентифікатор токену
 errors_import_invalid_secret_phrase = Недійсна секретна фраза
 errors_import_invalid_secret_phrase_word = Невірне слово секретної фрази: %@
+errors_import_invalid_private_key = Недійсний приватний ключ
 errors_invalid_url = Недійсний URL
 errors_error_occurred = Виникла помилка!
 errors_invalid_network_id = Неправильний ідентифікатор мережі

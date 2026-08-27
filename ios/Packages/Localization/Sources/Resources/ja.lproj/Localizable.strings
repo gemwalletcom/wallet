@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "無効なトークンID";
 "errors.import.invalid_secret_phrase" = "無効な秘密フレーズ";
 "errors.import.invalid_secret_phrase_word" = "無効なシークレットフレーズの単語: %@";
+"errors.import.invalid_private_key" = "無効な秘密鍵";
 "errors.invalid_url" = "無効なURL";
 "errors.error_occurred" = "エラーが発生しました！";
 "errors.invalid_network_id" = "無効なネットワークID";

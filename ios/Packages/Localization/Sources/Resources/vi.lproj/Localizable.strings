@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "ID mã thông báo không hợp lệ";
 "errors.import.invalid_secret_phrase" = "Cụm từ bí mật không hợp lệ";
 "errors.import.invalid_secret_phrase_word" = "Từ cụm từ bí mật không hợp lệ: %@";
+"errors.import.invalid_private_key" = "Khóa riêng không hợp lệ";
 "errors.invalid_url" = "URL không hợp lệ";
 "errors.error_occurred" = "Đã xảy ra lỗi!";
 "errors.invalid_network_id" = "ID mạng không hợp lệ";

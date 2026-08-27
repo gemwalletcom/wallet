@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "غلط ٹوکن ID";
 "errors.import.invalid_secret_phrase" = "غلط خفیہ جملہ";
 "errors.import.invalid_secret_phrase_word" = "غلط خفیہ جملہ کا لفظ: %@";
+"errors.import.invalid_private_key" = "غلط پرائیویٹ کلید";
 "errors.invalid_url" = "غلط URL";
 "errors.error_occurred" = "ایک خرابی پیش آگئی!";
 "errors.invalid_network_id" = "غلط نیٹ ورک ID";

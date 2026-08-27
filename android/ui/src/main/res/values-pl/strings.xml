@@ -182,6 +182,7 @@
   <string name="errors_token_invalid_id">Nieprawidłowy identyfikator tokena</string>
   <string name="errors_import_invalid_secret_phrase">Nieprawidłowe tajne zdanie</string>
   <string name="errors_import_invalid_secret_phrase_word">Nieprawidłowe tajne słowo: %1$s</string>
+  <string name="errors_import_invalid_private_key">Nieprawidłowy klucz prywatny</string>
   <string name="errors_invalid_url">nieprawidłowy URL</string>
   <string name="errors_error_occurred">Wystąpił błąd!</string>
   <string name="errors_invalid_network_id">Nieprawidłowy identyfikator sieci</string>

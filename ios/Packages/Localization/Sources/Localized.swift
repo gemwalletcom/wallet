@@ -472,6 +472,8 @@ public enum Localized {
       public static let userCancelled = Localized.tr("Localizable", "errors.connections.user_cancelled", fallback: "User cancelled")
     }
     public enum Import {
+      /// Invalid private key
+      public static let invalidPrivateKey = Localized.tr("Localizable", "errors.import.invalid_private_key", fallback: "Invalid private key")
       /// Invalid Secret Phrase
       public static let invalidSecretPhrase = Localized.tr("Localizable", "errors.import.invalid_secret_phrase", fallback: "Invalid Secret Phrase")
       /// Invalid Secret Phrase word: %@

@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "شناسه توکن نامعتبر است.";
 "errors.import.invalid_secret_phrase" = "عبارات خصوصی نامعتبر.";
 "errors.import.invalid_secret_phrase_word" = "عبارت خصوصی نامعتبر: %@";
+"errors.import.invalid_private_key" = "کلید خصوصی نامعتبر";
 "errors.invalid_url" = "URL نامعتبر";
 "errors.error_occurred" = "خطایی رخ داد!";
 "errors.invalid_network_id" = "شناسه شبکه نامعتبر است.";

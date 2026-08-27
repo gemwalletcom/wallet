@@ -212,6 +212,7 @@ errors_invalid_amount = Jumlah tidak sah
 errors_token_invalid_id = ID Token tidak sah
 errors_import_invalid_secret_phrase = Frasa Rahsia Tidak Sah
 errors_import_invalid_secret_phrase_word = Perkataan Frasa Rahsia tidak sah: %@
+errors_import_invalid_private_key = Kunci peribadi tidak sah
 errors_invalid_url = URL tidak sah
 errors_error_occurred = Ralat berlaku!
 errors_invalid_network_id = ID Rangkaian tidak sah

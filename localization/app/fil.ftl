@@ -212,6 +212,7 @@ errors_invalid_amount = Di-wastong halaga
 errors_token_invalid_id = Di-wastong Token ID
 errors_import_invalid_secret_phrase = Di-wastong Lihim na Parirala
 errors_import_invalid_secret_phrase_word = Di-wastong Lihim na Parirala na salita: %@
+errors_import_invalid_private_key = Hindi wastong private key
 errors_invalid_url = Di-wastong URL
 errors_error_occurred = May naganap na error!
 errors_invalid_network_id = Di-wastong Network ID

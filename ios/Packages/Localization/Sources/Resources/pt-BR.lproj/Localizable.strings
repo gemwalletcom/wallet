@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "ID de token inválido";
 "errors.import.invalid_secret_phrase" = "Frase secreta inválida";
 "errors.import.invalid_secret_phrase_word" = "Palavra de frase secreta inválida: %@";
+"errors.import.invalid_private_key" = "Chave privada inválida";
 "errors.invalid_url" = "URL inválida";
 "errors.error_occurred" = "Ocorreu um erro!";
 "errors.invalid_network_id" = "ID de rede inválida";

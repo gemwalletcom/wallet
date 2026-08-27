@@ -92,14 +92,12 @@ object InteractsModule {
         walletService: GemWalletService,
         sessionRepository: SessionRepository,
         appStartService: GemAppStartService,
-        phraseValidate: ValidatePhraseOperator,
         syncDevice: SyncDevice,
         walletImportSync: SyncWalletImport,
     ): ImportWalletService = PhraseAddressImportWalletService(
         walletService = walletService,
         sessionRepository = sessionRepository,
         appStartService = appStartService,
-        phraseValidate = phraseValidate,
         syncDevice = syncDevice,
         walletImportSync = walletImportSync,
     )

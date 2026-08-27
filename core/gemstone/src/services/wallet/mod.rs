@@ -1,3 +1,4 @@
+pub mod error;
 pub mod model;
 pub mod password;
 mod rules;
@@ -15,6 +16,7 @@ use crate::services::file::GemFileStore;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
+pub use error::GemWalletImportError;
 pub use model::{GemWalletImportResult, GemWalletImportType, GemWalletSource};
 pub use password::GemKeystorePassword;
 pub use store::GemWalletStore;
@@ -63,8 +65,12 @@ impl GemWalletService {
         Ok(rules::next_wallet_index(&self.store.get_wallets()?))
     }
 
+    pub fn validate_import(&self, import: GemWalletImportType) -> Result<GemWalletImportType, GemWalletImportError> {
+        rules::validate_import(import)
+    }
+
     pub fn preview_import(&self, import: GemWalletImportType) -> Result<GemWalletImport, GemServiceError> {
-        match import {
+        match rules::validate_import(import)? {
             GemWalletImportType::Address { address, chain } => {
                 let wallet = rules::view_wallet(String::new(), chain, address);
                 Ok(GemWalletImport {
@@ -78,6 +84,7 @@ impl GemWalletService {
     }
 
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: GemWalletSource) -> Result<GemWalletImportResult, GemServiceError> {
+        let import = rules::validate_import(import)?;
         let preview = self.preview_import(import.clone())?;
         let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Status {
             msg: "invalid wallet id".to_string(),

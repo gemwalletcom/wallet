@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "ID token nevalid";
 "errors.import.invalid_secret_phrase" = "Expresie secretă nevalidă";
 "errors.import.invalid_secret_phrase_word" = "Cuvânt expresie secretă nevalid: %@";
+"errors.import.invalid_private_key" = "Cheie privată invalidă";
 "errors.invalid_url" = "Adresă URL nevalidă";
 "errors.error_occurred" = "A apărut o eroare!";
 "errors.invalid_network_id" = "ID de rețea nevalid";

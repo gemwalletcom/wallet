@@ -212,6 +212,7 @@ errors_invalid_amount = غلط رقم
 errors_token_invalid_id = غلط ٹوکن ID
 errors_import_invalid_secret_phrase = غلط خفیہ جملہ
 errors_import_invalid_secret_phrase_word = غلط خفیہ جملہ کا لفظ: %@
+errors_import_invalid_private_key = غلط پرائیویٹ کلید
 errors_invalid_url = غلط URL
 errors_error_occurred = ایک خرابی پیش آگئی!
 errors_invalid_network_id = غلط نیٹ ورک ID

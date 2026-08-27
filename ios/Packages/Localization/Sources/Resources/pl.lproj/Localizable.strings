@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "Nieprawidłowy identyfikator tokena";
 "errors.import.invalid_secret_phrase" = "Nieprawidłowe tajne zdanie";
 "errors.import.invalid_secret_phrase_word" = "Nieprawidłowe tajne słowo: %@";
+"errors.import.invalid_private_key" = "Nieprawidłowy klucz prywatny";
 "errors.invalid_url" = "nieprawidłowy URL";
 "errors.error_occurred" = "Wystąpił błąd!";
 "errors.invalid_network_id" = "Nieprawidłowy identyfikator sieci";

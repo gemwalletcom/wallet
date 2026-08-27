@@ -182,6 +182,7 @@
   <string name="errors_token_invalid_id">Geçersiz Jeton Kimliği</string>
   <string name="errors_import_invalid_secret_phrase">Geçersiz Gizli İfade</string>
   <string name="errors_import_invalid_secret_phrase_word">Geçersiz Gizli İfade kelimesi: %1$s</string>
+  <string name="errors_import_invalid_private_key">Geçersiz özel anahtar</string>
   <string name="errors_invalid_url">Geçersiz URL</string>
   <string name="errors_error_occurred">Bir hata oluştu!</string>
   <string name="errors_invalid_network_id">Geçersiz Ağ Kimliği</string>

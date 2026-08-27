@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "অবৈধ টোকেন আইডি";
 "errors.import.invalid_secret_phrase" = "অবৈধ গোপন বাক্যাংশ";
 "errors.import.invalid_secret_phrase_word" = "অবৈধ গোপন বাক্যাংশ শব্দ: %@";
+"errors.import.invalid_private_key" = "অবৈধ প্রাইভেট কী";
 "errors.invalid_url" = "অবৈধ URL";
 "errors.error_occurred" = "একটি ত্রুটি ঘটেছে!";
 "errors.invalid_network_id" = "অবৈধ নেটওয়ার্ক আইডি";

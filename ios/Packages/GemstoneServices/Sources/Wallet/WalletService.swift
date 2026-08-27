@@ -41,7 +41,8 @@ public struct WalletService: Sendable {
     }
 
     public func importWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> WalletImportResult {
-        switch try await service.importWallet(name: name, import: type.walletImport, source: source.map()) {
+        let walletImport = try service.validateImport(import: type.walletImport)
+        return switch try await service.importWallet(name: name, import: walletImport, source: source.map()) {
         case let .new(wallet): try .new(Wallet(wallet))
         case let .existing(wallet): try .existing(Wallet(wallet))
         }

@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "잘못된 토큰 ID";
 "errors.import.invalid_secret_phrase" = "잘못된 비밀번호 문구";
 "errors.import.invalid_secret_phrase_word" = "잘못된 비밀 문구 단어: %@";
+"errors.import.invalid_private_key" = "잘못된 개인 키";
 "errors.invalid_url" = "잘못된 URL";
 "errors.error_occurred" = "오류가 발생했습니다!";
 "errors.invalid_network_id" = "잘못된 네트워크 ID";

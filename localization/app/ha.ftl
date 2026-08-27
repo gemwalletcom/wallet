@@ -212,6 +212,7 @@ errors_invalid_amount = Adadin da ba daidai ba
 errors_token_invalid_id = ID na Token mara inganci
 errors_import_invalid_secret_phrase = Kalmomin sirri mara inganci
 errors_import_invalid_secret_phrase_word = Kalmar Sirri mara inganci: %@
+errors_import_invalid_private_key = Maɓallin sirri mara inganci
 errors_invalid_url = URL mara inganci
 errors_error_occurred = An sami kuskure!
 errors_invalid_network_id = ID na hanyar sadarwa mara inganci

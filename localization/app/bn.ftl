@@ -212,6 +212,7 @@ errors_invalid_amount = অবৈধ পরিমাণ
 errors_token_invalid_id = অবৈধ টোকেন আইডি
 errors_import_invalid_secret_phrase = অবৈধ গোপন বাক্যাংশ
 errors_import_invalid_secret_phrase_word = অবৈধ গোপন বাক্যাংশ শব্দ: %@
+errors_import_invalid_private_key = অবৈধ প্রাইভেট কী
 errors_invalid_url = অবৈধ URL
 errors_error_occurred = একটি ত্রুটি ঘটেছে!
 errors_invalid_network_id = অবৈধ নেটওয়ার্ক আইডি

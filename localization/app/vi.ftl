@@ -212,6 +212,7 @@ errors_invalid_amount = Số tiền không hợp lệ
 errors_token_invalid_id = ID mã thông báo không hợp lệ
 errors_import_invalid_secret_phrase = Cụm từ bí mật không hợp lệ
 errors_import_invalid_secret_phrase_word = Từ cụm từ bí mật không hợp lệ: %@
+errors_import_invalid_private_key = Khóa riêng không hợp lệ
 errors_invalid_url = URL không hợp lệ
 errors_error_occurred = Đã xảy ra lỗi!
 errors_invalid_network_id = ID mạng không hợp lệ
