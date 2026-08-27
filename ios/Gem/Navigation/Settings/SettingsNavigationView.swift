@@ -31,6 +31,7 @@ struct SettingsNavigationView: View {
     @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.priceAlertService) private var priceAlertService
+    @Environment(\.preferencesService) private var preferencesService
     @Environment(\.priceService) private var priceService
     @Environment(\.chartService) private var chartService
     @Environment(\.nodeService) private var nodeService
@@ -93,6 +94,7 @@ struct SettingsNavigationView: View {
                 model: NotificationsViewModel(
                     deviceService: deviceService,
                     bannerService: bannerService,
+                    preferencesService: preferencesService,
                 ),
             )
         }
@@ -119,6 +121,7 @@ struct SettingsNavigationView: View {
                     assetModel: AssetViewModel(asset: scene.asset),
                     priceAlertService: priceAlertService,
                     walletId: walletId,
+                    preferencesService: preferencesService,
                     onSetPriceAlert: { _ in },
                 ),
             )
@@ -190,6 +193,7 @@ struct SettingsNavigationView: View {
                         wallet: wallet,
                         wallets: wallets,
                         activateCode: scene.code,
+                        preferencesService: preferencesService,
                     ),
                 )
             }

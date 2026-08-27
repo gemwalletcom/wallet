@@ -9,10 +9,11 @@ use crate::gateway::{GatewayError, GemGateway};
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput, GemTransactionLoadMetadata};
 use crate::services::GemScanService;
-use crate::services::transfer::GemTransferData;
+use crate::services::transaction_state::GemTransactionStateService;
+use crate::services::transfer::{GemPendingTransactionInput, GemTransferData, rules as transfer_rules};
 use crate::transaction_simulation::TransactionSimulationService;
 use num_bigint::BigInt;
-use primitives::{Account, ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, SimulationResult, TransactionPreloadInput};
+use primitives::{Account, ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, SimulationResult, Transaction, TransactionPreloadInput, Wallet};
 use primitives::{ScanTransaction, ScanTransactionPayload};
 
 pub type GemAccount = Account;
@@ -64,6 +65,18 @@ pub enum GemConfirmError {
     Network { msg: String },
     Load { msg: String },
     Broadcast { hashes: Vec<String>, msg: String },
+    Record { msg: String },
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemSendInput {
+    pub wallet: Wallet,
+    pub transfer: GemTransferData,
+    pub value: String,
+    pub fee: GemTransactionLoadFee,
+    pub network_fee: String,
+    pub metadata: GemTransactionLoadMetadata,
+    pub simulation: Option<SimulationResult>,
 }
 
 impl std::fmt::Display for GemConfirmError {
@@ -73,7 +86,7 @@ impl std::fmt::Display for GemConfirmError {
             Self::ScanMemoRequired { symbol } => write!(f, "{symbol} transfer requires a memo"),
             Self::FeeRatesMissing => write!(f, "fee rates not found"),
             Self::Offline => write!(f, "network offline"),
-            Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } => write!(f, "{msg}"),
+            Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } => write!(f, "{msg}"),
         }
     }
 }
@@ -85,13 +98,31 @@ pub struct GemConfirmService {
     gateway: Arc<GemGateway>,
     simulation: Arc<TransactionSimulationService>,
     scanner: Arc<GemScanService>,
+    transaction_state: Arc<GemTransactionStateService>,
 }
 
 #[uniffi::export]
 impl GemConfirmService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, simulation: Arc<TransactionSimulationService>, scanner: Arc<GemScanService>) -> Self {
-        Self { gateway, simulation, scanner }
+    pub fn new(gateway: Arc<GemGateway>, simulation: Arc<TransactionSimulationService>, scanner: Arc<GemScanService>, transaction_state: Arc<GemTransactionStateService>) -> Self {
+        Self {
+            gateway,
+            simulation,
+            scanner,
+            transaction_state,
+        }
+    }
+
+    pub async fn send(&self, input: GemSendInput, transactions: Vec<GemSignedTransaction>) -> Result<Vec<Transaction>, GemConfirmError> {
+        let hashes = match self.broadcast(input.transfer.input_type.clone(), transactions.clone()).await {
+            Ok(hashes) => hashes,
+            Err(GemConfirmError::Broadcast { hashes, msg }) => {
+                self.record(&input, &hashes, &transactions).await?;
+                return Err(GemConfirmError::Broadcast { hashes, msg });
+            }
+            Err(error) => return Err(error),
+        };
+        self.record(&input, &hashes, &transactions).await
     }
 
     pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
@@ -178,6 +209,18 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
+    async fn record(&self, input: &GemSendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
+        let pending = pending_transactions(input, hashes, transactions)?;
+        if pending.is_empty() {
+            return Ok(pending);
+        }
+        self.transaction_state
+            .add_transactions(input.wallet.id.clone(), pending.clone())
+            .await
+            .map_err(|error| GemConfirmError::Record { msg: error.to_string() })?;
+        Ok(pending)
+    }
+
     async fn simulate(&self, chain: Chain, input: &GemConfirmInput) -> Result<Option<SimulationResult>, GemConfirmError> {
         let Some(transaction) = simulation_payload(&input.transfer.input_type) else {
             return Ok(None);
@@ -219,6 +262,38 @@ pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: String)
         return false;
     }
     fee_available.trim().is_empty() || fee_available.trim().chars().all(|character| character == '0')
+}
+
+fn pending_transactions(input: &GemSendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
+    let chain = input.transfer.input_type.asset().chain();
+    let sender = input.wallet.account(chain).map(|account| account.address.clone()).ok_or_else(|| GemConfirmError::Record {
+        msg: format!("wallet has no {chain} account"),
+    })?;
+    hashes
+        .iter()
+        .enumerate()
+        .filter_map(|(index, hash)| {
+            let transaction_type = transactions.get(index)?.transaction_type.clone();
+            Some(
+                transfer_rules::pending_transaction(GemPendingTransactionInput {
+                    sender: sender.clone(),
+                    transfer: input.transfer.clone(),
+                    value: input.value.clone(),
+                    transaction_type,
+                    hash: hash.clone(),
+                    fee: input.fee.clone(),
+                    network_fee: input.network_fee.clone(),
+                    metadata: input.metadata.clone(),
+                    simulation: input.simulation.clone(),
+                    transaction_index: index as u32,
+                    transaction_count: transactions.len() as u32,
+                })
+                .map_err(|msg| GemConfirmError::Record { msg }),
+            )
+        })
+        .map(|result| result.map(|transaction| transaction.into_iter()))
+        .collect::<Result<Vec<_>, _>>()
+        .map(|transactions| transactions.into_iter().flatten().collect())
 }
 
 fn simulation_payload(input_type: &GemTransactionInputType) -> Option<String> {

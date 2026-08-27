@@ -56,7 +56,7 @@ private extension GemConfirmError {
         case .ScanMalicious: ScanTransactionError.malicious
         case .ScanMemoRequired: ScanTransactionError.memoRequired(symbol: symbol)
         case .FeeRatesMissing: ChainCoreError.feeRateMissed
-        case .Load, .Broadcast, .Network, .Offline: self
+        case .Load, .Broadcast, .Network, .Offline, .Record: self
         }
     }
 }

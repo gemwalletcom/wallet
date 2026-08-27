@@ -7,9 +7,9 @@ pub use error::GatewayError;
 pub(crate) use error::map_network_error;
 #[cfg(test)]
 pub use preferences::EmptyPreferences;
-pub(crate) use preferences::PreferencesWrapper;
+pub(crate) use preferences::{PreferencesWrapper, SecureStoreWrapper};
 
-use crate::services::preferences::GemPreferencesStore;
+use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 
 use crate::alien::{AlienProvider, AlienProviderWrapper, coalescing_provider};
 use crate::models::*;
@@ -89,7 +89,7 @@ impl GemGateway {
 #[uniffi::export]
 impl GemGateway {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemPreferencesStore>) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemSecureStore>) -> Self {
         let provider = coalescing_provider(provider);
         let chain_factory = Arc::new(ChainClientFactory::new(provider.clone(), preferences, secure_preferences));
         let alien_wrapper = Arc::new(AlienProviderWrapper::new(provider));
@@ -204,7 +204,8 @@ mod tests {
     fn test_get_node_status_http_404_error() {
         let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(404));
         let preferences: Arc<dyn GemPreferencesStore> = Arc::new(EmptyPreferences {});
-        let gateway = GemGateway::new(provider, preferences.clone(), preferences.clone());
+        let secure: Arc<dyn GemSecureStore> = Arc::new(EmptyPreferences {});
+        let gateway = GemGateway::new(provider, preferences.clone(), secure);
 
         let result = futures::executor::block_on(gateway.get_node_status(Chain::Bitcoin, "https://httpbin.org/status/404"));
 

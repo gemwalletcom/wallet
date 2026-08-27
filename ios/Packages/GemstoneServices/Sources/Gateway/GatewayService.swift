@@ -11,12 +11,12 @@ import GemstonePrimitives
 public actor GatewayService: Sendable {
     let gateway: GemGateway
     private let preferences: any GemPreferencesStore
-    private let securePreferences: any GemPreferencesStore
+    private let securePreferences: any GemSecureStore
 
     public init(
         provider: NativeProvider,
         preferences: any GemPreferencesStore,
-        securePreferences: any GemPreferencesStore,
+        securePreferences: any GemSecureStore,
     ) {
         self.preferences = preferences
         self.securePreferences = securePreferences
@@ -78,8 +78,9 @@ public actor GatewayService: Sendable {
     public nonisolated func confirmService(
         simulation: TransactionSimulationService,
         scanner: GemScanService,
+        transactionState: GemTransactionStateService,
     ) -> GemConfirmService {
-        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner)
+        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner, transactionState: transactionState)
     }
 }
 

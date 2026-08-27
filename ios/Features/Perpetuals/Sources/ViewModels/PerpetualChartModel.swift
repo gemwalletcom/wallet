@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
 import Components
 import Foundation
 import enum Gemstone.GemPerpetualSubscription
@@ -15,24 +16,24 @@ import SwiftUI
 public final class PerpetualChartModel {
     private let perpetualService: PerpetualServiceable
     private let observerService: any PerpetualObservable
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
 
     private var observeTask: Task<Void, Never>?
 
     public var state: StateViewType<[ChartCandleStick]> = .loading
     public var currentPeriod: ChartPeriod {
-        didSet { preferences.perpetualChartPeriod = currentPeriod }
+        didSet { preferencesService.setPerpetualChartPeriodValue(currentPeriod) }
     }
 
     public init(
         perpetualService: PerpetualServiceable,
         observerService: any PerpetualObservable,
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) {
         self.perpetualService = perpetualService
         self.observerService = observerService
-        self.preferences = preferences
-        currentPeriod = preferences.perpetualChartPeriod
+        self.preferencesService = preferencesService
+        currentPeriod = preferencesService.perpetualChartPeriodValue
     }
 
     public var emptyTitle: String { Localized.Common.notAvailable }

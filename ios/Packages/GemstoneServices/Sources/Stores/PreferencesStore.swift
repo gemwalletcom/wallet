@@ -18,7 +18,7 @@ public final class GemstonePreferencesStore: GemPreferencesStore, @unchecked Sen
         self.userDefaults = userDefaults
     }
 
-    public func get(key: String) throws -> String? {
+    public func get(key: String) -> String? {
         userDefaults.string(forKey: storageKey(key))
     }
 

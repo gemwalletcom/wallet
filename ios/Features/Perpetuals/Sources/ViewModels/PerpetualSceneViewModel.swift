@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import BigInt
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -57,7 +58,7 @@ public final class PerpetualSceneViewModel {
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: Bool = false
 
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
 
     public init(
         wallet: Wallet,
@@ -66,7 +67,7 @@ public final class PerpetualSceneViewModel {
         transactionsService: any GemTransactionsServiceProtocol,
         observerService: any PerpetualObservable,
         explorerService: any GemExplorerServiceProtocol,
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
         onTransferData: TransferDataAction = nil,
         onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)? = nil,
     ) {
@@ -75,11 +76,11 @@ public final class PerpetualSceneViewModel {
         self.transactionsService = transactionsService
         self.observerService = observerService
         self.explorerService = explorerService
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         chart = PerpetualChartModel(
             perpetualService: perpetualService,
             observerService: observerService,
-            preferences: preferences,
+            preferencesService: preferencesService,
         )
         self.onTransferData = onTransferData
         self.onPerpetualRecipientData = onPerpetualRecipientData
@@ -102,7 +103,7 @@ public final class PerpetualSceneViewModel {
     }
 
     public var currency: String {
-        preferences.currency
+        preferencesService.currencyCode
     }
 
     public var hasOpenPosition: Bool {

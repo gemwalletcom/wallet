@@ -14,12 +14,7 @@ public struct RateService: Sendable {
     public func perform() {
         #if targetEnvironment(simulator)
         #else
-            do {
-                guard try preferencesService.shouldRequestReview() else { return }
-            } catch {
-                debugLog("RateService: review preference read failed: \(error)")
-                return
-            }
+            guard preferencesService.shouldRequestReview() else { return }
             Task { @MainActor in
                 if rate() {
                     do {

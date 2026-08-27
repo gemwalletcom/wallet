@@ -93,12 +93,10 @@ impl GemWalletPreferencesService {
     }
 
     pub fn get_perpetual_account_mode(&self, wallet_id: WalletId) -> Result<PerpetualAccountMode, GemServiceError> {
-        Ok(
-            match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string())?.as_deref() {
-                Some("unified") => PerpetualAccountMode::Unified,
-                _ => PerpetualAccountMode::Standard,
-            },
-        )
+        Ok(match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string()).as_deref() {
+            Some("unified") => PerpetualAccountMode::Unified,
+            _ => PerpetualAccountMode::Standard,
+        })
     }
 
     pub fn set_perpetual_account_mode(&self, wallet_id: WalletId, mode: PerpetualAccountMode) -> Result<(), GemServiceError> {
@@ -120,11 +118,11 @@ impl GemWalletPreferencesService {
     }
 
     fn get_timestamp_key(&self, wallet_id: WalletId, key: String) -> Result<u64, GemServiceError> {
-        Ok(self.store.get(wallet_id, key)?.and_then(|value| value.parse().ok()).unwrap_or(0))
+        Ok(self.store.get(wallet_id, key).and_then(|value| value.parse().ok()).unwrap_or(0))
     }
 
     fn get_flag(&self, wallet_id: WalletId, key: WalletPreferenceKey) -> Result<bool, GemServiceError> {
-        Ok(self.store.get(wallet_id, key.as_ref().to_string())?.as_deref() == Some("true"))
+        Ok(self.store.get(wallet_id, key.as_ref().to_string()).as_deref() == Some("true"))
     }
 
     fn set_flag(&self, wallet_id: WalletId, key: WalletPreferenceKey) -> Result<(), GemServiceError> {
@@ -132,7 +130,7 @@ impl GemWalletPreferencesService {
     }
 
     fn set_value(&self, wallet_id: WalletId, key: String, value: String) -> Result<(), GemServiceError> {
-        if self.store.get(wallet_id.clone(), key.clone())?.as_deref() == Some(value.as_str()) {
+        if self.store.get(wallet_id.clone(), key.clone()).as_deref() == Some(value.as_str()) {
             return Ok(());
         }
         self.store.set(wallet_id, key, value)
@@ -168,8 +166,8 @@ mod tests {
     }
 
     impl GemWalletPreferencesStore for MemoryStore {
-        fn get(&self, wallet_id: WalletId, key: String) -> Result<Option<String>, GemServiceError> {
-            Ok(self.values.lock().unwrap().get(&(wallet_id.id(), key)).cloned())
+        fn get(&self, wallet_id: WalletId, key: String) -> Option<String> {
+            self.values.lock().unwrap().get(&(wallet_id.id(), key)).cloned()
         }
         fn set(&self, wallet_id: WalletId, key: String, value: String) -> Result<(), GemServiceError> {
             *self.writes.lock().unwrap() += 1;

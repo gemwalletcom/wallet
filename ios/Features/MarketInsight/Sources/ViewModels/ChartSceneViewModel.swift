@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
 import Formatters
@@ -21,7 +22,11 @@ import SwiftUI
 public final class ChartSceneViewModel: ChartListViewable {
     private let service: any GemChartServiceProtocol
     private let priceStore: PriceStore
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
+
+    private var currencyCode: String {
+        preferencesService.currencyCode
+    }
 
     let walletId: WalletId
     let assetModel: AssetViewModel
@@ -30,7 +35,7 @@ public final class ChartSceneViewModel: ChartListViewable {
 
     public var chartState: StateViewType<ChartValuesViewModel> = .loading
     public var selectedPeriod: ChartPeriod {
-        didSet { preferences.chartPeriod = selectedPeriod }
+        didSet { preferencesService.setChartPeriodValue(selectedPeriod) }
     }
 
     public let priceQuery: ObservableQuery<PriceRequest>
@@ -54,7 +59,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     }
 
     var isPriceAvailable: Bool {
-        PriceViewModel(price: priceData?.price, currencyCode: preferences.currency).isPriceAvailable
+        PriceViewModel(price: priceData?.price, currencyCode: currencyCode).isPriceAvailable
     }
 
     public init(
@@ -64,17 +69,17 @@ public final class ChartSceneViewModel: ChartListViewable {
         assetModel: AssetViewModel,
         priceAlertService: any GemPriceAlertServiceProtocol,
         walletId: WalletId,
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
         onSetPriceAlert: @escaping (Asset) -> Void,
     ) {
         self.service = service
         self.priceStore = priceStore
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         self.assetModel = assetModel
         self.priceAlertService = priceAlertService
         self.explorerService = explorerService
         self.walletId = walletId
-        selectedPeriod = preferences.chartPeriod
+        selectedPeriod = preferencesService.chartPeriodValue
         priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: nil)
         self.onSetPriceAlert = onSetPriceAlert
     }
@@ -94,7 +99,7 @@ public extension ChartSceneViewModel {
             var charts = try await service.syncCharts(
                 assetId: assetModel.asset.id.identifier,
                 period: selectedPeriod.json(),
-                currency: Currency(id: preferences.currency).json(),
+                currency: preferencesService.getCurrency(),
             ).map { try ChartDateValue($0) }
             let price = try priceStore.getPrices(for: [assetModel.asset.id.identifier]).first
 
@@ -103,7 +108,7 @@ public extension ChartSceneViewModel {
             }
 
             let chartValues = try ChartValues.from(charts: charts)
-            let formatter = CurrencyFormatter(currencyCode: preferences.currency)
+            let formatter = CurrencyFormatter(currencyCode: currencyCode)
             let model = ChartValuesViewModel(
                 period: selectedPeriod,
                 price: price?.mapToPrice(),

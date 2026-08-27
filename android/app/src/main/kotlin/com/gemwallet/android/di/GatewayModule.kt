@@ -53,6 +53,7 @@ import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemStaticApiClient
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesStore
+import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.PaymentService
 import uniffi.gemstone.PaymentServiceInterface
 import uniffi.gemstone.GemServiceStatus
@@ -70,7 +71,7 @@ object GatewayModule {
 
     @Singleton
     @Provides
-    fun provideGemPreferencesStore(@ApplicationContext context: Context): GemPreferencesStore = TinkGemPreferences(context)
+    fun provideGemSecureStore(@ApplicationContext context: Context): GemSecureStore = TinkGemPreferences(context)
 
 
     @Singleton
@@ -89,7 +90,7 @@ object GatewayModule {
     @Singleton
     fun provideGateway(
         alienProvider: AlienProvider,
-        securePreferences: GemPreferencesStore,
+        securePreferences: GemSecureStore,
         @ApplicationContext context: Context,
     ): GemGateway {
         return GemGateway(

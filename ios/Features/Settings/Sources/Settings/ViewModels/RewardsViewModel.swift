@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemRewardsServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -23,7 +24,7 @@ public final class RewardsViewModel: Sendable {
     }()
 
     private let rewardsService: any GemRewardsServiceProtocol
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let activateCode: String?
 
     private(set) var selectedWallet: Wallet
@@ -39,10 +40,10 @@ public final class RewardsViewModel: Sendable {
         wallet: Wallet,
         wallets: [Wallet],
         activateCode: String? = nil,
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) {
         self.rewardsService = rewardsService
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         selectedWallet = wallet
         self.wallets = wallets
         self.activateCode = activateCode
@@ -291,7 +292,7 @@ public final class RewardsViewModel: Sendable {
 
     func redeem(option: RewardRedemptionOption) async {
         do {
-            _ = try await rewardsService.redeem(wallet: selectedWallet, redemptionId: option.id, currency: Currency(id: preferences.currency))
+            _ = try await rewardsService.redeem(wallet: selectedWallet, redemptionId: option.id, currency: preferencesService.currencyValue)
             toastMessage = ToastMessage.success(Localized.Common.done)
         } catch {
             showError(error.localizedDescription)

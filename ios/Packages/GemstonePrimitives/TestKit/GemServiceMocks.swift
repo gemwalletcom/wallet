@@ -33,13 +33,25 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     }
 }
 
+public final class GemSecureStoreMock: GemSecureStore, @unchecked Sendable {
+    private var values: [String: String] = [:]
+
+    public init() {}
+
+    public func get(key: String) throws -> String? { values[key] }
+
+    public func set(key: String, value: String) throws { values[key] = value }
+
+    public func remove(key: String) throws { values[key] = nil }
+}
+
 public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Sendable {
     private let lock = NSLock()
     private var values: [String: String] = [:]
 
     public init() {}
 
-    public func get(key: String) throws -> String? {
+    public func get(key: String) -> String? {
         lock.withLock { values[key] }
     }
 
@@ -61,7 +73,7 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         self.priceAlertsEnabled = priceAlertsEnabled
     }
 
-    public func getSkippedAppVersion() throws -> String? {
+    public func getSkippedAppVersion() -> String? {
         lock.withLock { skippedAppVersion }
     }
 
@@ -69,7 +81,7 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         lock.withLock { skippedAppVersion = version }
     }
 
-    public func isPriceAlertsEnabled() throws -> Bool {
+    public func isPriceAlertsEnabled() -> Bool {
         lock.withLock { priceAlertsEnabled }
     }
 
@@ -77,29 +89,29 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         lock.withLock { priceAlertsEnabled = enabled }
     }
 
-    public func getCurrency() throws -> Gemstone.Currency? { nil }
+    public func getCurrency() -> Gemstone.Currency { (try? Primitives.Currency.usd.json()) ?? "\"USD\"" }
 
     public func setCurrency(currency _: Gemstone.Currency) throws {}
 
     public func setupCurrency(localeCurrency _: String?) throws -> Gemstone.Currency { try Primitives.Currency.usd.json() }
 
-    public func getChartPeriod() throws -> Gemstone.ChartPeriod { try Primitives.ChartPeriod.day.json() }
+    public func getChartPeriod() -> Gemstone.ChartPeriod { (try? Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
 
     public func setChartPeriod(period _: Gemstone.ChartPeriod) throws {}
 
-    public func getPerpetualChartPeriod() throws -> Gemstone.ChartPeriod { try Primitives.ChartPeriod.day.json() }
+    public func getPerpetualChartPeriod() -> Gemstone.ChartPeriod { (try? Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
 
     public func setPerpetualChartPeriod(period _: Gemstone.ChartPeriod) throws {}
 
-    public func isPushNotificationsEnabled() throws -> Bool { false }
+    public func isPushNotificationsEnabled() -> Bool { false }
 
     public func setPushNotificationsEnabled(enabled _: Bool) throws {}
 
-    public func getLaunchesCount() throws -> UInt32 { 0 }
+    public func getLaunchesCount() -> UInt32 { 0 }
 
     public func incrementLaunchesCount() throws -> UInt32 { 1 }
 
-    public func shouldRequestReview() throws -> Bool { false }
+    public func shouldRequestReview() -> Bool { false }
 
     public func setRateApplicationShown() throws {}
 
@@ -116,7 +128,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         self.enabled = enabled
     }
 
-    public func isEnabled() throws -> Bool {
+    public func isEnabled() -> Bool {
         lock.withLock { enabled }
     }
 
@@ -498,7 +510,7 @@ public final class GemWalletPreferencesStoreMock: GemWalletPreferencesStore, @un
 
     public init() {}
 
-    public func get(walletId: Gemstone.WalletId, key: String) throws -> String? {
+    public func get(walletId: Gemstone.WalletId, key: String) -> String? {
         lock.withLock { values["\(walletId):\(key)"] }
     }
 

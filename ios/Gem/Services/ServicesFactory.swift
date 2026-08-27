@@ -145,17 +145,17 @@ struct ServicesFactory {
         let gemNftService = Gemstone.GemNftService(api: gemDeviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
         let nftService = gemNftService
         let transactionsService = gemTransactionsService
-        let transactionStateScheduler = Self.makeTransactionService(
-            transactionStore: storeManager.transactionStore,
-            gatewayService: gatewayService,
-            assetsService: gemAssetsService,
-            stakeService: gemStakeService,
-            nftService: gemNftService,
-            balanceService: gemBalanceService,
+        let gemTransactionStateService = gatewayService.transactionStateService(
+            store: GemstoneTransactionStateStore(store: storeManager.transactionStore),
+            assets: gemAssetsService,
+            balance: gemBalanceService,
+            stake: gemStakeService,
+            nft: gemNftService,
         )
+        let transactionStateScheduler = TransactionStateScheduler(service: TransactionStateService(service: gemTransactionStateService))
 
         let preferences = storages.observablePreferences.preferences
-        let pushNotificationEnablerService = PushNotificationEnablerService(preferences: preferences)
+        let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService)
         let bannerService = Gemstone.GemBannerService(
             store: gemBannerStore,
             permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
@@ -323,6 +323,7 @@ struct ServicesFactory {
         let gemConfirmService = gatewayService.confirmService(
             simulation: transactionSimulationService,
             scanner: gemScanService,
+            transactionState: gemTransactionStateService,
         )
         let viewModelFactory = ViewModelFactory(
             keystore: storages.keystore,
@@ -334,6 +335,7 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
             stakeService: stakeService,
             explorerService: explorerService,
+            preferencesService: preferencesService,
             amountService: AmountService(stakeService: stakeService),
             nameService: gemNameService,
             balanceService: balanceService,
@@ -375,6 +377,7 @@ struct ServicesFactory {
             transactionStateScheduler: transactionStateScheduler,
             walletService: walletService,
             walletPreferencesService: walletPreferencesService,
+            preferencesService: preferencesService,
             walletSessionService: walletSessionService,
             assetsEnabler: assetsEnabler,
             assetDiscoveryService: assetDiscoveryService,
@@ -440,26 +443,6 @@ extension ServicesFactory {
             deviceService: deviceService,
             subscriptionsObserver: walletStore.observer(),
         )
-    }
-
-    private static func makeTransactionService(
-        transactionStore: TransactionStore,
-        gatewayService: GatewayService,
-        assetsService: GemAssetsService,
-        stakeService: GemStakeService,
-        nftService: GemNftService,
-        balanceService: GemBalanceService,
-    ) -> TransactionStateScheduler {
-        let service = TransactionStateService(
-            service: gatewayService.transactionStateService(
-                store: GemstoneTransactionStateStore(store: transactionStore),
-                assets: assetsService,
-                balance: balanceService,
-                stake: stakeService,
-                nft: nftService,
-            ),
-        )
-        return TransactionStateScheduler(service: service)
     }
 
     private static func makeConnectionsService(

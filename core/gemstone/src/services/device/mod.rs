@@ -84,7 +84,7 @@ impl GemDeviceService {
             version: info.version,
             currency: self.platform.currency().await?,
             is_push_enabled: self.platform.is_push_enabled().await?,
-            is_price_alerts_enabled: Some(self.preferences.is_price_alerts_enabled()?),
+            is_price_alerts_enabled: Some(self.preferences.is_price_alerts_enabled()),
             subscriptions_version: 0,
         })
     }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstoneServices
 import Foundation
 import enum Gemstone.GemConfirmError
@@ -18,18 +19,18 @@ public protocol TransferExecutable: Sendable {
 public struct TransferExecutor: TransferExecutable {
     private let signer: any TransactionSigning
     private let confirmService: any GemConfirmServiceProtocol
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let transactionStateScheduler: TransactionStateScheduler
 
     public init(
         signer: any TransactionSigning,
         confirmService: any GemConfirmServiceProtocol,
-        preferences: Preferences,
+        preferencesService: any GemPreferencesServiceProtocol,
         transactionStateScheduler: TransactionStateScheduler,
     ) {
         self.signer = signer
         self.confirmService = confirmService
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         self.transactionStateScheduler = transactionStateScheduler
     }
 
@@ -87,7 +88,7 @@ extension TransferExecutor {
                 transactionCount: UInt32(transactions.count),
             )).map { try Transaction($0) }
             guard let transaction = pending else { continue }
-            try await transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: [transaction], currency: preferences.currency)
+            try await transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: [transaction], currency: preferencesService.currencyCode)
         }
     }
 }

@@ -63,7 +63,7 @@ impl GemConfigService {
         if self.waiters().is_some() {
             return self.update_config().await;
         }
-        match self.preferences.get_config()? {
+        match self.preferences.get_config() {
             Some(config) => Ok(config),
             None => self.update_config().await,
         }
@@ -102,8 +102,8 @@ mod tests {
     }
 
     impl GemPreferencesStore for MemoryStore {
-        fn get(&self, key: String) -> Result<Option<String>, GemServiceError> {
-            Ok(self.values.lock().unwrap().get(&key).cloned())
+        fn get(&self, key: String) -> Option<String> {
+            self.values.lock().unwrap().get(&key).cloned()
         }
 
         fn set(&self, key: String, value: String) -> Result<(), GemServiceError> {

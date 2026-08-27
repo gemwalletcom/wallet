@@ -24,19 +24,19 @@ use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_xrp::rpc::XrpClient;
 use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_cosmos::CosmosChain};
 
-use super::{GatewayError, PreferencesWrapper};
+use super::{GatewayError, PreferencesWrapper, SecureStoreWrapper};
 use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
 use crate::network::JsonRpcClient;
-use crate::services::preferences::GemPreferencesStore;
+use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 
 pub struct ChainClientFactory {
     alien: Arc<dyn AlienProvider>,
     preferences: Arc<dyn GemPreferencesStore>,
-    secure_preferences: Arc<dyn GemPreferencesStore>,
+    secure_preferences: Arc<dyn GemSecureStore>,
 }
 
 impl ChainClientFactory {
-    pub fn new(alien: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemPreferencesStore>) -> Self {
+    pub fn new(alien: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemSecureStore>) -> Self {
         Self {
             alien,
             preferences,
@@ -56,8 +56,8 @@ impl ChainClientFactory {
                 let preferences = Arc::new(PreferencesWrapper {
                     preferences: self.preferences.clone(),
                 });
-                let secure_preferences = Arc::new(PreferencesWrapper {
-                    preferences: self.secure_preferences.clone(),
+                let secure_preferences = Arc::new(SecureStoreWrapper {
+                    store: self.secure_preferences.clone(),
                 });
                 Ok(Arc::new(HyperCoreClient::new_with_preferences(alien_client, preferences, secure_preferences)))
             }

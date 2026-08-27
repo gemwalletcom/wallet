@@ -722,6 +722,7 @@ private extension ConfirmTransferSceneViewModel {
                 explorerService: GemExplorerServiceMock(),
                 keystore: KeystoreMock(),
                 gemConfirmService: GemConfirmService(noHandle: .init()),
+                preferencesService: GemPreferencesServiceMock(),
                 balanceStore: .mock(),
                 assetStore: .mock(),
                 assetsService: GemAssetsServiceMock(),

@@ -4,7 +4,7 @@ import Foundation
 import Gemstone
 import Keychain
 
-public final class GemstoneSecurePreferencesStore: GemPreferencesStore, @unchecked Sendable {
+public final class GemstoneSecurePreferencesStore: GemSecureStore, @unchecked Sendable {
     private let keychain: Keychain
     private let namespace: String
 

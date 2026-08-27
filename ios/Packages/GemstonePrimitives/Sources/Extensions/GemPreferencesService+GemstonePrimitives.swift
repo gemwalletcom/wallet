@@ -5,5 +5,27 @@ import protocol Gemstone.GemPreferencesServiceProtocol
 import Primitives
 
 public extension GemPreferencesServiceProtocol {
+    var currencyValue: Primitives.Currency {
+        (try? Primitives.Currency(getCurrency())) ?? .usd
+    }
 
+    var currencyCode: String {
+        currencyValue.rawValue
+    }
+
+    var chartPeriodValue: ChartPeriod {
+        (try? ChartPeriod(getChartPeriod())) ?? .day
+    }
+
+    func setChartPeriodValue(_ period: ChartPeriod) {
+        try? setChartPeriod(period: period.json())
+    }
+
+    var perpetualChartPeriodValue: ChartPeriod {
+        (try? ChartPeriod(getPerpetualChartPeriod())) ?? .day
+    }
+
+    func setPerpetualChartPeriodValue(_ period: ChartPeriod) {
+        try? setPerpetualChartPeriod(period: period.json())
+    }
 }

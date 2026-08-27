@@ -1,3 +1,4 @@
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemExplorerServiceProtocol
 import Components
@@ -20,6 +21,7 @@ public struct PerpetualNavigationView: View {
         transactionsService: any GemTransactionsServiceProtocol,
         observerService: any PerpetualObservable,
         explorerService: any GemExplorerServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
         isPresentingSheet: Binding<WalletSheetType?>,
     ) {
         _isPresentingSheet = isPresentingSheet
@@ -30,6 +32,7 @@ public struct PerpetualNavigationView: View {
             transactionsService: transactionsService,
             observerService: observerService,
             explorerService: explorerService,
+            preferencesService: preferencesService,
             onTransferData: { isPresentingSheet.wrappedValue = .transferData($0) },
             onPerpetualRecipientData: { isPresentingSheet.wrappedValue = .perpetualRecipientData($0) },
         ))

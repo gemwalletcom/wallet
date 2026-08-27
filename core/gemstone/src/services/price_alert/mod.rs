@@ -46,12 +46,12 @@ impl GemPriceAlertService {
         }
     }
 
-    pub fn is_enabled(&self) -> Result<bool, GemServiceError> {
+    pub fn is_enabled(&self) -> bool {
         self.preferences.is_price_alerts_enabled()
     }
 
     pub async fn set_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        if self.is_enabled()? == enabled {
+        if self.is_enabled() == enabled {
             return Ok(());
         }
         if enabled {

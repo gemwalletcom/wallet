@@ -34,7 +34,7 @@ impl GemAppUpdateService {
             return Ok(None);
         }
         let config = self.config.get_config().await?;
-        let skipped_version = self.preferences.get_skipped_app_version()?;
+        let skipped_version = self.preferences.get_skipped_app_version();
         Ok(rules::available_update(&config.releases, store, &current_version, skipped_version.as_deref()))
     }
 

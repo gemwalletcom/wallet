@@ -54,7 +54,7 @@ impl GemAssetsService {
             (AssetList::Swap, versions.swap_assets),
         ];
         for (list, remote_version) in lists {
-            if self.preferences.get_assets_version(list)? == Some(remote_version.to_string()) {
+            if self.preferences.get_assets_version(list) == Some(remote_version.to_string()) {
                 continue;
             }
             let assets = match list {

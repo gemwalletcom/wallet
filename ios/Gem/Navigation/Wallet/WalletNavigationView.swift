@@ -30,6 +30,7 @@ struct WalletNavigationView: View {
     @Environment(\.chartService) private var chartService
     @Environment(\.portfolioService) private var portfolioService
     @Environment(\.priceAlertService) private var priceAlertService
+    @Environment(\.preferencesService) private var preferencesService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.bannerService) private var bannerService
@@ -180,6 +181,7 @@ struct WalletNavigationView: View {
                     assetModel: AssetViewModel(asset: $0.asset),
                     priceAlertService: priceAlertService,
                     walletId: model.wallet.id,
+                    preferencesService: preferencesService,
                     onSetPriceAlert: model.presentPriceAlert,
                 ),
             )
@@ -218,6 +220,7 @@ struct WalletNavigationView: View {
                 transactionsService: transactionsService,
                 observerService: hyperliquidObserverService,
                 explorerService: explorerService,
+                preferencesService: preferencesService,
                 isPresentingSheet: $model.isPresentingSheet,
             )
         }

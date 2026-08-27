@@ -13,6 +13,7 @@ import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemScanService
+import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.TransactionSimulationService
 import javax.inject.Singleton
 
@@ -26,7 +27,8 @@ object DataModule {
         gateway: GemGateway,
         simulationService: TransactionSimulationService,
         scanService: GemScanService,
-    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService)
+        transactionStateService: GemTransactionStateService,
+    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService)
 
     @Provides
     @Singleton
