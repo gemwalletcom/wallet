@@ -261,7 +261,7 @@ pub mod swap_provider;
 pub use self::swap_provider::SwapProvider;
 pub mod swap;
 pub mod websocket;
-pub use self::websocket::{WebSocketPriceAction, WebSocketPriceActionType, WebSocketPricePayload};
+pub use self::websocket::WebSocketPricePayload;
 pub mod stream;
 pub use self::stream::{StreamBalanceUpdate, StreamEvent, StreamMessage, StreamMessagePrices, StreamTransactionsUpdate, StreamWalletUpdate, device_stream_channel};
 pub mod support;

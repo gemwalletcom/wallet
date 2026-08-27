@@ -20,7 +20,6 @@ mod swap;
 mod testkit;
 mod webhooks;
 mod websocket;
-mod websocket_prices;
 mod websocket_stream;
 
 use std::{error::Error, str::FromStr, sync::Arc};
@@ -58,7 +57,6 @@ use swap::SwapClient;
 use swapper::okx::{OkxClientConfig, OkxProviderProxy};
 use swapper::swapper::GemSwapper;
 use webhooks::WebhooksClient;
-use websocket_prices::PriceObserverConfig;
 
 use crate::support::{SupportApiClient, SupportImageUploadConfig};
 
@@ -335,21 +333,6 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     Ok(mount_routes(rocket, settings.api.admin.enabled))
 }
 
-async fn rocket_ws_prices(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error + Send + Sync>> {
-    let cacher_client = CacherClient::new(&settings.redis.url).await?;
-    let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool);
-    let price_client = PriceClient::new(database, cacher_client);
-    let price_observer_config = PriceObserverConfig {
-        redis_url: settings.redis.url.clone(),
-    };
-    Ok(rocket::build()
-        .manage(price_client)
-        .manage(price_observer_config)
-        .mount("/", routes![websocket_prices::ws_health])
-        .mount("/v1/ws", routes![websocket_prices::ws_prices])
-        .register("/", catchers![catchers::default_catcher]))
-}
-
 async fn rocket_ws_stream(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error + Send + Sync>> {
     let cacher_client = CacherClient::new(&settings.redis.url).await?;
     let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool);
@@ -394,7 +377,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let rocket = match service {
         APIService::Api => rocket_api(settings).await?,
-        APIService::WebsocketPrices => rocket_ws_prices(settings).await?,
         APIService::WebsocketStream => rocket_ws_stream(settings).await?,
     };
     rocket.launch().await?;

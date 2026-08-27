@@ -14,7 +14,7 @@ skills/         # Agent guidance documents (this directory)
 
 ## Applications (`apps/`)
 
-- **API Server** (`apps/api/`): REST API with WebSocket price streaming
+- **API Server** (`apps/api/`): REST API with authenticated device WebSocket streaming
 - **Daemon** (`apps/daemon/`): Background services for asset updates, push notifications, transaction indexing
 - **Dynode** (`apps/dynode/`): Dynamic blockchain node proxy with caching, monitoring, and metrics
 
