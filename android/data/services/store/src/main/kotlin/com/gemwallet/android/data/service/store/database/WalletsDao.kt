@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 interface WalletsDao {
     @Query("""
         SELECT * FROM wallets
-        JOIN accounts ON wallets.id = accounts.wallet_id
+        LEFT JOIN accounts ON wallets.id = accounts.wallet_id
     """)
     fun getAll(): Flow<Map<DbWallet, List<DbAccount>>>
 

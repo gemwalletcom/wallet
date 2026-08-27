@@ -58,9 +58,7 @@ class WalletsRepositoryImpl @Inject constructor(
 
     override fun getWallet(walletId: WalletId): Flow<Wallet?> {
         return walletsDao.getById(walletId.id).map { walletRecord ->
-            val accounts = accountsDao.getByWalletId(walletId.id)
-            if (accounts.isEmpty()) return@map null
-            walletRecord?.toDTO(accounts)
+            walletRecord?.toDTO(accountsDao.getByWalletId(walletId.id))
         }.flowOn(Dispatchers.IO)
     }
 
