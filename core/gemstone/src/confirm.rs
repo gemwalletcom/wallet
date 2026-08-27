@@ -190,6 +190,20 @@ impl GemConfirmService {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAcquireAssetFlow {
+    Options,
+    Fiat,
+}
+
+#[uniffi::export]
+pub fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {
+    match chain {
+        Chain::Tron => GemAcquireAssetFlow::Options,
+        _ => GemAcquireAssetFlow::Fiat,
+    }
+}
+
 #[uniffi::export]
 pub fn default_fee_priority(input_type: GemTransactionInputType) -> String {
     let priority = match input_type {
@@ -516,6 +530,12 @@ mod tests {
             swap_data: SwapData::mock(),
         };
         assert_eq!(simulation_payload(&swap), None);
+    }
+
+    #[test]
+    fn test_acquire_asset_flow_offers_options_only_on_tron() {
+        assert_eq!(acquire_asset_flow(Chain::Tron), GemAcquireAssetFlow::Options);
+        assert_eq!(acquire_asset_flow(Chain::Ethereum), GemAcquireAssetFlow::Fiat);
     }
 
     #[test]

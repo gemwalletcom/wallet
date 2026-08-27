@@ -131,7 +131,6 @@ State on 2026-08-28: every app service forwards to a Core service or is platform
 
 ### Rust (core/gemstone)
 
-- Get-asset flow for an insufficient fee asset: iOS `ConfirmTransferSceneViewModel.onSelectGetAsset` routes Tron to the get-asset sheet and everything else to fiat; Android has no equivalent. Decide the rule in Core (`GemFiatService`/confirm rule returning the destination) so both apps share it.
 - WalletConnect auth chain rule: Android `WCAuthViewModel` checks `toChainType() == Ethereum` before building the auth response; move the "which chains can authenticate" rule into `GemWalletConnectService`.
 - Transfer model: generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums collapse (132 Core, 49 Android, 7 iOS call sites — do it last, transaction construction is wallet-critical).
 
