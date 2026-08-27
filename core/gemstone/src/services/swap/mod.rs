@@ -72,7 +72,10 @@ impl GemSwapService {
 
     fn permit2_data(&self, wallet: &Wallet, quote: &Quote, approval: &swapper::Permit2ApprovalData) -> Result<Permit2Data, SwapperError> {
         let chain = AssetId::new(&quote.request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?.chain;
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).map(|duration| duration.as_secs()).unwrap_or(0);
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|duration| duration.as_secs())
+            .map_err(|error| SwapperError::TransactionError(error.to_string()))?;
         let permit_single = rules::permit_single(approval, now, &get_swap_config());
         let json = permit2_data_to_eip712_json(chain, permit_single.clone(), &approval.permit2_contract)?;
         let signer = MessageSigner::new(SignMessage {

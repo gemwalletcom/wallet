@@ -32,6 +32,10 @@ pub fn limits(amount_type: &GemAmountType, asset: &Asset, balance: &GemAmountBal
     }
 }
 
+pub fn parse_value(value: &str) -> Result<BigInt, GemAmountError> {
+    value.parse::<BigInt>().map_err(|_| GemAmountError::InvalidValue { value: value.to_string() })
+}
+
 pub fn validate(value: &BigInt, available: &BigInt, minimum: &BigInt) -> Result<(), GemAmountError> {
     if value <= &BigInt::from(0) {
         return Err(GemAmountError::Zero);

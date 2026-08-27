@@ -127,7 +127,7 @@ async fn apply(
         state if timed_out && !state.is_completed() => TransactionState::Failed,
         state => state,
     };
-    let fields = rules::state_update(next_state, &update.changes);
+    let fields = rules::state_update(next_state, &update.changes).map_err(|error| GemServiceError::Status { msg: error.to_string() })?;
     if next_state == current_state && !fields.has_field_changes() {
         let state = store.get_state(wallet_id, transaction_id.clone()).await?;
         return Ok(state.map(|state| GemTransactionStateResult {

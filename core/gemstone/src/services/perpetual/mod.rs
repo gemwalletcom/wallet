@@ -7,7 +7,7 @@ use std::sync::Arc;
 use chrono::Utc;
 use primitives::currency::Currency;
 use primitives::perpetual::PerpetualBalance;
-use primitives::{Chain, PerpetualMarketData, PerpetualPosition, WalletId};
+use primitives::{Chain, PerpetualMarketData, PerpetualPosition, PerpetualProvider, WalletId};
 use std::collections::HashMap;
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
@@ -61,7 +61,7 @@ impl GemPerpetualService {
     }
 
     pub async fn get_positions(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<PerpetualPosition>, GemServiceError> {
-        self.store.get_positions(wallet_id, rules::provider(chain)).await
+        self.store.get_positions(wallet_id, provider(chain)?).await
     }
 
     pub async fn update_positions(&self, wallet_id: WalletId, positions: Vec<PerpetualPosition>, delete_ids: Vec<String>) -> Result<(), GemServiceError> {
@@ -87,9 +87,15 @@ impl GemPerpetualService {
 
     pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
         let summary = self.gateway.get_positions(chain, address).await?;
-        let existing_ids = self.store.get_position_ids(wallet_id.clone(), rules::provider(chain)).await?;
+        let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
         let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
         self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
         self.store.update_balance(wallet_id, summary.balance).await
     }
+}
+
+fn provider(chain: Chain) -> Result<PerpetualProvider, GemServiceError> {
+    rules::provider(chain).ok_or_else(|| GemServiceError::Status {
+        msg: format!("perpetuals unsupported on {chain}"),
+    })
 }

@@ -59,22 +59,23 @@ pub fn new_hash(changes: &[TransactionChange]) -> Option<String> {
     })
 }
 
-pub fn state_update(state: TransactionState, changes: &[TransactionChange]) -> GemTransactionStateUpdate {
-    changes.iter().fold(GemTransactionStateUpdate::new(state), |mut update, change| {
+pub fn state_update(state: TransactionState, changes: &[TransactionChange]) -> Result<GemTransactionStateUpdate, serde_json::Error> {
+    let mut update = GemTransactionStateUpdate::new(state);
+    for change in changes {
         match change {
             TransactionChange::NetworkFee(fee) => update.fee = Some(fee.to_string()),
             TransactionChange::BlockNumber(number) => update.block_number = Some(number.clone()),
-            TransactionChange::Metadata(metadata) => update.metadata = metadata_json(metadata),
+            TransactionChange::Metadata(metadata) => update.metadata = Some(metadata_json(metadata)?),
             TransactionChange::ConfirmationEtaSeconds(seconds) => update.confirmation_eta_seconds = Some(*seconds),
             TransactionChange::HashChange { .. } => {}
         }
-        update
-    })
+    }
+    Ok(update)
 }
 
-fn metadata_json(metadata: &TransactionMetadata) -> Option<String> {
+fn metadata_json(metadata: &TransactionMetadata) -> Result<String, serde_json::Error> {
     match metadata {
-        TransactionMetadata::Swap(swap) => serde_json::to_string(swap).ok(),
-        TransactionMetadata::Perpetual(perpetual) => serde_json::to_string(perpetual).ok(),
+        TransactionMetadata::Swap(swap) => serde_json::to_string(swap),
+        TransactionMetadata::Perpetual(perpetual) => serde_json::to_string(perpetual),
     }
 }

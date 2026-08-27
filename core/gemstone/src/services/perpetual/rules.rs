@@ -5,10 +5,10 @@ use primitives::{AssetId, AssetPrice, AssetType, Chain, PerpetualPosition, Perpe
 
 use crate::models::asset::wallet_default_assets;
 
-pub fn provider(chain: Chain) -> PerpetualProvider {
+pub fn provider(chain: Chain) -> Option<PerpetualProvider> {
     match chain {
-        Chain::HyperCore => PerpetualProvider::Hypercore,
-        _ => PerpetualProvider::Hypercore,
+        Chain::HyperCore | Chain::Hyperliquid => Some(PerpetualProvider::Hypercore),
+        _ => None,
     }
 }
 

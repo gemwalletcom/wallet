@@ -27,6 +27,7 @@ object AmountValidation {
             GemAmountService().validate(amount.atomicValue.toString(), availableBalance.toString(), minimumValue.toString())
         } catch (error: GemAmountException) {
             throw when (error) {
+                is GemAmountException.InvalidValue -> AmountError.IncorrectAmount
                 is GemAmountException.Zero -> AmountError.ZeroAmount
                 is GemAmountException.BelowMinimum -> AmountError.MinimumValue(ValueFormatter(style = ValueFormatter.Style.Full).string(minimumValue, asset))
                 is GemAmountException.InsufficientBalance -> AmountError.InsufficientBalance(asset.symbol)

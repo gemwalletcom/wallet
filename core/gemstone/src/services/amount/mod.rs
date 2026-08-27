@@ -1,7 +1,6 @@
 pub mod model;
 pub mod rules;
 
-use num_bigint::BigInt;
 use primitives::Asset;
 
 pub use model::{GemAmountBalance, GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType};
@@ -25,7 +24,6 @@ impl GemAmountService {
     }
 
     pub fn validate(&self, value: String, available_value: String, minimum_value: String) -> Result<(), GemAmountError> {
-        let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
-        rules::validate(&parse(&value), &parse(&available_value), &parse(&minimum_value))
+        rules::validate(&rules::parse_value(&value)?, &rules::parse_value(&available_value)?, &rules::parse_value(&minimum_value)?)
     }
 }

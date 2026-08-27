@@ -70,6 +70,7 @@ pub struct GemAmountLimits {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
 pub enum GemAmountError {
+    InvalidValue { value: String },
     Zero,
     BelowMinimum { minimum: String },
     InsufficientBalance { available: String },
@@ -78,6 +79,7 @@ pub enum GemAmountError {
 impl std::fmt::Display for GemAmountError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::InvalidValue { value } => write!(f, "invalid amount {value}"),
             Self::Zero => write!(f, "amount must be positive"),
             Self::BelowMinimum { minimum } => write!(f, "amount is below the minimum {minimum}"),
             Self::InsufficientBalance { available } => write!(f, "amount exceeds the available balance {available}"),
