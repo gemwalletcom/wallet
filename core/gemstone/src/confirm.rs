@@ -177,15 +177,7 @@ impl GemConfirmService {
 
 impl GemConfirmService {
     async fn simulate(&self, chain: Chain, input: &GemConfirmInput) -> Result<Option<SimulationResult>, GemConfirmError> {
-        let (metadata, extra) = match &input.transfer.input_type {
-            GemTransactionInputType::Generic { metadata, extra, .. } => (metadata, extra),
-            _ => return Ok(None),
-        };
-        match metadata.source {
-            ApplicationMetadataSource::Payment => {}
-            ApplicationMetadataSource::WalletConnect => return Ok(None),
-        }
-        let Some(transaction) = extra.data.as_ref().and_then(|data| String::from_utf8(data.clone()).ok()) else {
+        let Some(transaction) = simulation_payload(&input.transfer.input_type) else {
             return Ok(None);
         };
         self.simulation
@@ -193,6 +185,16 @@ impl GemConfirmService {
             .await
             .map(Some)
             .map_err(|error| GemConfirmError::Load { msg: error.to_string() })
+    }
+}
+
+fn simulation_payload(input_type: &GemTransactionInputType) -> Option<String> {
+    let GemTransactionInputType::Generic { metadata, extra, .. } = input_type else {
+        return None;
+    };
+    match metadata.source {
+        ApplicationMetadataSource::Payment => extra.data.as_ref().and_then(|data| String::from_utf8(data.clone()).ok()),
+        ApplicationMetadataSource::WalletConnect => None,
     }
 }
 
@@ -459,6 +461,40 @@ mod tests {
         let payload = scan_payload(generic);
         assert_eq!(payload.transaction_type, TransferDataExtra::mock().transaction_type);
         assert_eq!(payload.website, Some(ApplicationMetadata::mock().url));
+    }
+
+    #[test]
+    fn test_simulation_payload_only_for_utf8_payment_calls() {
+        let mut extra = TransferDataExtra::mock();
+        extra.data = Some(b"0xdeadbeef".to_vec());
+        let mut metadata = ApplicationMetadata::mock();
+        metadata.source = ApplicationMetadataSource::Payment;
+        let generic = |metadata: ApplicationMetadata, extra: TransferDataExtra| GemTransactionInputType::Generic {
+            asset: Asset::mock_sol(),
+            metadata,
+            extra: extra.into(),
+        };
+
+        assert_eq!(simulation_payload(&generic(metadata.clone(), extra.clone())), Some("0xdeadbeef".to_string()));
+
+        let mut wallet_connect = metadata.clone();
+        wallet_connect.source = ApplicationMetadataSource::WalletConnect;
+        assert_eq!(simulation_payload(&generic(wallet_connect, extra.clone())), None);
+
+        let mut binary = extra.clone();
+        binary.data = Some(vec![0xff, 0xfe]);
+        assert_eq!(simulation_payload(&generic(metadata.clone(), binary)), None);
+
+        let mut empty = extra;
+        empty.data = None;
+        assert_eq!(simulation_payload(&generic(metadata, empty)), None);
+
+        let swap = GemTransactionInputType::Swap {
+            from_asset: Asset::mock_sol(),
+            to_asset: Asset::mock_spl_token(),
+            swap_data: SwapData::mock(),
+        };
+        assert_eq!(simulation_payload(&swap), None);
     }
 
     #[test]

@@ -443,6 +443,12 @@ mod tests {
         let mut nft = stake.clone();
         nft.transaction_type = TransactionType::TransferNFT;
         assert!(rules::post_processing(&nft, TransactionState::Pending, TransactionState::Failed).unwrap().sync_nfts);
+
+        let mut earn = stake.clone();
+        earn.transaction_type = TransactionType::EarnDeposit;
+        let completed = rules::post_processing(&earn, TransactionState::Pending, TransactionState::Confirmed).unwrap();
+        assert_eq!(completed.earn_asset_ids, vec![AssetId::from_chain(Chain::Ethereum)]);
+        assert!(completed.stake_chains.is_empty());
     }
 
     #[test]
