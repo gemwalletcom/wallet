@@ -9,7 +9,7 @@ reqwest = { workspace = true }
 serde = { workspace = true }
 config = { workspace = true }
 image = { version = "0.25.8", default-features = false, features = ["png", "jpeg", "webp"] }
-resvg = { version = "0.47.0", default-features = false, features = ["text"] }
+resvg = { version = "0.48.1", default-features = false, features = ["text"] }
 oxipng = { version = "10.1.1", default-features = false }
 
 clap = { version = "4.6.1", features = ["derive"] }
