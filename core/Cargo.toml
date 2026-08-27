@@ -137,13 +137,10 @@ bip39 = { version = "2.2.2", default-features = false }
 uniffi = { version = "0.32.0" }
 regex = { version = "1.13.1" }
 
-alloy-primitives = { version = "1.6.1", features = ["k256"] }
+alloy-primitives = { version = "1.6.1" }
 alloy-sol-types = { version = "1.6.1", features = ["eip712-serde"] }
 alloy-dyn-abi = { version = "1.6.1", features = ["eip712"] }
 alloy-json-abi = { version = "1.6.1" }
-alloy-signer = { version = "2.2.0" }
-alloy-signer-local = { version = "2.2.0" }
-alloy-network = { version = "2.2.0" }
 alloy-consensus = { version = "2.2.0" }
 alloy-rlp = { version = "0.3.16" }
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
