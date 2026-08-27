@@ -1,3 +1,4 @@
+pub mod error;
 pub mod model;
 mod rules;
 pub mod signer;
@@ -15,6 +16,7 @@ use crate::services::error::GemServiceError;
 use crate::transaction_simulation::TransactionSimulationService;
 use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
 
+pub use error::GemWalletConnectError;
 pub use model::{
     GemSessionApproval, GemSessionProposal, GemSessionWallets, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectSignPayload, GemWalletConnectSignRequest,
     GemWalletConnectTransactionAction,
@@ -75,25 +77,19 @@ impl GemWalletConnectService {
         metadata: ApplicationMetadata,
         origin: Option<String>,
         validation: WalletConnectionVerificationStatus,
-    ) -> Result<GemSessionProposal, GemServiceError> {
-        let required = rules::parse_chains(&self.wallet_connect, &required_chain_ids).ok_or_else(|| GemServiceError::Status {
-            msg: "unsupported chains".to_string(),
-        })?;
+    ) -> Result<GemSessionProposal, GemWalletConnectError> {
+        let required = rules::parse_chains(&self.wallet_connect, &required_chain_ids).ok_or(GemWalletConnectError::UnsupportedChains)?;
         let optional = rules::parse_known_chains(&self.wallet_connect, &optional_chain_ids);
         let verification_status = self.wallet_connect.validate_origin(metadata.url.clone(), origin, validation);
         if matches!(
             verification_status,
             WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious
         ) {
-            return Err(GemServiceError::Status {
-                msg: "invalid origin".to_string(),
-            });
+            return Err(GemWalletConnectError::InvalidOrigin);
         }
         let session_wallets = self
             .select_session_wallets(wallets, current_wallet_id, required, optional)
-            .ok_or_else(|| GemServiceError::Status {
-                msg: "wallets unsupported".to_string(),
-            })?;
+            .ok_or(GemWalletConnectError::UnsupportedWallets)?;
         Ok(GemSessionProposal {
             proposal: WalletConnectionSessionProposal {
                 default_wallet: session_wallets.default_wallet,

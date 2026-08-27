@@ -142,7 +142,6 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 ### Android
 
 - Earn flow: `ConfirmParams` has no Earn variant and `AmountDataProvider` has no earn provider; add both on top of `GemTransactionInputType::Earn` and `GemAmountType::Earn` (iOS `AmountEarnViewModel` is the reference).
-- WalletConnect rejection texts: Core messages ("invalid origin", "unsupported chains", "wallets unsupported") reach the Android sheets untranslated; give `GemWalletConnectService` typed errors and localize them on both apps.
 - Room: the unreleased chain is 87→90 only; before any further schema change, batch it into one migration and prefer drop + recreate for Core-seeded tables (banners, nodes are re-added by users, so copy those).
 
 ### Verification

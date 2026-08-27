@@ -17,6 +17,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSessionProposal
+import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
@@ -65,7 +66,7 @@ class PrepareSessionProposalImplTest {
 
     @Test
     fun prepareSessionProposal_failsWhenCoreRejects() = runTest {
-        every { walletConnectService.prepareSessionProposal(any(), any(), any(), any(), any(), any(), any()) } throws IllegalStateException("wallets unsupported")
+        every { walletConnectService.prepareSessionProposal(any(), any(), any(), any(), any(), any(), any()) } throws GemWalletConnectException.UnsupportedWallets()
 
         assertTrue(runCatching { prepare(requiredChainIds = listOf("eip155:1", "cosmos:unknown-9")) }.isFailure)
     }

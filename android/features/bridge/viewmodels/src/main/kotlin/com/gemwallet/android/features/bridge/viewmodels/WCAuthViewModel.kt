@@ -111,7 +111,7 @@ class WCAuthViewModel @Inject constructor(
                 }
             } catch (err: Throwable) {
                 if (isActiveRequest(request)) {
-                    rejectRequest(request, AuthSceneState.Error(err.message ?: "Authentication failed"))
+                    rejectRequest(request, AuthSceneState.Error(err.message ?: "Authentication failed", err))
                 }
             }
         }
@@ -328,7 +328,7 @@ sealed interface AuthSceneState {
 
     data object Loading : AuthSceneState
 
-    class Error(val message: String) : AuthSceneState
+    class Error(val message: String, val cause: Throwable? = null) : AuthSceneState
 
     sealed interface Content : AuthSceneState, WalletConnectReviewModel {
         val peer: SessionUI
