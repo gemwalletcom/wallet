@@ -12,10 +12,6 @@ class PerpetualService(
     private val gateway: GemGateway,
 ) {
 
-    suspend fun getAccountMode(chain: Chain = Chain.HyperCore, address: String): PerpetualAccountMode {
-        return gateway.getPerpetualAccountMode(chain.string, address).decodeJson()
-    }
-
     suspend fun getCandleSticks(chain: Chain = Chain.HyperCore, symbol: String, period: ChartPeriod): List<ChartCandleStick> {
         return gateway.getPerpetualCandlesticks(chain.string, symbol, period.string).map { it.decodeJson() }
     }

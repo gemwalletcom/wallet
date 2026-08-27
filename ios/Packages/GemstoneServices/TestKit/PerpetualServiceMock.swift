@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemPerpetualSocketUpdate
 import Foundation
 import GemstoneServices
 import Primitives
@@ -33,15 +34,5 @@ extension PerpetualServiceMock: HyperliquidPerpetualServiceable {
         .standard
     }
 
-    public func getHypercorePositions(walletId _: WalletId) async throws -> [Primitives.PerpetualPosition] {
-        []
-    }
-
-    public func updateBalance(walletId _: WalletId, balance _: Primitives.PerpetualBalance) async throws {}
-
-    public func updatePositions(walletId _: WalletId, positions _: [Primitives.PerpetualPosition], deleteIds _: [String]) async throws {}
-
-    public func updateMarket(_: Primitives.PerpetualMarketData) async throws {}
-
-    public func updatePrices(_: [String: Double]) async throws {}
+    public func applySocketMessage(walletId _: WalletId, mode _: PerpetualAccountMode, data _: Data) async throws -> GemPerpetualSocketUpdate { .applied }
 }

@@ -310,17 +310,13 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
 
-    public func getPositions(walletId _: String, chain _: Gemstone.Chain) async throws -> [Gemstone.PerpetualPosition] {
-        []
+    public func applySocketMessage(walletId _: String, mode _: Gemstone.PerpetualAccountMode, data _: Data) async throws -> Gemstone.GemPerpetualSocketUpdate {
+        .applied
     }
 
-    public func updatePositions(walletId _: String, positions _: [Gemstone.PerpetualPosition], deleteIds _: [String]) async throws {}
-
-    public func updateBalance(walletId _: String, balance _: Gemstone.PerpetualBalance) async throws {}
-
-    public func updateMarket(market _: Gemstone.PerpetualMarketData) async throws {}
-
-    public func updatePrices(prices _: [String: Double]) async throws {}
+    public func accountMode(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualAccountMode {
+        try Primitives.PerpetualAccountMode.standard.json()
+    }
 }
 
 public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtocol, @unchecked Sendable {

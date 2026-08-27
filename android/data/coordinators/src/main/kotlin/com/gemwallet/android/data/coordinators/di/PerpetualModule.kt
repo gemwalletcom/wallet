@@ -60,13 +60,9 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideGetPerpetualAccountMode(
-        perpetualService: PerpetualService,
-        userConfig: UserConfig,
+        perpetualService: GemPerpetualService,
     ): GetPerpetualAccountMode {
-        return GetPerpetualAccountModeImpl(
-            perpetualService = perpetualService,
-            userConfig = userConfig,
-        )
+        return GetPerpetualAccountModeImpl(perpetualService)
     }
 
     @Provides

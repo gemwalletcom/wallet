@@ -5,7 +5,6 @@ import Primitives
 
 public protocol PerpetualProvidable: Sendable {
     func provider() -> Primitives.PerpetualProvider
-    func getAccountMode(address: String) async throws -> PerpetualAccountMode
     func getCandlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick]
     func getPortfolio(address: String) async throws -> PerpetualPortfolio
 }
@@ -24,10 +23,6 @@ struct GatewayPerpetualProvider: PerpetualProvidable {
         case .hyperCore: .hypercore
         default: .hypercore
         }
-    }
-
-    func getAccountMode(address: String) async throws -> PerpetualAccountMode {
-        try await gateway.getPerpetualAccountMode(chain: chain, address: address)
     }
 
     func getCandlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick] {

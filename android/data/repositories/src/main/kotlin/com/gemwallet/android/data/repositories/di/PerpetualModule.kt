@@ -26,6 +26,7 @@ import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemPriceService
 import dagger.Module
 import dagger.Provides
@@ -33,7 +34,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import javax.inject.Singleton
-import uniffi.gemstone.Hyperliquid
 import uniffi.gemstone.HyperliquidSubscriptions
 
 @InstallIn(SingletonComponent::class)
@@ -57,7 +57,8 @@ object PerpetualModule {
         perpetualStore: GemstonePerpetualStore,
         preferencesService: GemPreferencesService,
         balanceService: GemBalanceService,
-    ): GemPerpetualService = GemPerpetualService(gateway, priceService, perpetualStore, preferencesService, balanceService)
+        walletPreferencesService: GemWalletPreferencesService,
+    ): GemPerpetualService = GemPerpetualService(gateway, priceService, perpetualStore, preferencesService, balanceService, walletPreferencesService)
 
     @Provides
     @Singleton
@@ -79,17 +80,9 @@ object PerpetualModule {
 
     @Provides
     @Singleton
-    fun provideHyperliquid(): Hyperliquid = Hyperliquid()
-
-    @Provides
-    @Singleton
     fun provideHyperliquidEventHandler(
         perpetualService: GemPerpetualService,
-        hyperliquid: Hyperliquid,
-    ): HyperliquidEventHandler = HyperliquidEventHandler(
-        perpetualService = perpetualService,
-        hyperliquid = hyperliquid,
-    )
+    ): HyperliquidEventHandler = HyperliquidEventHandler(perpetualService)
 
     @Provides
     @Singleton
