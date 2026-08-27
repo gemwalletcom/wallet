@@ -19,10 +19,18 @@ struct TransactionStateJob: Job {
     func run() async -> JobStatus {
         let transactionWallet = await context.transactionWallet()
         let result = await service.update(walletId: transactionWallet.wallet.id, transaction: transactionWallet.transaction)
-        guard let currentTransactionWallet = try? await service.transactionWallet(
-            walletId: transactionWallet.wallet.id,
-            transactionId: result.transactionId,
-        ) else {
+        let storedTransactionWallet: TransactionWallet?
+        do {
+            storedTransactionWallet = try await service.transactionWallet(
+                walletId: transactionWallet.wallet.id,
+                transactionId: result.transactionId,
+            )
+        } catch {
+            debugLog("TransactionStateJob stopped: transaction \(result.transactionId.identifier) read failed: \(error)")
+            return .cancelled
+        }
+        guard let currentTransactionWallet = storedTransactionWallet else {
+            debugLog("TransactionStateJob stopped: transaction \(result.transactionId.identifier) no longer stored")
             return .cancelled
         }
         await context.update(currentTransactionWallet)
