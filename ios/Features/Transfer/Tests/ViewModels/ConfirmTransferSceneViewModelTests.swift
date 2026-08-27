@@ -683,7 +683,6 @@ private extension ConfirmService {
             recentActivityStore: .mock(),
             toastPresenter: ToastPresenter(),
             keystore: KeystoreMock(),
-            chainService: ChainServiceMock(),
             explorerService: GemExplorerServiceMock(),
             addressStore: .mock(),
         )
@@ -722,7 +721,6 @@ private extension ConfirmTransferSceneViewModel {
             confirmService: ConfirmServiceFactory.create(
                 explorerService: GemExplorerServiceMock(),
                 keystore: KeystoreMock(),
-                chainServiceFactory: ChainServiceFactoryMock(),
                 gemConfirmService: GemConfirmService(noHandle: .init()),
                 balanceStore: .mock(),
                 assetStore: .mock(),
@@ -733,7 +731,6 @@ private extension ConfirmTransferSceneViewModel {
                 addressStore: addressStore,
                 recentActivityStore: .mock(),
                 toastPresenter: ToastPresenter(),
-                chain: data.chain,
             ),
             onComplete: {},
         )

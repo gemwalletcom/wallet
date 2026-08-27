@@ -11,6 +11,7 @@ public protocol TransferTransactionProvidable: Sendable {
         wallet: Primitives.Wallet,
         data: TransferData,
         selection: FeeSelection,
+        feeAssetId: Primitives.AssetId?,
     ) async throws -> TransferTransactionData
 }
 
@@ -25,13 +26,14 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
         wallet: Primitives.Wallet,
         data: TransferData,
         selection: FeeSelection,
+        feeAssetId: Primitives.AssetId?,
     ) async throws -> TransferTransactionData {
         let account = try wallet.account(for: data.chain)
         let result: GemConfirmData
         do {
             result = try await confirmService.load(
                 input: data.confirmInput(from: account),
-                options: GemConfirmLoadOptions(feeSelection: selection.map(), feeAssetId: nil),
+                options: GemConfirmLoadOptions(feeSelection: selection.map(), feeAssetId: feeAssetId?.identifier),
             )
         } catch let error as GemConfirmError {
             throw error.map(symbol: data.type.asset.symbol)

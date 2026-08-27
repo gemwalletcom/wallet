@@ -112,7 +112,6 @@ public struct ViewModelFactory: Sendable {
             confirmService: ConfirmServiceFactory.create(
                 explorerService: explorerService,
                 keystore: keystore,
-                chainServiceFactory: chainServiceFactory,
                 gemConfirmService: gemConfirmService,
                 balanceStore: balanceStore,
                 assetStore: assetStore,
@@ -123,7 +122,6 @@ public struct ViewModelFactory: Sendable {
                 addressStore: addressStore,
                 recentActivityStore: recentActivityStore,
                 toastPresenter: toastPresenter,
-                chain: data.chain,
             ),
             onComplete: onComplete,
         )

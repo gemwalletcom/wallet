@@ -15,7 +15,6 @@ public enum ConfirmServiceFactory {
     public static func create(
         explorerService: any GemExplorerServiceProtocol,
         keystore: any Keystore,
-        chainServiceFactory: any ChainServiceFactorable,
         gemConfirmService: GemConfirmService,
         balanceStore: BalanceStore,
         assetStore: AssetStore,
@@ -26,10 +25,7 @@ public enum ConfirmServiceFactory {
         addressStore: AddressStore,
         recentActivityStore: RecentActivityStore,
         toastPresenter: ToastPresenter,
-        chain: Chain,
     ) -> ConfirmService {
-        let chainService = chainServiceFactory.service(for: chain)
-
         return ConfirmService(
             metadataProvider: TransferMetadataProvider(
                 balanceStore: balanceStore,
@@ -55,7 +51,6 @@ public enum ConfirmServiceFactory {
             recentActivityStore: recentActivityStore,
             toastPresenter: toastPresenter,
             keystore: keystore,
-            chainService: chainService,
             explorerService: explorerService,
             addressStore: addressStore,
         )

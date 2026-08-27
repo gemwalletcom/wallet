@@ -190,6 +190,23 @@ impl GemConfirmService {
     }
 }
 
+#[uniffi::export]
+pub fn default_fee_priority(input_type: GemTransactionInputType) -> String {
+    let priority = match input_type {
+        GemTransactionInputType::Swap { from_asset, .. } if from_asset.chain() == Chain::Bitcoin => FeePriority::Fast,
+        _ => FeePriority::Normal,
+    };
+    priority.as_ref().to_string()
+}
+
+#[uniffi::export]
+pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: String) -> bool {
+    if matches!(fee_asset_id.chain, Chain::HyperCore | Chain::Tron) || !fee_asset_id.is_native() {
+        return false;
+    }
+    fee_available.trim().is_empty() || fee_available.trim().chars().all(|character| character == '0')
+}
+
 fn simulation_payload(input_type: &GemTransactionInputType) -> Option<String> {
     let GemTransactionInputType::Generic { metadata, extra, .. } = input_type else {
         return None;
@@ -499,6 +516,41 @@ mod tests {
             swap_data: SwapData::mock(),
         };
         assert_eq!(simulation_payload(&swap), None);
+    }
+
+    #[test]
+    fn test_default_fee_priority_is_fast_only_for_bitcoin_swaps() {
+        let bitcoin_swap = GemTransactionInputType::Swap {
+            from_asset: Asset::from_chain(Chain::Bitcoin),
+            to_asset: Asset::mock_sol(),
+            swap_data: SwapData::mock(),
+        };
+        assert_eq!(default_fee_priority(bitcoin_swap), FeePriority::Fast.as_ref());
+        let solana_swap = GemTransactionInputType::Swap {
+            from_asset: Asset::mock_sol(),
+            to_asset: Asset::mock_spl_token(),
+            swap_data: SwapData::mock(),
+        };
+        assert_eq!(default_fee_priority(solana_swap), FeePriority::Normal.as_ref());
+        assert_eq!(
+            default_fee_priority(GemTransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Bitcoin)
+            }),
+            FeePriority::Normal.as_ref()
+        );
+    }
+
+    #[test]
+    fn test_insufficient_network_fee_only_for_empty_native_balances() {
+        assert!(is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "0".into()));
+        assert!(is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "".into()));
+        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "10".into()));
+        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::Tron), "0".into()));
+        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::HyperCore), "0".into()));
+        assert!(!is_insufficient_network_fee(
+            AssetId::from(Chain::Ethereum, Some("0xdac17f958d2ee523a2206206994597c13d831ec7".into())),
+            "0".into()
+        ));
     }
 
     #[test]

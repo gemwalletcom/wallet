@@ -17,7 +17,6 @@ public extension PortfolioDataService {
     static func mock(
         portfolioService: any GemPortfolioServiceProtocol = GemPortfolioServiceMock(),
         perpetualService: PerpetualServiceMock = PerpetualServiceMock(),
-        priceStore: PriceStore = .mock(),
     ) -> PortfolioDataService {
         PortfolioDataService(
             portfolioService: portfolioService,
