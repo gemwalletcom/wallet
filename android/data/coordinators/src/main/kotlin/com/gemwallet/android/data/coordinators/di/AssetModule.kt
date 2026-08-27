@@ -198,13 +198,13 @@ object AssetModule {
     @Singleton
     fun provideSyncAssetInfo(
         assetsService: GemAssetsService,
-        assetsRepository: AssetsRepository,
+        balanceService: GemBalanceService,
         streamSubscriptionService: GemStreamSubscriptionService,
         prefetchAssets: PrefetchAssets,
         sessionRepository: SessionRepository,
     ): SyncAssetInfo = SyncAssetInfoImpl(
         assetsService = assetsService,
-        assetsRepository = assetsRepository,
+        balanceService = balanceService,
         streamSubscriptionService = streamSubscriptionService,
         prefetchAssets = prefetchAssets,
         sessionRepository = sessionRepository,
