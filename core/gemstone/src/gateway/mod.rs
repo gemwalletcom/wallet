@@ -211,7 +211,7 @@ mod tests {
         match result {
             Ok(status) => panic!("expected network error for 404 response, got {:?}", status),
             Err(GatewayError::NetworkError { msg }) => assert_eq!(msg, "HTTP error: status 404"),
-            Err(GatewayError::PlatformError { .. }) => panic!("expected NetworkError, got PlatformError"),
+            Err(error) => panic!("expected NetworkError, got {error:?}"),
         }
     }
 }
