@@ -138,7 +138,8 @@ struct ServicesFactory {
         let balanceService = gemBalanceService
         let gemStakeService = gatewayService.stakeService(
             staticApi: gemStaticApiClient,
-            store: GemstoneStakeStore(store: storeManager.stakeStore, addressStore: storeManager.addressStore),
+            store: GemstoneStakeStore(store: storeManager.stakeStore),
+            addressStore: gemAddressStore,
         )
         let stakeService = gemStakeService
         let gemNftService = Gemstone.GemNftService(api: gemDeviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))

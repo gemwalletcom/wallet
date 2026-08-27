@@ -38,6 +38,18 @@ public struct AddressStore: Sendable {
         }
     }
 
+    public func deleteAddressNames(_ addressNames: [AddressName]) throws {
+        try db.write { db in
+            for addressName in addressNames {
+                try AddressRecord
+                    .filter(AddressRecord.Columns.chain == addressName.chain.rawValue)
+                    .filter(AddressRecord.Columns.address == addressName.address)
+                    .filter(AddressRecord.Columns.type == addressName.type.rawValue)
+                    .deleteAll(db)
+            }
+        }
+    }
+
     func deleteAddress(chain: Chain, address: String) throws -> Int {
         try db.write { db in
             try AddressRecord

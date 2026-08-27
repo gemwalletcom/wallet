@@ -34,14 +34,19 @@ impl GemContactService {
     }
 
     pub async fn update_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemServiceError> {
-        let existing_ids = self.store.get_address_ids(contact.id.clone()).await?;
-        let delete_address_ids = rules::stale_address_ids(existing_ids, &addresses);
-        self.store.update_contact(contact.clone(), addresses.clone(), delete_address_ids).await?;
+        let existing = self.store.get_addresses(contact.id.clone()).await?;
+        let stale = rules::stale_addresses(existing, &addresses);
+        self.store
+            .update_contact(contact.clone(), addresses.clone(), stale.iter().map(|address| address.id.clone()).collect())
+            .await?;
+        self.address_store.delete_address_names(rules::address_names(&contact, &stale)).await?;
         self.save_address_names(&contact, &addresses).await
     }
 
     pub async fn delete_contact(&self, contact: Contact) -> Result<(), GemServiceError> {
-        self.store.delete_contact(contact.id).await?;
+        let existing = self.store.get_addresses(contact.id.clone()).await?;
+        self.store.delete_contact(contact.id.clone()).await?;
+        self.address_store.delete_address_names(rules::address_names(&contact, &existing)).await?;
         match contact.image_url {
             Some(file_name) => self.files.remove(file_name),
             None => Ok(()),

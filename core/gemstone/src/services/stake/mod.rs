@@ -13,18 +13,26 @@ use crate::models::{GemContractCallData, GemEarnType};
 
 pub use store::GemStakeStore;
 
+use crate::services::name::GemAddressStore;
+
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
     gateway: Arc<GemGateway>,
     static_api: Arc<GemStaticApiClient>,
     store: Arc<dyn GemStakeStore>,
+    address_store: Arc<dyn GemAddressStore>,
 }
 
 #[uniffi::export]
 impl GemStakeService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, static_api: Arc<GemStaticApiClient>, store: Arc<dyn GemStakeStore>) -> Self {
-        Self { gateway, static_api, store }
+    pub fn new(gateway: Arc<GemGateway>, static_api: Arc<GemStaticApiClient>, store: Arc<dyn GemStakeStore>, address_store: Arc<dyn GemAddressStore>) -> Self {
+        Self {
+            gateway,
+            static_api,
+            store,
+            address_store,
+        }
     }
 
     pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
@@ -70,7 +78,7 @@ impl GemStakeService {
             if !stale_ids.is_empty() {
                 self.store.deactivate_validators(asset_id, stale_ids).await?;
             }
-            self.store.save_address_names(rules::validator_address_names(&validators)).await?;
+            self.address_store.save_address_names(rules::validator_address_names(&validators)).await?;
         }
         Ok(names)
     }
