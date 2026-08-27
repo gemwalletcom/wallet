@@ -42,10 +42,6 @@ impl GemTransferService {
         rules::approval(input_type, transaction_type).map_err(|msg| GemstoneError::AnyError { msg })
     }
 
-    pub fn spends_balance(&self, input_type: &GemTransactionInputType) -> bool {
-        rules::spends_balance(input_type)
-    }
-
     pub fn metadata(&self, input_type: &GemTransactionInputType) -> Result<Option<String>, GemstoneError> {
         let metadata = rules::metadata(input_type).map_err(GemstoneError::from)?;
         metadata.map(|value| serde_json::to_string(&value).map_err(GemstoneError::from)).transpose()

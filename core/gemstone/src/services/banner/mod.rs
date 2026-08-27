@@ -66,10 +66,6 @@ impl GemBannerService {
         self.store.set_state(key, BannerState::Cancelled).await
     }
 
-    pub fn closes_on_action(&self, event: BannerEvent) -> bool {
-        rules::closes_on_action(event)
-    }
-
     pub fn visible_banners(&self, stored: Vec<GemBannerItem>, context: GemBannerContext) -> Vec<GemBannerItem> {
         rules::visible_banners(stored, &context)
     }
