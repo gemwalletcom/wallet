@@ -24,7 +24,7 @@ struct WalletsSceneViewModelTests {
         let preferences = ObservablePreferences.mock()
         let walletSessionService = WalletSessionService.mock(store: walletStore, preferences: preferences)
         let service = WalletService.mock(walletStore: walletStore, preferences: preferences)
-        walletSessionService.setCurrent(walletId: .multicoin(address: "0x1"))
+        try walletSessionService.setCurrent(walletId: .multicoin(address: "0x1"))
 
         let model = WalletsSceneViewModel.mock(walletService: service, walletSessionService: walletSessionService)
         model.walletsQuery.value = walletSessionService.wallets

@@ -60,7 +60,7 @@ impl GemStreamSubscriptionService {
     pub async fn add_prices(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         let mut state = self.state.lock().await;
         let new_asset_ids = rules::new_asset_ids(&state.subscribed, asset_ids);
-        if new_asset_ids.is_empty() {
+        if new_asset_ids.is_empty() || !self.connection.is_connected().await {
             return Ok(());
         }
         self.connection

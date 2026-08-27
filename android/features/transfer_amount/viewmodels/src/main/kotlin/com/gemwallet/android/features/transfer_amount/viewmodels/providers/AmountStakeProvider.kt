@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.update
 import uniffi.gemstone.GemAmountStakeType
 import uniffi.gemstone.GemAmountType
 import com.gemwallet.android.serializer.toJson
-import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountStakeProvider(

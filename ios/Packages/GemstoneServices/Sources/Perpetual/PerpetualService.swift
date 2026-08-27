@@ -11,15 +11,18 @@ public struct PerpetualService: PerpetualServiceable {
     private let provider: PerpetualProvidable
     private let service: any GemPerpetualServiceProtocol
     private let preferences: any GemWalletPreferencesServiceProtocol
+    private let appPreferences: Preferences
 
     public init(
         provider: PerpetualProvidable,
         service: any GemPerpetualServiceProtocol,
         preferences: any GemWalletPreferencesServiceProtocol,
+        appPreferences: Preferences = .standard,
     ) {
         self.provider = provider
         self.service = service
         self.preferences = preferences
+        self.appPreferences = appPreferences
     }
 
     public var marketsUpdatedAt: Date? {
@@ -27,7 +30,7 @@ public struct PerpetualService: PerpetualServiceable {
     }
 
     public func updateMarkets() async throws {
-        try await service.syncMarkets(chain: Chain.hyperCore.rawValue)
+        try await service.syncMarkets(chain: Chain.hyperCore.rawValue, currency: Currency(id: appPreferences.currency).json())
     }
 
     public func clearMarkets() async throws {

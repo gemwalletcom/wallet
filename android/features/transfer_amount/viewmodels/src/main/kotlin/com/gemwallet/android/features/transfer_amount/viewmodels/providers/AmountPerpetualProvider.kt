@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import java.math.BigInteger
 import uniffi.gemstone.GemAmountBalance
 import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountType
@@ -158,7 +157,7 @@ class AmountPerpetualProvider(
             else -> GemAmountPerpetualPosition.Open
         }
         val leverage = state?.current ?: params.positionAction.data.leverage.toInt()
-        GemAmountType.Perpetual(position = position, price = current.price, leverage = leverage.toUByte())
+        GemAmountType.Perpetual(position = position, price = current.price, leverage = leverage.toUByte(), sizeDecimals = current.asset.decimals)
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
     override val assetInfo: StateFlow<AssetInfo?> = perpetual.filterNotNull()

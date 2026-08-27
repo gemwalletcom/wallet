@@ -69,6 +69,7 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
             fromAsset = asset,
             toAsset = inputType.toAsset.toPrimitives() ?: return null,
             swapData = inputType.swapData.decodeJson(),
+            amount = value,
             useMaxAmount = transfer.useMaxAmount,
         )
         is GemTransactionInputType.Stake -> when (val stakeType = inputType.stakeType.decodeJson<StakeType>()) {

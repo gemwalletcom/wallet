@@ -47,13 +47,6 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         provider.gemAmountType
     }
 
-
-
-
-
-
-
-
     func recipientData() -> RecipientData {
         provider.recipientData()
     }

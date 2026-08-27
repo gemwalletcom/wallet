@@ -8,3 +8,7 @@ public protocol Job: Sendable {
     func nextInterval(after currentIntervalMs: UInt32) -> UInt32
     func onComplete() async throws
 }
+
+public extension Job {
+    func onComplete() async throws {}
+}

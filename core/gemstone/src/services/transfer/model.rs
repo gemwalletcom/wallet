@@ -26,6 +26,7 @@ pub struct GemTransferBalance {
     pub frozen: String,
     pub locked: String,
     pub withdrawable: String,
+    pub votes: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

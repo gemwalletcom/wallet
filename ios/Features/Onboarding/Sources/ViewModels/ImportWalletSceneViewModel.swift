@@ -240,7 +240,11 @@ extension ImportWalletSceneViewModel {
 
     private func activateWallet(_ wallet: Wallet) async {
         walletService.acceptTerms()
-        await walletSessionService.setCurrent(wallet: wallet)
+        do {
+            try await walletSessionService.setCurrent(wallet: wallet)
+        } catch {
+            isPresentingAlertMessage = AlertMessage(title: alertTitle, message: error.localizedDescription)
+        }
         buttonState = .normal
     }
 

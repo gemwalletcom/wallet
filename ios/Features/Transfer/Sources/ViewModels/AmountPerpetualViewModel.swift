@@ -99,7 +99,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         case .increase: .increase
         case let .reduce(_, available, _): .reduce(available: available.description)
         }
-        return .perpetual(position: position, price: transferData.price, leverage: leverage)
+        return .perpetual(position: position, price: transferData.price, leverage: leverage, sizeDecimals: transferData.asset.decimals)
     }
 
     func recipientData() -> RecipientData {

@@ -59,7 +59,9 @@ fn minimum_value(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
                 BigInt::from(0)
             }
         },
-        GemAmountType::Perpetual { price, leverage, .. } => BigInt::from(PerpetualFormatter::minimum_order_usd_amount(*price, asset.decimals, *leverage)),
+        GemAmountType::Perpetual {
+            price, leverage, size_decimals, ..
+        } => BigInt::from(PerpetualFormatter::minimum_order_usd_amount(*price, *size_decimals, *leverage)),
     }
 }
 
@@ -257,7 +259,8 @@ mod tests {
                 &GemAmountType::Perpetual {
                     position: GemAmountPerpetualPosition::Reduce { available: "42".into() },
                     price: 1.0,
-                    leverage: 1
+                    leverage: 1,
+                    size_decimals: 0
                 },
                 &usdc(),
                 &balance(1, 0, 0, 0)

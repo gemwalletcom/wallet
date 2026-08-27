@@ -37,7 +37,7 @@ impl GemStakeService {
         let apr = self.store.get_apr(asset_id.clone(), StakeProviderType::Earn).await?.unwrap_or_default();
         let providers = rules::earn_validators(self.gateway.get_earn_providers(asset_id.clone()), apr);
         self.store.save_validators(providers).await?;
-        let positions = self.gateway.get_earn_positions(address, asset_id.clone()).await;
+        let positions = self.gateway.get_earn_positions(address, asset_id.clone()).await?;
         let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id, StakeProviderType::Earn).await?;
         let delete_ids = rules::stale_delegation_ids(existing_ids, &positions);
         self.store.update_delegations(wallet_id, positions, delete_ids).await

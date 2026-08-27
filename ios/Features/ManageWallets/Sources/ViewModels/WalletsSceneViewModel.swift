@@ -63,7 +63,11 @@ public final class WalletsSceneViewModel {
 
 extension WalletsSceneViewModel {
     func setCurrent(_ walletId: WalletId) {
-        walletSessionService.setCurrent(walletId: walletId)
+        do {
+            try walletSessionService.setCurrent(walletId: walletId)
+        } catch {
+            debugLog("set current wallet error: \(error)")
+        }
     }
 
     func onEdit(wallet: Wallet) {

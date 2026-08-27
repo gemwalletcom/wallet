@@ -26,7 +26,7 @@ struct WalletSessionServiceTests {
         try store.addWallet(second)
         let service = WalletSessionService.mock(store: store)
 
-        service.setCurrent(walletId: second.id)
+        try service.setCurrent(walletId: second.id)
 
         #expect(service.currentWallet?.id == second.id)
         #expect(service.currentWallet?.name == "Second")

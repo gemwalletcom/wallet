@@ -89,6 +89,5 @@ fun Balance<String>.getStakedAmount() = BigInteger(frozen) +
         BigInteger(rewards) +
         BigInteger(locked)
 
-fun Balance<String>.getDelegatePreparedAmount() = BigInteger(locked) + BigInteger(staked)
 
 fun Balance<String>.getFrozenResourceAmount() = BigInteger(frozen) + BigInteger(locked)

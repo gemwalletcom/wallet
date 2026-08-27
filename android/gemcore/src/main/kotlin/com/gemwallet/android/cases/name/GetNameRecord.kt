@@ -6,8 +6,5 @@ import com.wallet.core.primitives.NameRecord
 interface GetNameRecord {
     suspend fun getNameRecord(name: String, chain: Chain): NameRecord?
 
-    fun isNameSupported(name: String): Boolean {
-        val nameParts = name.split(".")
-        return nameParts.size >= 2 && !nameParts.lastOrNull().isNullOrEmpty()
-    }
+    fun isNameSupported(name: String): Boolean
 }

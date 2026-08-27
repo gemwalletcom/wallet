@@ -68,6 +68,10 @@ extension CreateWalletModel {
 
     func setupWalletComplete(wallet: Wallet) async {
         dismiss()
-        await walletSessionService.setCurrent(wallet: wallet)
+        do {
+            try await walletSessionService.setCurrent(wallet: wallet)
+        } catch {
+            debugLog("set current wallet error: \(error)")
+        }
     }
 }

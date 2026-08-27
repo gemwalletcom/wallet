@@ -35,6 +35,7 @@ public extension TransferData {
             frozen: balance.frozen.description,
             locked: balance.locked.description,
             withdrawable: balance.withdrawable.description,
+            votes: UInt32(balance.metadata?.votes ?? 0),
         )
         return try BigInt.from(string: GemTransferService().availableValue(transfer: gem, balance: transferBalance))
     }

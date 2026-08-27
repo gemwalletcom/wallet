@@ -23,7 +23,7 @@ struct WalletServiceTests {
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
             source: .import,
         ).wallet
-        await walletSessionService.setCurrent(wallet: wallet)
+        try await walletSessionService.setCurrent(wallet: wallet)
 
         try await confirmation { confirm in
             withObservationTracking {

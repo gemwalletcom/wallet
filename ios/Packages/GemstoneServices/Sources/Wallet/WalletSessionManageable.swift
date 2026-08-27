@@ -14,7 +14,7 @@ public protocol WalletSessionManageable: WalletSessionManageableThrowing {
     var currentWallet: Wallet? { get }
     var currentWalletId: WalletId? { get }
 
-    func setCurrent(walletId: WalletId?)
+    func setCurrent(walletId: WalletId?) throws
 }
 
 public extension WalletSessionManageable {
@@ -41,9 +41,9 @@ public extension WalletSessionManageable {
         return wallet
     }
 
-    func setCurrent(wallet: Wallet) async {
-        await MainActor.run {
-            setCurrent(walletId: wallet.id)
+    func setCurrent(wallet: Wallet) async throws {
+        try await MainActor.run {
+            try setCurrent(walletId: wallet.id)
         }
     }
 

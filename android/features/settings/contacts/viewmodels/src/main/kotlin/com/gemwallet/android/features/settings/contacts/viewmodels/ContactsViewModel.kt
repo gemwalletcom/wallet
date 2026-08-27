@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.cases.contacts.DeleteContact
 import com.gemwallet.android.cases.contacts.GetContacts
-import com.gemwallet.android.data.service.store.LocalStore
 import com.wallet.core.primitives.Contact
 import com.wallet.core.primitives.ContactData
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +18,6 @@ import javax.inject.Inject
 class ContactsViewModel @Inject constructor(
     getContacts: GetContacts,
     private val deleteContactCase: DeleteContact,
-    private val localStore: LocalStore,
 ) : ViewModel() {
 
     val contacts: StateFlow<List<ContactData>> = getContacts.getContacts()
@@ -27,8 +25,7 @@ class ContactsViewModel @Inject constructor(
 
     fun deleteContact(contact: Contact) {
         viewModelScope.launch(Dispatchers.IO) {
-            deleteContactCase.deleteContact(contact.id)
-            localStore.remove(contact.imageUrl)
+            deleteContactCase.deleteContact(contact)
         }
     }
 }

@@ -5,9 +5,18 @@ pub enum GemAmountType {
     Transfer,
     Deposit,
     Withdraw,
-    Stake { stake_type: GemAmountStakeType },
-    Earn { earn_type: GemAmountEarnType },
-    Perpetual { position: GemAmountPerpetualPosition, price: f64, leverage: u8 },
+    Stake {
+        stake_type: GemAmountStakeType,
+    },
+    Earn {
+        earn_type: GemAmountEarnType,
+    },
+    Perpetual {
+        position: GemAmountPerpetualPosition,
+        price: f64,
+        leverage: u8,
+        size_decimals: i32,
+    },
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]

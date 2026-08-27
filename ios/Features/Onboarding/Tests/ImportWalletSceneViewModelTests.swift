@@ -33,7 +33,7 @@ struct ImportWalletSceneViewModelTests {
             type: .single(words: service.createWallet(), chain: .ethereum),
             source: .import,
         ).wallet
-        await walletSessionService.setCurrent(wallet: walletB)
+        try await walletSessionService.setCurrent(wallet: walletB)
 
         #expect(walletSessionService.currentWalletId == walletB.id)
 

@@ -4,7 +4,6 @@ pub mod rules;
 use primitives::Chain;
 use primitives::name::NameRecord;
 
-use crate::services::name::rules::is_name_supported;
 use crate::services::transfer::GemRecipient;
 
 pub use model::{GemRecipientError, GemRecipientValidation};
@@ -17,10 +16,6 @@ impl GemRecipientService {
     #[uniffi::constructor]
     pub fn new() -> Self {
         Self
-    }
-
-    pub fn is_name_supported(&self, input: String) -> bool {
-        is_name_supported(&input)
     }
 
     pub fn validate(&self, chain: Chain, input: String, name_record: Option<NameRecord>) -> GemRecipientValidation {

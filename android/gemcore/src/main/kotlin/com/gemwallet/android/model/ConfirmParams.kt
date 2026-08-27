@@ -268,14 +268,12 @@ sealed class ConfirmParams() {
         val fromAsset: Asset,
         val toAsset: Asset,
         val swapData: SwapData,
+        override val amount: BigInteger,
         override val useMaxAmount: Boolean = false,
     ) : ConfirmParams() {
 
         override val asset: Asset
             get() = fromAsset
-
-        override val amount: BigInteger
-            get() = swapData.quote.fromValue.toBigInteger()
 
         override val minimumAmount: BigInteger?
             get() = swapData.quote.minFromValue?.toBigIntegerOrNull()

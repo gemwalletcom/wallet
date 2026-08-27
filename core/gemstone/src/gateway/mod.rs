@@ -78,8 +78,11 @@ impl GemGateway {
         self.yielder.get_providers(&asset_id)
     }
 
-    pub async fn get_earn_positions(&self, address: String, asset_id: AssetId) -> Vec<GemDelegationBase> {
-        self.yielder.get_positions(&address, &asset_id).await
+    pub async fn get_earn_positions(&self, address: String, asset_id: AssetId) -> Result<Vec<GemDelegationBase>, GatewayError> {
+        self.yielder
+            .get_positions(&address, &asset_id)
+            .await
+            .map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
     }
 }
 

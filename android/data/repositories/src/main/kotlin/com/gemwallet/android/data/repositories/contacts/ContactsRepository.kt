@@ -35,5 +35,5 @@ class ContactsRepository(
     override suspend fun updateContact(contact: Contact, addresses: List<ContactAddress>) =
         contactService.updateContact(contact.toJson(), addresses.map { it.toJson() })
 
-    override suspend fun deleteContact(id: String) = contactService.deleteContact(id)
+    override suspend fun deleteContact(contact: Contact) = contactService.deleteContact(contact.toJson())
 }

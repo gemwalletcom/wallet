@@ -173,7 +173,7 @@ class RecipientViewModel @Inject constructor(
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
-        submit(type, destination.address, null, amountAction, confirmAction)
+        submit(type, destination.address, null, amountAction, confirmAction, destination.name)
     }
 
     private fun submit(
@@ -182,6 +182,7 @@ class RecipientViewModel @Inject constructor(
         nameRecord: NameRecord?,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
+        selectedName: String? = null,
     ) {
         val chain = type.assetInfo.asset.chain
         val recipient = try {
@@ -192,7 +193,7 @@ class RecipientViewModel @Inject constructor(
             }
             return
         }
-        val destination = DestinationAddress(address = recipient.address, name = recipient.name)
+        val destination = DestinationAddress(address = recipient.address, name = recipient.name ?: selectedName)
         when (type) {
             is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
             is RecipientType.Asset -> amountAction(

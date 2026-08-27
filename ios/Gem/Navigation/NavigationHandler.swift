@@ -284,7 +284,12 @@ extension NavigationHandler {
             return
         }
 
-        walletSessionService.setCurrent(walletId: walletId)
+        do {
+            try walletSessionService.setCurrent(walletId: walletId)
+        } catch {
+            debugLog("set current wallet error: \(error)")
+            return
+        }
         await withCheckedContinuation { continuation in
             RunLoop.main.perform(inModes: [.common]) {
                 continuation.resume()

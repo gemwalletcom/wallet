@@ -32,8 +32,6 @@ struct TransactionStateJob: Job {
     func nextInterval(after currentIntervalMs: UInt32) -> UInt32 {
         configuration.nextInterval(after: currentIntervalMs)
     }
-
-    func onComplete() async throws {}
 }
 
 private actor TransactionStateJobContext {

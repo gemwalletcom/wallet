@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
-import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountTransferProvider(

@@ -50,5 +50,6 @@ fun mockSwapParams(
             gasLimit = null,
         ),
     ),
+    amount = fromAmount,
     useMaxAmount = useMaxAmount,
 )

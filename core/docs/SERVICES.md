@@ -119,7 +119,11 @@ Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, And
 
 - **iOS `Packages/GemAPI`** — only the widget's one-endpoint client (`GemPriceWidget`); the app and feature packages no longer depend on it.
 
-- Periodic review of app wrappers (`NodeService.node(for:)`, `PerpetualService`, `DeviceService`, `WalletService`) and of typeshare models unused by both apps (18 exports dropped 2026-08-27; the Rust types stay where Core uses them).
+- Shared transfer model: both apps keep a typed transfer type (`TransferDataType` / `ConfirmParams`) for UI pattern matching and forward every rule to `GemTransferService`; a possible next step is generating that enum from `TransactionInputType` (typeshare) so the three copies (primitives tuple enum, gemstone named-field enum, Swift/Kotlin enums) collapse. Android has no Earn flow yet (`GemTransactionInputType::Earn` is iOS-only there).
+
+- iOS `Primitives` hand-written mirrors of Core types (`GasPriceType`, `FeeRate`, `Fee`, `FeeSelection`, `CustomFeeEstimate`, `TransferAmount`, `BalanceRequirement`, ids such as `WalletId`/`TransactionId`/`AssetId`) stay as typed views bridged once in `GemstonePrimitives`; dead ones were removed 2026-08-27.
+
+- Periodic review of app wrappers (`NodeService.node(for:)`, `PerpetualService`, `WalletService`) and of typeshare models unused by both apps (18 exports dropped 2026-08-27; the Rust types stay where Core uses them).
 
 ## Conventions
 

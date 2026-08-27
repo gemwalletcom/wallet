@@ -21,8 +21,8 @@ public struct WalletSessionService: WalletSessionManageable {
         return try? WalletId.from(id: id)
     }
 
-    public func setCurrent(walletId: WalletId?) {
-        try? service.setCurrentWalletId(walletId: walletId?.id)
+    public func setCurrent(walletId: WalletId?) throws {
+        try service.setCurrentWalletId(walletId: walletId?.id)
     }
 
     public func getWallets() throws -> [Wallet] {

@@ -130,6 +130,7 @@ pub fn metadata(input_type: &GemTransactionInputType) -> Result<Option<serde_jso
 
 pub fn available_value(transfer: &GemTransferData, balance: &GemTransferBalance) -> BigInt {
     let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
+    let asset = transfer.input_type.asset();
     match &transfer.input_type {
         GemTransactionInputType::Withdrawal { .. } => parse(&balance.withdrawable),
         GemTransactionInputType::Stake { stake_type, .. } => match stake_type {
@@ -140,6 +141,10 @@ pub fn available_value(transfer: &GemTransferData, balance: &GemTransferBalance)
                 primitives::Resource::Bandwidth => parse(&balance.frozen),
                 primitives::Resource::Energy => parse(&balance.locked),
             },
+            StakeType::Stake(_) if asset.chain() == Chain::Tron => {
+                let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
+                parse(&balance.frozen) + parse(&balance.locked) - staked
+            }
             StakeType::Stake(_) | StakeType::Freeze(_) => parse(&balance.available),
         },
         GemTransactionInputType::Earn { earn_type, .. } => match earn_type {
@@ -175,7 +180,11 @@ pub fn pending_transaction(input: GemPendingTransactionInput) -> Result<Option<T
                 _ => transfer.recipient.address.clone(),
             };
             let value = simulation_header.as_ref().map(|header| header.value.clone()).unwrap_or(input.value);
-            (recipient, value, transfer.recipient.memo.clone().unwrap_or_default())
+            let memo = match &transfer.input_type {
+                GemTransactionInputType::Swap { .. } => String::new(),
+                _ => transfer.recipient.memo.clone().unwrap_or_default(),
+            };
+            (recipient, value, memo)
         }
     };
     let asset_id = simulation_header
@@ -337,6 +346,7 @@ mod tests {
             frozen: frozen.to_string(),
             locked: locked.to_string(),
             withdrawable: "0".to_string(),
+            votes: 0,
         }
     }
 
@@ -409,6 +419,20 @@ mod tests {
             stake_type: StakeType::Rewards(vec![]),
         };
         assert_eq!(available_value(&transfer(rewards, "42"), &balance(10, 0, 0)), BigInt::from(42));
+        let tron_stake = GemTransactionInputType::Stake {
+            asset: asset(Chain::Tron),
+            stake_type: StakeType::Stake(delegation(0).validator),
+        };
+        assert_eq!(
+            available_value(
+                &transfer(tron_stake, "1"),
+                &GemTransferBalance {
+                    votes: 2,
+                    ..balance(1, 5_000_000, 3_000_000)
+                }
+            ),
+            BigInt::from(6_000_000)
+        );
         let withdrawal = GemTransactionInputType::Withdrawal { asset: asset(Chain::HyperCore) };
         assert_eq!(
             available_value(
@@ -428,7 +452,7 @@ mod tests {
         let transaction = pending_transaction(pending_input(swap, TransactionType::Swap, "0xhash", 0, 1)).unwrap().unwrap();
         assert_eq!(transaction.to, "0xrouter");
         assert_eq!(transaction.value, "99");
-        assert_eq!(transaction.memo.as_deref(), Some("memo"));
+        assert_eq!(transaction.memo.as_deref(), Some(""));
         assert_eq!(transaction.direction, TransactionDirection::Outgoing);
         assert!(transaction.metadata.is_some());
 

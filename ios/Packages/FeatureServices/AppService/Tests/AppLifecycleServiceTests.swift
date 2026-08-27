@@ -38,7 +38,7 @@ struct AppLifecycleServiceTests {
         let (service, observer, _, session, _) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid, .single], current: .hyperliquid)
         await service.updateWalletConnections()
 
-        session.setCurrent(walletId: Wallet.single.id)
+        try session.setCurrent(walletId: Wallet.single.id)
         await service.updateWalletConnections()
 
         #expect(await observer.isConnected == false)
@@ -49,7 +49,7 @@ struct AppLifecycleServiceTests {
         let (service, observer, _, session, _) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
         await service.updateWalletConnections()
 
-        session.setCurrent(walletId: nil)
+        try session.setCurrent(walletId: nil)
         await service.updateWalletConnections()
 
         #expect(await observer.isConnected == false)
@@ -135,7 +135,7 @@ extension AppLifecycleServiceTests {
             preferences: ObservablePreferences(preferences: preferences),
         )
         if let current {
-            walletSessionService.setCurrent(walletId: current.id)
+            try walletSessionService.setCurrent(walletId: current.id)
         }
         let service = try AppLifecycleService.mock(
             preferences: preferences,

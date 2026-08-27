@@ -2,8 +2,6 @@ package com.gemwallet.android.data.repositories.transactions
 
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stake.StakeRepository
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -23,30 +21,22 @@ import java.math.BigInteger
 
 class TransactionBalanceServiceTest {
 
-    private val stakeRepository = mockk<StakeRepository>()
     private val perpetualRepository = mockk<PerpetualRepository>()
     private val sessionRepository = mockk<SessionRepository>(relaxed = true)
 
     private val subject = TransactionBalanceService(
-        stakeRepository = stakeRepository,
         perpetualRepository = perpetualRepository,
         sessionRepository = sessionRepository,
     )
 
     @Test
-    fun getBalance_rewards_usesRepositoryRewardsForAmountAndConfirmFlows() = runBlocking {
+    fun getBalance_rewards_usesTheRewardsAmount() = runBlocking {
         val asset = mockAssetMonad()
         val assetInfo = mockAssetInfo(
             asset = asset,
             balance = AssetBalance.create(asset = asset, available = "2", rewards = "3"),
         )
-        val rewards = listOf(
-            mockDelegation(assetId = asset.id, balance = "2", rewards = "53"),
-            mockDelegation(assetId = asset.id, balance = "100", rewards = "7"),
-        )
-        coEvery { stakeRepository.getRewards(any(), asset.id) } returns rewards
 
-        val amountParams = AmountParams.Stake.Rewards(asset.id)
         val confirmParams = ConfirmParams.Builder(
             asset = asset,
             from = requireNotNull(assetInfo.owner),
@@ -55,10 +45,6 @@ class TransactionBalanceServiceTest {
             validators = listOf(mockDelegationValidator(chain = asset.id.chain)),
         )
 
-        assertEquals(
-            BigInteger("60"),
-            subject.getBalance(assetInfo, amountParams),
-        )
         assertEquals(
             BigInteger("60"),
             subject.getBalance(assetInfo, confirmParams),

@@ -50,8 +50,6 @@ abstract class AmountDataProvider(private val scope: CoroutineScope) {
 
     fun maxValue(): BigInteger = limits.value?.maxValue?.toBigIntegerOrNull() ?: availableBalance.value
 
-    fun reservesFee(): Boolean = limits.value?.reservesFee ?: false
-
     abstract suspend fun buildConfirmParams(amount: Crypto, isMax: Boolean): ConfirmParams
 }
 
