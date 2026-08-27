@@ -84,26 +84,6 @@ class AssetsRepository @Inject constructor(
         getAssetsInfo().firstOrNull()?.refreshBalances()?.awaitAll()
     }
 
-
-
-    suspend fun hasAssets(assetIds: List<AssetId>): Set<AssetId> = withContext(Dispatchers.IO) {
-        if (assetIds.isEmpty()) {
-            return@withContext emptySet()
-        }
-        assetsDao.getAssetIds(assetIds.map { it.toIdentifier() })
-            .mapNotNull { it.toAssetId() }
-            .toSet()
-    }
-
-    suspend fun hasWalletAssets(walletId: String, assetIds: List<AssetId>): Set<AssetId> = withContext(Dispatchers.IO) {
-        if (assetIds.isEmpty()) {
-            return@withContext emptySet()
-        }
-        assetsDao.getWalletAssetIds(walletId, assetIds.map { it.toIdentifier() })
-            .mapNotNull { it.toAssetId() }
-            .toSet()
-    }
-
     private val assetsInfo: Flow<List<AssetInfo>> = currentWalletId()
         .flatMapLatest { walletId -> assetsDao.getAssetsInfo(walletId) }
         .toAssetInfoModel()
@@ -229,7 +209,6 @@ class AssetsRepository @Inject constructor(
             streamSubscriptionService.addPrices(listOf(assetId.toIdentifier()))
         }
     }
-
 
     private suspend fun insertLocalAsset(walletId: String, asset: Asset, visible: Boolean) {
         assetsDao.insert(asset.defaultBasic.toRecord())

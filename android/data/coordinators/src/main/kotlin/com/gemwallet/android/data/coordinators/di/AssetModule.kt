@@ -19,7 +19,6 @@ import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.application.banner.coordinators.ApplyBannerAction
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
-import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
@@ -49,7 +48,6 @@ import com.gemwallet.android.data.coordinators.asset.GetPortfolioDataImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
 import com.gemwallet.android.data.coordinators.asset.DeviceAssetsSyncService
-import com.gemwallet.android.data.coordinators.asset.EnsureWalletAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.HideAssetImpl
 import com.gemwallet.android.data.coordinators.asset.HideWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.PrefetchAssetsImpl
@@ -185,16 +183,6 @@ object AssetModule {
         sessionRepository: SessionRepository,
         balanceService: GemBalanceService,
     ): EnableAsset = EnableAssetImpl(sessionRepository, balanceService)
-
-    @Provides
-    @Singleton
-    fun provideEnsureWalletAssets(
-        assetsRepository: AssetsRepository,
-        enableAsset: EnableAsset,
-    ): EnsureWalletAssets = EnsureWalletAssetsImpl(
-        assetsRepository = assetsRepository,
-        enableAsset = enableAsset,
-    )
 
     @Provides
     @Singleton
