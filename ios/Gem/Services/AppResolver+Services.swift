@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceAlertServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
@@ -42,7 +43,7 @@ extension AppResolver {
         let serviceStatusService: any GemServiceStatusProtocol
         let navigationHandler: NavigationHandler
         let navigationPresenter: NavigationPresenter
-        let priceAlertService: PriceAlertService
+        let priceAlertService: any GemPriceAlertServiceProtocol
         let streamObserverService: StreamObserverService
         let streamSubscriptionService: StreamSubscriptionService
         let priceService: any GemPriceServiceProtocol

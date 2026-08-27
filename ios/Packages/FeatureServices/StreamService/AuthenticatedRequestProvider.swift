@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Foundation
+import class Gemstone.GemDeviceRequestSigner
+import GemstonePrimitives
+import GemstoneServices
 import Preferences
 import Primitives
 import WebSocketClient
@@ -15,8 +17,7 @@ public struct AuthenticatedRequestProvider: WebSocketRequestProvider {
 
     public func makeRequest() throws -> URLRequest {
         let keyPair = try DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
-        let signer = try DeviceRequestSigner(privateKey: keyPair.privateKey)
-
+        let signer = try GemDeviceRequestSigner(privateKey: keyPair.privateKey)
         var request = URLRequest(url: Constants.deviceStreamWebSocketURL)
         request.httpMethod = "GET"
         try signer.sign(request: &request)

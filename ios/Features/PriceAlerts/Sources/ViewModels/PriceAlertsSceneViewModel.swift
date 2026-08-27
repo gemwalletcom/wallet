@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceAlertServiceProtocol
 import Localization
-import Preferences
 import GemstoneServices
 import Primitives
 import PrimitivesComponents
@@ -11,20 +11,18 @@ import SwiftUI
 @Observable
 @MainActor
 public final class PriceAlertsSceneViewModel: Sendable {
-    private let preferences: ObservablePreferences
-    private let priceAlertService: PriceAlertService
+    private let priceAlertService: any GemPriceAlertServiceProtocol
 
     public let query: ObservableQuery<PriceAlertsRequest>
     var priceAlerts: [PriceAlertData] {
         query.value
     }
 
-    public init(
-        preferences: ObservablePreferences = .default,
-        priceAlertService: PriceAlertService,
-    ) {
-        self.preferences = preferences
+    var isPriceAlertsEnabled: Bool
+
+    public init(priceAlertService: any GemPriceAlertServiceProtocol) {
         self.priceAlertService = priceAlertService
+        isPriceAlertsEnabled = (try? priceAlertService.isEnabled()) ?? false
         query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
     }
 
@@ -34,23 +32,6 @@ public final class PriceAlertsSceneViewModel: Sendable {
 
     var enableTitle: String {
         Localized.Settings.enableValue("")
-    }
-
-    @ObservationIgnored
-    var isPriceAlertsEnabled: Bool {
-        get {
-            access(keyPath: \.isPriceAlertsEnabled)
-            return (try? priceAlertService.isEnabled()) ?? false
-        }
-        set {
-            withMutation(keyPath: \.isPriceAlertsEnabled) {
-                do {
-                    try priceAlertService.setEnabled(newValue)
-                } catch {
-                    debugLog("setPriceAlertsEnabled error: \(error)")
-                }
-            }
-        }
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
@@ -80,7 +61,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
 extension PriceAlertsSceneViewModel {
     public func fetch() async {
         do {
-            try await priceAlertService.update()
+            try await priceAlertService.sync(assetId: nil)
         } catch {
             debugLog("getPriceAlerts error: \(error)")
         }
@@ -95,29 +76,11 @@ extension PriceAlertsSceneViewModel {
     }
 
     func handleAlertsEnabled(enabled: Bool) async {
-        if enabled {
-            await updateNotifications()
-        }
-        await deviceUpdate()
-    }
-
-    private func updateNotifications() async {
         do {
-            preferences.preferences.isPushNotificationsEnabled = try await requestPermissions()
+            try await priceAlertService.setEnabled(enabled: enabled)
         } catch {
-            debugLog("pushesUpdate error: \(error)")
+            isPriceAlertsEnabled = !enabled
+            debugLog("setPriceAlertsEnabled error: \(error)")
         }
-    }
-
-    private func deviceUpdate() async {
-        do {
-            try await priceAlertService.deviceUpdate()
-        } catch {
-            debugLog("deviceUpdate error: \(error)")
-        }
-    }
-
-    private func requestPermissions() async throws -> Bool {
-        try await priceAlertService.requestPermissions()
     }
 }

@@ -24,7 +24,7 @@ public extension SelectAssetViewModel {
             selectType: selectType,
             searchService: GemSearchServiceMock(),
             assetsEnabler: assetsEnabler,
-            priceAlertService: .mock(),
+            priceAlertService: GemPriceAlertServiceMock(),
             recentActivityStore: .mock(),
         )
         model.assetsQuery.value = assets

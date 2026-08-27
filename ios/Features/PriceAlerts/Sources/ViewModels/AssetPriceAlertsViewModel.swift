@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
 import Localization
 import Preferences
@@ -13,7 +14,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AssetPriceAlertsViewModel: Sendable {
-    let priceAlertService: PriceAlertService
+    let priceAlertService: any GemPriceAlertServiceProtocol
     let walletId: WalletId
     let asset: Asset
 
@@ -27,7 +28,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
     var isPresentingToastMessage: ToastMessage?
 
     public init(
-        priceAlertService: PriceAlertService,
+        priceAlertService: any GemPriceAlertServiceProtocol,
         walletId: WalletId,
         asset: Asset,
     ) {
@@ -76,7 +77,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
 extension AssetPriceAlertsViewModel {
     func fetch() async {
         do {
-            try await priceAlertService.update(assetId: asset.id.identifier)
+            try await priceAlertService.sync(assetId: asset.id.identifier)
         } catch {
             debugLog("fetch error: \(error)")
         }

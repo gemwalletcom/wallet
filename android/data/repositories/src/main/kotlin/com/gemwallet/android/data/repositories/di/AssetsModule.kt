@@ -23,8 +23,9 @@ import com.gemwallet.android.data.repositories.stream.WebSocketRequest
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
-import com.gemwallet.android.data.services.gemapi.http.GemDeviceRequestSigner
+import com.gemwallet.android.math.fromHex
+import kotlinx.coroutines.runBlocking
+import uniffi.gemstone.GemDeviceRequestSigner
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
 import uniffi.gemstone.GemApiClient
 import uniffi.gemstone.GemAssetStore
@@ -156,16 +157,16 @@ object AssetsModule {
     @Singleton
     fun provideDeviceRequestSigner(
         getDeviceId: GetDeviceId,
-    ): DeviceRequestSigner = GemDeviceRequestSigner(
-        getDeviceId = getDeviceId,
-    )
+    ): GemDeviceRequestSigner = runBlocking {
+        GemDeviceRequestSigner(getDeviceId.getDeviceKey().fromHex())
+    }
 
     @Provides
     @Singleton
     fun provideStreamObserverService(
         sessionRepository: SessionRepository,
         syncAssets: SyncAssets,
-        deviceRequestSigner: DeviceRequestSigner,
+        deviceRequestSigner: Lazy<GemDeviceRequestSigner>,
         streamSubscriptionService: StreamSubscriptionService,
         eventHandler: StreamEventHandler,
         syncDevice: SyncDevice,
@@ -180,7 +181,7 @@ object AssetsModule {
             requestProvider = {
                 WebSocketRequest(
                     url = Constants.DEVICE_STREAM_WEBSOCKET_URL,
-                    headers = deviceRequestSigner.sign("GET", Constants.DEVICE_STREAM_PATH).toHeaders(),
+                    headers = mapOf("Authorization" to deviceRequestSigner.get().sign("GET", Constants.DEVICE_STREAM_PATH, "", ByteArray(0))),
                 )
             },
             reconnection = ExponentialReconnection(maxDelay = 30.0),

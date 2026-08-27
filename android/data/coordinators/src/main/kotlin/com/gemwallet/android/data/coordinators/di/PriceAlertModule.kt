@@ -10,7 +10,6 @@ import com.gemwallet.android.application.pricealerts.coordinators.SetAssetPriceA
 import com.gemwallet.android.application.pricealerts.coordinators.SetPriceAlertsEnabled
 import com.gemwallet.android.application.pricealerts.coordinators.SyncAssetPriceAlerts
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.coordinators.pricealerts.ExcludePriceAlertImpl
 import com.gemwallet.android.data.coordinators.pricealerts.GetAssetPriceAlertStateImpl
 import com.gemwallet.android.data.coordinators.pricealerts.GetPriceAlertsImpl
@@ -65,8 +64,7 @@ object PriceAlertModule {
     @Singleton
     fun providePriceAlertsEnabledCoordinator(
         priceAlertService: GemPriceAlertService,
-        syncDevice: SyncDevice,
-    ): PriceAlertsEnabledCoordinator = PriceAlertsEnabledCoordinator(priceAlertService, syncDevice)
+    ): PriceAlertsEnabledCoordinator = PriceAlertsEnabledCoordinator(priceAlertService)
 
     @Provides
     fun provideGetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): GetPriceAlertsEnabled = coordinator

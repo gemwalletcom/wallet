@@ -1,4 +1,6 @@
 @testable import PriceAlerts
+import protocol Gemstone.GemPriceAlertServiceProtocol
+import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
@@ -65,7 +67,7 @@ private extension SetPriceAlertViewModel {
         SetPriceAlertViewModel(
             walletId: WalletId.mock(),
             asset: .mock(),
-            priceAlertService: .mock(),
+            priceAlertService: GemPriceAlertServiceMock(),
             onComplete: { _ in },
         )
     }

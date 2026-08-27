@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
 import Formatters
 import Foundation
@@ -16,7 +17,7 @@ import Style
 @Observable
 public final class SetPriceAlertViewModel {
     private let asset: Primitives.Asset
-    private let priceAlertService: PriceAlertService
+    private let priceAlertService: any GemPriceAlertServiceProtocol
     private let onComplete: StringAction
     private let preferences = Preferences.standard
     private let currencyFormatter = CurrencyFormatter(currencyCode: Preferences.standard.currency)
@@ -34,7 +35,7 @@ public final class SetPriceAlertViewModel {
     public init(
         walletId: Primitives.WalletId,
         asset: Primitives.Asset,
-        priceAlertService: PriceAlertService,
+        priceAlertService: any GemPriceAlertServiceProtocol,
         price: Double? = nil,
         onComplete: StringAction,
     ) {

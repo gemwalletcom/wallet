@@ -7,6 +7,8 @@ use std::sync::Arc;
 use primitives::{AssetId, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::services::banner::GemNotificationPermissions;
+use crate::services::device::GemDeviceSync;
 use crate::services::preferences::GemPreferencesService;
 
 pub use store::GemPriceAlertStore;
@@ -16,21 +18,47 @@ pub struct GemPriceAlertService {
     api: Arc<GemDeviceApiClient>,
     preferences: Arc<GemPreferencesService>,
     store: Arc<dyn GemPriceAlertStore>,
+    device: Arc<dyn GemDeviceSync>,
+    permissions: Arc<dyn GemNotificationPermissions>,
 }
 
 #[uniffi::export]
 impl GemPriceAlertService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, preferences: Arc<GemPreferencesService>, store: Arc<dyn GemPriceAlertStore>) -> Self {
-        Self { api, preferences, store }
+    pub fn new(
+        api: Arc<GemDeviceApiClient>,
+        preferences: Arc<GemPreferencesService>,
+        store: Arc<dyn GemPriceAlertStore>,
+        device: Arc<dyn GemDeviceSync>,
+        permissions: Arc<dyn GemNotificationPermissions>,
+    ) -> Self {
+        Self {
+            api,
+            preferences,
+            store,
+            device,
+            permissions,
+        }
     }
 
     pub fn is_enabled(&self) -> Result<bool, GemServiceError> {
         self.preferences.is_price_alerts_enabled()
     }
 
-    pub fn set_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        self.preferences.set_price_alerts_enabled(enabled)
+    pub async fn set_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        if self.is_enabled()? == enabled {
+            return Ok(());
+        }
+        if enabled {
+            self.permissions.request_permissions_or_open_settings().await?;
+        }
+        self.preferences.set_price_alerts_enabled(enabled)?;
+        self.device.sync_device().await
+    }
+
+    pub async fn enable_price_alert(&self, alert: PriceAlert) -> Result<(), GemServiceError> {
+        self.add_price_alerts(vec![alert]).await?;
+        self.set_enabled(true).await
     }
 
     pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {

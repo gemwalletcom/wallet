@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceAlertServiceProtocol
+import GemstonePrimitivesTestKit
 import Foundation
 @testable import PriceAlerts
 import GemstoneServicesTestKit
@@ -10,7 +12,7 @@ import Testing
 struct PriceAlertsViewModelTests {
     @Test @MainActor
     func testSections() {
-        let model = PriceAlertsSceneViewModel(priceAlertService: .mock())
+        let model = PriceAlertsSceneViewModel(priceAlertService: GemPriceAlertServiceMock())
 
         let autoAlert = PriceAlertData.mock()
         let manualAlert = PriceAlertData.mock(priceAlert: .mock(price: 5, priceDirection: .down))

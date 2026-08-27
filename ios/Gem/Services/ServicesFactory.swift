@@ -164,12 +164,12 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
             webSocket: webSocket,
         )
-        let gemPriceAlertService = Gemstone.GemPriceAlertService(api: gemDeviceApiClient, preferences: preferencesService, store: GemstonePriceAlertStore(store: storeManager.priceAlertStore))
-        let priceAlertService = Self.makePriceAlertService(
-            service: gemPriceAlertService,
-            deviceService: deviceService,
-            priceUpdater: streamSubscriptionService,
-            preferences: preferences,
+        let priceAlertService = Gemstone.GemPriceAlertService(
+            api: gemDeviceApiClient,
+            preferences: preferencesService,
+            store: GemstonePriceAlertStore(store: storeManager.priceAlertStore),
+            device: GemstoneDeviceSync(service: deviceService),
+            permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
         )
         let gemFiatService = Gemstone.GemFiatService(
             api: gemDeviceApiClient,
@@ -186,7 +186,7 @@ struct ServicesFactory {
         let streamEventService = StreamEventService(
             service: Gemstone.GemStreamService(
                 price: gemPriceService,
-                priceAlert: gemPriceAlertService,
+                priceAlert: priceAlertService,
                 balance: gemBalanceService,
                 transactions: gemTransactionsService,
                 nft: gemNftService,
@@ -459,20 +459,6 @@ extension ServicesFactory {
             postProcessingService: postProcessingService,
         )
         return TransactionStateScheduler(service: service)
-    }
-
-    private static func makePriceAlertService(
-        service: any Gemstone.GemPriceAlertServiceProtocol,
-        deviceService: any DeviceServiceable,
-        priceUpdater: any PriceUpdater,
-        preferences: Preferences,
-    ) -> PriceAlertService {
-        PriceAlertService(
-            service: service,
-            deviceService: deviceService,
-            priceUpdater: priceUpdater,
-            pushNotificationService: PushNotificationEnablerService(preferences: preferences),
-        )
     }
 
     private static func makeConnectionsService(

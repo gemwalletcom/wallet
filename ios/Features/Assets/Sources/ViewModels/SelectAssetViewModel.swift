@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
 import protocol Gemstone.GemSearchServiceProtocol
 import GemstoneServices
@@ -22,7 +23,7 @@ public final class SelectAssetViewModel {
     let flow: SelectAssetFlow
     let searchService: any GemSearchServiceProtocol
     let assetsEnabler: any AssetsEnabler
-    let priceAlertService: PriceAlertService
+    let priceAlertService: any GemPriceAlertServiceProtocol
     let recentActivityStore: RecentActivityStore
 
     public let wallet: Wallet
@@ -51,7 +52,7 @@ public final class SelectAssetViewModel {
         selectType: SelectAssetType,
         searchService: any GemSearchServiceProtocol,
         assetsEnabler: any AssetsEnabler,
-        priceAlertService: PriceAlertService,
+        priceAlertService: any GemPriceAlertServiceProtocol,
         recentActivityStore: RecentActivityStore,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],

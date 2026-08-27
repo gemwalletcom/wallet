@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
@@ -30,7 +31,7 @@ public final class AssetSceneViewModel: Sendable {
     private let preferences: ObservablePreferences = .default
 
     let explorerService: any GemExplorerServiceProtocol
-    public let priceAlertService: PriceAlertService
+    public let priceAlertService: any GemPriceAlertServiceProtocol
 
     private var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
 
@@ -48,7 +49,7 @@ public final class AssetSceneViewModel: Sendable {
         assetsService: any GemAssetsServiceProtocol,
         transactionsService: any GemTransactionsServiceProtocol,
         priceUpdater: any PriceUpdater,
-        priceAlertService: PriceAlertService,
+        priceAlertService: any GemPriceAlertServiceProtocol,
         bannerService: any GemBannerServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         input: AssetSceneInput,
@@ -589,7 +590,7 @@ extension AssetSceneViewModel {
 
     private func updatePriceAlerts() async {
         do {
-            try await priceAlertService.update(assetId: asset.id.identifier)
+            try await priceAlertService.sync(assetId: asset.id.identifier)
         } catch {
             debugLog("asset scene: price alerts update error \(error)")
         }

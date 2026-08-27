@@ -39,8 +39,8 @@ class IncludePriceAlertImpl(
             priceAlertRepository.enable(it.id)
         } ?: priceAlertRepository.addPriceAlert(priceAlert)
         try {
+            priceAlertService.enablePriceAlert(priceAlert.toJson())
             setPriceAlertsEnabled(true)
-            priceAlertService.addPriceAlerts(alerts = listOf(priceAlert.toJson()))
         } catch (_: Exception) {
             currentCoroutineContext().ensureActive()
         }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceAlertServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
 import Components
 import Formatters
@@ -27,7 +28,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     let walletId: WalletId
     let assetModel: AssetViewModel
     private let explorerService: any GemExplorerServiceProtocol
-    let priceAlertService: PriceAlertService
+    let priceAlertService: any GemPriceAlertServiceProtocol
 
     public var chartState: StateViewType<ChartValuesViewModel> = .loading
     public var selectedPeriod: ChartPeriod {
@@ -64,7 +65,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         priceService: any GemPriceServiceProtocol,
         priceStore: PriceStore,
         assetModel: AssetViewModel,
-        priceAlertService: PriceAlertService,
+        priceAlertService: any GemPriceAlertServiceProtocol,
         walletId: WalletId,
         preferences: Preferences = .standard,
         onSetPriceAlert: @escaping (Asset) -> Void,
@@ -121,7 +122,7 @@ public extension ChartSceneViewModel {
             if priceData?.priceAlerts.isNotEmpty == true {
                 Task {
                     do {
-                        try await priceAlertService.update(assetId: assetModel.asset.id.identifier)
+                        try await priceAlertService.sync(assetId: assetModel.asset.id.identifier)
                     } catch {
                         debugLog("chart scene: price alerts update error \(error)")
                     }

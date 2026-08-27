@@ -1,12 +1,16 @@
 pub mod rules;
+pub mod signer;
 pub mod store;
+pub mod sync;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::Device;
 
+pub use signer::GemDeviceRequestSigner;
 pub use store::GemDeviceStore;
+pub use sync::GemDeviceSync;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::subscription::GemSubscriptionService;
