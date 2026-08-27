@@ -35,11 +35,7 @@ pub fn next_wallet_index(wallets: &[Wallet]) -> i32 {
 }
 
 pub fn missing_chains(wallet: &Wallet, chains: &[Chain]) -> Vec<Chain> {
-    chains
-        .iter()
-        .copied()
-        .filter(|chain| !wallet.accounts.iter().any(|account| account.chain == *chain))
-        .collect()
+    chains.iter().copied().filter(|chain| wallet.account(*chain).is_none()).collect()
 }
 
 pub fn wallets_missing_chains(wallets: Vec<Wallet>, chains: &[Chain]) -> Vec<(Wallet, Vec<Chain>)> {
