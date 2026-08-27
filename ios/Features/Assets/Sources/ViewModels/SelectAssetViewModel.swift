@@ -41,7 +41,7 @@ public final class SelectAssetViewModel {
     var copyTypeViewModel: CopyTypeViewModel?
 
     public var isPresentingAddToken: Bool = false
-    public var assetSelection: AssetSelectionType?
+    public var assetSelection: SelectAssetInput?
 
     public var filterModel: AssetsFilterViewModel
     public var onSelectAssetAction: AssetAction
@@ -157,26 +157,8 @@ public final class SelectAssetViewModel {
 // MARK: - Business Logic
 
 extension SelectAssetViewModel {
-    public func updateRecent(assetId: AssetId) {
-        guard let data = selectType.recentActivityData(assetId: assetId) else { return }
-        do {
-            try recentActivityStore.add(data, walletId: wallet.id)
-        } catch {
-            debugLog("Failed to update recent activity: \(error)")
-        }
-    }
-
     func selectAsset(asset: Asset) {
-        switch flow.selectionEffect {
-        case .enablePriceAlert:
-            Task {
-                await setPriceAlert(assetId: asset.id, enabled: true)
-            }
-        case .recordRecent:
-            updateRecent(assetId: asset.id)
-        case .none:
-            break
-        }
+        applySelectionEffect(assetId: asset.id)
         onSelectAssetAction?(asset)
     }
 
@@ -235,7 +217,8 @@ extension SelectAssetViewModel {
     }
 
     func onSelectAsset(_ assetData: AssetData) {
-        assetSelection = .regular(SelectAssetInput(type: selectType, assetData: assetData))
+        applySelectionEffect(assetId: assetData.asset.id)
+        assetSelection = SelectAssetInput(type: selectType, assetData: assetData)
     }
 
     func displayAssetData(_ assetData: AssetData) -> AssetData {
@@ -254,7 +237,7 @@ extension SelectAssetViewModel {
     public func onSelectRecent(_ asset: Asset) {
         switch flow.rowSelection {
         case .navigate:
-            assetSelection = .recent(SelectAssetInput(type: selectType, assetData: assetData(for: asset)))
+            assetSelection = SelectAssetInput(type: selectType, assetData: assetData(for: asset))
         case .select:
             onSelectAssetAction?(asset)
         case .toggle:
@@ -271,6 +254,28 @@ extension SelectAssetViewModel {
 // MARK: - Private
 
 extension SelectAssetViewModel {
+    private func applySelectionEffect(assetId: AssetId) {
+        switch flow.selectionEffect {
+        case .enablePriceAlert:
+            Task {
+                await setPriceAlert(assetId: assetId, enabled: true)
+            }
+        case .recordRecent:
+            updateRecent(assetId: assetId)
+        case .none:
+            break
+        }
+    }
+
+    private func updateRecent(assetId: AssetId) {
+        guard let data = selectType.recentActivityData(assetId: assetId) else { return }
+        do {
+            try recentActivityStore.add(data, walletId: wallet.id)
+        } catch {
+            debugLog("Failed to update recent activity: \(error)")
+        }
+    }
+
     private func assetData(for asset: Asset) -> AssetData {
         if let assetData = assets.first(where: { $0.asset.id == asset.id }) {
             return assetData
