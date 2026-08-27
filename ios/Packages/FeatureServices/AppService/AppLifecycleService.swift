@@ -5,13 +5,11 @@ import ConnectionsService
 import ConnectionStatusService
 import GemstoneServices
 import Foundation
-import Preferences
 import Primitives
 import StreamService
 import SwiftUI
 
 public actor AppLifecycleService: Sendable {
-    private let preferences: Preferences
     private let connectionsService: ConnectionsService
     private let connectionStatusObserver: ConnectionStatusObserver
     private let deviceObserverService: DeviceObserverService
@@ -21,7 +19,6 @@ public actor AppLifecycleService: Sendable {
     private let walletSessionService: any WalletSessionManageable
 
     public init(
-        preferences: Preferences,
         connectionsService: ConnectionsService,
         connectionStatusObserver: ConnectionStatusObserver,
         deviceObserverService: DeviceObserverService,
@@ -30,7 +27,6 @@ public actor AppLifecycleService: Sendable {
         perpetualEnablerService: PerpetualEnablerService,
         walletSessionService: any WalletSessionManageable,
     ) {
-        self.preferences = preferences
         self.connectionsService = connectionsService
         self.connectionStatusObserver = connectionStatusObserver
         self.deviceObserverService = deviceObserverService
@@ -115,7 +111,14 @@ extension AppLifecycleService {
             await streamObserverService.disconnect()
             return
         }
-        if preferences.isDeviceRegistered == false {
+        let isRegistered: Bool
+        do {
+            isRegistered = try await deviceObserverService.isRegistered()
+        } catch {
+            debugLog("device registration read failed: \(error)")
+            isRegistered = false
+        }
+        if !isRegistered {
             await registerDevice()
         }
         await streamObserverService.connect()

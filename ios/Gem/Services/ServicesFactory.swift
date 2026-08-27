@@ -30,7 +30,7 @@ struct ServicesFactory {
     func makeServices(storages: AppResolver.Storages, navigation: NavigationStateManager) -> AppResolver.Services {
         let storeManager = storages.storeManager
         let securePreferences = SecurePreferences()
-        let preferencesService = Gemstone.GemPreferencesService(store: GemstonePreferencesStore(namespace: "gemstone_"))
+        let preferencesService = Gemstone.GemPreferencesService(store: GemstonePreferencesStore(namespace: "gemstone_", sharedKeys: Preferences.sharedKeys))
         let nodeService = NodeService(
             nodeStore: storeManager.nodeStore,
             service: GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore)),
@@ -235,7 +235,7 @@ struct ServicesFactory {
 
         let gemConfigService = Gemstone.GemConfigService(api: gemApiClient, preferences: preferencesService)
         let appUpdateService = Gemstone.GemAppUpdateService(config: gemConfigService, preferences: preferencesService)
-        let rateService = RateService(preferences: preferences)
+        let rateService = RateService(preferencesService: preferencesService)
 
         let appStartService = Gemstone.GemAppStartService(
             config: gemConfigService,
@@ -252,7 +252,6 @@ struct ServicesFactory {
         let onStartService = OnstartService(
             appStartService: appStartService,
             preferencesService: preferencesService,
-            preferences: preferences,
             walletService: walletService,
         )
 
@@ -312,7 +311,6 @@ struct ServicesFactory {
             preferences: preferences,
         )
         let appLifecycleService = AppLifecycleService(
-            preferences: preferences,
             connectionsService: connectionsService,
             connectionStatusObserver: connectionStatusObserver,
             deviceObserverService: deviceObserverService,

@@ -16,18 +16,17 @@ import StreamServiceTestKit
 
 public extension AppLifecycleService {
     static func mock(
-        preferences: Preferences = .mock(),
         connectionsService: ConnectionsService = .mock(),
         connectionStatusObserver: ConnectionStatusObserver = ConnectionStatusObserver(monitors: []),
         deviceObserverService: DeviceObserverService = .mock(),
         streamObserverService: StreamObserverService = .mock(),
         streamSubscriptionService: any GemStreamSubscriptionServiceProtocol = GemStreamSubscriptionServiceMock(),
+        preferences: Preferences = .standard,
         hyperliquidObserverService: PerpetualObserverMock = PerpetualObserverMock(),
         perpetualService: any PerpetualServiceable = PerpetualServiceMock(),
         walletSessionService: any WalletSessionManageable = WalletSessionService.mock(),
     ) -> AppLifecycleService {
         AppLifecycleService(
-            preferences: preferences,
             connectionsService: connectionsService,
             connectionStatusObserver: connectionStatusObserver,
             deviceObserverService: deviceObserverService,

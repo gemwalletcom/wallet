@@ -23,6 +23,8 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
         return try Primitives.Device.mock().json()
     }
 
+    public func isRegistered() async throws -> Bool { true }
+
     public func synchronizeIfNeeded() async throws {
         synchronizeIfNeededCalls += 1
         if let syncError {
@@ -74,6 +76,32 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     public func setPriceAlertsEnabled(enabled: Bool) throws {
         lock.withLock { priceAlertsEnabled = enabled }
     }
+
+    public func getCurrency() throws -> Gemstone.Currency? { nil }
+
+    public func setCurrency(currency _: Gemstone.Currency) throws {}
+
+    public func setupCurrency(localeCurrency _: String?) throws -> Gemstone.Currency { try Primitives.Currency.usd.json() }
+
+    public func getChartPeriod() throws -> Gemstone.ChartPeriod { try Primitives.ChartPeriod.day.json() }
+
+    public func setChartPeriod(period _: Gemstone.ChartPeriod) throws {}
+
+    public func getPerpetualChartPeriod() throws -> Gemstone.ChartPeriod { try Primitives.ChartPeriod.day.json() }
+
+    public func setPerpetualChartPeriod(period _: Gemstone.ChartPeriod) throws {}
+
+    public func isPushNotificationsEnabled() throws -> Bool { false }
+
+    public func setPushNotificationsEnabled(enabled _: Bool) throws {}
+
+    public func getLaunchesCount() throws -> UInt32 { 0 }
+
+    public func incrementLaunchesCount() throws -> UInt32 { 1 }
+
+    public func shouldRequestReview() throws -> Bool { false }
+
+    public func setRateApplicationShown() throws {}
 
     public func defaultCurrency(localeCurrency _: String?) -> Gemstone.Currency {
         "\"USD\""

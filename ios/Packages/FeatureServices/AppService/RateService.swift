@@ -1,23 +1,31 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Preferences
+import protocol Gemstone.GemPreferencesServiceProtocol
 import StoreKit
 
 public struct RateService: Sendable {
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
 
-    public init(preferences: Preferences) {
-        self.preferences = preferences
+    public init(preferencesService: any GemPreferencesServiceProtocol) {
+        self.preferencesService = preferencesService
     }
 
     public func perform() {
         #if targetEnvironment(simulator)
         #else
-            if preferences.launchesCount >= 5, !preferences.rateApplicationShown {
-                Task { @MainActor in
-                    if rate() {
-                        preferences.rateApplicationShown = true
+            do {
+                guard try preferencesService.shouldRequestReview() else { return }
+            } catch {
+                debugLog("RateService: review preference read failed: \(error)")
+                return
+            }
+            Task { @MainActor in
+                if rate() {
+                    do {
+                        try preferencesService.setRateApplicationShown()
+                    } catch {
+                        debugLog("RateService: review preference write failed: \(error)")
                     }
                 }
             }

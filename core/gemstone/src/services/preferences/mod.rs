@@ -1,9 +1,11 @@
+use std::str::FromStr;
 pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
+use primitives::ChartPeriod;
 use primitives::currency::Currency;
 use primitives::{Chain, ConfigResponse};
 
@@ -12,6 +14,12 @@ use crate::services::assets::AssetList;
 pub use store::GemPreferencesStore;
 
 const PRICE_ALERTS_ENABLED: &str = "price_alerts_enabled";
+const CURRENCY: &str = "currency";
+const CHART_PERIOD: &str = "chart_period";
+const PERPETUAL_CHART_PERIOD: &str = "perpetual_chart_period";
+const PUSH_NOTIFICATIONS_ENABLED: &str = "is_push_notifications_enabled";
+const LAUNCHES_COUNT: &str = "launches_count";
+const RATE_APPLICATION_SHOWN: &str = "rate_application_shown";
 const SKIPPED_APP_VERSION: &str = "skipped_app_version";
 const CONFIG: &str = "config";
 const BUY_ASSETS_VERSION: &str = "buy_assets_version";
@@ -34,6 +42,74 @@ impl GemPreferencesService {
     pub fn set_skipped_app_version(&self, version: String) -> Result<(), GemServiceError> {
         self.store.set(SKIPPED_APP_VERSION.to_string(), version)
     }
+    pub fn get_currency(&self) -> Result<Option<Currency>, GemServiceError> {
+        Ok(self.store.get(CURRENCY.to_string())?.and_then(|code| Currency::from_str(&code).ok()))
+    }
+
+    pub fn set_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
+        self.store.set(CURRENCY.to_string(), currency.as_ref().to_string())
+    }
+
+    pub fn setup_currency(&self, locale_currency: Option<String>) -> Result<Currency, GemServiceError> {
+        if let Some(currency) = self.get_currency()? {
+            return Ok(currency);
+        }
+        let currency = rules::default_currency(locale_currency);
+        self.set_currency(currency.clone())?;
+        Ok(currency)
+    }
+
+    pub fn get_chart_period(&self) -> Result<ChartPeriod, GemServiceError> {
+        Ok(self
+            .store
+            .get(CHART_PERIOD.to_string())?
+            .and_then(|value| ChartPeriod::from_str(&value).ok())
+            .unwrap_or(ChartPeriod::Day))
+    }
+
+    pub fn set_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
+        self.store.set(CHART_PERIOD.to_string(), period.as_ref().to_string())
+    }
+
+    pub fn get_perpetual_chart_period(&self) -> Result<ChartPeriod, GemServiceError> {
+        Ok(self
+            .store
+            .get(PERPETUAL_CHART_PERIOD.to_string())?
+            .and_then(|value| ChartPeriod::from_str(&value).ok())
+            .unwrap_or(ChartPeriod::Day))
+    }
+
+    pub fn set_perpetual_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
+        self.store.set(PERPETUAL_CHART_PERIOD.to_string(), period.as_ref().to_string())
+    }
+
+    pub fn is_push_notifications_enabled(&self) -> Result<bool, GemServiceError> {
+        Ok(self.store.get(PUSH_NOTIFICATIONS_ENABLED.to_string())?.as_deref() == Some("true"))
+    }
+
+    pub fn set_push_notifications_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        self.store.set(PUSH_NOTIFICATIONS_ENABLED.to_string(), enabled.to_string())
+    }
+
+    pub fn get_launches_count(&self) -> Result<u32, GemServiceError> {
+        Ok(self.store.get(LAUNCHES_COUNT.to_string())?.and_then(|value| value.parse().ok()).unwrap_or(0))
+    }
+
+    pub fn increment_launches_count(&self) -> Result<u32, GemServiceError> {
+        let count = self.get_launches_count()? + 1;
+        self.store.set(LAUNCHES_COUNT.to_string(), count.to_string())?;
+        Ok(count)
+    }
+
+    pub fn should_request_review(&self) -> Result<bool, GemServiceError> {
+        let shown = self.store.get(RATE_APPLICATION_SHOWN.to_string())?.as_deref() == Some("true");
+        Ok(rules::should_request_review(self.get_launches_count()?, shown))
+    }
+
+    pub fn set_rate_application_shown(&self) -> Result<(), GemServiceError> {
+        self.store.set(RATE_APPLICATION_SHOWN.to_string(), "true".to_string())
+    }
+
     pub fn is_price_alerts_enabled(&self) -> Result<bool, GemServiceError> {
         Ok(self.store.get(PRICE_ALERTS_ENABLED.to_string())?.as_deref() == Some("true"))
     }

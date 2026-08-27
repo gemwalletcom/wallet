@@ -147,6 +147,8 @@ public final class Preferences: @unchecked Sendable {
         configure(\._appearanceRawValue, key: Keys.appearance, defaultValue: Appearance.system.rawValue)
     }
 
+    public static let sharedKeys: Set<String> = [Keys.currency, Keys.launchesCount, Keys.rateApplicationShown]
+
     public func incrementLaunchesCount() {
         launchesCount += 1
     }

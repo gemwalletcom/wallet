@@ -14,10 +14,7 @@ use super::model::{Transaction, TransactionReceipt};
 use crate::ethereum_address_checksum;
 use primitives::{AssetId, Chain, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionType};
 
-use self::{
-    across::AcrossParser, mayan::MayanParser, okx::OkxParser, pancakeswap::PancakeSwapParser, universal_router::UniversalRouterParser,
-    yo::YoParser,
-};
+use self::{across::AcrossParser, mayan::MayanParser, okx::OkxParser, pancakeswap::PancakeSwapParser, universal_router::UniversalRouterParser, yo::YoParser};
 
 pub const EVENT_WORD_SIZE: usize = 64;
 
@@ -76,14 +73,7 @@ pub struct ProtocolParsers;
 
 impl ProtocolParsers {
     fn default_parsers() -> [&'static dyn ProtocolParser; 6] {
-        [
-            &AcrossParser,
-            &MayanParser,
-            &OkxParser,
-            &YoParser,
-            &PancakeSwapParser,
-            &UniversalRouterParser,
-        ]
+        [&AcrossParser, &MayanParser, &OkxParser, &YoParser, &PancakeSwapParser, &UniversalRouterParser]
     }
 
     pub fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, created_at: DateTime<Utc>) -> Option<PrimitivesTransaction> {
