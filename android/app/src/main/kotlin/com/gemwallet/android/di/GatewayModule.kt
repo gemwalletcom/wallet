@@ -207,8 +207,8 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemPortfolioService(apiClient: GemstoneDeviceApiClient, assetsRepository: Lazy<AssetsRepository>): GemPortfolioService =
-        GemPortfolioService(apiClient, GemstonePortfolioStore(assetsRepository))
+    fun provideGemPortfolioService(apiClient: GemstoneDeviceApiClient, assetsRepository: Lazy<AssetsRepository>, priceService: GemPriceService): GemPortfolioService =
+        GemPortfolioService(apiClient, GemstonePortfolioStore(assetsRepository), priceService)
 
     @Provides
     @Singleton

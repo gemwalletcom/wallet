@@ -208,12 +208,16 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 }
 
 public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchecked Sendable {
-    private let allTimeHigh: ChartValuePercentage?
-    private let allTimeLow: ChartValuePercentage?
+    private let allTimeHigh: Primitives.ChartValuePercentage?
+    private let allTimeLow: Primitives.ChartValuePercentage?
 
-    public init(allTimeHigh: ChartValuePercentage? = nil, allTimeLow: ChartValuePercentage? = nil) {
+    public init(allTimeHigh: Primitives.ChartValuePercentage? = nil, allTimeLow: Primitives.ChartValuePercentage? = nil) {
         self.allTimeHigh = allTimeHigh
         self.allTimeLow = allTimeLow
+    }
+
+    public func syncWalletValues(walletId _: Gemstone.WalletId, period _: Gemstone.ChartPeriod, currency _: Gemstone.Currency) async throws -> GemPortfolioValues {
+        try GemPortfolioValues(values: [], allTimeHigh: allTimeHigh?.json(), allTimeLow: allTimeLow?.json())
     }
 
     public func getAssets(period _: Gemstone.ChartPeriod, request _: Gemstone.PortfolioAssetsRequest) async throws -> Gemstone.PortfolioAssets {

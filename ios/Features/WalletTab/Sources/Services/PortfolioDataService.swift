@@ -15,16 +15,13 @@ enum PortfolioDataInput {
 public struct PortfolioDataService: Sendable {
     private let portfolioService: any GemPortfolioServiceProtocol
     private let perpetualService: any PerpetualServiceable
-    private let priceStore: PriceStore
 
     public init(
         portfolioService: any GemPortfolioServiceProtocol,
         perpetualService: any PerpetualServiceable,
-        priceStore: PriceStore,
     ) {
         self.portfolioService = portfolioService
         self.perpetualService = perpetualService
-        self.priceStore = priceStore
     }
 
     func getPortfoliData(input: PortfolioDataInput) async throws -> PortfolioData {
@@ -41,34 +38,20 @@ public struct PortfolioDataService: Sendable {
 
 extension PortfolioDataService {
     private func getWalletData(walletId: WalletId, period: ChartPeriod, currencyCode: String) async throws -> PortfolioData {
-        guard let rate = try priceStore.getRate(currency: currencyCode)?.rate else {
-            throw AnyError("unknown currency: \(currencyCode)")
-        }
-        let portfolio = try await PortfolioAssets(portfolioService.getWalletAssets(walletId: walletId.id, period: period.json()))
-
-        let values = portfolio.values.map {
-            ChartDateValue(
-                date: Date(timeIntervalSince1970: TimeInterval($0.timestamp)),
-                value: Double($0.value) * rate,
-            )
-        }
-
+        let portfolio = try await portfolioService.syncWalletValues(
+            walletId: walletId.id,
+            period: period.json(),
+            currency: Currency(id: currencyCode).json(),
+        )
+        let values = try portfolio.values.map { try Primitives.ChartDateValue($0) }
         let charts = [PortfolioChartData(chartType: .value, values: values)]
 
-        let statistics: [PortfolioStatistic] = [
-            portfolio.allTimeHigh.map { .allTimeHigh(convert($0, rate: rate)) },
-            portfolio.allTimeLow.map { .allTimeLow(convert($0, rate: rate)) },
+        let statistics: [PortfolioStatistic] = try [
+            portfolio.allTimeHigh.map { try .allTimeHigh(Primitives.ChartValuePercentage($0)) },
+            portfolio.allTimeLow.map { try .allTimeLow(Primitives.ChartValuePercentage($0)) },
         ].compactMap(\.self)
 
         return PortfolioData(charts: charts, statistics: statistics, availablePeriods: [.day, .week, .month, .year, .all])
-    }
-
-    private func convert(_ chartValue: ChartValuePercentage, rate: Double) -> ChartValuePercentage {
-        ChartValuePercentage(
-            date: chartValue.date,
-            value: chartValue.value * Float(rate),
-            percentage: chartValue.percentage,
-        )
     }
 
     private func getPerpetualData(address: String, period: ChartPeriod) async throws -> PortfolioData {

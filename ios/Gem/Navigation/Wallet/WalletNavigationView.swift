@@ -273,7 +273,6 @@ struct WalletNavigationView: View {
                             service: PortfolioDataService(
                                 portfolioService: portfolioService,
                                 perpetualService: perpetualService,
-                                priceStore: priceStore,
                             ),
                             preferences: preferences,
                             defaultType: defaultType,

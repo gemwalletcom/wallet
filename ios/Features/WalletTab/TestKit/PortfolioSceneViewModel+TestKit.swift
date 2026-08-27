@@ -22,7 +22,6 @@ public extension PortfolioDataService {
         PortfolioDataService(
             portfolioService: portfolioService,
             perpetualService: perpetualService,
-            priceStore: priceStore,
         )
     }
 }
