@@ -32,22 +32,6 @@ impl GemWalletConnectService {
         }
     }
 
-    pub fn select_session_wallets(
-        &self,
-        wallets: Vec<Wallet>,
-        current_wallet_id: Option<WalletId>,
-        required_chains: Vec<Chain>,
-        optional_chains: Vec<Chain>,
-    ) -> Option<GemSessionWallets> {
-        let wallets = rules::session_wallets(wallets, &required_chains, &optional_chains);
-        let default_wallet = rules::default_wallet(&wallets, current_wallet_id)?;
-        Some(GemSessionWallets { default_wallet, wallets })
-    }
-
-    pub fn session_chains(&self, wallet: Wallet, supported_chains: Vec<Chain>) -> Vec<Chain> {
-        rules::session_chains(&wallet, &supported_chains)
-    }
-
     pub fn prepare_session_proposal(
         &self,
         wallets: Vec<Wallet>,
@@ -159,5 +143,23 @@ impl GemWalletConnectService {
             WalletConnectAction::Unsupported { .. } => return Ok(GemWalletConnectResponse::MethodNotFound),
         };
         Ok(GemWalletConnectResponse::Response { value: response })
+    }
+}
+
+impl GemWalletConnectService {
+    pub fn select_session_wallets(
+        &self,
+        wallets: Vec<Wallet>,
+        current_wallet_id: Option<WalletId>,
+        required_chains: Vec<Chain>,
+        optional_chains: Vec<Chain>,
+    ) -> Option<GemSessionWallets> {
+        let wallets = rules::session_wallets(wallets, &required_chains, &optional_chains);
+        let default_wallet = rules::default_wallet(&wallets, current_wallet_id)?;
+        Some(GemSessionWallets { default_wallet, wallets })
+    }
+
+    pub fn session_chains(&self, wallet: Wallet, supported_chains: Vec<Chain>) -> Vec<Chain> {
+        rules::session_chains(&wallet, &supported_chains)
     }
 }

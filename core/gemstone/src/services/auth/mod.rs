@@ -30,7 +30,9 @@ impl GemAuthService {
             device_private_key,
         }
     }
+}
 
+impl GemAuthService {
     pub async fn get_nonce(&self) -> Result<AuthNonce, GemServiceError> {
         Ok(self.api.client.get_auth_nonce().await.map_err(GemApiError::from)?)
     }

@@ -22,16 +22,18 @@ impl GemDeviceRequestSigner {
         })
     }
 
-    pub fn public_key_hex(&self) -> String {
-        self.public_key_hex.clone()
-    }
-
     pub fn sign(&self, method: String, path: String, wallet_id: String, body: Vec<u8>) -> Result<String, GemServiceError> {
         let timestamp_ms = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map_err(|error| GemServiceError::Core { msg: error.to_string() })?
             .as_millis() as u64;
         gem_auth::build_device_auth_header(&self.private_key, &method, &path, &wallet_id, &body, timestamp_ms).map_err(|error| GemServiceError::Core { msg: error.to_string() })
+    }
+}
+
+impl GemDeviceRequestSigner {
+    pub fn public_key_hex(&self) -> String {
+        self.public_key_hex.clone()
     }
 }
 

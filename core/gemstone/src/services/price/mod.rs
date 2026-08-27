@@ -55,18 +55,20 @@ impl GemPriceService {
         self.store.save_market(asset_id, rules::market_in_currency(market, rate.rate)).await
     }
 
-    pub async fn observable_asset_ids(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
-        Ok(rules::observable_asset_ids(
-            self.store.get_enabled_price_asset_ids(wallet_id).await?,
-            asset_ids_enabled_by_default(),
-        ))
-    }
-
     pub async fn change_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
         let Some(rate) = rules::rate_or_base(currency.clone(), self.store.get_rate(currency.clone()).await?) else {
             return Err(GemServiceError::UnknownCurrency { currency: currency.to_string() });
         };
         self.store.convert_prices(currency, rate.rate).await
+    }
+}
+
+impl GemPriceService {
+    pub async fn observable_asset_ids(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
+        Ok(rules::observable_asset_ids(
+            self.store.get_enabled_price_asset_ids(wallet_id).await?,
+            asset_ids_enabled_by_default(),
+        ))
     }
 }
 

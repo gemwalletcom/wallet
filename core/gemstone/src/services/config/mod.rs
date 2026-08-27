@@ -28,16 +28,6 @@ impl GemConfigService {
         }
     }
 
-    pub async fn get_config(&self) -> ConfigResult {
-        if self.waiters().is_some() {
-            return self.update_config().await;
-        }
-        match self.preferences.get_config()? {
-            Some(config) => Ok(config),
-            None => self.update_config().await,
-        }
-    }
-
     pub async fn update_config(&self) -> ConfigResult {
         let receiver = {
             let mut waiters = self.waiters();
@@ -65,6 +55,18 @@ impl GemConfigService {
             let _ = sender.send(result.clone());
         }
         result
+    }
+}
+
+impl GemConfigService {
+    pub async fn get_config(&self) -> ConfigResult {
+        if self.waiters().is_some() {
+            return self.update_config().await;
+        }
+        match self.preferences.get_config()? {
+            Some(config) => Ok(config),
+            None => self.update_config().await,
+        }
     }
 }
 
