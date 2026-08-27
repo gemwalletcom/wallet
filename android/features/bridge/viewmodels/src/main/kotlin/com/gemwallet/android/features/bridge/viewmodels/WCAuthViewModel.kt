@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemWalletConnectService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
@@ -14,7 +15,6 @@ import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticatio
 import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
@@ -25,7 +25,6 @@ import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,6 +50,7 @@ class WCAuthViewModel @Inject constructor(
     private val signMessageOperator: GemSignMessageOperator,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
+    private val walletConnectService: GemWalletConnectService,
 ) : ViewModel() {
 
     private var authRequest: WalletConnectAuthenticationRequest? = null
@@ -273,9 +273,7 @@ class WCAuthViewModel @Inject constructor(
     }
 
     private fun WalletConnectAuthenticationRequest.ethereumChainIds(): List<String> {
-        return payloadParams.chains.distinct().filter { chainId ->
-            Chain.fromWalletConnectChainId(chainId)?.toChainType() == ChainType.Ethereum
-        }
+        return walletConnectService.authenticationChainIds(payloadParams.chains)
     }
 
     private fun payloadPreview(

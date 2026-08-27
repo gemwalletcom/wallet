@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use crate::services::collections::stale;
 
 use chrono::{DateTime, Utc};
+use primitives::ChainType;
 use primitives::{
     Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession,
     WalletConnectionState, WalletId, WalletType,
@@ -84,6 +85,16 @@ pub fn parse_chains(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Opt
 
 pub fn parse_known_chains(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Vec<Chain> {
     chain_ids.iter().filter_map(|chain_id| parse_chain(wallet_connect, chain_id)).collect()
+}
+
+pub fn authentication_chain_ids(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Vec<String> {
+    let mut seen = HashSet::new();
+    chain_ids
+        .iter()
+        .filter(|chain_id| parse_chain(wallet_connect, chain_id).is_some_and(|chain| chain.chain_type() == ChainType::Ethereum))
+        .filter(|chain_id| seen.insert((*chain_id).clone()))
+        .cloned()
+        .collect()
 }
 
 pub fn account_chains(wallet_connect: &WalletConnect, accounts: &[String]) -> Vec<Chain> {
@@ -291,6 +302,18 @@ mod tests {
                 &["eip155:1:0xabc".to_string(), "eip155:137:0xabc".to_string(), "eip155:1:0xdef".to_string()]
             ),
             vec![Chain::Ethereum, Chain::Polygon]
+        );
+        assert_eq!(
+            authentication_chain_ids(
+                &wallet_connect,
+                &[
+                    "eip155:1".to_string(),
+                    "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string(),
+                    "eip155:1".to_string(),
+                    "eip155:137".to_string()
+                ]
+            ),
+            vec!["eip155:1".to_string(), "eip155:137".to_string()]
         );
 
         let metadata = application_metadata(

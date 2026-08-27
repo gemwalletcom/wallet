@@ -60,6 +60,10 @@ impl GemWalletConnectService {
         Ok(())
     }
 
+    pub fn authentication_chain_ids(&self, chain_ids: Vec<String>) -> Vec<String> {
+        rules::authentication_chain_ids(&self.wallet_connect, &chain_ids)
+    }
+
     pub async fn has_sessions(&self) -> Result<bool, GemServiceError> {
         Ok(!self.store.get_sessions().await?.is_empty())
     }

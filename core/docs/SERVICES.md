@@ -131,12 +131,10 @@ State on 2026-08-28: every app service forwards to a Core service or is platform
 
 ### Rust (core/gemstone)
 
-- WalletConnect auth chain rule: Android `WCAuthViewModel` checks `toChainType() == Ethereum` before building the auth response; move the "which chains can authenticate" rule into `GemWalletConnectService`.
 - Transfer model: generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums collapse (132 Core, 49 Android, 7 iOS call sites — do it last, transaction construction is wallet-critical).
 
 ### iOS
 
-- Wallet limit: `WalletsSceneViewModel.walletsLimit` (100, 1000 in debug) is an app constant; if Android enforces a limit too, move it to Core config, otherwise delete the debug variant.
 
 ### Android
 
