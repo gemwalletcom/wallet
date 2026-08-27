@@ -25,11 +25,11 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
         model = UIDevice.current.modelName
     }
 
-    public func deviceId() throws -> String {
+    public func deviceId() async throws -> String {
         try securePreferences.getDeviceId()
     }
 
-    public func deviceInfo() throws -> GemDeviceInfo {
+    public func deviceInfo() async throws -> GemDeviceInfo {
         try GemDeviceInfo(
             platform: Platform.ios.json(),
             platformStore: PlatformStore.current.json(),
@@ -40,15 +40,15 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
         )
     }
 
-    public func pushToken() throws -> String {
+    public func pushToken() async throws -> String {
         try securePreferences.get(key: .deviceToken) ?? .empty
     }
 
-    public func isPushEnabled() throws -> Bool {
+    public func isPushEnabled() async throws -> Bool {
         preferences.isPushNotificationsEnabled
     }
 
-    public func currency() throws -> String {
+    public func currency() async throws -> String {
         try Currency(id: preferences.currency).json()
     }
 }

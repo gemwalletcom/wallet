@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemDeviceInfo
 import uniffi.gemstone.GemDevicePlatform
 import uniffi.gemstone.GemDeviceService
-import kotlinx.coroutines.runBlocking
 import java.util.Locale
 
 class DeviceRepository(
@@ -89,9 +88,9 @@ class DeviceRepository(
 
     override suspend fun isDeviceRegistered(): Boolean = deviceStore.isRegistered()
 
-    override fun deviceId(): String = runBlocking { getDeviceId.getDeviceId() }
+    override suspend fun deviceId(): String = getDeviceId.getDeviceId()
 
-    override fun deviceInfo(): GemDeviceInfo = GemDeviceInfo(
+    override suspend fun deviceInfo(): GemDeviceInfo = GemDeviceInfo(
         platform = Platform.Android.toJson(),
         platformStore = platformStore.toJson(),
         os = Platform.os,
@@ -100,7 +99,7 @@ class DeviceRepository(
         locale = getDeviceLocale(Locale.getDefault()).toJson(),
     )
 
-    override fun pushToken(): String = runBlocking {
+    override suspend fun pushToken(): String {
         val enabled = getPushEnabled().firstOrNull() ?: false
         val token = if (enabled) getPushToken() else ""
         if (enabled && token.isEmpty()) {
@@ -109,12 +108,12 @@ class DeviceRepository(
                 scope.launch { runCatching { syncDevice() } }
             }
         }
-        token
+        return token
     }
 
-    override fun isPushEnabled(): Boolean = runBlocking { getPushEnabled().firstOrNull() ?: false }
+    override suspend fun isPushEnabled(): Boolean = getPushEnabled().firstOrNull() ?: false
 
-    override fun currency(): String = runBlocking { getCurrentCurrency.getCurrentCurrency().toJson() }
+    override suspend fun currency(): String = getCurrentCurrency.getCurrentCurrency().toJson()
 
     internal enum class ConfigKey(val string: String) {
         PushToken("push_token"),

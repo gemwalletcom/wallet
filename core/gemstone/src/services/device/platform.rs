@@ -2,6 +2,7 @@ use primitives::currency::Currency;
 use primitives::{DeviceLocale, Platform, PlatformStore};
 
 use crate::services::error::GemServiceError;
+use async_trait::async_trait;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemDeviceInfo {
@@ -14,10 +15,11 @@ pub struct GemDeviceInfo {
 }
 
 #[uniffi::export(rust, foreign)]
+#[async_trait]
 pub trait GemDevicePlatform: Send + Sync {
-    fn device_id(&self) -> Result<String, GemServiceError>;
-    fn device_info(&self) -> Result<GemDeviceInfo, GemServiceError>;
-    fn push_token(&self) -> Result<String, GemServiceError>;
-    fn is_push_enabled(&self) -> Result<bool, GemServiceError>;
-    fn currency(&self) -> Result<Currency, GemServiceError>;
+    async fn device_id(&self) -> Result<String, GemServiceError>;
+    async fn device_info(&self) -> Result<GemDeviceInfo, GemServiceError>;
+    async fn push_token(&self) -> Result<String, GemServiceError>;
+    async fn is_push_enabled(&self) -> Result<bool, GemServiceError>;
+    async fn currency(&self) -> Result<Currency, GemServiceError>;
 }
