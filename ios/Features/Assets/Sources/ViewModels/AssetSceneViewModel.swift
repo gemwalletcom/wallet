@@ -232,7 +232,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var visibleBanners: [Banner] {
-        (try? bannerService.visibleBanners(banners, wallet: wallet, asset: assetData.asset, context: bannerContext)) ?? []
+        (try? bannerService.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset, context: bannerContext)) ?? []
     }
 
     private var bannerContext: GemBannerContext {

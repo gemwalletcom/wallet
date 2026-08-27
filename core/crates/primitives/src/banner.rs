@@ -2,15 +2,14 @@ use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
 use typeshare::typeshare;
 
-use crate::{Asset, Chain, Wallet};
+use crate::{Asset, WalletId};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Banner {
-    pub wallet: Option<Wallet>,
+    pub wallet_id: Option<WalletId>,
     pub asset: Option<Asset>,
-    pub chain: Option<Chain>,
     pub event: BannerEvent,
     pub state: BannerState,
 }

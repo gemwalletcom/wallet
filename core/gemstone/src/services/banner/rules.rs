@@ -74,7 +74,6 @@ fn asset_key(chain: Chain, event: BannerEvent) -> GemBannerKey {
     GemBannerKey {
         wallet_id: None,
         asset_id: Some(AssetId::from_chain(chain)),
-        chain: None,
         event,
     }
 }
@@ -93,7 +92,6 @@ pub fn wallet_setup_keys(wallet: &Wallet) -> Vec<GemBannerKey> {
         WalletSource::Create => Some(GemBannerKey {
             wallet_id: Some(wallet.id.clone()),
             asset_id: None,
-            chain: None,
             event: BannerEvent::Onboarding,
         }),
         WalletSource::Import => None,
@@ -197,7 +195,7 @@ mod tests {
     #[test]
     fn test_setup_keys() {
         let keys = setup_keys();
-        assert!(keys.iter().all(|key| key.wallet_id.is_none() && key.chain.is_none()));
+        assert!(keys.iter().all(|key| key.wallet_id.is_none()));
         assert!(
             keys.iter()
                 .any(|key| key.event == BannerEvent::Stake && key.asset_id == Some(AssetId::from_chain(Chain::Cosmos)))

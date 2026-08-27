@@ -33,7 +33,6 @@ class GemstoneBannerStore(
         id = bannerIdentifier(this),
         walletId = walletId,
         assetId = assetId,
-        chain = chain?.requireChain(),
         event = event.decodeJson<BannerEvent>(),
         state = state.decodeJson(),
     )

@@ -12,9 +12,8 @@ public extension Primitives.Banner {
     var gemKey: GemBannerKey {
         get throws {
             try GemBannerKey(
-                walletId: wallet?.id.id,
+                walletId: walletId?.id,
                 assetId: asset?.id.identifier,
-                chain: chain?.rawValue,
                 event: event.json(),
             )
         }
@@ -34,14 +33,13 @@ public extension Primitives.BannerActionType {
 }
 
 public extension GemBannerServiceProtocol {
-    func visibleBanners(_ banners: [Banner], wallet: Wallet?, asset: Asset?, context: GemBannerContext) throws -> [Banner] {
+    func visibleBanners(_ banners: [Banner], walletId: WalletId?, asset: Asset?, context: GemBannerContext) throws -> [Banner] {
         let stored = try banners.map { try GemBannerItem(event: $0.event.json(), state: $0.state.json()) }
         return try visibleBanners(stored: stored, context: context).map { item in
             let event = try Primitives.BannerEvent(item.event)
             return try banners.first { $0.event == event } ?? Banner(
-                wallet: wallet,
+                walletId: walletId,
                 asset: asset,
-                chain: .none,
                 event: event,
                 state: Primitives.BannerState(item.state),
             )

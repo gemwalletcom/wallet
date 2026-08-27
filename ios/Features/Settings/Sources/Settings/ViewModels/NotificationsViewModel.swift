@@ -56,7 +56,7 @@ extension NotificationsViewModel {
         case true:
             self.isEnabled = try await requestPermissionsOrOpenSettings()
             if isEnabled {
-                try await bannerService.close(key: GemBannerKey(walletId: nil, assetId: nil, chain: nil, event: BannerEvent.enableNotifications.json()))
+                try await bannerService.close(key: GemBannerKey(walletId: nil, assetId: nil, event: BannerEvent.enableNotifications.json()))
             }
         case false:
             try preferencesService.setPushNotificationsEnabled(enabled: isEnabled)

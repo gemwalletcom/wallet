@@ -24,7 +24,7 @@ struct GemBannerServiceTests {
     @Test
     func enableNotificationsClosesOnlyWhenPermissionsGranted() async throws {
         for granted in [true, false] {
-            let banner = Banner(wallet: nil, asset: nil, chain: nil, event: .enableNotifications, state: .active)
+            let banner = Banner(walletId: nil, asset: nil, event: .enableNotifications, state: .active)
             let (store, _, service, permissions) = try makeService(banner: banner, granted: granted)
 
             try await service.applyAction(key: banner.gemKey, action: .event(event: BannerEvent.enableNotifications.json()))
@@ -49,7 +49,7 @@ struct GemBannerServiceTests {
     }
 
     private func makeService(
-        banner: Banner = Banner(wallet: nil, asset: nil, chain: nil, event: .stake, state: .active),
+        banner: Banner = Banner(walletId: nil, asset: nil, event: .stake, state: .active),
         granted: Bool = true,
         chains: [Chain] = [],
         wallets: [Wallet] = [],
@@ -60,7 +60,7 @@ struct GemBannerServiceTests {
             try walletStore.addWallet(wallet)
         }
         let store = BannerStore.mock(db: db)
-        try store.addBanners([NewBanner(walletId: banner.wallet?.id.id, assetId: banner.asset?.id, chain: banner.chain, event: banner.event, state: banner.state)])
+        try store.addBanners([NewBanner(walletId: banner.walletId?.id, assetId: banner.asset?.id, event: banner.event, state: banner.state)])
         let permissions = NotificationPermissionsMock(granted: granted)
         let service = GemBannerService(store: GemstoneBannerStore(store: store), permissions: permissions)
         return (store, banner, service, permissions)

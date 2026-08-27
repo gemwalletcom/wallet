@@ -188,10 +188,7 @@ struct BannerViewModel {
     }
 
     private var asset: Asset? {
-        if let asset = banner.asset {
-            return asset
-        }
-        return banner.chain?.asset
+        banner.asset
     }
 }
 

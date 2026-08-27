@@ -22,16 +22,14 @@ public enum BannerState: String, Codable, CaseIterable, Equatable, Sendable {
 }
 
 public struct Banner: Codable, Equatable, Sendable {
-	public let wallet: Wallet?
+	public let walletId: WalletId?
 	public let asset: Asset?
-	public let chain: Chain?
 	public let event: BannerEvent
 	public let state: BannerState
 
-	public init(wallet: Wallet?, asset: Asset?, chain: Chain?, event: BannerEvent, state: BannerState) {
-		self.wallet = wallet
+	public init(walletId: WalletId?, asset: Asset?, event: BannerEvent, state: BannerState) {
+		self.walletId = walletId
 		self.asset = asset
-		self.chain = chain
 		self.event = event
 		self.state = state
 	}
