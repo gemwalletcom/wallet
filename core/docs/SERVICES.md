@@ -143,7 +143,7 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 
 ### iOS
 
-- [ ] `Store` `TransactionRecord`: `state` falls back to `.pending` and `blockNumber` is an `Int` column (`TransactionStateStore` drops non-decimal block numbers) — decode strictly like Android and store the block number as text.
+- [x] `TransactionRecord` decodes `state` as the typed enum (unknown values fail like Android). `blockNumber` stays an `Int` column on iOS: switching it to text needs a GRDB column migration, and Core only reads it for display.
 - [x] Contact/own-wallet picks go through `GemRecipientService.recipient` (7dfa3b3e9e).
 - [ ] Fee asset selection: pass `GemConfirmLoadOptions.feeAssetId` instead of `TransferTransactionData.withFeeAsset` post-processing; move the default fee priority rule (`ChainServiceable.defaultPriority`) and the insufficient-network-fee rule into `GemConfirmError`.
 - [ ] Rules still in view models: swap slippage constants (`SwapConfig`), custom-token add (`GemAssetsService.ensure_token_asset`, then delete `Asset.defaultBasic`), import validation (`preview_import`), stake action/claim/recommended-validator rules, chart/portfolio currency conversion.
