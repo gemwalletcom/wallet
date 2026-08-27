@@ -75,17 +75,6 @@ pub enum BroadcastResult {
     Error(String),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExplorerTransactionResponse {
-    pub tx: ExplorerTransaction,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExplorerTransaction {
-    pub time: i64,
-    pub user: String,
-}
-
 impl TransactionBroadcastResponse {
     pub fn into_result(self, action_id: Option<String>) -> BroadcastResult {
         match self {

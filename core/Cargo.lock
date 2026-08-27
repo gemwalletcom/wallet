@@ -685,7 +685,6 @@ dependencies = [
 name = "api_connector"
 version = "2.114.11"
 dependencies = [
- "chrono",
  "gem_client",
  "primitives",
  "reqwest 0.13.4",

@@ -24,13 +24,6 @@ pub struct ChainNodes {
     pub nodes: Vec<Node>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NodesResponse {
-    pub version: i32,
-    pub nodes: Vec<ChainNodes>,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, PartialEq)]
 #[typeshare(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
