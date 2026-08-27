@@ -300,7 +300,10 @@ fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSelection) -> 
 mod tests {
     use super::*;
     use crate::models::gateway::GemGasPriceType;
-    use primitives::{ApplicationMetadata, Asset, TransactionType, TransferDataExtra, swap::SwapData};
+    use primitives::{
+        ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, StakeType, TransactionType, TransferDataExtra,
+        swap::{ApprovalData, SwapData},
+    };
 
     fn rate(priority: &str, gas_price: &str) -> GemFeeRate {
         GemFeeRate {
@@ -333,6 +336,47 @@ mod tests {
     }
 
     #[test]
+    fn test_select_fee_rate_custom() {
+        let eip1559 = GemFeeRate {
+            priority: "normal".to_string(),
+            gas_price_type: GemGasPriceType::Eip1559 {
+                gas_price: "20".to_string(),
+                priority_fee: "5".to_string(),
+            },
+        };
+        let rates = vec![rate("slow", "1"), eip1559];
+
+        let raised = select_fee_rate(&rates, &GemConfirmFeeSelection::Custom { gas_price: "30".to_string() }).unwrap();
+        assert_eq!(raised.priority, "normal");
+        match raised.gas_price_type {
+            GemGasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price.as_str(), priority_fee.as_str()), ("25", "5")),
+            gas_price_type => panic!("expected an eip1559 custom gas price, got {gas_price_type:?}"),
+        }
+
+        let capped = select_fee_rate(&rates, &GemConfirmFeeSelection::Custom { gas_price: "3".to_string() }).unwrap();
+        match capped.gas_price_type {
+            GemGasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price.as_str(), priority_fee.as_str()), ("0", "3")),
+            gas_price_type => panic!("expected a capped eip1559 gas price, got {gas_price_type:?}"),
+        }
+
+        let without_normal = select_fee_rate(&[rate("slow", "1"), rate("fast", "9")], &GemConfirmFeeSelection::Custom { gas_price: "4".to_string() }).unwrap();
+        assert_eq!(without_normal.priority, "slow");
+        match without_normal.gas_price_type {
+            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, "4"),
+            gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
+        }
+
+        match select_fee_rate(&rates, &GemConfirmFeeSelection::Custom { gas_price: "abc".to_string() }) {
+            Err(GemConfirmError::Load { .. }) => {}
+            result => panic!("expected a load error for a malformed gas price, got {result:?}"),
+        }
+        match select_fee_rate(&[], &GemConfirmFeeSelection::Custom { gas_price: "1".to_string() }) {
+            Err(GemConfirmError::FeeRatesMissing) => {}
+            result => panic!("expected missing fee rates, got {result:?}"),
+        }
+    }
+
+    #[test]
     fn test_broadcast_policy() {
         let transfer = GemTransactionInputType::Transfer { asset: Asset::mock_sol() };
         let swap = GemTransactionInputType::Swap {
@@ -346,14 +390,40 @@ mod tests {
             extra: TransferDataExtra::mock().into(),
         };
 
+        let approve = GemTransactionInputType::TokenApprove {
+            asset: Asset::mock_sol(),
+            approval_data: ApprovalData::mock(),
+        };
+        let stake = GemTransactionInputType::Stake {
+            asset: Asset::mock_sol(),
+            stake_type: StakeType::Rewards(vec![]),
+        };
+        let perpetual = GemTransactionInputType::Perpetual {
+            asset: Asset::mock_sol(),
+            perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
+        };
+        let ethereum_swap = GemTransactionInputType::Swap {
+            from_asset: Asset::mock(),
+            to_asset: Asset::mock_erc20(),
+            swap_data: SwapData::mock(),
+        };
+
         assert!(broadcast_options(Chain::Solana, &swap).skip_preflight);
         assert!(broadcast_options(Chain::Solana, &payment).skip_preflight);
         assert!(!broadcast_options(Chain::Solana, &transfer).skip_preflight);
+        assert!(!broadcast_options(Chain::Solana, &approve).skip_preflight);
+        assert!(!broadcast_options(Chain::Solana, &stake).skip_preflight);
+        assert!(!broadcast_options(Chain::Solana, &perpetual).skip_preflight);
         assert!(!broadcast_options(Chain::Ethereum, &payment).skip_preflight);
+        assert!(!broadcast_options(Chain::Ethereum, &ethereum_swap).skip_preflight);
 
         assert_eq!(broadcast_delay_milliseconds(Chain::Ethereum), 0);
         assert_eq!(broadcast_delay_milliseconds(Chain::HyperCore), 0);
         assert_eq!(broadcast_delay_milliseconds(Chain::Solana), 500);
+        for chain in Chain::all() {
+            let is_instant = matches!(chain.chain_type(), ChainType::Ethereum | ChainType::HyperCore);
+            assert_eq!(broadcast_delay_milliseconds(chain), if is_instant { 0 } else { 500 }, "{chain}");
+        }
     }
 
     #[test]

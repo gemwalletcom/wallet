@@ -261,7 +261,9 @@ mod tests {
     use crate::models::transaction::{GemFeeOptions, GemTransactionLoadFee, GemTransactionLoadMetadata};
     use num_bigint::BigUint;
     use primitives::{
-        Delegation, DelegationBase, DelegationState, DelegationValidator, Resource, StakeProviderType, SwapProvider, TransactionType,
+        Delegation, DelegationBase, DelegationState, DelegationValidator, NFTAsset, PerpetualConfirmData, PerpetualDirection, Resource, StakeProviderType, SwapProvider,
+        TransactionType, TransferDataExtra,
+        known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
     };
     use std::collections::HashMap;
@@ -329,6 +331,13 @@ mod tests {
                 provider_type: StakeProviderType::Stake,
             },
             price: None,
+        }
+    }
+
+    fn perpetual_input(asset: Asset) -> GemTransactionInputType {
+        GemTransactionInputType::Perpetual {
+            asset,
+            perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
         }
     }
 
@@ -405,6 +414,73 @@ mod tests {
         assert!(fee_asset(&tempo_token).id.is_token());
         let hypercore = GemTransactionInputType::Transfer { asset: asset(Chain::HyperCore) };
         assert_eq!(fee_asset(&hypercore).asset_type, AssetType::TOKEN);
+        assert_eq!(fee_asset(&tempo_token).id, token(Chain::Tempo, "0xusdc").id);
+
+        let perpetual = perpetual_input(asset(Chain::HyperCore));
+        assert_eq!(fee_asset(&perpetual).id, HYPERCORE_PERPETUAL_USDC.id);
+        assert_eq!(fee_asset(&perpetual).asset_type, AssetType::PERPETUAL);
+        let nft = GemTransactionInputType::TransferNft {
+            asset: token(Chain::Ethereum, "0xusdc"),
+            nft_asset: NFTAsset::mock(),
+        };
+        assert_eq!(fee_asset(&nft).id, AssetId::from_chain(Chain::Ethereum));
+        let spl = GemTransactionInputType::Transfer { asset: Asset::mock_spl_token() };
+        assert_eq!(fee_asset(&spl).id, AssetId::from_chain(Chain::Solana));
+    }
+
+    #[test]
+    fn test_output_and_spends_balance() {
+        let signature = GemTransactionInputType::Generic {
+            asset: asset(Chain::Ethereum),
+            metadata: primitives::ApplicationMetadata::mock(),
+            extra: TransferDataExtra {
+                output_type: TransferDataOutputType::Signature,
+                output_action: TransferDataOutputAction::Sign,
+                ..TransferDataExtra::mock()
+            }
+            .into(),
+        };
+        let signed = output(&signature);
+        assert_eq!(signed.output_type, TransferDataOutputType::Signature);
+        assert_eq!(signed.output_action, TransferDataOutputAction::Sign);
+
+        let withdrawal = GemTransactionInputType::Withdrawal { asset: asset(Chain::HyperCore) };
+        let sent = output(&withdrawal);
+        assert_eq!(sent.output_type, TransferDataOutputType::EncodedTransaction);
+        assert_eq!(sent.output_action, TransferDataOutputAction::Send);
+        assert_eq!(output(&perpetual_input(asset(Chain::HyperCore))).output_action, TransferDataOutputAction::Send);
+
+        assert!(spends_balance(&withdrawal));
+        assert!(!spends_balance(&perpetual_input(asset(Chain::HyperCore))));
+        assert!(!spends_balance(&GemTransactionInputType::Stake {
+            asset: asset(Chain::Cosmos),
+            stake_type: StakeType::Unstake(delegation(1)),
+        }));
+    }
+
+    #[test]
+    fn test_hypercore_tracking_skips_intermediate_legs_and_non_orders() {
+        let intermediate = swap_input(asset(Chain::HyperCore), asset(Chain::HyperCore), SwapProvider::Hyperliquid, None);
+        assert!(
+            pending_transaction(pending_input(intermediate.clone(), TransactionType::Swap, "h", 0, 2))
+                .unwrap()
+                .is_none()
+        );
+        assert!(pending_transaction(pending_input(intermediate, TransactionType::Swap, "h", 1, 2)).unwrap().is_some());
+        let other_provider = swap_input(asset(Chain::HyperCore), asset(Chain::HyperCore), SwapProvider::Thorchain, None);
+        assert!(pending_transaction(pending_input(other_provider, TransactionType::Swap, "h", 0, 2)).unwrap().is_some());
+
+        let perpetual = perpetual_input(asset(Chain::HyperCore));
+        assert!(
+            pending_transaction(pending_input(perpetual.clone(), TransactionType::PerpetualOpenPosition, "order:1", 0, 1))
+                .unwrap()
+                .is_some()
+        );
+        assert!(
+            pending_transaction(pending_input(perpetual, TransactionType::PerpetualOpenPosition, "0xabc", 0, 1))
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[test]

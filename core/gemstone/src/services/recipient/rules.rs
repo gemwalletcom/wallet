@@ -111,4 +111,60 @@ mod tests {
         );
         assert_eq!(recipient(Chain::Ethereum, "0xinvalid", None, None, vec![]), Err(GemRecipientError::InvalidAddress));
     }
+
+    #[test]
+    fn test_input_is_trimmed_and_prefix_is_case_sensitive() {
+        let padded = format!("  {ADDRESS} \n");
+        assert!(validation(Chain::Ethereum, &padded, None).is_valid);
+        assert_eq!(recipient(Chain::Ethereum, &padded, None, None, vec![]).unwrap().address, CHECKSUMMED);
+
+        let upper_prefix = ADDRESS.replacen("0x", "0X", 1);
+        assert!(!validation(Chain::Ethereum, &upper_prefix, None).is_valid);
+        assert_eq!(recipient(Chain::Ethereum, &upper_prefix, None, None, vec![]), Err(GemRecipientError::InvalidAddress));
+    }
+
+    #[test]
+    fn test_name_record_matching_is_exact() {
+        let ens = record("vitalik.eth", ADDRESS, Chain::Ethereum);
+        assert!(!validation(Chain::Ethereum, "Vitalik.eth", Some(&ens)).is_valid);
+        assert_eq!(
+            recipient(Chain::Ethereum, "Vitalik.eth", Some(&ens), None, vec![]),
+            Err(GemRecipientError::NameRecordMismatch)
+        );
+        assert_eq!(
+            recipient(Chain::Ethereum, " vitalik.eth", Some(&ens), None, vec![]),
+            Err(GemRecipientError::NameRecordMismatch)
+        );
+        assert_eq!(
+            recipient(Chain::Polygon, "vitalik.eth", Some(&ens), None, vec![]),
+            Err(GemRecipientError::NameRecordMismatch)
+        );
+
+        let empty = record("vitalik.eth", "", Chain::Ethereum);
+        assert_eq!(
+            recipient(Chain::Ethereum, "vitalik.eth", Some(&empty), None, vec![]),
+            Err(GemRecipientError::InvalidAddress)
+        );
+        let fallback = validation(Chain::Ethereum, "vitalik.eth", Some(&empty));
+        assert!(!fallback.is_valid);
+        assert_eq!(fallback.address, "vitalik.eth");
+    }
+
+    #[test]
+    fn test_non_evm_addresses_keep_their_case() {
+        let near = recipient(Chain::Near, "h3rman.near", None, None, vec![]).unwrap();
+        assert_eq!(near.address, "h3rman.near");
+        assert_eq!(near.name, None);
+
+        let solana = "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2";
+        assert_eq!(validation(Chain::Solana, solana, None).address, solana);
+        assert!(validation(Chain::Solana, solana, None).is_valid);
+
+        let tron = "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC";
+        let tron_recipient = recipient(Chain::Tron, tron, None, Some("  memo ".into()), vec!["a".into(), "b".into()]).unwrap();
+        assert_eq!(tron_recipient.address, tron);
+        assert_eq!(tron_recipient.memo.as_deref(), Some("  memo "));
+        assert_eq!(tron_recipient.references, vec!["a".to_string(), "b".to_string()]);
+        assert_eq!(recipient(Chain::Tron, &tron.to_lowercase(), None, None, vec![]), Err(GemRecipientError::InvalidAddress));
+    }
 }
