@@ -30,6 +30,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemSwapTransfer
 import uniffi.gemstone.SwapperAssetList
 import uniffi.gemstone.SwapperQuote
 import java.math.BigDecimal
@@ -301,7 +302,7 @@ class RequestSwapQuotesImplTest {
             return emptyList()
         }
 
-        override suspend fun getQuoteData(wallet: String, quote: SwapperQuote): String = throw UnsupportedOperationException()
+        override suspend fun getTransfer(wallet: String, quote: SwapperQuote): GemSwapTransfer = throw UnsupportedOperationException()
 
         override fun supportedAssets(assetId: String): SwapperAssetList = SwapperAssetList(emptyList(), emptyList())
     }

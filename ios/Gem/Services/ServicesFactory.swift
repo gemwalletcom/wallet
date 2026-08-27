@@ -138,9 +138,9 @@ struct ServicesFactory {
         let transactionStateScheduler = Self.makeTransactionService(
             transactionStore: storeManager.transactionStore,
             gatewayService: gatewayService,
-            stakeService: stakeService,
-            nftService: nftService,
-            balanceService: balanceService,
+            stakeService: gemStakeService,
+            nftService: gemNftService,
+            balanceService: gemBalanceService,
         )
 
         let preferences = storages.observablePreferences.preferences
@@ -440,18 +440,17 @@ extension ServicesFactory {
     private static func makeTransactionService(
         transactionStore: TransactionStore,
         gatewayService: GatewayService,
-        stakeService: any GemStakeServiceProtocol,
-        nftService: any GemNftServiceProtocol,
-        balanceService: any GemBalanceServiceProtocol,
+        stakeService: GemStakeService,
+        nftService: GemNftService,
+        balanceService: GemBalanceService,
     ) -> TransactionStateScheduler {
-        let postProcessingService = TransactionPostProcessingService(
-            balanceService: balanceService,
-            stakeService: stakeService,
-            nftService: nftService,
-        )
         let service = TransactionStateService(
-            service: gatewayService.transactionStateService(store: GemstoneTransactionStateStore(store: transactionStore)),
-            postProcessingService: postProcessingService,
+            service: gatewayService.transactionStateService(
+                store: GemstoneTransactionStateStore(store: transactionStore),
+                balance: balanceService,
+                stake: stakeService,
+                nft: nftService,
+            ),
         )
         return TransactionStateScheduler(service: service)
     }

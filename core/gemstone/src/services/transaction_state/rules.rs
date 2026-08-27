@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
-use primitives::{Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, swap_transaction_timeout};
+use primitives::{Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
 
-use super::model::GemTransactionStateUpdate;
+use super::model::{GemTransactionPostProcessing, GemTransactionStateUpdate};
 
 pub fn destination_chain(transaction: &Transaction) -> Option<Chain> {
     (transaction.state == TransactionState::InTransit)
@@ -16,6 +16,40 @@ pub fn has_timed_out(transaction: &Transaction, now: DateTime<Utc>) -> bool {
     let chain = transaction.asset_id.chain;
     let timeout_ms = swap_transaction_timeout(chain, destination_chain(transaction).unwrap_or(chain));
     (now - transaction.created_at).num_milliseconds() > timeout_ms as i64
+}
+
+pub fn post_processing(transaction: &Transaction, previous_state: TransactionState, state: TransactionState) -> Option<GemTransactionPostProcessing> {
+    let entered_transit = previous_state == TransactionState::Pending && state == TransactionState::InTransit;
+    if !state.is_completed() && !entered_transit {
+        return None;
+    }
+    let balance_asset_ids = transaction.associated_asset_ids();
+    if !state.is_completed() {
+        return Some(GemTransactionPostProcessing {
+            balance_asset_ids,
+            ..Default::default()
+        });
+    }
+    let mut processing = GemTransactionPostProcessing {
+        balance_asset_ids,
+        ..Default::default()
+    };
+    match transaction.transaction_type {
+        TransactionType::StakeDelegate
+        | TransactionType::StakeUndelegate
+        | TransactionType::StakeRewards
+        | TransactionType::StakeRedelegate
+        | TransactionType::StakeWithdraw
+        | TransactionType::StakeFreeze
+        | TransactionType::StakeUnfreeze => {
+            processing.stake_chains = transaction.asset_ids().into_iter().map(|asset_id| asset_id.chain).collect();
+            processing.stake_chains.dedup();
+        }
+        TransactionType::EarnDeposit | TransactionType::EarnWithdraw => processing.earn_asset_ids = transaction.asset_ids(),
+        TransactionType::TransferNFT => processing.sync_nfts = true,
+        _ => {}
+    }
+    Some(processing)
 }
 
 pub fn new_hash(changes: &[TransactionChange]) -> Option<String> {

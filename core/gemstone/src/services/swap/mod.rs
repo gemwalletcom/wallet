@@ -1,3 +1,4 @@
+pub mod model;
 pub mod rules;
 
 use std::sync::Arc;
@@ -12,8 +13,9 @@ use crate::gem_swapper::{GemSwapper, permit2_data_to_eip712_json};
 use crate::keystore::{GemKeystore, keystore_id_for_wallet};
 use crate::message::sign_type::{SignDigestType, SignMessage};
 use crate::message::signer::MessageSigner;
-use crate::models::swap::GemSwapQuoteData;
+use crate::models::swap::{GemSwapQuote, GemSwapQuoteData};
 use crate::services::wallet::GemKeystorePassword;
+pub use model::GemSwapTransfer;
 use primitives::AssetId;
 
 #[derive(uniffi::Object)]
@@ -48,16 +50,26 @@ impl GemSwapService {
         Ok(rules::sort_quotes(self.swapper.get_quote(&request).await?))
     }
 
-    pub async fn get_quote_data(&self, wallet: Wallet, quote: Quote) -> Result<GemSwapQuoteData, SwapperError> {
-        let data = match self.swapper.get_permit2_for_quote(&quote).await? {
-            Some(approval) => FetchQuoteData::Permit2(self.permit2_data(&wallet, &quote, &approval)?),
-            None => FetchQuoteData::None,
-        };
-        self.swapper.get_quote_data(&quote, data).await
+    pub async fn get_transfer(&self, wallet: Wallet, quote: Quote) -> Result<GemSwapTransfer, SwapperError> {
+        let data = self.get_quote_data(&wallet, &quote).await?;
+        rules::swap_transfer(&wallet, &quote, data)
     }
 }
 
+#[uniffi::export]
+pub fn swap_quote(quote: Quote) -> GemSwapQuote {
+    rules::swap_quote(&quote)
+}
+
 impl GemSwapService {
+    async fn get_quote_data(&self, wallet: &Wallet, quote: &Quote) -> Result<GemSwapQuoteData, SwapperError> {
+        let data = match self.swapper.get_permit2_for_quote(quote).await? {
+            Some(approval) => FetchQuoteData::Permit2(self.permit2_data(wallet, quote, &approval)?),
+            None => FetchQuoteData::None,
+        };
+        self.swapper.get_quote_data(quote, data).await
+    }
+
     fn permit2_data(&self, wallet: &Wallet, quote: &Quote, approval: &swapper::Permit2ApprovalData) -> Result<Permit2Data, SwapperError> {
         let chain = AssetId::new(&quote.request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?.chain;
         let now = SystemTime::now().duration_since(UNIX_EPOCH).map(|duration| duration.as_secs()).unwrap_or(0);

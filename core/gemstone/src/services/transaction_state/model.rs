@@ -1,4 +1,4 @@
-use primitives::{Transaction, TransactionId, TransactionState, Wallet};
+use primitives::{AssetId, Chain, Transaction, TransactionId, TransactionState, Wallet};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionStateUpdate {
@@ -35,4 +35,12 @@ pub struct GemTransactionStateResult {
 pub struct GemPendingTransaction {
     pub wallet: Wallet,
     pub transaction: Transaction,
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct GemTransactionPostProcessing {
+    pub balance_asset_ids: Vec<AssetId>,
+    pub stake_chains: Vec<Chain>,
+    pub earn_asset_ids: Vec<AssetId>,
+    pub sync_nfts: bool,
 }

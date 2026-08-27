@@ -11,15 +11,10 @@ struct TransactionStateUpdateResult {
 }
 
 public struct TransactionStateService: Sendable {
-    private let postProcessingService: TransactionPostProcessingService
     private let service: any GemTransactionStateServiceProtocol
 
-    public init(
-        service: any GemTransactionStateServiceProtocol,
-        postProcessingService: TransactionPostProcessingService,
-    ) {
+    public init(service: any GemTransactionStateServiceProtocol) {
         self.service = service
-        self.postProcessingService = postProcessingService
     }
 
     func update(walletId: WalletId, transaction: Transaction) async -> TransactionStateUpdateResult {
@@ -51,19 +46,5 @@ public struct TransactionStateService: Sendable {
 
     func addTransactions(wallet: Wallet, transactions: [Transaction]) async throws {
         try await service.addTransactions(walletId: wallet.id.id, transactions: transactions.map { try $0.json() })
-    }
-
-    func process(_ transactionWallet: TransactionWallet) async throws {
-        try await postProcessingService.process(
-            wallet: transactionWallet.wallet,
-            transaction: transactionWallet.transaction,
-        )
-    }
-
-    func updateBalances(_ transactionWallet: TransactionWallet) async {
-        await postProcessingService.updateBalances(
-            wallet: transactionWallet.wallet,
-            transaction: transactionWallet.transaction,
-        )
     }
 }

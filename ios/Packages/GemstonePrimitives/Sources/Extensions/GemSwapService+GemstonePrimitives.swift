@@ -35,8 +35,8 @@ public extension GemSwapServiceProtocol {
         return quotes
     }
 
-    func getQuoteData(wallet: Primitives.Wallet, quote: SwapperQuote) async throws -> Primitives.SwapQuoteData {
-        try await Primitives.SwapQuoteData(getQuoteData(wallet: wallet.json(), quote: quote))
+    func getTransferData(wallet: Primitives.Wallet, fromAsset: Asset, toAsset: Asset, quote: SwapperQuote) async throws -> TransferData {
+        try TransferData(swap: await getTransfer(wallet: wallet.json(), quote: quote), fromAsset: fromAsset, toAsset: toAsset)
     }
 }
 

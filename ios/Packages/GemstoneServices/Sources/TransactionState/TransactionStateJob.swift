@@ -26,11 +26,6 @@ struct TransactionStateJob: Job {
             return .cancelled
         }
         await context.update(currentTransactionWallet)
-        if transactionWallet.transaction.state == .pending,
-           currentTransactionWallet.transaction.state == .inTransit
-        {
-            await service.updateBalances(currentTransactionWallet)
-        }
         return result.status
     }
 
@@ -38,9 +33,7 @@ struct TransactionStateJob: Job {
         configuration.nextInterval(after: currentIntervalMs)
     }
 
-    func onComplete() async throws {
-        try await service.process(context.transactionWallet())
-    }
+    func onComplete() async throws {}
 }
 
 private actor TransactionStateJobContext {

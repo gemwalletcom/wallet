@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemNftService
 import GemstoneServicesTestKit
 import Foundation
 import struct Gemstone.GemTransactionStateResult
@@ -39,30 +38,6 @@ struct TransactionStateServiceTests {
     }
 
     @Test
-    func jobRefreshesBalancesWhenEnteringInTransit() async throws {
-        let sourceAsset = AssetId.mock(.bitcoin)
-        try await confirmation("updates balances once") { updatedBalances in
-            let fixture = try makeFixture(
-                type: .transfer,
-                balanceService: GemBalanceServiceMock { _, assetIds in
-                    #expect(assetIds == [sourceAsset.identifier])
-                    updatedBalances()
-                },
-            ) { store, walletId, transaction in
-                _ = try store.updateTransaction(walletId: walletId, transactionId: transaction.id, state: .inTransit, fee: nil, blockNumber: nil, metadata: nil, confirmationEtaSeconds: nil)
-                return try GemTransactionStateResult(transactionId: transaction.id.json(), state: TransactionState.inTransit.json())
-            }
-            let job = TransactionStateJob(
-                wallet: TransactionWallet(transaction: fixture.transaction, wallet: fixture.wallet),
-                service: fixture.service,
-            )
-
-            await expectRetry(job.run())
-            await expectRetry(job.run())
-        }
-    }
-
-    @Test
     func jobStopsWhenWalletRemoved() async throws {
         let fixture = try makeFixture { _, _, transaction in
             try GemTransactionStateResult(transactionId: transaction.id.json(), state: TransactionState.confirmed.json())
@@ -95,60 +70,6 @@ struct TransactionStateServiceTests {
         #expect(result.transactionId == fixture.transaction.id)
     }
 
-    @Test
-    func postProcessingRefreshesSwapBalances() async throws {
-        let fromAsset = AssetId.mock(.bitcoin)
-        let toAsset = AssetId.mock(.ethereum)
-        let wallet = Wallet.mock()
-        let transaction = try makeSwapTransaction(
-            fromAsset: fromAsset,
-            toAsset: toAsset,
-            state: .confirmed,
-        )
-        try await confirmation("updates balances") { updatedBalances in
-            let postProcessingService = TransactionPostProcessingService(
-                balanceService: GemBalanceServiceMock { walletId, assetIds in
-                    #expect(walletId == wallet.id.id)
-                    #expect(assetIds == [fromAsset.identifier, toAsset.identifier])
-                    updatedBalances()
-                },
-                stakeService: GemStakeServiceMock(),
-                nftService: GemNftService.mock(),
-            )
-
-            try await postProcessingService.process(wallet: wallet, transaction: transaction)
-        }
-    }
-
-    @Test
-    func postProcessingRefreshesNftsAfterTransfer() async throws {
-        let db = DB.mockWithChains([.ethereum])
-        let walletStore = WalletStore.mock(db: db)
-        let nftStore = NFTStore.mock(db: db)
-        let wallet = Wallet.mock(id: .mock(), accounts: [.mock(chain: .ethereum)])
-        try walletStore.addWallet(wallet)
-
-        let collectionId = NFTCollectionId(chain: .ethereum, contractAddress: "0xcollection")
-        let assetId = NFTAssetId(chain: .ethereum, contractAddress: "0xcollection", tokenId: "1")
-        let nftData = NFTData(
-            collection: .mock(id: collectionId, chain: .ethereum),
-            assets: [.mock(id: assetId, collectionId: collectionId, chain: .ethereum)],
-        )
-        let postProcessingService = TransactionPostProcessingService(
-            balanceService: GemBalanceServiceMock(),
-            stakeService: GemStakeServiceMock(),
-            nftService: GemNftServiceMock(assets: [nftData], store: GemstoneNftStore(store: nftStore)),
-        )
-
-        try await postProcessingService.process(
-            wallet: wallet,
-            transaction: .mock(type: .transferNFT, state: .confirmed, assetId: .mock(.ethereum)),
-        )
-
-        let savedNFTs = try fetchNFTs(db: db, walletId: wallet.id)
-        #expect(savedNFTs.map(\.collection.id) == [collectionId])
-        #expect(savedNFTs.flatMap(\.assets).map(\.id) == [assetId])
-    }
 }
 
 // MARK: - Private
@@ -165,11 +86,7 @@ private extension TransactionStateServiceTests {
         let service: TransactionStateService
     }
 
-    func makeFixture(
-        type: TransactionType = .swap,
-        balanceService: GemBalanceServiceMock = GemBalanceServiceMock(),
-        update: @escaping Update,
-    ) throws -> Fixture {
+    func makeFixture(type: TransactionType = .swap, update: @escaping Update) throws -> Fixture {
         let fromAsset = AssetId.mock(.bitcoin)
         let toAsset = AssetId.mock(.ethereum)
         let db = DB.mockAssets(assets: [
@@ -191,16 +108,10 @@ private extension TransactionStateServiceTests {
         }
         try store.addTransactions(walletId: walletId, transactions: [transaction])
 
-        let postProcessingService = TransactionPostProcessingService(
-            balanceService: balanceService,
-            stakeService: GemStakeServiceMock(),
-            nftService: GemNftService.mock(),
-        )
         let service = TransactionStateService(
             service: GemTransactionStateServiceMock(store: GemstoneTransactionStateStore(store: store)) { walletId, transaction in
                 try await update(store, WalletId.from(id: walletId), Transaction(transaction))
             },
-            postProcessingService: postProcessingService,
         )
         return Fixture(db: db, store: store, walletId: walletId, wallet: wallet, transaction: transaction, service: service)
     }
@@ -225,12 +136,6 @@ private extension TransactionStateServiceTests {
             assetId: fromAsset,
             metadata: metadata,
         )
-    }
-
-    func fetchNFTs(db: DB, walletId: WalletId) throws -> [NFTData] {
-        try db.dbQueue.read { database in
-            try NFTRequest(walletId: walletId, filter: .all).fetch(database)
-        }
     }
 
     func expectRetry(_ status: JobStatus) {

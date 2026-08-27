@@ -4,7 +4,6 @@ import com.gemwallet.android.application.transactions.coordinators.GetPendingTra
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.cases.transactions.SaveTransactions
-import com.gemwallet.android.data.repositories.assets.TransactionPostProcessingService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionStateScheduler
@@ -23,6 +22,9 @@ import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemDeviceApiClient
+import uniffi.gemstone.GemBalanceService
+import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemStakeService
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.GemTransactionsService
 import javax.inject.Singleton
@@ -64,7 +66,16 @@ object TransactionsModule {
         transactionsDao: TransactionsDao,
         walletsRepository: Lazy<WalletsRepository>,
         gateway: GemGateway,
-    ): GemTransactionStateService = GemTransactionStateService(gateway, GemstoneTransactionStateStore(transactionsDao, walletsRepository))
+        balanceService: GemBalanceService,
+        stakeService: GemStakeService,
+        nftService: GemNftService,
+    ): GemTransactionStateService = GemTransactionStateService(
+        gateway,
+        GemstoneTransactionStateStore(transactionsDao, walletsRepository),
+        balanceService,
+        stakeService,
+        nftService,
+    )
 
     @Singleton
     @Provides
@@ -72,12 +83,10 @@ object TransactionsModule {
         sessionRepository: SessionRepository,
         transactionsDao: TransactionsDao,
         stateService: GemTransactionStateService,
-        postProcessingService: TransactionPostProcessingService,
     ): TransactionStateScheduler = TransactionStateScheduler(
         sessionRepository = sessionRepository,
         transactionsDao = transactionsDao,
         stateService = stateService,
-        postProcessingService = postProcessingService,
     )
 
     @Singleton

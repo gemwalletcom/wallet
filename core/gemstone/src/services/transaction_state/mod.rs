@@ -12,18 +12,30 @@ pub use model::{GemPendingTransaction, GemTransactionStateResult, GemTransaction
 pub use store::GemTransactionStateStore;
 
 use crate::gateway::GemGateway;
+use crate::services::balance::GemBalanceService;
+use crate::services::nft::GemNftService;
+use crate::services::stake::GemStakeService;
 
 #[derive(uniffi::Object)]
 pub struct GemTransactionStateService {
     gateway: Arc<GemGateway>,
     store: Arc<dyn GemTransactionStateStore>,
+    balance: Arc<GemBalanceService>,
+    stake: Arc<GemStakeService>,
+    nft: Arc<GemNftService>,
 }
 
 #[uniffi::export]
 impl GemTransactionStateService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, store: Arc<dyn GemTransactionStateStore>) -> Self {
-        Self { gateway, store }
+    pub fn new(gateway: Arc<GemGateway>, store: Arc<dyn GemTransactionStateStore>, balance: Arc<GemBalanceService>, stake: Arc<GemStakeService>, nft: Arc<GemNftService>) -> Self {
+        Self {
+            gateway,
+            store,
+            balance,
+            stake,
+            nft,
+        }
     }
 
     pub async fn pending_transactions(&self) -> Result<Vec<GemPendingTransaction>, GemServiceError> {
@@ -40,7 +52,30 @@ impl GemTransactionStateService {
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
         let update = self.gateway.get_transaction_update(transaction.clone()).await.map_err(|error| error.to_string());
-        apply(self.store.as_ref(), wallet_id, transaction, update, Utc::now()).await
+        let previous_state = transaction.state;
+        let result = apply(self.store.as_ref(), wallet_id.clone(), transaction.clone(), update, Utc::now()).await?;
+        if let Some(result) = &result {
+            self.post_process(wallet_id, &transaction, previous_state, result.state).await;
+        }
+        Ok(result)
+    }
+}
+
+impl GemTransactionStateService {
+    async fn post_process(&self, wallet_id: WalletId, transaction: &Transaction, previous_state: TransactionState, state: TransactionState) {
+        let Some(processing) = rules::post_processing(transaction, previous_state, state) else {
+            return;
+        };
+        let _ = self.balance.update(wallet_id.clone(), processing.balance_asset_ids).await;
+        for chain in processing.stake_chains {
+            let _ = self.stake.sync(wallet_id.clone(), chain, transaction.from.clone()).await;
+        }
+        for asset_id in processing.earn_asset_ids {
+            let _ = self.stake.sync_earn(wallet_id.clone(), asset_id, transaction.from.clone()).await;
+        }
+        if processing.sync_nfts {
+            let _ = self.nft.sync(wallet_id).await;
+        }
     }
 }
 
@@ -332,6 +367,30 @@ mod tests {
         .unwrap()
         .unwrap();
         assert_eq!(stale.state, TransactionState::Failed);
+    }
+
+    #[test]
+    fn test_post_processing_by_state_transition() {
+        let now = Utc::now();
+        let swap = transaction("hash", TransactionState::Pending, now);
+
+        assert_eq!(rules::post_processing(&swap, TransactionState::Pending, TransactionState::Pending), None);
+        assert_eq!(rules::post_processing(&swap, TransactionState::InTransit, TransactionState::InTransit), None);
+
+        let in_transit = rules::post_processing(&swap, TransactionState::Pending, TransactionState::InTransit).unwrap();
+        assert_eq!(in_transit.balance_asset_ids.len(), 2);
+        assert!(in_transit.stake_chains.is_empty() && in_transit.earn_asset_ids.is_empty() && !in_transit.sync_nfts);
+
+        let mut stake = transaction("hash", TransactionState::Pending, now);
+        stake.transaction_type = TransactionType::StakeFreeze;
+        stake.metadata = None;
+        let completed = rules::post_processing(&stake, TransactionState::Pending, TransactionState::Confirmed).unwrap();
+        assert_eq!(completed.stake_chains, vec![Chain::Ethereum]);
+        assert_eq!(completed.balance_asset_ids, vec![AssetId::from_chain(Chain::Ethereum)]);
+
+        let mut nft = stake.clone();
+        nft.transaction_type = TransactionType::TransferNFT;
+        assert!(rules::post_processing(&nft, TransactionState::Pending, TransactionState::Failed).unwrap().sync_nfts);
     }
 
     #[test]

@@ -1,13 +1,15 @@
 use num_bigint::BigInt;
-use primitives::{Asset, Wallet};
+use primitives::swap::{SwapProviderData, SwapQuote, SwapQuoteData};
+use primitives::{Asset, AssetId, Chain, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
 use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
+use crate::services::swap::model::GemSwapTransfer;
 
 pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, value: String, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<QuoteRequest, SwapperError> {
-    let wallet_address = account_address(wallet, from_asset)?;
-    let destination_address = account_address(wallet, to_asset)?;
+    let wallet_address = account_address(wallet, from_asset.chain())?;
+    let destination_address = account_address(wallet, to_asset.chain())?;
     Ok(QuoteRequest {
         from_asset: quote_asset(from_asset),
         to_asset: quote_asset(to_asset),
@@ -24,6 +26,35 @@ pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, valu
 pub fn sort_quotes(mut quotes: Vec<Quote>) -> Vec<Quote> {
     quotes.sort_by_key(|quote| std::cmp::Reverse(to_value(quote)));
     quotes
+}
+
+pub fn swap_transfer(wallet: &Wallet, quote: &Quote, data: SwapQuoteData) -> Result<GemSwapTransfer, SwapperError> {
+    let to_chain = AssetId::new(&quote.request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?.chain;
+    Ok(GemSwapTransfer {
+        quote: swap_quote(quote),
+        data,
+        recipient: account_address(wallet, to_chain)?,
+        value: quote.request.value.clone(),
+        use_max_amount: quote.request.options.use_max_amount,
+    })
+}
+
+pub fn swap_quote(quote: &Quote) -> SwapQuote {
+    SwapQuote {
+        from_address: quote.request.wallet_address.clone(),
+        from_value: quote.from_value.clone(),
+        min_from_value: quote.min_from_value.clone(),
+        to_address: quote.request.destination_address.clone(),
+        to_value: quote.to_value.clone(),
+        provider_data: SwapProviderData {
+            provider: quote.data.provider.id,
+            name: quote.data.provider.name.clone(),
+            protocol_name: quote.data.provider.protocol.clone(),
+        },
+        slippage_bps: quote.data.slippage_bps,
+        eta_in_seconds: quote.eta_in_seconds,
+        use_max_amount: Some(quote.request.options.use_max_amount),
+    }
 }
 
 pub fn permit_single(approval: &Permit2ApprovalData, now: u64, config: &SwapConfig) -> PermitSingle {
@@ -60,11 +91,11 @@ fn quote_asset(asset: &Asset) -> SwapperQuoteAsset {
     }
 }
 
-fn account_address(wallet: &Wallet, asset: &Asset) -> Result<String, SwapperError> {
+fn account_address(wallet: &Wallet, chain: Chain) -> Result<String, SwapperError> {
     wallet
         .accounts
         .iter()
-        .find(|account| account.chain == asset.chain())
+        .find(|account| account.chain == chain)
         .map(|account| account.address.clone())
         .ok_or(SwapperError::NotSupportedChain)
 }
@@ -131,6 +162,50 @@ mod tests {
             quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), "1".to_string(), false, None),
             Err(SwapperError::NotSupportedChain)
         ));
+    }
+
+    #[test]
+    fn test_swap_transfer_maps_quote_and_recipient() {
+        let wallet = wallet(&[Chain::Ethereum, Chain::Solana]);
+        let request = quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), "100".to_string(), true, Some(50)).unwrap();
+        let quote = Quote {
+            from_value: "99".to_string(),
+            min_from_value: Some("90".to_string()),
+            to_value: "1".to_string(),
+            data: swapper::ProviderData {
+                provider: swapper::ProviderType::new(swapper::SwapperProvider::Jupiter),
+                slippage_bps: 50,
+                routes: vec![],
+            },
+            request,
+            eta_in_seconds: Some(30),
+        };
+        let data = SwapQuoteData {
+            to: "0xrouter".to_string(),
+            data_type: primitives::swap::SwapQuoteDataType::Contract,
+            value: "100".to_string(),
+            data: "0x".to_string(),
+            memo: None,
+            approval: None,
+            gas_limit: None,
+        };
+
+        let transfer = swap_transfer(&wallet, &quote, data.clone()).unwrap();
+
+        assert_eq!(transfer.recipient, "solana-address");
+        assert_eq!(transfer.value, "100");
+        assert!(transfer.use_max_amount);
+        assert_eq!(transfer.data, data);
+        assert_eq!(transfer.quote.from_address, "ethereum-address");
+        assert_eq!(transfer.quote.to_address, "solana-address");
+        assert_eq!(transfer.quote.from_value, "99");
+        assert_eq!(transfer.quote.min_from_value.as_deref(), Some("90"));
+        assert_eq!(transfer.quote.provider_data.provider, swapper::SwapperProvider::Jupiter);
+        assert_eq!(transfer.quote.slippage_bps, 50);
+        assert_eq!(transfer.quote.use_max_amount, Some(true));
+
+        let ethereum_only = super::tests::wallet(&[Chain::Ethereum]);
+        assert!(matches!(swap_transfer(&ethereum_only, &quote, data), Err(SwapperError::NotSupportedChain)));
     }
 
     #[test]

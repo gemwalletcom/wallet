@@ -2,23 +2,14 @@
 
 import BigInt
 import Foundation
-import struct Gemstone.SwapperProviderType
+import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperQuote
+import func Gemstone.swapQuote
 import Primitives
 
 public extension Gemstone.SwapperQuote {
     func map() throws -> Primitives.SwapQuote {
-        try Primitives.SwapQuote(
-            fromAddress: request.walletAddress,
-            fromValue: fromValue,
-            minFromValue: minFromValue,
-            toAddress: request.destinationAddress,
-            toValue: toValue,
-            providerData: data.provider.map(),
-            slippageBps: data.slippageBps,
-            etaInSeconds: etaInSeconds,
-            useMaxAmount: request.options.useMaxAmount,
-        )
+        try Primitives.SwapQuote(swapQuote(quote: self))
     }
 
     var toValueBigInt: BigInt {
@@ -30,12 +21,18 @@ public extension Gemstone.SwapperQuote {
     }
 }
 
-extension Gemstone.SwapperProviderType {
-    func map() throws -> Primitives.SwapProviderData {
-        try Primitives.SwapProviderData(
-            provider: id.map(),
-            name: name,
-            protocolName: self.protocol,
+public extension TransferData {
+    init(swap transfer: GemSwapTransfer, fromAsset: Asset, toAsset: Asset) throws {
+        let quote = try Primitives.SwapQuote(transfer.quote)
+        let value = try BigInt.from(string: transfer.value)
+        self.init(
+            type: .swap(fromAsset, toAsset, SwapData(quote: quote, data: try Primitives.SwapQuoteData(transfer.data))),
+            recipientData: RecipientData(
+                recipient: Recipient(name: .none, address: transfer.recipient, memo: .none),
+                amount: .none,
+            ),
+            amount: transfer.useMaxAmount ? .max(value) : .exact(value),
+            minimumValue: quote.minFromValueBigInt,
         )
     }
 }

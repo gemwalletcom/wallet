@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.transactions
 
 import android.util.Log
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
-import com.gemwallet.android.data.repositories.assets.TransactionPostProcessingService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
@@ -39,7 +38,6 @@ class TransactionStateScheduler(
     private val sessionRepository: SessionRepository,
     private val transactionsDao: TransactionsDao,
     private val stateService: GemTransactionStateService,
-    private val postProcessingService: TransactionPostProcessingService,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) {
 
@@ -102,9 +100,7 @@ class TransactionStateScheduler(
                         jobKeys.add(transactionId)
                     }
                 }
-                val previousTransaction = currentTransaction
                 currentTransaction = transactionsDao.getExtendedTransaction(walletId, transactionId).first() ?: return@launch
-                notifyEnteringInTransit(previousTransaction, currentTransaction)
 
                 if (currentTransaction.transaction.state.isCompleted()) {
                     Log.d(
@@ -118,25 +114,9 @@ class TransactionStateScheduler(
                     "transaction status pending: id=${currentTransaction.transaction.id.identifier}, state=${currentTransaction.transaction.state}, next check = ${pollingDelay}ms",
                 )
             }
-            processChangedTransaction(currentTransaction)
         } finally {
             val runningJob = coroutineContext.job
             jobKeys.forEach { pollingTransactionJobs.remove(it, runningJob) }
         }
-    }
-
-    internal suspend fun notifyEnteringInTransit(
-        previousTransaction: DbTransactionExtended,
-        currentTransaction: DbTransactionExtended,
-    ) {
-        if (previousTransaction.transaction.state == TransactionState.Pending &&
-            currentTransaction.transaction.state == TransactionState.InTransit
-        ) {
-            processChangedTransaction(currentTransaction)
-        }
-    }
-
-    private suspend fun processChangedTransaction(transaction: DbTransactionExtended) {
-        transaction.toDTO()?.let { postProcessingService.processTransactions(listOf(it)) }
     }
 }
