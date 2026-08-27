@@ -29,18 +29,6 @@ data class AssetPrice (
 )
 
 @Serializable
-data class AssetPrices (
-	val currency: Currency,
-	val prices: List<AssetPrice>
-)
-
-@Serializable
-data class AssetPricesRequest (
-	val currency: Currency? = null,
-	val assetIds: List<AssetId>
-)
-
-@Serializable
 data class ChartValue (
 	val timestamp: Int,
 	val value: Float

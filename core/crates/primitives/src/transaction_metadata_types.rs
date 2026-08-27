@@ -61,7 +61,6 @@ impl TransactionResourceTypeMetadata {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionSmartContractMetadata {
     pub method_name: String,

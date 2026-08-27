@@ -1,10 +1,8 @@
 use crate::{Chain, SwapProvider, TransactionState, UInt64};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Sendable, Equatable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionStateRequest {
     pub id: String,
@@ -14,7 +12,6 @@ pub struct TransactionStateRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Sendable, Equatable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionSwapStateRequest {
     pub transaction: TransactionStateRequest,

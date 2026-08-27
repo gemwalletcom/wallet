@@ -6,7 +6,6 @@ use typeshare::typeshare;
 use crate::{Asset, AssetId};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationInput {
     #[serde(alias = "transaction")]

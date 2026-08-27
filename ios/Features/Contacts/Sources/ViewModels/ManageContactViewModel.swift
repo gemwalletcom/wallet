@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemContactServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import Components
 import GemstoneServices
@@ -38,7 +39,7 @@ public final class ManageContactViewModel {
         }
     }
 
-    private let service: ContactService
+    private let service: any GemContactServiceProtocol
     private let mode: Mode
 
     let contactId: String
@@ -54,7 +55,7 @@ public final class ManageContactViewModel {
     let emojiList: [EmojiValue] = Emoji.WalletAvatar.allCases.map { EmojiValue(emoji: $0.rawValue, color: Colors.grayVeryLight) }
 
     public init(
-        service: ContactService,
+        service: any GemContactServiceProtocol,
         nameService: any GemNameServiceProtocol,
         mode: Mode,
     ) {
@@ -153,7 +154,7 @@ public final class ManageContactViewModel {
             guard let data = EmojiAvatarRenderer.image(emoji: value.emoji, size: .image.extraLarge, color: value.color.uiColor).pngData() else {
                 throw AnyError("Render avatar image failed")
             }
-            return try service.saveAvatar(data)
+            return try service.saveAvatar(image: data)
         }
     }
 
@@ -197,7 +198,7 @@ public final class ManageContactViewModel {
                 case .edit: try await service.updateContact(contact, addresses: addresses)
                 }
                 if let previous = mode.contact?.imageUrl, previous != contact.imageUrl {
-                    try? service.removeAvatar(previous)
+                    try? service.removeAvatar(fileName: previous)
                 }
                 avatar = Avatar(imageUrl: contact.imageUrl)
             } catch {

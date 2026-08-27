@@ -30,8 +30,6 @@ pub struct AuthPayload {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
-#[typeshare(swiftGenericConstraints = "T: Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AuthenticatedRequest<T> {
     pub auth: AuthPayload,

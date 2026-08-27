@@ -43,7 +43,7 @@ extension ManageContactViewModel {
         mode: Mode,
     ) -> ManageContactViewModel {
         ManageContactViewModel(
-            service: ContactService(provider: GemContactServiceMock()),
+            service: GemContactServiceMock(),
             nameService: nameService,
             mode: mode,
         )

@@ -246,7 +246,7 @@ mod asset_deserialize_tests {
         let token: Asset =
             serde_json::from_str(r#"{"id":"ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7","name":"Tether","symbol":"USDT","decimals":6,"type":"ERC20"}"#).unwrap();
         assert_eq!(token.chain(), Chain::Ethereum);
-        assert_eq!(token.token_id().as_deref(), Some("0xdAC17F958D2ee523a2206206994597C13D831ec7"));
+        assert_eq!(token.token_id(), Some("0xdAC17F958D2ee523a2206206994597C13D831ec7"));
 
         let native: Asset = serde_json::from_str(r#"{"id":"ethereum","name":"Ethereum","symbol":"ETH","decimals":18,"type":"NATIVE"}"#).unwrap();
         assert_eq!(native.chain(), Chain::Ethereum);

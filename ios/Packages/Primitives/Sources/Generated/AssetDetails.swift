@@ -75,13 +75,3 @@ public struct AssetFull: Codable, Sendable {
 		self.market = market
 	}
 }
-
-public struct AssetMarketPrice: Codable, Sendable {
-	public let price: Price?
-	public let market: AssetMarket?
-
-	public init(price: Price?, market: AssetMarket?) {
-		self.price = price
-		self.market = market
-	}
-}

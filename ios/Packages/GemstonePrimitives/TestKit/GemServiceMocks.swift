@@ -202,7 +202,13 @@ public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked 
 
     public func updateContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress]) async throws {}
 
-    public func deleteContact(contactId _: String) async throws {}
+    public func deleteContact(contact _: Gemstone.Contact) async throws {}
+
+    public func saveAvatar(image _: Data) throws -> String {
+        ""
+    }
+
+    public func removeAvatar(fileName _: String) throws {}
 }
 
 public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Sendable {

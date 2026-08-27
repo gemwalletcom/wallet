@@ -290,11 +290,10 @@ struct ServicesFactory {
             store: GemstoneNotificationStore(store: storeManager.inAppNotificationStore),
         )
 
-        let contactService = ContactService(
-            provider: Gemstone.GemContactService(
-                store: GemstoneContactStore(store: storeManager.contactStore),
-                addressStore: GemstoneAddressStore(store: storeManager.addressStore),
-            ),
+        let contactService = Gemstone.GemContactService(
+            store: GemstoneContactStore(store: storeManager.contactStore),
+            addressStore: GemstoneAddressStore(store: storeManager.addressStore),
+            files: GemstoneFileStore(),
         )
 
         let perpetualEnablerService = PerpetualEnablerService(

@@ -159,13 +159,10 @@ pub struct ReferralCode {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct RewardEvent {
-    #[typeshare(skip)]
     #[serde(skip)]
     pub username: String,
-    #[typeshare(skip)]
     pub event: RewardEventType,
     pub points: i32,
     pub created_at: DateTime<Utc>,
@@ -226,7 +223,6 @@ pub struct RedemptionResponse {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ReferralLeader {
     pub username: String,
@@ -235,7 +231,6 @@ pub struct ReferralLeader {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ReferralLeaderboard {
     pub daily: Vec<ReferralLeader>,

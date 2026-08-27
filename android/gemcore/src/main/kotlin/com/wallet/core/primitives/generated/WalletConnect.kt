@@ -22,11 +22,3 @@ data class WCEthereumTransaction (
 	val data: String? = null
 )
 
-@Serializable
-data class WCTonMessage (
-	val address: String,
-	val amount: String,
-	val payload: String? = null,
-	val stateInit: String? = null
-)
-

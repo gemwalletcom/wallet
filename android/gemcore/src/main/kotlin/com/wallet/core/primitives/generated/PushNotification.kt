@@ -13,6 +13,30 @@ data class PushNotificationAsset (
 )
 
 @Serializable
+data class PushNotificationReward (
+	val walletId: String
+)
+
+@Serializable
+data class PushNotificationSwapAsset (
+	val fromAssetId: AssetId,
+	val toAssetId: AssetId
+)
+
+@Serializable
+data class PushNotificationTransaction (
+	val walletId: WalletId,
+	val assetId: AssetId,
+	val transaction: Transaction
+)
+
+@Serializable
+data class PushNotificationWalletAsset (
+	val walletId: WalletId,
+	val assetId: AssetId
+)
+
+@Serializable
 enum class PushNotificationTypes(val string: String) {
 	@SerialName("test")
 	Test("test"),
@@ -35,36 +59,4 @@ enum class PushNotificationTypes(val string: String) {
 	@SerialName("fiatTransaction")
 	FiatTransaction("fiatTransaction"),
 }
-
-@Serializable
-data class PushNotificationPayloadType (
-	val type: PushNotificationTypes
-)
-
-@Serializable
-data class PushNotificationReward (
-	val walletId: String
-)
-
-@Serializable
-object PushNotificationSupport
-
-@Serializable
-data class PushNotificationSwapAsset (
-	val fromAssetId: AssetId,
-	val toAssetId: AssetId
-)
-
-@Serializable
-data class PushNotificationTransaction (
-	val walletId: WalletId,
-	val assetId: AssetId,
-	val transaction: Transaction
-)
-
-@Serializable
-data class PushNotificationWalletAsset (
-	val walletId: WalletId,
-	val assetId: AssetId
-)
 

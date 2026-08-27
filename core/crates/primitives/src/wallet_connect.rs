@@ -31,7 +31,6 @@ pub struct WCEthereumTransaction {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct WCTonMessage {
     pub address: String,

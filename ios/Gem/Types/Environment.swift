@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemContactServiceProtocol
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemAvatarServiceProtocol
 import class Gemstone.GemStreamSubscriptionService
@@ -76,6 +77,6 @@ extension EnvironmentValues {
     @Entry var searchService: any GemSearchServiceProtocol = AppResolver.main.services.searchService
     @Entry var inAppNotificationService: any GemNotificationServiceProtocol = AppResolver.main.services.inAppNotificationService
     @Entry var portfolioService: any GemPortfolioServiceProtocol = AppResolver.main.services.portfolioService
-    @Entry var contactService: ContactService = AppResolver.main.services.contactService
+    @Entry var contactService: any GemContactServiceProtocol = AppResolver.main.services.contactService
     @Entry var supportChatService: SupportChatService = AppResolver.main.services.supportChatService
 }

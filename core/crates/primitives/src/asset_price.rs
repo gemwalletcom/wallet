@@ -82,7 +82,6 @@ impl AssetMarket {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetPrices {
     pub currency: Currency,
@@ -90,7 +89,6 @@ pub struct AssetPrices {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetPricesRequest {
     pub currency: Option<Currency>,

@@ -74,40 +74,6 @@ public struct ReferralCode: Codable, Sendable {
 	}
 }
 
-public struct ReferralLeader: Codable, Equatable, Hashable, Sendable {
-	public let username: String
-	public let referrals: Int32
-	public let points: Int32
-
-	public init(username: String, referrals: Int32, points: Int32) {
-		self.username = username
-		self.referrals = referrals
-		self.points = points
-	}
-}
-
-public struct ReferralLeaderboard: Codable, Equatable, Hashable, Sendable {
-	public let daily: [ReferralLeader]
-	public let weekly: [ReferralLeader]
-	public let monthly: [ReferralLeader]
-
-	public init(daily: [ReferralLeader], weekly: [ReferralLeader], monthly: [ReferralLeader]) {
-		self.daily = daily
-		self.weekly = weekly
-		self.monthly = monthly
-	}
-}
-
-public struct RewardEvent: Codable, Equatable, Hashable, Sendable {
-	public let points: Int32
-	public let createdAt: Date
-
-	public init(points: Int32, createdAt: Date) {
-		self.points = points
-		self.createdAt = createdAt
-	}
-}
-
 public enum RewardStatus: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
 	case unverified
 	case pending

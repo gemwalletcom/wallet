@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemContactServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import Components
 import GemstoneServices
@@ -18,7 +19,7 @@ public final class ContactsViewModel {
         case addAddress(ChainRecipient)
     }
 
-    let service: ContactService
+    let service: any GemContactServiceProtocol
     let nameService: any GemNameServiceProtocol
     let mode: Mode
 
@@ -30,7 +31,7 @@ public final class ContactsViewModel {
     var isPresentingAddContact = false
 
     public init(
-        service: ContactService,
+        service: any GemContactServiceProtocol,
         nameService: any GemNameServiceProtocol,
         mode: Mode = .list,
     ) {

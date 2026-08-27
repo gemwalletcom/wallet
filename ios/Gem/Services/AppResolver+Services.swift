@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemContactServiceProtocol
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemAvatarServiceProtocol
 import class Gemstone.GemStreamSubscriptionService
@@ -83,7 +84,7 @@ extension AppResolver {
         let inAppNotificationService: any GemNotificationServiceProtocol
         let portfolioService: any GemPortfolioServiceProtocol
         let fiatService: any GemFiatServiceProtocol
-        let contactService: ContactService
+        let contactService: any GemContactServiceProtocol
         let supportChatService: SupportChatService
     }
 }

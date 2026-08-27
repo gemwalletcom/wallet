@@ -8,7 +8,6 @@ use crate::explorers::{
 use std::str::FromStr;
 use typeshare::typeshare;
 
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[derive(Debug, Default, Clone)]
 pub struct ExplorerInput {
     pub hash: String,

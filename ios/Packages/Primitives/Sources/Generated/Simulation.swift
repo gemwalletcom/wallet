@@ -32,16 +32,6 @@ public struct SimulationHeader: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct SimulationInput: Codable, Equatable, Hashable, Sendable {
-	public let encodedTransaction: String
-	public let signerAddress: String?
-
-	public init(encodedTransaction: String, signerAddress: String?) {
-		self.encodedTransaction = encodedTransaction
-		self.signerAddress = signerAddress
-	}
-}
-
 public enum SimulationPayloadFieldKind: String, Codable, Equatable, Hashable, Sendable {
 	case contract
 	case method
