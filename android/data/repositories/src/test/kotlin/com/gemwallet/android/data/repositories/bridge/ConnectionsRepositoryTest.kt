@@ -49,17 +49,6 @@ class ConnectionsRepositoryTest {
     }
 
     @Test
-    fun disconnect_deletesConnectionAndReturnsMappedConnection() = runTest {
-        every { walletsRepository.getAll() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
-        every { connectionsDao.getAll() } returns flowOf(listOf(connection(id = "connection-1", walletId = "wallet-1")))
-
-        val connection = repository.disconnect("connection-1")
-
-        assertEquals("connection-1", connection?.session?.id)
-        coVerify { connectionsDao.delete("connection-1") }
-    }
-
-    @Test
     fun updateSession_keepsWalletAndCreationDate() = runTest {
         val record = connection(id = "connection-1", walletId = "wallet-1")
         coEvery { connectionsDao.getBySessionId("connection-1") } returns record

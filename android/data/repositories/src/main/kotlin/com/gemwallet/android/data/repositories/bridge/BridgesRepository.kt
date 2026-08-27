@@ -54,7 +54,7 @@ class BridgesRepository(
         scope.launch(Dispatchers.IO) {
             bridgeEvents.collect { event ->
                 when (event) {
-                    is WalletConnectEvent.SessionDeleted -> connectionsRepository.deleteConnection(event.topic)
+                    is WalletConnectEvent.SessionDeleted -> walletConnectService.deleteSession(event.topic)
                     else -> Unit
                 }
             }
@@ -112,8 +112,8 @@ class BridgesRepository(
             .getOrNull()
 
     suspend fun disconnect(id: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
-        val connection = connectionsRepository.disconnect(id) ?: return
-        val activeSession = activeSessions()?.firstOrNull { it.topic == connection.session.sessionId }
+        walletConnectService.deleteSession(id)
+        val activeSession = activeSessions()?.firstOrNull { it.topic == id }
         if (activeSession != null) {
             walletConnectClient.disconnectSession(activeSession.topic, onSuccess = {}, onError = {})
         }

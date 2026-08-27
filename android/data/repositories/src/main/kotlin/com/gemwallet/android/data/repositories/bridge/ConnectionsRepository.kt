@@ -47,16 +47,6 @@ class ConnectionsRepository(
         }
     }
 
-    suspend fun disconnect(id: String): WalletConnection? {
-        val connection = getConnections().firstOrNull()?.firstOrNull { it.session.id == id } ?: return null
-        connectionsDao.delete(id)
-        return connection
-    }
-
-    suspend fun deleteConnection(topic: String) {
-        connectionsDao.delete(topic)
-    }
-
     suspend fun addConnection(connection: WalletConnection) {
         connectionsDao.insert(connection.toRecord())
     }
