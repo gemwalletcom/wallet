@@ -2,29 +2,23 @@ package com.gemwallet.android.features.bridge.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.wallet_connect.coordinators.PrepareSessionProposal
 import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
 import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
-import uniffi.gemstone.GemWalletConnectService
 import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
-import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -34,10 +28,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProposalSceneViewModel @Inject constructor(
-    private val sessionRepository: SessionRepository,
     private val bridgesRepository: BridgesRepository,
-    private val walletsRepository: WalletsRepository,
-    private val walletConnectService: GemWalletConnectService,
+    private val prepareSessionProposal: PrepareSessionProposal,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
 ) : ViewModel() {
@@ -76,26 +68,22 @@ class ProposalSceneViewModel @Inject constructor(
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val wallets = walletsRepository.getAll().firstOrNull().orEmpty()
-            val currentWalletId = sessionRepository.session().value?.wallet?.id
-            val metadata = walletConnectService.applicationMetadata(proposal.name, proposal.description, proposal.url, proposal.icons)
-            val prepared = runCatching {
-                walletConnectService.prepareSessionProposal(
-                    wallets = wallets.map { it.toJson() },
-                    currentWalletId = currentWalletId?.id,
-                    requiredChainIds = proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() },
-                    optionalChainIds = proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() },
-                    metadata = metadata,
-                    origin = verifyContext.origin,
-                    validation = verification.status,
-                )
-            }.getOrNull()
+            val prepared = prepareSessionProposal(
+                name = proposal.name,
+                description = proposal.description,
+                url = proposal.url,
+                icons = proposal.icons,
+                requiredChainIds = proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() },
+                optionalChainIds = proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() },
+                origin = verifyContext.origin,
+                validation = verification.status,
+            )
             if (prepared == null) {
                 reject(proposal)
                 return@launch
             }
             state.update { ProposalSceneState.Init(prepared.verificationStatus) }
-            _sessionProposal.update { prepared.proposal.decodeJson<WalletConnectionSessionProposal>() }
+            _sessionProposal.update { prepared.proposal }
             _proposal.update { proposal }
         }
     }
