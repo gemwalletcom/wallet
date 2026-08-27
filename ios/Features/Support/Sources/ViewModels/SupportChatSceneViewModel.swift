@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemSupportServiceProtocol
+import GemstonePrimitives
 import Localization
 import PhotosUI
 import Primitives
@@ -11,12 +13,14 @@ import SwiftUI
 @Observable
 @MainActor
 public final class SupportChatSceneViewModel {
-    private let service: SupportChatService
+    private let service: any GemSupportServiceProtocol
+    private let typing: SupportTypingState
     public let query: ObservableQuery<SupportMessagesRequest>
     var previewURL: URL?
 
-    public init(service: SupportChatService) {
+    public init(service: any GemSupportServiceProtocol, typing: SupportTypingState) {
         self.service = service
+        self.typing = typing
         query = ObservableQuery(SupportMessagesRequest(), initialValue: [])
     }
 
@@ -24,7 +28,7 @@ public final class SupportChatSceneViewModel {
     var emptyTitle: String { Localized.Support.stateEmptyTitle }
     var emptyDescription: String { Localized.Support.stateEmptyDescription }
     var isEmpty: Bool { query.value.isEmpty }
-    var typingAgentName: String? { service.typing.agent?.name }
+    var typingAgentName: String? { typing.agent?.name }
 
     @ObservationIgnored
     private(set) lazy var inputBarModel = SupportMessageInputBarViewModel(
@@ -56,7 +60,7 @@ public final class SupportChatSceneViewModel {
     }
 
     func onDisappear() {
-        service.typing.clear()
+        typing.clear()
     }
 
     func sendText(_ content: String) {
@@ -90,7 +94,7 @@ public final class SupportChatSceneViewModel {
         guard let url = image.url.asURL else { return }
         Task {
             await perform("preview") {
-                previewURL = try await service.imageFile(for: url)
+                previewURL = try await imageFile(for: url)
             }
         }
     }
@@ -105,5 +109,19 @@ private extension SupportChatSceneViewModel {
         } catch {
             debugLog("SupportChatSceneViewModel \(context) error: \(error)")
         }
+    }
+}
+
+extension SupportChatSceneViewModel {
+    private func imageFile(for url: URL) async throws -> URL {
+        let request = URLRequest(url: url)
+        let data = if let cached = URLCache.shared.cachedResponse(for: request)?.data {
+            cached
+        } else {
+            try await URLSession.shared.data(for: request).0
+        }
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
+        try data.write(to: file)
+        return file
     }
 }

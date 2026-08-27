@@ -86,7 +86,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | `RewardsService` | `GemRewardsService` | Done | Wrapper removed; view models call the Core service (typed helpers in `GemRewardsService+GemstonePrimitives.swift`) |
 | `ServiceStatusService` | `GemServiceStatus` | Done | Wrapper removed on both apps; view models use the Core client directly |
 | [`StreamService`](../../ios/Packages/FeatureServices/StreamService) | `GemStreamService` | Done | Event handling and price subscriptions in Core (`GemStreamService`, `GemStreamSubscriptionService`); only the socket connection stays app-side (`StreamObserverService`, `GemStreamConnection` adapter), see [DEVICE_WEBSOCKETS.md](DEVICE_WEBSOCKETS.md); Android: [`StreamObserverService`](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/stream/StreamObserverService.kt) |
-| [`SupportChatService`](../../ios/Packages/GemstoneServices/Sources) | `GemSupportService` | Done | Typing state is an app observable fed by Core through `GemSupportStore`; image files stay app-side |
+| `SupportChatService` | `GemSupportService` | Done | Wrapper removed; the view model calls the Core service (typed helpers in `GemSupportService+GemstonePrimitives.swift`), `SupportTypingState` is an app observable fed by Core through `GemSupportStore`, image previews stay in the view model |
 | `SwapService` / `SwapQuotesProvider` / `SwapQuoteDataProvider` / `Permit2DataProvider` | `GemSwapService` | Done | Wrappers removed on both apps (Android `GetSwapQuotes*`/`GetSwapSupported` too); view models call the Core service (typed helpers in `GemSwapService+GemstonePrimitives.swift`), see [SWAPPER.md](../../docs/SWAPPER.md) |
 | `TransactionsService` | `GemTransactionsService` | Done | Wrapper removed; view models call `sync` on the Core service and use `TransactionStore` directly |
 | [`TransactionStateService`](../../ios/Packages/GemstoneServices/Sources) | `GemTransactionStateService` | Done | |
@@ -113,7 +113,7 @@ Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, And
 
 ## Remaining
 
-- Periodic review of app wrappers (`SupportChatService`, `NodeService.node(for:)`, `PerpetualService`, `DeviceService`, `WalletService`) and of typeshare models unused by both apps (18 exports dropped 2026-08-27; the Rust types stay where Core uses them).
+- Periodic review of app wrappers (`NodeService.node(for:)`, `PerpetualService`, `DeviceService`, `WalletService`) and of typeshare models unused by both apps (18 exports dropped 2026-08-27; the Rust types stay where Core uses them).
 
 ## Conventions
 
