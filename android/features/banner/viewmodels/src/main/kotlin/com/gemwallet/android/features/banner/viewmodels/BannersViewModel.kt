@@ -24,8 +24,10 @@ class BannersViewModel @Inject constructor(
 ) : ViewModel() {
 
     val banners = MutableStateFlow<List<Banner>>(emptyList())
+    private var scene: Pair<Asset?, Boolean> = null to true
 
     fun init(asset: Asset?, isGlobal: Boolean) {
+        scene = asset to isGlobal
         viewModelScope.launch(Dispatchers.IO) {
             val banners = getActiveBanners(asset, isGlobal)
             this@BannersViewModel.banners.update { banners }
@@ -45,6 +47,6 @@ class BannersViewModel @Inject constructor(
 
     private fun apply(banner: Banner, action: BannerAction) = viewModelScope.launch {
         applyBannerAction(banner, action)
-        init(banner.asset, banner.wallet == null)
+        init(scene.first, scene.second)
     }
 }

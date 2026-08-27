@@ -43,30 +43,31 @@ class BannersRepository(
     private val bannerService: GemBannerService,
 ) : GetBannersCase, BannerActionCase, HasMultiSign {
 
-    override suspend fun getActiveBanners(wallet: Wallet?, asset: Asset?): List<Banner> = withContext(Dispatchers.IO) {
+    override suspend fun getActiveBanners(wallet: Wallet?, asset: Asset?, isGlobal: Boolean): List<Banner> = withContext(Dispatchers.IO) {
         val assetInfo = asset?.id?.let { assetRepository.getAssetInfo(it).firstOrNull() }
+        val sceneWallet = wallet.takeUnless { isGlobal }
         val generated = bannerService.activeEvents(
-            walletId = wallet?.id?.id,
+            walletId = sceneWallet?.id?.id,
             assetId = asset?.id?.toIdentifier(),
-            context = bannerContext(wallet, assetInfo),
+            context = bannerContext(sceneWallet, assetInfo),
         ).map { event ->
             Banner(
-                wallet = wallet,
+                wallet = sceneWallet,
                 asset = assetInfo?.asset,
                 chain = null,
                 state = BannerState.Active,
                 event = event.decodeJson(),
             )
         }
-        val stored = if (asset == null) {
-            emptyList()
-        } else {
-            bannersDao.getAssetBanners(
+        val stored = when {
+            asset != null -> bannersDao.getAssetBanners(
                 walletId = wallet?.id?.id,
                 assetId = asset.id.toIdentifier(),
                 chain = asset.id.chain,
-            ).map { it.toDTO(wallet, asset) }
-        }
+            )
+            wallet != null -> bannersDao.getWalletBanners(wallet.id.id, listOf(BannerEvent.AccountBlockedMultiSignature))
+            else -> emptyList()
+        }.map { it.toDTO(wallet, asset) }
         val banners = stored + generated
         bannerService.visibleBanners(
             stored = banners.map { GemBannerItem(event = it.event.toJson(), state = it.state.toJson()) },
@@ -74,7 +75,7 @@ class BannersRepository(
         ).map { item ->
             val event = item.event.decodeJson<BannerEvent>()
             banners.firstOrNull { it.event == event }
-                ?: Banner(wallet = wallet, asset = assetInfo?.asset, chain = null, state = item.state.decodeJson(), event = event)
+                ?: Banner(wallet = sceneWallet, asset = assetInfo?.asset, chain = null, state = item.state.decodeJson(), event = event)
         }
     }
 

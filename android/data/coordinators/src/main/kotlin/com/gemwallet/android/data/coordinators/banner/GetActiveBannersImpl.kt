@@ -13,11 +13,7 @@ class GetActiveBannersImpl(
 ) : GetActiveBanners {
 
     override suspend fun invoke(asset: Asset?, isGlobal: Boolean): List<Banner> {
-        val wallet = if (isGlobal) {
-            null
-        } else {
-            sessionRepository.session().firstOrNull()?.wallet
-        }
-        return getBannersCase.getActiveBanners(wallet, asset)
+        val wallet = sessionRepository.session().firstOrNull()?.wallet
+        return getBannersCase.getActiveBanners(wallet, asset, isGlobal)
     }
 }
