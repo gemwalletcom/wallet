@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
-import com.gemwallet.android.application.assets.coordinators.GemSearch
 import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.coordinators.GetAssetById
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
@@ -21,7 +20,6 @@ import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.application.assets.coordinators.SearchAssets
 import com.gemwallet.android.application.assets.coordinators.SetChartPeriod
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
@@ -52,7 +50,6 @@ import com.gemwallet.android.data.coordinators.asset.EnsureWalletAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.HideAssetImpl
 import com.gemwallet.android.data.coordinators.asset.HideWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.PrefetchAssetsImpl
-import com.gemwallet.android.data.coordinators.asset.SearchAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.SetChartPeriodImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
@@ -85,22 +82,6 @@ import uniffi.gemstone.GemWalletPreferencesService
 @InstallIn(SingletonComponent::class)
 @Module
 object AssetModule {
-    @Provides
-    @Singleton
-    fun provideSearchAssetsImpl(
-        assetsService: GemAssetsService,
-    ): SearchAssetsImpl = SearchAssetsImpl(
-        assetsService = assetsService,
-    )
-
-    @Provides
-    @Singleton
-    fun provideSearchAssets(impl: SearchAssetsImpl): SearchAssets = impl
-
-    @Provides
-    @Singleton
-    fun provideGemSearch(impl: SearchAssetsImpl): GemSearch = impl
-
     @Provides
     @Singleton
     fun provideGetActiveAssetsInfo(assetsRepository: AssetsRepository): GetActiveAssetsInfo =

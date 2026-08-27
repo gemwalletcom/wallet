@@ -1,8 +1,5 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.application.assets.coordinators.GemSearch
-import com.gemwallet.android.application.assets.coordinators.SearchAssets
-import com.gemwallet.android.blockchain.services.TokenService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.cases.tokens.SyncAssetPrices
 import com.gemwallet.android.cases.tokens.WalletSearchScopeCase
@@ -19,7 +16,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemSearchStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneSearchStore
@@ -35,18 +32,16 @@ object TokensModule {
         assetsDao: AssetsDao,
         pricesDao: PricesDao,
         pricesRepository: PricesRepository,
-        searchDao: SearchDao,
-        gateway: GemGateway,
-        searchAssets: SearchAssets,
+        sessionRepository: SessionRepository,
+        searchService: GemSearchService,
+        assetsService: GemAssetsService,
     ): TokensRepository = TokensRepository(
         assetsDao = assetsDao,
         pricesDao = pricesDao,
         pricesRepository = pricesRepository,
-        searchDao = searchDao,
-        searchAssets = searchAssets,
-        tokenService = TokenService(
-            gateway = gateway,
-        ),
+        sessionRepository = sessionRepository,
+        searchService = searchService,
+        assetsService = assetsService,
     )
 
     @Provides

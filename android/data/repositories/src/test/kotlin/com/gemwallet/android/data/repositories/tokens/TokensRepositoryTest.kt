@@ -1,106 +1,71 @@
 package com.gemwallet.android.data.repositories.tokens
 
-import com.gemwallet.android.application.assets.coordinators.SearchAssets
-import com.gemwallet.android.blockchain.services.TokenService
 import com.gemwallet.android.data.repositories.prices.PricesRepository
+import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
-import com.gemwallet.android.data.service.store.database.entities.DbSearch
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBasic
 import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.slot
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemSearchService
 
 class TokensRepositoryTest {
 
+    private val wallet = mockWallet(id = "wallet-1")
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
     private val pricesDao = mockk<PricesDao>(relaxed = true)
     private val pricesRepository = mockk<PricesRepository>(relaxed = true)
-    private val searchDao = mockk<SearchDao>(relaxed = true)
-    private val searchAssets = mockk<SearchAssets>()
-    private val tokenService = mockk<TokenService>(relaxed = true)
+    private val sessionRepository = mockk<SessionRepository> {
+        every { session() } returns MutableStateFlow(mockSession(wallet = wallet))
+    }
+    private val searchService = mockk<GemSearchService>()
+    private val assetsService = mockk<GemAssetsService>()
 
     private val subject = TokensRepository(
         assetsDao = assetsDao,
         pricesDao = pricesDao,
         pricesRepository = pricesRepository,
-        searchDao = searchDao,
-        searchAssets = searchAssets,
-        tokenService = tokenService,
+        sessionRepository = sessionRepository,
+        searchService = searchService,
+        assetsService = assetsService,
     )
 
     @Test
-    fun search_usesSearchAssetsAndStoresPriority() = runTest {
-        val asset = mockAssetBasic()
-        coEvery {
-            searchAssets.searchAssets(
-                query = "btc",
-                chains = listOf(Chain.Bitcoin),
-            )
-        } returns listOf(asset)
+    fun search_usesCoreSearchAssetsForTheSessionWallet() = runTest {
+        coEvery { searchService.searchAssets(wallet.toJson(), "btc", Currency.USD.toJson()) } returns listOf(mockAssetBasic().toJson())
+        coEvery { searchService.searchAssets(wallet.toJson(), "none", Currency.USD.toJson()) } returns emptyList()
 
-        val result = subject.search(
-            query = "btc",
-            currency = Currency.USD,
-            chains = listOf(Chain.Bitcoin),
-        )
-        val priorities = slot<List<DbSearch>>()
-
-        assertTrue(result)
-        coVerify {
-            searchAssets.searchAssets(
-                query = "btc",
-                chains = listOf(Chain.Bitcoin),
-            )
-        }
-        coVerify { searchDao.put(capture(priorities)) }
-        assertEquals("btc", priorities.captured.single().query)
+        assertTrue(subject.search(query = "btc", currency = Currency.USD))
+        assertFalse(subject.search(query = "none", currency = Currency.USD))
+        assertFalse(subject.search(query = "", currency = Currency.USD))
     }
 
     @Test
-    fun search_storesPriorityByResponseOrderNotByAssetRank() = runTest {
-        val firstResult = mockAssetBasic(asset = mockAssetEthereum(), rank = 10)
-        val secondResult = mockAssetBasic(asset = mockAsset(), rank = 999)
-        coEvery {
-            searchAssets.searchAssets(
-                query = "usdt arbitrum",
-                chains = emptyList(),
-            )
-        } returns listOf(firstResult, secondResult)
-
-        subject.search(
-            query = "usdt arbitrum",
-            currency = Currency.USD,
-            chains = emptyList(),
-        )
-
-        val priorities = slot<List<DbSearch>>()
-        coVerify { searchDao.put(capture(priorities)) }
-        val captured = priorities.captured
-
-        assertEquals(listOf(firstResult.asset.id.toIdentifier(), secondResult.asset.id.toIdentifier()), captured.map { it.assetId })
-        assertTrue("first response item must outrank later items", captured[0].priority < captured[1].priority)
-    }
-
-    @Test
-    fun searchByAssetIds_usesSearchAssetsGetAssets() = runTest {
+    fun searchByAssetIds_storesCoreAssets() = runTest {
         val asset = mockAsset()
         val assetBasic = mockAssetBasic(asset = asset, rank = 100)
         val updates = slot<List<DbAssetBasicUpdate>>()
-        coEvery { searchAssets.getAssets(listOf(asset.id)) } returns listOf(assetBasic)
+        coEvery { assetsService.getAssets(listOf(asset.id.toIdentifier()), null) } returns listOf(assetBasic.toJson())
 
         val result = subject.search(
             assetIds = listOf(asset.id),
@@ -108,7 +73,6 @@ class TokensRepositoryTest {
         )
 
         assertTrue(result)
-        coVerify { searchAssets.getAssets(listOf(asset.id)) }
         coVerify { assetsDao.updateBasicAssets(capture(updates)) }
         assertEquals(100, updates.captured.single().rank)
     }
@@ -121,11 +85,11 @@ class TokensRepositoryTest {
         coEvery {
             pricesDao.getByAssets(listOf(cached.id.toIdentifier(), missing.id.toIdentifier()))
         } returns listOf(DbPrice(assetId = cached.id.toIdentifier(), currency = Currency.USD))
-        coEvery { searchAssets.getAssets(listOf(missing.id)) } returns listOf(missingBasic)
+        coEvery { assetsService.getAssets(listOf(missing.id.toIdentifier()), null) } returns listOf(missingBasic.toJson())
 
         subject(listOf(cached.id, missing.id), Currency.USD)
 
-        coVerify(exactly = 1) { searchAssets.getAssets(listOf(missing.id)) }
+        coVerify(exactly = 1) { assetsService.getAssets(listOf(missing.id.toIdentifier()), null) }
     }
 
     @Test
@@ -137,7 +101,7 @@ class TokensRepositoryTest {
 
         subject(listOf(asset.id), Currency.USD)
 
-        coVerify(exactly = 0) { searchAssets.getAssets(any()) }
+        coVerify(exactly = 0) { assetsService.getAssets(any(), any()) }
     }
 
     @Test
@@ -145,6 +109,6 @@ class TokensRepositoryTest {
         subject(emptyList(), Currency.USD)
 
         coVerify(exactly = 0) { pricesDao.getByAssets(any()) }
-        coVerify(exactly = 0) { searchAssets.getAssets(any()) }
+        coVerify(exactly = 0) { assetsService.getAssets(any(), any()) }
     }
 }
