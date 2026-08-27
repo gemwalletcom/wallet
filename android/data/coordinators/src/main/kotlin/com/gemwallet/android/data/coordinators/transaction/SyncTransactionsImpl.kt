@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.transaction
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
@@ -16,9 +17,8 @@ class SyncTransactionsImpl @Inject constructor(
     private val sessionRepository: SessionRepository,
 ) : SyncTransactions, SyncAssetTransactions {
 
-    override suspend fun syncTransactions(wallet: Wallet) {
-        runCatching { transactionsService.sync(wallet.id.id, null) }
-    }
+    override suspend fun syncTransactions(wallet: Wallet): Boolean =
+        runCatchingCancellable { transactionsService.sync(wallet.id.id, null) }.isSuccess
 
     override suspend fun syncAssetTransactions(assetId: AssetId) {
         val wallet = sessionRepository.getCurrentWallet() ?: return

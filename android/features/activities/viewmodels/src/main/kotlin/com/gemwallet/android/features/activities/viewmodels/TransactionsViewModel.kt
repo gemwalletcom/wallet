@@ -12,6 +12,7 @@ import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +50,7 @@ class TransactionsViewModel @Inject constructor(
         .map { it?.wallet?.id }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private var lastSyncedWalletId: WalletId? = null
+    private var syncedWalletId: WalletId? = null
 
     val transactions = combine(
         chainsFilter,
@@ -82,13 +83,16 @@ class TransactionsViewModel @Inject constructor(
         }
     }
 
-    fun syncIfNeeded() {
-        val current = walletId.value ?: return
-        if (current == lastSyncedWalletId) return
-        lastSyncedWalletId = current
-        viewModelScope.launch(Dispatchers.IO) {
-            val wallet = session.firstOrNull()?.wallet ?: return@launch
-            syncTransactions.syncTransactions(wallet)
+    fun syncIfNeeded(): Job? {
+        val current = walletId.value ?: return null
+        if (current == syncedWalletId) return null
+        syncedWalletId = current
+        return viewModelScope.launch(Dispatchers.IO) {
+            val wallet = session.firstOrNull()?.wallet
+            val synced = wallet != null && syncTransactions.syncTransactions(wallet)
+            if (!synced && syncedWalletId == current) {
+                syncedWalletId = null
+            }
         }
     }
 
