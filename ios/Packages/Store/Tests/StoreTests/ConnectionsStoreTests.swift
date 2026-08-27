@@ -29,4 +29,17 @@ struct ConnectionsStoreTests {
     func getConnectionIsNilForNonexistentSession() throws {
         #expect(try ConnectionsStore.mock().getConnection(sessionId: "nonexistent") == nil)
     }
+
+    @Test
+    func connectionsRequestListsStoredSessions() throws {
+        let db = DB.mockWithChains([.ethereum])
+        let wallet = Wallet.mock(id: .multicoin(address: "0xa"), accounts: [.mock(chain: .ethereum)])
+        try WalletStore(db: db).addWallet(wallet)
+        try ConnectionsStore(db: db).addConnection(.mock(session: .mock(sessionId: "session-a"), wallet: wallet))
+
+        let connections = try db.dbQueue.read { try ConnectionsRequest().fetch($0) }
+
+        #expect(connections.map(\.session.sessionId) == ["session-a"])
+        #expect(connections.first?.wallet.accounts.map(\.chain) == [.ethereum])
+    }
 }

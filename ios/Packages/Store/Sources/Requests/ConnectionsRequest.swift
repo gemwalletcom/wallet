@@ -10,6 +10,7 @@ public struct ConnectionsRequest: DatabaseQueryable {
     public func fetch(_ db: Database) throws -> [WalletConnection] {
         try WalletRecord
             .including(required: WalletRecord.connection)
+            .including(all: WalletRecord.accounts)
             .asRequest(of: WalletConnectionInfo.self)
             .fetchAll(db)
             .map { $0.mapToWalletConnection() }
