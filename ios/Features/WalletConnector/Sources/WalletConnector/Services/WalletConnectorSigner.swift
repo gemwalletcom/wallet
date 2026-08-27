@@ -86,10 +86,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable, GemWalletConn
     ) throws -> TransferData {
         switch transaction {
         case let .ethereum(transaction, kind):
-            guard action == .send else {
-                throw AnyError("Not supported")
-            }
-            return try ethereumTransferData(chain: chain, session: session, transaction: transaction, kind: kind)
+            return try ethereumTransferData(chain: chain, session: session, transaction: transaction, kind: kind, action: action)
         case let .solana(encodedTransaction, outputType, _),
              let .sui(encodedTransaction, outputType),
              let .ton(encodedTransaction, outputType),
@@ -117,6 +114,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable, GemWalletConn
         session: WalletConnectionSession,
         transaction: WCEthereumTransaction,
         kind: WalletConnectorEVMTransactionKind,
+        action: GemWalletConnectTransactionAction,
     ) throws -> TransferData {
         let value = try BigInt.fromHex(transaction.value ?? .zero)
         let gasLimit = (transaction.gasLimit ?? transaction.gas).flatMap { BigInt(hex: $0) }
@@ -137,6 +135,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable, GemWalletConn
                 gasLimit: gasLimit,
                 gasPrice: gasPrice,
                 data: transaction.data.map { Data(hex: $0) },
+                outputAction: action.outputAction,
                 transactionType: kind.transactionType,
                 approval: kind.approvalData,
             )),
