@@ -232,7 +232,6 @@ struct ServicesFactory {
             assetsService: gemAssetsService,
             nodeStore: storeManager.nodeStore,
             preferences: preferences,
-            preferencesService: preferencesService,
             walletService: walletService,
         )
         let appStartService = Gemstone.GemAppStartService(

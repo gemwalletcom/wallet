@@ -19,7 +19,6 @@ public final class Preferences: @unchecked Sendable {
         static let pushedSubscriptions = "pushed_subscriptions"
         static let currentWalletId = "currentWallet"
         static let isPushNotificationsEnabled = "is_push_notifications_enabled"
-        static let isPriceAlertsEnabled = "is_price_alerts_enabled"
         static let isSubscriptionsEnabled = "is_subscriptions_enabled"
         static let rateApplicationShown = "rate_application_shown"
         static let authenticationLockOption = "authentication_lock_option"
@@ -151,12 +150,6 @@ public final class Preferences: @unchecked Sendable {
         configure(\._perpetualStopLoss, key: Keys.perpetualStopLoss, defaultValue: 0)
         configure(\._isDeviceRegistered, key: Keys.isDeviceRegistered, defaultValue: false)
         configure(\._appearanceRawValue, key: Keys.appearance, defaultValue: Appearance.system.rawValue)
-    }
-
-    public func removeLegacyPriceAlertsEnabled() -> Bool? {
-        let enabled = defaults.object(forKey: Keys.isPriceAlertsEnabled) as? Bool
-        defaults.removeObject(forKey: Keys.isPriceAlertsEnabled)
-        return enabled
     }
 
     public func incrementLaunchesCount() {

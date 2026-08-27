@@ -7,19 +7,6 @@ import Primitives
 import Testing
 
 struct PreferencesTests {
-    @Test
-    func removeLegacyPriceAlertsEnabledReturnsValueOnce() {
-        let defaults = UserDefaults(suiteName: #function)!
-        defaults.removePersistentDomain(forName: #function)
-        let preferences = Preferences(defaults: defaults)
-
-        #expect(preferences.removeLegacyPriceAlertsEnabled() == nil)
-
-        defaults.set(true, forKey: Preferences.Keys.isPriceAlertsEnabled)
-        #expect(preferences.removeLegacyPriceAlertsEnabled() == true)
-        #expect(preferences.removeLegacyPriceAlertsEnabled() == nil)
-    }
-
     private let preferences: Preferences = .mock()
 
     @Test
