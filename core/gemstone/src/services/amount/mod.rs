@@ -20,7 +20,7 @@ impl GemAmountService {
         rules::rules(amount_type, &asset)
     }
 
-    pub fn limits(&self, amount_type: &GemAmountType, asset: Asset, balance: GemTransferBalance) -> GemAmountLimits {
+    pub fn limits(&self, amount_type: &GemAmountType, asset: Asset, balance: GemTransferBalance) -> Result<GemAmountLimits, GemAmountError> {
         rules::limits(amount_type, &asset, &balance)
     }
 

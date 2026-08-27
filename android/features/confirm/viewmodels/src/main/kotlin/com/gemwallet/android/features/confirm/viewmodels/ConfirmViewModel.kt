@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemTransferService
 import com.wallet.core.primitives.ApprovalData
@@ -393,7 +394,11 @@ class ConfirmViewModel @Inject constructor(
     }
 
     private suspend fun getBalance(assetInfo: AssetInfo, params: ConfirmParams): BigInteger {
-        return transactionBalanceService.getBalance(assetInfo, params)
+        return try {
+            transactionBalanceService.getBalance(assetInfo, params)
+        } catch (_: GemAmountException) {
+            throw ConfirmError.TransactionIncorrect
+        }
     }
 
     private fun List<AssetInfo>.getByAssetId(assetId: AssetId): AssetInfo? {

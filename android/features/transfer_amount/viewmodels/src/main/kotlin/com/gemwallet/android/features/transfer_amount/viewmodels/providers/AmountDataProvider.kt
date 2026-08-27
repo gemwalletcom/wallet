@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemTransferBalance
 import uniffi.gemstone.GemAmountLimits
 import uniffi.gemstone.GemAmountRules
+import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemAmountService
 import uniffi.gemstone.GemAmountType
 import java.math.BigInteger
@@ -38,7 +39,15 @@ abstract class AmountDataProvider(private val scope: CoroutineScope) {
 
     val limits: StateFlow<GemAmountLimits?> by lazy {
         combine(amountType, assetInfo, balance) { type, current, currentBalance ->
-            if (type == null || current == null || currentBalance == null) null else amountService.limits(type, current.asset.toJson(), currentBalance)
+            if (type == null || current == null || currentBalance == null) {
+                null
+            } else {
+                try {
+                    amountService.limits(type, current.asset.toJson(), currentBalance)
+                } catch (_: GemAmountException) {
+                    null
+                }
+            }
         }.stateIn(scope, SharingStarted.Eagerly, null)
     }
 

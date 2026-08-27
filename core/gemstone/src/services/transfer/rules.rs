@@ -11,6 +11,8 @@ use primitives::{
 
 use super::model::{GemPendingTransactionInput, GemTransferBalance, GemTransferData, GemTransferOutput};
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
+use crate::services::amount::model::GemAmountError;
+use crate::services::amount::rules::parse_value;
 
 pub fn transaction_type(input_type: &GemTransactionInputType) -> TransactionType {
     TransactionInputType::from(input_type.clone()).transaction_type()
@@ -128,39 +130,36 @@ pub fn metadata(input_type: &GemTransactionInputType) -> Result<Option<serde_jso
     Ok(value)
 }
 
-pub fn tron_stake_available(asset: &Asset, balance: &GemTransferBalance) -> BigInt {
-    let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
+pub fn tron_stake_available(asset: &Asset, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
     let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
-    (parse(&balance.frozen) + parse(&balance.locked) - staked).max(BigInt::from(0))
+    Ok((parse_value(&balance.frozen)? + parse_value(&balance.locked)? - staked).max(BigInt::from(0)))
 }
 
-pub fn unfreeze_available(resource: &primitives::Resource, balance: &GemTransferBalance) -> BigInt {
-    let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
+pub fn unfreeze_available(resource: &primitives::Resource, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
     match resource {
-        primitives::Resource::Bandwidth => parse(&balance.frozen),
-        primitives::Resource::Energy => parse(&balance.locked),
+        primitives::Resource::Bandwidth => parse_value(&balance.frozen),
+        primitives::Resource::Energy => parse_value(&balance.locked),
     }
 }
 
-pub fn available_value(transfer: &GemTransferData, balance: &GemTransferBalance) -> BigInt {
-    let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
+pub fn available_value(transfer: &GemTransferData, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
     let asset = transfer.input_type.asset();
-    match &transfer.input_type {
-        GemTransactionInputType::Withdrawal { .. } => parse(&balance.withdrawable),
+    Ok(match &transfer.input_type {
+        GemTransactionInputType::Withdrawal { .. } => parse_value(&balance.withdrawable)?,
         GemTransactionInputType::Stake { stake_type, .. } => match stake_type {
             StakeType::Unstake(delegation) | StakeType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
             StakeType::Redelegate(data) => BigInt::from(data.delegation.base.balance.clone()),
-            StakeType::Rewards(_) => parse(&transfer.value),
-            StakeType::Unfreeze(resource) => unfreeze_available(resource, balance),
-            StakeType::Stake(_) if asset.chain() == Chain::Tron => tron_stake_available(asset, balance),
-            StakeType::Stake(_) | StakeType::Freeze(_) => parse(&balance.available),
+            StakeType::Rewards(_) => parse_value(&transfer.value)?,
+            StakeType::Unfreeze(resource) => unfreeze_available(resource, balance)?,
+            StakeType::Stake(_) if asset.chain() == Chain::Tron => tron_stake_available(asset, balance)?,
+            StakeType::Stake(_) | StakeType::Freeze(_) => parse_value(&balance.available)?,
         },
         GemTransactionInputType::Earn { earn_type, .. } => match earn_type {
             EarnType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
-            EarnType::Deposit(_) => parse(&balance.available),
+            EarnType::Deposit(_) => parse_value(&balance.available)?,
         },
-        _ => parse(&balance.available),
-    }
+        _ => parse_value(&balance.available)?,
+    })
 }
 
 pub fn pending_transaction(input: GemPendingTransactionInput) -> Result<Option<Transaction>, String> {
@@ -415,18 +414,18 @@ mod tests {
             stake_type: StakeType::Unfreeze(Resource::Bandwidth),
         };
         assert_eq!(metadata(&unfreeze).unwrap().unwrap()["resourceType"], "bandwidth");
-        assert_eq!(available_value(&transfer(unfreeze, "1"), &balance(10, 20, 30)), BigInt::from(20));
+        assert_eq!(available_value(&transfer(unfreeze, "1"), &balance(10, 20, 30)).unwrap(), BigInt::from(20));
 
         let unstake = GemTransactionInputType::Stake {
             asset: asset(Chain::Cosmos),
             stake_type: StakeType::Unstake(delegation(700)),
         };
-        assert_eq!(available_value(&transfer(unstake, "1"), &balance(10, 0, 0)), BigInt::from(700));
+        assert_eq!(available_value(&transfer(unstake, "1"), &balance(10, 0, 0)).unwrap(), BigInt::from(700));
         let rewards = GemTransactionInputType::Stake {
             asset: asset(Chain::Cosmos),
             stake_type: StakeType::Rewards(vec![]),
         };
-        assert_eq!(available_value(&transfer(rewards, "42"), &balance(10, 0, 0)), BigInt::from(42));
+        assert_eq!(available_value(&transfer(rewards, "42"), &balance(10, 0, 0)).unwrap(), BigInt::from(42));
         let tron_stake = GemTransactionInputType::Stake {
             asset: asset(Chain::Tron),
             stake_type: StakeType::Stake(delegation(0).validator),
@@ -438,7 +437,8 @@ mod tests {
                     votes: 2,
                     ..balance(1, 5_000_000, 3_000_000)
                 }
-            ),
+            )
+            .unwrap(),
             BigInt::from(6_000_000)
         );
         let overvoted = GemTransactionInputType::Stake {
@@ -452,7 +452,8 @@ mod tests {
                     votes: 9,
                     ..balance(1, 5_000_000, 3_000_000)
                 }
-            ),
+            )
+            .unwrap(),
             BigInt::from(0)
         );
         let withdrawal = GemTransactionInputType::Withdrawal { asset: asset(Chain::HyperCore) };
@@ -463,7 +464,8 @@ mod tests {
                     withdrawable: "9".to_string(),
                     ..balance(10, 0, 0)
                 }
-            ),
+            )
+            .unwrap(),
             BigInt::from(9)
         );
     }

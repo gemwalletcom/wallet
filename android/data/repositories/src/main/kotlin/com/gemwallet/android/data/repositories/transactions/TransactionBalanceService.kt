@@ -30,7 +30,7 @@ class TransactionBalanceService @Inject constructor(
                 withdrawable = balance.withdrawable,
                 votes = assetInfo.balance.metadata?.votes ?: 0u,
             ),
-        ).toBigIntegerOrNull() ?: BigInteger.ZERO
+        ).toBigInteger()
     }
 
     private suspend fun perpetualAvailable(assetInfo: AssetInfo): String {

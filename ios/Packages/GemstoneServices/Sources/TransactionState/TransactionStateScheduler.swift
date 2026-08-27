@@ -13,8 +13,10 @@ public struct TransactionStateScheduler: Sendable {
 
     public func setup() {
         Task {
-            if let transactionWallets = try? await service.pendingTransactions() {
-                scheduleUpdate(for: transactionWallets)
+            do {
+                scheduleUpdate(for: try await service.pendingTransactions())
+            } catch {
+                debugLog("transaction state: pending transactions load failed: \(error)")
             }
         }
     }

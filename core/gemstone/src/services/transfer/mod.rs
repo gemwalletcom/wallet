@@ -1,6 +1,8 @@
 pub mod model;
 pub mod rules;
 
+use crate::services::amount::model::GemAmountError;
+
 use crate::GemstoneError;
 use crate::models::transaction::GemTransactionInputType;
 use primitives::swap::ApprovalData;
@@ -47,8 +49,8 @@ impl GemTransferService {
         metadata.map(|value| serde_json::to_string(&value).map_err(GemstoneError::from)).transpose()
     }
 
-    pub fn available_value(&self, transfer: &GemTransferData, balance: GemTransferBalance) -> String {
-        rules::available_value(transfer, &balance).to_string()
+    pub fn available_value(&self, transfer: &GemTransferData, balance: GemTransferBalance) -> Result<String, GemAmountError> {
+        Ok(rules::available_value(transfer, &balance)?.to_string())
     }
 
     pub fn pending_transaction(&self, input: GemPendingTransactionInput) -> Result<Option<Transaction>, GemstoneError> {

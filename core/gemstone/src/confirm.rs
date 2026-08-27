@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::GemstoneError;
 use crate::fee::custom_gas_price;
-use crate::gateway::GemGateway;
+use crate::gateway::{GatewayError, GemGateway};
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput, GemTransactionLoadMetadata};
 use crate::services::GemScanService;
@@ -60,6 +60,7 @@ pub enum GemConfirmError {
     ScanMalicious,
     ScanMemoRequired { symbol: String },
     FeeRatesMissing,
+    Network { msg: String },
     Load { msg: String },
     Broadcast { hashes: Vec<String>, msg: String },
 }
@@ -70,7 +71,7 @@ impl std::fmt::Display for GemConfirmError {
             Self::ScanMalicious => write!(f, "transaction flagged as malicious"),
             Self::ScanMemoRequired { symbol } => write!(f, "{symbol} transfer requires a memo"),
             Self::FeeRatesMissing => write!(f, "fee rates not found"),
-            Self::Load { msg } | Self::Broadcast { msg, .. } => write!(f, "{msg}"),
+            Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } => write!(f, "{msg}"),
         }
     }
 }
@@ -111,8 +112,8 @@ impl GemConfirmService {
             scan_future,
             self.simulate(chain, &input),
         );
-        let metadata = metadata.map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
-        let fee_rates = fee_rates.map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let metadata = metadata.map_err(load_error)?;
+        let fee_rates = fee_rates.map_err(load_error)?;
         let simulation = simulation?;
 
         validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;
@@ -134,7 +135,7 @@ impl GemConfirmService {
                 },
             )
             .await
-            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+            .map_err(load_error)?;
 
         let mut fee = load.fee;
         if let Some(fee_asset_id) = options.fee_asset_id {
@@ -161,7 +162,7 @@ impl GemConfirmService {
             match self.gateway.transaction_broadcast(chain, transaction.data.clone(), options.clone()).await {
                 Ok(hash) => hashes.push(hash),
                 Err(error) => {
-                    return Err(GemConfirmError::Broadcast { hashes, msg: error.to_string() });
+                    return Err(broadcast_error(hashes, error));
                 }
             }
             if index < transactions.len() - 1 && delay > 0 {
@@ -240,6 +241,20 @@ fn validate_scan(scan: Option<&ScanTransaction>, memo: Option<&str>, symbol: &st
         return Err(GemConfirmError::ScanMemoRequired { symbol: symbol.to_string() });
     }
     Ok(())
+}
+
+fn load_error(error: GatewayError) -> GemConfirmError {
+    match error {
+        GatewayError::NetworkError { msg } => GemConfirmError::Network { msg },
+        error => GemConfirmError::Load { msg: error.to_string() },
+    }
+}
+
+fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemConfirmError {
+    match error {
+        GatewayError::NetworkError { msg } if hashes.is_empty() => GemConfirmError::Network { msg },
+        error => GemConfirmError::Broadcast { hashes, msg: error.to_string() },
+    }
 }
 
 fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransactionPayload {
@@ -373,6 +388,26 @@ mod tests {
         let payload = scan_payload(generic);
         assert_eq!(payload.transaction_type, TransferDataExtra::mock().transaction_type);
         assert_eq!(payload.website, Some(ApplicationMetadata::mock().url));
+    }
+
+    #[test]
+    fn test_gateway_errors_keep_their_kind() {
+        match load_error(GatewayError::NetworkError { msg: "timeout".to_string() }) {
+            GemConfirmError::Network { msg } => assert_eq!(msg, "timeout"),
+            error => panic!("expected a network error, got {error:?}"),
+        }
+        match load_error(GatewayError::PlatformError { msg: "dust".to_string() }) {
+            GemConfirmError::Load { msg } => assert_eq!(msg, "Platform error: dust"),
+            error => panic!("expected a load error, got {error:?}"),
+        }
+        match broadcast_error(vec![], GatewayError::NetworkError { msg: "offline".to_string() }) {
+            GemConfirmError::Network { msg } => assert_eq!(msg, "offline"),
+            error => panic!("expected a network error, got {error:?}"),
+        }
+        match broadcast_error(vec!["h1".to_string()], GatewayError::NetworkError { msg: "offline".to_string() }) {
+            GemConfirmError::Broadcast { hashes, .. } => assert_eq!(hashes, vec!["h1".to_string()]),
+            error => panic!("expected a partial broadcast error, got {error:?}"),
+        }
     }
 
     #[test]
