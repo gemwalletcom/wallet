@@ -1,5 +1,6 @@
-use alloy_primitives::{B256, Signature, hex};
+use alloy_primitives::{hex, keccak256};
 use primitives::{AuthMessage, ChainType};
+use signer::Signer;
 
 pub struct AuthMessageData {
     pub message: String,
@@ -8,7 +9,7 @@ pub struct AuthMessageData {
 
 pub fn create_auth_hash(auth_message: &AuthMessage) -> AuthMessageData {
     let message = serde_json::to_string(auth_message).unwrap_or_default();
-    let hash = alloy_primitives::keccak256(message.as_bytes());
+    let hash = keccak256(message.as_bytes());
     AuthMessageData { message, hash: hash.into() }
 }
 
@@ -38,42 +39,37 @@ fn recover_address_from_hash(hash: &[u8; 32], signature: &str) -> Option<String>
         return None;
     }
 
-    let signature = Signature::try_from(signature_bytes.as_slice()).ok()?;
-    let hash = B256::from_slice(hash);
-    let address = signature.recover_address_from_prehash(&hash).ok()?;
-
-    Some(address.to_checksum(None))
+    Signer::recover_ethereum_address(hash, &signature_bytes).ok()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy_signer::SignerSync;
-    use alloy_signer_local::PrivateKeySigner;
-    use primitives::{AuthNonce, Chain, testkit::signer_mock::TEST_PRIVATE_KEY};
+    use primitives::{
+        AuthNonce, Chain,
+        hex::encode_with_0x,
+        testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS},
+    };
+    use signer::SignatureScheme;
 
-    fn sign_auth_message(auth_message: &AuthMessage, signer: &PrivateKeySigner) -> String {
-        let message = serde_json::to_string(auth_message).unwrap();
-        let hash = alloy_primitives::keccak256(message.as_bytes());
-        let signature = signer.sign_hash_sync(&hash).unwrap();
-        format!("0x{}", hex::encode(signature.as_bytes()))
+    fn sign_auth_message(auth_message: &AuthMessage) -> String {
+        let hash = create_auth_hash(auth_message).hash;
+        let signature = Signer::sign_digest(SignatureScheme::Secp256k1, &hash, &TEST_PRIVATE_KEY).unwrap();
+        encode_with_0x(&signature)
     }
 
     #[test]
     fn test_verify_auth_signature_success() {
-        let signer = PrivateKeySigner::from_slice(&TEST_PRIVATE_KEY).unwrap();
-        let address = signer.address().to_checksum(None);
-
         let auth_message = AuthMessage {
             chain: Chain::Ethereum,
-            address: address.clone(),
+            address: TEST_PRIVATE_KEY_ETHEREUM_ADDRESS.to_string(),
             auth_nonce: AuthNonce {
                 nonce: "test-nonce-123".to_string(),
                 timestamp: 1734100000,
             },
         };
 
-        let signature = sign_auth_message(&auth_message, &signer);
+        let signature = sign_auth_message(&auth_message);
         assert!(verify_auth_signature(&auth_message, &signature));
     }
 

@@ -1,13 +1,13 @@
-use alloy_consensus::{SignableTransaction, TxEip1559};
-use alloy_network::TxSignerSync;
-use alloy_network::eip2718::Encodable2718;
-use alloy_signer_local::PrivateKeySigner;
-use std::error::Error;
+use alloy_consensus::{SignableTransaction, TxEip1559, transaction::RlpEcdsaEncodableTx};
+use alloy_primitives::Signature;
+use primitives::SignerError;
+use signer::{SignatureScheme, Signer};
 
-pub fn sign_eip1559_tx(tx: &TxEip1559, private_key: &[u8]) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
-    let signer = PrivateKeySigner::from_slice(private_key)?;
-    let mut tx = tx.clone();
-    let signature = signer.sign_transaction_sync(&mut tx)?;
-    let signed = tx.into_signed(signature);
-    Ok(signed.encoded_2718())
+pub fn sign_eip1559_tx(transaction: &TxEip1559, private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
+    let signature_hash = transaction.signature_hash();
+    let signature = Signer::sign_digest(SignatureScheme::Secp256k1, signature_hash.as_slice(), private_key)?;
+    let signature = Signature::try_from(signature.as_slice()).map_err(SignerError::from_display)?;
+    let mut encoded = Vec::with_capacity(transaction.eip2718_encoded_length(&signature));
+    transaction.eip2718_encode(&signature, &mut encoded);
+    Ok(encoded)
 }
