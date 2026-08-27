@@ -128,6 +128,20 @@ pub fn metadata(input_type: &GemTransactionInputType) -> Result<Option<serde_jso
     Ok(value)
 }
 
+pub fn tron_stake_available(asset: &Asset, balance: &GemTransferBalance) -> BigInt {
+    let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
+    let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
+    parse(&balance.frozen) + parse(&balance.locked) - staked
+}
+
+pub fn unfreeze_available(resource: &primitives::Resource, balance: &GemTransferBalance) -> BigInt {
+    let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
+    match resource {
+        primitives::Resource::Bandwidth => parse(&balance.frozen),
+        primitives::Resource::Energy => parse(&balance.locked),
+    }
+}
+
 pub fn available_value(transfer: &GemTransferData, balance: &GemTransferBalance) -> BigInt {
     let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
     let asset = transfer.input_type.asset();
@@ -137,14 +151,8 @@ pub fn available_value(transfer: &GemTransferData, balance: &GemTransferBalance)
             StakeType::Unstake(delegation) | StakeType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
             StakeType::Redelegate(data) => BigInt::from(data.delegation.base.balance.clone()),
             StakeType::Rewards(_) => parse(&transfer.value),
-            StakeType::Unfreeze(resource) => match resource {
-                primitives::Resource::Bandwidth => parse(&balance.frozen),
-                primitives::Resource::Energy => parse(&balance.locked),
-            },
-            StakeType::Stake(_) if asset.chain() == Chain::Tron => {
-                let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
-                parse(&balance.frozen) + parse(&balance.locked) - staked
-            }
+            StakeType::Unfreeze(resource) => unfreeze_available(resource, balance),
+            StakeType::Stake(_) if asset.chain() == Chain::Tron => tron_stake_available(asset, balance),
             StakeType::Stake(_) | StakeType::Freeze(_) => parse(&balance.available),
         },
         GemTransactionInputType::Earn { earn_type, .. } => match earn_type {

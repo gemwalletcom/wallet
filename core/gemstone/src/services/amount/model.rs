@@ -45,15 +45,6 @@ pub enum GemAmountPerpetualPosition {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAmountBalance {
-    pub available: String,
-    pub frozen: String,
-    pub locked: String,
-    pub withdrawable: String,
-    pub votes: u32,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountRules {
     pub minimum_value: String,
     pub reserve_for_fee: String,

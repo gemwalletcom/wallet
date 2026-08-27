@@ -5,6 +5,7 @@ import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toAssetId
@@ -46,7 +47,7 @@ class GemstonePriceStore(
                     usdValue = it.priceUsd,
                     dayChanged = it.priceChangePercentage24h,
                     currency = currency,
-                    updatedAt = it.updatedAt,
+                    updatedAt = it.updatedAt.secondsToMillis(),
                 )
             }
         )

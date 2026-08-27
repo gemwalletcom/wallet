@@ -1,11 +1,13 @@
 use std::str::FromStr;
 
 use num_bigint::{BigInt, BigUint};
-use primitives::{Asset, Chain, Resource, StakeChain};
+use primitives::{Asset, Chain, StakeChain};
 
-use super::model::{GemAmountBalance, GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType};
+use super::model::{GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType};
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
+use crate::services::transfer::GemTransferBalance;
+use crate::services::transfer::rules as transfer_rules;
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
 
 const USDC_SYMBOL: &str = "USDC";
@@ -20,7 +22,7 @@ pub fn rules(amount_type: &GemAmountType, asset: &Asset) -> GemAmountRules {
     }
 }
 
-pub fn limits(amount_type: &GemAmountType, asset: &Asset, balance: &GemAmountBalance) -> GemAmountLimits {
+pub fn limits(amount_type: &GemAmountType, asset: &Asset, balance: &GemTransferBalance) -> GemAmountLimits {
     let available = available_value(amount_type, asset, balance);
     let reserve = reserve_for_fee(amount_type, asset);
     let max_after_fee = (&available - &reserve).max(BigInt::from(0));
@@ -112,25 +114,19 @@ fn reserves_fee(amount_type: &GemAmountType, reserve: &BigInt, max_after_fee: &B
     }
 }
 
-pub fn available_value(amount_type: &GemAmountType, asset: &Asset, balance: &GemAmountBalance) -> BigInt {
+pub fn available_value(amount_type: &GemAmountType, asset: &Asset, balance: &GemTransferBalance) -> BigInt {
     let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
     match amount_type {
         GemAmountType::Transfer | GemAmountType::Deposit => parse(&balance.available),
         GemAmountType::Withdraw => parse(&balance.withdrawable),
         GemAmountType::Stake { stake_type } => match stake_type {
-            GemAmountStakeType::Stake if asset.chain() == Chain::Tron => {
-                let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
-                parse(&balance.frozen) + parse(&balance.locked) - staked
-            }
+            GemAmountStakeType::Stake if asset.chain() == Chain::Tron => transfer_rules::tron_stake_available(asset, balance),
             GemAmountStakeType::Stake | GemAmountStakeType::Freeze { .. } => parse(&balance.available),
             GemAmountStakeType::Unstake { delegation } | GemAmountStakeType::Redelegate { delegation } | GemAmountStakeType::Withdraw { delegation } => {
                 BigInt::from(delegation.base.balance.clone())
             }
             GemAmountStakeType::Rewards { delegations } => BigInt::from(delegations.iter().map(|delegation| delegation.base.rewards.clone()).sum::<BigUint>()),
-            GemAmountStakeType::Unfreeze { resource } => match resource {
-                Resource::Bandwidth => parse(&balance.frozen),
-                Resource::Energy => parse(&balance.locked),
-            },
+            GemAmountStakeType::Unfreeze { resource } => transfer_rules::unfreeze_available(resource, balance),
         },
         GemAmountType::Earn { earn_type } => match earn_type {
             GemAmountEarnType::Deposit => parse(&balance.available),
@@ -154,6 +150,7 @@ fn stake_chain(chain: Chain) -> Option<StakeChain> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Resource;
     use primitives::{AssetId, AssetType, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
 
     fn asset(chain: Chain) -> Asset {
@@ -164,8 +161,8 @@ mod tests {
         Asset::new(AssetId::from(Chain::HyperCore, Some("usdc".into())), "USDC".into(), "USDC".into(), 6, AssetType::TOKEN)
     }
 
-    fn balance(available: u64, frozen: u64, locked: u64, votes: u32) -> GemAmountBalance {
-        GemAmountBalance {
+    fn balance(available: u64, frozen: u64, locked: u64, votes: u32) -> GemTransferBalance {
+        GemTransferBalance {
             available: available.to_string(),
             frozen: frozen.to_string(),
             locked: locked.to_string(),

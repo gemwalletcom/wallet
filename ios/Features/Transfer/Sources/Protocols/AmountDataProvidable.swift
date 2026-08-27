@@ -2,7 +2,7 @@
 
 import BigInt
 import Foundation
-import struct Gemstone.GemAmountBalance
+import struct Gemstone.GemTransferBalance
 import struct Gemstone.GemAmountLimits
 import struct Gemstone.GemAmountRules
 import class Gemstone.GemAmountService
@@ -46,7 +46,7 @@ extension AmountDataProvidable {
 
     func limits(from assetData: AssetData) -> GemAmountLimits {
         do {
-            return try GemAmountService().limits(amountType: gemAmountType, asset: asset.json(), balance: GemAmountBalance(assetData.balance))
+            return try GemAmountService().limits(amountType: gemAmountType, asset: asset.json(), balance: GemTransferBalance(assetData.balance))
         } catch {
             preconditionFailure("Unencodable amount asset: \(error)")
         }
@@ -65,7 +65,7 @@ extension AmountDataProvidable {
     }
 }
 
-private extension GemAmountBalance {
+private extension GemTransferBalance {
     init(_ balance: Balance) {
         self.init(
             available: balance.available.description,

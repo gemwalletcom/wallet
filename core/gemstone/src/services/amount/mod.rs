@@ -3,7 +3,8 @@ pub mod rules;
 
 use primitives::Asset;
 
-pub use model::{GemAmountBalance, GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType};
+use crate::services::transfer::GemTransferBalance;
+pub use model::{GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType};
 
 #[derive(Default, uniffi::Object)]
 pub struct GemAmountService;
@@ -19,7 +20,7 @@ impl GemAmountService {
         rules::rules(amount_type, &asset)
     }
 
-    pub fn limits(&self, amount_type: &GemAmountType, asset: Asset, balance: GemAmountBalance) -> GemAmountLimits {
+    pub fn limits(&self, amount_type: &GemAmountType, asset: Asset, balance: GemTransferBalance) -> GemAmountLimits {
         rules::limits(amount_type, &asset, &balance)
     }
 

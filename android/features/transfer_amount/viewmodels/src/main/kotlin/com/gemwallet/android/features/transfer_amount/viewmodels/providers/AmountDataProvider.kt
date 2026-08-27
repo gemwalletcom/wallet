@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemAmountBalance
+import uniffi.gemstone.GemTransferBalance
 import uniffi.gemstone.GemAmountLimits
 import uniffi.gemstone.GemAmountRules
 import uniffi.gemstone.GemAmountService
@@ -24,7 +24,7 @@ abstract class AmountDataProvider(private val scope: CoroutineScope) {
     abstract val assetInfo: StateFlow<AssetInfo?>
     abstract val amountType: StateFlow<GemAmountType?>
 
-    protected open val balance: StateFlow<GemAmountBalance?> by lazy {
+    protected open val balance: StateFlow<GemTransferBalance?> by lazy {
         assetInfo.map { it?.toAmountBalance() }.stateIn(scope, SharingStarted.Eagerly, null)
     }
 
@@ -53,7 +53,7 @@ abstract class AmountDataProvider(private val scope: CoroutineScope) {
     abstract suspend fun buildConfirmParams(amount: Crypto, isMax: Boolean): ConfirmParams
 }
 
-fun AssetInfo.toAmountBalance(): GemAmountBalance = GemAmountBalance(
+fun AssetInfo.toAmountBalance(): GemTransferBalance = GemTransferBalance(
     available = balance.balance.available,
     frozen = balance.balance.frozen,
     locked = balance.balance.locked,
