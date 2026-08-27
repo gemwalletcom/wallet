@@ -2,8 +2,9 @@ package com.gemwallet.android.features.banner.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.banner.coordinators.CancelBanner
+import com.gemwallet.android.application.banner.coordinators.ApplyBannerAction
 import com.gemwallet.android.application.banner.coordinators.GetActiveBanners
+import com.gemwallet.android.domains.banner.BannerAction
 import com.gemwallet.android.ext.getReserveBalance
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
@@ -19,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class BannersViewModel @Inject constructor(
     private val getActiveBanners: GetActiveBanners,
-    private val cancelBanner: CancelBanner,
+    private val applyBannerAction: ApplyBannerAction,
 ) : ViewModel() {
 
     val banners = MutableStateFlow<List<Banner>>(emptyList())
@@ -38,8 +39,12 @@ class BannersViewModel @Inject constructor(
         return ValueFormatter(style = ValueFormatter.Style.Auto).string(value, asset)
     }
 
-    fun onCancel(banner: Banner) = viewModelScope.launch {
-        cancelBanner(banner)
+    fun onSelect(banner: Banner) = apply(banner, BannerAction.Event(banner.event))
+
+    fun onCancel(banner: Banner) = apply(banner, BannerAction.Close)
+
+    private fun apply(banner: Banner, action: BannerAction) = viewModelScope.launch {
+        applyBannerAction(banner, action)
         init(banner.asset, banner.wallet == null)
     }
 }

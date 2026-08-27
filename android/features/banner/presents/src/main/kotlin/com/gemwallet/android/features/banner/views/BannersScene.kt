@@ -64,7 +64,12 @@ fun BannersScene(
     HorizontalPager(pageState, pageSpacing = paddingDefault) { page ->
         val banner = banners[page]
         val model = bannerItemUIModel(banner, asset, viewModel::getActivationFee)
-        Box(modifier = Modifier.listItem(ListPosition.Single).clickable { onClick(banner) }) {
+        Box(
+            modifier = Modifier.listItem(ListPosition.Single).clickable {
+                viewModel.onSelect(banner)
+                onClick(banner)
+            }
+        ) {
             BannerText(
                 model = model,
                 onCancel = { viewModel.onCancel(banner) },

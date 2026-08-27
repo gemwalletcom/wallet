@@ -63,13 +63,23 @@ internal fun bannerItemUIModel(
                 asset?.id?.chain?.networkName() ?: "",
             ),
         )
-        BannerEvent.SuspiciousAsset,
-        BannerEvent.Onboarding,
-        BannerEvent.TradePerpetuals -> TODO()
+        BannerEvent.SuspiciousAsset -> Pair(
+            stringResource(R.string.banner_asset_status_title),
+            stringResource(R.string.banner_asset_status_description),
+        )
+        BannerEvent.Onboarding -> Pair(
+            stringResource(R.string.banner_onboarding_title),
+            stringResource(R.string.banner_onboarding_description),
+        )
+        BannerEvent.TradePerpetuals -> Pair(
+            stringResource(R.string.banner_perpetuals_title),
+            stringResource(R.string.banner_perpetuals_description),
+        )
     }
     val icon: BannerIcon = when (banner.event) {
         BannerEvent.Stake -> BannerIcon.Emoji(Emoji.moneyBag)
-        BannerEvent.AccountBlockedMultiSignature -> BannerIcon.Vector(AppIcons.Warning)
+        BannerEvent.AccountBlockedMultiSignature,
+        BannerEvent.SuspiciousAsset -> BannerIcon.Vector(AppIcons.Warning)
         else -> BannerIcon.Url(
             asset?.getIconUrl()
                 ?: "android.resource://com.gemwallet.android/${R.drawable.brandmark}",

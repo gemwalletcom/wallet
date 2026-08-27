@@ -9,30 +9,30 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.BannerState
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemBannerStore
+import uniffi.gemstone.bannerIdentifier
 
 class GemstoneBannerStore(
     private val bannersDao: BannersDao,
 ) : GemBannerStore {
 
     override suspend fun getState(key: GemBannerKey): BannerState? =
-        bannersDao.getBanner(
-            walletId = key.walletId.orEmpty(),
-            assetId = key.assetId.orEmpty(),
-            chain = key.chain,
-            event = key.event.decodeJson<BannerEvent>(),
-        )?.state?.toJson()
+        bannersDao.getBanner(bannerIdentifier(key))?.state?.toJson()
 
     override suspend fun setState(key: GemBannerKey, state: BannerState) {
-        bannersDao.saveBanner(key.toRecord(state))
+        val record = key.toRecord(state)
+        if (bannersDao.getBanner(record.id)?.state != record.state) {
+            bannersDao.saveBanner(record)
+        }
     }
 
     override suspend fun addBanners(keys: List<GemBannerKey>, state: BannerState) {
-        keys.filter { getState(it) == null }.forEach { bannersDao.saveBanner(it.toRecord(state)) }
+        bannersDao.addBanners(keys.map { it.toRecord(state) })
     }
 
     private fun GemBannerKey.toRecord(state: BannerState) = DbBanner(
-        walletId = walletId.orEmpty(),
-        assetId = assetId.orEmpty(),
+        id = bannerIdentifier(this),
+        walletId = walletId,
+        assetId = assetId,
         chain = chain?.let { chain -> Chain.entries.firstOrNull { it.string == chain } },
         event = event.decodeJson<BannerEvent>(),
         state = state.decodeJson(),
