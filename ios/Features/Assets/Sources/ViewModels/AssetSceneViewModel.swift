@@ -4,6 +4,7 @@ import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
+import struct Gemstone.GemBannerContext
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import GemstoneServices
@@ -231,15 +232,31 @@ public final class AssetSceneViewModel: Sendable {
         )
     }
 
-    var assetBannerViewModel: AssetSceneBannersViewModel {
-        AssetSceneBannersViewModel(wallet: wallet, assetData: assetData, banners: banners)
+    var visibleBanners: [Banner] {
+        (try? bannerService.visibleBanners(banners, wallet: wallet, asset: assetData.asset, context: bannerContext)) ?? []
+    }
+
+    private var bannerContext: GemBannerContext {
+        GemBannerContext(
+            hasWallet: true,
+            hasAsset: true,
+            isStakeable: assetData.metadata.isStakeEnabled,
+            hasStakeBalance: !(assetData.balance.staked.isZero && assetData.balance.frozen.isZero),
+            hasAvailableBalance: assetData.balance.available > 0,
+            isAssetActivated: assetData.metadata.isActive,
+            assetRankScore: assetData.metadata.rankScore,
+            hasPerpetualsSupport: wallet.hasPerpetualsSupport,
+            isWalletEmpty: false,
+            notificationsAvailable: false,
+            launchCount: 0,
+        )
     }
 
     var assetHeaderModel: AssetHeaderViewModel {
         AssetHeaderViewModel(
             assetDataModel: assetDataModel,
             walletModel: walletModel,
-            bannerEventsViewModel: HeaderBannerEventViewModel(events: assetBannerViewModel.allBanners.map(\.event)),
+            bannerEventsViewModel: HeaderBannerEventViewModel(events: visibleBanners.map(\.event)),
         )
     }
 

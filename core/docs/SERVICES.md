@@ -72,7 +72,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | `AuthService` | `GemAuthService` | Done | Wrapper removed; auth payload built in Core on both apps (Android `GetAuthPayloadImpl` removed) |
 | `AvatarService` | `GemAvatarService` | Done | Wrapper removed on both apps; the app provides `GemFileStore` (iOS `LocalStore`, Android `LocalStore`), Android keeps only the emoji rendering |
 | `BalanceService` | `GemBalanceService` | Done | Wrapper removed; view models call `update` on the Core service and read `BalanceStore` directly |
-| `BannerService` | `GemBannerService` | Done | Wrapper removed; banner seeding (`setup`, `setup_wallet`), action handling and closing live in Core, the app provides `GemNotificationPermissions` |
+| `BannerService` | `GemBannerService` | Done | Wrapper removed; banner seeding (`setup`, `setup_wallet`), action handling, closing and visibility/ordering (`visible_banners`) live in Core, the app provides `GemNotificationPermissions` and the `GemBannerContext` inputs |
 | [`ConnectionsService`](../../ios/Packages/FeatureServices/ConnectionsService) | — | App-only | WalletConnect activation flag and SDK setup; session persistence goes through Core (`GemstoneConnectionStore`) |
 | [`ConnectionStatusService`](../../ios/Packages/FeatureServices/ConnectionStatusService) | — | App-only | Connectivity |
 | `ContactService` | `GemContactService` | Done | Wrapper removed; avatar files go through Core over `GemFileStore` (typed helpers in `GemContactService+GemstonePrimitives.swift`); Android: `ContactsRepository` |

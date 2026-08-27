@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
+import struct Gemstone.GemBannerContext
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
@@ -173,10 +174,23 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         )
     }
 
-    var walletBannersModel: WalletSceneBannersViewModel {
-        WalletSceneBannersViewModel(
-            banners: banners,
-            totalFiatValue: totalFiatValue.value,
+    var visibleBanners: [Banner] {
+        (try? bannerService.visibleBanners(banners, wallet: wallet, asset: .none, context: bannerContext)) ?? []
+    }
+
+    private var bannerContext: GemBannerContext {
+        GemBannerContext(
+            hasWallet: true,
+            hasAsset: false,
+            isStakeable: false,
+            hasStakeBalance: false,
+            hasAvailableBalance: false,
+            isAssetActivated: true,
+            assetRankScore: .none,
+            hasPerpetualsSupport: wallet.hasPerpetualsSupport,
+            isWalletEmpty: totalFiatValue.value.isZero,
+            notificationsAvailable: false,
+            launchCount: 0,
         )
     }
 }

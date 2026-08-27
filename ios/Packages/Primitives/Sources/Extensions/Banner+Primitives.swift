@@ -7,9 +7,3 @@ extension Banner: Identifiable {
         [wallet?.id.id, asset?.id.identifier, chain?.id, event.rawValue].compactMap(\.self).joined(separator: "_")
     }
 }
-
-extension Banner: Comparable {
-    public static func < (lhs: Banner, rhs: Banner) -> Bool {
-        (lhs.state, lhs.event) < (rhs.state, rhs.event)
-    }
-}

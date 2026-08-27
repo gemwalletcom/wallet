@@ -1,11 +1,12 @@
 use primitives::{AssetId, BannerEvent, BannerState, Chain, Wallet, WalletSource};
 
-use super::model::{GemBannerContext, GemBannerKey};
+use super::model::{GemBannerContext, GemBannerItem, GemBannerKey};
 
 const ACCOUNT_ACTIVATION_CHAINS: [Chain; 3] = [Chain::Xrp, Chain::Stellar, Chain::Algorand];
 const TRADE_PERPETUALS_CHAINS: [Chain; 2] = [Chain::HyperCore, Chain::Hyperliquid];
 
 const ENABLE_NOTIFICATIONS_MINIMUM_LAUNCHES: u32 = 3;
+const SUSPICIOUS_RANK_SCORE: i32 = 5;
 
 pub fn is_visible(state: BannerState) -> bool {
     match state {
@@ -81,6 +82,67 @@ pub fn is_available(event: BannerEvent, context: &GemBannerContext) -> bool {
     }
 }
 
+pub fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
+    match event {
+        BannerEvent::EnableNotifications | BannerEvent::AccountBlockedMultiSignature => true,
+        BannerEvent::AccountActivation => !context.has_asset || !context.has_available_balance,
+        BannerEvent::Stake => context.has_asset && !context.has_stake_balance,
+        BannerEvent::ActivateAsset => context.has_asset && !context.is_asset_activated,
+        BannerEvent::SuspiciousAsset => context.has_asset && is_suspicious(context),
+        BannerEvent::TradePerpetuals => context.has_asset && context.has_perpetuals_support,
+        BannerEvent::Onboarding => !context.has_asset && context.is_wallet_empty,
+    }
+}
+
+pub fn visible_banners(stored: Vec<GemBannerItem>, context: &GemBannerContext) -> Vec<GemBannerItem> {
+    let mut banners: Vec<GemBannerItem> = Vec::new();
+    for item in stored.into_iter().chain(extra_banners()) {
+        if banners.iter().any(|existing| existing.event == item.event) {
+            continue;
+        }
+        if is_visible(item.state) && is_visible_event(item.event, context) {
+            banners.push(item);
+        }
+    }
+    banners.sort_by_key(|item| (state_priority(item.state), event_priority(item.event)));
+    banners
+}
+
+fn extra_banners() -> Vec<GemBannerItem> {
+    [BannerEvent::ActivateAsset, BannerEvent::SuspiciousAsset]
+        .into_iter()
+        .map(|event| GemBannerItem {
+            event,
+            state: default_state(event),
+        })
+        .collect()
+}
+
+fn is_suspicious(context: &GemBannerContext) -> bool {
+    context.asset_rank_score.is_some_and(|score| score <= SUSPICIOUS_RANK_SCORE)
+}
+
+fn state_priority(state: BannerState) -> u8 {
+    match state {
+        BannerState::AlwaysActive => 0,
+        BannerState::Active => 1,
+        BannerState::Cancelled => 2,
+    }
+}
+
+fn event_priority(event: BannerEvent) -> u8 {
+    match event {
+        BannerEvent::AccountBlockedMultiSignature => 0,
+        BannerEvent::AccountActivation => 1,
+        BannerEvent::ActivateAsset => 2,
+        BannerEvent::SuspiciousAsset => 3,
+        BannerEvent::Onboarding => 4,
+        BannerEvent::EnableNotifications => 5,
+        BannerEvent::Stake => 6,
+        BannerEvent::TradePerpetuals => 7,
+    }
+}
+
 pub fn suggested_events(context: &GemBannerContext) -> Vec<BannerEvent> {
     let mut events = Vec::new();
     if !context.has_wallet && !context.has_asset {
@@ -142,5 +204,97 @@ mod tests {
             created.last().map(|key| (key.event, key.wallet_id.clone())),
             Some((BannerEvent::Onboarding, Some(wallet.id)))
         );
+    }
+
+    fn context(has_asset: bool) -> GemBannerContext {
+        GemBannerContext {
+            has_wallet: true,
+            has_asset,
+            is_stakeable: true,
+            has_stake_balance: false,
+            has_available_balance: false,
+            is_asset_activated: true,
+            asset_rank_score: Some(50),
+            has_perpetuals_support: true,
+            is_wallet_empty: false,
+            notifications_available: true,
+            launch_count: 3,
+        }
+    }
+
+    fn item(event: BannerEvent, state: BannerState) -> GemBannerItem {
+        GemBannerItem { event, state }
+    }
+
+    fn events(banners: &[GemBannerItem]) -> Vec<BannerEvent> {
+        banners.iter().map(|banner| banner.event).collect()
+    }
+
+    #[test]
+    fn test_visible_banners_asset_rules() {
+        let stake = vec![item(BannerEvent::Stake, BannerState::Active)];
+        assert_eq!(events(&visible_banners(stake.clone(), &context(true))), vec![BannerEvent::Stake]);
+        let staked = GemBannerContext {
+            has_stake_balance: true,
+            ..context(true)
+        };
+        assert!(visible_banners(stake, &staked).is_empty());
+
+        let inactive = GemBannerContext {
+            is_asset_activated: false,
+            ..context(true)
+        };
+        assert_eq!(events(&visible_banners(vec![], &inactive)), vec![BannerEvent::ActivateAsset]);
+        assert!(visible_banners(vec![], &context(true)).is_empty());
+
+        let suspicious = GemBannerContext {
+            asset_rank_score: Some(5),
+            ..context(true)
+        };
+        assert_eq!(events(&visible_banners(vec![], &suspicious)), vec![BannerEvent::SuspiciousAsset]);
+
+        let activation = vec![item(BannerEvent::AccountActivation, BannerState::AlwaysActive)];
+        assert_eq!(events(&visible_banners(activation.clone(), &context(true))), vec![BannerEvent::AccountActivation]);
+        let funded = GemBannerContext {
+            has_available_balance: true,
+            ..context(true)
+        };
+        assert!(visible_banners(activation, &funded).is_empty());
+
+        let perpetuals = vec![item(BannerEvent::TradePerpetuals, BannerState::Active)];
+        assert_eq!(events(&visible_banners(perpetuals.clone(), &context(true))), vec![BannerEvent::TradePerpetuals]);
+        let unsupported = GemBannerContext {
+            has_perpetuals_support: false,
+            ..context(true)
+        };
+        assert!(visible_banners(perpetuals, &unsupported).is_empty());
+    }
+
+    #[test]
+    fn test_visible_banners_order_and_wallet_rules() {
+        let stored = vec![
+            item(BannerEvent::Stake, BannerState::Active),
+            item(BannerEvent::EnableNotifications, BannerState::Cancelled),
+            item(BannerEvent::AccountActivation, BannerState::AlwaysActive),
+        ];
+        let suspicious = GemBannerContext {
+            asset_rank_score: Some(5),
+            ..context(true)
+        };
+        let banners = visible_banners(stored, &suspicious);
+        assert_eq!(events(&banners), vec![BannerEvent::AccountActivation, BannerEvent::SuspiciousAsset, BannerEvent::Stake]);
+        assert_eq!(banners[0].state, BannerState::AlwaysActive);
+        assert_eq!(banners[2].state, BannerState::Active);
+
+        let wallet = vec![
+            item(BannerEvent::Onboarding, BannerState::AlwaysActive),
+            item(BannerEvent::EnableNotifications, BannerState::Active),
+        ];
+        assert_eq!(events(&visible_banners(wallet.clone(), &context(false))), vec![BannerEvent::EnableNotifications]);
+        let empty = GemBannerContext {
+            is_wallet_empty: true,
+            ..context(false)
+        };
+        assert_eq!(events(&visible_banners(wallet, &empty)), vec![BannerEvent::Onboarding, BannerEvent::EnableNotifications]);
     }
 }

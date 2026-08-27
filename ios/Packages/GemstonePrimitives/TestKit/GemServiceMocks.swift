@@ -386,6 +386,10 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
 
     public init() {}
 
+    public func visibleBanners(stored: [GemBannerItem], context _: GemBannerContext) -> [GemBannerItem] {
+        stored
+    }
+
     public func activeEvents(walletId _: Gemstone.WalletId?, assetId _: Gemstone.AssetId?, context _: GemBannerContext) async throws -> [Gemstone.BannerEvent] {
         []
     }

@@ -47,7 +47,7 @@ public struct WalletScene: View {
                 .listRowInsets(.assetListRowInsets)
             }
 
-            if let banner = model.walletBannersModel.allBanners.first {
+            if let banner = model.visibleBanners.first {
                 Section {
                     BannerView(
                         banner: banner,

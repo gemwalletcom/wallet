@@ -29,7 +29,7 @@ public struct AssetScene: View {
             }
             .cleanListRow()
 
-            if model.canSign, let banner = model.assetBannerViewModel.allBanners.first {
+            if model.canSign, let banner = model.visibleBanners.first {
                 Section {
                     BannerView(
                         banner: banner,

@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use primitives::{AssetId, BannerEvent, BannerState, Wallet, WalletId};
 
-pub use model::{GemBannerAction, GemBannerContext, GemBannerKey};
+pub use model::{GemBannerAction, GemBannerContext, GemBannerItem, GemBannerKey};
 pub use permissions::GemNotificationPermissions;
 pub use store::GemBannerStore;
 
@@ -68,5 +68,9 @@ impl GemBannerService {
 
     pub fn closes_on_action(&self, event: BannerEvent) -> bool {
         rules::closes_on_action(event)
+    }
+
+    pub fn visible_banners(&self, stored: Vec<GemBannerItem>, context: GemBannerContext) -> Vec<GemBannerItem> {
+        rules::visible_banners(stored, &context)
     }
 }

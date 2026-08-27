@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemBannerAction
 import uniffi.gemstone.GemBannerContext
+import uniffi.gemstone.GemBannerItem
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemBannerService
 import java.math.BigInteger
@@ -66,9 +67,15 @@ class BannersRepository(
                 chain = asset.id.chain,
             ).map { it.toDTO(wallet, asset) }
         }
-        (stored + generated)
-            .filter { isVisible(it, wallet, assetInfo) }
-            .distinctBy { it.event }
+        val banners = stored + generated
+        bannerService.visibleBanners(
+            stored = banners.map { GemBannerItem(event = it.event.toJson(), state = it.state.toJson()) },
+            context = bannerContext(wallet, assetInfo),
+        ).map { item ->
+            val event = item.event.decodeJson<BannerEvent>()
+            banners.firstOrNull { it.event == event }
+                ?: Banner(wallet = wallet, asset = assetInfo?.asset, chain = null, state = item.state.decodeJson(), event = event)
+        }
     }
 
     override suspend fun applyBannerAction(banner: Banner, action: BannerAction) = withContext(Dispatchers.IO) {
@@ -79,23 +86,16 @@ class BannersRepository(
         return bannersDao.getMultisign(wallet.id.id).mapLatest { it.isNotEmpty() }
     }
 
-    private fun isVisible(banner: Banner, wallet: Wallet?, assetInfo: AssetInfo?): Boolean = when (banner.event) {
-        BannerEvent.EnableNotifications,
-        BannerEvent.AccountBlockedMultiSignature,
-        BannerEvent.ActivateAsset -> true
-        BannerEvent.Stake -> assetInfo?.balance?.balance?.getStakedAmount() == BigInteger.ZERO
-        BannerEvent.AccountActivation -> assetInfo?.balance?.balance?.available?.toBigIntegerOrNull() == BigInteger.ZERO
-        BannerEvent.TradePerpetuals -> wallet?.hasPerpetualsSupport == true
-        BannerEvent.SuspiciousAsset,
-        BannerEvent.Onboarding -> false
-    }
-
     private suspend fun bannerContext(wallet: Wallet?, assetInfo: AssetInfo?) = GemBannerContext(
         hasWallet = wallet != null,
         hasAsset = assetInfo != null,
         isStakeable = assetInfo?.asset?.isStakeable == true,
         hasStakeBalance = (assetInfo?.balance?.balance?.getStakedAmount() ?: BigInteger.ZERO) > BigInteger.ZERO,
+        hasAvailableBalance = (assetInfo?.balance?.balance?.available?.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO,
         isAssetActivated = assetInfo?.balance?.isActive != false,
+        assetRankScore = assetInfo?.metadata?.rankScore,
+        hasPerpetualsSupport = wallet?.hasPerpetualsSupport == true,
+        isWalletEmpty = false,
         notificationsAvailable = notificationsAvailable,
         launchCount = userConfig.getLaunchNumber().toUInt(),
     )
