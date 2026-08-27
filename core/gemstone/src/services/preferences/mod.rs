@@ -144,7 +144,7 @@ impl GemPreferencesService {
     }
 
     fn get_timestamp(&self, key: &str) -> Result<Option<i64>, GemServiceError> {
-        Ok(self.store.get(key.to_string()).and_then(|value| value.parse().ok()))
+        Ok(crate::services::clock::parse_timestamp(self.store.get(key.to_string())))
     }
 
     fn set_timestamp(&self, key: &str, timestamp: Option<i64>) -> Result<(), GemServiceError> {

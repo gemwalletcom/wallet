@@ -47,7 +47,7 @@ impl GemTransactionsService {
     }
 
     pub async fn sync(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
-        let from_timestamp = self.preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone())?;
+        let from_timestamp = self.preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
         let response = self
             .api

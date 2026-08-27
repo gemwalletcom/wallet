@@ -326,7 +326,7 @@ extension WalletSceneViewModel {
 
     private func shouldShowInitialLoadingAssets(for wallet: Wallet) -> Bool {
         let completed = (try? walletPreferencesService.isInitialLoadCompleted(walletId: wallet.id, step: .assets)) ?? false
-        let timestamp = (try? walletPreferencesService.getAssetsTimestamp(walletId: wallet.id)) ?? 0
+        let timestamp = walletPreferencesService.getAssetsTimestamp(walletId: wallet.id)
         return !completed && timestamp == 0
     }
 

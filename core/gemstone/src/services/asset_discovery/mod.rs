@@ -63,7 +63,7 @@ impl GemAssetDiscoveryService {
         let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone())? else {
             return Ok(vec![]);
         };
-        let from_timestamp = self.preferences.get_assets_timestamp(wallet_id.clone())?;
+        let from_timestamp = self.preferences.get_assets_timestamp(wallet_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
         let asset_ids = self.api.client.get_assets_list(wallet_id.id(), from_timestamp).await.map_err(GemApiError::from)?;
         let asset_ids = rules::discoverable_asset_ids(asset_ids, &wallet.accounts);

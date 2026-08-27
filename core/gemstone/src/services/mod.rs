@@ -8,6 +8,7 @@ pub mod avatar;
 pub mod balance;
 pub mod banner;
 pub mod chart;
+pub mod clock;
 pub mod collections;
 pub mod config;
 pub mod confirm;

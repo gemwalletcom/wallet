@@ -37,13 +37,13 @@ impl GemWalletPreferencesService {
     pub fn set_assets_timestamp(&self, wallet_id: WalletId, timestamp: u64) -> Result<(), GemServiceError> {
         self.set_value(wallet_id, WalletPreferenceKey::AssetsTimestamp.as_ref().to_string(), timestamp.to_string())
     }
-    pub fn get_transactions_timestamp(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<u64, GemServiceError> {
+    pub fn get_transactions_timestamp(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> u64 {
         self.get_timestamp_key(wallet_id, transactions_key(asset_id))
     }
     pub fn set_transactions_timestamp(&self, wallet_id: WalletId, asset_id: Option<AssetId>, timestamp: u64) -> Result<(), GemServiceError> {
         self.set_value(wallet_id, transactions_key(asset_id), timestamp.to_string())
     }
-    pub fn get_notifications_timestamp(&self, wallet_id: WalletId) -> Result<u64, GemServiceError> {
+    pub fn get_notifications_timestamp(&self, wallet_id: WalletId) -> u64 {
         self.get_timestamp(wallet_id, WalletPreferenceKey::NotificationsTimestamp)
     }
     pub fn set_notifications_timestamp(&self, wallet_id: WalletId, timestamp: u64) -> Result<(), GemServiceError> {
@@ -72,7 +72,7 @@ impl GemWalletPreferencesService {
         Self { store }
     }
 
-    pub fn get_assets_timestamp(&self, wallet_id: WalletId) -> Result<u64, GemServiceError> {
+    pub fn get_assets_timestamp(&self, wallet_id: WalletId) -> u64 {
         self.get_timestamp(wallet_id, WalletPreferenceKey::AssetsTimestamp)
     }
 
@@ -113,12 +113,12 @@ impl GemWalletPreferencesService {
 }
 
 impl GemWalletPreferencesService {
-    fn get_timestamp(&self, wallet_id: WalletId, key: WalletPreferenceKey) -> Result<u64, GemServiceError> {
+    fn get_timestamp(&self, wallet_id: WalletId, key: WalletPreferenceKey) -> u64 {
         self.get_timestamp_key(wallet_id, key.as_ref().to_string())
     }
 
-    fn get_timestamp_key(&self, wallet_id: WalletId, key: String) -> Result<u64, GemServiceError> {
-        Ok(self.store.get(wallet_id, key).and_then(|value| value.parse().ok()).unwrap_or(0))
+    fn get_timestamp_key(&self, wallet_id: WalletId, key: String) -> u64 {
+        crate::services::clock::parse_timestamp_or_zero(self.store.get(wallet_id, key))
     }
 
     fn get_flag(&self, wallet_id: WalletId, key: WalletPreferenceKey) -> Result<bool, GemServiceError> {
@@ -188,14 +188,14 @@ mod tests {
         let other = WalletId::Multicoin("0x2".into());
         let asset_id = AssetId::from_chain(Chain::Ethereum);
 
-        assert_eq!(service.get_transactions_timestamp(wallet.clone(), None).unwrap(), 0);
+        assert_eq!(service.get_transactions_timestamp(wallet.clone(), None), 0);
         service.set_transactions_timestamp(wallet.clone(), Some(asset_id.clone()), 42).unwrap();
         service.set_transactions_timestamp(wallet.clone(), None, 7).unwrap();
         let writes = *store.writes.lock().unwrap();
         service.set_transactions_timestamp(wallet.clone(), None, 7).unwrap();
         assert_eq!(*store.writes.lock().unwrap(), writes);
-        assert_eq!(service.get_transactions_timestamp(wallet.clone(), Some(asset_id)).unwrap(), 42);
-        assert_eq!(service.get_transactions_timestamp(wallet.clone(), None).unwrap(), 7);
+        assert_eq!(service.get_transactions_timestamp(wallet.clone(), Some(asset_id)), 42);
+        assert_eq!(service.get_transactions_timestamp(wallet.clone(), None), 7);
 
         assert!(!service.is_initial_load_completed(wallet.clone(), GemDiscoveryStep::Nfts).unwrap());
         service.complete_initial_synchronization(wallet.clone()).unwrap();
@@ -208,7 +208,7 @@ mod tests {
         assert_eq!(service.get_perpetual_account_mode(other).unwrap(), PerpetualAccountMode::Standard);
 
         service.clear(wallet.clone()).unwrap();
-        assert_eq!(service.get_transactions_timestamp(wallet.clone(), None).unwrap(), 0);
+        assert_eq!(service.get_transactions_timestamp(wallet.clone(), None), 0);
         assert!(!service.is_wallet_configuration_completed(wallet).unwrap());
     }
 }

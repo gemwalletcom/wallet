@@ -18,8 +18,8 @@ public extension GemWalletPreferencesServiceProtocol {
         try isInitialLoadCompleted(walletId: walletId.id, step: step)
     }
 
-    func getAssetsTimestamp(walletId: WalletId) throws -> UInt64 {
-        try getAssetsTimestamp(walletId: walletId.id)
+    func getAssetsTimestamp(walletId: WalletId) -> UInt64 {
+        getAssetsTimestamp(walletId: walletId.id)
     }
 
     func resetTransactionsTimestamp(walletId: WalletId) throws {
