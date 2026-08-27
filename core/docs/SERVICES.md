@@ -155,11 +155,10 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 
 - [ ] Earn flow: `ConfirmParams` has no Earn variant and `AmountDataProvider` has no earn provider; add both on top of `GemTransactionInputType::Earn` and `GemAmountType::Earn` (iOS `AmountEarnViewModel` is the reference).
 - [ ] Sync reads through `runBlocking` (`gemstone/WalletStore.kt`, `gemstone/WalletSessionStore.kt`, `nodes/NodesRepository.getCurrentNode`, `device/DeviceRepository.kt`): back Core's synchronous store methods with non-suspend Room queries and never call them on Main.
-- [ ] `SyncAssetInfoImpl` runs `syncBalance` and `syncAssetMetadata` concurrently; sync the metadata first (Core `sync_asset` saves the asset row) and log the balance failure instead of swallowing it.
-- [ ] `AppViewModel.getStartDestination` can pick an account-less wallet now that `WalletsDao.getAll` is a LEFT JOIN; skip wallets without accounts (multicoin ones self-heal through `setup_chains`).
-- [ ] `GemstoneAssetStore` is constructed three times in `di/AssetsModule.kt`; provide one singleton.
-- [ ] `PerpetualStore.savePerpetuals` inserts asset rows with REPLACE; use insert-ignore like `AssetsDao.insert`/iOS.
-- [ ] Dead code from the 2026-08-27 reviews: `StakeService`, `WalletIdGeneratorImpl`, `IsDeviceRegistered`, `addNotification`, `addMessages`, `ImportError.DuplicatedWallet`, unused `PricesRepository` functions, `StreamEventSerializer`, `GemSwapProviderMapper`, unused `PerpetualMappers.toGem`; mirrors of Core types `Fee`/`GemFeeMapper`, `WalletConnectPendingRequest`, `ext/TransactionState`; `runCatching` that swallows errors in sync coordinators.
+- [x] `SyncAssetInfoImpl` saves the asset row before the balance refresh and logs failures (6334dfb5d2).
+- [x] `AppViewModel.getStartDestination` skips wallets without accounts (6334dfb5d2).
+- [x] `GemstoneAssetStore` is provided once (6334dfb5d2).
+- [x] Dead code verified and removed where real (`StreamEventSerializer`, `addNotification`, single-price `PricesRepository` writers, `WalletIdGeneratorImpl`); `StakeService`, `IsDeviceRegistered`, `addMessages`, `DuplicatedWallet`, `GemFeeMapper`, `GemSwapProviderMapper`, `PerpetualMappers.toGem` are in use. Still open: mirrors of Core types (`Fee`/`GemFeeMapper`, `WalletConnectPendingRequest`, `ext/TransactionState`) and `runCatching` that swallows errors in sync coordinators.
 - [ ] `PrepareSessionProposalImpl` decode/Core errors now propagate; map "invalid origin" vs "unsupported chains" to distinct user-facing texts in `WCAuthViewModel`/`ProposalSceneViewModel`.
 - [ ] Room: the unreleased chain is 87→90 only; before any further schema change, batch it into one migration and prefer drop + recreate for Core-seeded tables (banners, nodes are re-added by users, so copy those).
 
