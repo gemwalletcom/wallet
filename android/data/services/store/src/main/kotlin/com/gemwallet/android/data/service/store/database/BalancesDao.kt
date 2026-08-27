@@ -89,6 +89,32 @@ interface BalancesDao {
         updatedAt: Long,
     )
 
+    @Query("""
+        UPDATE balances SET
+            available = :available,
+            available_amount = :availableAmount,
+            reserved = :reserved,
+            reserved_amount = :reservedAmount,
+            withdrawable = :withdrawable,
+            withdrawableAmount = :withdrawableAmount,
+            total_amount = :availableAmount + :reservedAmount,
+            updated_at = :updatedAt,
+            is_active = :isActive
+        WHERE wallet_id = :walletId AND asset_id = :assetId
+    """)
+    fun updatePerpetualBalance(
+        walletId: String,
+        assetId: String,
+        available: String,
+        availableAmount: Double,
+        reserved: String,
+        reservedAmount: Double,
+        withdrawable: String,
+        withdrawableAmount: Double,
+        isActive: Boolean,
+        updatedAt: Long,
+    )
+
     @Query("SELECT available_amount AS available, reserved_amount AS reserved, withdrawableAmount AS withdrawable FROM balances WHERE wallet_id = :walletId AND asset_id = :assetId")
     fun perpetualBalance(walletId: String, assetId: String): Flow<DbPerpetualBalanceProjection?>
 

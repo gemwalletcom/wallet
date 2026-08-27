@@ -27,6 +27,11 @@ pub enum GemBalanceUpdateType {
     Earn {
         balance: GemBalanceValue,
     },
+    Perpetual {
+        available: GemBalanceValue,
+        reserved: GemBalanceValue,
+        withdrawable: GemBalanceValue,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

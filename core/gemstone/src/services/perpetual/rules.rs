@@ -1,9 +1,32 @@
 use std::collections::HashSet;
 
 use chrono::Utc;
+use number_formatter::{BigNumberFormatter, NumberFormatterError};
+use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
+use primitives::perpetual::PerpetualBalance;
 use primitives::{AssetId, AssetPrice, AssetType, Chain, PerpetualPosition, PerpetualProvider};
 
 use crate::models::asset::wallet_default_assets;
+use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
+
+pub fn balance_update(balance: &PerpetualBalance) -> Result<GemBalanceUpdate, NumberFormatterError> {
+    let asset = &*HYPERCORE_PERPETUAL_USDC;
+    let value = |amount: f64| -> Result<GemBalanceValue, NumberFormatterError> {
+        Ok(GemBalanceValue {
+            value: BigNumberFormatter::value_from_amount(&amount.to_string(), asset.decimals as u32)?,
+            amount,
+        })
+    };
+    Ok(GemBalanceUpdate {
+        asset_id: asset.id.clone(),
+        update_type: GemBalanceUpdateType::Perpetual {
+            available: value(balance.available)?,
+            reserved: value(balance.reserved)?,
+            withdrawable: value(balance.withdrawable)?,
+        },
+        is_active: true,
+    })
+}
 
 pub fn provider(chain: Chain) -> Option<PerpetualProvider> {
     match chain {
@@ -78,5 +101,30 @@ mod tests {
         assert!(prices_outdated(None, 100, 5));
         assert!(prices_outdated(Some(95), 100, 5));
         assert!(!prices_outdated(Some(97), 100, 5));
+    }
+
+    #[test]
+    fn test_balance_update_targets_perpetual_usdc() {
+        let update = balance_update(&PerpetualBalance {
+            available: 1234.5,
+            reserved: 0.25,
+            withdrawable: 1000.0,
+        })
+        .unwrap();
+        assert_eq!(update.asset_id, HYPERCORE_PERPETUAL_USDC.id);
+        assert!(update.is_active);
+        match update.update_type {
+            GemBalanceUpdateType::Perpetual {
+                available,
+                reserved,
+                withdrawable,
+            } => {
+                assert_eq!(available.value, "1234500000");
+                assert_eq!(available.amount, 1234.5);
+                assert_eq!(reserved.value, "250000");
+                assert_eq!(withdrawable.value, "1000000000");
+            }
+            update_type => panic!("expected a perpetual update, got {update_type:?}"),
+        }
     }
 }

@@ -16,6 +16,7 @@ use crate::services::preferences::GemPreferencesService;
 pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;
+use crate::services::balance::GemBalanceService;
 use crate::services::price::GemPriceService;
 
 #[derive(uniffi::Object)]
@@ -24,17 +25,25 @@ pub struct GemPerpetualService {
     price: Arc<GemPriceService>,
     store: Arc<dyn GemPerpetualStore>,
     preferences: Arc<GemPreferencesService>,
+    balance: Arc<GemBalanceService>,
 }
 
 #[uniffi::export]
 impl GemPerpetualService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, price: Arc<GemPriceService>, store: Arc<dyn GemPerpetualStore>, preferences: Arc<GemPreferencesService>) -> Self {
+    pub fn new(
+        gateway: Arc<GemGateway>,
+        price: Arc<GemPriceService>,
+        store: Arc<dyn GemPerpetualStore>,
+        preferences: Arc<GemPreferencesService>,
+        balance: Arc<GemBalanceService>,
+    ) -> Self {
         Self {
             gateway,
             price,
             store,
             preferences,
+            balance,
         }
     }
 
@@ -69,7 +78,8 @@ impl GemPerpetualService {
     }
 
     pub async fn update_balance(&self, wallet_id: WalletId, balance: PerpetualBalance) -> Result<(), GemServiceError> {
-        self.store.update_balance(wallet_id, balance).await
+        let update = rules::balance_update(&balance).map_err(|error| GemServiceError::Status { msg: error.to_string() })?;
+        self.balance.update_balances(wallet_id, vec![update]).await
     }
 
     pub async fn update_market(&self, market: PerpetualMarketData) -> Result<(), GemServiceError> {
@@ -90,7 +100,7 @@ impl GemPerpetualService {
         let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
         let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
         self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
-        self.store.update_balance(wallet_id, summary.balance).await
+        self.update_balance(wallet_id, summary.balance).await
     }
 }
 

@@ -64,6 +64,8 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
             ))
         case let .earn(balance):
             .earn(UpdateEarnBalance(balance: value(balance)))
+        case let .perpetual(available, reserved, withdrawable):
+            .perpetual(UpdatePerpetualBalance(available: value(available), reserved: value(reserved), withdrawable: value(withdrawable)))
         }
     }
 

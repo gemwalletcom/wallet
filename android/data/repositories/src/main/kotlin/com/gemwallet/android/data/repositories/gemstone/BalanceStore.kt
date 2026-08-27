@@ -77,6 +77,18 @@ class GemstoneBalanceStore(
                         updatedAt = updatedAt,
                     )
                 }
+                is GemBalanceUpdateType.Perpetual -> balancesDao.updatePerpetualBalance(
+                    walletId = walletId,
+                    assetId = update.assetId,
+                    available = type.available.value,
+                    availableAmount = type.available.amount,
+                    reserved = type.reserved.value,
+                    reservedAmount = type.reserved.amount,
+                    withdrawable = type.withdrawable.value,
+                    withdrawableAmount = type.withdrawable.amount,
+                    isActive = update.isActive,
+                    updatedAt = updatedAt,
+                )
                 is GemBalanceUpdateType.Earn -> balancesDao.updateEarnBalance(
                     walletId = walletId,
                     assetId = update.assetId,

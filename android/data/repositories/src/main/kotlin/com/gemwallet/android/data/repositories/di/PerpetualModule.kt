@@ -22,6 +22,7 @@ import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.SearchDao
 import com.wallet.core.primitives.Chain
 import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
+import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPreferencesService
@@ -55,7 +56,8 @@ object PerpetualModule {
         priceService: GemPriceService,
         perpetualStore: GemstonePerpetualStore,
         preferencesService: GemPreferencesService,
-    ): GemPerpetualService = GemPerpetualService(gateway, priceService, perpetualStore, preferencesService)
+        balanceService: GemBalanceService,
+    ): GemPerpetualService = GemPerpetualService(gateway, priceService, perpetualStore, preferencesService, balanceService)
 
     @Provides
     @Singleton

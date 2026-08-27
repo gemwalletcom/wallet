@@ -103,6 +103,12 @@ impl GemBalanceService {
 }
 
 impl GemBalanceService {
+    pub async fn update_balances(&self, wallet_id: WalletId, updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
+        let asset_ids = updates.iter().map(|update| update.asset_id.clone()).collect();
+        self.asset_store.add_missing_balances(wallet_id.clone(), asset_ids).await?;
+        self.store.update_balances(wallet_id, updates).await
+    }
+
     async fn chain_balances(&self, request: &BalanceRequest) -> Vec<(BalanceKind, AssetBalance)> {
         let token_ids: Vec<String> = request.token_ids.iter().filter_map(|asset_id| asset_id.token_id.clone()).collect();
         let (coin, stake, tokens, earn) = futures::join!(
