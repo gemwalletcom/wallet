@@ -1,32 +1,31 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.data.repositories.bridge.BridgesRepository
-import com.gemwallet.android.data.repositories.bridge.ConnectionsRepository
-import com.gemwallet.android.data.repositories.bridge.WalletConnectClient
 import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
+import com.gemwallet.android.data.repositories.bridge.BridgesRepository
+import com.gemwallet.android.data.repositories.bridge.WalletConnectClient
+import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequests
+import com.gemwallet.android.data.repositories.bridge.WalletConnectRequestHandler
+import com.gemwallet.android.data.repositories.gemstone.GemstoneConnectionStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletConnectSigner
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
-import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequests
-import com.gemwallet.android.data.repositories.bridge.WalletConnectRequestHandler
-import com.gemwallet.android.data.repositories.gemstone.GemstoneConnectionStore
-import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletConnectSigner
 import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.TransactionSimulationService
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 object BridgesModule {
     @Singleton
     @Provides
-    fun provideConnectionsRepository(
+    fun provideGemstoneConnectionStore(
         walletsRepository: WalletsRepository,
         connectionsDao: ConnectionsDao,
-    ): ConnectionsRepository = ConnectionsRepository(
+    ): GemstoneConnectionStore = GemstoneConnectionStore(
         walletsRepository = walletsRepository,
         connectionsDao = connectionsDao,
     )
@@ -34,11 +33,11 @@ object BridgesModule {
     @Singleton
     @Provides
     fun provideBridgeRepository(
-        connectionsRepository: ConnectionsRepository,
+        connectionStore: GemstoneConnectionStore,
         walletConnectClient: WalletConnectClient,
         walletConnectService: GemWalletConnectService,
     ): BridgesRepository = BridgesRepository(
-        connectionsRepository = connectionsRepository,
+        connectionStore = connectionStore,
         walletConnectClient = walletConnectClient,
         walletConnectService = walletConnectService,
     )
@@ -59,11 +58,11 @@ object BridgesModule {
     @Provides
     fun provideGemWalletConnectService(
         simulationService: TransactionSimulationService,
-        connectionsRepository: ConnectionsRepository,
+        connectionStore: GemstoneConnectionStore,
         pendingRequests: WalletConnectPendingRequests,
     ): GemWalletConnectService = GemWalletConnectService(
         simulation = simulationService,
-        store = GemstoneConnectionStore(connectionsRepository),
+        store = connectionStore,
         signer = GemstoneWalletConnectSigner(pendingRequests),
     )
 

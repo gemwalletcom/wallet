@@ -49,7 +49,7 @@ public struct WalletService: Sendable {
 
     public func delete(_ wallet: Wallet) async throws {
         try await keystore.deleteKey(for: wallet)
-        let hasWallets = try await service.deleteWallet(wallet: wallet.json())
+        let hasWallets = try await service.deleteWallet(walletId: wallet.id.id)
         if !hasWallets {
             preferences.preferences.clear()
             preferences.preferences.invalidateSubscriptions()

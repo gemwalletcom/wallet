@@ -12,7 +12,11 @@ interface WalletsRepository {
 
     suspend fun addWallet(wallet: Wallet): Wallet
 
-    suspend fun updateWallet(wallet: Wallet)
+    suspend fun setPinned(walletId: WalletId, pinned: Boolean)
+
+    suspend fun rename(walletId: WalletId, name: String)
+
+    suspend fun setImageUrl(walletId: WalletId, imageUrl: String?)
 
     suspend fun updateAccounts(wallet: Wallet)
 

@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use crate::services::collections::stale;
+
 use chrono::{DateTime, Utc};
 use primitives::{
     Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession,
@@ -32,12 +34,13 @@ pub fn validate_session_chain(session: &WalletConnectionSession, chain: Chain) -
 }
 
 pub fn sessions_to_delete(local: &[WalletConnectionSession], remote: &[WalletConnectionSession]) -> Vec<String> {
-    let remote_ids: HashSet<&str> = remote.iter().map(|session| session.id.as_str()).collect();
-    local
-        .iter()
-        .filter(|session| session.state == WalletConnectionState::Active && !remote_ids.contains(session.id.as_str()))
-        .map(|session| session.id.clone())
-        .collect()
+    stale(
+        local
+            .iter()
+            .filter(|session| session.state == WalletConnectionState::Active)
+            .map(|session| session.id.clone()),
+        remote.iter().map(|session| session.id.clone()),
+    )
 }
 
 pub fn sessions_to_update(local: &[WalletConnectionSession], remote: Vec<WalletConnectionSession>) -> Vec<WalletConnectionSession> {
@@ -57,7 +60,7 @@ pub fn session_wallets(wallets: Vec<Wallet>, required: &[Chain], optional: &[Cha
         .into_iter()
         .filter(|wallet| wallet.wallet_type != WalletType::View && supports(wallet, required, optional, &wallet_connect))
         .collect();
-    supported.sort_by_key(|wallet| wallet_type_rank(&wallet.wallet_type));
+    supported.sort_by_key(|wallet| wallet.wallet_type.rank());
     supported
 }
 
@@ -159,15 +162,6 @@ fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain], wallet_conn
         return required.iter().all(|chain| chains.contains(chain));
     }
     optional.is_empty() || optional.iter().any(|chain| chains.contains(chain))
-}
-
-fn wallet_type_rank(wallet_type: &WalletType) -> u8 {
-    match wallet_type {
-        WalletType::Multicoin => 0,
-        WalletType::Single => 1,
-        WalletType::PrivateKey => 2,
-        WalletType::View => 3,
-    }
 }
 
 #[cfg(test)]

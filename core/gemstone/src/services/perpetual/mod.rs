@@ -1,3 +1,4 @@
+pub mod model;
 pub mod rules;
 pub mod store;
 
@@ -5,18 +6,23 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
+use gem_hypercore::models::websocket::HyperliquidSocketMessage;
+use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
 use primitives::currency::Currency;
 use primitives::perpetual::PerpetualBalance;
-use primitives::{Chain, PerpetualMarketData, PerpetualPosition, WalletId};
+use primitives::{Chain, PerpetualAccountMode, PerpetualProvider, WalletId};
 use std::collections::HashMap;
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
 use crate::services::preferences::GemPreferencesService;
 
+pub use model::GemPerpetualSocketUpdate;
 pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;
+use crate::services::balance::GemBalanceService;
 use crate::services::price::GemPriceService;
+use crate::services::wallet_preferences::GemWalletPreferencesService;
 
 #[derive(uniffi::Object)]
 pub struct GemPerpetualService {
@@ -24,17 +30,38 @@ pub struct GemPerpetualService {
     price: Arc<GemPriceService>,
     store: Arc<dyn GemPerpetualStore>,
     preferences: Arc<GemPreferencesService>,
+    balance: Arc<GemBalanceService>,
+    wallet_preferences: Arc<GemWalletPreferencesService>,
 }
 
 #[uniffi::export]
 impl GemPerpetualService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, price: Arc<GemPriceService>, store: Arc<dyn GemPerpetualStore>, preferences: Arc<GemPreferencesService>) -> Self {
+    pub fn new(
+        gateway: Arc<GemGateway>,
+        price: Arc<GemPriceService>,
+        store: Arc<dyn GemPerpetualStore>,
+        preferences: Arc<GemPreferencesService>,
+        balance: Arc<GemBalanceService>,
+        wallet_preferences: Arc<GemWalletPreferencesService>,
+    ) -> Self {
         Self {
             gateway,
             price,
             store,
             preferences,
+            balance,
+            wallet_preferences,
+        }
+    }
+
+    pub async fn account_mode(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
+        match self.gateway.get_perpetual_account_mode(chain, address).await {
+            Ok(mode) => {
+                self.wallet_preferences.set_perpetual_account_mode(wallet_id, mode)?;
+                Ok(mode)
+            }
+            Err(_) => self.wallet_preferences.get_perpetual_account_mode(wallet_id),
         }
     }
 
@@ -60,22 +87,57 @@ impl GemPerpetualService {
         self.store.set_pinned(vec![perpetual_id], pinned).await
     }
 
-    pub async fn get_positions(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<PerpetualPosition>, GemServiceError> {
-        self.store.get_positions(wallet_id, rules::provider(chain)).await
+    pub async fn apply_socket_message(&self, wallet_id: WalletId, mode: PerpetualAccountMode, data: Vec<u8>) -> Result<GemPerpetualSocketUpdate, GemServiceError> {
+        let message = parse_websocket_data(&data, mode).map_err(|error| GemServiceError::Status { msg: error.to_string() })?;
+        match message {
+            HyperliquidSocketMessage::AccountState { balance, positions } => {
+                let existing = self.store.get_positions(wallet_id.clone(), PerpetualProvider::Hypercore).await?;
+                let diff = diff_clearinghouse_positions(positions, existing);
+                self.store.update_positions(wallet_id.clone(), diff.positions, diff.delete_position_ids).await?;
+                if let Some(balance) = balance {
+                    self.update_balance(wallet_id, balance).await?;
+                }
+                Ok(GemPerpetualSocketUpdate::Applied)
+            }
+            HyperliquidSocketMessage::SpotState { balance } => {
+                self.update_balance(wallet_id, balance).await?;
+                Ok(GemPerpetualSocketUpdate::Applied)
+            }
+            HyperliquidSocketMessage::OpenOrders { orders } => {
+                let existing = self.store.get_positions(wallet_id.clone(), PerpetualProvider::Hypercore).await?;
+                let diff = diff_open_orders_positions(&orders, existing);
+                self.store.update_positions(wallet_id, diff.positions, diff.delete_position_ids).await?;
+                Ok(GemPerpetualSocketUpdate::Applied)
+            }
+            HyperliquidSocketMessage::Candle { candle } => Ok(GemPerpetualSocketUpdate::Candle { candle }),
+            HyperliquidSocketMessage::MarketData { market } => {
+                self.store.update_market(market).await?;
+                Ok(GemPerpetualSocketUpdate::Applied)
+            }
+            HyperliquidSocketMessage::MarketPrices { prices } => {
+                self.update_prices(prices).await?;
+                Ok(GemPerpetualSocketUpdate::Applied)
+            }
+            HyperliquidSocketMessage::SubscriptionResponse { subscription_type } => Ok(GemPerpetualSocketUpdate::SubscriptionResponse { subscription_type }),
+            HyperliquidSocketMessage::Error { message } => Ok(GemPerpetualSocketUpdate::Error { message }),
+            HyperliquidSocketMessage::Unknown => Ok(GemPerpetualSocketUpdate::Unknown),
+        }
     }
 
-    pub async fn update_positions(&self, wallet_id: WalletId, positions: Vec<PerpetualPosition>, delete_ids: Vec<String>) -> Result<(), GemServiceError> {
-        self.store.update_positions(wallet_id, positions, delete_ids).await
+    pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
+        let summary = self.gateway.get_positions(chain, address).await?;
+        let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
+        let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
+        self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
+        self.update_balance(wallet_id, summary.balance).await
     }
+}
 
+impl GemPerpetualService {
     pub async fn update_balance(&self, wallet_id: WalletId, balance: PerpetualBalance) -> Result<(), GemServiceError> {
-        self.store.update_balance(wallet_id, balance).await
+        let update = rules::balance_update(&balance).map_err(|error| GemServiceError::Status { msg: error.to_string() })?;
+        self.balance.update_balances(wallet_id, vec![update]).await
     }
-
-    pub async fn update_market(&self, market: PerpetualMarketData) -> Result<(), GemServiceError> {
-        self.store.update_market(market).await
-    }
-
     pub async fn update_prices(&self, prices: HashMap<String, f64>) -> Result<(), GemServiceError> {
         let now = Utc::now().timestamp();
         if !rules::prices_outdated(self.preferences.get_perpetual_prices_updated_at()?, now, PRICES_UPDATE_INTERVAL_SECONDS) {
@@ -84,12 +146,10 @@ impl GemPerpetualService {
         self.store.update_prices(prices).await?;
         self.preferences.set_perpetual_prices_updated_at(Some(now))
     }
+}
 
-    pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
-        let summary = self.gateway.get_positions(chain, address).await?;
-        let existing_ids = self.store.get_position_ids(wallet_id.clone(), rules::provider(chain)).await?;
-        let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
-        self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
-        self.store.update_balance(wallet_id, summary.balance).await
-    }
+fn provider(chain: Chain) -> Result<PerpetualProvider, GemServiceError> {
+    rules::provider(chain).ok_or_else(|| GemServiceError::Status {
+        msg: format!("perpetuals unsupported on {chain}"),
+    })
 }

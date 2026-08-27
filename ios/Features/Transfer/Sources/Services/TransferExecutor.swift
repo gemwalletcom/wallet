@@ -8,6 +8,7 @@ import struct Gemstone.GemPendingTransactionInput
 import struct Gemstone.GemSignedTransaction
 import class Gemstone.GemTransferService
 import GemstonePrimitives
+import Preferences
 import Primitives
 
 public protocol TransferExecutable: Sendable {
@@ -15,22 +16,20 @@ public protocol TransferExecutable: Sendable {
 }
 
 public struct TransferExecutor: TransferExecutable {
-    private static let ignoredAssetChains: Set<Chain> = [.hyperCore]
-
     private let signer: any TransactionSigning
     private let confirmService: any GemConfirmServiceProtocol
-    private let assetsEnabler: any AssetsEnabler
+    private let preferences: Preferences
     private let transactionStateScheduler: TransactionStateScheduler
 
     public init(
         signer: any TransactionSigning,
         confirmService: any GemConfirmServiceProtocol,
-        assetsEnabler: any AssetsEnabler,
+        preferences: Preferences,
         transactionStateScheduler: TransactionStateScheduler,
     ) {
         self.signer = signer
         self.confirmService = confirmService
-        self.assetsEnabler = assetsEnabler
+        self.preferences = preferences
         self.transactionStateScheduler = transactionStateScheduler
     }
 
@@ -88,19 +87,7 @@ extension TransferExecutor {
                 transactionCount: UInt32(transactions.count),
             )).map { try Transaction($0) }
             guard let transaction = pending else { continue }
-            try await transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: [transaction])
-            let assetIds = assetIdsToEnable(for: transaction)
-            Task {
-                do {
-                    try await assetsEnabler.enableAssets(wallet: input.wallet, assetIds: assetIds, enabled: true)
-                } catch {
-                    debugLog("TransferExecutor post-transfer asset update error: \(error)")
-                }
-            }
+            try await transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: [transaction], currency: preferences.currency)
         }
-    }
-
-    private func assetIdsToEnable(for transaction: Transaction) -> [AssetId] {
-        transaction.assetIds.filter { !Self.ignoredAssetChains.contains($0.chain) }
     }
 }

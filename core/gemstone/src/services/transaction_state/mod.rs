@@ -6,6 +6,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
+use primitives::currency::Currency;
 use primitives::{Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
 
 pub use model::{GemPendingTransaction, GemPostProcessingFailure, GemPostProcessingStep, GemTransactionStateResult, GemTransactionStateUpdate};
@@ -48,6 +49,14 @@ impl GemTransactionStateService {
 
     pub async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
         self.store.add_transactions(wallet_id, transactions).await
+    }
+
+    pub async fn enable_transaction_assets(&self, wallet_id: WalletId, transactions: Vec<Transaction>, currency: Currency) -> Result<(), GemServiceError> {
+        let asset_ids = rules::assets_to_enable(&transactions);
+        if asset_ids.is_empty() {
+            return Ok(());
+        }
+        self.balance.enable_assets(wallet_id, asset_ids, true, currency).await
     }
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
@@ -127,7 +136,7 @@ async fn apply(
         state if timed_out && !state.is_completed() => TransactionState::Failed,
         state => state,
     };
-    let fields = rules::state_update(next_state, &update.changes);
+    let fields = rules::state_update(next_state, &update.changes).map_err(|error| GemServiceError::Status { msg: error.to_string() })?;
     if next_state == current_state && !fields.has_field_changes() {
         let state = store.get_state(wallet_id, transaction_id.clone()).await?;
         return Ok(state.map(|state| GemTransactionStateResult {
@@ -439,5 +448,29 @@ mod tests {
             &transaction("hash", TransactionState::Confirmed, now - chrono::Duration::days(30)),
             now
         ));
+    }
+
+    #[test]
+    fn test_assets_to_enable_skips_hypercore_and_duplicates() {
+        let swap = transaction("swap", TransactionState::Pending, Utc::now());
+        let hypercore = Transaction::new(
+            "perpetual".into(),
+            AssetId::from_chain(Chain::HyperCore),
+            "from".into(),
+            "to".into(),
+            None,
+            TransactionType::Transfer,
+            TransactionState::Pending,
+            "1".into(),
+            AssetId::from_chain(Chain::HyperCore),
+            "1".into(),
+            None,
+            None,
+            Utc::now(),
+        );
+        let asset_ids = rules::assets_to_enable(&[swap.clone(), swap, hypercore]);
+        assert_eq!(asset_ids.len(), 2);
+        assert!(asset_ids.contains(&AssetId::from_chain(Chain::Ethereum)));
+        assert!(asset_ids.contains(&AssetId::from_chain(Chain::Bitcoin)));
     }
 }

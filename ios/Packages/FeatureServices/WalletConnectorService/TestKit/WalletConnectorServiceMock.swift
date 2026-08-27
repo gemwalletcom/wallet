@@ -14,6 +14,8 @@ public actor WalletConnectorServiceMock: WalletConnectorServiceable {
 
     public func pair(uri _: String) async throws {}
     public func disconnect(sessionId _: String) async throws {}
+    public nonisolated var hasSessions: Bool { false }
+
     public nonisolated func configure() throws {}
     public nonisolated func updateSessions() {}
 }

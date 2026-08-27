@@ -1,8 +1,8 @@
 pub mod rules;
 pub mod store;
 
+use crate::services::collections::unique_by;
 use crate::services::error::GemServiceError;
-use std::collections::HashSet;
 use std::sync::Arc;
 
 use primitives::name::NameRecord;
@@ -62,11 +62,9 @@ impl GemNameService {
 }
 
 fn unique_requests(requests: Vec<ChainAddress>) -> Vec<ChainAddress> {
-    let mut seen = HashSet::new();
-    requests
-        .into_iter()
-        .filter(|request| !request.address.is_empty() && seen.insert((request.chain, request.address.clone())))
-        .collect()
+    unique_by(requests.into_iter().filter(|request| !request.address.is_empty()), |request| {
+        (request.chain, request.address.clone())
+    })
 }
 
 #[cfg(test)]

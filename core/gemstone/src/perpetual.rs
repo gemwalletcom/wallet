@@ -3,14 +3,11 @@ use std::sync::{Mutex, MutexGuard};
 use gem_hypercore::{
     models::websocket::{HyperliquidRequest, HyperliquidSubscription},
     perpetual_formatter::PerpetualFormatter,
-    provider::{
-        websocket_mapper::{account_subscriptions, diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data},
-        websocket_subscriptions::WebSocketSubscriptions,
-    },
+    provider::{websocket_mapper::account_subscriptions, websocket_subscriptions::WebSocketSubscriptions},
 };
-use primitives::{AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualDirection, PerpetualPosition, PerpetualProvider, TpslType};
+use primitives::{AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, TpslType};
 
-use crate::models::perpetual::{GemHyperliquidOpenOrder, GemHyperliquidSocketMessage, GemPerpetualSubscription, GemPositionsDiff};
+use crate::models::perpetual::GemPerpetualSubscription;
 
 #[derive(Debug, uniffi::Object)]
 pub struct Perpetual {
@@ -40,35 +37,6 @@ impl Perpetual {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
         }
-    }
-}
-
-#[derive(Debug, uniffi::Object)]
-pub struct Hyperliquid {}
-
-impl Default for Hyperliquid {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[uniffi::export]
-impl Hyperliquid {
-    #[uniffi::constructor]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn parse_websocket_data(&self, data: Vec<u8>, mode: PerpetualAccountMode) -> Result<GemHyperliquidSocketMessage, crate::GemstoneError> {
-        Ok(parse_websocket_data(&data, mode)?)
-    }
-
-    pub fn diff_clearinghouse_positions(&self, new_positions: Vec<PerpetualPosition>, existing_positions: Vec<PerpetualPosition>) -> GemPositionsDiff {
-        diff_clearinghouse_positions(new_positions, existing_positions)
-    }
-
-    pub fn diff_open_orders_positions(&self, orders: Vec<GemHyperliquidOpenOrder>, existing_positions: Vec<PerpetualPosition>) -> GemPositionsDiff {
-        diff_open_orders_positions(&orders, existing_positions)
     }
 }
 

@@ -24,6 +24,11 @@ pub struct GemPriceAlertService {
 
 #[uniffi::export]
 impl GemPriceAlertService {
+    pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
+        self.api.client.add_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
+        self.store.update(alerts, Vec::new()).await
+    }
+
     #[uniffi::constructor]
     pub fn new(
         api: Arc<GemDeviceApiClient>,
@@ -80,14 +85,9 @@ impl GemPriceAlertService {
         self.store.update(changes.alerts, changes.delete_ids).await
     }
 
-    pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
-        self.store.update(alerts.clone(), Vec::new()).await?;
-        Ok(self.api.client.add_price_alerts(alerts).await.map_err(GemApiError::from)?)
-    }
-
     pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
-        self.store.update(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await?;
-        Ok(self.api.client.delete_price_alerts(alerts).await.map_err(GemApiError::from)?)
+        self.api.client.delete_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
+        self.store.update(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await
     }
 }
 

@@ -129,6 +129,10 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
         try await lock.withLock { onSync }(walletId, assetId)
     }
 
+    public func associatedAssetIds(transaction _: Gemstone.Transaction) -> [Gemstone.AssetId] {
+        []
+    }
+
 }
 
 public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked Sendable {
@@ -261,6 +265,8 @@ public final class GemTransactionStateServiceMock: GemTransactionStateServicePro
     public func addTransactions(walletId: Gemstone.WalletId, transactions: [Gemstone.Transaction]) async throws {
         try await store?.addTransactions(walletId: walletId, transactions: transactions)
     }
+
+    public func enableTransactionAssets(walletId _: Gemstone.WalletId, transactions _: [Gemstone.Transaction], currency _: Gemstone.Currency) async throws {}
 }
 
 public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked Sendable {
@@ -306,17 +312,13 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
 
-    public func getPositions(walletId _: String, chain _: Gemstone.Chain) async throws -> [Gemstone.PerpetualPosition] {
-        []
+    public func applySocketMessage(walletId _: String, mode _: Gemstone.PerpetualAccountMode, data _: Data) async throws -> Gemstone.GemPerpetualSocketUpdate {
+        .applied
     }
 
-    public func updatePositions(walletId _: String, positions _: [Gemstone.PerpetualPosition], deleteIds _: [String]) async throws {}
-
-    public func updateBalance(walletId _: String, balance _: Gemstone.PerpetualBalance) async throws {}
-
-    public func updateMarket(market _: Gemstone.PerpetualMarketData) async throws {}
-
-    public func updatePrices(prices _: [String: Double]) async throws {}
+    public func accountMode(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualAccountMode {
+        try Primitives.PerpetualAccountMode.standard.json()
+    }
 }
 
 public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtocol, @unchecked Sendable {

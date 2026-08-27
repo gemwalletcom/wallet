@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
@@ -58,7 +58,7 @@ open class BaseAssetSelectViewModel(
     private val getRecentAssets: GetRecentAssets,
     private val updateRecentAsset: UpdateRecentAsset,
     private val switchAssetVisibility: SwitchAssetVisibility,
-    private val toggleAssetPin: ToggleAssetPin,
+    private val setAssetPinned: SetAssetPinned,
     private val searchTokensCase: SearchTokensCase,
     val search: SelectSearch,
     private val remoteSearch: Boolean = true,
@@ -175,7 +175,7 @@ open class BaseAssetSelectViewModel(
         session.wallet.getAccount(assetId.chain) ?: return@launch
         val item = assets.value.firstOrNull { it.asset.id == assetId }
         val willPin = item?.pinned != true
-        toggleAssetPin(assetId)
+        setAssetPinned(assetId, willPin)
         item?.let { emitToast(AssetToast.Pin(it.asset.name, willPin)) }
     }
 

@@ -13,7 +13,6 @@ use crate::constants::TRANSFER_GAS_LIMIT;
 use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
 use crate::fee_calculator::FeeCalculator;
 use crate::models::fee::EthereumFeeHistory;
-use crate::monad::{STAKING_CONTRACT, encode_monad_staking};
 
 const GAS_LIMIT_PERCENT_INCREASE: u32 = 50;
 
@@ -113,10 +112,6 @@ pub fn get_transaction_params(chain: EVMChain, input: &TransactionLoadInput) -> 
                     StakeType::Rewards(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => BigInt::from(0),
                 };
                 Ok(TransactionParams::new(STAKE_HUB_ADDRESS.to_string(), data, value))
-            }
-            EVMChain::Monad => {
-                let (data, stake_value) = encode_monad_staking(stake_type, &value)?;
-                Ok(TransactionParams::new(STAKING_CONTRACT.to_string(), data, stake_value))
             }
             _ => Err("Unsupported chain for staking".into()),
         },

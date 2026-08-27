@@ -7,6 +7,7 @@ import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import class Gemstone.GemConfirmService
+import Preferences
 import Primitives
 import PrimitivesComponents
 
@@ -15,7 +16,6 @@ public enum ConfirmServiceFactory {
         explorerService: any GemExplorerServiceProtocol,
         keystore: any Keystore,
         chainServiceFactory: any ChainServiceFactorable,
-        assetsEnabler: any AssetsEnabler,
         gemConfirmService: GemConfirmService,
         balanceStore: BalanceStore,
         assetStore: AssetStore,
@@ -49,7 +49,7 @@ public enum ConfirmServiceFactory {
             transferExecutor: TransferExecutor(
                 signer: TransactionSigner(keystore: keystore),
                 confirmService: gemConfirmService,
-                assetsEnabler: assetsEnabler,
+                preferences: .standard,
                 transactionStateScheduler: transactionStateScheduler,
             ),
             recentActivityStore: recentActivityStore,

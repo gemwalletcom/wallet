@@ -30,6 +30,10 @@ pub struct Wallet {
 }
 
 impl Wallet {
+    pub fn account(&self, chain: crate::Chain) -> Option<&crate::Account> {
+        self.accounts.iter().find(|account| account.chain == chain)
+    }
+
     pub fn address_chains(&self) -> Vec<crate::AddressChains> {
         let mut chains_by_address: std::collections::BTreeMap<&str, std::collections::BTreeSet<crate::Chain>> = std::collections::BTreeMap::new();
         for account in &self.accounts {

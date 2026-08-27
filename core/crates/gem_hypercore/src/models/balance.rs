@@ -30,20 +30,6 @@ impl Balances {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Tokens {
-    pub tokens: Vec<Token>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Token {
-    pub name: String,
-    pub wei_decimals: i32,
-    pub index: i32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct StakeBalance {
     pub delegated: String,
     pub undelegated: String,

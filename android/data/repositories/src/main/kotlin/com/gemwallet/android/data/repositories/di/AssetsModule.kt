@@ -10,7 +10,6 @@ import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
-import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
@@ -34,6 +33,7 @@ import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.repositories.gemstone.GemstonePriceStore
 import com.gemwallet.android.data.service.store.database.PricesDao
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPriceAlertStore
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemNotificationStore
@@ -61,7 +61,6 @@ object AssetsModule {
     @Singleton
     fun provideAssetsRepository(
         assetsDao: AssetsDao,
-        balancesDao: BalancesDao,
         pricesRepository: PricesRepository,
         sessionRepository: SessionRepository,
         searchTokensCase: SearchTokensCase,
@@ -72,7 +71,6 @@ object AssetsModule {
         assetsService: Lazy<GemAssetsService>,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
-        balancesDao = balancesDao,
         pricesRepository = pricesRepository,
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,
@@ -94,6 +92,7 @@ object AssetsModule {
         availabilityService: AssetsAvailabilityService,
         assetsService: GemAssetsService,
         priceService: GemPriceService,
+        streamSubscriptionService: GemStreamSubscriptionService,
     ): GemBalanceService = GemBalanceService(
         gateway,
         walletStore,
@@ -101,6 +100,7 @@ object AssetsModule {
         GemstoneBalanceStore(balancesDao, assetsDao),
         assetsService,
         priceService,
+        streamSubscriptionService,
     )
 
     @Provides
@@ -155,9 +155,11 @@ object AssetsModule {
     @Singleton
     fun provideStreamSubscriptionService(
         priceService: GemPriceService,
+        priceAlertStore: GemPriceAlertStore,
         connection: WebSocketConnectable,
     ): GemStreamSubscriptionService = GemStreamSubscriptionService(
         price = priceService,
+        alerts = priceAlertStore,
         connection = GemstoneStreamConnection(connection),
     )
 
@@ -218,6 +220,5 @@ object AssetsModule {
         apiClient: GemApiClient,
         pricesDao: PricesDao,
         assetsDao: AssetsDao,
-        priceAlertRepository: Lazy<PriceAlertRepository>,
-    ): GemPriceService = GemPriceService(apiClient, GemstonePriceStore(pricesDao, assetsDao, priceAlertRepository))
+    ): GemPriceService = GemPriceService(apiClient, GemstonePriceStore(pricesDao, assetsDao))
 }

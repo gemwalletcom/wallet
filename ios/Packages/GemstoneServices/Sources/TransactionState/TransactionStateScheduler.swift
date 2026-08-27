@@ -13,15 +13,24 @@ public struct TransactionStateScheduler: Sendable {
 
     public func setup() {
         Task {
-            if let transactionWallets = try? await service.pendingTransactions() {
-                scheduleUpdate(for: transactionWallets)
+            do {
+                scheduleUpdate(for: try await service.pendingTransactions())
+            } catch {
+                debugLog("transaction state: pending transactions load failed: \(error)")
             }
         }
     }
 
-    public func addTransactions(wallet: Wallet, transactions: [Transaction]) async throws {
+    public func addTransactions(wallet: Wallet, transactions: [Transaction], currency: String) async throws {
         try await service.addTransactions(wallet: wallet, transactions: transactions)
         scheduleUpdate(for: transactions.map { TransactionWallet(transaction: $0, wallet: wallet) })
+        Task {
+            do {
+                try await service.enableAssets(wallet: wallet, transactions: transactions, currency: currency)
+            } catch {
+                debugLog("transaction state: asset enabling failed: \(error)")
+            }
+        }
     }
 }
 

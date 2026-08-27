@@ -20,7 +20,6 @@ import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.data.password.TinkPasswordStore
 import com.gemwallet.android.data.password.TinkSecurityStore
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.PhraseAddressImportWalletService
 import dagger.Module
@@ -28,6 +27,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemWalletService
 import javax.inject.Singleton
 
@@ -90,15 +90,15 @@ object InteractsModule {
     @Provides
     fun provideAddWalletInteract(
         walletService: GemWalletService,
-        assetsRepository: AssetsRepository,
         sessionRepository: SessionRepository,
+        appStartService: GemAppStartService,
         phraseValidate: ValidatePhraseOperator,
         syncDevice: SyncDevice,
         walletImportSync: SyncWalletImport,
     ): ImportWalletService = PhraseAddressImportWalletService(
         walletService = walletService,
-        assetsRepository = assetsRepository,
         sessionRepository = sessionRepository,
+        appStartService = appStartService,
         phraseValidate = phraseValidate,
         syncDevice = syncDevice,
         walletImportSync = walletImportSync,

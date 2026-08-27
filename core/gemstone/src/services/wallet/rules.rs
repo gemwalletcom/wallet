@@ -35,11 +35,7 @@ pub fn next_wallet_index(wallets: &[Wallet]) -> i32 {
 }
 
 pub fn missing_chains(wallet: &Wallet, chains: &[Chain]) -> Vec<Chain> {
-    chains
-        .iter()
-        .copied()
-        .filter(|chain| !wallet.accounts.iter().any(|account| account.chain == *chain))
-        .collect()
+    chains.iter().copied().filter(|chain| wallet.account(*chain).is_none()).collect()
 }
 
 pub fn wallets_missing_chains(wallets: Vec<Wallet>, chains: &[Chain]) -> Vec<(Wallet, Vec<Chain>)> {
@@ -56,17 +52,8 @@ pub fn wallets_missing_chains(wallets: Vec<Wallet>, chains: &[Chain]) -> Vec<(Wa
 pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
     wallets
         .iter()
-        .min_by_key(|wallet| (wallet_type_rank(&wallet.wallet_type), wallet.index))
+        .min_by_key(|wallet| (wallet.wallet_type.rank(), wallet.index))
         .map(|wallet| wallet.id.clone())
-}
-
-fn wallet_type_rank(wallet_type: &WalletType) -> u8 {
-    match wallet_type {
-        WalletType::Multicoin => 0,
-        WalletType::Single => 1,
-        WalletType::PrivateKey => 2,
-        WalletType::View => 3,
-    }
 }
 
 pub fn existing_wallet(wallets: &[Wallet], wallet_id: &WalletId, wallet_type: WalletType) -> Option<Wallet> {

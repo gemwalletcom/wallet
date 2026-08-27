@@ -73,7 +73,6 @@ class MigrateV3KeystoreServiceTest {
         }
         assertTrue(capturedLegacyPassword.all { it == 0.toByte() })
         assertTrue(capturedNewPassword.all { it == 0.toByte() })
-        coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
     }
 
     @Test

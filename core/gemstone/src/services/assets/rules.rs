@@ -3,14 +3,10 @@ use std::collections::HashSet;
 use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, Chain, Wallet};
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
+use crate::services::collections::missing;
 
 pub fn missing_asset_ids(requested: Vec<AssetId>, existing: Vec<AssetId>) -> Vec<AssetId> {
-    let existing: HashSet<AssetId> = existing.into_iter().collect();
-    let mut seen: HashSet<AssetId> = HashSet::new();
-    requested
-        .into_iter()
-        .filter(|asset_id| !existing.contains(asset_id) && seen.insert(asset_id.clone()))
-        .collect()
+    missing(requested, existing)
 }
 
 pub fn default_asset_basic(asset: Asset) -> AssetBasic {

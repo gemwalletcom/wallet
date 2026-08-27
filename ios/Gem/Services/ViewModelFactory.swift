@@ -113,7 +113,6 @@ public struct ViewModelFactory: Sendable {
                 explorerService: explorerService,
                 keystore: keystore,
                 chainServiceFactory: chainServiceFactory,
-                assetsEnabler: assetsEnabler,
                 gemConfirmService: gemConfirmService,
                 balanceStore: balanceStore,
                 assetStore: assetStore,

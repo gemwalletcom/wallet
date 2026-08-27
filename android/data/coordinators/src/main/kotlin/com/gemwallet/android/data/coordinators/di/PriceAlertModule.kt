@@ -87,12 +87,10 @@ object PriceAlertModule {
     fun providePriceAlertExclude(
         priceAlertService: GemPriceAlertService,
         sessionRepository: SessionRepository,
-        priceAlertRepository: PriceAlertRepository,
     ): ExcludePriceAlert {
         return ExcludePriceAlertImpl(
             priceAlertService = priceAlertService,
             sessionRepository = sessionRepository,
-            priceAlertRepository = priceAlertRepository,
         )
     }
 

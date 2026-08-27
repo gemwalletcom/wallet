@@ -3,8 +3,10 @@ package com.gemwallet.android.data.repositories.transactions
 import android.util.Log
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.ext.isCompleted
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.Wallet
@@ -47,9 +49,13 @@ class TransactionStateScheduler(
         pollingTransactionJobs.clear()
     }
 
-    override suspend fun createTransaction(walletId: WalletId, transaction: Transaction): Transaction {
+    override suspend fun createTransaction(walletId: WalletId, transaction: Transaction, currency: Currency): Transaction {
         stateService.addTransactions(walletId.id, listOf(transaction.toJson()))
         schedule(walletId, transaction)
+        scope.launch {
+            runCatchingCancellable { stateService.enableTransactionAssets(walletId.id, listOf(transaction.toJson()), currency.toJson()) }
+                .onFailure { Log.e(TAG, "asset enabling failed after adding ${transaction.id.hash}", it) }
+        }
         return transaction
     }
 

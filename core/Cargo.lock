@@ -549,7 +549,6 @@ dependencies = [
 name = "api_connector"
 version = "2.114.11"
 dependencies = [
- "chrono",
  "gem_client",
  "primitives",
  "reqwest 0.13.4",
@@ -3787,6 +3786,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_monad"
+version = "2.114.11"
+dependencies = [
+ "alloy-primitives",
+ "alloy-sol-types",
+ "async-trait",
+ "chrono",
+ "gem_client",
+ "gem_evm",
+ "gem_jsonrpc",
+ "num-bigint 0.5.1",
+ "num-traits",
+ "primitives",
+ "serde_json",
+ "settings",
+ "tokio",
+]
+
+[[package]]
 name = "gem_near"
 version = "2.114.11"
 dependencies = [
@@ -4095,6 +4113,7 @@ dependencies = [
  "gem_hypercore",
  "gem_jsonrpc",
  "gem_keystore",
+ "gem_monad",
  "gem_near",
  "gem_optimism",
  "gem_polkadot",
@@ -7899,6 +7918,7 @@ dependencies = [
  "gem_evm",
  "gem_hypercore",
  "gem_jsonrpc",
+ "gem_monad",
  "gem_near",
  "gem_polkadot",
  "gem_solana",

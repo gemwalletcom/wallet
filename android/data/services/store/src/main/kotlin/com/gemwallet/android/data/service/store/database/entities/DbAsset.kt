@@ -151,6 +151,7 @@ fun AssetFull.toRecord() = DbAsset(
     symbol = asset.symbol,
     decimals = asset.decimals,
     type = asset.type,
+    isEnabled = properties.isEnabled,
     isBuyEnabled = properties.isBuyable,
     isSellEnabled = properties.isSellable,
     isStakeEnabled = properties.isStakeable,

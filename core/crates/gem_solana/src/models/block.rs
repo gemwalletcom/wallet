@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -18,11 +18,6 @@ pub struct VoteAccount {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Block {
-    pub blockhash: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Blockhash {
     pub blockhash: String,
 }
 

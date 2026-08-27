@@ -115,10 +115,12 @@ impl GemWalletConnectService {
         }
     }
 
-    pub fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> WalletConnectionSession {
+    pub fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> Result<WalletConnectionSession, GemServiceError> {
         let chains = rules::account_chains(&self.wallet_connect, &accounts);
-        let expire_at = DateTime::<Utc>::from_timestamp(expire_at, 0).unwrap_or_else(Utc::now);
-        rules::session(topic, chains, expire_at, metadata)
+        let expire_at = DateTime::<Utc>::from_timestamp(expire_at, 0).ok_or_else(|| GemServiceError::Status {
+            msg: format!("invalid session expiry {expire_at}"),
+        })?;
+        Ok(rules::session(topic, chains, expire_at, metadata))
     }
 
     pub async fn handle_request(&self, request: GemWalletConnectRequest) -> Result<GemWalletConnectResponse, GemServiceError> {

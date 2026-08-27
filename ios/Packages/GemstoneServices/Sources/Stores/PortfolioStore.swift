@@ -16,7 +16,7 @@ public final class GemstonePortfolioStore: GemPortfolioStore, @unchecked Sendabl
     }
 
     public func getWalletAssets(walletId: Gemstone.WalletId) async throws -> [Gemstone.PortfolioAsset] {
-        try assetStore.getAssetsData(walletId: Primitives.WalletId.from(id: walletId), filters: [.enabledBalance, .hasBalance])
+        try assetStore.getAssetsData(walletId: Primitives.WalletId.from(id: walletId), filters: [.enabledBalance, .hasBalance], limit: nil)
             .map { try Primitives.PortfolioAsset(assetId: $0.asset.id, value: String($0.balance.total)).json() }
     }
 }

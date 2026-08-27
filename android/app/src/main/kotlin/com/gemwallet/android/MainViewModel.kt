@@ -109,8 +109,8 @@ class MainViewModel @Inject constructor(
             migratePriceAlertsPreference()
             migrateExplorerPreference()
             migrateV3KeystoreService()
-            checkAccountsService()
         }
+        viewModelScope.launch(Dispatchers.IO) { checkAccountsService() }
     }
 
     fun requestAuth(requestId: Long) {

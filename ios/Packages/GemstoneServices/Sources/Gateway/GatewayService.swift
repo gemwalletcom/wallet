@@ -50,8 +50,9 @@ public actor GatewayService: Sendable {
         store: any GemBalanceStore,
         assets: GemAssetsService,
         price: GemPriceService,
+        stream: GemStreamSubscriptionService,
     ) -> GemBalanceService {
-        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, price: price)
+        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, price: price, stream: stream)
     }
 
     public nonisolated func assetsService(
@@ -63,8 +64,14 @@ public actor GatewayService: Sendable {
         GemAssetsService(api: api, gateway: gateway, store: store, price: price, preferences: preferences)
     }
 
-    public nonisolated func perpetualService(price: GemPriceService, store: any GemPerpetualStore, preferences: GemPreferencesService) -> GemPerpetualService {
-        GemPerpetualService(gateway: gateway, price: price, store: store, preferences: preferences)
+    public nonisolated func perpetualService(
+        price: GemPriceService,
+        store: any GemPerpetualStore,
+        preferences: GemPreferencesService,
+        balance: GemBalanceService,
+        walletPreferences: GemWalletPreferencesService,
+    ) -> GemPerpetualService {
+        GemPerpetualService(gateway: gateway, price: price, store: store, preferences: preferences, balance: balance, walletPreferences: walletPreferences)
     }
 
     public nonisolated func confirmService(

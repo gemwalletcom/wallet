@@ -10,7 +10,7 @@ import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -35,7 +35,7 @@ import javax.inject.Inject
 class AssetsViewModel @Inject constructor(
     private val syncAssets: SyncAssets,
     private val hideAsset: HideAsset,
-    private val toggleAssetPin: ToggleAssetPin,
+    private val setAssetPinned: SetAssetPinned,
     private val toggleHideBalances: ToggleHideBalances,
     private val hideWelcomeBanner: HideWelcomeBanner,
     getImportInProgress: GetImportInProgress,
@@ -104,9 +104,9 @@ class AssetsViewModel @Inject constructor(
     }
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch {
-        val item = assetGroups.value.let { it.pinned + it.unpinned }.firstOrNull { it.id == assetId }
-        toggleAssetPin(assetId)
-        item?.let { emitToast(AssetToast.Pin(it.asset.name, !it.pinned)) }
+        val item = assetGroups.value.let { it.pinned + it.unpinned }.firstOrNull { it.id == assetId } ?: return@launch
+        setAssetPinned(assetId, !item.pinned)
+        emitToast(AssetToast.Pin(item.asset.name, !item.pinned))
     }
 
     fun hideBalances() = viewModelScope.launch {

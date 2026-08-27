@@ -188,15 +188,6 @@ interface AssetsDao {
     @Query("UPDATE asset SET is_sell_enabled = :value WHERE id IN (:ids)")
     suspend fun setSellAvailable(ids: List<String>, value: Boolean)
 
-    @Query("""
-        SELECT asset.* FROM asset
-        JOIN balances ON asset.id = balances.asset_id
-        JOIN accounts ON accounts.wallet_id = balances.wallet_id AND accounts.chain = asset.id
-        WHERE balances.wallet_id = :walletId
-            AND asset.type = 'NATIVE'
-    """)
-    fun getNativeWalletAssets(walletId: String): Flow<List<DbAsset>>
-
     @Query("SELECT * FROM asset WHERE id = :id")
     fun getAsset(id: String): Flow<DbAsset?>
 
@@ -205,9 +196,6 @@ interface AssetsDao {
 
     @Query("SELECT id FROM asset WHERE id IN (:ids)")
     suspend fun getAssetIds(ids: List<String>): List<String>
-
-    @Query("SELECT asset_id FROM balances WHERE wallet_id = :walletId AND asset_id IN (:assetIds)")
-    suspend fun getWalletAssetIds(walletId: String, assetIds: List<String>): List<String>
 
     @Query("SELECT * FROM $ASSET_INFO WHERE chain = :chain AND id = :assetId AND walletId = :walletId")
     fun getAssetInfo(walletId: String, assetId: String, chain: Chain): Flow<DbAssetInfo?>

@@ -116,7 +116,10 @@ impl GemWalletService {
         Ok(GemWalletImportResult::New { wallet })
     }
 
-    pub async fn delete_wallet(&self, wallet: Wallet) -> Result<bool, GemServiceError> {
+    pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<bool, GemServiceError> {
+        let wallet = self.store.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::Status {
+            msg: format!("wallet {} not found", wallet_id.id()),
+        })?;
         if wallet.wallet_type != WalletType::View {
             self.keystore.delete(keystore_id_for_wallet(wallet.id.id()))?;
         }
@@ -165,16 +168,16 @@ impl GemWalletService {
         self.store.set_pinned(wallet_id, pinned).await
     }
 
-    pub async fn set_image_url(&self, wallet_id: WalletId, image_url: Option<String>) -> Result<(), GemServiceError> {
-        self.store.set_image_url(wallet_id, image_url).await
-    }
-
     pub async fn rename(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError> {
         self.store.rename(wallet_id, name).await
     }
 }
 
 impl GemWalletService {
+    pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        self.store.get_wallets()
+    }
+
     async fn invalidate_subscriptions(&self) -> Result<(), GemServiceError> {
         let version = self.device_store.get_subscriptions_version().await?;
         self.device_store.set_subscriptions_version(version + 1).await

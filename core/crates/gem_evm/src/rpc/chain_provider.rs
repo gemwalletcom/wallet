@@ -7,11 +7,14 @@ use primitives::{AssetBalance, DelegationBase, DelegationValidator, StakeType, T
 
 use super::EthereumClient;
 use super::parsers::ProtocolParser;
+use crate::provider::preload::calculate_fee;
 use crate::transaction_params::TransactionParams;
 
 #[async_trait]
 pub trait EvmFeeCalculator: Send + Sync {
-    async fn calculate_fee(&self, input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>>;
+    async fn calculate_fee(&self, input: &TransactionLoadInput, _params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
+        calculate_fee(input, gas_limit)
+    }
 }
 
 #[async_trait]
@@ -55,3 +58,6 @@ impl<T: EvmStakingClient + EvmFeeCalculator> EvmChainProvider for T {}
 
 #[async_trait]
 impl<C: Client + Clone> EvmStakingClient for EthereumClient<C> {}
+
+#[async_trait]
+impl<C: Client + Clone> EvmFeeCalculator for EthereumClient<C> {}

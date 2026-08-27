@@ -15,9 +15,8 @@ public extension PerpetualService {
     static func mock(
         provider: PerpetualProvidable = PerpetualProviderMock(),
         service: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
-        preferences: any GemWalletPreferencesServiceProtocol = GemWalletPreferencesService.mock(),
     ) -> PerpetualService {
-        PerpetualService(provider: provider, service: service, preferences: preferences)
+        PerpetualService(provider: provider, service: service)
     }
 }
 
@@ -26,10 +25,6 @@ public struct PerpetualProviderMock: PerpetualProvidable {
 
     public func provider() -> PerpetualProvider {
         .hypercore
-    }
-
-    public func getAccountMode(address _: String) async throws -> PerpetualAccountMode {
-        .standard
     }
 
     public func getCandlesticks(symbol _: String, period _: ChartPeriod) async throws -> [ChartCandleStick] {

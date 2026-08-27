@@ -15,7 +15,7 @@ public struct ConnectionsStore: Sendable {
 
     public func addConnection(_ connection: WalletConnection) throws {
         try db.write { db in
-            try connection.record.insert(db)
+            try connection.record.upsert(db)
         }
     }
 
@@ -23,6 +23,7 @@ public struct ConnectionsStore: Sendable {
         try db.read { db in
             try WalletRecord
                 .including(required: WalletRecord.connection)
+                .including(all: WalletRecord.accounts)
                 .asRequest(of: WalletConnectionInfo.self)
                 .filter(
                     TableAlias(name: WalletConnectionRecord.databaseTableName)[WalletConnectionRecord.Columns.sessionId] == sessionId,

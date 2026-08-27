@@ -65,7 +65,6 @@ class MigrateV3KeystoreServiceTest {
 
         service()
         assertEquals(EXPECTED_PRIVATE_KEY, loadKey(current, Chain.Ethereum, KEYSTORE_TEST_PASSWORD))
-        coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
     }
 
     @Test
@@ -84,7 +83,6 @@ class MigrateV3KeystoreServiceTest {
 
         service()
         assertEquals(EXPECTED_PRIVATE_KEY, loadKey(current, Chain.Ethereum, KEYSTORE_TEST_PASSWORD))
-        coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
     }
 
     @Test

@@ -3,7 +3,7 @@ use primitives::{Account, Chain, Wallet};
 pub const AUTH_CHAIN: Chain = Chain::Ethereum;
 
 pub fn auth_account(wallet: &Wallet) -> Option<&Account> {
-    wallet.accounts.iter().find(|account| account.chain == AUTH_CHAIN)
+    wallet.account(AUTH_CHAIN)
 }
 
 #[cfg(test)]

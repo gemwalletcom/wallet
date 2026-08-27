@@ -1,9 +1,10 @@
-package com.gemwallet.android.data.repositories.bridge
+package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnectionState
@@ -18,14 +19,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-class ConnectionsRepositoryTest {
+class GemstoneConnectionStoreTest {
 
     private val walletsRepository = mockk<WalletsRepository>()
     private val connectionsDao = mockk<ConnectionsDao>(relaxed = true)
-    private val repository = ConnectionsRepository(walletsRepository, connectionsDao)
+    private val store = GemstoneConnectionStore(walletsRepository, connectionsDao)
 
     @Test
-    fun getConnections_mapsOnlyRecordsWithMatchingWallets() = runTest {
+    fun observeConnections_mapsOnlyRecordsWithMatchingWallets() = runTest {
         every { walletsRepository.getAll() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
         every { connectionsDao.getAll() } returns flowOf(
             listOf(
@@ -34,18 +35,20 @@ class ConnectionsRepositoryTest {
             )
         )
 
-        val connections = repository.getConnections().first()
+        val connections = store.observeConnections().first()
 
         assertEquals(listOf("connection-1"), connections.map { it.session.id })
         assertEquals("wallet-1", connections.single().wallet.id.id)
+        assertEquals(listOf(connections.single().session.toJson()), store.getSessions())
     }
 
     @Test
-    fun getConnectionByTopic_returnsNullForMissingWallet() = runTest {
+    fun getConnectionBySessionId_returnsNullForMissingWallet() = runTest {
         coEvery { connectionsDao.getBySessionId("topic-1") } returns connection(id = "topic-1", walletId = "missing-wallet")
         every { walletsRepository.getAll() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
 
-        assertNull(repository.getConnectionByTopic("topic-1"))
+        assertNull(store.getConnectionBySessionId("topic-1"))
+        assertNull(store.getConnection("topic-1"))
     }
 
     @Test
@@ -54,7 +57,7 @@ class ConnectionsRepositoryTest {
         coEvery { connectionsDao.getBySessionId("connection-1") } returns record
         val session = record.toDTO(mockWallet(id = "wallet-1")).session.copy(chains = listOf(Chain.Ethereum, Chain.Solana), expireAt = 3_000)
 
-        repository.updateSession(session)
+        store.updateSession(session.toJson())
 
         coVerify { connectionsDao.insert(record.copy(chains = listOf(Chain.Ethereum, Chain.Solana), expireAt = 3_000)) }
     }
@@ -63,7 +66,7 @@ class ConnectionsRepositoryTest {
     fun updateSession_ignoresUnknownSessions() = runTest {
         coEvery { connectionsDao.getBySessionId("missing") } returns null
 
-        repository.updateSession(connection(id = "missing", walletId = "wallet-1").toDTO(mockWallet(id = "wallet-1")).session)
+        store.updateSession(connection(id = "missing", walletId = "wallet-1").toDTO(mockWallet(id = "wallet-1")).session.toJson())
 
         coVerify(exactly = 0) { connectionsDao.insert(any<DbConnection>()) }
     }

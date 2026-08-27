@@ -8,7 +8,7 @@ struct BannerInfo: Codable, FetchableRecord {
     let banner: BannerRecord
     let asset: AssetRecord?
     let chain: AssetRecord?
-    let wallet: WalletRecord?
+    let wallet: WalletRecordInfo?
 
     init(row: Row) throws {
         banner = try BannerRecord(row: row)

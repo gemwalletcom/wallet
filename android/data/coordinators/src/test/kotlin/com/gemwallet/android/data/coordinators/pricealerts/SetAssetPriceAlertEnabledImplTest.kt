@@ -5,6 +5,7 @@ import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAl
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -34,7 +35,7 @@ class SetAssetPriceAlertEnabledImplTest {
 
         assertEquals(emptyList<AssetId>(), includePriceAlert.assetIds)
         assertEquals(listOf(assetId), excludePriceAlert.assetIds)
-        assertEquals(0, excludePriceAlert.priceAlertIdCalls)
+        assertEquals(0, excludePriceAlert.priceAlertCalls)
     }
 
     private class RecordingIncludePriceAlert : IncludePriceAlert {
@@ -53,10 +54,10 @@ class SetAssetPriceAlertEnabledImplTest {
 
     private class RecordingExcludePriceAlert : ExcludePriceAlert {
         val assetIds = mutableListOf<AssetId>()
-        var priceAlertIdCalls = 0
+        var priceAlertCalls = 0
 
-        override suspend fun invoke(priceAlertId: Int) {
-            priceAlertIdCalls += 1
+        override suspend fun invoke(priceAlert: PriceAlert) {
+            priceAlertCalls += 1
         }
 
         override suspend fun invoke(

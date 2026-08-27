@@ -28,6 +28,16 @@ pub struct GemPreferencesService {
 
 #[uniffi::export]
 impl GemPreferencesService {
+    pub fn get_skipped_app_version(&self) -> Result<Option<String>, GemServiceError> {
+        self.store.get(SKIPPED_APP_VERSION.to_string())
+    }
+    pub fn set_skipped_app_version(&self, version: String) -> Result<(), GemServiceError> {
+        self.store.set(SKIPPED_APP_VERSION.to_string(), version)
+    }
+    pub fn is_price_alerts_enabled(&self) -> Result<bool, GemServiceError> {
+        Ok(self.store.get(PRICE_ALERTS_ENABLED.to_string())?.as_deref() == Some("true"))
+    }
+
     #[uniffi::constructor]
     pub fn new(store: Arc<dyn GemPreferencesStore>) -> Self {
         Self { store }
@@ -37,20 +47,8 @@ impl GemPreferencesService {
         rules::default_currency(locale_currency)
     }
 
-    pub fn is_price_alerts_enabled(&self) -> Result<bool, GemServiceError> {
-        Ok(self.store.get(PRICE_ALERTS_ENABLED.to_string())?.as_deref() == Some("true"))
-    }
-
     pub fn set_price_alerts_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
         self.store.set(PRICE_ALERTS_ENABLED.to_string(), enabled.to_string())
-    }
-
-    pub fn get_skipped_app_version(&self) -> Result<Option<String>, GemServiceError> {
-        self.store.get(SKIPPED_APP_VERSION.to_string())
-    }
-
-    pub fn set_skipped_app_version(&self, version: String) -> Result<(), GemServiceError> {
-        self.store.set(SKIPPED_APP_VERSION.to_string(), version)
     }
 }
 

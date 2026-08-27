@@ -32,7 +32,7 @@ class GemstoneNftStore(
     }
 
     override suspend fun getAssetData(assetId: String): String? {
-        val id = assetId.toNftAssetId() ?: return null
+        val id = requireNotNull(assetId.toNftAssetId()) { "invalid nft asset id: $assetId" }
         val asset = nftDao.getAsset(id).first() ?: return null
         val collection = nftDao.getCollection(asset.collectionId).first() ?: return null
         return NFTAssetData(collection = collection.toCollectionModel(), asset = asset.toAssetModel()).toJson()

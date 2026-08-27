@@ -22,9 +22,11 @@ import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.SearchDao
 import com.wallet.core.primitives.Chain
 import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
+import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemPriceService
 import dagger.Module
 import dagger.Provides
@@ -32,7 +34,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import javax.inject.Singleton
-import uniffi.gemstone.Hyperliquid
 import uniffi.gemstone.HyperliquidSubscriptions
 
 @InstallIn(SingletonComponent::class)
@@ -55,7 +56,9 @@ object PerpetualModule {
         priceService: GemPriceService,
         perpetualStore: GemstonePerpetualStore,
         preferencesService: GemPreferencesService,
-    ): GemPerpetualService = GemPerpetualService(gateway, priceService, perpetualStore, preferencesService)
+        balanceService: GemBalanceService,
+        walletPreferencesService: GemWalletPreferencesService,
+    ): GemPerpetualService = GemPerpetualService(gateway, priceService, perpetualStore, preferencesService, balanceService, walletPreferencesService)
 
     @Provides
     @Singleton
@@ -64,30 +67,20 @@ object PerpetualModule {
         perpetualPositionDao: PerpetualPositionDao,
         balancesDao: BalancesDao,
         searchDao: SearchDao,
-        perpetualStore: GemstonePerpetualStore,
     ): PerpetualRepository {
         return PerpetualRepositoryImpl(
             perpetualDao = perpetualDao,
             perpetualPositionDao = perpetualPositionDao,
             balancesDao = balancesDao,
             searchDao = searchDao,
-            perpetualStore = perpetualStore,
         )
     }
 
     @Provides
     @Singleton
-    fun provideHyperliquid(): Hyperliquid = Hyperliquid()
-
-    @Provides
-    @Singleton
     fun provideHyperliquidEventHandler(
         perpetualService: GemPerpetualService,
-        hyperliquid: Hyperliquid,
-    ): HyperliquidEventHandler = HyperliquidEventHandler(
-        perpetualService = perpetualService,
-        hyperliquid = hyperliquid,
-    )
+    ): HyperliquidEventHandler = HyperliquidEventHandler(perpetualService)
 
     @Provides
     @Singleton

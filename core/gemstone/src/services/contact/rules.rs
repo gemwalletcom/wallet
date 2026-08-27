@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use crate::services::collections::stale;
 
 use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Contact, VerificationStatus};
@@ -18,8 +18,7 @@ pub fn address_names(contact: &Contact, addresses: &[ContactAddress]) -> Vec<Add
 }
 
 pub fn stale_address_ids(existing_ids: Vec<String>, addresses: &[ContactAddress]) -> Vec<String> {
-    let kept: HashSet<&str> = addresses.iter().map(|address| address.id.as_str()).collect();
-    existing_ids.into_iter().filter(|id| !kept.contains(id.as_str())).collect()
+    stale(existing_ids, addresses.iter().map(|address| address.id.clone()))
 }
 
 #[cfg(test)]

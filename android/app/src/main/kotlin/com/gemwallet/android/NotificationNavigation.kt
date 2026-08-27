@@ -2,14 +2,12 @@ package com.gemwallet.android
 
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.GetAssetById
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.cases.parseNotificationData
-import com.gemwallet.android.cases.transactions.SaveTransactions
+import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.model.PushNotificationField
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
@@ -22,6 +20,12 @@ import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
+import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toIdentifier
+import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemTransactionsService
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.firstOrNull
@@ -30,9 +34,10 @@ import javax.inject.Inject
 class NotificationNavigation @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val walletsRepository: WalletsRepository,
-    private val saveTransactions: SaveTransactions,
+    private val createTransaction: CreateTransaction,
+    private val transactionsService: GemTransactionsService,
     private val prefetchAssets: PrefetchAssets,
-    private val ensureWalletAssets: EnsureWalletAssets,
+    private val assetsService: GemAssetsService,
     private val getAssetById: GetAssetById,
 ) {
     suspend fun prepareNavigation(intent: Intent): List<NavKey> {
@@ -77,9 +82,10 @@ class NotificationNavigation @Inject constructor(
     }
 
     private suspend fun prepareTransaction(data: PushNotificationData.Transaction): Boolean {
-        val assetIds = (data.transaction.getAssociatedAssetIds() + data.assetId).distinct()
+        val associatedAssetIds = transactionsService.associatedAssetIds(data.transaction.toJson()).map { it.toAssetId() ?: return false }
+        val assetIds = (associatedAssetIds + data.assetId).distinct()
         prepareWallet(data.walletId, assetIds) ?: return false
-        saveTransactions.saveTransactions(data.walletId, listOf(data.transaction))
+        createTransaction.createTransaction(data.walletId, data.transaction, sessionRepository.getCurrentCurrency())
         return true
     }
 
@@ -98,7 +104,10 @@ class NotificationNavigation @Inject constructor(
     private suspend fun prepareWallet(walletId: WalletId, assetIds: List<AssetId>): Wallet? {
         val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return null
         prefetchAssets.prefetchAssets(assetIds)
-        ensureWalletAssets.ensureWalletAssets(wallet, assetIds)
+        assetsService.addMissingBalances(
+            wallet.id.id,
+            assetIds.filter { wallet.getAccount(it.chain) != null }.map { it.toIdentifier() },
+        )
         if (sessionRepository.session().firstOrNull()?.wallet?.id != wallet.id) {
             sessionRepository.setWallet(wallet)
         }

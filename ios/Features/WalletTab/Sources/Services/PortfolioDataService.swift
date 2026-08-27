@@ -41,7 +41,9 @@ public struct PortfolioDataService: Sendable {
 
 extension PortfolioDataService {
     private func getWalletData(walletId: WalletId, period: ChartPeriod, currencyCode: String) async throws -> PortfolioData {
-        let rate = try priceStore.getRate(currency: currencyCode).rate
+        guard let rate = try priceStore.getRate(currency: currencyCode)?.rate else {
+            throw AnyError("unknown currency: \(currencyCode)")
+        }
         let portfolio = try await PortfolioAssets(portfolioService.getWalletAssets(walletId: walletId.id, period: period.json()))
 
         let values = portfolio.values.map {

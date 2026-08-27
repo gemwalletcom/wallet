@@ -15,6 +15,7 @@ pub use store::GemBalanceStore;
 use crate::gateway::GemGateway;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::price::GemPriceService;
+use crate::services::stream::GemStreamSubscriptionService;
 use crate::services::wallet::GemWalletStore;
 use rules::{BalanceKind, BalanceRequest};
 
@@ -26,6 +27,7 @@ pub struct GemBalanceService {
     store: Arc<dyn GemBalanceStore>,
     assets: Arc<GemAssetsService>,
     price: Arc<GemPriceService>,
+    stream: Arc<GemStreamSubscriptionService>,
 }
 
 #[uniffi::export]
@@ -38,6 +40,7 @@ impl GemBalanceService {
         store: Arc<dyn GemBalanceStore>,
         assets: Arc<GemAssetsService>,
         price: Arc<GemPriceService>,
+        stream: Arc<GemStreamSubscriptionService>,
     ) -> Self {
         Self {
             gateway,
@@ -46,6 +49,7 @@ impl GemBalanceService {
             store,
             assets,
             price,
+            stream,
         }
     }
 
@@ -69,6 +73,7 @@ impl GemBalanceService {
         }
         let prices = self.price.get_prices(Some(currency.clone()), new_asset_ids.clone()).await?;
         self.price.update_prices(prices, currency).await?;
+        self.stream.add_prices(new_asset_ids.clone()).await?;
         self.update(wallet_id, new_asset_ids).await
     }
 
@@ -103,6 +108,12 @@ impl GemBalanceService {
 }
 
 impl GemBalanceService {
+    pub async fn update_balances(&self, wallet_id: WalletId, updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
+        let asset_ids = updates.iter().map(|update| update.asset_id.clone()).collect();
+        self.asset_store.add_missing_balances(wallet_id.clone(), asset_ids).await?;
+        self.store.update_balances(wallet_id, updates).await
+    }
+
     async fn chain_balances(&self, request: &BalanceRequest) -> Vec<(BalanceKind, AssetBalance)> {
         let token_ids: Vec<String> = request.token_ids.iter().filter_map(|asset_id| asset_id.token_id.clone()).collect();
         let (coin, stake, tokens, earn) = futures::join!(

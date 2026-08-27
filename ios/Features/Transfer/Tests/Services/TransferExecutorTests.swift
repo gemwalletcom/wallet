@@ -10,6 +10,7 @@ import Primitives
 import PrimitivesTestKit
 import Store
 import StoreTestKit
+import PreferencesTestKit
 import Testing
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -27,7 +28,7 @@ struct TransferExecutorTests {
                 GemSignedTransaction(data: "position_tpsl", type: .perpetualOpenPosition),
             ]),
             confirmService: GemConfirmServiceMock(hashes: ["action:1", "order:413978262893", "action:2"]),
-            assetsEnabler: .mock(),
+            preferences: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
@@ -67,7 +68,7 @@ struct TransferExecutorTests {
                 GemSignedTransaction(data: "swap_tx", type: .swap),
             ]),
             confirmService: GemConfirmServiceMock(hashes: ["hash0", "hash1"]),
-            assetsEnabler: .mock(),
+            preferences: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
@@ -110,7 +111,7 @@ struct TransferExecutorTests {
                 GemSignedTransaction(data: "approval_tx", type: .tokenApproval),
             ]),
             confirmService: GemConfirmServiceMock(hashes: ["approval-hash"]),
-            assetsEnabler: .mock(),
+            preferences: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
         let transferData = TransferData.mock(
@@ -157,7 +158,7 @@ struct TransferExecutorTests {
                 "action:2",
                 "order:413978262893",
             ]),
-            assetsEnabler: .mock(),
+            preferences: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
         let swapData = SwapData.mock(
@@ -201,7 +202,7 @@ struct TransferExecutorTests {
                 "action:tokenDelegate:3001423:unstake:1780078264488",
                 "action:cWithdraw:3001423:1780078264489",
             ]),
-            assetsEnabler: .mock(),
+            preferences: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
@@ -226,7 +227,7 @@ struct TransferExecutorTests {
         let executor = TransferExecutor(
             signer: TransactionSignerMock(signedTransactions: [GemSignedTransaction(data: "tx", type: .transfer)]),
             confirmService: GemConfirmServiceMock(hashes: ["hash"]),
-            assetsEnabler: .mock(),
+            preferences: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
@@ -252,7 +253,7 @@ struct TransferExecutorTests {
         let executor = TransferExecutor(
             signer: TransactionSignerMock(signedTransactions: [GemSignedTransaction(data: "modify_tx", type: .perpetualModifyPosition)]),
             confirmService: GemConfirmServiceMock(hashes: ["hash"]),
-            assetsEnabler: .mock(),
+            preferences: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 

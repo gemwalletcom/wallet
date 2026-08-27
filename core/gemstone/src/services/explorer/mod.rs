@@ -36,11 +36,6 @@ impl GemExplorerService {
         self.preferences.set_explorer_name(chain, name)
     }
 
-    pub fn get_transaction_url(&self, chain: Chain, hash: String) -> GemBlockExplorerLink {
-        let name = self.get_explorer_name(chain);
-        link(&name, Explorer { chain }.get_transaction_url(&name, &hash))
-    }
-
     pub fn get_transaction_link(&self, chain: Chain, hash: String, provider: Option<String>, recipient: Option<String>, memo: Option<String>) -> GemBlockExplorerLink {
         let name = self.get_explorer_name(chain);
         let explorer = Explorer { chain };

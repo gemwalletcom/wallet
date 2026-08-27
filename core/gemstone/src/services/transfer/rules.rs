@@ -11,6 +11,8 @@ use primitives::{
 
 use super::model::{GemPendingTransactionInput, GemTransferBalance, GemTransferData, GemTransferOutput};
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
+use crate::services::amount::model::GemAmountError;
+use crate::services::amount::rules::parse_value;
 
 pub fn transaction_type(input_type: &GemTransactionInputType) -> TransactionType {
     TransactionInputType::from(input_type.clone()).transaction_type()
@@ -128,31 +130,36 @@ pub fn metadata(input_type: &GemTransactionInputType) -> Result<Option<serde_jso
     Ok(value)
 }
 
-pub fn available_value(transfer: &GemTransferData, balance: &GemTransferBalance) -> BigInt {
-    let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
+pub fn tron_stake_available(asset: &Asset, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
+    let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
+    Ok((parse_value(&balance.frozen)? + parse_value(&balance.locked)? - staked).max(BigInt::from(0)))
+}
+
+pub fn unfreeze_available(resource: &primitives::Resource, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
+    match resource {
+        primitives::Resource::Bandwidth => parse_value(&balance.frozen),
+        primitives::Resource::Energy => parse_value(&balance.locked),
+    }
+}
+
+pub fn available_value(transfer: &GemTransferData, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
     let asset = transfer.input_type.asset();
-    match &transfer.input_type {
-        GemTransactionInputType::Withdrawal { .. } => parse(&balance.withdrawable),
+    Ok(match &transfer.input_type {
+        GemTransactionInputType::Withdrawal { .. } => parse_value(&balance.withdrawable)?,
         GemTransactionInputType::Stake { stake_type, .. } => match stake_type {
             StakeType::Unstake(delegation) | StakeType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
             StakeType::Redelegate(data) => BigInt::from(data.delegation.base.balance.clone()),
-            StakeType::Rewards(_) => parse(&transfer.value),
-            StakeType::Unfreeze(resource) => match resource {
-                primitives::Resource::Bandwidth => parse(&balance.frozen),
-                primitives::Resource::Energy => parse(&balance.locked),
-            },
-            StakeType::Stake(_) if asset.chain() == Chain::Tron => {
-                let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
-                parse(&balance.frozen) + parse(&balance.locked) - staked
-            }
-            StakeType::Stake(_) | StakeType::Freeze(_) => parse(&balance.available),
+            StakeType::Rewards(_) => parse_value(&transfer.value)?,
+            StakeType::Unfreeze(resource) => unfreeze_available(resource, balance)?,
+            StakeType::Stake(_) if asset.chain() == Chain::Tron => tron_stake_available(asset, balance)?,
+            StakeType::Stake(_) | StakeType::Freeze(_) => parse_value(&balance.available)?,
         },
         GemTransactionInputType::Earn { earn_type, .. } => match earn_type {
             EarnType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
-            EarnType::Deposit(_) => parse(&balance.available),
+            EarnType::Deposit(_) => parse_value(&balance.available)?,
         },
-        _ => parse(&balance.available),
-    }
+        _ => parse_value(&balance.available)?,
+    })
 }
 
 pub fn pending_transaction(input: GemPendingTransactionInput) -> Result<Option<Transaction>, String> {
@@ -254,7 +261,9 @@ mod tests {
     use crate::models::transaction::{GemFeeOptions, GemTransactionLoadFee, GemTransactionLoadMetadata};
     use num_bigint::BigUint;
     use primitives::{
-        Delegation, DelegationBase, DelegationState, DelegationValidator, Resource, StakeProviderType, SwapProvider, TransactionType,
+        Delegation, DelegationBase, DelegationState, DelegationValidator, NFTAsset, PerpetualConfirmData, PerpetualDirection, Resource, StakeProviderType, SwapProvider,
+        TransactionType, TransferDataExtra,
+        known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
     };
     use std::collections::HashMap;
@@ -322,6 +331,13 @@ mod tests {
                 provider_type: StakeProviderType::Stake,
             },
             price: None,
+        }
+    }
+
+    fn perpetual_input(asset: Asset) -> GemTransactionInputType {
+        GemTransactionInputType::Perpetual {
+            asset,
+            perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
         }
     }
 
@@ -398,6 +414,73 @@ mod tests {
         assert!(fee_asset(&tempo_token).id.is_token());
         let hypercore = GemTransactionInputType::Transfer { asset: asset(Chain::HyperCore) };
         assert_eq!(fee_asset(&hypercore).asset_type, AssetType::TOKEN);
+        assert_eq!(fee_asset(&tempo_token).id, token(Chain::Tempo, "0xusdc").id);
+
+        let perpetual = perpetual_input(asset(Chain::HyperCore));
+        assert_eq!(fee_asset(&perpetual).id, HYPERCORE_PERPETUAL_USDC.id);
+        assert_eq!(fee_asset(&perpetual).asset_type, AssetType::PERPETUAL);
+        let nft = GemTransactionInputType::TransferNft {
+            asset: token(Chain::Ethereum, "0xusdc"),
+            nft_asset: NFTAsset::mock(),
+        };
+        assert_eq!(fee_asset(&nft).id, AssetId::from_chain(Chain::Ethereum));
+        let spl = GemTransactionInputType::Transfer { asset: Asset::mock_spl_token() };
+        assert_eq!(fee_asset(&spl).id, AssetId::from_chain(Chain::Solana));
+    }
+
+    #[test]
+    fn test_output_and_spends_balance() {
+        let signature = GemTransactionInputType::Generic {
+            asset: asset(Chain::Ethereum),
+            metadata: primitives::ApplicationMetadata::mock(),
+            extra: TransferDataExtra {
+                output_type: TransferDataOutputType::Signature,
+                output_action: TransferDataOutputAction::Sign,
+                ..TransferDataExtra::mock()
+            }
+            .into(),
+        };
+        let signed = output(&signature);
+        assert_eq!(signed.output_type, TransferDataOutputType::Signature);
+        assert_eq!(signed.output_action, TransferDataOutputAction::Sign);
+
+        let withdrawal = GemTransactionInputType::Withdrawal { asset: asset(Chain::HyperCore) };
+        let sent = output(&withdrawal);
+        assert_eq!(sent.output_type, TransferDataOutputType::EncodedTransaction);
+        assert_eq!(sent.output_action, TransferDataOutputAction::Send);
+        assert_eq!(output(&perpetual_input(asset(Chain::HyperCore))).output_action, TransferDataOutputAction::Send);
+
+        assert!(spends_balance(&withdrawal));
+        assert!(!spends_balance(&perpetual_input(asset(Chain::HyperCore))));
+        assert!(!spends_balance(&GemTransactionInputType::Stake {
+            asset: asset(Chain::Cosmos),
+            stake_type: StakeType::Unstake(delegation(1)),
+        }));
+    }
+
+    #[test]
+    fn test_hypercore_tracking_skips_intermediate_legs_and_non_orders() {
+        let intermediate = swap_input(asset(Chain::HyperCore), asset(Chain::HyperCore), SwapProvider::Hyperliquid, None);
+        assert!(
+            pending_transaction(pending_input(intermediate.clone(), TransactionType::Swap, "h", 0, 2))
+                .unwrap()
+                .is_none()
+        );
+        assert!(pending_transaction(pending_input(intermediate, TransactionType::Swap, "h", 1, 2)).unwrap().is_some());
+        let other_provider = swap_input(asset(Chain::HyperCore), asset(Chain::HyperCore), SwapProvider::Thorchain, None);
+        assert!(pending_transaction(pending_input(other_provider, TransactionType::Swap, "h", 0, 2)).unwrap().is_some());
+
+        let perpetual = perpetual_input(asset(Chain::HyperCore));
+        assert!(
+            pending_transaction(pending_input(perpetual.clone(), TransactionType::PerpetualOpenPosition, "order:1", 0, 1))
+                .unwrap()
+                .is_some()
+        );
+        assert!(
+            pending_transaction(pending_input(perpetual, TransactionType::PerpetualOpenPosition, "0xabc", 0, 1))
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[test]
@@ -407,18 +490,18 @@ mod tests {
             stake_type: StakeType::Unfreeze(Resource::Bandwidth),
         };
         assert_eq!(metadata(&unfreeze).unwrap().unwrap()["resourceType"], "bandwidth");
-        assert_eq!(available_value(&transfer(unfreeze, "1"), &balance(10, 20, 30)), BigInt::from(20));
+        assert_eq!(available_value(&transfer(unfreeze, "1"), &balance(10, 20, 30)).unwrap(), BigInt::from(20));
 
         let unstake = GemTransactionInputType::Stake {
             asset: asset(Chain::Cosmos),
             stake_type: StakeType::Unstake(delegation(700)),
         };
-        assert_eq!(available_value(&transfer(unstake, "1"), &balance(10, 0, 0)), BigInt::from(700));
+        assert_eq!(available_value(&transfer(unstake, "1"), &balance(10, 0, 0)).unwrap(), BigInt::from(700));
         let rewards = GemTransactionInputType::Stake {
             asset: asset(Chain::Cosmos),
             stake_type: StakeType::Rewards(vec![]),
         };
-        assert_eq!(available_value(&transfer(rewards, "42"), &balance(10, 0, 0)), BigInt::from(42));
+        assert_eq!(available_value(&transfer(rewards, "42"), &balance(10, 0, 0)).unwrap(), BigInt::from(42));
         let tron_stake = GemTransactionInputType::Stake {
             asset: asset(Chain::Tron),
             stake_type: StakeType::Stake(delegation(0).validator),
@@ -430,8 +513,24 @@ mod tests {
                     votes: 2,
                     ..balance(1, 5_000_000, 3_000_000)
                 }
-            ),
+            )
+            .unwrap(),
             BigInt::from(6_000_000)
+        );
+        let overvoted = GemTransactionInputType::Stake {
+            asset: asset(Chain::Tron),
+            stake_type: StakeType::Stake(delegation(0).validator),
+        };
+        assert_eq!(
+            available_value(
+                &transfer(overvoted, "1"),
+                &GemTransferBalance {
+                    votes: 9,
+                    ..balance(1, 5_000_000, 3_000_000)
+                }
+            )
+            .unwrap(),
+            BigInt::from(0)
         );
         let withdrawal = GemTransactionInputType::Withdrawal { asset: asset(Chain::HyperCore) };
         assert_eq!(
@@ -441,7 +540,8 @@ mod tests {
                     withdrawable: "9".to_string(),
                     ..balance(10, 0, 0)
                 }
-            ),
+            )
+            .unwrap(),
             BigInt::from(9)
         );
     }

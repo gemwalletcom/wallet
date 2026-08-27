@@ -7,7 +7,7 @@ use gem_evm::rpc::{EthereumClient, EvmFeeCalculator, EvmStakingClient};
 use gem_evm::transaction_params::TransactionParams;
 use num_bigint::{BigInt, BigUint};
 use num_traits::Zero;
-use primitives::{AssetBalance, AssetId, Chain, DelegationBase, DelegationState, DelegationValidator, StakeType, TransactionFee, TransactionLoadInput};
+use primitives::{AssetBalance, AssetId, Chain, DelegationBase, DelegationState, DelegationValidator, StakeType};
 
 use crate::client::account_state;
 use crate::constants::EVERSTAKE_POOL_ADDRESS;
@@ -90,11 +90,7 @@ impl<C: Client + Clone> EvmStakingClient for EverstakeStakingClient<C> {
 }
 
 #[async_trait]
-impl<C: Client + Clone> EvmFeeCalculator for EverstakeStakingClient<C> {
-    async fn calculate_fee(&self, input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
-        self.client.calculate_fee(input, params, gas_limit).await
-    }
-}
+impl<C: Client + Clone> EvmFeeCalculator for EverstakeStakingClient<C> {}
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {

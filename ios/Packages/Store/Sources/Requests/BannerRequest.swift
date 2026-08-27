@@ -27,7 +27,7 @@ public struct BannersRequest: DatabaseQueryable {
         var query = BannerRecord
             .including(optional: BannerRecord.asset)
             .including(optional: BannerRecord.chain)
-            .including(optional: BannerRecord.wallet)
+            .including(optional: BannerRecord.wallet.including(all: WalletRecord.accounts))
             .filter(events.map(\.rawValue).contains(BannerRecord.Columns.event))
             .filter(BannerRecord.Columns.state != BannerState.cancelled.rawValue)
             .asRequest(of: BannerInfo.self)

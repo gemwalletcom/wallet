@@ -8,7 +8,7 @@ import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -48,7 +48,7 @@ class AssetsViewModelTest {
 
     private val syncAssets = mockk<SyncAssets>(relaxed = true)
     private val hideAsset = mockk<HideAsset>(relaxed = true)
-    private val toggleAssetPin = mockk<ToggleAssetPin>(relaxed = true)
+    private val setAssetPinned = mockk<SetAssetPinned>(relaxed = true)
     private val toggleHideBalances = mockk<ToggleHideBalances>(relaxed = true)
     private val hideWelcomeBanner = mockk<HideWelcomeBanner>(relaxed = true)
     private val getImportInProgress = object : GetImportInProgress {
@@ -105,7 +105,7 @@ class AssetsViewModelTest {
     private fun createViewModel() = AssetsViewModel(
         syncAssets = syncAssets,
         hideAsset = hideAsset,
-        toggleAssetPin = toggleAssetPin,
+        setAssetPinned = setAssetPinned,
         toggleHideBalances = toggleHideBalances,
         hideWelcomeBanner = hideWelcomeBanner,
         getImportInProgress = getImportInProgress,

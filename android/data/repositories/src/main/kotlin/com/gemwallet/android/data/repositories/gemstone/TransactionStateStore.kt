@@ -47,14 +47,16 @@ class GemstoneTransactionStateStore(
     override suspend fun renameTransaction(walletId: String, transactionId: String, newTransactionId: String) {
         val oldId = transactionId.decodeJson<TransactionId>()
         val newId = newTransactionId.decodeJson<TransactionId>()
-        transactionsDao.updateSwapMetadataTransactionId(oldId.identifier, newId.identifier)
-        transactionsDao.updateTransactionId(oldId, newId, WalletId(walletId), newId.hash)
+        val wallet = WalletId(walletId)
+        transactionsDao.updateTransactionId(oldId, newId, wallet, newId.hash)
+        transactionsDao.getTransaction(newId, wallet)?.let { transactionsDao.addSwapMetadata(listOf(it.toDTO())) }
+        transactionsDao.deleteUnreferencedSwapMetadata(oldId.identifier)
     }
 
     override suspend fun deleteTransaction(walletId: String, transactionId: String) {
         val id = transactionId.decodeJson<TransactionId>()
-        transactionsDao.deleteSwapMetadata(id.identifier)
         transactionsDao.delete(id, WalletId(walletId))
+        transactionsDao.deleteUnreferencedSwapMetadata(id.identifier)
     }
 
     override suspend fun updateTransaction(walletId: String, transactionId: String, update: GemTransactionStateUpdate): Boolean {

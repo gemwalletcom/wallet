@@ -100,7 +100,9 @@ public extension ChartSceneViewModel {
                 try await priceService.updateMarket(assetId: assetModel.asset.id.identifier, market: market.json(), currency: Currency(id: preferences.currency).json())
             }
             let price = try priceStore.getPrices(for: [assetModel.asset.id.identifier]).first
-            let rate = try priceStore.getRate(currency: preferences.currency).rate
+            guard let rate = try priceStore.getRate(currency: preferences.currency)?.rate else {
+                throw AnyError("unknown currency: \(preferences.currency)")
+            }
 
             var charts = values.prices.map {
                 ChartDateValue(date: Date(timeIntervalSince1970: TimeInterval($0.timestamp)), value: Double($0.value) * rate)

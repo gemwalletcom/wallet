@@ -7,10 +7,6 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinkRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
-import com.gemwallet.android.domains.asset.defaultAssets
-import com.gemwallet.android.domains.asset.defaultBasic
-import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetBasic
@@ -18,6 +14,8 @@ import com.wallet.core.primitives.AssetFull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetStore
+import com.gemwallet.android.ext.toIdentifier
+import com.wallet.core.primitives.AssetId
 
 class GemstoneAssetStore(
     private val assetsDao: AssetsDao,
@@ -49,12 +47,9 @@ class GemstoneAssetStore(
 
     override suspend fun addBalances(walletId: String, assetIds: List<String>, enabled: Boolean) = withContext(Dispatchers.IO) {
         for (identifier in assetIds) {
-            val assetId = identifier.toAssetId() ?: continue
-            val asset = if (assetId.tokenId == null) assetId.chain.asset() else assetId.chain.defaultAssets.firstOrNull { it.id == assetId } ?: continue
-            assetsDao.insert(asset.defaultBasic.toRecord())
             assetsDao.insertBalance(
                 DbBalance(
-                    assetId = identifier,
+                    assetId = AssetId(identifier).toIdentifier(),
                     walletId = walletId,
                     isVisible = enabled,
                     updatedAt = null,

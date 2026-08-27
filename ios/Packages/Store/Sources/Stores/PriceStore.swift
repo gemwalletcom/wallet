@@ -11,12 +11,9 @@ public struct PriceStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func getRate(currency: String) throws -> FiatRateRecord {
+    public func getRate(currency: String) throws -> FiatRateRecord? {
         try db.read { db in
-            guard let rate = try FiatRateRecord.filter(key: currency).fetchOne(db) else {
-                throw AnyError("unknown currency: \(currency)")
-            }
-            return rate
+            try FiatRateRecord.filter(key: currency).fetchOne(db)
         }
     }
 
@@ -85,14 +82,11 @@ public struct PriceStore: Sendable {
 
     public func enabledPriceAssets(walletId: WalletId) throws -> [AssetId] {
         try db.read { db in
-            let priceAlertsAssets = try PriceAlertRecord.fetchAll(db).map(\.assetId)
-            let enabledAssets = try BalanceRecord
+            try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
                 .filter(BalanceRecord.Columns.isEnabled == true)
                 .fetchAll(db)
                 .compactMap(\.assetId)
-
-            return priceAlertsAssets.asSet().union(enabledAssets).asArray()
         }
     }
 

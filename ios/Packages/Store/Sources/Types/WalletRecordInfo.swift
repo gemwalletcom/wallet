@@ -26,7 +26,7 @@ extension WalletRecordInfo {
 }
 
 struct WalletConnectionInfo: FetchableRecord, Codable {
-    var wallet: WalletRecord
+    var wallet: WalletRecordInfo
     var connection: WalletConnectionRecord
 }
 

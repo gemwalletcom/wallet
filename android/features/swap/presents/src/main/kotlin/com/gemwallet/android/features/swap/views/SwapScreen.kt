@@ -103,9 +103,11 @@ fun SwapScreen(
         onProviderSelect = if (swapState.isQuoteInteractionEnabled) viewModel::setProvider else null,
     )
 
+    val defaultSlippageBps by viewModel.defaultSlippageBps.collectAsStateWithLifecycle()
     SwapSlippageBottomSheet(
         isVisible = isShowSlippage,
         currentBps = slippageSeedBps,
+        defaultBps = defaultSlippageBps,
         warningThresholdBps = viewModel.slippageWarningThresholdBps,
         onConfirm = viewModel::setSlippage,
         onDismiss = { isShowSlippage = false },

@@ -9,6 +9,7 @@ import protocol Gemstone.GemAssetsServiceProtocol
 import class Gemstone.PaymentService
 import GemstonePrimitives
 import Localization
+import Preferences
 import Primitives
 import PrimitivesComponents
 import Style
@@ -26,6 +27,8 @@ final class NavigationHandler: Sendable {
     private let toastPresenter: ToastPresenter
     private let paymentService: PaymentService
     private let transactionStore: TransactionStore
+    private let transactionStateScheduler: TransactionStateScheduler
+    private let preferences: Preferences
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
 
@@ -38,6 +41,8 @@ final class NavigationHandler: Sendable {
         toastPresenter: ToastPresenter,
         paymentService: PaymentService,
         transactionStore: TransactionStore,
+        transactionStateScheduler: TransactionStateScheduler,
+        preferences: Preferences,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
     ) {
@@ -49,6 +54,8 @@ final class NavigationHandler: Sendable {
         self.toastPresenter = toastPresenter
         self.paymentService = paymentService
         self.transactionStore = transactionStore
+        self.transactionStateScheduler = transactionStateScheduler
+        self.preferences = preferences
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
     }
@@ -242,11 +249,13 @@ extension NavigationHandler {
     }
 
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
-        guard let asset = try await assetForWalletNavigation(walletId: walletId, assetId: assetId) else {
+        guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
+              let asset = try await preparedAssetForNavigation(assetId: assetId, wallet: wallet)
+        else {
             return
         }
 
-        try transactionStore.addTransactions(walletId: walletId, transactions: [transaction])
+        try await transactionStateScheduler.addTransactions(wallet: wallet, transactions: [transaction], currency: preferences.currency)
         let transaction = try transactionStore.getTransaction(walletId: walletId, transactionId: transaction.id)
 
         await selectWalletIfNeeded(walletId)
