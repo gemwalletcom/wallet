@@ -59,8 +59,8 @@ impl GemWalletService {
         Mnemonic::generate(12).map_err(|error| GemServiceError::Status { msg: error.to_string() })
     }
 
-    pub async fn next_wallet_index(&self) -> Result<i32, GemServiceError> {
-        self.store.next_wallet_index().await
+    pub fn next_wallet_index(&self) -> Result<i32, GemServiceError> {
+        Ok(rules::next_wallet_index(&self.store.get_wallets()?))
     }
 
     pub fn preview_import(&self, import: GemWalletImportType) -> Result<GemWalletImport, GemServiceError> {
@@ -86,7 +86,7 @@ impl GemWalletService {
         if let Some(wallet) = rules::existing_wallet(&wallets, &wallet_id, preview.wallet_type) {
             return Ok(GemWalletImportResult::Existing { wallet });
         }
-        let index = self.store.next_wallet_index().await?;
+        let index = rules::next_wallet_index(&wallets);
         let wallet = match import {
             GemWalletImportType::Address { address, chain } => Wallet {
                 index,

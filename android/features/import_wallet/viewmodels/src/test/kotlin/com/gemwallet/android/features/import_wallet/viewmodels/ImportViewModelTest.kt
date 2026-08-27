@@ -47,7 +47,7 @@ class ImportViewModelTest {
     }
 
     private fun viewModel(getNameRecord: GetNameRecord) = ImportViewModel(
-        walletsRepository = mockk(relaxed = true),
+        walletService = mockk(relaxed = true),
         importWalletService = mockk(relaxed = true),
         setCurrentWallet = mockk(relaxed = true),
         getNameRecord = getNameRecord,

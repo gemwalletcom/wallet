@@ -30,6 +30,10 @@ pub fn account(account: GemKeystoreAccount) -> Account {
     }
 }
 
+pub fn next_wallet_index(wallets: &[Wallet]) -> i32 {
+    wallets.iter().map(|wallet| wallet.index).max().map(|index| index + 1).unwrap_or(1)
+}
+
 pub fn missing_chains(wallet: &Wallet, chains: &[Chain]) -> Vec<Chain> {
     chains
         .iter()
@@ -138,5 +142,15 @@ mod tests {
         assert_eq!(result.wallet_type, WalletType::View);
         assert_eq!(result.accounts.len(), 1);
         assert_eq!(result.accounts[0].address, "0xabc");
+    }
+
+    #[test]
+    fn test_next_wallet_index_uses_highest_index() {
+        assert_eq!(next_wallet_index(&[]), 1);
+        let mut first = wallet(WalletId::Multicoin("1".into()), WalletType::Multicoin, &[]);
+        first.index = 3;
+        let mut second = wallet(WalletId::Multicoin("2".into()), WalletType::Single, &[]);
+        second.index = 1;
+        assert_eq!(next_wallet_index(&[first, second]), 4);
     }
 }

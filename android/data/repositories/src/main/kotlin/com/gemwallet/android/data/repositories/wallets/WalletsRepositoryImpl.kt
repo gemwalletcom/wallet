@@ -30,10 +30,6 @@ class WalletsRepositoryImpl @Inject constructor(
     private val transactionRunner: StoreTransactionRunner,
 ) : WalletsRepository {
 
-    override suspend fun getNextWalletNumber(): Int {
-        return getAll().map { it.size + 1 }.firstOrNull() ?: 0
-    }
-
     override fun getAll(): Flow<List<Wallet>> = walletsDao.getAll().toDTO()
 
     override suspend fun addWallet(wallet: Wallet): Wallet = putWallet(wallet)

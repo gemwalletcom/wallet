@@ -22,8 +22,6 @@ class GemstoneWalletStore(
         walletsRepository.get().getWallet(WalletId(walletId)).firstOrNull()?.toJson()
     }
 
-    override suspend fun nextWalletIndex(): Int = walletsRepository.get().getNextWalletNumber()
-
     override suspend fun addWallet(wallet: String) {
         walletsRepository.get().addWallet(wallet.decodeJson<Wallet>())
     }

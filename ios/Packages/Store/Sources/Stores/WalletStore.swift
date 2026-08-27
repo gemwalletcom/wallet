@@ -13,23 +13,9 @@ public struct WalletStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func nextWalletIndex() throws -> Int {
-        try db.read { db in
-            let request = WalletRecord
-                .select(max(WalletRecord.Columns.index))
-
-            if let index = try Int.fetchOne(db, request) {
-                return index + 1
-            }
-            return 1
-        }
-    }
-
     public func addWallet(_ wallet: Wallet) throws {
-        let index = try nextWalletIndex()
         var record = wallet.record
-        record.index = index
-        record.order = index
+        record.order = record.index
         try db.write { db in
             try record.insert(db, onConflict: .ignore)
             for account in wallet.accounts {

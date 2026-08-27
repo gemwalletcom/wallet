@@ -5,7 +5,6 @@ import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 
 interface WalletsRepository {
-    suspend fun getNextWalletNumber(): Int
 
     fun getAll(): Flow<List<Wallet>>
 

@@ -28,8 +28,8 @@ public struct WalletService: Sendable {
         preferences.isAcceptTermsCompleted
     }
 
-    public func nextWalletIndex() async throws -> Int {
-        Int(try await service.nextWalletIndex())
+    public func nextWalletIndex() throws -> Int {
+        Int(try service.nextWalletIndex())
     }
 
     public func acceptTerms() {

@@ -23,10 +23,6 @@ public final class GemstoneWalletStore: GemWalletStore, @unchecked Sendable {
         try store.getWallet(id: Primitives.WalletId.from(id: walletId)).map { try $0.json() }
     }
 
-    public func nextWalletIndex() async throws -> Int32 {
-        try Int32(store.nextWalletIndex())
-    }
-
     public func addWallet(wallet: Gemstone.Wallet) async throws {
         try store.addWallet(Primitives.Wallet(wallet))
     }

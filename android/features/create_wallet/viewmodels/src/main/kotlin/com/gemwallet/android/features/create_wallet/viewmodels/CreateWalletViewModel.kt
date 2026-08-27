@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.blockchain.operators.CreateWalletOperator
 import com.gemwallet.android.cases.wallet.ImportWalletService
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import uniffi.gemstone.GemWalletService
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateWalletViewModel @Inject constructor(
     private val createWalletOperator: CreateWalletOperator,
-    private val walletsRepository: WalletsRepository,
+    private val walletService: GemWalletService,
     private val importWalletService: ImportWalletService,
 ) : ViewModel() {
 
@@ -27,7 +27,7 @@ class CreateWalletViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val generatedNameIndex = walletsRepository.getNextWalletNumber()
+            val generatedNameIndex = walletService.nextWalletIndex()
             state.update { it.copy(generatedNameIndex = generatedNameIndex) }
             createWalletOperator()
                 .onSuccess { data ->
