@@ -19,19 +19,16 @@ public struct ConnectionsStore: Sendable {
         }
     }
 
-    public func getConnection(id: String) throws -> WalletConnection {
+    public func getConnection(sessionId: String) throws -> WalletConnection? {
         try db.read { db in
-            let result = try WalletRecord
+            try WalletRecord
                 .including(required: WalletRecord.connection)
                 .asRequest(of: WalletConnectionInfo.self)
                 .filter(
-                    TableAlias(name: WalletConnectionRecord.databaseTableName)[WalletConnectionRecord.Columns.sessionId] == id,
+                    TableAlias(name: WalletConnectionRecord.databaseTableName)[WalletConnectionRecord.Columns.sessionId] == sessionId,
                 )
-                .fetchOne(db)
-            guard let connection = result else {
-                throw AnyError("Wallet connection not found")
-            }
-            return connection.mapToWalletConnection()
+                .fetchOne(db)?
+                .mapToWalletConnection()
         }
     }
 

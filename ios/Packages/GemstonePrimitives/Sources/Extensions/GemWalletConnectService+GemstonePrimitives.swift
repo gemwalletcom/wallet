@@ -52,6 +52,14 @@ public extension GemWalletConnectServiceProtocol {
     func session(topic: String, accounts: [String], expireAt: Date, metadata: Primitives.ApplicationMetadata) throws -> WalletConnectionSession {
         try WalletConnectionSession(session(topic: topic, accounts: accounts, expireAt: Int64(expireAt.timeIntervalSince1970), metadata: metadata.json()))
     }
+
+    func addConnection(_ connection: WalletConnection) async throws {
+        try await addConnection(connection: connection.json())
+    }
+
+    func updateSessions(_ sessions: [WalletConnectionSession]) async throws {
+        try await updateSessions(sessions: sessions.map { try $0.json() })
+    }
 }
 
 private extension Gemstone.Account {

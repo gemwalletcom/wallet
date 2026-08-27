@@ -7,6 +7,7 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.canSign
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.WalletConnection
+import com.wallet.core.primitives.WalletConnectionSession
 import com.wallet.core.primitives.Wallet as GemWallet
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -48,19 +49,6 @@ class ConnectionsRepository(
         }
     }
 
-    suspend fun sync(sessions: List<WalletConnectSession>?) {
-        if (sessions == null) return
-        val local = getConnections().firstOrNull() ?: emptyList()
-        val unknownSessions = local.filter { local -> !sessions.any { local.session.sessionId == it.topic } }
-        if (unknownSessions.isNotEmpty()) {
-            connectionsDao.deleteAll(unknownSessions.map { it.toRecord() })
-        }
-        val localSessionIds = local.map { it.session.sessionId }.toSet()
-        sessions
-            .filter { it.topic in localSessionIds }
-            .forEach { updateConnection(it) }
-    }
-
     suspend fun disconnect(id: String): WalletConnection? {
         val connection = getConnections().firstOrNull()?.firstOrNull { it.session.id == id } ?: return null
         connectionsDao.delete(id)
@@ -100,6 +88,29 @@ class ConnectionsRepository(
 
     suspend fun deleteConnection(topic: String) {
         connectionsDao.delete(topic)
+    }
+
+    suspend fun addConnection(connection: WalletConnection) {
+        connectionsDao.insert(connection.toRecord())
+    }
+
+    suspend fun updateSession(session: WalletConnectionSession) {
+        val record = connectionsDao.getBySessionId(session.sessionId) ?: return
+        connectionsDao.insert(
+            record.copy(
+                state = session.state,
+                chains = session.chains,
+                expireAt = session.expireAt,
+                appName = session.metadata.name,
+                appDescription = session.metadata.description,
+                appUrl = session.metadata.url,
+                appIcon = session.metadata.icon,
+            )
+        )
+    }
+
+    suspend fun deleteSessions(sessionIds: List<String>) {
+        sessionIds.forEach { connectionsDao.delete(it) }
     }
 
     suspend fun addNewSessions(

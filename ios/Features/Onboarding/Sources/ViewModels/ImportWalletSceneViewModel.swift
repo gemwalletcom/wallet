@@ -128,7 +128,7 @@ extension ImportWalletSceneViewModel {
         switch importType {
         case .address:
             if let chain {
-                nameRecordViewModel?.resolve(name: newValue, chain: chain)
+                nameRecordViewModel?.getNameRecord(name: newValue, chain: chain)
             }
         case .phrase, .privateKey:
             nameRecordViewModel?.reset()

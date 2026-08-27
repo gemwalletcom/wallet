@@ -77,11 +77,14 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func disconnect(sessionId: String) async throws {
+        try await service.deleteSession(sessionId: sessionId)
         try await WalletKit.instance.disconnect(topic: sessionId)
     }
 
     public func updateSessions() {
-        updateSessions(interactor.sessions)
+        Task {
+            await updateSessions(interactor.sessions)
+        }
     }
 }
 
@@ -90,7 +93,7 @@ extension WalletConnectorService: WalletConnectorServiceable {
 extension WalletConnectorService {
     private func handleSessions() async {
         for await sessions in interactor.sessionsStream {
-            updateSessions(sessions)
+            await updateSessions(sessions)
         }
     }
 
@@ -119,7 +122,8 @@ extension WalletConnectorService {
             proposalId: proposal.id,
             reason: RejectionReason(from: error),
         )
-        try? await signer.sessionReject(id: proposal.pairingTopic, error: error)
+        try? await service.deleteSession(sessionId: proposal.pairingTopic)
+        await signer.sessionReject(error: error)
     }
 
     private func handleSessionRequests() async {
@@ -161,10 +165,10 @@ extension WalletConnectorService {
         }
     }
 
-    private func updateSessions(_ sessions: [Session]) {
+    private func updateSessions(_ sessions: [Session]) async {
         debugLog("Received sessions: \(sessions)")
         do {
-            try signer.updateSessions(sessions: sessions.map { try connectionSession($0) })
+            try await service.updateSessions(sessions.map { try connectionSession($0) })
         } catch {
             debugLog("Error updating sessions: \(error)")
         }
@@ -250,7 +254,7 @@ extension WalletConnectorService {
         let selectedWallet = try signer.getWallet(id: approvedWalletId)
 
         let session = try await acceptProposal(proposal: proposal, wallet: selectedWallet)
-        try signer.addConnection(connection: WalletConnection(session: connectionSession(session), wallet: selectedWallet))
+        try await service.addConnection(WalletConnection(session: connectionSession(session), wallet: selectedWallet))
     }
 
     private func acceptProposal(proposal: Session.Proposal, wallet: Primitives.Wallet) async throws -> Session {

@@ -3,7 +3,6 @@
 import ConnectionsService
 import ConnectionsServiceTestKit
 import Preferences
-import Store
 import Testing
 @testable import WalletConnector
 import WalletConnectorServiceTestKit
@@ -15,27 +14,6 @@ struct ConnectionsServiceTests {
     func walletConnectActivation() async throws {
         try await firstRun()
         try await secondRun()
-    }
-
-    @Test
-    func migration() async throws {
-        let db = DB.mock()
-        let walletStore = WalletStore(db: db)
-        try walletStore.addWallet(.mock())
-        let store = ConnectionsStore.mock(db: db)
-        try store.addConnection(.mock())
-
-        let preferences: Preferences = .mock()
-        let connector = WalletConnectorServiceMock()
-        let service = ConnectionsService(
-            store: store,
-            connector: connector,
-            preferences: preferences,
-        )
-
-        try await service.setup()
-        await #expect(connector.isSetup == true)
-        #expect(service.isWalletConnectActivated)
     }
 
     private func firstRun() async throws {
@@ -67,7 +45,6 @@ extension ConnectionsService {
         preferences: Preferences,
     ) -> ConnectionsService {
         ConnectionsService(
-            store: .mock(),
             connector: connector,
             preferences: preferences,
         )

@@ -20,7 +20,6 @@ import com.gemwallet.android.ext.isStakeSupported
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.testkit.mockAssetProperties
 import com.gemwallet.android.testkit.mockAssetSolana
@@ -54,7 +53,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemPriceService
-import uniffi.gemstone.assetDefaultRank
 import uniffi.gemstone.defaultTokenRank
 import uniffi.gemstone.GemStreamSubscriptionService
 
@@ -373,24 +371,6 @@ class AssetsRepositoryTest {
 
         coVerify(exactly = 1) { assetsService.setupWallet(wallet.toJson()) }
         coVerify { streamSubscriptionService.addPrices(listOf(Chain.Bitcoin.asset().id.toIdentifier(), Chain.Tron.asset().id.toIdentifier())) }
-    }
-
-    @Test
-    fun updateNativeAssetRanks_repairsLegacyNativeRanks() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-        mockkStatic("com.gemwallet.android.ext.ChainKt")
-        mockkStatic("uniffi.gemstone.GemstoneKt")
-        every { Chain.available() } returns setOf(Chain.Solana, Chain.Ethereum)
-        every { Chain.Solana.asset() } returns mockAssetSolana()
-        every { Chain.Ethereum.asset() } returns mockAssetEthereum()
-        every { assetDefaultRank(Chain.Solana.string) } returns 99
-        every { assetDefaultRank(Chain.Ethereum.string) } returns 77
-
-        val subject = createSubject()
-        subject.updateNativeAssetRanks()
-
-        coVerify { assetsDao.updateAssetRank("solana", 99) }
-        coVerify { assetsDao.updateAssetRank("ethereum", 77) }
     }
 
     @Test

@@ -25,11 +25,11 @@ impl GemNameService {
         Self { api, store }
     }
 
-    pub fn can_resolve_name(&self, name: String) -> bool {
-        rules::can_resolve_name(&name)
+    pub fn is_name_supported(&self, name: String) -> bool {
+        rules::is_name_supported(&name)
     }
 
-    pub async fn resolve(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
+    pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
         Ok(self.api.client.get_name_record(name, chain.to_string()).await.map_err(GemApiError::from)?)
     }
 

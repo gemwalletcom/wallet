@@ -8,7 +8,7 @@ import com.gemwallet.android.application.recipient.coordinators.GetWallets
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.contacts.ContactRecipient
 import com.gemwallet.android.cases.contacts.GetContacts
-import com.gemwallet.android.cases.name.ResolveName
+import com.gemwallet.android.cases.name.GetNameRecord
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
@@ -72,7 +72,7 @@ class RecipientViewModel @Inject constructor(
     private val getContacts: GetContacts,
     private val getAssetInfo: GetAssetInfo,
     private val getAssetNft: GetAssetNft,
-    private val resolveName: ResolveName,
+    private val getNameRecord: GetNameRecord,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -80,7 +80,7 @@ class RecipientViewModel @Inject constructor(
         { address, chain -> chain.isValidAddress(address) }
 
     private val addressInput = AddressInputModel(
-        resolveName = resolveName,
+        getNameRecord = getNameRecord,
         scope = viewModelScope,
         validateAddress = validateAddress,
     )
@@ -198,7 +198,7 @@ class RecipientViewModel @Inject constructor(
         val asset = type.assetInfo.asset
         destination.copy(address = asset.chain.checksumAddress(destination.address)).let { destination ->
             if (!destination.isValidRecipient(address.value, asset.chain, nameRecord, validateAddress)) {
-                if (!resolveName.canResolveName(destination.address)) {
+                if (!getNameRecord.isNameSupported(destination.address)) {
                     addressInput.markInvalid()
                 }
                 return

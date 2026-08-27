@@ -191,7 +191,7 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
     private let addressNames: [Primitives.AddressName]
     private let nameRecord: Primitives.NameRecord?
     private let error: Error?
-    public private(set) var resolvedNames: [String] = []
+    public private(set) var requestedNames: [String] = []
 
     public init(addressNames: [Primitives.AddressName] = [], nameRecord: Primitives.NameRecord? = nil, error: Error? = nil) {
         self.addressNames = addressNames
@@ -199,13 +199,13 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         self.error = error
     }
 
-    public func resolve(name: String, chain _: String) async throws -> Gemstone.NameRecord? {
-        resolvedNames.append(name)
+    public func getNameRecord(name: String, chain _: String) async throws -> Gemstone.NameRecord? {
+        requestedNames.append(name)
         if let error { throw error }
         return try nameRecord?.json()
     }
 
-    public func canResolveName(name: String) -> Bool {
+    public func isNameSupported(name: String) -> Bool {
         name.split(separator: ".").count >= 2
     }
 

@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.bridge
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
+import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnectionState
@@ -59,23 +60,23 @@ class ConnectionsRepositoryTest {
     }
 
     @Test
-    fun sync_withNullSessions_doesNotDeleteConnections() = runTest {
-        every { walletsRepository.getAll() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
-        every { connectionsDao.getAll() } returns flowOf(listOf(connection(id = "connection-1", walletId = "wallet-1")))
+    fun updateSession_keepsWalletAndCreationDate() = runTest {
+        val record = connection(id = "connection-1", walletId = "wallet-1")
+        coEvery { connectionsDao.getBySessionId("connection-1") } returns record
+        val session = record.toDTO(mockWallet(id = "wallet-1")).session.copy(chains = listOf(Chain.Ethereum, Chain.Solana), expireAt = 3_000)
 
-        repository.sync(null)
+        repository.updateSession(session)
 
-        coVerify(exactly = 0) { connectionsDao.deleteAll(any()) }
+        coVerify { connectionsDao.insert(record.copy(chains = listOf(Chain.Ethereum, Chain.Solana), expireAt = 3_000)) }
     }
 
     @Test
-    fun sync_withEmptySessions_deletesUnknownConnections() = runTest {
-        every { walletsRepository.getAll() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
-        every { connectionsDao.getAll() } returns flowOf(listOf(connection(id = "connection-1", walletId = "wallet-1")))
+    fun updateSession_ignoresUnknownSessions() = runTest {
+        coEvery { connectionsDao.getBySessionId("missing") } returns null
 
-        repository.sync(emptyList())
+        repository.updateSession(connection(id = "missing", walletId = "wallet-1").toDTO(mockWallet(id = "wallet-1")).session)
 
-        coVerify { connectionsDao.deleteAll(any()) }
+        coVerify(exactly = 0) { connectionsDao.insert(any<DbConnection>()) }
     }
 
     private fun connection(

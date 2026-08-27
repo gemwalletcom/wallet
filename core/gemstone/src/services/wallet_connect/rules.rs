@@ -2,11 +2,48 @@ use std::collections::HashSet;
 
 use chrono::{DateTime, Utc};
 use primitives::{
-    ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionState, WalletId,
-    WalletType,
+    Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession,
+    WalletConnectionState, WalletId, WalletType,
 };
 
+use crate::services::error::GemServiceError;
 use crate::wallet_connect::WalletConnect;
+
+pub fn session_account(connection: &WalletConnection, chain: Chain) -> Result<Account, GemServiceError> {
+    validate_session_chain(&connection.session, chain)?;
+    connection
+        .wallet
+        .accounts
+        .iter()
+        .find(|account| account.chain == chain)
+        .cloned()
+        .ok_or_else(|| GemServiceError::Status {
+            msg: format!("wallet has no {chain} account"),
+        })
+}
+
+pub fn validate_session_chain(session: &WalletConnectionSession, chain: Chain) -> Result<(), GemServiceError> {
+    if session.chains.contains(&chain) {
+        return Ok(());
+    }
+    Err(GemServiceError::Status {
+        msg: format!("chain {chain} is not part of the session"),
+    })
+}
+
+pub fn sessions_to_delete(local: &[WalletConnectionSession], remote: &[WalletConnectionSession]) -> Vec<String> {
+    let remote_ids: HashSet<&str> = remote.iter().map(|session| session.id.as_str()).collect();
+    local
+        .iter()
+        .filter(|session| session.state == WalletConnectionState::Active && !remote_ids.contains(session.id.as_str()))
+        .map(|session| session.id.clone())
+        .collect()
+}
+
+pub fn sessions_to_update(local: &[WalletConnectionSession], remote: Vec<WalletConnectionSession>) -> Vec<WalletConnectionSession> {
+    let local_ids: HashSet<&str> = local.iter().map(|session| session.id.as_str()).collect();
+    remote.into_iter().filter(|session| local_ids.contains(session.id.as_str())).collect()
+}
 
 pub fn session_wallets(wallets: Vec<Wallet>, required: &[Chain], optional: &[Chain]) -> Vec<Wallet> {
     let wallet_connect = WalletConnect::new();
@@ -152,6 +189,51 @@ mod tests {
             image_url: None,
             source: WalletSource::Import,
         }
+    }
+
+    fn session_with(id: &str, state: WalletConnectionState, chains: &[Chain]) -> WalletConnectionSession {
+        WalletConnectionSession {
+            state,
+            ..session(
+                id.to_string(),
+                chains.to_vec(),
+                Utc::now(),
+                application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]),
+            )
+        }
+    }
+
+    #[test]
+    fn test_session_account_requires_session_chain_and_account() {
+        let connection = WalletConnection {
+            session: session_with("topic", WalletConnectionState::Active, &[Chain::Ethereum, Chain::Solana]),
+            wallet: wallet("multi", WalletType::Multicoin, &[Chain::Ethereum]),
+        };
+
+        assert_eq!(session_account(&connection, Chain::Ethereum).unwrap().chain, Chain::Ethereum);
+        assert!(session_account(&connection, Chain::Solana).is_err());
+        assert!(session_account(&connection, Chain::Bitcoin).is_err());
+        assert!(validate_session_chain(&connection.session, Chain::Solana).is_ok());
+    }
+
+    #[test]
+    fn test_sessions_sync_rules() {
+        let local = vec![
+            session_with("active-kept", WalletConnectionState::Active, &[Chain::Ethereum]),
+            session_with("active-gone", WalletConnectionState::Active, &[Chain::Ethereum]),
+            session_with("started-gone", WalletConnectionState::Started, &[Chain::Ethereum]),
+        ];
+        let remote = vec![
+            session_with("active-kept", WalletConnectionState::Active, &[Chain::Ethereum, Chain::Solana]),
+            session_with("unknown", WalletConnectionState::Active, &[Chain::Ethereum]),
+        ];
+
+        assert_eq!(sessions_to_delete(&local, &remote), vec!["active-gone".to_string()]);
+        let updates = sessions_to_update(&local, remote);
+        assert_eq!(updates.iter().map(|session| session.id.as_str()).collect::<Vec<_>>(), vec!["active-kept"]);
+        assert_eq!(updates[0].chains, vec![Chain::Ethereum, Chain::Solana]);
+        assert!(sessions_to_delete(&local, &[]).contains(&"active-gone".to_string()));
+        assert!(!sessions_to_delete(&local, &[]).contains(&"started-gone".to_string()));
     }
 
     #[test]

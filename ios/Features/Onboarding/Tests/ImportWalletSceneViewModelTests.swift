@@ -54,11 +54,11 @@ struct ImportWalletSceneViewModelTests {
 
         try await enterName(in: model, importType: .privateKey)
 
-        #expect(nameService.resolvedNames.isEmpty)
+        #expect(nameService.requestedNames.isEmpty)
 
         try await enterName(in: model, importType: .address)
 
-        #expect(nameService.resolvedNames == ["vitalik.eth"])
+        #expect(nameService.requestedNames == ["vitalik.eth"])
     }
 
     private func enterName(in model: ImportWalletSceneViewModel, importType: WalletImportType) async throws {

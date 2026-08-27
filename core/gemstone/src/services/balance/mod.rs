@@ -88,7 +88,7 @@ impl GemBalanceService {
             return Ok(());
         };
         let requests = rules::balance_requests(&wallet.accounts, &asset_ids);
-        let balances: Vec<(BalanceKind, AssetBalance)> = join_all(requests.iter().map(|request| self.fetch(request))).await.into_iter().flatten().collect();
+        let balances: Vec<(BalanceKind, AssetBalance)> = join_all(requests.iter().map(|request| self.chain_balances(request))).await.into_iter().flatten().collect();
         if balances.is_empty() {
             return Ok(());
         }
@@ -103,7 +103,7 @@ impl GemBalanceService {
 }
 
 impl GemBalanceService {
-    async fn fetch(&self, request: &BalanceRequest) -> Vec<(BalanceKind, AssetBalance)> {
+    async fn chain_balances(&self, request: &BalanceRequest) -> Vec<(BalanceKind, AssetBalance)> {
         let token_ids: Vec<String> = request.token_ids.iter().filter_map(|asset_id| asset_id.token_id.clone()).collect();
         let (coin, stake, tokens, earn) = futures::join!(
             async {

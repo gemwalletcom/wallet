@@ -50,7 +50,7 @@ impl GemConfigService {
                 })
             });
         }
-        let result = self.fetch_config().await;
+        let result = self.load_config().await;
         for sender in self.waiters().take().unwrap_or_default() {
             let _ = sender.send(result.clone());
         }
@@ -71,7 +71,7 @@ impl GemConfigService {
 }
 
 impl GemConfigService {
-    async fn fetch_config(&self) -> ConfigResult {
+    async fn load_config(&self) -> ConfigResult {
         let config = self.api.client.get_config().await.map_err(GemApiError::from)?;
         self.preferences.set_config(&config)?;
         Ok(config)

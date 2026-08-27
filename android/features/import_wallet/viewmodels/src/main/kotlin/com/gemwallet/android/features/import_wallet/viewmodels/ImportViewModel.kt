@@ -6,12 +6,12 @@ import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.cases.wallet.WalletImportResult
-import com.gemwallet.android.cases.name.ResolveName
+import com.gemwallet.android.cases.name.GetNameRecord
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.models.name.NameRecordState
-import com.gemwallet.android.ui.models.name.NameResolveController
+import com.gemwallet.android.ui.models.name.NameRecordController
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -30,18 +30,18 @@ class ImportViewModel @Inject constructor(
     private val walletsRepository: WalletsRepository,
     private val importWalletService: ImportWalletService,
     private val setCurrentWallet: SetCurrentWallet,
-    resolveName: ResolveName,
+    getNameRecord: GetNameRecord,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(ImportViewModelState())
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
 
-    private val resolver = NameResolveController(resolveName, viewModelScope)
-    val nameResolveState: StateFlow<NameRecordState> = resolver.state
+    private val nameRecordController = NameRecordController(getNameRecord, viewModelScope)
+    val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
 
     fun chainType(walletType: WalletType) {
-        resolver.reset()
+        nameRecordController.reset()
         state.update {
             it.copy(
                 importType = it.importType.copy(walletType = walletType),
@@ -53,8 +53,8 @@ class ImportViewModel @Inject constructor(
     fun onInput(value: String) {
         val importType = state.value.importType
         when (importType.walletType) {
-            WalletType.View -> resolver.resolve(value, importType.chain)
-            else -> resolver.reset()
+            WalletType.View -> nameRecordController.getNameRecord(value, importType.chain)
+            else -> nameRecordController.reset()
         }
     }
 
@@ -78,7 +78,7 @@ class ImportViewModel @Inject constructor(
         if (state.value.loading) {
             return
         }
-        val nameRecord = resolver.state.value.nameRecord
+        val nameRecord = nameRecordController.state.value.nameRecord
         state.update { it.copy(loading = true) }
 
         viewModelScope.launch(Dispatchers.IO) {

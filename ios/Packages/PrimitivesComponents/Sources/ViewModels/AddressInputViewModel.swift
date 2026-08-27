@@ -77,7 +77,7 @@ public final class AddressInputViewModel {
 
     @discardableResult
     public func validate() -> Bool {
-        if nameRecordViewModel.canResolveName(name: text) {
+        if nameRecordViewModel.isNameSupported(name: text) {
             isValid
         } else {
             update()
@@ -100,7 +100,7 @@ extension AddressInputViewModel {
     }
 
     func onTextChange(_: String, newText: String) {
-        nameRecordViewModel.resolve(name: newText, chain: chain)
+        nameRecordViewModel.getNameRecord(name: newText, chain: chain)
     }
 
     func onNameResolveStateChange(_: NameRecordState, newState: NameRecordState) {
@@ -126,8 +126,8 @@ extension AddressInputViewModel {
         )
         text = currentText
 
-        if nameRecordViewModel.canResolveName(name: currentText) {
-            nameRecordViewModel.resolve(name: currentText, chain: chain)
+        if nameRecordViewModel.isNameSupported(name: currentText) {
+            nameRecordViewModel.getNameRecord(name: currentText, chain: chain)
         } else if currentText.isNotEmpty {
             inputModel.update()
         }

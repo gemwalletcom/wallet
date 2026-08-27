@@ -9,7 +9,7 @@ pub struct WalletConnection {
     pub session: WalletConnectionSession,
     pub wallet: Wallet,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[typeshare(swift = "Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum WalletConnectionState {

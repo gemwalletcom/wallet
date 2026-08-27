@@ -13,6 +13,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequests
 import com.gemwallet.android.data.repositories.bridge.WalletConnectRequestHandler
+import com.gemwallet.android.data.repositories.gemstone.GemstoneConnectionStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletConnectSigner
 import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.TransactionSimulationService
@@ -35,9 +36,11 @@ object BridgesModule {
     fun provideBridgeRepository(
         connectionsRepository: ConnectionsRepository,
         walletConnectClient: WalletConnectClient,
+        walletConnectService: GemWalletConnectService,
     ): BridgesRepository = BridgesRepository(
         connectionsRepository = connectionsRepository,
         walletConnectClient = walletConnectClient,
+        walletConnectService = walletConnectService,
     )
 
     @Singleton
@@ -60,7 +63,8 @@ object BridgesModule {
         pendingRequests: WalletConnectPendingRequests,
     ): GemWalletConnectService = GemWalletConnectService(
         simulation = simulationService,
-        signer = GemstoneWalletConnectSigner(connectionsRepository, pendingRequests),
+        store = GemstoneConnectionStore(connectionsRepository),
+        signer = GemstoneWalletConnectSigner(pendingRequests),
     )
 
     @Singleton

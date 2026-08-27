@@ -49,9 +49,6 @@ struct ConnectionsViewModelTests {
 
 extension ConnectionsService {
     static func mock() -> ConnectionsService {
-        ConnectionsService(
-            store: .mock(),
-            connector: WalletConnectorServiceMock(),
-        )
+        ConnectionsService(connector: WalletConnectorServiceMock())
     }
 }

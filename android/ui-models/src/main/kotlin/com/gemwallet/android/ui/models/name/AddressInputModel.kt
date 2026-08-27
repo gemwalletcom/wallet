@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.cases.name.ResolveName
+import com.gemwallet.android.cases.name.GetNameRecord
 import com.gemwallet.android.ext.checksumAddress
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CoroutineScope
@@ -12,12 +12,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 class AddressInputModel(
-    private val resolveName: ResolveName,
+    private val getNameRecord: GetNameRecord,
     scope: CoroutineScope,
     private val validateAddress: (address: String, chain: Chain) -> Boolean,
     initialChain: Chain? = null,
 ) {
-    private val resolver = NameResolveController(resolveName, scope)
+    private val nameRecordController = NameRecordController(getNameRecord, scope)
     private val _text = MutableStateFlow("")
     private val _showError = MutableStateFlow(false)
     private val _chain = MutableStateFlow(initialChain)
@@ -25,14 +25,14 @@ class AddressInputModel(
     val chain: Chain? get() = _chain.value
 
     val text: StateFlow<String> = _text.asStateFlow()
-    val nameResolveState: StateFlow<NameRecordState> = resolver.state
+    val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
     val showError: StateFlow<Boolean> = _showError.asStateFlow()
 
-    val isValid: StateFlow<Boolean> = combine(_text, resolver.state, _chain) { text, resolve, chain ->
+    val isValid: StateFlow<Boolean> = combine(_text, nameRecordController.state, _chain) { text, resolve, chain ->
         isValid(text, resolve, chain)
     }.stateIn(scope, SharingStarted.Eagerly, false)
 
-    val nameRecord get() = resolver.state.value.nameRecord
+    val nameRecord get() = nameRecordController.state.value.nameRecord
 
     val resolvedAddress: String
         get() {
@@ -43,27 +43,27 @@ class AddressInputModel(
     fun onTextChange(value: String) {
         _text.value = value
         _showError.value = false
-        resolver.resolve(value, chain)
+        nameRecordController.getNameRecord(value, chain)
     }
 
     fun setChain(chain: Chain) {
         if (_chain.value == chain) return
         _chain.value = chain
-        resolver.reset()
-        resolver.resolve(_text.value, chain)
+        nameRecordController.reset()
+        nameRecordController.getNameRecord(_text.value, chain)
         validate()
     }
 
     fun applyExternalAddress(address: String) {
         _text.value = address
-        resolver.resolve(address, chain)
+        nameRecordController.getNameRecord(address, chain)
         validate()
     }
 
     fun validate(): Boolean {
         val text = _text.value
-        val valid = isValid(text, resolver.state.value, _chain.value)
-        _showError.value = text.isNotBlank() && !resolveName.canResolveName(text) && !valid
+        val valid = isValid(text, nameRecordController.state.value, _chain.value)
+        _showError.value = text.isNotBlank() && !getNameRecord.isNameSupported(text) && !valid
         return valid
     }
 
@@ -72,7 +72,7 @@ class AddressInputModel(
     }
 
     fun reset() {
-        resolver.reset()
+        nameRecordController.reset()
         _text.value = ""
         _showError.value = false
     }

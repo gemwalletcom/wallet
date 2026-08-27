@@ -154,6 +154,7 @@ extension Primitives.TronUnfreeze: JsonCodable {}
 extension Primitives.TronVote: JsonCodable {}
 extension Primitives.UTXO: JsonCodable {}
 extension Primitives.WalletConfigurationResult: JsonCodable {}
+extension Primitives.WalletConnection: JsonCodable {}
 extension Primitives.WalletConnectionSession: JsonCodable {}
 extension Primitives.WalletConnectionSessionProposal: JsonCodable {}
 extension Primitives.WalletSubscription: JsonCodable {}

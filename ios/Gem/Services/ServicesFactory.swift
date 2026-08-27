@@ -462,15 +462,17 @@ extension ServicesFactory {
         transactionSimulationService: TransactionSimulationService,
     ) -> ConnectionsService {
         let signer = WalletConnectorSigner(
-            connectionsStore: connectionsStore,
             walletSessionService: walletSessionService,
             walletConnectorInteractor: interactor,
         )
         return ConnectionsService(
-            store: connectionsStore,
             connector: WalletConnectorService(
                 signer: signer,
-                service: GemWalletConnectService(simulation: transactionSimulationService, signer: signer),
+                service: GemWalletConnectService(
+                    simulation: transactionSimulationService,
+                    store: GemstoneConnectionStore(store: connectionsStore),
+                    signer: signer,
+                ),
             ),
         )
     }

@@ -25,7 +25,6 @@ class CheckAccountsService @Inject constructor(
         val updatedWallets = appStartService.setupWallets()
             .map { it.decodeJson<Wallet>() }
             .associateBy { it.id }
-        assetsRepository.updateNativeAssetRanks()
         val wallets = walletsRepository.getAll().firstOrNull() ?: emptyList()
 
         wallets.forEach { wallet ->

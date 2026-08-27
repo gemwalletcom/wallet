@@ -23,7 +23,7 @@ use primitives::{
 use primitives::{
     AddressName, AuthNonce, AuthPayload, ChainAddress, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAsset,
     PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult,
-    WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
+    WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
 };
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
 use primitives::{
@@ -185,6 +185,7 @@ json_bridge!(
     TronVote,
     UTXO,
     WalletConfigurationResult,
+    WalletConnection,
     WalletConnectionSession,
     WalletConnectionSessionProposal,
     Wallet,

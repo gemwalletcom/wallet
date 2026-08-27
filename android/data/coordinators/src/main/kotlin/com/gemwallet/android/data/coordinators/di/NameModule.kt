@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.cases.name.ResolveName
-import com.gemwallet.android.data.coordinators.name.ResolveNameImpl
+import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.data.coordinators.name.GetNameRecordImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,9 +15,9 @@ object NameModule {
 
     @Provides
     @Singleton
-    fun provideResolveName(
+    fun provideGetNameRecord(
         nameService: GemNameService,
-    ): ResolveName {
-        return ResolveNameImpl(nameService)
+    ): GetNameRecord {
+        return GetNameRecordImpl(nameService)
     }
 }

@@ -13,6 +13,8 @@ import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.WalletConnectionState
 import com.wallet.core.primitives.Wallet as GemWallet
 import uniffi.gemstone.WalletConnect
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemWalletConnectServiceInterface
 
 internal fun WalletConnectSession.toConnectionRecord(
     walletId: String,
@@ -32,6 +34,16 @@ internal fun WalletConnectSession.toConnectionRecord(
         appIcon = listOf(metadata?.icon.orEmpty()).walletConnectIcon(),
         redirectNative = redirect,
         redirectUniversal = redirect,
+    )
+}
+
+internal fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInterface): String? {
+    val metadata = metadata ?: return null
+    return service.session(
+        topic = topic,
+        accounts = namespaces.values.flatMap { it.accounts },
+        expireAt = expiry,
+        metadata = metadata.toJson(),
     )
 }
 

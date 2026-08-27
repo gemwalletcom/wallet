@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.cases.contacts.AddContact
 import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.contacts.UpdateContact
-import com.gemwallet.android.cases.name.ResolveName
+import com.gemwallet.android.cases.name.GetNameRecord
 import com.gemwallet.android.ext.decodePayment
 import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.request
@@ -44,7 +44,7 @@ class ManageContactViewModel @Inject constructor(
     private val updateContactCase: UpdateContact,
     @ApplicationContext private val context: Context,
     private val localStore: LocalStore,
-    resolveName: ResolveName,
+    getNameRecord: GetNameRecord,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -61,7 +61,7 @@ class ManageContactViewModel @Inject constructor(
     private var contact: Contact? = null
 
     private val addressInput = AddressInputModel(
-        resolveName = resolveName,
+        getNameRecord = getNameRecord,
         scope = viewModelScope,
         validateAddress = { address, chain -> chain.isValidAddress(address) },
     )

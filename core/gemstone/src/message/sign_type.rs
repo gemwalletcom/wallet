@@ -11,7 +11,7 @@ pub enum SignDigestType {
     TronPersonal,
 }
 
-#[derive(Debug, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct SignMessage {
     pub chain: Chain,
     pub sign_type: SignDigestType,

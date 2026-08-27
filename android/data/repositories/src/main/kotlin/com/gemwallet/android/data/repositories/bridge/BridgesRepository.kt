@@ -18,12 +18,14 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnect
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BridgesRepository(
     private val connectionsRepository: ConnectionsRepository,
     private val walletConnectClient: WalletConnectClient,
+    private val walletConnectService: GemWalletConnectServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) {
 
@@ -86,7 +88,8 @@ class BridgesRepository(
     }
 
     private suspend fun sync() {
-        connectionsRepository.sync(activeSessions())
+        val sessions = activeSessions() ?: return
+        walletConnectService.updateSessions(sessions.mapNotNull { it.toConnectionSession(walletConnectService) })
     }
 
     private fun handlePendingRequests() {

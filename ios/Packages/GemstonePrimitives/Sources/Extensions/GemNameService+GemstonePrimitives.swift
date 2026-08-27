@@ -5,8 +5,8 @@ import protocol Gemstone.GemNameServiceProtocol
 import Primitives
 
 public extension GemNameServiceProtocol {
-    func resolve(name: String, chain: Primitives.Chain) async throws -> Primitives.NameRecord? {
-        try await resolve(name: name, chain: chain.rawValue).map { try Primitives.NameRecord($0) }
+    func getNameRecord(name: String, chain: Primitives.Chain) async throws -> Primitives.NameRecord? {
+        try await getNameRecord(name: name, chain: chain.rawValue).map { try Primitives.NameRecord($0) }
     }
 
     func addressNames(requests: [Primitives.ChainAddress]) async throws -> [Primitives.ChainAddress: Primitives.AddressName] {

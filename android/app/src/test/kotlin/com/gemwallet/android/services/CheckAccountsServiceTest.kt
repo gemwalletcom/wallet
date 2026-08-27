@@ -69,7 +69,6 @@ class CheckAccountsServiceTest {
         subject()
 
         coVerify(exactly = 1) { appStartService.setupWallets() }
-        coVerify(exactly = 1) { assetsRepository.updateNativeAssetRanks() }
         verify(exactly = 1) { walletsRepository.getAll() }
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 1) { assetsRepository.invalidateDefault(wallet) }

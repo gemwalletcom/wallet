@@ -9,7 +9,7 @@ import Primitives
 @MainActor
 public final class NameRecordViewModel {
     private let nameService: any GemNameServiceProtocol
-    private var resolveTask: Task<Void, Never>?
+    private var nameRecordTask: Task<Void, Never>?
 
     public var state: NameRecordState = .none
 
@@ -17,19 +17,19 @@ public final class NameRecordViewModel {
         self.nameService = nameService
     }
 
-    public func resolve(name: String, chain: Chain) {
-        resolveTask?.cancel()
+    public func getNameRecord(name: String, chain: Chain) {
+        nameRecordTask?.cancel()
 
-        guard nameService.canResolveName(name: name) else {
+        guard nameService.isNameSupported(name: name) else {
             state = .none
             return
         }
 
         state = .loading
-        resolveTask = Task {
+        nameRecordTask = Task {
             do {
                 try await Task.sleep(for: .debounce)
-                if let record = try await nameService.resolve(name: name, chain: chain) {
+                if let record = try await nameService.getNameRecord(name: name, chain: chain) {
                     state = .complete(record)
                 } else {
                     state = .error
@@ -43,11 +43,11 @@ public final class NameRecordViewModel {
     }
 
     public func reset() {
-        resolveTask?.cancel()
+        nameRecordTask?.cancel()
         state = .none
     }
 
-    public func canResolveName(name: String) -> Bool {
-        nameService.canResolveName(name: name)
+    public func isNameSupported(name: String) -> Bool {
+        nameService.isNameSupported(name: name)
     }
 }
