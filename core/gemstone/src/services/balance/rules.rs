@@ -1,4 +1,6 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+
+use crate::services::collections::{missing, unique};
 
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
@@ -82,13 +84,11 @@ pub fn balance_updates(assets: &[Asset], balances: Vec<(BalanceKind, AssetBalanc
 }
 
 pub fn newly_enabled_asset_ids(requested: &[AssetId], enabled: &[AssetId]) -> Vec<AssetId> {
-    let enabled: HashSet<&AssetId> = enabled.iter().collect();
-    requested.iter().filter(|asset_id| !enabled.contains(asset_id)).cloned().collect()
+    missing(requested.iter().cloned(), enabled.iter().cloned())
 }
 
 pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
-    let mut seen = HashSet::new();
-    asset_ids.into_iter().filter(|asset_id| seen.insert(asset_id.clone())).collect()
+    unique(asset_ids)
 }
 
 #[cfg(test)]

@@ -1,5 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
+use crate::services::collections::stale;
+
 use primitives::AddressName;
 use primitives::{AddressType, Chain, DelegationBase, DelegationState, DelegationValidator, StakeProviderType, VerificationStatus};
 
@@ -63,17 +65,14 @@ pub fn apply_validator_state(delegations: Vec<DelegationBase>, validators: &Hash
 }
 
 pub fn stale_delegation_ids(existing_ids: Vec<String>, incoming: &[DelegationBase]) -> Vec<String> {
-    let incoming_ids: HashSet<String> = incoming.iter().map(DelegationBase::id).collect();
-    existing_ids.into_iter().filter(|id| !incoming_ids.contains(id)).collect()
+    stale(existing_ids, incoming.iter().map(DelegationBase::id))
 }
 
 pub fn stale_validator_ids(existing: Vec<DelegationValidator>, incoming: &[DelegationValidator]) -> Vec<String> {
-    let incoming_ids: HashSet<&str> = incoming.iter().map(|validator| validator.id.as_str()).collect();
-    existing
-        .into_iter()
-        .filter(|validator| validator.is_active && !incoming_ids.contains(validator.id.as_str()))
-        .map(|validator| validator.id)
-        .collect()
+    stale(
+        existing.into_iter().filter(|validator| validator.is_active).map(|validator| validator.id),
+        incoming.iter().map(|validator| validator.id.clone()),
+    )
 }
 
 pub fn validator_address_names(validators: &[DelegationValidator]) -> Vec<AddressName> {

@@ -1,3 +1,4 @@
+use crate::services::collections::unique;
 use primitives::currency::Currency;
 use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
 
@@ -33,8 +34,7 @@ pub fn fiat_prices(prices: Vec<AssetPrice>, rate: &FiatRate) -> Vec<GemPriceUpda
 }
 
 pub fn observable_asset_ids(enabled: Vec<AssetId>, alerts: Vec<AssetId>, defaults: Vec<AssetId>) -> Vec<AssetId> {
-    let mut seen = std::collections::HashSet::new();
-    let asset_ids: Vec<AssetId> = enabled.into_iter().chain(alerts).filter(|asset_id| seen.insert(asset_id.clone())).collect();
+    let asset_ids = unique(enabled.into_iter().chain(alerts));
     if asset_ids.is_empty() { defaults } else { asset_ids }
 }
 

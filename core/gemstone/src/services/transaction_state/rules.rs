@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use primitives::{AssetId, Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
-use std::collections::HashSet;
 
 use super::model::{GemTransactionPostProcessing, GemTransactionStateUpdate};
+use crate::services::collections::unique;
 
 pub fn destination_chain(transaction: &Transaction) -> Option<Chain> {
     (transaction.state == TransactionState::InTransit)
@@ -82,11 +82,5 @@ fn metadata_json(metadata: &TransactionMetadata) -> Result<String, serde_json::E
 }
 
 pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
-    let mut seen = HashSet::new();
-    transactions
-        .iter()
-        .flat_map(Transaction::asset_ids)
-        .filter(|asset_id| asset_id.chain != Chain::HyperCore)
-        .filter(|asset_id| seen.insert(asset_id.clone()))
-        .collect()
+    unique(transactions.iter().flat_map(Transaction::asset_ids).filter(|asset_id| asset_id.chain != Chain::HyperCore))
 }

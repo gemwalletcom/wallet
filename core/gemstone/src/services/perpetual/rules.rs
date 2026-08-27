@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use chrono::Utc;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
@@ -8,6 +6,7 @@ use primitives::{AssetId, AssetPrice, AssetType, Chain, PerpetualPosition, Perpe
 
 use crate::models::asset::wallet_default_assets;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
+use crate::services::collections::stale;
 
 pub fn balance_update(balance: &PerpetualBalance) -> Result<GemBalanceUpdate, NumberFormatterError> {
     let asset = &*HYPERCORE_PERPETUAL_USDC;
@@ -40,8 +39,7 @@ pub fn prices_outdated(updated_at: Option<i64>, now: i64, interval_seconds: u32)
 }
 
 pub fn stale_position_ids(existing_ids: Vec<String>, positions: &[PerpetualPosition]) -> Vec<String> {
-    let current: HashSet<&str> = positions.iter().map(|position| position.id.as_str()).collect();
-    existing_ids.into_iter().filter(|id| !current.contains(id.as_str())).collect()
+    stale(existing_ids, positions.iter().map(|position| position.id.clone()))
 }
 
 pub fn collateral_asset_id(chain: Chain) -> Option<AssetId> {

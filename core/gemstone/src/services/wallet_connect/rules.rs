@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use crate::services::collections::stale;
+
 use chrono::{DateTime, Utc};
 use primitives::{
     Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession,
@@ -32,12 +34,13 @@ pub fn validate_session_chain(session: &WalletConnectionSession, chain: Chain) -
 }
 
 pub fn sessions_to_delete(local: &[WalletConnectionSession], remote: &[WalletConnectionSession]) -> Vec<String> {
-    let remote_ids: HashSet<&str> = remote.iter().map(|session| session.id.as_str()).collect();
-    local
-        .iter()
-        .filter(|session| session.state == WalletConnectionState::Active && !remote_ids.contains(session.id.as_str()))
-        .map(|session| session.id.clone())
-        .collect()
+    stale(
+        local
+            .iter()
+            .filter(|session| session.state == WalletConnectionState::Active)
+            .map(|session| session.id.clone()),
+        remote.iter().map(|session| session.id.clone()),
+    )
 }
 
 pub fn sessions_to_update(local: &[WalletConnectionSession], remote: Vec<WalletConnectionSession>) -> Vec<WalletConnectionSession> {
