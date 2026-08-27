@@ -34,6 +34,10 @@ class WalletsRepositoryImpl @Inject constructor(
 
     override suspend fun addWallet(wallet: Wallet): Wallet = putWallet(wallet)
 
+    override fun getAllNow(): List<Wallet> = walletsDao.getAllNow().toDTO()
+
+    override fun getWalletNow(walletId: WalletId): Wallet? = walletsDao.getByIdNow(walletId.id).toDTO().firstOrNull()
+
     override suspend fun setPinned(walletId: WalletId, pinned: Boolean) = walletsDao.setPinned(walletId.id, pinned)
 
     override suspend fun rename(walletId: WalletId, name: String) = walletsDao.setName(walletId.id, name)

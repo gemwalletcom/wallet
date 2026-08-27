@@ -12,6 +12,10 @@ interface WalletsRepository {
 
     suspend fun addWallet(wallet: Wallet): Wallet
 
+    fun getAllNow(): List<Wallet>
+
+    fun getWalletNow(walletId: WalletId): Wallet?
+
     suspend fun setPinned(walletId: WalletId, pinned: Boolean)
 
     suspend fun rename(walletId: WalletId, name: String)
