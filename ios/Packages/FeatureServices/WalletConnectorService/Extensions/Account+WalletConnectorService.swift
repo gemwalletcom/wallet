@@ -23,12 +23,3 @@ extension Primitives.Account {
         )
     }
 }
-
-extension WalletConnectUtils.Account {
-    var chain: Primitives.Chain? {
-        guard let account = WalletConnect.shared.parseAccount(account: absoluteString) else {
-            return .none
-        }
-        return try? Primitives.ChainAddress(account).chain
-    }
-}

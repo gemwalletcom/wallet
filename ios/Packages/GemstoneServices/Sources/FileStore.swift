@@ -13,6 +13,18 @@ public final class GemstoneFileStore: GemFileStore, Sendable {
         try store.store(data, id: UUID().uuidString, documentType: `extension`)
     }
 
+    public func saveNamed(data: Data, fileName: String) throws -> String {
+        try store.store(data, fileName: fileName).path()
+    }
+
+    public func exists(fileName: String) -> Bool {
+        store.exists(fileName)
+    }
+
+    public func path(fileName: String) -> String {
+        store.url(for: fileName).path()
+    }
+
     public func remove(fileName: String) throws {
         try store.remove(fileName)
     }

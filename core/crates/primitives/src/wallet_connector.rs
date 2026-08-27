@@ -67,6 +67,35 @@ pub enum WalletConnectionMethods {
     TronSendTransaction,
 }
 
+impl WalletConnectionMethods {
+    pub fn all() -> Vec<Self> {
+        vec![
+            Self::EthChainId,
+            Self::PersonalSign,
+            Self::EthSignTypedData,
+            Self::EthSignTypedDataV4,
+            Self::EthSignTransaction,
+            Self::EthSendTransaction,
+            Self::EthSendRawTransaction,
+            Self::WalletSwitchEthereumChain,
+            Self::WalletAddEthereumChain,
+            Self::SolanaSignMessage,
+            Self::SolanaSignTransaction,
+            Self::SolanaSignAndSendTransaction,
+            Self::SolanaSignAllTransactions,
+            Self::SuiGetAccounts,
+            Self::SuiSignPersonalMessage,
+            Self::SuiSignTransaction,
+            Self::SuiSignAndExecuteTransaction,
+            Self::TonSendMessage,
+            Self::TonSignData,
+            Self::TronSignMessage,
+            Self::TronSignTransaction,
+            Self::TronSendTransaction,
+        ]
+    }
+}
+
 #[derive(Debug, Serialize)]
 #[typeshare(swift = "CaseIterable, Sendable")]
 pub enum WalletConnectionEvents {
@@ -78,6 +107,12 @@ pub enum WalletConnectionEvents {
     AccountsChanged,
     #[serde(rename = "chainChanged")]
     ChainChanged,
+}
+
+impl WalletConnectionEvents {
+    pub fn all() -> Vec<Self> {
+        vec![Self::Connect, Self::Disconnect, Self::AccountsChanged, Self::ChainChanged]
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

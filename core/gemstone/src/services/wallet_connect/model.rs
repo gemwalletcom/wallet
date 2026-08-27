@@ -1,4 +1,4 @@
-use primitives::Wallet;
+use primitives::{Account, Chain, Wallet, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::wallet_connect::WalletConnectResponseType;
 
@@ -22,4 +22,18 @@ pub enum GemWalletConnectResponse {
 pub struct GemSessionWallets {
     pub default_wallet: Wallet,
     pub wallets: Vec<Wallet>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemSessionProposal {
+    pub proposal: WalletConnectionSessionProposal,
+    pub verification_status: WalletConnectionVerificationStatus,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemSessionApproval {
+    pub chains: Vec<Chain>,
+    pub accounts: Vec<Account>,
+    pub methods: Vec<String>,
+    pub events: Vec<String>,
 }

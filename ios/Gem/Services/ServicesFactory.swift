@@ -175,7 +175,7 @@ struct ServicesFactory {
         let fiatService = gemFiatService
         let supportTypingState = SupportTypingState()
         let gemSupportStore = GemstoneSupportStore(store: storeManager.supportChatStore, typing: supportTypingState)
-        let supportService = Gemstone.GemSupportService(api: gemDeviceApiClient, store: gemSupportStore)
+        let supportService = Gemstone.GemSupportService(api: gemDeviceApiClient, store: gemSupportStore, files: GemstoneFileStore(), provider: nativeProvider)
         let streamService = Gemstone.GemStreamService(
             price: gemPriceService,
             priceAlert: priceAlertService,

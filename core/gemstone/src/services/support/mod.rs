@@ -9,7 +9,9 @@ use chrono::Utc;
 use primitives::{SupportMessage, SupportMessageInput, SupportMessageStatus};
 use uuid::Uuid;
 
+use crate::alien::AlienProvider;
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::services::file::{GemFileStore, download};
 
 pub use store::GemSupportStore;
 
@@ -17,13 +19,24 @@ pub use store::GemSupportStore;
 pub struct GemSupportService {
     api: Arc<GemDeviceApiClient>,
     store: Arc<dyn GemSupportStore>,
+    files: Arc<dyn GemFileStore>,
+    provider: Arc<dyn AlienProvider>,
 }
 
 #[uniffi::export]
 impl GemSupportService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemSupportStore>) -> Self {
-        Self { api, store }
+    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemSupportStore>, files: Arc<dyn GemFileStore>, provider: Arc<dyn AlienProvider>) -> Self {
+        Self { api, store, files, provider }
+    }
+
+    pub async fn image_file(&self, url: String) -> Result<String, GemServiceError> {
+        let file_name = rules::image_file_name(&url);
+        if self.files.exists(file_name.clone()) {
+            return Ok(self.files.path(file_name));
+        }
+        let image = download(&self.provider, url).await?;
+        self.files.save_named(image, file_name)
     }
 
     pub async fn sync_messages(&self, from_timestamp: u64) -> Result<(), GemServiceError> {

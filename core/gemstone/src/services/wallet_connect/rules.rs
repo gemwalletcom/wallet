@@ -1,6 +1,10 @@
 use std::collections::HashSet;
 
-use primitives::{Chain, Wallet, WalletId, WalletType};
+use chrono::{DateTime, Utc};
+use primitives::{
+    ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionState, WalletId,
+    WalletType,
+};
 
 use crate::wallet_connect::WalletConnect;
 
@@ -25,6 +29,77 @@ pub fn default_wallet(wallets: &[Wallet], current_wallet_id: Option<WalletId>) -
 pub fn session_chains(wallet: &Wallet, supported: &[Chain]) -> Vec<Chain> {
     let wallet_chains: HashSet<Chain> = wallet.accounts.iter().map(|account| account.chain).collect();
     supported.iter().copied().filter(|chain| wallet_chains.contains(chain)).collect()
+}
+
+pub fn parse_chains(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Option<Vec<Chain>> {
+    let chains: Vec<Chain> = chain_ids.iter().filter_map(|chain_id| parse_chain(wallet_connect, chain_id)).collect();
+    (chains.len() == chain_ids.len()).then_some(chains)
+}
+
+pub fn parse_known_chains(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Vec<Chain> {
+    chain_ids.iter().filter_map(|chain_id| parse_chain(wallet_connect, chain_id)).collect()
+}
+
+pub fn account_chains(wallet_connect: &WalletConnect, accounts: &[String]) -> Vec<Chain> {
+    let mut seen = HashSet::new();
+    accounts
+        .iter()
+        .filter_map(|account| wallet_connect.parse_account(account.clone()))
+        .map(|address| address.chain)
+        .filter(|chain| seen.insert(*chain))
+        .collect()
+}
+
+pub fn application_metadata(name: String, description: String, url: String, icons: Vec<String>) -> ApplicationMetadata {
+    let icon = icons
+        .iter()
+        .find(|icon| [".png", ".jpg", ".jpeg", ".ico"].iter().any(|extension| icon.to_lowercase().contains(extension)))
+        .or_else(|| icons.first())
+        .cloned()
+        .unwrap_or_default();
+    let name = if name.trim().is_empty() { short_url(&url) } else { name };
+    ApplicationMetadata {
+        name,
+        description,
+        url,
+        icon,
+        source: ApplicationMetadataSource::WalletConnect,
+    }
+}
+
+pub fn session(topic: String, chains: Vec<Chain>, expire_at: DateTime<Utc>, metadata: ApplicationMetadata) -> WalletConnectionSession {
+    WalletConnectionSession {
+        id: topic.clone(),
+        session_id: topic,
+        state: WalletConnectionState::Active,
+        chains,
+        created_at: Utc::now(),
+        expire_at,
+        metadata,
+    }
+}
+
+pub fn session_methods() -> Vec<String> {
+    WalletConnectionMethods::all().iter().filter_map(serde_name).collect()
+}
+
+pub fn session_events() -> Vec<String> {
+    WalletConnectionEvents::all().iter().filter_map(serde_name).collect()
+}
+
+fn serde_name<T: serde::Serialize>(value: &T) -> Option<String> {
+    serde_json::to_value(value).ok().and_then(|value| value.as_str().map(String::from))
+}
+
+fn short_url(url: &str) -> String {
+    url::Url::parse(url)
+        .ok()
+        .and_then(|url| url.host_str().map(|host| host.trim_start_matches("www.").to_string()))
+        .unwrap_or_else(|| url.trim().to_string())
+}
+
+fn parse_chain(wallet_connect: &WalletConnect, chain_id: &str) -> Option<Chain> {
+    wallet_connect.parse_chain_id(chain_id.to_string()).and_then(|chain| chain.parse().ok())
 }
 
 fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain], wallet_connect: &WalletConnect) -> bool {
@@ -117,5 +192,34 @@ mod tests {
             session_chains(&wallet, &[Chain::Ethereum, Chain::Solana, Chain::Tron]),
             vec![Chain::Ethereum, Chain::Solana]
         );
+    }
+
+    #[test]
+    fn test_parse_chains_and_metadata() {
+        let wallet_connect = WalletConnect::new();
+        assert_eq!(parse_chains(&wallet_connect, &["eip155:1".to_string()]), Some(vec![Chain::Ethereum]));
+        assert_eq!(parse_chains(&wallet_connect, &["eip155:1".to_string(), "cosmos:unknown-9".to_string()]), None);
+        assert_eq!(
+            parse_known_chains(&wallet_connect, &["eip155:1".to_string(), "cosmos:unknown-9".to_string()]),
+            vec![Chain::Ethereum]
+        );
+        assert_eq!(
+            account_chains(
+                &wallet_connect,
+                &["eip155:1:0xabc".to_string(), "eip155:137:0xabc".to_string(), "eip155:1:0xdef".to_string()]
+            ),
+            vec![Chain::Ethereum, Chain::Polygon]
+        );
+
+        let metadata = application_metadata(
+            " ".to_string(),
+            "desc".to_string(),
+            "https://www.app.example.com/path".to_string(),
+            vec!["https://x/icon.svg".to_string(), "https://x/icon.PNG".to_string()],
+        );
+        assert_eq!(metadata.name, "app.example.com");
+        assert_eq!(metadata.icon, "https://x/icon.PNG");
+        assert!(session_methods().contains(&"personal_sign".to_string()));
+        assert!(session_events().contains(&"accountsChanged".to_string()));
     }
 }

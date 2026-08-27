@@ -16,8 +16,7 @@ import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemContactService
 import uniffi.gemstone.GemContactStore
 import javax.inject.Singleton
-import com.gemwallet.android.data.repositories.gemstone.GemstoneFileStore
-import com.gemwallet.android.data.service.store.LocalStore
+import uniffi.gemstone.GemFileStore
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -30,8 +29,8 @@ object ContactsModule {
 
     @Singleton
     @Provides
-    fun provideGemContactService(store: GemContactStore, addressStore: GemAddressStore, localStore: LocalStore): GemContactService =
-        GemContactService(store, addressStore, GemstoneFileStore(localStore))
+    fun provideGemContactService(store: GemContactStore, addressStore: GemAddressStore, fileStore: GemFileStore): GemContactService =
+        GemContactService(store, addressStore, fileStore)
 
     @Singleton
     @Provides

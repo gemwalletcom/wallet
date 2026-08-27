@@ -227,6 +227,10 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
     public func sendImage(image _: Data, fileName _: String, mimeType _: String) async throws {}
 
     public func retryMessage(message _: Gemstone.SupportMessage) async throws {}
+
+    public func imageFile(url: String) async throws -> String {
+        url
+    }
 }
 
 public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked Sendable {

@@ -16,20 +16,6 @@ import GemstoneServicesTestKit
 
 struct WalletConnectorSignerTests {
     @Test
-    func supportedRequiredChains() throws {
-        let proposal = try Session.Proposal.requiredChains()
-
-        #expect(proposal.supportedRequiredChains == Set([.ethereum, .polygon]))
-    }
-
-    @Test
-    func supportedRequiredChainsUnsupported() throws {
-        let proposal = try Session.Proposal.requiredBitcoin()
-
-        #expect(proposal.supportedRequiredChains == nil)
-    }
-
-    @Test
     func validateChainPresent() async throws {
         let db = DB.mockWithChains([.ethereum])
         let walletStore = WalletStore(db: db)
@@ -131,15 +117,5 @@ extension WalletConnectorSigner {
             walletSessionService: walletSessionService,
             walletConnectorInteractor: WalletConnectorManager(presenter: WalletConnectorPresenter()),
         )
-    }
-}
-
-extension Session.Proposal {
-    static func requiredChains() throws -> Session.Proposal {
-        try Bundle.decode(from: "RequiredChainsProposal", withExtension: "json", in: .module)
-    }
-
-    static func requiredBitcoin() throws -> Session.Proposal {
-        try Bundle.decode(from: "RequiredBitcoinProposal", withExtension: "json", in: .module)
     }
 }

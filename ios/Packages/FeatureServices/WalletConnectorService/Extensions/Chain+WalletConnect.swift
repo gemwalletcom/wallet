@@ -24,15 +24,6 @@ extension Chain {
     }
 }
 
-public extension Blockchain {
-    var chain: Chain? {
-        guard let chain = WalletConnect.shared.parseChainId(chainId: absoluteString) else {
-            return .none
-        }
-        return Chain(rawValue: chain)
-    }
-}
-
 extension WalletConnect {
     static let shared = WalletConnect()
 }

@@ -62,6 +62,7 @@ import uniffi.gemstone.serviceStatusTimeoutSeconds
 import uniffi.gemstone.TransactionSimulationService
 import uniffi.gemstone.TransactionSimulationServiceInterface
 import javax.inject.Singleton
+import uniffi.gemstone.GemFileStore
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -182,7 +183,12 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemSupportService(apiClient: GemstoneDeviceApiClient, store: GemSupportStore): GemSupportService = GemSupportService(apiClient, store)
+    fun provideGemSupportService(
+        apiClient: GemstoneDeviceApiClient,
+        store: GemSupportStore,
+        fileStore: GemFileStore,
+        alienProvider: AlienProvider,
+    ): GemSupportService = GemSupportService(apiClient, store, fileStore, alienProvider)
 
     @Provides
     @Singleton

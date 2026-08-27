@@ -28,9 +28,32 @@ pub fn with_status(message: SupportMessage, status: SupportMessageStatus) -> Sup
     SupportMessage { status, ..message }
 }
 
+pub fn image_file_name(url: &str) -> String {
+    let digest = hex::encode(gem_hash::sha2::sha256(url.as_bytes()));
+    let extension = url
+        .rsplit('/')
+        .next()
+        .and_then(|name| name.rsplit_once('.'))
+        .map(|(_, extension)| extension)
+        .filter(|extension| !extension.is_empty() && extension.len() <= 5 && extension.chars().all(|c| c.is_ascii_alphanumeric()));
+    match extension {
+        Some(extension) => format!("support_{digest}.{extension}"),
+        None => format!("support_{digest}"),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_image_file_name() {
+        let name = image_file_name("https://cdn.example.com/files/photo.PNG");
+        assert!(name.starts_with("support_") && name.ends_with(".PNG"));
+        assert_eq!(name, image_file_name("https://cdn.example.com/files/photo.PNG"));
+        assert_ne!(name, image_file_name("https://cdn.example.com/files/other.PNG"));
+        assert!(!image_file_name("https://cdn.example.com/files/blob").contains('.'));
+    }
 
     #[test]
     fn test_pending_message_lifecycle() {

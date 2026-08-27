@@ -13,6 +13,7 @@ pub mod device;
 pub mod error;
 pub mod explorer;
 pub mod fiat;
+pub mod file;
 pub mod name;
 pub mod nft;
 pub mod node;
@@ -42,7 +43,7 @@ pub use app_update::GemAppUpdateService;
 pub use asset_discovery::{GemAssetDiscoveryService, GemAssetDiscoveryStore, GemDiscoveryStep};
 pub use assets::{GemAssetStore, GemAssetsService};
 pub use auth::GemAuthService;
-pub use avatar::{GemAvatarService, GemFileStore};
+pub use avatar::GemAvatarService;
 pub use balance::{GemBalanceService, GemBalanceStore};
 pub use banner::{GemBannerAction, GemBannerService, GemBannerStore, GemNotificationPermissions};
 pub use chart::GemChartService;
@@ -52,6 +53,7 @@ pub use device::{GemDeviceRequestSigner, GemDeviceService, GemDeviceStore, GemDe
 pub use error::GemServiceError;
 pub use explorer::GemExplorerService;
 pub use fiat::{GemFiatService, GemFiatStore};
+pub use file::GemFileStore;
 pub use name::{GemAddressStore, GemNameService};
 pub use nft::{GemNftService, GemNftStore};
 pub use node::{GemNodeService, GemNodeStore};
@@ -73,5 +75,7 @@ pub use transaction_state::{GemPendingTransaction, GemTransactionStateService, G
 pub use transactions::{GemTransactionStore, GemTransactionsService};
 pub use wallet::{GemKeystorePassword, GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletSource, GemWalletStore};
 pub use wallet_configuration::{GemWalletConfigurationService, GemWalletConfigurationStore};
-pub use wallet_connect::{GemSessionWallets, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectService, GemWalletConnectSigner};
+pub use wallet_connect::{
+    GemSessionApproval, GemSessionProposal, GemSessionWallets, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectService, GemWalletConnectSigner,
+};
 pub use wallet_session::{GemWalletSessionService, GemWalletSessionStore};

@@ -55,14 +55,6 @@ public final class WalletConnectorSigner: WalletConnectorSignable, GemWalletConn
         return connection.wallet.accounts.filter { $0.chain == chain }.map { $0.mapToGem() }
     }
 
-    public func getEvents() -> [WalletConnectionEvents] {
-        WalletConnectionEvents.allCases
-    }
-
-    public func getMethods() -> [WalletConnectionMethods] {
-        WalletConnectionMethods.allCases
-    }
-
     public func sessionApproval(payload: WCPairingProposal) async throws -> WalletId {
         try await walletConnectorInteractor.sessionApproval(payload: payload)
     }

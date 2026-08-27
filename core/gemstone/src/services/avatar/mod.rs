@@ -1,13 +1,11 @@
-pub mod store;
-
 use std::sync::Arc;
 
 use primitives::WalletId;
 
-use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
+use crate::alien::AlienProvider;
 use crate::services::error::GemServiceError;
+use crate::services::file::{GemFileStore, download};
 use crate::services::wallet::GemWalletStore;
-pub use store::GemFileStore;
 
 const IMAGE_EXTENSION: &str = "png";
 
@@ -32,26 +30,8 @@ impl GemAvatarService {
     }
 
     pub async fn set_image_url(&self, wallet_id: WalletId, url: String) -> Result<(), GemServiceError> {
-        let target = AlienTarget {
-            url,
-            method: AlienHttpMethod::Get,
-            headers: None,
-            body: None,
-        };
-        let response = self
-            .provider
-            .request(target)
-            .await
-            .map_err(|error| GemServiceError::Api { msg: error.to_string() })?
-            .to_rpc_response();
-        if let Some(status) = response.status
-            && !(200..300).contains(&status)
-        {
-            return Err(GemServiceError::Api {
-                msg: format!("image download failed with status {status}"),
-            });
-        }
-        self.set_image(wallet_id, response.data).await
+        let image = download(&self.provider, url).await?;
+        self.set_image(wallet_id, image).await
     }
 
     pub async fn remove_image(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemServiceError
 import WalletConnectSign
 
 extension RejectionReason {
@@ -10,6 +11,14 @@ extension RejectionReason {
             return
         }
 
+        if case let .Status(msg) = error as? GemServiceError {
+            self = switch msg {
+            case "unsupported chains": .unsupportedChains
+            case "wallets unsupported": .unsupportedAccounts
+            default: .userRejected
+            }
+            return
+        }
         guard let serviceError = error as? WalletConnectorServiceError else {
             self = .userRejected
             return

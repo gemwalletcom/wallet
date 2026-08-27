@@ -7,7 +7,7 @@ use std::sync::Arc;
 use primitives::Contact;
 use primitives::contact::ContactAddress;
 
-use crate::services::avatar::GemFileStore;
+use crate::services::file::GemFileStore;
 use crate::services::name::GemAddressStore;
 
 pub use store::GemContactStore;

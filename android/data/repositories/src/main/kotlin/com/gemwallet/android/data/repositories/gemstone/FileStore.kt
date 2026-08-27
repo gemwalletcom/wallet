@@ -8,5 +8,11 @@ class GemstoneFileStore(
 ) : GemFileStore {
     override fun save(data: ByteArray, extension: String): String = localStore.save(data, extension)
 
+    override fun saveNamed(data: ByteArray, fileName: String): String = localStore.saveNamed(data, fileName)
+
+    override fun exists(fileName: String): Boolean = localStore.exists(fileName)
+
+    override fun path(fileName: String): String = localStore.path(fileName)
+
     override fun remove(fileName: String) = localStore.remove(fileName)
 }

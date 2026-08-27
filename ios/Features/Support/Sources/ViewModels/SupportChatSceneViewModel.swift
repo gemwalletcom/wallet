@@ -94,7 +94,7 @@ public final class SupportChatSceneViewModel {
         guard let url = image.url.asURL else { return }
         Task {
             await perform("preview") {
-                previewURL = try await imageFile(for: url)
+                previewURL = URL(fileURLWithPath: try await service.imageFile(url: url.absoluteString))
             }
         }
     }
@@ -109,19 +109,5 @@ private extension SupportChatSceneViewModel {
         } catch {
             debugLog("SupportChatSceneViewModel \(context) error: \(error)")
         }
-    }
-}
-
-extension SupportChatSceneViewModel {
-    private func imageFile(for url: URL) async throws -> URL {
-        let request = URLRequest(url: url)
-        let data = if let cached = URLCache.shared.cachedResponse(for: request)?.data {
-            cached
-        } else {
-            try await URLSession.shared.data(for: request).0
-        }
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
-        try data.write(to: file)
-        return file
     }
 }

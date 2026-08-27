@@ -135,7 +135,7 @@ extension WalletConnectorService {
             }
 
             do {
-                let status = walletConnect.validateOrigin(metadataUrl: session.peer.metadata.url, origin: verifyContext.origin, validation: verifyContext.validation.map()).map()
+                let status = walletConnect.validateOrigin(metadataUrl: session.peer.url, origin: verifyContext.origin, validation: verifyContext.validation.map()).map()
 
                 debugLog("Verification status for request: \(status)")
 
@@ -164,10 +164,23 @@ extension WalletConnectorService {
     private func updateSessions(_ sessions: [Session]) {
         debugLog("Received sessions: \(sessions)")
         do {
-            try signer.updateSessions(sessions: sessions.map(\.asSession))
+            try signer.updateSessions(sessions: sessions.map { try connectionSession($0) })
         } catch {
             debugLog("Error updating sessions: \(error)")
         }
+    }
+
+    private func connectionSession(_ session: Session) throws -> WalletConnectionSession {
+        try service.session(
+            topic: session.topic,
+            accounts: session.namespaces.values.flatMap(\.accounts).map(\.absoluteString),
+            expireAt: session.expiryDate,
+            metadata: metadata(session.peer),
+        )
+    }
+
+    private func metadata(_ metadata: AppMetadata) throws -> ApplicationMetadata {
+        try service.metadata(name: metadata.name, description: metadata.description, url: metadata.url, icons: metadata.icons)
     }
 
     private func handleRequest(request: WalletConnectSign.Request, session: Session) async throws {
@@ -189,7 +202,7 @@ extension WalletConnectorService {
                     method: request.method,
                     params: params,
                     chainId: request.chainId.absoluteString,
-                    domain: session.peer.metadata.url,
+                    domain: session.peer.url,
                 ),
             )
             debugLog("handle method result: \(request.method) \(response)")
@@ -217,70 +230,44 @@ extension WalletConnectorService {
             return
         }
 
-        guard let requiredChains = proposal.supportedRequiredChains else {
-            throw WalletConnectorServiceError.walletsUnsupported
-        }
         let currentWalletId = try? signer.getCurrentWallet().id
-        guard let sessionWallets = try service.selectSessionWallets(
-            wallets: signer.getWallets().map { try $0.json() },
-            currentWalletId: currentWalletId?.id,
-            requiredChains: requiredChains.map(\.rawValue),
-            optionalChains: proposal.supportedOptionalChains.map(\.rawValue),
-        ) else {
-            throw WalletConnectorServiceError.walletsUnsupported
-        }
-
-        let metadata = proposal.proposer.metadata
-        let status = walletConnect.validateOrigin(metadataUrl: metadata.url, origin: verifyContext.origin, validation: verifyContext.validation.map()).map()
-
-        debugLog("Verification status: \(status)")
-
-        switch status {
-        case .verified, .unknown: break
-        case .invalid, .malicious:
-            throw WalletConnectorServiceError.invalidOrigin
-        }
-
-        let payload = try WalletConnectionSessionProposal(
-            defaultWallet: Primitives.Wallet(sessionWallets.defaultWallet),
-            wallets: sessionWallets.wallets.map { try Primitives.Wallet($0) },
-            metadata: metadata,
+        let (payload, status) = try service.prepareSessionProposal(
+            wallets: signer.getWallets(),
+            currentWalletId: currentWalletId,
+            requiredChainIds: proposal.requiredNamespaces.chainIds,
+            optionalChainIds: proposal.optionalNamespaces?.chainIds ?? [],
+            metadata: metadata(proposal.proposer),
+            origin: verifyContext.origin,
+            validation: verifyContext.validation.map(),
         )
-
+        debugLog("Verification status: \(status)")
         let payloadTopic = WCPairingProposal(
             pairingId: proposal.pairingTopic,
             proposal: payload,
-            verificationStatus: status,
+            verificationStatus: status.map(),
         )
         let approvedWalletId = try await signer.sessionApproval(payload: payloadTopic)
         let selectedWallet = try signer.getWallet(id: approvedWalletId)
 
         let session = try await acceptProposal(proposal: proposal, wallet: selectedWallet)
-        try signer.addConnection(connection: WalletConnection(session: session.asSession, wallet: selectedWallet))
+        try signer.addConnection(connection: WalletConnection(session: connectionSession(session), wallet: selectedWallet))
     }
 
     private func acceptProposal(proposal: Session.Proposal, wallet: Primitives.Wallet) async throws -> Session {
-        let chains = try service.sessionChains(wallet: wallet.json(), supportedChains: signer.allChains.map(\.rawValue)).map { try $0.map() }
-        let accounts = wallet.accounts.filter { chains.contains($0.chain) }
-        let events = signer.getEvents()
-        let methods = signer.getMethods()
-        let supportedAccounts = accounts.compactMap(\.blockchain)
-        let supportedChains = chains.compactMap(\.blockchain)
-
+        let approval = try service.sessionApproval(wallet: wallet, supportedChains: signer.allChains)
         let sessionNamespaces = try AutoNamespaces.build(
             sessionProposal: proposal,
-            chains: supportedChains,
-            methods: methods.map(\.rawValue),
-            events: events.map(\.rawValue),
-            accounts: supportedAccounts,
+            chains: approval.chains.compactMap(\.blockchain),
+            methods: approval.methods,
+            events: approval.events,
+            accounts: approval.accounts.compactMap(\.blockchain),
         )
         let caip2Chains = sessionNamespaces.values.flatMap { $0.chains ?? [] }.map(\.absoluteString)
         let sessionProperties = walletConnect.configSessionProperties(
             properties: proposal.sessionProperties ?? [:],
             caip2Chains: caip2Chains,
-            accounts: accounts.map { $0.mapToGem() },
+            accounts: approval.accounts.map { $0.mapToGem() },
         )
-
         return try await WalletKit.instance.approve(
             proposalId: proposal.id,
             namespaces: sessionNamespaces,

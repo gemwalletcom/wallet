@@ -4,13 +4,14 @@ pub mod signer;
 
 use std::sync::Arc;
 
-use primitives::{Chain, Wallet, WalletId};
+use chrono::{DateTime, Utc};
+use primitives::{ApplicationMetadata, Chain, Wallet, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId};
 
 use crate::services::error::GemServiceError;
 use crate::transaction_simulation::TransactionSimulationService;
 use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectChainOperation};
 
-pub use model::{GemSessionWallets, GemWalletConnectRequest, GemWalletConnectResponse};
+pub use model::{GemSessionApproval, GemSessionProposal, GemSessionWallets, GemWalletConnectRequest, GemWalletConnectResponse};
 pub use signer::GemWalletConnectSigner;
 
 #[derive(uniffi::Object)]
@@ -45,6 +46,65 @@ impl GemWalletConnectService {
 
     pub fn session_chains(&self, wallet: Wallet, supported_chains: Vec<Chain>) -> Vec<Chain> {
         rules::session_chains(&wallet, &supported_chains)
+    }
+
+    pub fn prepare_session_proposal(
+        &self,
+        wallets: Vec<Wallet>,
+        current_wallet_id: Option<WalletId>,
+        required_chain_ids: Vec<String>,
+        optional_chain_ids: Vec<String>,
+        metadata: ApplicationMetadata,
+        origin: Option<String>,
+        validation: WalletConnectionVerificationStatus,
+    ) -> Result<GemSessionProposal, GemServiceError> {
+        let required = rules::parse_chains(&self.wallet_connect, &required_chain_ids).ok_or_else(|| GemServiceError::Status {
+            msg: "unsupported chains".to_string(),
+        })?;
+        let optional = rules::parse_known_chains(&self.wallet_connect, &optional_chain_ids);
+        let verification_status = self.wallet_connect.validate_origin(metadata.url.clone(), origin, validation);
+        if matches!(
+            verification_status,
+            WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious
+        ) {
+            return Err(GemServiceError::Status {
+                msg: "invalid origin".to_string(),
+            });
+        }
+        let session_wallets = self
+            .select_session_wallets(wallets, current_wallet_id, required, optional)
+            .ok_or_else(|| GemServiceError::Status {
+                msg: "wallets unsupported".to_string(),
+            })?;
+        Ok(GemSessionProposal {
+            proposal: WalletConnectionSessionProposal {
+                default_wallet: session_wallets.default_wallet,
+                wallets: session_wallets.wallets,
+                metadata,
+            },
+            verification_status,
+        })
+    }
+
+    pub fn application_metadata(&self, name: String, description: String, url: String, icons: Vec<String>) -> ApplicationMetadata {
+        rules::application_metadata(name, description, url, icons)
+    }
+
+    pub fn session_approval(&self, wallet: Wallet, supported_chains: Vec<Chain>) -> GemSessionApproval {
+        let chains = rules::session_chains(&wallet, &supported_chains);
+        let accounts = wallet.accounts.into_iter().filter(|account| chains.contains(&account.chain)).collect();
+        GemSessionApproval {
+            chains,
+            accounts,
+            methods: rules::session_methods(),
+            events: rules::session_events(),
+        }
+    }
+
+    pub fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> WalletConnectionSession {
+        let chains = rules::account_chains(&self.wallet_connect, &accounts);
+        let expire_at = DateTime::<Utc>::from_timestamp(expire_at, 0).unwrap_or_else(Utc::now);
+        rules::session(topic, chains, expire_at, metadata)
     }
 
     pub async fn handle_request(&self, request: GemWalletConnectRequest) -> Result<GemWalletConnectResponse, GemServiceError> {
