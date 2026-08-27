@@ -11,6 +11,7 @@ use primitives::{Chain, Wallet, WalletId, WalletType};
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, GemWalletType, keystore_id_for_wallet};
 use crate::services::device::GemDeviceStore;
 use crate::services::error::GemServiceError;
+use crate::services::file::GemFileStore;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use model::{GemWalletImportResult, GemWalletImportType, GemWalletSource};
@@ -26,6 +27,7 @@ pub struct GemWalletService {
     store: Arc<dyn GemWalletStore>,
     session: Arc<GemWalletSessionService>,
     device_store: Arc<dyn GemDeviceStore>,
+    files: Arc<dyn GemFileStore>,
 }
 
 #[uniffi::export]
@@ -37,6 +39,7 @@ impl GemWalletService {
         store: Arc<dyn GemWalletStore>,
         session: Arc<GemWalletSessionService>,
         device_store: Arc<dyn GemDeviceStore>,
+        files: Arc<dyn GemFileStore>,
     ) -> Self {
         Self {
             keystore,
@@ -44,6 +47,7 @@ impl GemWalletService {
             store,
             session,
             device_store,
+            files,
         }
     }
 
@@ -110,6 +114,9 @@ impl GemWalletService {
             self.keystore.delete(keystore_id_for_wallet(wallet.id.id()))?;
         }
         self.store.delete_wallet(wallet.id.clone()).await?;
+        if let Some(image_url) = wallet.image_url.clone() {
+            self.files.remove(image_url)?;
+        }
         let remaining = self.store.get_wallets()?;
         if self.session.get_current_wallet_id()? == Some(wallet.id) {
             self.session.set_current_wallet_id(rules::next_current_wallet(&remaining))?;

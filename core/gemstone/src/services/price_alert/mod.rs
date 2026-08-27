@@ -46,13 +46,12 @@ impl GemPriceAlertService {
     }
 
     pub async fn set_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        if self.is_enabled()? == enabled {
-            return Ok(());
+        if self.is_enabled()? != enabled {
+            if enabled {
+                self.permissions.request_permissions_or_open_settings().await?;
+            }
+            self.preferences.set_price_alerts_enabled(enabled)?;
         }
-        if enabled {
-            self.permissions.request_permissions_or_open_settings().await?;
-        }
-        self.preferences.set_price_alerts_enabled(enabled)?;
         self.device.sync_device().await
     }
 

@@ -79,7 +79,7 @@ extension PriceAlertsSceneViewModel {
         do {
             try await priceAlertService.setEnabled(enabled: enabled)
         } catch {
-            isPriceAlertsEnabled = !enabled
+            isPriceAlertsEnabled = (try? priceAlertService.isEnabled()) ?? false
             debugLog("setPriceAlertsEnabled error: \(error)")
         }
     }

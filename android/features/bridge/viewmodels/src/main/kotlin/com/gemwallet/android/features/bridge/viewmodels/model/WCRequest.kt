@@ -59,7 +59,7 @@ sealed class WCRequest(
         }
 
         override val message: String
-            get() = runCatching { signer.plainPreview() }.getOrNull() ?: request.message.data.decodeToString()
+            get() = runCatching { signer.plainPreview() }.getOrNull() ?: request.message.data.joinToString(separator = "", prefix = "0x") { "%02x".format(it) }
 
         override val warnings: List<SimulationWarning>
             get() = simulation.warnings

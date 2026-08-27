@@ -17,6 +17,12 @@ public final class GemstoneWalletSessionStore: GemWalletSessionStore, @unchecked
     }
 
     public func setCurrentWalletId(walletId: Gemstone.WalletId?) throws {
-        preferences.currentWalletId = walletId
+        if Thread.isMainThread {
+            preferences.currentWalletId = walletId
+        } else {
+            DispatchQueue.main.sync {
+                preferences.currentWalletId = walletId
+            }
+        }
     }
 }

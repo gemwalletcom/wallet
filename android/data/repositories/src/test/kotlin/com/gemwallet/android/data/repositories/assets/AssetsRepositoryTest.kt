@@ -376,6 +376,24 @@ class AssetsRepositoryTest {
     }
 
     @Test
+    fun updateNativeAssetRanks_repairsLegacyNativeRanks() = runBlocking {
+        every { sessionRepository.session() } returns sessionFlow
+        mockkStatic("com.gemwallet.android.ext.ChainKt")
+        mockkStatic("uniffi.gemstone.GemstoneKt")
+        every { Chain.available() } returns setOf(Chain.Solana, Chain.Ethereum)
+        every { Chain.Solana.asset() } returns mockAssetSolana()
+        every { Chain.Ethereum.asset() } returns mockAssetEthereum()
+        every { assetDefaultRank(Chain.Solana.string) } returns 99
+        every { assetDefaultRank(Chain.Ethereum.string) } returns 77
+
+        val subject = createSubject()
+        subject.updateNativeAssetRanks()
+
+        coVerify { assetsDao.updateAssetRank("solana", 99) }
+        coVerify { assetsDao.updateAssetRank("ethereum", 77) }
+    }
+
+    @Test
     fun switchVisibility_hideUnlinkedAsset_doesNotCreateWalletAsset() = runBlocking {
         sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
         every { sessionRepository.session() } returns sessionFlow

@@ -55,6 +55,8 @@ import com.gemwallet.android.serializer.toJson
 import javax.inject.Inject
 import javax.inject.Singleton
 import uniffi.gemstone.GemStreamSubscriptionService
+import com.gemwallet.android.ext.available
+import uniffi.gemstone.assetDefaultRank
 
 private const val TAG = "AssetsRepository"
 
@@ -325,6 +327,14 @@ class AssetsRepository @Inject constructor(
         }
     }
 
+
+    suspend fun updateNativeAssetRanks() = withContext(Dispatchers.IO) {
+        for (chain in Chain.available()) {
+            val asset = chain.asset()
+            runCatching { assetsDao.updateAssetRank(asset.id.toIdentifier(), assetDefaultRank(asset.id.toIdentifier())) }
+                .onFailure { Log.e(TAG, "Failed to update native asset rank for ${asset.id}", it) }
+        }
+    }
 
     private suspend fun insertLocalAsset(walletId: String, asset: Asset, visible: Boolean) {
         assetsDao.insert(asset.defaultBasic.toRecord())

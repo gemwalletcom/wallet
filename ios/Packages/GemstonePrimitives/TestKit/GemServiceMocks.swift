@@ -443,7 +443,7 @@ public final class GemStreamSubscriptionServiceMock: GemStreamSubscriptionServic
 
     public func addPrices(assetIds _: [Gemstone.AssetId]) async throws {}
 
-    public func reset() {}
+    public func reset() async {}
 }
 
 public final class GemAvatarServiceMock: GemAvatarServiceProtocol, @unchecked Sendable {

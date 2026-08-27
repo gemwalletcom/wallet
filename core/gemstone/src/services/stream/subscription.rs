@@ -1,5 +1,7 @@
 use std::collections::HashSet;
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::Arc;
+
+use futures::lock::Mutex;
 
 use primitives::{AssetId, StreamMessage, StreamMessagePrices, WalletId};
 
@@ -33,12 +35,13 @@ impl GemStreamSubscriptionService {
     }
 
     pub async fn setup_assets(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.state().wallet_id = Some(wallet_id);
+        self.state.lock().await.wallet_id = Some(wallet_id);
         self.resubscribe().await
     }
 
     pub async fn resubscribe(&self) -> Result<(), GemServiceError> {
-        let Some(wallet_id) = self.state().wallet_id.clone() else {
+        let mut state = self.state.lock().await;
+        let Some(wallet_id) = state.wallet_id.clone() else {
             return Ok(());
         };
         if !self.connection.is_connected().await {
@@ -46,34 +49,29 @@ impl GemStreamSubscriptionService {
         }
         let asset_ids = self.price.observable_asset_ids(wallet_id).await?;
         let target: HashSet<AssetId> = asset_ids.iter().cloned().collect();
-        if self.state().subscribed == target {
+        if state.subscribed == target {
             return Ok(());
         }
         self.connection.send(StreamMessage::SubscribePrices(StreamMessagePrices { assets: asset_ids })).await?;
-        self.state().subscribed = target;
+        state.subscribed = target;
         Ok(())
     }
 
     pub async fn add_prices(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        let new_asset_ids = rules::new_asset_ids(&self.state().subscribed, asset_ids);
+        let mut state = self.state.lock().await;
+        let new_asset_ids = rules::new_asset_ids(&state.subscribed, asset_ids);
         if new_asset_ids.is_empty() {
             return Ok(());
         }
         self.connection
             .send(StreamMessage::AddPrices(StreamMessagePrices { assets: new_asset_ids.clone() }))
             .await?;
-        self.state().subscribed.extend(new_asset_ids);
+        state.subscribed.extend(new_asset_ids);
         Ok(())
     }
 
-    pub fn reset(&self) {
-        self.state().subscribed.clear();
-    }
-}
-
-impl GemStreamSubscriptionService {
-    fn state(&self) -> MutexGuard<'_, SubscriptionState> {
-        self.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+    pub async fn reset(&self) {
+        self.state.lock().await.subscribed.clear();
     }
 }
 
@@ -129,7 +127,7 @@ mod tests {
     #[derive(Default)]
     struct Connection {
         connected: AtomicBool,
-        sent: Mutex<Vec<StreamMessage>>,
+        sent: std::sync::Mutex<Vec<StreamMessage>>,
     }
 
     #[async_trait]
@@ -186,7 +184,7 @@ mod tests {
                 .unwrap();
             assert!(matches!(connection.sent.lock().unwrap().last(), Some(StreamMessage::AddPrices(prices)) if prices.assets == vec![AssetId::from_chain(Chain::Ethereum)]));
 
-            service.reset();
+            service.reset().await;
             service.resubscribe().await.unwrap();
             assert_eq!(subscribed(&connection).len(), 2);
         });

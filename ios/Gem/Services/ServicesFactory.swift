@@ -29,7 +29,7 @@ import WebSocketClient
 
 struct ServicesFactory {
     func makeServices(storages: AppResolver.Storages, navigation: NavigationStateManager) -> AppResolver.Services {
-        let storeManager = StoreManager(db: storages.db)
+        let storeManager = storages.storeManager
         let securePreferences = SecurePreferences()
         let preferencesService = Gemstone.GemPreferencesService(store: GemstonePreferencesStore(namespace: "gemstone_"))
         let nodeService = NodeService(
@@ -108,6 +108,7 @@ struct ServicesFactory {
             store: gemWalletStore,
             session: gemWalletSessionService,
             deviceStore: gemDeviceStore,
+            files: GemstoneFileStore(),
         )
         let avatarService = Gemstone.GemAvatarService(wallets: gemWalletStore, files: GemstoneFileStore(), provider: nativeProvider)
         let walletService = WalletService(
@@ -115,7 +116,6 @@ struct ServicesFactory {
             keystore: storages.keystore,
             walletSessionService: walletSessionService,
             preferences: storages.observablePreferences,
-            avatarService: avatarService,
         )
         let gemBalanceService = gatewayService.balanceService(
             walletStore: gemWalletStore,

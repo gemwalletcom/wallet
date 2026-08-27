@@ -61,12 +61,14 @@ object WalletsModule {
         walletsRepository: Lazy<WalletsRepository>,
         walletSessionService: GemWalletSessionService,
         deviceStore: GemstoneDeviceStore,
+        fileStore: GemFileStore,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore),
         GemstoneWalletStore(walletsRepository),
         walletSessionService,
         deviceStore,
+        fileStore,
     )
 
     @Provides

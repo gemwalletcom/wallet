@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitivesTestKit
 import GemstoneServices
 import Foundation
 import class Gemstone.GemWalletService
@@ -25,13 +24,13 @@ public extension WalletService {
             store: gemWalletStore,
             session: session,
             deviceStore: GemstoneDeviceStore(preferences: preferences.preferences),
+            files: GemstoneFileStore(),
         )
         return WalletService(
             service: gemWalletService,
             keystore: keystore,
             walletSessionService: WalletSessionService(service: session),
             preferences: preferences,
-            avatarService: GemAvatarServiceMock(),
         )
     }
 

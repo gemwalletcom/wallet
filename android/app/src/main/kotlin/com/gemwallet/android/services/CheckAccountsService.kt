@@ -26,6 +26,7 @@ class CheckAccountsService @Inject constructor(
 ) {
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
         assetsService.syncDefaultAssets()
+        assetsRepository.updateNativeAssetRanks()
 
         val updatedWallets = walletService.setupChains(Chain.available().map { it.string })
             .map { it.decodeJson<Wallet>() }

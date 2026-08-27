@@ -49,7 +49,7 @@ class WCRequestViewModel @Inject constructor(
     private var requestJob: Job? = null
 
     val sceneState = combine(state, pendingRequests.current) { state, pending ->
-        state.toSceneState(pending?.takeIf { it.sessionId == state.sessionRequest?.topic }?.let(::toRequest))
+        state.toSceneState(state.approved ?: pending?.takeIf { it.sessionId == state.sessionRequest?.topic }?.let(::toRequest))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, RequestSceneState.Loading)
 
     val buttonState = sceneState.map { scene ->
@@ -67,6 +67,7 @@ class WCRequestViewModel @Inject constructor(
         onError: (String) -> Unit,
     ) {
         requestJob?.cancel()
+        pendingRequests.current.value?.takeIf { it.sessionId == sessionRequest.topic }?.reject()
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
         Log.d(TAG, "Resolving request method=${sessionRequest.request.method} chainId=${sessionRequest.chainId} id=${sessionRequest.request.id}")
         val job = viewModelScope.launch(Dispatchers.IO) {
@@ -103,13 +104,15 @@ class WCRequestViewModel @Inject constructor(
             return
         }
         val request = (sceneState.value as? RequestSceneState.Content)?.request as? WCRequest.SignMessage ?: return
-        state.update { it.copy(responseState = RequestResponseState.Responding) }
+        state.update { it.copy(responseState = RequestResponseState.Responding, approved = request) }
         viewModelScope.launch(Dispatchers.IO) {
             val signature = try {
                 signMessageOperator.sign(request.signer, request.wallet, passwordStore.getPassword(request.wallet.id.id))
+            } catch (err: CancellationException) {
+                throw err
             } catch (err: Throwable) {
                 Log.e(TAG, "Sign message failed topic=${request.pending.sessionId}", err)
-                state.update { it.copy(responseState = RequestResponseState.Idle) }
+                state.update { it.copy(responseState = RequestResponseState.Idle, approved = null) }
                 onError(err.message ?: "Sign failed")
                 request.reject()
                 return@launch
@@ -123,7 +126,7 @@ class WCRequestViewModel @Inject constructor(
             return
         }
         val request = (sceneState.value as? RequestSceneState.Content)?.request as? WCRequest.Transaction ?: return
-        state.update { it.copy(responseState = RequestResponseState.Responding) }
+        state.update { it.copy(responseState = RequestResponseState.Responding, approved = request) }
         request.approve(result)
     }
 
@@ -159,7 +162,7 @@ class WCRequestViewModel @Inject constructor(
             response = response,
             onSuccess = { activeRequest.finish(sessionRequest) },
             onError = { error ->
-                state.update { it.copy(responseState = RequestResponseState.Idle) }
+                state.update { it.copy(responseState = RequestResponseState.Idle, approved = null) }
                 onError(error.ifBlank { "Request failed" })
             },
         )
@@ -186,6 +189,7 @@ class WCRequestViewModel @Inject constructor(
 private data class RequestViewModelState(
     val sessionRequest: WalletConnectSessionRequest? = null,
     val walletName: String? = null,
+    val approved: WCRequest? = null,
     val responseState: RequestResponseState = RequestResponseState.Idle,
 ) {
     fun toSceneState(request: WCRequest?): RequestSceneState {
