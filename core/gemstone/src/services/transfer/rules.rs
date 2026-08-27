@@ -131,7 +131,7 @@ pub fn metadata(input_type: &GemTransactionInputType) -> Result<Option<serde_jso
 pub fn tron_stake_available(asset: &Asset, balance: &GemTransferBalance) -> BigInt {
     let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
     let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
-    parse(&balance.frozen) + parse(&balance.locked) - staked
+    (parse(&balance.frozen) + parse(&balance.locked) - staked).max(BigInt::from(0))
 }
 
 pub fn unfreeze_available(resource: &primitives::Resource, balance: &GemTransferBalance) -> BigInt {
@@ -440,6 +440,20 @@ mod tests {
                 }
             ),
             BigInt::from(6_000_000)
+        );
+        let overvoted = GemTransactionInputType::Stake {
+            asset: asset(Chain::Tron),
+            stake_type: StakeType::Stake(delegation(0).validator),
+        };
+        assert_eq!(
+            available_value(
+                &transfer(overvoted, "1"),
+                &GemTransferBalance {
+                    votes: 9,
+                    ..balance(1, 5_000_000, 3_000_000)
+                }
+            ),
+            BigInt::from(0)
         );
         let withdrawal = GemTransactionInputType::Withdrawal { asset: asset(Chain::HyperCore) };
         assert_eq!(

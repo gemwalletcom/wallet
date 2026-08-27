@@ -104,12 +104,7 @@ impl GemConfirmService {
             references: transfer.recipient.references.clone(),
         };
 
-        let scan_future = async {
-            match scan_payload(preload_input.clone()) {
-                Some(payload) => self.scanner.scan_transaction(payload).await.ok(),
-                None => None,
-            }
-        };
+        let scan_future = async { self.scanner.scan_transaction(scan_payload(preload_input.clone())).await.ok() };
         let (metadata, fee_rates, scan, simulation) = futures::join!(
             self.gateway.get_transaction_preload(chain, preload_input.clone()),
             self.gateway.get_fee_rates(chain, transfer.input_type.clone()),
@@ -247,10 +242,9 @@ fn validate_scan(scan: Option<&ScanTransaction>, memo: Option<&str>, symbol: &st
     Ok(())
 }
 
-fn scan_payload(input: GemTransactionPreloadInput) -> Option<ScanTransactionPayload> {
+fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransactionPayload {
     let input: TransactionPreloadInput = input.into();
-    let scan_type = input.scan_type()?;
-    Some(ScanTransactionPayload {
+    ScanTransactionPayload {
         origin: ScanAddressTarget {
             asset_id: input.input_type.get_asset().id.clone(),
             address: input.sender_address.clone(),
@@ -260,8 +254,8 @@ fn scan_payload(input: GemTransactionPreloadInput) -> Option<ScanTransactionPayl
             address: input.destination_address.clone(),
         },
         website: input.get_website(),
-        transaction_type: scan_type,
-    })
+        transaction_type: input.input_type.transaction_type(),
+    }
 }
 
 fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSelection) -> Result<GemFeeRate, GemConfirmError> {
@@ -291,7 +285,7 @@ fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSelection) -> 
 mod tests {
     use super::*;
     use crate::models::gateway::GemGasPriceType;
-    use primitives::{ApplicationMetadata, Asset, TransferDataExtra, swap::SwapData};
+    use primitives::{ApplicationMetadata, Asset, TransactionType, TransferDataExtra, swap::SwapData};
 
     fn rate(priority: &str, gas_price: &str) -> GemFeeRate {
         GemFeeRate {
@@ -345,6 +339,40 @@ mod tests {
         assert_eq!(broadcast_delay_milliseconds(Chain::Ethereum), 0);
         assert_eq!(broadcast_delay_milliseconds(Chain::HyperCore), 0);
         assert_eq!(broadcast_delay_milliseconds(Chain::Solana), 500);
+    }
+
+    #[test]
+    fn test_scan_payload_covers_every_input_type() {
+        let swap = GemTransactionPreloadInput {
+            input_type: GemTransactionInputType::Swap {
+                from_asset: Asset::mock_sol(),
+                to_asset: Asset::mock_spl_token(),
+                swap_data: SwapData::mock(),
+            },
+            sender_address: "sender".to_string(),
+            destination_address: "router".to_string(),
+            references: vec![],
+        };
+        let payload = scan_payload(swap);
+        assert_eq!(payload.transaction_type, TransactionType::Swap);
+        assert_eq!(payload.origin.asset_id, Asset::mock_sol().id);
+        assert_eq!(payload.target.asset_id, Asset::mock_spl_token().id);
+        assert_eq!(payload.target.address, "router");
+        assert_eq!(payload.website, None);
+
+        let generic = GemTransactionPreloadInput {
+            input_type: GemTransactionInputType::Generic {
+                asset: Asset::mock_sol(),
+                metadata: ApplicationMetadata::mock(),
+                extra: TransferDataExtra::mock().into(),
+            },
+            sender_address: "sender".to_string(),
+            destination_address: "contract".to_string(),
+            references: vec![],
+        };
+        let payload = scan_payload(generic);
+        assert_eq!(payload.transaction_type, TransferDataExtra::mock().transaction_type);
+        assert_eq!(payload.website, Some(ApplicationMetadata::mock().url));
     }
 
     #[test]

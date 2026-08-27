@@ -60,10 +60,11 @@ fn minimum_value(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
         GemAmountType::Stake { stake_type } => match stake_type {
             GemAmountStakeType::Stake | GemAmountStakeType::Freeze { .. } => stake_config.map(|config| BigInt::from(config.min_amount)).unwrap_or_default(),
             GemAmountStakeType::Redelegate { .. } if asset.chain() == Chain::SmartChain => stake_config.map(|config| BigInt::from(config.min_amount)).unwrap_or_default(),
-            GemAmountStakeType::Withdraw { .. } => usdc_minimum(asset, MIN_DEPOSIT_AMOUNT),
-            GemAmountStakeType::Redelegate { .. } | GemAmountStakeType::Unstake { .. } | GemAmountStakeType::Unfreeze { .. } | GemAmountStakeType::Rewards { .. } => {
-                BigInt::from(0)
-            }
+            GemAmountStakeType::Withdraw { .. }
+            | GemAmountStakeType::Redelegate { .. }
+            | GemAmountStakeType::Unstake { .. }
+            | GemAmountStakeType::Unfreeze { .. }
+            | GemAmountStakeType::Rewards { .. } => BigInt::from(0),
         },
         GemAmountType::Perpetual {
             price, leverage, size_decimals, ..
@@ -246,6 +247,15 @@ mod tests {
             available_value(&stake(GemAmountStakeType::Unfreeze { resource: Resource::Energy }), &tron, &balance(1, 2, 3, 0)),
             BigInt::from(3)
         );
+    }
+
+    #[test]
+    fn test_stake_withdraw_has_no_minimum() {
+        let withdraw = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Withdraw { delegation: delegation(700, 0) },
+        };
+        assert_eq!(rules(&withdraw, &usdc()).minimum_value, "0");
+        assert!(!rules(&withdraw, &usdc()).can_change_value);
     }
 
     #[test]
