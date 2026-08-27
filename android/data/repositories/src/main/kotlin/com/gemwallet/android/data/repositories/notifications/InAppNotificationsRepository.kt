@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.notifications
 
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.entities.toModel
-import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.wallet.core.primitives.InAppNotification
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
@@ -18,10 +17,6 @@ class InAppNotificationsRepository(
         notificationsDao.getNotifications(walletId.id).map { records -> records.map { it.toModel() } }
 
     suspend fun sync(walletId: WalletId) = notificationService.sync(walletId.id)
-
-    suspend fun addNotification(notification: InAppNotification) {
-        notificationsDao.put(listOf(notification.toRecord()))
-    }
 
     suspend fun markNotificationsRead() = notificationService.markRead()
 }

@@ -8,7 +8,6 @@ import com.gemwallet.android.application.wallet.coordinators.GetWalletSecretData
 import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
 import com.gemwallet.android.application.wallet.coordinators.SetWalletName
 import com.gemwallet.android.application.wallet.coordinators.SetWalletPinned
-import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.cases.addresses.RenameWalletAddresses
@@ -19,7 +18,6 @@ import com.gemwallet.android.data.coordinators.wallet.GetWalletSecretDataImpl
 import com.gemwallet.android.data.coordinators.wallet.SetCurrentWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.SetWalletNameImpl
 import com.gemwallet.android.data.coordinators.wallet.SetWalletPinnedImpl
-import com.gemwallet.android.data.coordinators.wallet.WalletIdGeneratorImpl
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import dagger.Module
@@ -32,11 +30,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 object WalletModule {
-    @Provides
-    @Singleton
-    fun provideWalletIdGenerator(): WalletIdGenerator {
-        return WalletIdGeneratorImpl()
-    }
 
     @Provides
     @Singleton
