@@ -131,7 +131,6 @@ State on 2026-08-28: every app service forwards to a Core service or is platform
 
 ### Rust (core/gemstone)
 
-- Amount percent presets: iOS `SwapSceneViewModel.inputPercentSuggestions` and Android `SwapViewModel.percentSuggestions` both hardcode `[25, 50, 100]`; put them next to the slippage presets in `SwapConfig` (or an amount config) and read them on both apps.
 - Popular assets for the asset picker: Android `BaseAssetSelectViewModel.popular` hardcodes ETH/BTC/SOL and iOS `SelectAssetViewModel` has its own list; expose one `rules::popular_asset_ids()` from the search/assets service.
 - Perpetual markets refresh interval: iOS `PerpetualsSceneViewModel.marketsUpdateIntervalHours = 1` gates `sync_markets`, Android syncs on every wallet change; add `GemPerpetualService::sync_markets_if_stale(chain, currency)` that owns the interval and use it on both apps.
 - Get-asset flow for an insufficient fee asset: iOS `ConfirmTransferSceneViewModel.onSelectGetAsset` routes Tron to the get-asset sheet and everything else to fiat; Android has no equivalent. Decide the rule in Core (`GemFiatService`/confirm rule returning the destination) so both apps share it.

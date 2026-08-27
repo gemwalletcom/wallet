@@ -13,6 +13,7 @@ pub struct SwapConfig {
     pub min_slippage_bps: u32,
     pub max_slippage_bps: u32,
     pub slippage_suggestions_bps: Vec<u32>,
+    pub amount_percent_presets: Vec<u32>,
 }
 
 #[uniffi::export]

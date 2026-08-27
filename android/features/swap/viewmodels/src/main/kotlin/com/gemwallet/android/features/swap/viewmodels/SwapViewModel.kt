@@ -384,6 +384,6 @@ class SwapViewModel @Inject constructor(
     }
 
     companion object {
-        val percentSuggestions = listOf(25, 50, 100)
+        val percentSuggestions = Config().getSwapConfig().amountPercentPresets.map { it.toInt() }
     }
 }

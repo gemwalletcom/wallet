@@ -22,7 +22,7 @@ import Validators
 @MainActor
 @Observable
 public final class SwapSceneViewModel {
-    static let inputPercentSuggestions = [25, 50, 100].map { PercentageSuggestion(value: $0) }
+    static let inputPercentSuggestions = GemstoneConfig.shared.swapConfig().amountPercentPresets.map { PercentageSuggestion(value: Int($0)) }
 
     public let wallet: Wallet
     private let balanceService: any GemBalanceServiceProtocol
