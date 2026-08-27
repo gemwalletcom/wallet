@@ -16,7 +16,7 @@ use num_bigint::BigInt;
 use primitives::ContractCallData;
 use primitives::GasPriceType;
 #[cfg(feature = "rpc")]
-use primitives::{AssetId, EVMChain, FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
+use primitives::{AssetId, FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 #[cfg(feature = "rpc")]
 use serde_serializers::bigint::bigint_from_hex_str;
 use std::collections::HashMap;
@@ -55,10 +55,7 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
 impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let params = match &input.input_type {
-            TransactionInputType::Stake(_, stake_type) => match self.chain {
-                EVMChain::SmartChain => get_transaction_params(self.chain, &input)?,
-                _ => self.provider.encode_stake(stake_type, &input.value_as_bigint()?)?,
-            },
+            TransactionInputType::Stake(_, stake_type) => self.provider.encode_stake(stake_type, &input.value_as_bigint()?)?,
             _ => get_transaction_params(self.chain, &input)?,
         };
 

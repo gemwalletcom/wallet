@@ -4,6 +4,7 @@ use chain_traits::ChainTraits;
 use gem_algorand::rpc::{AlgorandClient, AlgorandProvider};
 use gem_aptos::rpc::client::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
+use gem_bsc::BscStakingClient;
 use gem_cardano::rpc::client::CardanoClient;
 use gem_cosmos::rpc::client::CosmosClient;
 use gem_everstake::EverstakeStakingClient;
@@ -89,6 +90,7 @@ impl ChainClientFactory {
                         Box::new(match evm_chain {
                             EVMChain::Ethereum => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, String::new()))),
                             EVMChain::Monad => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(MonadStakingClient::new(client))),
+                            EVMChain::SmartChain => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(BscStakingClient::new(client))),
                             _ => EthereumProvider::new_rpc_only(client),
                         })
                     }

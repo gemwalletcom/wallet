@@ -17,7 +17,7 @@ use primitives::{EVMChain, FeeRate};
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 use settings::testkit::get_test_settings;
 
-pub use crate::testkit::{TEST_ADDRESS, TEST_SMARTCHAIN_STAKING_ADDRESS, TEST_TRANSACTION_ID, TOKEN_DAI_ADDRESS, TOKEN_USDC_ADDRESS};
+pub use crate::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, TOKEN_DAI_ADDRESS, TOKEN_USDC_ADDRESS};
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 fn build_test_client(chain: EVMChain, rpc_url: &str) -> EthereumProvider<ReqwestClient> {

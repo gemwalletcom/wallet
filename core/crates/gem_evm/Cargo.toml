@@ -20,7 +20,6 @@ gem_ankr = { path = "../gem_ankr", optional = true }
 gem_blockscout = { path = "../gem_blockscout", optional = true }
 gem_client = { path = "../gem_client", optional = true }
 gem_hash = { path = "../gem_hash" }
-gem_bsc = { path = "../gem_bsc" }
 signer = { path = "../signer" }
 
 hex = { workspace = true }

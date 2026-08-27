@@ -3552,7 +3552,15 @@ version = "2.114.11"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
- "hex",
+ "async-trait",
+ "chrono",
+ "gem_client",
+ "gem_evm",
+ "num-bigint 0.5.1",
+ "num-traits",
+ "primitives",
+ "settings",
+ "tokio",
 ]
 
 [[package]]
@@ -3703,7 +3711,6 @@ dependencies = [
  "gem_alchemy",
  "gem_ankr",
  "gem_blockscout",
- "gem_bsc",
  "gem_client",
  "gem_hash",
  "gem_jsonrpc",
@@ -4116,6 +4123,7 @@ dependencies = [
  "gem_aptos",
  "gem_auth",
  "gem_bitcoin",
+ "gem_bsc",
  "gem_cardano",
  "gem_client",
  "gem_cosmos",
@@ -7932,6 +7940,7 @@ dependencies = [
  "gem_algorand",
  "gem_aptos",
  "gem_bitcoin",
+ "gem_bsc",
  "gem_cardano",
  "gem_client",
  "gem_cosmos",
