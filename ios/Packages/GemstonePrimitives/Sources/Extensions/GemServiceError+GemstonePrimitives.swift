@@ -6,8 +6,7 @@ import enum Gemstone.GemServiceError
 extension GemServiceError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
-        case let .Api(msg), let .Gateway(msg), let .Store(msg), let .Status(msg), let .Core(msg), let .Platform(msg): msg
-        case let .UnknownCurrency(currency): "Unknown currency: \(currency)"
+        case let .Api(msg), let .Gateway(msg), let .Store(msg), let .Core(msg), let .Platform(msg), let .InvalidInput(msg), let .NotFound(msg), let .Unsupported(msg): msg
         case .Cancelled: "Cancelled"
         }
     }

@@ -129,7 +129,7 @@ impl GemWalletConnectService {
 
     pub fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> Result<WalletConnectionSession, GemServiceError> {
         let chains = rules::account_chains(&self.wallet_connect, &accounts);
-        let expire_at = DateTime::<Utc>::from_timestamp(expire_at, 0).ok_or_else(|| GemServiceError::Status {
+        let expire_at = DateTime::<Utc>::from_timestamp(expire_at, 0).ok_or_else(|| GemServiceError::InvalidInput {
             msg: format!("invalid session expiry {expire_at}"),
         })?;
         Ok(rules::session(topic, chains, expire_at, metadata))
@@ -161,7 +161,7 @@ impl GemWalletConnectService {
                 transactions,
             } => {
                 let [data] = transactions.as_slice() else {
-                    return Err(GemServiceError::Status {
+                    return Err(GemServiceError::Unsupported {
                         msg: "signAllTransactions with multiple transactions is not yet supported".to_string(),
                     });
                 };
@@ -233,7 +233,7 @@ impl GemWalletConnectService {
     }
 
     async fn connection(&self, session_id: &str) -> Result<WalletConnection, GemServiceError> {
-        self.store.get_connection(session_id.to_string()).await?.ok_or_else(|| GemServiceError::Status {
+        self.store.get_connection(session_id.to_string()).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("WalletConnect session {session_id} not found"),
         })
     }

@@ -96,7 +96,7 @@ impl GemPerpetualService {
     }
 
     pub async fn apply_socket_message(&self, wallet_id: WalletId, mode: PerpetualAccountMode, data: Vec<u8>) -> Result<GemPerpetualSocketUpdate, GemServiceError> {
-        let message = parse_websocket_data(&data, mode).map_err(|error| GemServiceError::Status { msg: error.to_string() })?;
+        let message = parse_websocket_data(&data, mode).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
         match message {
             HyperliquidSocketMessage::AccountState { balance, positions } => {
                 let existing = self.store.get_positions(wallet_id.clone(), PerpetualProvider::Hypercore).await?;
@@ -145,7 +145,7 @@ impl GemPerpetualService {
 
 impl GemPerpetualService {
     pub async fn update_balance(&self, wallet_id: WalletId, balance: PerpetualBalance) -> Result<(), GemServiceError> {
-        let update = rules::balance_update(&balance).map_err(|error| GemServiceError::Status { msg: error.to_string() })?;
+        let update = rules::balance_update(&balance).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
         self.balance.update_balances(wallet_id, vec![update]).await
     }
     pub async fn update_prices(&self, prices: HashMap<String, f64>) -> Result<(), GemServiceError> {
@@ -159,7 +159,7 @@ impl GemPerpetualService {
 }
 
 fn provider(chain: Chain) -> Result<PerpetualProvider, GemServiceError> {
-    rules::provider(chain).ok_or_else(|| GemServiceError::Status {
+    rules::provider(chain).ok_or_else(|| GemServiceError::Unsupported {
         msg: format!("perpetuals unsupported on {chain}"),
     })
 }

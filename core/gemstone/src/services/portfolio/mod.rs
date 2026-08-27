@@ -30,11 +30,9 @@ impl GemPortfolioService {
 
     pub async fn sync_wallet_values(&self, wallet_id: WalletId, period: ChartPeriod, currency: Currency) -> Result<GemPortfolioValues, GemServiceError> {
         let portfolio = self.get_wallet_assets(wallet_id, period).await?;
-        let rate = self
-            .price
-            .rate(currency.clone())
-            .await?
-            .ok_or(GemServiceError::UnknownCurrency { currency: currency.to_string() })?;
+        let rate = self.price.rate(currency.clone()).await?.ok_or(GemServiceError::InvalidInput {
+            msg: format!("unknown currency: {currency}"),
+        })?;
         Ok(rules::converted_portfolio(portfolio, rate.rate))
     }
 

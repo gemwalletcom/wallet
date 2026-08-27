@@ -58,7 +58,7 @@ impl GemWalletService {
     }
 
     pub fn create_wallet(&self) -> Result<Vec<String>, GemServiceError> {
-        Mnemonic::generate(12).map_err(|error| GemServiceError::Status { msg: error.to_string() })
+        Mnemonic::generate(12).map_err(|error| GemServiceError::Core { msg: error.to_string() })
     }
 
     pub fn next_wallet_index(&self) -> Result<i32, GemServiceError> {
@@ -86,8 +86,8 @@ impl GemWalletService {
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: GemWalletSource) -> Result<GemWalletImportResult, GemServiceError> {
         let import = rules::validate_import(import)?;
         let preview = self.preview_import(import.clone())?;
-        let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Status {
-            msg: "invalid wallet id".to_string(),
+        let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Core {
+            msg: format!("invalid wallet id {}", preview.wallet_id),
         })?;
         let wallets = self.store.get_wallets()?;
         if let Some(wallet) = rules::existing_wallet(&wallets, &wallet_id, preview.wallet_type) {
@@ -124,7 +124,7 @@ impl GemWalletService {
     }
 
     pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<bool, GemServiceError> {
-        let wallet = self.store.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::Status {
+        let wallet = self.store.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} not found", wallet_id.id()),
         })?;
         if wallet.wallet_type != WalletType::View {

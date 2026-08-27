@@ -44,11 +44,7 @@ impl GemConfigService {
             }
         };
         if let Some(receiver) = receiver {
-            return receiver.await.unwrap_or_else(|_| {
-                Err(GemServiceError::Status {
-                    msg: "config update cancelled".to_string(),
-                })
-            });
+            return receiver.await.unwrap_or(Err(GemServiceError::Cancelled));
         }
         let result = self.load_config().await;
         for sender in self.waiters().take().unwrap_or_default() {

@@ -57,7 +57,9 @@ impl GemPriceService {
 
     pub async fn change_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
         let Some(rate) = rules::rate_or_base(currency.clone(), self.store.get_rate(currency.clone()).await?) else {
-            return Err(GemServiceError::UnknownCurrency { currency: currency.to_string() });
+            return Err(GemServiceError::InvalidInput {
+                msg: format!("unknown currency: {currency}"),
+            });
         };
         self.store.convert_prices(currency, rate.rate).await
     }

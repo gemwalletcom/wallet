@@ -40,7 +40,7 @@ mod tests {
     fn test_record_collects_failures_and_continues() {
         let failures = futures::executor::block_on(async {
             let mut failures: Vec<Failure> = Vec::new();
-            record(&mut failures, 1, async { Err(GemServiceError::Status { msg: "offline".to_string() }) }).await;
+            record(&mut failures, 1, async { Err(GemServiceError::Gateway { msg: "offline".to_string() }) }).await;
             record(&mut failures, 2, async { Ok(()) }).await;
             record(&mut failures, 3, async { Err(GemServiceError::Cancelled) }).await;
             failures

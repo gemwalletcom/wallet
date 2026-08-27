@@ -27,11 +27,9 @@ impl GemChartService {
         if let Some(market) = charts.market {
             self.price.update_market(asset_id, market, currency.clone()).await?;
         }
-        let rate = self
-            .price
-            .rate(currency.clone())
-            .await?
-            .ok_or(GemServiceError::UnknownCurrency { currency: currency.to_string() })?;
+        let rate = self.price.rate(currency.clone()).await?.ok_or(GemServiceError::InvalidInput {
+            msg: format!("unknown currency: {currency}"),
+        })?;
         Ok(rules::converted_values(charts.prices, rate.rate))
     }
 }

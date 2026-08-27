@@ -136,7 +136,7 @@ async fn apply(
     let update = match update {
         Ok(update) => update,
         Err(_) if timed_out => TransactionUpdate::new_state(TransactionState::Failed),
-        Err(msg) => return Err(GemServiceError::Status { msg }),
+        Err(msg) => return Err(GemServiceError::Gateway { msg }),
     };
     let (transaction_id, current_state) = match rules::new_hash(&update.changes) {
         Some(hash) => rename(store, &wallet_id, &transaction, hash).await?,
@@ -146,7 +146,7 @@ async fn apply(
         state if timed_out && !state.is_completed() => TransactionState::Failed,
         state => state,
     };
-    let fields = rules::state_update(next_state, &update.changes).map_err(|error| GemServiceError::Status { msg: error.to_string() })?;
+    let fields = rules::state_update(next_state, &update.changes).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
     if next_state == current_state && !fields.has_field_changes() {
         let state = store.get_state(wallet_id, transaction_id.clone()).await?;
         return Ok(state.map(|state| GemTransactionStateResult {
@@ -408,7 +408,7 @@ mod tests {
         let store = MemoryStore::with(vec![(id("hash"), TransactionState::Pending)]);
 
         let fresh = apply_update(&store, transaction("hash", TransactionState::Pending, now), Err("offline".into()), now);
-        assert!(matches!(fresh, Err(GemServiceError::Status { .. })));
+        assert!(matches!(fresh, Err(GemServiceError::Gateway { .. })));
 
         let stale = apply_update(
             &store,

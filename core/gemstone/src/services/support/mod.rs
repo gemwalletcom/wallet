@@ -58,7 +58,7 @@ impl GemSupportService {
 
     pub async fn retry_message(&self, message: SupportMessage) -> Result<(), GemServiceError> {
         if !message.images.is_empty() {
-            return Err(GemServiceError::Status {
+            return Err(GemServiceError::Unsupported {
                 msg: "image messages cannot be retried".to_string(),
             });
         }

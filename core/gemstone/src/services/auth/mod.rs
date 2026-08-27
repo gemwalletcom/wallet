@@ -38,7 +38,7 @@ impl GemAuthService {
     }
 
     pub async fn get_auth_payload(&self, wallet: Wallet) -> Result<AuthPayload, GemServiceError> {
-        let account = rules::auth_account(&wallet).ok_or_else(|| GemServiceError::Status {
+        let account = rules::auth_account(&wallet).ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} has no {} account", wallet.id.id(), rules::AUTH_CHAIN),
         })?;
         let nonce = self.get_nonce().await?;

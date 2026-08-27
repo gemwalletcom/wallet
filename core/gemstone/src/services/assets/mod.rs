@@ -109,7 +109,7 @@ impl GemAssetsService {
             return Ok(asset);
         }
         self.prefetch_assets(vec![asset_id.clone()]).await?;
-        self.stored_asset(&asset_id).await?.ok_or_else(|| GemServiceError::Status {
+        self.stored_asset(&asset_id).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("asset not found: {asset_id}"),
         })
     }

@@ -23,6 +23,6 @@ impl std::error::Error for GemWalletImportError {}
 
 impl From<GemWalletImportError> for GemServiceError {
     fn from(error: GemWalletImportError) -> Self {
-        Self::Status { msg: error.to_string() }
+        Self::InvalidInput { msg: error.to_string() }
     }
 }

@@ -20,7 +20,7 @@ pub fn session_account(connection: &WalletConnection, chain: Chain) -> Result<Ac
         .iter()
         .find(|account| account.chain == chain)
         .cloned()
-        .ok_or_else(|| GemServiceError::Status {
+        .ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet has no {chain} account"),
         })
 }
@@ -29,7 +29,7 @@ pub fn validate_session_chain(session: &WalletConnectionSession, chain: Chain) -
     if session.chains.contains(&chain) {
         return Ok(());
     }
-    Err(GemServiceError::Status {
+    Err(GemServiceError::InvalidInput {
         msg: format!("chain {chain} is not part of the session"),
     })
 }
