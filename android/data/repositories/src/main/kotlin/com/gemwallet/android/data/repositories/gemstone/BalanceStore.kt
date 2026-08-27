@@ -41,6 +41,8 @@ class GemstoneBalanceStore(
                     availableAmount = type.available.amount,
                     reserved = type.reserved.value,
                     reservedAmount = type.reserved.amount,
+                    pendingUnconfirmed = type.pendingUnconfirmed.value,
+                    pendingUnconfirmedAmount = type.pendingUnconfirmed.amount,
                     isActive = update.isActive,
                     updatedAt = updatedAt,
                 )
@@ -75,7 +77,14 @@ class GemstoneBalanceStore(
                         updatedAt = updatedAt,
                     )
                 }
-                is GemBalanceUpdateType.Earn -> Unit
+                is GemBalanceUpdateType.Earn -> balancesDao.updateEarnBalance(
+                    walletId = walletId,
+                    assetId = update.assetId,
+                    earn = type.balance.value,
+                    earnAmount = type.balance.amount,
+                    isActive = update.isActive,
+                    updatedAt = updatedAt,
+                )
             }
         }
     }

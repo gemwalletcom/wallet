@@ -43,6 +43,8 @@ class DelegationAmountExtTest {
             rewards = "53",
             reserved = "0",
             withdrawable = "0",
+            pendingUnconfirmed = "0",
+            earn = "0",
         )
 
         assertEquals(BigInteger("53"), balance.rewardsBalance())

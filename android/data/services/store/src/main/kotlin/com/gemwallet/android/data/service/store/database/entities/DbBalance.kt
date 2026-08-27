@@ -59,6 +59,12 @@ data class DbBalance(
     var withdrawable: String = "0",
     var withdrawableAmount: Double = 0.0,
 
+    @ColumnInfo("pending_unconfirmed", defaultValue = "0") var pendingUnconfirmed: String = "0",
+    @ColumnInfo("pending_unconfirmed_amount", defaultValue = "0.0") var pendingUnconfirmedAmount: Double = 0.0,
+
+    @ColumnInfo("earn", defaultValue = "0") var earn: String = "0",
+    @ColumnInfo("earn_amount", defaultValue = "0.0") var earnAmount: Double = 0.0,
+
     @ColumnInfo("total_amount") var totalAmount: Double = 0.0,
     @ColumnInfo("is_active") var isActive: Boolean = true,
     @ColumnInfo("is_pinned") var isPinned: Boolean = false,
@@ -84,6 +90,8 @@ fun DbBalance.toDTO(): AssetBalance? {
             rewards = rewards,
             reserved = reserved,
             withdrawable = withdrawable,
+            pendingUnconfirmed = pendingUnconfirmed,
+            earn = earn,
         ),
         balanceAmount = Balance(
             available = availableAmount,
@@ -94,6 +102,8 @@ fun DbBalance.toDTO(): AssetBalance? {
             rewards = rewardsAmount,
             reserved = reservedAmount,
             withdrawable = withdrawableAmount,
+            pendingUnconfirmed = pendingUnconfirmedAmount,
+            earn = earnAmount,
         ),
         totalAmount = totalAmount,
         isActive = isActive,

@@ -34,6 +34,8 @@ interface BalancesDao {
             available_amount = :availableAmount,
             reserved = :reserved,
             reserved_amount = :reservedAmount,
+            pending_unconfirmed = :pendingUnconfirmed,
+            pending_unconfirmed_amount = :pendingUnconfirmedAmount,
             total_amount = :availableAmount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount,
             updated_at = :updatedAt,
             is_active = :isActive
@@ -46,6 +48,25 @@ interface BalancesDao {
         availableAmount: Double,
         reserved: String,
         reservedAmount: Double,
+        pendingUnconfirmed: String,
+        pendingUnconfirmedAmount: Double,
+        isActive: Boolean,
+        updatedAt: Long,
+    )
+
+    @Query("""
+        UPDATE balances SET
+            earn = :earn,
+            earn_amount = :earnAmount,
+            updated_at = :updatedAt,
+            is_active = :isActive
+        WHERE wallet_id = :walletId AND asset_id = :assetId
+    """)
+    fun updateEarnBalance(
+        walletId: String,
+        assetId: String,
+        earn: String,
+        earnAmount: Double,
         isActive: Boolean,
         updatedAt: Long,
     )

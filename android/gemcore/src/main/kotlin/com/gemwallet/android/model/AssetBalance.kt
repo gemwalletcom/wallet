@@ -6,8 +6,8 @@ import java.math.BigInteger
 
 data class AssetBalance(
     val asset: Asset,
-    val balance: Balance<String> = Balance("0", "0", "0", "0", "0", "0", "0", "0"),
-    val balanceAmount: Balance<Double> = Balance(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+    val balance: Balance<String> = Balance("0", "0", "0", "0", "0", "0", "0", "0", "0", "0"),
+    val balanceAmount: Balance<Double> = Balance(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     val totalAmount: Double = 0.0,
     val fiatTotalAmount: Double = 0.0,
     val metadata: BalanceMetadata? = null,
@@ -25,10 +25,12 @@ data class AssetBalance(
             rewards: String = "0",
             reserved: String = "0",
             withdrawable: String = "0",
+            pendingUnconfirmed: String = "0",
+            earn: String = "0",
             metadata: BalanceMetadata? = null,
             isActive: Boolean = true,
         ): AssetBalance {
-            val balance = Balance(  // TODO: Check number is correct
+            val balance = Balance(
                 available = available,
                 frozen = frozen,
                 locked = locked,
@@ -37,6 +39,8 @@ data class AssetBalance(
                 rewards = rewards,
                 reserved = reserved,
                 withdrawable = withdrawable,
+                pendingUnconfirmed = pendingUnconfirmed,
+                earn = earn,
             )
             val balanceAmount = balance.createAmount(asset.decimals)
             return AssetBalance(
@@ -62,6 +66,8 @@ private fun Balance<String>.createAmount(decimals: Int) = Balance(
     rewards = Crypto(rewards).value(decimals).stripTrailingZeros().toDouble(),
     reserved = Crypto(reserved).value(decimals).stripTrailingZeros().toDouble(),
     withdrawable = Crypto(withdrawable).value(decimals).stripTrailingZeros().toDouble(),
+    pendingUnconfirmed = Crypto(pendingUnconfirmed).value(decimals).stripTrailingZeros().toDouble(),
+    earn = Crypto(earn).value(decimals).stripTrailingZeros().toDouble(),
 )
 
 fun Balance<String>.hasAvailable() = try {
