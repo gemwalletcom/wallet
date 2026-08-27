@@ -154,13 +154,8 @@ impl GemWalletService {
         }
         let mut updated = Vec::new();
         for (mut wallet, missing) in candidates {
-            let Ok(password) = self.password.get_password(wallet.id.clone(), false) else {
-                continue;
-            };
-            let accounts = match self.keystore.add_accounts(keystore_id_for_wallet(wallet.id.id()), password, missing) {
-                Ok(accounts) => accounts,
-                Err(_) => continue,
-            };
+            let password = self.password.get_password(wallet.id.clone(), false)?;
+            let accounts = self.keystore.add_accounts(keystore_id_for_wallet(wallet.id.id()), password, missing)?;
             wallet.accounts.extend(accounts.into_iter().map(rules::account));
             self.store.add_wallet(wallet.clone()).await?;
             updated.push(wallet);

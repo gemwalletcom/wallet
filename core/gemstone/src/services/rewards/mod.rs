@@ -59,7 +59,7 @@ impl GemRewardsService {
         };
         let result = self.api.client.redeem_rewards(wallet_id.id(), request).await.map_err(GemApiError::from)?;
         if let Some(asset) = &result.redemption.option.asset {
-            self.balance.set_assets_enabled(wallet_id, vec![asset.id.clone()], true, currency).await.ok();
+            self.balance.set_assets_enabled(wallet_id, vec![asset.id.clone()], true, currency).await?;
         }
         Ok(result)
     }

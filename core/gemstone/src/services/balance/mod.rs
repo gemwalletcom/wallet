@@ -93,17 +93,24 @@ impl GemBalanceService {
             return Ok(());
         };
         let requests = rules::balance_requests(&wallet.accounts, &asset_ids);
-        let balances: Vec<(BalanceKind, AssetBalance)> = join_all(requests.iter().map(|request| self.chain_balances(request))).await.into_iter().flatten().collect();
-        if balances.is_empty() {
-            return Ok(());
-        }
-        let assets = self
-            .asset_store
-            .get_assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect())
+        let (balances, failures): (Vec<_>, Vec<_>) = join_all(requests.iter().map(|request| self.chain_balances(request)))
             .await
-            .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
-        let updates = rules::balance_updates(&assets, balances);
-        self.update_balances(wallet_id, updates).await
+            .into_iter()
+            .partition(Result::is_ok);
+        let balances: Vec<(BalanceKind, AssetBalance)> = balances.into_iter().flatten().flatten().collect();
+        if !balances.is_empty() {
+            let assets = self
+                .asset_store
+                .get_assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect())
+                .await
+                .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
+            let updates = rules::balance_updates(&assets, balances);
+            self.update_balances(wallet_id, updates).await?;
+        }
+        match failures.into_iter().find_map(Result::err) {
+            Some(error) => Err(error),
+            None => Ok(()),
+        }
     }
 }
 
@@ -114,18 +121,14 @@ impl GemBalanceService {
         self.store.update_balances(wallet_id, updates).await
     }
 
-    async fn chain_balances(&self, request: &BalanceRequest) -> Vec<(BalanceKind, AssetBalance)> {
+    async fn chain_balances(&self, request: &BalanceRequest) -> Result<Vec<(BalanceKind, AssetBalance)>, GemServiceError> {
         let token_ids: Vec<String> = request.token_ids.iter().filter_map(|asset_id| asset_id.token_id.clone()).collect();
         let (coin, stake, tokens, earn) = futures::join!(
             async {
                 if request.coin {
-                    self.gateway
-                        .get_balance_coin(request.chain, request.address.clone())
-                        .await
-                        .ok()
-                        .map(|balance| vec![balance])
+                    self.gateway.get_balance_coin(request.chain, request.address.clone()).await.map(|balance| vec![balance])
                 } else {
-                    None
+                    Ok(Vec::new())
                 }
             },
             async {
@@ -133,36 +136,34 @@ impl GemBalanceService {
                     self.gateway
                         .get_balance_staking(request.chain, request.address.clone())
                         .await
-                        .ok()
-                        .flatten()
-                        .map(|balance| vec![balance])
+                        .map(|balance| balance.into_iter().collect())
                 } else {
-                    None
+                    Ok(Vec::new())
                 }
             },
             async {
                 if token_ids.is_empty() {
-                    None
+                    Ok(Vec::new())
                 } else {
-                    self.gateway.get_balance_tokens(request.chain, request.address.clone(), token_ids.clone()).await.ok()
+                    self.gateway.get_balance_tokens(request.chain, request.address.clone(), token_ids.clone()).await
                 }
             },
             async {
                 if token_ids.is_empty() {
-                    None
+                    Ok(Vec::new())
                 } else {
-                    self.gateway.get_balance_earn(request.chain, request.address.clone(), token_ids.clone()).await.ok()
+                    self.gateway.get_balance_earn(request.chain, request.address.clone(), token_ids.clone()).await
                 }
             },
         );
-        [
-            (BalanceKind::Coin, coin),
-            (BalanceKind::Stake, stake),
-            (BalanceKind::Token, tokens),
-            (BalanceKind::Earn, earn),
+        Ok([
+            (BalanceKind::Coin, coin?),
+            (BalanceKind::Stake, stake?),
+            (BalanceKind::Token, tokens?),
+            (BalanceKind::Earn, earn?),
         ]
         .into_iter()
-        .flat_map(|(kind, balances)| balances.unwrap_or_default().into_iter().map(move |balance| (kind, balance)))
-        .collect()
+        .flat_map(|(kind, balances)| balances.into_iter().map(move |balance| (kind, balance)))
+        .collect())
     }
 }
