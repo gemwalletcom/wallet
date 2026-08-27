@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
@@ -91,12 +90,6 @@ class UserConfig(
 
     suspend fun setLockInterval(minutes: Int) = write(Key.LockInterval, minutes)
 
-    fun isWelcomeBannerHidden(walletId: String): Flow<Boolean> =
-        read(Key.IsWelcomeBannerHidden, emptySet()).map { walletId in it }
-
-    suspend fun hideWelcomeBanner(walletId: String) =
-        update(Key.IsWelcomeBannerHidden, emptySet()) { it + walletId }
-
     fun isTermsAccepted(): Flow<Boolean> = read(Key.IsTermsAccepted, false)
 
     suspend fun acceptTerms() = write(Key.IsTermsAccepted, true)
@@ -132,7 +125,6 @@ class UserConfig(
     private object Key {
         val IsHideBalances = booleanPreferencesKey("hide_balances")
         val LockInterval = intPreferencesKey("lock_interval")
-        val IsWelcomeBannerHidden = stringSetPreferencesKey("is_welcome_banner_state")
         val IsTermsAccepted = booleanPreferencesKey("is_terms_accepted")
         val AskNotifications = longPreferencesKey("ask_notifications")
         val IsPerpetualEnabled = booleanPreferencesKey("is_perpetual_enabled")

@@ -14,6 +14,9 @@ interface BannersDao {
     @Query("SELECT * FROM banners WHERE id = :id")
     suspend fun getBanner(id: String): DbBanner?
 
+    @Query("SELECT * FROM banners WHERE id = :id")
+    fun observeBanner(id: String): Flow<DbBanner?>
+
     @Query("""
         SELECT * FROM
             banners

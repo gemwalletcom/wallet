@@ -15,6 +15,9 @@ import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
 import com.gemwallet.android.application.assets.coordinators.GetSearchLists
 import com.gemwallet.android.application.assets.coordinators.GetPortfolioData
 import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
+import uniffi.gemstone.GemBannerService
+import com.gemwallet.android.data.service.store.database.BannersDao
+import com.gemwallet.android.application.banner.coordinators.ApplyBannerAction
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.HideAsset
@@ -256,16 +259,17 @@ object AssetModule {
     @Singleton
     fun provideGetShowWelcomeBanner(
         sessionRepository: SessionRepository,
-        userConfig: UserConfig,
+        bannersDao: BannersDao,
+        bannerService: GemBannerService,
         getActiveAssetsInfo: GetActiveAssetsInfo,
-    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(sessionRepository, userConfig, getActiveAssetsInfo)
+    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(sessionRepository, bannersDao, bannerService, getActiveAssetsInfo)
 
     @Provides
     @Singleton
     fun provideHideWelcomeBanner(
         sessionRepository: SessionRepository,
-        userConfig: UserConfig,
-    ): HideWelcomeBanner = HideWelcomeBannerImpl(sessionRepository, userConfig)
+        applyBannerAction: ApplyBannerAction,
+    ): HideWelcomeBanner = HideWelcomeBannerImpl(sessionRepository, applyBannerAction)
 
     @Provides
     @Singleton
