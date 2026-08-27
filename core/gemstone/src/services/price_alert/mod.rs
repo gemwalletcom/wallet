@@ -89,10 +89,11 @@ impl GemPriceAlertService {
         self.store.update(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await?;
         Ok(self.api.client.delete_price_alerts(alerts).await.map_err(GemApiError::from)?)
     }
+}
 
-    pub fn price_alert_id(&self, alert: PriceAlert) -> String {
-        alert.id()
-    }
+#[uniffi::export]
+pub fn price_alert_id(alert: PriceAlert) -> String {
+    alert.id()
 }
 
 #[cfg(test)]
@@ -119,7 +120,10 @@ mod tests {
         let remote = vec![alert(Chain::Bitcoin, None), alert(Chain::Solana, Some(1.0))];
         let changes = reconcile(local.clone(), remote.clone());
         assert_eq!(changes.delete_ids, vec![local[1].id()]);
-        assert_eq!(changes.alerts.len(), 2);
+        assert_eq!(changes.alerts.iter().map(PriceAlert::id).collect::<Vec<_>>(), vec![remote[1].id()]);
+
+        let unchanged = reconcile(local.clone(), local.clone());
+        assert!(unchanged.delete_ids.is_empty() && unchanged.alerts.is_empty());
 
         let changes = reconcile(Vec::new(), Vec::new());
         assert!(changes.delete_ids.is_empty() && changes.alerts.is_empty());

@@ -44,7 +44,7 @@ impl GemWalletPreferencesService {
     }
 
     pub fn set_assets_timestamp(&self, wallet_id: WalletId, timestamp: u64) -> Result<(), GemServiceError> {
-        self.store.set(wallet_id, WalletPreferenceKey::AssetsTimestamp.as_ref().to_string(), timestamp.to_string())
+        self.set_value(wallet_id, WalletPreferenceKey::AssetsTimestamp.as_ref().to_string(), timestamp.to_string())
     }
 
     pub fn get_transactions_timestamp(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<u64, GemServiceError> {
@@ -52,7 +52,7 @@ impl GemWalletPreferencesService {
     }
 
     pub fn set_transactions_timestamp(&self, wallet_id: WalletId, asset_id: Option<AssetId>, timestamp: u64) -> Result<(), GemServiceError> {
-        self.store.set(wallet_id, transactions_key(asset_id), timestamp.to_string())
+        self.set_value(wallet_id, transactions_key(asset_id), timestamp.to_string())
     }
 
     pub fn reset_transactions_timestamp(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
@@ -109,7 +109,7 @@ impl GemWalletPreferencesService {
             PerpetualAccountMode::Standard => "standard",
             PerpetualAccountMode::Unified => "unified",
         };
-        self.store.set(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string(), value.to_string())
+        self.set_value(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string(), value.to_string())
     }
 
     pub fn clear(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
@@ -131,7 +131,14 @@ impl GemWalletPreferencesService {
     }
 
     fn set_flag(&self, wallet_id: WalletId, key: WalletPreferenceKey) -> Result<(), GemServiceError> {
-        self.store.set(wallet_id, key.as_ref().to_string(), "true".to_string())
+        self.set_value(wallet_id, key.as_ref().to_string(), "true".to_string())
+    }
+
+    fn set_value(&self, wallet_id: WalletId, key: String, value: String) -> Result<(), GemServiceError> {
+        if self.store.get(wallet_id.clone(), key.clone())?.as_deref() == Some(value.as_str()) {
+            return Ok(());
+        }
+        self.store.set(wallet_id, key, value)
     }
 }
 
@@ -158,25 +165,30 @@ mod tests {
     use std::sync::Mutex;
 
     #[derive(Default)]
-    struct MemoryStore(Mutex<HashMap<(String, String), String>>);
+    struct MemoryStore {
+        values: Mutex<HashMap<(String, String), String>>,
+        writes: Mutex<u32>,
+    }
 
     impl GemWalletPreferencesStore for MemoryStore {
         fn get(&self, wallet_id: WalletId, key: String) -> Result<Option<String>, GemServiceError> {
-            Ok(self.0.lock().unwrap().get(&(wallet_id.id(), key)).cloned())
+            Ok(self.values.lock().unwrap().get(&(wallet_id.id(), key)).cloned())
         }
         fn set(&self, wallet_id: WalletId, key: String, value: String) -> Result<(), GemServiceError> {
-            self.0.lock().unwrap().insert((wallet_id.id(), key), value);
+            *self.writes.lock().unwrap() += 1;
+            self.values.lock().unwrap().insert((wallet_id.id(), key), value);
             Ok(())
         }
         fn clear(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-            self.0.lock().unwrap().retain(|(id, _), _| *id != wallet_id.id());
+            self.values.lock().unwrap().retain(|(id, _), _| *id != wallet_id.id());
             Ok(())
         }
     }
 
     #[test]
     fn test_wallet_preferences_keys_and_clear() {
-        let service = GemWalletPreferencesService::new(Arc::new(MemoryStore::default()));
+        let store = Arc::new(MemoryStore::default());
+        let service = GemWalletPreferencesService::new(store.clone());
         let wallet = WalletId::Multicoin("0x1".into());
         let other = WalletId::Multicoin("0x2".into());
         let asset_id = AssetId::from_chain(Chain::Ethereum);
@@ -184,6 +196,9 @@ mod tests {
         assert_eq!(service.get_transactions_timestamp(wallet.clone(), None).unwrap(), 0);
         service.set_transactions_timestamp(wallet.clone(), Some(asset_id.clone()), 42).unwrap();
         service.set_transactions_timestamp(wallet.clone(), None, 7).unwrap();
+        let writes = *store.writes.lock().unwrap();
+        service.set_transactions_timestamp(wallet.clone(), None, 7).unwrap();
+        assert_eq!(*store.writes.lock().unwrap(), writes);
         assert_eq!(service.get_transactions_timestamp(wallet.clone(), Some(asset_id)).unwrap(), 42);
         assert_eq!(service.get_transactions_timestamp(wallet.clone(), None).unwrap(), 7);
 

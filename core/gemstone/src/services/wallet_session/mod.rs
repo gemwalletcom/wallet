@@ -27,6 +27,9 @@ impl GemWalletSessionService {
     }
 
     pub fn set_current_wallet_id(&self, wallet_id: Option<WalletId>) -> Result<(), GemServiceError> {
+        if self.store.get_current_wallet_id()? == wallet_id {
+            return Ok(());
+        }
         self.store.set_current_wallet_id(wallet_id)
     }
 

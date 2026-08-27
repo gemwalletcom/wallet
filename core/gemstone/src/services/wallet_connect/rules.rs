@@ -41,8 +41,14 @@ pub fn sessions_to_delete(local: &[WalletConnectionSession], remote: &[WalletCon
 }
 
 pub fn sessions_to_update(local: &[WalletConnectionSession], remote: Vec<WalletConnectionSession>) -> Vec<WalletConnectionSession> {
-    let local_ids: HashSet<&str> = local.iter().map(|session| session.id.as_str()).collect();
-    remote.into_iter().filter(|session| local_ids.contains(session.id.as_str())).collect()
+    remote
+        .into_iter()
+        .filter(|session| local.iter().any(|existing| existing.id == session.id && session_changed(existing, session)))
+        .collect()
+}
+
+fn session_changed(existing: &WalletConnectionSession, session: &WalletConnectionSession) -> bool {
+    existing.state != session.state || existing.chains != session.chains || existing.expire_at != session.expire_at || existing.metadata != session.metadata
 }
 
 pub fn session_wallets(wallets: Vec<Wallet>, required: &[Chain], optional: &[Chain]) -> Vec<Wallet> {

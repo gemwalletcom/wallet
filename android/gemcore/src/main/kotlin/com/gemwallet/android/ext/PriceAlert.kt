@@ -2,21 +2,11 @@ package com.gemwallet.android.ext
 
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertNotificationType
-import java.math.BigDecimal
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.priceAlertId
 
 val PriceAlert.id: String
-    get() {
-        if (price == null && pricePercentChange == null && priceDirection == null) {
-            return assetId.toIdentifier()
-        }
-        return buildList {
-            add(assetId.toIdentifier())
-            add(currency)
-            price?.let { add(formatIdentifierValue(it)) }
-            pricePercentChange?.let { add(formatIdentifierValue(it)) }
-            priceDirection?.let { add(it.string) }
-        }.joinToString("_")
-    }
+    get() = priceAlertId(toJson())
 
 val PriceAlert.type: PriceAlertNotificationType
     get() = when {
@@ -32,9 +22,3 @@ val PriceAlert.shouldDisplay: Boolean
         PriceAlertNotificationType.Price,
         PriceAlertNotificationType.PricePercentChange -> lastNotifiedAt == null
     }
-
-private fun formatIdentifierValue(value: Double): String {
-    return BigDecimal.valueOf(value)
-        .stripTrailingZeros()
-        .toPlainString()
-}

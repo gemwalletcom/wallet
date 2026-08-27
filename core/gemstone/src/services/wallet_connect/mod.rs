@@ -176,8 +176,10 @@ impl GemWalletConnectService {
         };
         Ok(GemWalletConnectResponse::Response { value: response })
     }
+}
 
-    pub fn select_session_wallets(
+impl GemWalletConnectService {
+    fn select_session_wallets(
         &self,
         wallets: Vec<Wallet>,
         current_wallet_id: Option<WalletId>,
@@ -189,12 +191,6 @@ impl GemWalletConnectService {
         Some(GemSessionWallets { default_wallet, wallets })
     }
 
-    pub fn session_chains(&self, wallet: Wallet, supported_chains: Vec<Chain>) -> Vec<Chain> {
-        rules::session_chains(&wallet, &supported_chains)
-    }
-}
-
-impl GemWalletConnectService {
     async fn sign_transaction(
         &self,
         session_id: String,
