@@ -3,6 +3,9 @@ use primitives::Chain;
 use crate::{SwapperProvider, SwapperSlippage, SwapperSlippageMode};
 
 pub const DEFAULT_SLIPPAGE_BPS: u32 = 100;
+pub const MIN_SLIPPAGE_BPS: u32 = 10;
+pub const MAX_SLIPPAGE_BPS: u32 = 2_000;
+pub const SLIPPAGE_SUGGESTIONS_BPS: [u32; 3] = [30, 50, 300];
 
 pub const API_BASE_URL: &str = "https://api.gemwallet.com";
 
@@ -21,6 +24,9 @@ pub struct Config {
     pub permit2_sig_deadline: u64,
     pub high_price_impact_percent: u32,
     pub high_slippage_warning_bps: u32,
+    pub min_slippage_bps: u32,
+    pub max_slippage_bps: u32,
+    pub slippage_suggestions_bps: Vec<u32>,
 }
 
 pub fn get_swap_config() -> Config {
@@ -33,6 +39,9 @@ pub fn get_swap_config() -> Config {
         permit2_sig_deadline: 1800,    // 30 minutes
         high_price_impact_percent: 10,
         high_slippage_warning_bps: 300,
+        min_slippage_bps: MIN_SLIPPAGE_BPS,
+        max_slippage_bps: MAX_SLIPPAGE_BPS,
+        slippage_suggestions_bps: SLIPPAGE_SUGGESTIONS_BPS.to_vec(),
     }
 }
 

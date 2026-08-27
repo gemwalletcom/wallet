@@ -137,7 +137,7 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 ### iOS
 
 - Fee asset selection: pass `GemConfirmLoadOptions.feeAssetId` instead of `TransferTransactionData.withFeeAsset` post-processing; move the default fee priority rule (`ChainServiceable.defaultPriority`) and the insufficient-network-fee rule into `GemConfirmError`.
-- Rules still in view models: swap slippage constants (`SwapConfig`), custom-token add (`GemAssetsService.ensure_token_asset`, then delete `Asset.defaultBasic`), import validation (`preview_import`), stake action/claim/recommended-validator rules, chart/portfolio currency conversion.
+- Rules still in view models: import validation (`preview_import`), stake action/claim/recommended-validator rules, chart/portfolio currency conversion.
 
 ### Android
 
