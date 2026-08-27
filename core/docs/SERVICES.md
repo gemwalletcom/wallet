@@ -138,8 +138,7 @@ State on 2026-08-28: every app service forwards to a Core service or is platform
 
 ### Android
 
-- Earn flow: `ConfirmParams` has no Earn variant and `AmountDataProvider` has no earn provider; add both on top of `GemTransactionInputType::Earn` and `GemAmountType::Earn` (iOS `AmountEarnViewModel` is the reference).
-- Default chains: `AddAssetViewModel` falls back to Ethereum and `ManageContactUIState` to Bitcoin; if these are product defaults, read them from Core config, otherwise derive them from the wallet's accounts.
+- Earn flow: Android has no Earn surface yet (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`, `GemDelegationAction.DEPOSIT` maps to nothing); build the Earn scene, the amount provider and the confirm params on top of `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn` (iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference). This is a feature, not a consolidation, so plan it as its own batch.
 
 ### Verification
 

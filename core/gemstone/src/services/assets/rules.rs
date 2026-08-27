@@ -31,6 +31,10 @@ pub fn stakeable_asset_ids() -> Vec<AssetId> {
     Chain::all().into_iter().filter(Chain::is_stake_supported).map(AssetId::from_chain).collect()
 }
 
+pub fn default_token_chain(chains: &[Chain]) -> Option<Chain> {
+    chains.iter().find(|chain| **chain == Chain::Ethereum).or(chains.first()).copied()
+}
+
 pub fn popular_asset_ids() -> Vec<AssetId> {
     [Chain::Bitcoin, Chain::Ethereum, Chain::Solana].into_iter().map(AssetId::from_chain).collect()
 }
@@ -56,6 +60,13 @@ pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn test_default_token_chain_prefers_ethereum_then_first() {
+        assert_eq!(default_token_chain(&[Chain::Solana, Chain::Ethereum]), Some(Chain::Ethereum));
+        assert_eq!(default_token_chain(&[Chain::Solana, Chain::Tron]), Some(Chain::Solana));
+        assert_eq!(default_token_chain(&[]), None);
+    }
+
     #[test]
     fn test_popular_asset_ids_are_native_majors_in_order() {
         assert_eq!(

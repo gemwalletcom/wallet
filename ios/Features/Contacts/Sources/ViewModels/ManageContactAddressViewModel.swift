@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import func Gemstone.defaultContactChain
 import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
@@ -52,7 +53,7 @@ public final class ManageContactAddressViewModel {
         self.onComplete = onComplete
         title = Localized.Common.address
 
-        let chain = mode.contactAddress?.chain ?? .bitcoin
+        let chain = mode.contactAddress?.chain ?? Chain(rawValue: defaultContactChain()) ?? .bitcoin
         addressInputModel = AddressInputViewModel(
             chain: chain,
             nameService: nameService,

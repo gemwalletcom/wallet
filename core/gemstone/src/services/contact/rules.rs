@@ -1,5 +1,9 @@
 use primitives::contact::ContactAddress;
-use primitives::{AddressName, AddressType, Contact, VerificationStatus};
+use primitives::{AddressName, AddressType, Chain, Contact, VerificationStatus};
+
+pub fn default_contact_chain() -> Chain {
+    Chain::Bitcoin
+}
 
 pub fn address_names(contact: &Contact, addresses: &[ContactAddress]) -> Vec<AddressName> {
     addresses

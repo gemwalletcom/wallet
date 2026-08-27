@@ -4,8 +4,8 @@ pub mod store;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::Contact;
 use primitives::contact::ContactAddress;
+use primitives::{Chain, Contact};
 
 use crate::services::file::GemFileStore;
 use crate::services::name::GemAddressStore;
@@ -66,4 +66,9 @@ impl GemContactService {
     async fn save_address_names(&self, contact: &Contact, addresses: &[ContactAddress]) -> Result<(), GemServiceError> {
         self.address_store.save_address_names(rules::address_names(contact, addresses)).await
     }
+}
+
+#[uniffi::export]
+pub fn default_contact_chain() -> Chain {
+    rules::default_contact_chain()
 }

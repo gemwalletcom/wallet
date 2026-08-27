@@ -197,3 +197,8 @@ impl GemAssetsService {
 pub fn popular_asset_ids() -> Vec<AssetId> {
     rules::popular_asset_ids()
 }
+
+#[uniffi::export]
+pub fn default_token_chain(chains: Vec<Chain>) -> Option<Chain> {
+    rules::default_token_chain(&chains)
+}
