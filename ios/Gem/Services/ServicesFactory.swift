@@ -116,12 +116,20 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
             preferences: storages.observablePreferences,
         )
+        let webSocket = Self.makeWebSocket(securePreferences: securePreferences)
+        let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
+        let streamSubscriptionService = Gemstone.GemStreamSubscriptionService(
+            price: gemPriceService,
+            alerts: gemPriceAlertStore,
+            connection: GemstoneStreamConnection(webSocket: webSocket),
+        )
         let gemBalanceService = gatewayService.balanceService(
             walletStore: gemWalletStore,
             assetStore: gemAssetStore,
             store: GemstoneBalanceStore(store: storeManager.balanceStore),
             assets: gemAssetsService,
             price: gemPriceService,
+            stream: streamSubscriptionService,
         )
         let balanceService = gemBalanceService
         let gemStakeService = gatewayService.stakeService(
@@ -153,13 +161,6 @@ struct ServicesFactory {
         let perpetualService = PerpetualService(
             provider: PerpetualProviderFactory(gatewayService: gatewayService, nodeProvider: nodeProvider).createProvider(),
             service: gemPerpetualService,
-        )
-        let webSocket = Self.makeWebSocket(securePreferences: securePreferences)
-        let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
-        let streamSubscriptionService = Gemstone.GemStreamSubscriptionService(
-            price: gemPriceService,
-            alerts: gemPriceAlertStore,
-            connection: GemstoneStreamConnection(webSocket: webSocket),
         )
         let priceAlertService = Gemstone.GemPriceAlertService(
             api: gemDeviceApiClient,
@@ -214,7 +215,6 @@ struct ServicesFactory {
 
         let assetsEnabler = AssetsEnablerService(
             service: gemBalanceService,
-            priceUpdater: streamSubscriptionService,
             preferences: preferences,
         )
         let assetDiscoveryService = Gemstone.GemAssetDiscoveryService(

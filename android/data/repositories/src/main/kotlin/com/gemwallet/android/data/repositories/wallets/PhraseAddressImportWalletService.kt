@@ -18,6 +18,9 @@ import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
+import android.util.Log
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemWalletImportResult
 import uniffi.gemstone.GemWalletImportType
 import uniffi.gemstone.GemWalletService
@@ -26,6 +29,7 @@ import uniffi.gemstone.GemWalletSource
 class PhraseAddressImportWalletService(
     private val walletService: GemWalletService,
     private val sessionRepository: SessionRepository,
+    private val appStartService: GemAppStartService,
     private val phraseValidate: ValidatePhraseOperator,
     private val syncDevice: SyncDevice,
     private val walletImportSync: SyncWalletImport,
@@ -80,6 +84,9 @@ class PhraseAddressImportWalletService(
     }
 
     private suspend fun setupWallet(wallet: Wallet) {
+        appStartService.setupWallet(wallet.toJson()).forEach { failure ->
+            Log.e(TAG, "${failure.step} failed for ${wallet.id.id}: ${failure.message}")
+        }
         sessionRepository.setWallet(wallet)
     }
 
@@ -112,6 +119,8 @@ class PhraseAddressImportWalletService(
     }
 
     companion object {
+        private const val TAG = "ImportWallet"
+
         fun decodePrivateKey(chain: Chain, data: String): ByteArray {
             return uniffi.gemstone.decodePrivateKey(chain = chain.string, value = data)
         }

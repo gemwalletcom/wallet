@@ -174,6 +174,10 @@ impl GemWalletService {
 }
 
 impl GemWalletService {
+    pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        self.store.get_wallets()
+    }
+
     async fn invalidate_subscriptions(&self) -> Result<(), GemServiceError> {
         let version = self.device_store.get_subscriptions_version().await?;
         self.device_store.set_subscriptions_version(version + 1).await

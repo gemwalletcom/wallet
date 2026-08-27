@@ -98,7 +98,7 @@ interface BalancesDao {
             reserved_amount = :reservedAmount,
             withdrawable = :withdrawable,
             withdrawableAmount = :withdrawableAmount,
-            total_amount = :availableAmount + :reservedAmount,
+            total_amount = :availableAmount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount + earn_amount,
             updated_at = :updatedAt,
             is_active = :isActive
         WHERE wallet_id = :walletId AND asset_id = :assetId

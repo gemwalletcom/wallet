@@ -47,19 +47,16 @@ impl GemTransactionStateService {
         self.store.get_transaction(wallet_id, transaction_id).await
     }
 
-    pub async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>, currency: Currency) -> Result<Vec<GemPostProcessingFailure>, GemServiceError> {
-        self.store.add_transactions(wallet_id.clone(), transactions.clone()).await?;
-        let mut failures = Vec::new();
+    pub async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
+        self.store.add_transactions(wallet_id, transactions).await
+    }
+
+    pub async fn enable_transaction_assets(&self, wallet_id: WalletId, transactions: Vec<Transaction>, currency: Currency) -> Result<(), GemServiceError> {
         let asset_ids = rules::assets_to_enable(&transactions);
-        if !asset_ids.is_empty() {
-            record(
-                &mut failures,
-                GemPostProcessingStep::EnableAssets,
-                self.balance.enable_assets(wallet_id, asset_ids, true, currency),
-            )
-            .await;
+        if asset_ids.is_empty() {
+            return Ok(());
         }
-        Ok(failures)
+        self.balance.enable_assets(wallet_id, asset_ids, true, currency).await
     }
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {

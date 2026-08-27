@@ -94,7 +94,6 @@ fun Balance<String>.getStakedAmount() = BigInteger(frozen) +
         BigInteger(staked) +
         BigInteger(pending) +
         BigInteger(rewards) +
-        BigInteger(earn) +
         BigInteger(locked)
 
 

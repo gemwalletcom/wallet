@@ -27,6 +27,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemWalletService
 import javax.inject.Singleton
 
@@ -90,12 +91,14 @@ object InteractsModule {
     fun provideAddWalletInteract(
         walletService: GemWalletService,
         sessionRepository: SessionRepository,
+        appStartService: GemAppStartService,
         phraseValidate: ValidatePhraseOperator,
         syncDevice: SyncDevice,
         walletImportSync: SyncWalletImport,
     ): ImportWalletService = PhraseAddressImportWalletService(
         walletService = walletService,
         sessionRepository = sessionRepository,
+        appStartService = appStartService,
         phraseValidate = phraseValidate,
         syncDevice = syncDevice,
         walletImportSync = walletImportSync,

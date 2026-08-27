@@ -15,6 +15,7 @@ pub use store::GemBalanceStore;
 use crate::gateway::GemGateway;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::price::GemPriceService;
+use crate::services::stream::GemStreamSubscriptionService;
 use crate::services::wallet::GemWalletStore;
 use rules::{BalanceKind, BalanceRequest};
 
@@ -26,6 +27,7 @@ pub struct GemBalanceService {
     store: Arc<dyn GemBalanceStore>,
     assets: Arc<GemAssetsService>,
     price: Arc<GemPriceService>,
+    stream: Arc<GemStreamSubscriptionService>,
 }
 
 #[uniffi::export]
@@ -38,6 +40,7 @@ impl GemBalanceService {
         store: Arc<dyn GemBalanceStore>,
         assets: Arc<GemAssetsService>,
         price: Arc<GemPriceService>,
+        stream: Arc<GemStreamSubscriptionService>,
     ) -> Self {
         Self {
             gateway,
@@ -46,6 +49,7 @@ impl GemBalanceService {
             store,
             assets,
             price,
+            stream,
         }
     }
 
@@ -69,6 +73,7 @@ impl GemBalanceService {
         }
         let prices = self.price.get_prices(Some(currency.clone()), new_asset_ids.clone()).await?;
         self.price.update_prices(prices, currency).await?;
+        self.stream.add_prices(new_asset_ids.clone()).await?;
         self.update(wallet_id, new_asset_ids).await
     }
 

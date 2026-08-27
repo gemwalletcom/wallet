@@ -34,7 +34,6 @@ pub struct GemTransactionStateResult {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPostProcessingStep {
-    EnableAssets,
     Balances,
     Stake,
     Earn,

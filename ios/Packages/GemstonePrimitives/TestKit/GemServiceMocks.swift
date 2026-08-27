@@ -262,10 +262,11 @@ public final class GemTransactionStateServiceMock: GemTransactionStateServicePro
         try await store?.getTransaction(walletId: walletId, transactionId: transactionId)
     }
 
-    public func addTransactions(walletId: Gemstone.WalletId, transactions: [Gemstone.Transaction], currency _: Gemstone.Currency) async throws -> [Gemstone.GemPostProcessingFailure] {
+    public func addTransactions(walletId: Gemstone.WalletId, transactions: [Gemstone.Transaction]) async throws {
         try await store?.addTransactions(walletId: walletId, transactions: transactions)
-        return []
     }
+
+    public func enableTransactionAssets(walletId _: Gemstone.WalletId, transactions _: [Gemstone.Transaction], currency _: Gemstone.Currency) async throws {}
 }
 
 public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked Sendable {

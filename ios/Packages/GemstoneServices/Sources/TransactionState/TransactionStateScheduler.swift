@@ -22,8 +22,15 @@ public struct TransactionStateScheduler: Sendable {
     }
 
     public func addTransactions(wallet: Wallet, transactions: [Transaction], currency: String) async throws {
-        try await service.addTransactions(wallet: wallet, transactions: transactions, currency: currency)
+        try await service.addTransactions(wallet: wallet, transactions: transactions)
         scheduleUpdate(for: transactions.map { TransactionWallet(transaction: $0, wallet: wallet) })
+        Task {
+            do {
+                try await service.enableAssets(wallet: wallet, transactions: transactions, currency: currency)
+            } catch {
+                debugLog("transaction state: asset enabling failed: \(error)")
+            }
+        }
     }
 }
 
