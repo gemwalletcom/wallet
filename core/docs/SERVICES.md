@@ -144,22 +144,22 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 ### iOS
 
 - [ ] `Store` `TransactionRecord`: `state` falls back to `.pending` and `blockNumber` is an `Int` column (`TransactionStateStore` drops non-decimal block numbers) — decode strictly like Android and store the block number as text.
-- [ ] `RecipientSceneViewModel` contact/own-wallet picks build `Recipient` with `checksumAddress` only; route them through `GemRecipientService.recipient` like Android.
+- [x] Contact/own-wallet picks go through `GemRecipientService.recipient` (7dfa3b3e9e).
 - [ ] Fee asset selection: pass `GemConfirmLoadOptions.feeAssetId` instead of `TransferTransactionData.withFeeAsset` post-processing; move the default fee priority rule (`ChainServiceable.defaultPriority`) and the insufficient-network-fee rule into `GemConfirmError`.
 - [ ] Rules still in view models: swap slippage constants (`SwapConfig`), custom-token add (`GemAssetsService.ensure_token_asset`, then delete `Asset.defaultBasic`), import validation (`preview_import`), stake action/claim/recommended-validator rules, chart/portfolio currency conversion.
-- [ ] `PriceStore.savePrices` ignores the `currency` argument (no column); either add it like Android or drop the parameter from the trait.
-- [ ] `WalletConnectionRecord` overwrites `createdAt` with `Date()`; persist the Core value.
+- [x] `PriceStore.savePrices` keeps ignoring `currency` on purpose: iOS stores one currency per install, Android needs the column for its session-currency filter.
+- [x] `WalletConnectionRecord` persists the Core `createdAt` (b4fb0edf39).
 - [ ] Remaining wrappers to reduce to glue: `PerpetualService` (`updateMarkets`, `accountMode`), `WalletService` (keystore + v3 migration only), `ConnectionsService` (activation flag), `NodeService.node(for:)` (documented sync exception).
 
 ### Android
 
 - [ ] Earn flow: `ConfirmParams` has no Earn variant and `AmountDataProvider` has no earn provider; add both on top of `GemTransactionInputType::Earn` and `GemAmountType::Earn` (iOS `AmountEarnViewModel` is the reference).
-- [ ] Sync reads through `runBlocking` (`gemstone/WalletStore.kt`, `gemstone/WalletSessionStore.kt`, `nodes/NodesRepository.getCurrentNode`, `device/DeviceRepository.kt`): back Core's synchronous store methods with non-suspend Room queries and never call them on Main.
+- [ ] Sync reads through `runBlocking`: wallets done (769a046649, `WalletsRepository.getAllNow/getWalletNow`); still `gemstone/WalletSessionStore.setCurrentWalletId`, `nodes/NodesRepository.setCurrentNode/getCurrentNode` (make the repository interface suspend) and `device/DeviceRepository.deviceId/pushToken/currency` (DataStore flows behind `GemDevicePlatform`).
 - [x] `SyncAssetInfoImpl` saves the asset row before the balance refresh and logs failures (6334dfb5d2).
 - [x] `AppViewModel.getStartDestination` skips wallets without accounts (6334dfb5d2).
 - [x] `GemstoneAssetStore` is provided once (6334dfb5d2).
 - [x] Dead code verified and removed where real (`StreamEventSerializer`, `addNotification`, single-price `PricesRepository` writers, `WalletIdGeneratorImpl`); `StakeService`, `IsDeviceRegistered`, `addMessages`, `DuplicatedWallet`, `GemFeeMapper`, `GemSwapProviderMapper`, `PerpetualMappers.toGem` are in use. Still open: mirrors of Core types (`Fee`/`GemFeeMapper`, `WalletConnectPendingRequest`, `ext/TransactionState`) and `runCatching` that swallows errors in sync coordinators.
-- [ ] `PrepareSessionProposalImpl` decode/Core errors now propagate; map "invalid origin" vs "unsupported chains" to distinct user-facing texts in `WCAuthViewModel`/`ProposalSceneViewModel`.
+- [ ] WalletConnect rejection texts: Core messages ("invalid origin", "unsupported chains", "wallets unsupported") reach the Android sheets untranslated; give `GemWalletConnectService` typed errors and localize them on both apps.
 - [ ] Room: the unreleased chain is 87→90 only; before any further schema change, batch it into one migration and prefer drop + recreate for Core-seeded tables (banners, nodes are re-added by users, so copy those).
 
 ### Verification rules for whoever runs this
