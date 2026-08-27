@@ -3,7 +3,6 @@ package com.gemwallet.android.services
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.domains.asset.defaultAssetRank
-import com.gemwallet.android.ext.available
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
@@ -11,26 +10,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import com.gemwallet.android.serializer.decodeJson
-import uniffi.gemstone.GemWalletService
 import com.wallet.core.primitives.Wallet
 import javax.inject.Inject
 import javax.inject.Singleton
-import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemAppStartService
 
 @Singleton
 class CheckAccountsService @Inject constructor(
     private val walletsRepository: WalletsRepository,
     private val assetsRepository: AssetsRepository,
-    private val walletService: GemWalletService,
-    private val assetsService: GemAssetsService,
+    private val appStartService: GemAppStartService,
 ) {
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
-        assetsService.syncDefaultAssets()
-        assetsRepository.updateNativeAssetRanks()
-
-        val updatedWallets = walletService.setupChains(Chain.available().map { it.string })
+        val updatedWallets = appStartService.setupWallets()
             .map { it.decodeJson<Wallet>() }
             .associateBy { it.id }
+        assetsRepository.updateNativeAssetRanks()
         val wallets = walletsRepository.getAll().firstOrNull() ?: emptyList()
 
         wallets.forEach { wallet ->

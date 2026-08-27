@@ -24,14 +24,7 @@ struct CreateWalletModelTests {
         )
 
         let wallet = try await model.createWallet(words: LocalKeystore.words)
-        let preferences = WalletPreferences(walletId: wallet.id)
-
-        #expect(preferences.completeInitialWalletConfiguration)
-        #expect(preferences.completeInitialLoadAssets)
-        #expect(preferences.completeInitialLoadTransactions)
-        #expect(preferences.completeInitialLoadNFTs)
-
-        preferences.clear()
+        #expect(wallet.source == .create)
     }
 
     @Test

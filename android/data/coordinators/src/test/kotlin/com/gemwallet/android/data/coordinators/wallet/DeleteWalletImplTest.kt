@@ -3,8 +3,6 @@ package com.gemwallet.android.data.coordinators.wallet
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.data.service.store.WalletPreferences
-import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.WalletType
@@ -32,10 +30,6 @@ class DeleteWalletImplTest {
     private val sessionRepository = mockk<SessionRepository>(relaxed = true)
     private val walletsRepository = mockk<WalletsRepository>(relaxed = true)
     private val deleteKeyStoreOperator = mockk<DeleteKeyStoreOperator>()
-    private val walletPreferences = mockk<WalletPreferences>(relaxed = true)
-    private val walletPreferencesFactory = mockk<WalletPreferencesFactory> {
-        every { create(any()) } returns walletPreferences
-    }
 
     private val walletService = mockk<GemWalletService>()
 
@@ -43,7 +37,6 @@ class DeleteWalletImplTest {
         sessionRepository,
         walletsRepository,
         deleteKeyStoreOperator,
-        walletPreferencesFactory,
         walletService,
     )
 
@@ -68,7 +61,6 @@ class DeleteWalletImplTest {
 
         verify { deleteKeyStoreOperator(wallet) }
         coVerify(exactly = 0) { walletService.deleteWallet(any()) }
-        verify(exactly = 0) { walletPreferences.clear() }
     }
 
     @Test
@@ -82,7 +74,5 @@ class DeleteWalletImplTest {
 
         coVerify { walletService.deleteWallet(any()) }
         coVerify { sessionRepository.reset() }
-        verify { walletPreferencesFactory.create(wallet.id.id) }
-        verify { walletPreferences.clear() }
     }
 }

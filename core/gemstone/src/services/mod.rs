@@ -36,11 +36,12 @@ pub mod transactions;
 pub mod wallet;
 pub mod wallet_configuration;
 pub mod wallet_connect;
+pub mod wallet_preferences;
 pub mod wallet_session;
 
 pub use app_start::{GemAppStartFailure, GemAppStartService, GemAppStartStep};
 pub use app_update::GemAppUpdateService;
-pub use asset_discovery::{GemAssetDiscoveryService, GemAssetDiscoveryStore, GemDiscoveryStep};
+pub use asset_discovery::GemAssetDiscoveryService;
 pub use assets::{GemAssetStore, GemAssetsService};
 pub use auth::GemAuthService;
 pub use avatar::GemAvatarService;
@@ -74,8 +75,9 @@ pub use swap::GemSwapService;
 pub use transaction_state::{GemPendingTransaction, GemTransactionStateService, GemTransactionStateStore};
 pub use transactions::{GemTransactionStore, GemTransactionsService};
 pub use wallet::{GemKeystorePassword, GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletSource, GemWalletStore};
-pub use wallet_configuration::{GemWalletConfigurationService, GemWalletConfigurationStore};
+pub use wallet_configuration::GemWalletConfigurationService;
 pub use wallet_connect::{
     GemSessionApproval, GemSessionProposal, GemSessionWallets, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectService, GemWalletConnectSigner,
 };
+pub use wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService, GemWalletPreferencesStore};
 pub use wallet_session::{GemWalletSessionService, GemWalletSessionStore};

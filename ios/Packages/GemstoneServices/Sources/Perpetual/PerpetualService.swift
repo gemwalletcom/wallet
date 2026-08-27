@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import Foundation
 import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstonePrimitives
@@ -9,13 +10,16 @@ import Primitives
 public struct PerpetualService: PerpetualServiceable {
     private let provider: PerpetualProvidable
     private let service: any GemPerpetualServiceProtocol
+    private let preferences: any GemWalletPreferencesServiceProtocol
 
     public init(
         provider: PerpetualProvidable,
         service: any GemPerpetualServiceProtocol,
+        preferences: any GemWalletPreferencesServiceProtocol,
     ) {
         self.provider = provider
         self.service = service
+        self.preferences = preferences
     }
 
     public var marketsUpdatedAt: Date? {
@@ -51,14 +55,13 @@ public struct PerpetualService: PerpetualServiceable {
 
 extension PerpetualService: HyperliquidPerpetualServiceable {
     public func accountMode(walletId: WalletId, address: String) async -> PerpetualAccountMode {
-        let walletPreferences = WalletPreferences(walletId: walletId)
         do {
             let mode = try await provider.getAccountMode(address: address)
-            walletPreferences.perpetualAccountMode = mode
+            try preferences.setPerpetualAccountMode(walletId: walletId, mode: mode)
             return mode
         } catch {
             debugLog("PerpetualService: account mode failed: \(error)")
-            return walletPreferences.perpetualAccountMode
+            return (try? preferences.getPerpetualAccountMode(walletId: walletId)) ?? .standard
         }
     }
 

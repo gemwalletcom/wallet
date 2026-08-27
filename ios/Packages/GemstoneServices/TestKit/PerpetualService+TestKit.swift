@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemWalletPreferencesServiceProtocol
+import class Gemstone.GemWalletPreferencesService
 import GemstoneServices
 import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstonePrimitivesTestKit
@@ -13,8 +15,9 @@ public extension PerpetualService {
     static func mock(
         provider: PerpetualProvidable = PerpetualProviderMock(),
         service: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
+        preferences: any GemWalletPreferencesServiceProtocol = GemWalletPreferencesService.mock(),
     ) -> PerpetualService {
-        PerpetualService(provider: provider, service: service)
+        PerpetualService(provider: provider, service: service, preferences: preferences)
     }
 }
 

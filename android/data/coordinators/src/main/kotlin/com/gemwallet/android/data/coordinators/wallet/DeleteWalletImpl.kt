@@ -3,7 +3,6 @@ package com.gemwallet.android.data.coordinators.wallet
 import android.util.Log
 import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
-import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.wallet.core.primitives.WalletId
@@ -21,7 +20,6 @@ class DeleteWalletImpl @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val walletsRepository: WalletsRepository,
     private val deleteKeyStoreOperator: DeleteKeyStoreOperator,
-    private val walletPreferencesFactory: WalletPreferencesFactory,
     private val walletService: GemWalletService,
 ) : DeleteWallet {
 
@@ -44,7 +42,6 @@ class DeleteWalletImpl @Inject constructor(
             return@withContext
         }
 
-        walletPreferencesFactory.create(walletId.id).clear()
 
         val callback: () -> Unit = if (hasWallets) {
             onComplete

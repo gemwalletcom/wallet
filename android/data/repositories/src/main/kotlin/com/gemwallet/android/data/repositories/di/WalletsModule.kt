@@ -27,6 +27,8 @@ import com.gemwallet.android.data.service.store.LocalStore
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemAvatarService
 import uniffi.gemstone.GemFileStore
+import uniffi.gemstone.GemWalletPreferencesService
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletPreferencesStore
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -62,6 +64,7 @@ object WalletsModule {
         walletSessionService: GemWalletSessionService,
         deviceStore: GemstoneDeviceStore,
         fileStore: GemFileStore,
+        walletPreferencesService: GemWalletPreferencesService,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore),
@@ -69,11 +72,17 @@ object WalletsModule {
         walletSessionService,
         deviceStore,
         fileStore,
+        walletPreferencesService,
     )
 
     @Provides
     @Singleton
     fun provideGemFileStore(localStore: LocalStore): GemFileStore = GemstoneFileStore(localStore)
+
+    @Provides
+    @Singleton
+    fun provideGemWalletPreferencesService(@ApplicationContext context: Context): GemWalletPreferencesService =
+        GemWalletPreferencesService(GemstoneWalletPreferencesStore(context))
 
     @Provides
     @Singleton

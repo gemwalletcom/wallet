@@ -6,12 +6,13 @@ pub mod store;
 use std::sync::Arc;
 
 use gem_keystore::Mnemonic;
-use primitives::{Chain, Wallet, WalletId, WalletType};
+use primitives::{Chain, Wallet, WalletId, WalletSource, WalletType};
 
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, GemWalletType, keystore_id_for_wallet};
 use crate::services::device::GemDeviceStore;
 use crate::services::error::GemServiceError;
 use crate::services::file::GemFileStore;
+use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use model::{GemWalletImportResult, GemWalletImportType, GemWalletSource};
@@ -28,6 +29,7 @@ pub struct GemWalletService {
     session: Arc<GemWalletSessionService>,
     device_store: Arc<dyn GemDeviceStore>,
     files: Arc<dyn GemFileStore>,
+    preferences: Arc<GemWalletPreferencesService>,
 }
 
 #[uniffi::export]
@@ -40,6 +42,7 @@ impl GemWalletService {
         session: Arc<GemWalletSessionService>,
         device_store: Arc<dyn GemDeviceStore>,
         files: Arc<dyn GemFileStore>,
+        preferences: Arc<GemWalletPreferencesService>,
     ) -> Self {
         Self {
             keystore,
@@ -48,6 +51,7 @@ impl GemWalletService {
             session,
             device_store,
             files,
+            preferences,
         }
     }
 
@@ -105,6 +109,9 @@ impl GemWalletService {
             }
         };
         self.store.add_wallet(wallet.clone()).await?;
+        if wallet.source == WalletSource::Create {
+            self.preferences.complete_initial_synchronization(wallet.id.clone())?;
+        }
         self.invalidate_subscriptions().await?;
         Ok(GemWalletImportResult::New { wallet })
     }
@@ -117,6 +124,7 @@ impl GemWalletService {
         if let Some(image_url) = wallet.image_url.clone() {
             self.files.remove(image_url)?;
         }
+        self.preferences.clear(wallet.id.clone())?;
         let remaining = self.store.get_wallets()?;
         if self.session.get_current_wallet_id()? == Some(wallet.id) {
             self.session.set_current_wallet_id(rules::next_current_wallet(&remaining))?;

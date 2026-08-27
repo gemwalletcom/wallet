@@ -21,12 +21,14 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemWalletSessionService
+import uniffi.gemstone.GemPreferencesService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionRepositoryImpl(
     private val sessionDao: SessionDao,
     private val walletsRepository: WalletsRepository,
     private val walletSessionService: GemWalletSessionService,
+    private val preferencesService: GemPreferencesService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : SessionRepository {
 
@@ -57,8 +59,11 @@ class SessionRepositoryImpl(
     }
 
     override suspend fun getCurrentCurrency(): Currency = withContext(Dispatchers.IO) {
-        sessionDao.getCurrency() ?: Currency.USD
+        sessionDao.getCurrency() ?: defaultCurrency()
     }
 
-    override fun getCurrency(): Flow<Currency> = session().map { it?.currency ?: Currency.USD }
+    override fun getCurrency(): Flow<Currency> = session().map { it?.currency ?: defaultCurrency() }
+
+    private fun defaultCurrency(): Currency =
+        preferencesService.defaultCurrency(runCatching { java.util.Currency.getInstance(java.util.Locale.getDefault()).currencyCode }.getOrNull()).decodeJson()
 }

@@ -44,6 +44,7 @@ struct SettingsNavigationView: View {
     @Environment(\.contactService) private var contactService
     @Environment(\.nameService) private var nameService
     @Environment(\.supportService) private var supportService
+    @Environment(\.walletPreferencesService) private var walletPreferencesService
     @Environment(\.supportTypingState) private var supportTypingState
     @Environment(\.navigationPresenter) private var presenter
 
@@ -153,6 +154,7 @@ struct SettingsNavigationView: View {
                 bannerStore: bannerStore,
                 priceStore: priceStore,
                 perpetualService: perpetualService,
+                walletPreferencesService: walletPreferencesService,
             ))
         }
         .navigationDestination(for: Scenes.DeveloperPayments.self) { _ in

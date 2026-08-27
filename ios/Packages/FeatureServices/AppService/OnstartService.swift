@@ -1,8 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import GemstoneServices
 import Foundation
-import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemAppStartServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
 import Preferences
 import Primitives
 import Store
@@ -11,18 +13,21 @@ import UIKit
 /// OnstartService runs services before the app starts.
 /// See OnstartAsyncService for any background tasks to run after start
 public struct OnstartService: Sendable {
-    private let assetsService: any GemAssetsServiceProtocol
+    private let appStartService: any GemAppStartServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let nodeStore: NodeStore
     private let preferences: Preferences
     private let walletService: WalletService
 
     public init(
-        assetsService: any GemAssetsServiceProtocol,
+        appStartService: any GemAppStartServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
         nodeStore: NodeStore,
         preferences: Preferences,
         walletService: WalletService,
     ) {
-        self.assetsService = assetsService
+        self.appStartService = appStartService
+        self.preferencesService = preferencesService
         self.nodeStore = nodeStore
         self.preferences = preferences
         self.walletService = walletService
@@ -47,19 +52,14 @@ public struct OnstartService: Sendable {
 
     public func setupWallets() async {
         do {
-            try await assetsService.syncDefaultAssets()
-        } catch {
-            debugLog("default assets sync error: \(error)")
-        }
-        do {
             try await walletService.migrateV3Keystores()
         } catch {
             debugLog("v3 keystore migration could not enumerate wallets: \(error)")
         }
         do {
-            try await walletService.setup(chains: AssetConfiguration.allChains)
+            _ = try await appStartService.setupWallets()
         } catch {
-            debugLog("wallet chains setup error: \(error)")
+            debugLog("wallet setup error: \(error)")
         }
     }
 }
@@ -68,9 +68,8 @@ public struct OnstartService: Sendable {
 
 extension OnstartService {
     private func configureDefaultCurrency() {
-        if !preferences.hasCurrency, let currency = Locale.current.currency {
-            preferences.currency = (Currency(rawValue: currency.identifier) ?? .usd).rawValue
-        }
+        guard !preferences.hasCurrency else { return }
+        preferences.currency = ((try? preferencesService.defaultCurrency(locale: .current)) ?? .usd).rawValue
     }
 
     private func configureURLCache() {

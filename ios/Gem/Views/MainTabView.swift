@@ -25,6 +25,7 @@ struct MainTabView: View {
     @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.assetsService) private var assetsService
     @Environment(\.priceAlertService) private var priceAlertService
+    @Environment(\.walletPreferencesService) private var walletPreferencesService
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.viewModelFactory) private var viewModelFactory
 
@@ -54,6 +55,7 @@ struct MainTabView: View {
                         assetsEnabler: assetsEnabler,
                         bannerService: bannerService,
                         nftService: nftService,
+                        walletPreferencesService: walletPreferencesService,
                         observablePreferences: observablePreferences,
                         wallet: wallet,
                         isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,

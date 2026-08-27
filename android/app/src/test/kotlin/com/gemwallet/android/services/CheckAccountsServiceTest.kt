@@ -21,25 +21,19 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.assetDefaultRank
-import uniffi.gemstone.GemAssetsService
 
 class CheckAccountsServiceTest {
     private val walletsRepository = mockk<WalletsRepository>(relaxed = true)
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
-    private val walletService = mockk<GemWalletService> {
-        coEvery { setupChains(any()) } returns emptyList()
-    }
-
-    private val assetsService = mockk<GemAssetsService> {
-        coJustRun { syncDefaultAssets() }
+    private val appStartService = mockk<GemAppStartService> {
+        coEvery { setupWallets() } returns emptyList()
     }
     private val subject = CheckAccountsService(
         walletsRepository = walletsRepository,
         assetsRepository = assetsRepository,
-        walletService = walletService,
-        assetsService = assetsService,
+        appStartService = appStartService,
     )
 
     @Before
@@ -74,13 +68,12 @@ class CheckAccountsServiceTest {
 
         subject()
 
-        coVerify(exactly = 1) { assetsService.syncDefaultAssets() }
+        coVerify(exactly = 1) { appStartService.setupWallets() }
         coVerify(exactly = 1) { assetsRepository.updateNativeAssetRanks() }
         verify(exactly = 1) { walletsRepository.getAll() }
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 1) { assetsRepository.invalidateDefault(wallet) }
         coVerify(exactly = 1) { assetsRepository.ensureDefaultAssets(wallet) }
-        coVerify(exactly = 1) { walletService.setupChains(any()) }
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
         coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
     }
@@ -107,7 +100,6 @@ class CheckAccountsServiceTest {
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 0) { assetsRepository.invalidateDefault(any()) }
         coVerify(exactly = 1) { assetsRepository.ensureDefaultAssets(wallet) }
-        coVerify(exactly = 1) { walletService.setupChains(any()) }
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
         coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
     }

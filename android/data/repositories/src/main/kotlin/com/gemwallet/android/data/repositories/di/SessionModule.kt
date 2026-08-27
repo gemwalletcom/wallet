@@ -14,6 +14,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
+import uniffi.gemstone.GemPreferencesService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -31,10 +32,12 @@ object SessionModule {
         sessionDao: SessionDao,
         walletsRepository: WalletsRepository,
         walletSessionService: GemWalletSessionService,
+        preferencesService: GemPreferencesService,
     ): SessionRepository = SessionRepositoryImpl(
         sessionDao = sessionDao,
         walletsRepository = walletsRepository,
         walletSessionService = walletSessionService,
+        preferencesService = preferencesService,
     )
 
     @Provides

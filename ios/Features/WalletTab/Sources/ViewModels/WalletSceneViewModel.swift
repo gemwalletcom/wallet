@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
@@ -26,6 +27,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     let balanceService: any GemBalanceServiceProtocol
     let assetsEnabler: any AssetsEnabler
     private let bannerService: any GemBannerServiceProtocol
+    private let walletPreferencesService: any GemWalletPreferencesServiceProtocol
     private let balanceCalculator = BalanceCalculator()
 
     let observablePreferences: ObservablePreferences
@@ -58,6 +60,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         assetsEnabler: any AssetsEnabler,
         bannerService: any GemBannerServiceProtocol,
         nftService: any GemNftServiceProtocol,
+        walletPreferencesService: any GemWalletPreferencesServiceProtocol,
         observablePreferences: ObservablePreferences,
         wallet: Wallet,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
@@ -67,6 +70,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         self.balanceService = balanceService
         self.assetsEnabler = assetsEnabler
         self.bannerService = bannerService
+        self.walletPreferencesService = walletPreferencesService
         self.observablePreferences = observablePreferences
         collectionsModel = CollectionsViewModel(
             nftService: nftService,
@@ -78,7 +82,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             AssetFiatValuesRequest(
                 walletId: wallet.id,
                 type: .wallet,
-                perpetualAccountMode: WalletPreferences(walletId: wallet.id).perpetualAccountMode,
+                perpetualAccountMode: (try? walletPreferencesService.getPerpetualAccountMode(walletId: wallet.id)) ?? .standard,
             ),
             initialValue: [],
         )
@@ -307,8 +311,9 @@ extension WalletSceneViewModel {
     }
 
     private func shouldShowInitialLoadingAssets(for wallet: Wallet) -> Bool {
-        let preferences = WalletPreferences(walletId: wallet.id)
-        return !preferences.completeInitialLoadAssets && preferences.assetsTimestamp == .zero
+        let completed = (try? walletPreferencesService.isInitialLoadCompleted(walletId: wallet.id, step: .assets)) ?? false
+        let timestamp = (try? walletPreferencesService.getAssetsTimestamp(walletId: wallet.id)) ?? 0
+        return !completed && timestamp == 0
     }
 
     private func handleBanner(action: BannerAction) async throws {

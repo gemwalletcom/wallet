@@ -65,10 +65,8 @@ import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetDiscoveryStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import dagger.Lazy
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemBalanceService
@@ -84,6 +82,7 @@ import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemPortfolioService
 import javax.inject.Singleton
 import uniffi.gemstone.GemStreamSubscriptionService
+import uniffi.gemstone.GemWalletPreferencesService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -237,14 +236,14 @@ object AssetModule {
         transactionsService: GemTransactionsService,
         nftService: GemNftService,
         walletsRepository: Lazy<WalletsRepository>,
-        walletPreferencesFactory: WalletPreferencesFactory,
+        walletPreferencesService: GemWalletPreferencesService,
     ): GemAssetDiscoveryService = GemAssetDiscoveryService(
         apiClient,
         balanceService,
         transactionsService,
         nftService,
         GemstoneWalletStore(walletsRepository),
-        GemstoneAssetDiscoveryStore(walletPreferencesFactory),
+        walletPreferencesService,
     )
 
     @Provides

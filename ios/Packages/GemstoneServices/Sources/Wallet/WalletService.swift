@@ -50,12 +50,12 @@ public struct WalletService: Sendable {
     public func delete(_ wallet: Wallet) async throws {
         try await keystore.deleteKey(for: wallet)
         let hasWallets = try await service.deleteWallet(wallet: wallet.json())
-        WalletPreferences(walletId: wallet.id).clear()
         if !hasWallets {
             preferences.preferences.clear()
             preferences.preferences.invalidateSubscriptions()
         }
     }
+
 
     public func setup(chains: [Chain]) async throws {
         _ = try await service.setupChains(chains: chains.map(\.rawValue))

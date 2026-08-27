@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.data.repositories.gemstone.GemstoneNotificationStore
 import com.gemwallet.android.data.repositories.notifications.InAppNotificationsRepository
-import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import dagger.Module
 import dagger.Provides
@@ -12,6 +11,7 @@ import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemNotificationService
 import uniffi.gemstone.GemNotificationStore
 import javax.inject.Singleton
+import uniffi.gemstone.GemWalletPreferencesService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -21,15 +21,15 @@ object InAppNotificationsModule {
     @Singleton
     fun provideGemNotificationStore(
         notificationsDao: InAppNotificationsDao,
-        walletPreferencesFactory: WalletPreferencesFactory,
-    ): GemNotificationStore = GemstoneNotificationStore(notificationsDao, walletPreferencesFactory)
+    ): GemNotificationStore = GemstoneNotificationStore(notificationsDao)
 
     @Provides
     @Singleton
     fun provideGemNotificationService(
         apiClient: GemDeviceApiClient,
         store: GemNotificationStore,
-    ): GemNotificationService = GemNotificationService(apiClient, store)
+        walletPreferencesService: GemWalletPreferencesService,
+    ): GemNotificationService = GemNotificationService(apiClient, store, walletPreferencesService)
 
     @Provides
     @Singleton

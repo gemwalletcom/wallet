@@ -1,8 +1,10 @@
+pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
+use primitives::currency::Currency;
 use primitives::{Chain, ConfigResponse};
 
 use crate::services::assets::AssetList;
@@ -29,6 +31,10 @@ impl GemPreferencesService {
     #[uniffi::constructor]
     pub fn new(store: Arc<dyn GemPreferencesStore>) -> Self {
         Self { store }
+    }
+
+    pub fn default_currency(&self, locale_currency: Option<String>) -> Currency {
+        rules::default_currency(locale_currency)
     }
 
     pub fn is_price_alerts_enabled(&self) -> Result<bool, GemServiceError> {

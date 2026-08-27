@@ -3,7 +3,7 @@ pub mod model;
 use std::future::Future;
 use std::sync::Arc;
 
-use primitives::Wallet;
+use primitives::{Chain, Wallet};
 
 pub use model::{GemAppStartFailure, GemAppStartStep};
 
@@ -11,6 +11,7 @@ use crate::services::assets::GemAssetsService;
 use crate::services::banner::GemBannerService;
 use crate::services::config::GemConfigService;
 use crate::services::error::GemServiceError;
+use crate::services::wallet::GemWalletService;
 use crate::services::wallet_configuration::GemWalletConfigurationService;
 
 #[derive(uniffi::Object)]
@@ -19,18 +20,31 @@ pub struct GemAppStartService {
     banners: Arc<GemBannerService>,
     assets: Arc<GemAssetsService>,
     wallet_configuration: Arc<GemWalletConfigurationService>,
+    wallet: Arc<GemWalletService>,
 }
 
 #[uniffi::export]
 impl GemAppStartService {
     #[uniffi::constructor]
-    pub fn new(config: Arc<GemConfigService>, banners: Arc<GemBannerService>, assets: Arc<GemAssetsService>, wallet_configuration: Arc<GemWalletConfigurationService>) -> Self {
+    pub fn new(
+        config: Arc<GemConfigService>,
+        banners: Arc<GemBannerService>,
+        assets: Arc<GemAssetsService>,
+        wallet_configuration: Arc<GemWalletConfigurationService>,
+        wallet: Arc<GemWalletService>,
+    ) -> Self {
         Self {
             config,
             banners,
             assets,
             wallet_configuration,
+            wallet,
         }
+    }
+
+    pub async fn setup_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        self.assets.sync_default_assets().await?;
+        self.wallet.setup_chains(Chain::all()).await
     }
 
     pub async fn run(&self) -> Vec<GemAppStartFailure> {

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import GemstoneServices
 import BigInt
 import Components
@@ -16,6 +17,7 @@ import SwiftUI
 @MainActor
 public final class DeveloperViewModel {
     private let walletId: WalletId
+    private let walletPreferencesService: any GemWalletPreferencesServiceProtocol
     private let transactionStore: TransactionStore
     private let assetStore: AssetStore
     private let stakeStore: StakeStore
@@ -33,8 +35,10 @@ public final class DeveloperViewModel {
         bannerStore: BannerStore,
         priceStore: PriceStore,
         perpetualService: PerpetualService,
+        walletPreferencesService: any GemWalletPreferencesServiceProtocol,
     ) {
         self.walletId = walletId
+        self.walletPreferencesService = walletPreferencesService
         self.transactionStore = transactionStore
         self.assetStore = assetStore
         self.stakeStore = stakeStore
@@ -88,15 +92,13 @@ public final class DeveloperViewModel {
 
     func clearTransactionsTimestamp() {
         performAction {
-            let preferences = WalletPreferences(walletId: walletId)
-            preferences.transactionsTimestamp = 0
-            preferences.completeInitialLoadTransactions = false
+            try walletPreferencesService.resetTransactionsTimestamp(walletId: walletId)
         }
     }
 
     func clearWalletPreferences() {
         performAction {
-            WalletPreferences(walletId: walletId).clear()
+            try walletPreferencesService.clear(walletId: walletId)
         }
     }
 

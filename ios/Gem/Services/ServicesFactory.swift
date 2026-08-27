@@ -40,6 +40,7 @@ struct ServicesFactory {
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
 
         let gemWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
+        let walletPreferencesService = Gemstone.GemWalletPreferencesService(store: GemstoneWalletPreferencesStore())
         let gemDeviceStore = GemstoneDeviceStore()
         let gemDeviceService = Gemstone.GemDeviceService(
             api: deviceRegistrationClient,
@@ -89,6 +90,7 @@ struct ServicesFactory {
             assets: gemAssetsService,
             store: GemstoneTransactionStore(store: storeManager.transactionStore),
             addressStore: GemstoneAddressStore(store: storeManager.addressStore),
+            preferences: walletPreferencesService,
         )
         let gemScanService = Gemstone.GemScanService(api: gemDeviceApiClient)
         let paymentService = PaymentService(provider: nativeProvider)
@@ -108,6 +110,7 @@ struct ServicesFactory {
             session: gemWalletSessionService,
             deviceStore: gemDeviceStore,
             files: GemstoneFileStore(),
+            preferences: walletPreferencesService,
         )
         let avatarService = Gemstone.GemAvatarService(wallets: gemWalletStore, files: GemstoneFileStore(), provider: nativeProvider)
         let walletService = WalletService(
@@ -153,6 +156,7 @@ struct ServicesFactory {
         let perpetualService = PerpetualService(
             provider: PerpetualProviderFactory(gatewayService: gatewayService, nodeProvider: nodeProvider).createProvider(),
             service: gemPerpetualService,
+            preferences: walletPreferencesService,
         )
         let webSocket = Self.makeWebSocket(securePreferences: securePreferences)
         let streamSubscriptionService = Gemstone.GemStreamSubscriptionService(
@@ -221,19 +225,13 @@ struct ServicesFactory {
             transactions: gemTransactionsService,
             nft: gemNftService,
             walletStore: gemWalletStore,
-            store: GemstoneAssetDiscoveryStore(),
+            preferences: walletPreferencesService,
         )
 
         let gemConfigService = Gemstone.GemConfigService(api: gemApiClient, preferences: preferencesService)
         let appUpdateService = Gemstone.GemAppUpdateService(config: gemConfigService, preferences: preferencesService)
         let rateService = RateService(preferences: preferences)
 
-        let onStartService = OnstartService(
-            assetsService: gemAssetsService,
-            nodeStore: storeManager.nodeStore,
-            preferences: preferences,
-            walletService: walletService,
-        )
         let appStartService = Gemstone.GemAppStartService(
             config: gemConfigService,
             banners: bannerService,
@@ -241,8 +239,17 @@ struct ServicesFactory {
             walletConfiguration: Gemstone.GemWalletConfigurationService(
                 api: gemDeviceApiClient,
                 banners: GemstoneBannerStore(store: storeManager.bannerStore),
-                store: GemstoneWalletConfigurationStore(),
+                preferences: walletPreferencesService,
             ),
+            wallet: gemWalletService,
+        )
+
+        let onStartService = OnstartService(
+            appStartService: appStartService,
+            preferencesService: preferencesService,
+            nodeStore: storeManager.nodeStore,
+            preferences: preferences,
+            walletService: walletService,
         )
 
         let hyperliquidObserverService = HyperliquidObserverService(
@@ -283,6 +290,7 @@ struct ServicesFactory {
         let inAppNotificationService = Gemstone.GemNotificationService(
             api: gemDeviceApiClient,
             store: GemstoneNotificationStore(store: storeManager.inAppNotificationStore),
+            preferences: walletPreferencesService,
         )
 
         let contactService = Gemstone.GemContactService(
@@ -361,6 +369,7 @@ struct ServicesFactory {
             transactionsService: transactionsService,
             transactionStateScheduler: transactionStateScheduler,
             walletService: walletService,
+            walletPreferencesService: walletPreferencesService,
             walletSessionService: walletSessionService,
             assetsEnabler: assetsEnabler,
             assetDiscoveryService: assetDiscoveryService,

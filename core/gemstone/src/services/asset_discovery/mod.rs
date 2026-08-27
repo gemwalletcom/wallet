@@ -1,6 +1,4 @@
-pub mod model;
 pub mod rules;
-pub mod store;
 
 use crate::services::error::GemServiceError;
 use std::future::Future;
@@ -10,14 +8,14 @@ use chrono::Utc;
 use primitives::currency::Currency;
 use primitives::{AssetId, WalletId};
 
-pub use model::GemDiscoveryStep;
-pub use store::GemAssetDiscoveryStore;
+pub use crate::services::wallet_preferences::GemDiscoveryStep;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::balance::GemBalanceService;
 use crate::services::nft::GemNftService;
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet::GemWalletStore;
+use crate::services::wallet_preferences::GemWalletPreferencesService;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetDiscoveryService {
@@ -26,7 +24,7 @@ pub struct GemAssetDiscoveryService {
     transactions: Arc<GemTransactionsService>,
     nft: Arc<GemNftService>,
     wallet_store: Arc<dyn GemWalletStore>,
-    store: Arc<dyn GemAssetDiscoveryStore>,
+    preferences: Arc<GemWalletPreferencesService>,
 }
 
 #[uniffi::export]
@@ -38,7 +36,7 @@ impl GemAssetDiscoveryService {
         transactions: Arc<GemTransactionsService>,
         nft: Arc<GemNftService>,
         wallet_store: Arc<dyn GemWalletStore>,
-        store: Arc<dyn GemAssetDiscoveryStore>,
+        preferences: Arc<GemWalletPreferencesService>,
     ) -> Self {
         Self {
             api,
@@ -46,7 +44,7 @@ impl GemAssetDiscoveryService {
             transactions,
             nft,
             wallet_store,
-            store,
+            preferences,
         }
     }
 
@@ -65,15 +63,15 @@ impl GemAssetDiscoveryService {
         let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone())? else {
             return Ok(vec![]);
         };
-        let from_timestamp = self.store.get_assets_timestamp(wallet_id.clone()).await?;
+        let from_timestamp = self.preferences.get_assets_timestamp(wallet_id.clone())?;
         let timestamp = Utc::now().timestamp() as u64;
         let asset_ids = self.api.client.get_assets_list(wallet_id.id(), from_timestamp).await.map_err(GemApiError::from)?;
         let asset_ids = rules::discoverable_asset_ids(asset_ids, &wallet.accounts);
         if !asset_ids.is_empty() {
             self.balance.enable_assets(wallet_id.clone(), asset_ids.clone(), true, currency).await?;
         }
-        self.store.set_assets_timestamp(wallet_id.clone(), timestamp).await?;
-        self.store.set_completed(wallet_id, GemDiscoveryStep::Assets).await?;
+        self.preferences.set_assets_timestamp(wallet_id.clone(), timestamp)?;
+        self.preferences.set_initial_load_completed(wallet_id, GemDiscoveryStep::Assets)?;
         Ok(asset_ids)
     }
 
@@ -81,10 +79,10 @@ impl GemAssetDiscoveryService {
     where
         F: Future<Output = Result<(), GemServiceError>>,
     {
-        if self.store.is_completed(wallet_id.clone(), step).await? {
+        if self.preferences.is_initial_load_completed(wallet_id.clone(), step)? {
             return Ok(());
         }
         sync.await?;
-        self.store.set_completed(wallet_id, step).await
+        self.preferences.set_initial_load_completed(wallet_id, step)
     }
 }

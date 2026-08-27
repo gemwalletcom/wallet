@@ -12,6 +12,7 @@ pub use store::GemTransactionStore;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
 use crate::services::name::GemAddressStore;
+use crate::services::wallet_preferences::GemWalletPreferencesService;
 
 #[derive(uniffi::Object)]
 pub struct GemTransactionsService {
@@ -19,22 +20,30 @@ pub struct GemTransactionsService {
     assets: Arc<GemAssetsService>,
     store: Arc<dyn GemTransactionStore>,
     address_store: Arc<dyn GemAddressStore>,
+    preferences: Arc<GemWalletPreferencesService>,
 }
 
 #[uniffi::export]
 impl GemTransactionsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, assets: Arc<GemAssetsService>, store: Arc<dyn GemTransactionStore>, address_store: Arc<dyn GemAddressStore>) -> Self {
+    pub fn new(
+        api: Arc<GemDeviceApiClient>,
+        assets: Arc<GemAssetsService>,
+        store: Arc<dyn GemTransactionStore>,
+        address_store: Arc<dyn GemAddressStore>,
+        preferences: Arc<GemWalletPreferencesService>,
+    ) -> Self {
         Self {
             api,
             assets,
             store,
             address_store,
+            preferences,
         }
     }
 
     pub async fn sync(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
-        let from_timestamp = self.store.get_sync_timestamp(wallet_id.clone(), asset_id.clone()).await?;
+        let from_timestamp = self.preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone())?;
         let timestamp = Utc::now().timestamp() as u64;
         let response = self
             .api
@@ -49,6 +58,6 @@ impl GemTransactionsService {
         }
         self.store.save_transactions(wallet_id.clone(), response.transactions).await?;
         self.address_store.save_address_names(response.address_names).await?;
-        self.store.set_sync_timestamp(wallet_id, asset_id, timestamp).await
+        self.preferences.set_transactions_timestamp(wallet_id, asset_id, timestamp)
     }
 }

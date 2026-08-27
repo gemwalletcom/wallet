@@ -4263,6 +4263,7 @@ dependencies = [
  "serde_json",
  "signer",
  "simulation",
+ "strum",
  "sui-sdk-types",
  "support",
  "swapper",

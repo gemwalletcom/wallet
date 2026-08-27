@@ -1,5 +1,4 @@
 pub mod rules;
-pub mod store;
 
 use crate::services::error::GemServiceError;
 use primitives::WalletId;
@@ -8,24 +7,24 @@ use std::sync::Arc;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::banner::{GemBannerStore, rules as banner_rules};
 
-pub use store::GemWalletConfigurationStore;
+use crate::services::wallet_preferences::GemWalletPreferencesService;
 
 #[derive(uniffi::Object)]
 pub struct GemWalletConfigurationService {
     api: Arc<GemDeviceApiClient>,
     banners: Arc<dyn GemBannerStore>,
-    store: Arc<dyn GemWalletConfigurationStore>,
+    preferences: Arc<GemWalletPreferencesService>,
 }
 
 #[uniffi::export]
 impl GemWalletConfigurationService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, banners: Arc<dyn GemBannerStore>, store: Arc<dyn GemWalletConfigurationStore>) -> Self {
-        Self { api, banners, store }
+    pub fn new(api: Arc<GemDeviceApiClient>, banners: Arc<dyn GemBannerStore>, preferences: Arc<GemWalletPreferencesService>) -> Self {
+        Self { api, banners, preferences }
     }
 
     pub async fn sync(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        if self.store.is_completed(wallet_id.clone()).await? {
+        if self.preferences.is_wallet_configuration_completed(wallet_id.clone())? {
             return Ok(());
         }
         let result = self.api.client.get_wallet_configuration(wallet_id.id()).await.map_err(GemApiError::from)?;
@@ -33,6 +32,6 @@ impl GemWalletConfigurationService {
             let state = banner_rules::default_state(key.event);
             self.banners.set_state(key, state).await?;
         }
-        self.store.set_completed(wallet_id).await
+        self.preferences.set_wallet_configuration_completed(wallet_id)
     }
 }

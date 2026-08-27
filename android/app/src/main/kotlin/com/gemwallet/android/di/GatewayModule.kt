@@ -44,7 +44,6 @@ import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemSupportService
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemWalletConfigurationService
-import uniffi.gemstone.GemWalletConfigurationStore
 import uniffi.gemstone.GemBannerStore
 import com.gemwallet.android.data.repositories.gemstone.GemstonePortfolioStore
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -63,6 +62,8 @@ import uniffi.gemstone.TransactionSimulationService
 import uniffi.gemstone.TransactionSimulationServiceInterface
 import javax.inject.Singleton
 import uniffi.gemstone.GemFileStore
+import uniffi.gemstone.GemWalletPreferencesService
+import uniffi.gemstone.GemWalletService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -158,8 +159,8 @@ object GatewayModule {
     fun provideGemWalletConfigurationService(
         apiClient: GemstoneDeviceApiClient,
         bannerStore: GemBannerStore,
-        store: GemWalletConfigurationStore,
-    ): GemWalletConfigurationService = GemWalletConfigurationService(apiClient, bannerStore, store)
+        walletPreferencesService: GemWalletPreferencesService,
+    ): GemWalletConfigurationService = GemWalletConfigurationService(apiClient, bannerStore, walletPreferencesService)
 
     @Provides
     @Singleton
@@ -178,7 +179,8 @@ object GatewayModule {
         bannerService: GemBannerService,
         assetsService: GemAssetsService,
         walletConfigurationService: GemWalletConfigurationService,
-    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, walletConfigurationService)
+        walletService: GemWalletService,
+    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, walletConfigurationService, walletService)
 
 
     @Provides

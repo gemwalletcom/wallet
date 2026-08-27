@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import protocol Gemstone.GemSupportServiceProtocol
 import protocol Gemstone.GemContactServiceProtocol
 import protocol Gemstone.GemAppUpdateServiceProtocol
@@ -46,6 +47,7 @@ extension EnvironmentValues {
     @Entry var assetsEnabler: any AssetsEnabler = AppResolver.main.services.assetsEnabler
     @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
     @Entry var walletService: WalletService = AppResolver.main.services.walletService
+    @Entry var walletPreferencesService: any GemWalletPreferencesServiceProtocol = AppResolver.main.services.walletPreferencesService
     @Entry var walletSessionService: any WalletSessionManageable = AppResolver.main.services.walletSessionService
     @Entry var priceAlertService: any GemPriceAlertServiceProtocol = AppResolver.main.services.priceAlertService
     @Entry var deviceService: DeviceService = AppResolver.main.services.deviceService

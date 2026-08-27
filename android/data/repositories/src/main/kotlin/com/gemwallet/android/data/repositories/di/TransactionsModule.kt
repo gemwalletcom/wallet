@@ -12,7 +12,6 @@ import com.gemwallet.android.data.repositories.gemstone.GemstoneAddressStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStateStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
 import com.gemwallet.android.data.repositories.transactions.TransactionsRepositoryImpl
-import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -27,6 +26,7 @@ import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.GemTransactionsService
 import javax.inject.Singleton
+import uniffi.gemstone.GemWalletPreferencesService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -47,14 +47,15 @@ object TransactionsModule {
     fun provideTransactionsService(
         apiClient: GemDeviceApiClient,
         assetsService: GemAssetsService,
-        walletPreferencesFactory: WalletPreferencesFactory,
         transactionsRepository: TransactionsRepositoryImpl,
         addressesDao: AddressesDao,
+        walletPreferencesService: GemWalletPreferencesService,
     ): GemTransactionsService = GemTransactionsService(
         apiClient,
         assetsService,
-        GemstoneTransactionStore(walletPreferencesFactory, transactionsRepository),
+        GemstoneTransactionStore(transactionsRepository),
         GemstoneAddressStore(addressesDao),
+        walletPreferencesService,
     )
 
     @Singleton

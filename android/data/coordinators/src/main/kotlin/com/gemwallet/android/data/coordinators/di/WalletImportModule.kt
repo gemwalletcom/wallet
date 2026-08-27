@@ -6,7 +6,6 @@ import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletIm
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.coordinators.wallet_import.SetupWalletImpl
 import com.gemwallet.android.data.coordinators.wallet_import.services.ImportWalletService
-import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.Module
 import dagger.Provides
@@ -14,20 +13,12 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemAppStartService
-import uniffi.gemstone.GemWalletConfigurationStore
-import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletConfigurationStore
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 object WalletImportModule {
 
-
-    @Provides
-    @Singleton
-    fun provideGemWalletConfigurationStore(
-        walletPreferencesFactory: WalletPreferencesFactory,
-    ): GemWalletConfigurationStore = GemstoneWalletConfigurationStore(walletPreferencesFactory)
 
     @Provides
     @Singleton

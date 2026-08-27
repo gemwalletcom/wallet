@@ -89,6 +89,10 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     public func setPriceAlertsEnabled(enabled: Bool) throws {
         lock.withLock { priceAlertsEnabled = enabled }
     }
+
+    public func defaultCurrency(localeCurrency _: String?) -> Gemstone.Currency {
+        "\"USD\""
+    }
 }
 
 public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unchecked Sendable {
@@ -454,4 +458,29 @@ public final class GemAvatarServiceMock: GemAvatarServiceProtocol, @unchecked Se
     public func setImageUrl(walletId _: Gemstone.WalletId, url _: String) async throws {}
 
     public func removeImage(walletId _: Gemstone.WalletId) async throws {}
+}
+
+public final class GemWalletPreferencesStoreMock: GemWalletPreferencesStore, @unchecked Sendable {
+    private let lock = NSLock()
+    private var values: [String: String] = [:]
+
+    public init() {}
+
+    public func get(walletId: Gemstone.WalletId, key: String) throws -> String? {
+        lock.withLock { values["\(walletId):\(key)"] }
+    }
+
+    public func set(walletId: Gemstone.WalletId, key: String, value: String) throws {
+        lock.withLock { values["\(walletId):\(key)"] = value }
+    }
+
+    public func clear(walletId: Gemstone.WalletId) throws {
+        lock.withLock { values = values.filter { !$0.key.hasPrefix("\(walletId):") } }
+    }
+}
+
+public extension GemWalletPreferencesService {
+    static func mock() -> GemWalletPreferencesService {
+        GemWalletPreferencesService(store: GemWalletPreferencesStoreMock())
+    }
 }

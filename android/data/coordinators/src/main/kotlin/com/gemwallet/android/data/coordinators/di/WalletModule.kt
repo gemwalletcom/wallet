@@ -20,7 +20,6 @@ import com.gemwallet.android.data.coordinators.wallet.SetCurrentWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.SetWalletNameImpl
 import com.gemwallet.android.data.coordinators.wallet.ToggleWalletPinImpl
 import com.gemwallet.android.data.coordinators.wallet.WalletIdGeneratorImpl
-import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import dagger.Module
@@ -84,10 +83,9 @@ object WalletModule {
         sessionRepository: SessionRepository,
         walletsRepository: WalletsRepository,
         deleteKeyStoreOperator: DeleteKeyStoreOperator,
-        walletPreferencesFactory: WalletPreferencesFactory,
         walletService: GemWalletService,
     ): DeleteWallet {
-        return DeleteWalletImpl(sessionRepository, walletsRepository, deleteKeyStoreOperator, walletPreferencesFactory, walletService)
+        return DeleteWalletImpl(sessionRepository, walletsRepository, deleteKeyStoreOperator, walletService)
     }
 
     @Provides

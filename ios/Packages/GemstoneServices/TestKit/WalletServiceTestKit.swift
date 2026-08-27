@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
+import class Gemstone.GemWalletPreferencesService
 import GemstoneServices
 import Foundation
 import class Gemstone.GemWalletService
@@ -25,6 +27,7 @@ public extension WalletService {
             session: session,
             deviceStore: GemstoneDeviceStore(preferences: preferences.preferences),
             files: GemstoneFileStore(),
+            preferences: GemWalletPreferencesService.mock(),
         )
         return WalletService(
             service: gemWalletService,
