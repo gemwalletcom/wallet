@@ -132,8 +132,9 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 ### Decisions needed first (product)
 
 - [ ] Keystore password creation: iOS `GemstoneServices/Sources/Keystore/KeystorePasswordStore.swift` refuses `createIfMissing` unless every wallet is view-only (lost password ⇒ every import fails), Android `data/repositories/.../gemstone/KeystorePasswordStore.kt` creates a new one. Pick one rule, put it in `services/wallet/rules.rs` behind a `has_password()` trait method.
-- [ ] Security scan outage: `confirm.rs` `scan_transaction(...).await.ok()` fails open (send allowed when the scanner is unreachable), matching both pre-Core apps. Confirm or make it fail closed for `Generic`/WalletConnect inputs.
 - [ ] WalletConnect activation gate: iOS gates connector setup on `isWalletConnectActivated` (`ConnectionsService`), Android on "any stored connection". Pick one and keep it in `GemPreferencesService`.
+
+Decided: a security scan outage fails open on purpose — `confirm.rs` `scan_transaction(...).await.ok()` lets the send continue when the scanner is unreachable (same as both pre-Core apps); keep it that way unless product says otherwise.
 
 ### Rust (core/gemstone)
 
