@@ -1,9 +1,9 @@
 pub mod store;
 
+use crate::clock::unix_seconds;
 use crate::services::error::GemServiceError;
 use primitives::WalletId;
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::api::GemDeviceApiClient;
 
@@ -26,10 +26,7 @@ impl GemNotificationService {
     }
 
     pub async fn sync(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        let started_at = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|error| GemServiceError::Store { msg: error.to_string() })?
-            .as_secs();
+        let started_at = unix_seconds().map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
         let from_timestamp = self.preferences.get_notifications_timestamp(wallet_id.clone())?;
         let notifications = self.api.client.get_notifications(from_timestamp).await.map_err(crate::api::GemApiError::from)?;
         self.store.save(notifications).await?;

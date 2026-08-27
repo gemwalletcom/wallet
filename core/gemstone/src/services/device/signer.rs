@@ -1,4 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use crate::clock::unix_milliseconds;
 
 use zeroize::Zeroizing;
 
@@ -23,10 +23,7 @@ impl GemDeviceRequestSigner {
     }
 
     pub fn sign(&self, method: String, path: String, wallet_id: String, body: Vec<u8>) -> Result<String, GemServiceError> {
-        let timestamp_ms = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|error| GemServiceError::Core { msg: error.to_string() })?
-            .as_millis() as u64;
+        let timestamp_ms = unix_milliseconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
         gem_auth::build_device_auth_header(&self.private_key, &method, &path, &wallet_id, &body, timestamp_ms).map_err(|error| GemServiceError::Core { msg: error.to_string() })
     }
 }
