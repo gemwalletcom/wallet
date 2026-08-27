@@ -9,6 +9,7 @@ internal fun Throwable.toPreloadConfirmError(): ConfirmError = when (this) {
     is ConfirmError -> this
     is GemConfirmException.ScanMalicious -> ConfirmError.ScanTransactionMalicious
     is GemConfirmException.ScanMemoRequired -> ConfirmError.ScanTransactionMemoRequired(symbol)
+    is GemConfirmException.Offline -> ConfirmError.NetworkError(GemNetworkError.Offline)
     is GemConfirmException.Network -> ConfirmError.NetworkError(GemNetworkError.Display(msg))
     else -> toGemNetworkError()
         ?.let { ConfirmError.NetworkError(it) }
@@ -17,6 +18,7 @@ internal fun Throwable.toPreloadConfirmError(): ConfirmError = when (this) {
 
 internal fun Throwable.toBroadcastConfirmError(): ConfirmError = when (this) {
     is ConfirmError -> this
+    is GemConfirmException.Offline -> ConfirmError.NetworkError(GemNetworkError.Offline)
     is GemConfirmException.Network -> ConfirmError.NetworkError(GemNetworkError.Display(msg))
     else -> toGemNetworkError()
         ?.let { ConfirmError.NetworkError(it) }

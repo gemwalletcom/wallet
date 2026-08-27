@@ -211,6 +211,7 @@
 "errors.swap.minimum_amount" = "Minimumsbeløbet for handel er %@. Indtast venligst et højere beløb.";
 "errors.perpetual.trigger_price_lower" = "Triggerprisen skal være lavere end markedsprisen";
 "errors.perpetual.trigger_price_higher" = "Triggerprisen skal være højere end markedsprisen";
+"errors.network_offline" = "Internetforbindelsen ser ud til at være offline.";
 "errors.no_internet_connection" = "Ingen internetforbindelse";
 "errors.no_service_connection" = "Ingen serviceforbindelse";
 "errors.balances_activity_outdated" = "Saldi og aktivitet kan være forældede.";

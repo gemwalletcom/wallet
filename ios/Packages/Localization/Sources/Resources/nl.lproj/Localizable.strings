@@ -211,6 +211,7 @@
 "errors.swap.minimum_amount" = "Het minimale handelsbedrag is %@. Voer een hoger bedrag in.";
 "errors.perpetual.trigger_price_lower" = "De triggerprijs moet lager zijn dan de marktprijs";
 "errors.perpetual.trigger_price_higher" = "De triggerprijs moet hoger zijn dan de marktprijs";
+"errors.network_offline" = "De internetverbinding lijkt offline te zijn.";
 "errors.no_internet_connection" = "Geen internetverbinding";
 "errors.no_service_connection" = "Geen serviceverbinding";
 "errors.balances_activity_outdated" = "Saldi en activiteit zijn mogelijk verouderd.";

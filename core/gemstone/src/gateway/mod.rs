@@ -4,7 +4,7 @@ mod preferences;
 
 pub use chain_factory::ChainClientFactory;
 pub use error::GatewayError;
-use error::map_network_error;
+pub(crate) use error::map_network_error;
 #[cfg(test)]
 pub use preferences::EmptyPreferences;
 pub(crate) use preferences::PreferencesWrapper;
@@ -72,7 +72,7 @@ impl GemGateway {
         Fut: Future<Output = Result<T, Box<dyn std::error::Error + Send + Sync>>>,
     {
         let provider = self.chain_factory.create(chain).await?;
-        call(provider).await.map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
+        call(provider).await.map_err(map_network_error)
     }
     pub fn get_earn_providers(&self, asset_id: AssetId) -> Vec<GemDelegationValidator> {
         self.yielder.get_providers(&asset_id)

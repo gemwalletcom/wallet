@@ -2,6 +2,7 @@ package com.gemwallet.android.data.services.gemapi
 
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.isNetworkUnavailable
 import com.gemwallet.android.ext.toGatewayNetworkMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +21,6 @@ import java.io.IOException
 class NativeProvider(
     private val getNodeUrlCase: GetNodeUrlCase,
     private val httpClient: OkHttpClient = OkHttpClient(),
-    private val config: NativeProviderConfig,
 ) : AlienProvider {
     private val cache = MemoryCache()
 
@@ -55,7 +55,10 @@ class NativeProvider(
                 AlienResponse(status, data)
             }
         } catch (err: IOException) {
-            throw AlienException.RequestException(err.toGatewayNetworkMessage(config.networkOfflineMessage))
+            if (err.isNetworkUnavailable()) {
+                throw AlienException.Offline()
+            }
+            throw AlienException.RequestException(err.toGatewayNetworkMessage())
         } catch (err: CancellationException) {
             throw err
         } catch (_: Exception) {

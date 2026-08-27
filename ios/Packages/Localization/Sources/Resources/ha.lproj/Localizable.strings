@@ -211,6 +211,7 @@
 "errors.swap.minimum_amount" = "Mafi ƙarancin adadin ciniki shine %@. Da fatan a shigar da adadin da ya fi girma.";
 "errors.perpetual.trigger_price_lower" = "Farashin kunnawa ya kamata ya zama ƙasa da farashin kasuwa";
 "errors.perpetual.trigger_price_higher" = "Farashin kunnawa ya kamata ya zama sama da farashin kasuwa";
+"errors.network_offline" = "Da alama haɗin intanet ɗin ya katse.";
 "errors.no_internet_connection" = "Babu haɗin intanet";
 "errors.no_service_connection" = "Babu haɗin sabis";
 "errors.balances_activity_outdated" = "Ma'aunai da ayyuka na iya zama tsofaffi.";

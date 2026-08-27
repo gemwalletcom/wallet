@@ -211,6 +211,7 @@
 "errors.swap.minimum_amount" = "จำนวนเงินขั้นต่ำในการซื้อขายคือ %@ กรุณาป้อนจำนวนเงินที่สูงกว่านี้";
 "errors.perpetual.trigger_price_lower" = "ราคา Trigger ควรต่ำกว่าราคาตลาด";
 "errors.perpetual.trigger_price_higher" = "ราคา Trigger ควรสูงกว่าราคาตลาด";
+"errors.network_offline" = "ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์";
 "errors.no_internet_connection" = "ไม่มีการเชื่อมต่ออินเทอร์เน็ต";
 "errors.no_service_connection" = "ไม่มีการเชื่อมต่อบริการ";
 "errors.balances_activity_outdated" = "ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน";

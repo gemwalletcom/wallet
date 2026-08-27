@@ -211,6 +211,7 @@
 "errors.swap.minimum_amount" = "Мінімально дозволена сума угоди становить %@. Будь ласка, введіть більшу суму.";
 "errors.perpetual.trigger_price_lower" = "Ціна спрацювання має бути нижчою за ринкову ціну";
 "errors.perpetual.trigger_price_higher" = "Ціна спрацювання має бути вищою за ринкову ціну";
+"errors.network_offline" = "Здається, підключення до Інтернету відсутнє.";
 "errors.no_internet_connection" = "Немає підключення до інтернету";
 "errors.no_service_connection" = "Немає підключення до сервісу";
 "errors.balances_activity_outdated" = "Баланси та активність можуть бути застарілими.";

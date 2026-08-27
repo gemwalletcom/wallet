@@ -211,6 +211,7 @@
 "errors.swap.minimum_amount" = "最低交易金額為 %@。請輸入更高的金額。";
 "errors.perpetual.trigger_price_lower" = "觸發價格應低於市場價格";
 "errors.perpetual.trigger_price_higher" = "觸發價格應高於市場價格";
+"errors.network_offline" = "網路連線似乎已斷開。";
 "errors.no_internet_connection" = "無網際網路連線";
 "errors.no_service_connection" = "無服務連線";
 "errors.balances_activity_outdated" = "餘額和活動可能不是最新的。";

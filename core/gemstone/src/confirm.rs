@@ -60,6 +60,7 @@ pub enum GemConfirmError {
     ScanMalicious,
     ScanMemoRequired { symbol: String },
     FeeRatesMissing,
+    Offline,
     Network { msg: String },
     Load { msg: String },
     Broadcast { hashes: Vec<String>, msg: String },
@@ -71,6 +72,7 @@ impl std::fmt::Display for GemConfirmError {
             Self::ScanMalicious => write!(f, "transaction flagged as malicious"),
             Self::ScanMemoRequired { symbol } => write!(f, "{symbol} transfer requires a memo"),
             Self::FeeRatesMissing => write!(f, "fee rates not found"),
+            Self::Offline => write!(f, "network offline"),
             Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } => write!(f, "{msg}"),
         }
     }
@@ -248,6 +250,7 @@ fn validate_scan(scan: Option<&ScanTransaction>, memo: Option<&str>, symbol: &st
 
 fn load_error(error: GatewayError) -> GemConfirmError {
     match error {
+        GatewayError::Offline => GemConfirmError::Offline,
         GatewayError::NetworkError { msg } => GemConfirmError::Network { msg },
         error => GemConfirmError::Load { msg: error.to_string() },
     }
@@ -255,6 +258,7 @@ fn load_error(error: GatewayError) -> GemConfirmError {
 
 fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemConfirmError {
     match error {
+        GatewayError::Offline if hashes.is_empty() => GemConfirmError::Offline,
         GatewayError::NetworkError { msg } if hashes.is_empty() => GemConfirmError::Network { msg },
         error => GemConfirmError::Broadcast { hashes, msg: error.to_string() },
     }
@@ -503,6 +507,9 @@ mod tests {
             GemConfirmError::Network { msg } => assert_eq!(msg, "timeout"),
             error => panic!("expected a network error, got {error:?}"),
         }
+        assert!(matches!(load_error(GatewayError::Offline), GemConfirmError::Offline));
+        assert!(matches!(broadcast_error(vec![], GatewayError::Offline), GemConfirmError::Offline));
+        assert!(matches!(broadcast_error(vec!["h1".to_string()], GatewayError::Offline), GemConfirmError::Broadcast { .. }));
         match load_error(GatewayError::PlatformError { msg: "dust".to_string() }) {
             GemConfirmError::Load { msg } => assert_eq!(msg, "Platform error: dust"),
             error => panic!("expected a load error, got {error:?}"),

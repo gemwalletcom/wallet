@@ -211,6 +211,7 @@
 "errors.swap.minimum_amount" = "Minimum trade amount is %@. Please enter a higher amount.";
 "errors.perpetual.trigger_price_lower" = "Trigger price should be lower than market price";
 "errors.perpetual.trigger_price_higher" = "Trigger price should be higher than market price";
+"errors.network_offline" = "The Internet connection appears to be offline.";
 "errors.no_internet_connection" = "No internet connection";
 "errors.no_service_connection" = "No service connection";
 "errors.balances_activity_outdated" = "Balances and activity may be outdated.";

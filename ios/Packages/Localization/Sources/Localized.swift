@@ -423,6 +423,8 @@ public enum Localized {
     public static let invalidNetworkId = Localized.tr("Localizable", "errors.invalid_network_id", fallback: "Invalid Network ID")
     /// Invalid URL
     public static let invalidUrl = Localized.tr("Localizable", "errors.invalid_url", fallback: "Invalid URL")
+    /// The Internet connection appears to be offline.
+    public static let networkOffline = Localized.tr("Localizable", "errors.network_offline", fallback: "The Internet connection appears to be offline.")
     /// No data available
     public static let noDataAvailable = Localized.tr("Localizable", "errors.no_data_available", fallback: "No data available")
     /// No internet connection

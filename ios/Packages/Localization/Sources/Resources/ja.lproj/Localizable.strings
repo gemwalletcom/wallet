@@ -211,6 +211,7 @@
 "errors.swap.minimum_amount" = "最低取引金額は %@。より高い金額を入力してください。";
 "errors.perpetual.trigger_price_lower" = "トリガー価格は市場価格より低くする必要があります";
 "errors.perpetual.trigger_price_higher" = "トリガー価格は市場価格より高くする必要があります";
+"errors.network_offline" = "インターネット接続が切断されているようです。";
 "errors.no_internet_connection" = "インターネット接続がありません";
 "errors.no_service_connection" = "サービス接続がありません";
 "errors.balances_activity_outdated" = "残高とアクティビティは最新でない場合があります。";

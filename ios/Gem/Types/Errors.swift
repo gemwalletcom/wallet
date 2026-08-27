@@ -8,6 +8,7 @@ import Primitives
 extension Gemstone.GatewayError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
+        case .Offline: Localized.Errors.networkOffline
         case let .NetworkError(string): string
         case let .PlatformError(string): string
         }
@@ -51,6 +52,7 @@ extension Gemstone.AlienError: @retroactive LocalizedError {
         case let .RequestError(msg: msg): msg
         case let .ResponseError(msg: msg): msg
         case let .Http(status, _): "Response Status: \(status)"
+        case .Offline: Localized.Errors.networkOffline
         }
     }
 }

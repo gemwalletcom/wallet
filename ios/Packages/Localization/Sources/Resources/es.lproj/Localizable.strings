@@ -211,6 +211,7 @@
 "errors.swap.minimum_amount" = "La cantidad mínima de operación es %@. Introduce una cantidad mayor.";
 "errors.perpetual.trigger_price_lower" = "El precio de activación debe ser inferior al precio de mercado";
 "errors.perpetual.trigger_price_higher" = "El precio de activación debe ser superior al precio de mercado";
+"errors.network_offline" = "La conexión a Internet parece estar fuera de línea.";
 "errors.no_internet_connection" = "Sin conexión a internet";
 "errors.no_service_connection" = "Sin conexión al servicio";
 "errors.balances_activity_outdated" = "Los saldos y la actividad pueden estar desactualizados.";
