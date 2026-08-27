@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface NodesDao {
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addNodes(nodes: List<DbNode>)
 
     @Query("DELETE FROM nodes WHERE chain = :chain AND url = :url")
