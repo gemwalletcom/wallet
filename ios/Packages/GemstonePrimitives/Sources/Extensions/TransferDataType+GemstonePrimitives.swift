@@ -47,7 +47,7 @@ public extension TransferDataType {
     }
 
     var outputAction: TransferDataOutputAction {
-        (try? TransferDataOutputAction(GemTransferService().output(inputType: inputType).outputAction)) ?? .send
+        (try? TransferDataOutputAction(GemTransferService().output(inputType: inputType).outputAction)) ?? .sign
     }
 
     func metadata() throws -> AnyCodableValue? {
