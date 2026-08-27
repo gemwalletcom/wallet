@@ -8,7 +8,7 @@ import Testing
 
 struct ConnectionsRequestTests {
     @Test
-    func fetchReturnsConnectionsWithWalletAccounts() throws {
+    func returnsConnectionsWithWalletAccounts() throws {
         let db = DB.mockWithChains([.ethereum])
         let walletStore = WalletStore(db: db)
         let connectionsStore = ConnectionsStore(db: db)
