@@ -80,14 +80,8 @@ object TransactionsModule {
     @Singleton
     @Provides
     fun provideTransactionStateScheduler(
-        sessionRepository: SessionRepository,
-        transactionsDao: TransactionsDao,
         stateService: GemTransactionStateService,
-    ): TransactionStateScheduler = TransactionStateScheduler(
-        sessionRepository = sessionRepository,
-        transactionsDao = transactionsDao,
-        stateService = stateService,
-    )
+    ): TransactionStateScheduler = TransactionStateScheduler(stateService = stateService)
 
     @Singleton
     @Provides
@@ -109,9 +103,7 @@ object TransactionsModule {
 
     @Singleton
     @Provides
-    fun provideCreateTransactionsCase(transactionsRepository: TransactionsRepositoryImpl): CreateTransaction {
-        return transactionsRepository
-    }
+    fun provideCreateTransactionsCase(scheduler: TransactionStateScheduler): CreateTransaction = scheduler
 
     @Singleton
     @Provides

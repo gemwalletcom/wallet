@@ -29,8 +29,11 @@ class GemstoneTransactionStateStore(
     override suspend fun getTransaction(walletId: String, transactionId: String): GemPendingTransaction? =
         transactionsDao.getTransaction(transactionId.decodeJson(), WalletId(walletId))?.let { pendingTransaction(it) }
 
-    override suspend fun addTransactions(walletId: String, transactions: List<String>) =
-        transactionsDao.insert(transactions.map { it.decodeJson<Transaction>().toRecord(WalletId(walletId)) })
+    override suspend fun addTransactions(walletId: String, transactions: List<String>) {
+        val records = transactions.map { it.decodeJson<Transaction>() }
+        transactionsDao.insert(records.map { it.toRecord(WalletId(walletId)) })
+        transactionsDao.addSwapMetadata(records)
+    }
 
     private suspend fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
         val wallet = walletsRepository.get().getWallet(record.walletId).firstOrNull() ?: return null

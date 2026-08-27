@@ -3,7 +3,6 @@ package com.gemwallet.android.data.repositories.transactions
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
-import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.TransactionsDao
@@ -33,7 +32,6 @@ class TransactionsRepositoryImpl(
     private val transactionsDao: TransactionsDao,
 ) : TransactionRepository,
     GetPendingTransactionsCount,
-    CreateTransaction,
     SaveTransactions,
     ClearPendingTransactions {
 
@@ -73,9 +71,4 @@ class TransactionsRepositoryImpl(
         transactionsDao.deleteByState(TransactionState.Pending)
     }
 
-    override suspend fun createTransaction(walletId: WalletId, transaction: Transaction): Transaction = withContext(Dispatchers.IO) {
-        transactionsDao.insert(listOf(transaction.toRecord(walletId)))
-        transactionsDao.addSwapMetadata(listOf(transaction))
-        transaction
-    }
 }
