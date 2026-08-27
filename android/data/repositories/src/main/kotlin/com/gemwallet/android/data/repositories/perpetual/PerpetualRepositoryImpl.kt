@@ -6,17 +6,14 @@ import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toDto
 import com.gemwallet.android.data.service.store.database.entities.DbPerpetualData
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.PerpetualMarketData
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
-import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -70,40 +67,12 @@ class PerpetualRepositoryImpl(
         return perpetualDao.getPerpetualByAssetId(assetId.toIdentifier()).map { it?.toDTO() }
     }
 
-    override suspend fun applyPositionsDiff(walletId: WalletId, deleteIds: List<String>, positions: List<PerpetualPosition>) {
-        perpetualStore.putPositions(walletId, positions, deleteIds)
-    }
-
-    override suspend fun getProviderPositions(walletId: WalletId, provider: PerpetualProvider): List<PerpetualPosition> {
-        return perpetualPositionDao.getPositionsByProvider(walletId.id, provider).map { it.toDto() }
-    }
-
-    override suspend fun updateMarket(market: PerpetualMarketData) {
-        perpetualDao.updateMarket(
-            coin = market.coin,
-            price = market.price,
-            pricePercentChange24h = market.pricePercentChange24h,
-            openInterest = market.openInterest,
-            volume24h = market.volume24h,
-            funding = market.funding,
-        )
-    }
-
-    override suspend fun updatePrices(prices: Map<String, Double>) {
-        if (prices.isEmpty()) return
-        perpetualDao.updatePrices(prices)
-    }
-
     override fun getPositions(walletId: WalletId): Flow<List<PerpetualPositionData>> {
         return perpetualPositionDao.getPositionsData(walletId.id).map { items -> items.mapNotNull { it.toDTO() } }
     }
 
     override fun getPositionByPerpetualId(walletId: WalletId, id: PerpetualId): Flow<PerpetualPositionData?> {
         return perpetualPositionDao.getPositionDataByPerpetual(walletId.id, id.toIdentifier()).map { it?.toDTO() }
-    }
-
-    override suspend fun putBalance(walletId: WalletId, balance: PerpetualBalance) {
-        perpetualStore.putBalance(walletId, balance)
     }
 
     override fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?> {

@@ -82,10 +82,10 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideHyperliquidEventHandler(
-        perpetualRepository: PerpetualRepository,
+        perpetualService: GemPerpetualService,
         hyperliquid: Hyperliquid,
     ): HyperliquidEventHandler = HyperliquidEventHandler(
-        perpetualRepository = perpetualRepository,
+        perpetualService = perpetualService,
         hyperliquid = hyperliquid,
     )
 

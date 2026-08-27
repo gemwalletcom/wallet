@@ -21,20 +21,15 @@ interface PerpetualRepository {
     fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?>
 
 
-    suspend fun applyPositionsDiff(walletId: WalletId, deleteIds: List<String>, positions: List<PerpetualPosition>)
 
-    suspend fun getProviderPositions(walletId: WalletId, provider: PerpetualProvider): List<PerpetualPosition>
 
-    suspend fun updateMarket(market: PerpetualMarketData)
 
-    suspend fun updatePrices(prices: Map<String, Double>)
 
     fun getPositions(walletId: WalletId): Flow<List<PerpetualPositionData>>
 
     fun getPositionByPerpetualId(walletId: WalletId, id: PerpetualId): Flow<PerpetualPositionData?>
 
 
-    suspend fun putBalance(walletId: WalletId, balance: PerpetualBalance)
 
     fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?>
 
