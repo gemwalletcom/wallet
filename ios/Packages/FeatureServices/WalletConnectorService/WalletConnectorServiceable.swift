@@ -3,6 +3,7 @@
 import Foundation
 
 public protocol WalletConnectorServiceable: Sendable {
+    var hasSessions: Bool { get }
     func configure() throws
     func setup() async
     func pair(uri: String) async throws

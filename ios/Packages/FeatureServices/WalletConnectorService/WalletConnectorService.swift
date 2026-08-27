@@ -86,6 +86,10 @@ extension WalletConnectorService: WalletConnectorServiceable {
             await updateSessions(interactor.sessions)
         }
     }
+
+    public var hasSessions: Bool {
+        !interactor.sessions.isEmpty
+    }
 }
 
 // MARK: - Private

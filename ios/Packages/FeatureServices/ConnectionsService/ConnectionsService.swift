@@ -26,6 +26,9 @@ public final class ConnectionsService: Sendable {
 public extension ConnectionsService {
     func setup() async throws {
         try connector.configure()
+        if preferences.isWalletConnectActivated == nil {
+            isWalletConnectActivated = connector.hasSessions
+        }
         if isWalletConnectActivated {
             try await setupConnector()
         }
