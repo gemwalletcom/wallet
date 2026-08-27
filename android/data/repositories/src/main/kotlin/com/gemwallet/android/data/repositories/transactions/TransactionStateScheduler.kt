@@ -56,22 +56,22 @@ class TransactionStateScheduler(
         pollingTransactionJobs.clear()
     }
 
-    override suspend fun trackTransaction(walletId: WalletId, transaction: Transaction, currency: Currency) {
-        track(walletId, transaction, currency)
+    override suspend fun trackTransactions(walletId: WalletId, transactions: List<Transaction>, currency: Currency) {
+        track(walletId, transactions, currency)
     }
 
     override suspend fun createNotificationTransaction(wallet: Wallet, assetId: AssetId, transaction: Transaction, currency: Currency): Asset? {
         val asset = stateService.addNotificationTransaction(wallet.toJson(), assetId.toIdentifier(), transaction.toJson())
             ?.decodeJson<Asset>() ?: return null
-        track(wallet.id, transaction, currency)
+        track(wallet.id, listOf(transaction), currency)
         return asset
     }
 
-    private fun track(walletId: WalletId, transaction: Transaction, currency: Currency) {
-        schedule(walletId, transaction)
+    private fun track(walletId: WalletId, transactions: List<Transaction>, currency: Currency) {
+        transactions.forEach { schedule(walletId, it) }
         scope.launch {
-            runCatchingCancellable { stateService.enableTransactionAssets(walletId.id, listOf(transaction.toJson()), currency.toJson()) }
-                .onFailure { Log.e(TAG, "asset enabling failed after adding ${transaction.id.hash}", it) }
+            runCatchingCancellable { stateService.enableTransactionAssets(walletId.id, transactions.map { it.toJson() }, currency.toJson()) }
+                .onFailure { Log.e(TAG, "asset enabling failed after adding ${transactions.map { it.id.hash }}", it) }
         }
     }
 

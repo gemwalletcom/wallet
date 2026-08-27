@@ -33,6 +33,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import java.math.BigInteger
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -73,7 +74,7 @@ class ConfirmTransactionImplTest {
         val wallet = mockWallet(accounts = listOf(account))
         val signedTransactions = listOf(GemSignedTransaction("signed", TransactionType.Transfer.toJson()))
         val tracked = mockTransaction(assetId = asset.id)
-        val trackedTransactions = mutableListOf<Transaction>()
+        val trackedTransactions = slot<List<Transaction>>()
         val passwordStore = mockk<PasswordStore> {
             every { getPassword(wallet.id.id) } returns "password"
         }
@@ -84,7 +85,7 @@ class ConfirmTransactionImplTest {
             coEvery { send(any(), signedTransactions) } returns GemSendResult(listOf("hash-1", "hash-2"), listOf(tracked.toJson()))
         }
         val createTransaction = mockk<CreateTransaction>()
-        coEvery { createTransaction.trackTransaction(wallet.id, capture(trackedTransactions), any()) } returns Unit
+        coEvery { createTransaction.trackTransactions(wallet.id, capture(trackedTransactions), any()) } returns Unit
         val signerParams = SignerParams(
             input = ConfirmParams.Builder(asset, account, BigInteger.TEN).transfer(DestinationAddress("0x0000000000000000000000000000000000000001")),
             selectedData = SignerParams.Data(
@@ -109,7 +110,7 @@ class ConfirmTransactionImplTest {
         )
 
         assertEquals("hash-2", result)
-        assertEquals(listOf(tracked.id), trackedTransactions.map { it.id })
+        assertEquals(listOf(tracked.id), trackedTransactions.captured.map { it.id })
     }
 
     @Test

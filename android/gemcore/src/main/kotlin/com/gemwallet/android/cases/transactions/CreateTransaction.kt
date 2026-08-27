@@ -8,7 +8,7 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 
 interface CreateTransaction {
-    suspend fun trackTransaction(walletId: WalletId, transaction: Transaction, currency: Currency)
+    suspend fun trackTransactions(walletId: WalletId, transactions: List<Transaction>, currency: Currency)
 
     fun trackPendingTransactions()
 

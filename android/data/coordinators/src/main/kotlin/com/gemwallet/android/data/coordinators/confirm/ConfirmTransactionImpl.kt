@@ -65,9 +65,7 @@ class ConfirmTransactionImpl(
             createTransactionsCase.trackPendingTransactions()
             throw error
         }
-        result.transactions.forEach { transaction ->
-            createTransactionsCase.trackTransaction(session.wallet.id, transaction.decodeJson<Transaction>(), session.currency)
-        }
+        createTransactionsCase.trackTransactions(session.wallet.id, result.transactions.map { it.decodeJson<Transaction>() }, session.currency)
         scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
 
         return result.hashes.last()
