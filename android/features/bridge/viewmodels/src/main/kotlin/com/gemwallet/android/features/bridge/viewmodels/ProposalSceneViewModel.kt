@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import android.util.Log
+import com.gemwallet.android.ext.runCatchingCancellable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.coordinators.PrepareSessionProposal
@@ -68,17 +70,19 @@ class ProposalSceneViewModel @Inject constructor(
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val prepared = prepareSessionProposal(
-                name = proposal.name,
-                description = proposal.description,
-                url = proposal.url,
-                icons = proposal.icons,
-                requiredChainIds = proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() },
-                optionalChainIds = proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() },
-                origin = verifyContext.origin,
-                validation = verification.status,
-            )
-            if (prepared == null) {
+            val prepared = runCatchingCancellable {
+                prepareSessionProposal(
+                    name = proposal.name,
+                    description = proposal.description,
+                    url = proposal.url,
+                    icons = proposal.icons,
+                    requiredChainIds = proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() },
+                    optionalChainIds = proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() },
+                    origin = verifyContext.origin,
+                    validation = verification.status,
+                )
+            }.getOrElse { error ->
+                Log.e(TAG, "session proposal rejected: ${error.message}")
                 reject(proposal)
                 return@launch
             }
@@ -167,6 +171,10 @@ class ProposalSceneViewModel @Inject constructor(
         state.update { ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN) }
     }
 
+
+    private companion object {
+        const val TAG = "ProposalSceneViewModel"
+    }
 }
 
 sealed interface ProposalSceneState {
@@ -179,4 +187,5 @@ sealed interface ProposalSceneState {
     data class Approving(
         override val verificationStatus: WalletConnectionVerificationStatus,
     ) : ProposalSceneState
+
 }

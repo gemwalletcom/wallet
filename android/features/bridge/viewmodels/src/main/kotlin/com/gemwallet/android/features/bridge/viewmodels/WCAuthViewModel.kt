@@ -95,11 +95,6 @@ class WCAuthViewModel @Inject constructor(
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
-                if (prepared == null) {
-                    rejectRequest(request, AuthSceneState.Error("Requested chains are not supported"))
-                    return@launch
-                }
-
                 val selectedWallet = prepared.proposal.defaultWallet
                 val approval = buildApproval(request, selectedWallet)
 

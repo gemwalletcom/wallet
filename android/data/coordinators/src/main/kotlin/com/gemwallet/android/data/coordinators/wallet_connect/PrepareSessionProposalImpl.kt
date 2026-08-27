@@ -6,8 +6,6 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.firstOrNull
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
@@ -27,26 +25,21 @@ class PrepareSessionProposalImpl(
         optionalChainIds: List<String>,
         origin: String?,
         validation: WalletConnectionVerificationStatus,
-    ): WalletConnectPairingProposal? {
+    ): WalletConnectPairingProposal {
         val wallets = walletsRepository.getAll().firstOrNull().orEmpty()
         val currentWalletId = sessionRepository.session().value?.wallet?.id
-        return try {
-            val prepared = walletConnectService.prepareSessionProposal(
-                wallets = wallets.map { it.toJson() },
-                currentWalletId = currentWalletId?.id,
-                requiredChainIds = requiredChainIds,
-                optionalChainIds = optionalChainIds,
-                metadata = walletConnectService.applicationMetadata(name, description, url, icons),
-                origin = origin,
-                validation = validation,
-            )
-            WalletConnectPairingProposal(
-                proposal = prepared.proposal.decodeJson(),
-                verificationStatus = prepared.verificationStatus,
-            )
-        } catch (_: Exception) {
-            currentCoroutineContext().ensureActive()
-            null
-        }
+        val prepared = walletConnectService.prepareSessionProposal(
+            wallets = wallets.map { it.toJson() },
+            currentWalletId = currentWalletId?.id,
+            requiredChainIds = requiredChainIds,
+            optionalChainIds = optionalChainIds,
+            metadata = walletConnectService.applicationMetadata(name, description, url, icons),
+            origin = origin,
+            validation = validation,
+        )
+        return WalletConnectPairingProposal(
+            proposal = prepared.proposal.decodeJson(),
+            verificationStatus = prepared.verificationStatus,
+        )
     }
 }

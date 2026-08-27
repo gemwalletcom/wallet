@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectServiceInterface
@@ -43,7 +43,7 @@ class PrepareSessionProposalImplTest {
     private val subject = PrepareSessionProposalImpl(sessionRepository, walletsRepository, walletConnectService)
 
     @Test
-    fun prepareSessionProposal_selectsWalletsThroughCoreWithCurrentWallet() = runTest {
+    fun prepareSessionProposal_passesWalletsAndCurrentWalletToCore() = runTest {
         val proposal = WalletConnectionSessionProposal(defaultWallet = currentWallet, wallets = wallets, metadata = metadata)
         every {
             walletConnectService.prepareSessionProposal(
@@ -64,10 +64,10 @@ class PrepareSessionProposalImplTest {
     }
 
     @Test
-    fun prepareSessionProposal_returnsNullWhenCoreRejects() = runTest {
+    fun prepareSessionProposal_failsWhenCoreRejects() = runTest {
         every { walletConnectService.prepareSessionProposal(any(), any(), any(), any(), any(), any(), any()) } throws IllegalStateException("wallets unsupported")
 
-        assertNull(prepare(requiredChainIds = listOf("eip155:1", "cosmos:unknown-9")))
+        assertTrue(runCatching { prepare(requiredChainIds = listOf("eip155:1", "cosmos:unknown-9")) }.isFailure)
     }
 
     private suspend fun prepare(requiredChainIds: List<String>) = subject(
