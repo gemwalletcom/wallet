@@ -18,7 +18,6 @@ import com.wallet.core.primitives.Wallet
     indices = [Index("event"), Index("wallet_id"), Index("chain")],
     foreignKeys = [
         ForeignKey(DbAsset::class, ["id"], ["chain"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
-        ForeignKey(DbWallet::class, ["id"], ["wallet_id"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
     ],
 )
 data class DbBanner(
