@@ -147,12 +147,8 @@ object AssetModule {
     @Singleton
     fun provideGetAssetChartData(
         chartService: GemChartService,
-        priceService: GemPriceService,
-        currencyRatesService: CurrencyRatesService,
     ): GetAssetChartData = GetAssetChartDataImpl(
         chartService = chartService,
-        priceService = priceService,
-        currencyRatesService = currencyRatesService,
     )
 
     @Provides

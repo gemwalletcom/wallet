@@ -115,7 +115,6 @@ struct SettingsNavigationView: View {
                 model: ChartSceneViewModel(
                     explorerService: explorerService,
                     service: chartService,
-                    priceService: priceService,
                     priceStore: priceStore,
                     assetModel: AssetViewModel(asset: scene.asset),
                     priceAlertService: priceAlertService,

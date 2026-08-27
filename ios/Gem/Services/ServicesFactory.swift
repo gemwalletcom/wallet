@@ -68,13 +68,13 @@ struct ServicesFactory {
         )
         let gemApiClient = Gemstone.GemApiClient(provider: nativeProvider, baseUrl: Constants.apiURL.absoluteString)
         let gemStaticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
-        let chartService = Gemstone.GemChartService(api: gemApiClient)
         let gemPriceService = Gemstone.GemPriceService(
             api: gemApiClient,
             store: GemstonePriceStore(priceStore: storeManager.priceStore, fiatRateStore: storeManager.fiatRateStore),
         )
         let marketService = gemPriceService
         let priceService = gemPriceService
+        let chartService = Gemstone.GemChartService(api: gemApiClient, price: gemPriceService)
         let gemAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
         let gemFileStore = GemstoneFileStore()
         let gemAddressStore = GemstoneAddressStore(store: storeManager.addressStore)

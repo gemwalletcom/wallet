@@ -176,7 +176,6 @@ struct WalletNavigationView: View {
                 model: ChartSceneViewModel(
                     explorerService: explorerService,
                     service: chartService,
-                    priceService: priceService,
                     priceStore: priceStore,
                     assetModel: AssetViewModel(asset: $0.asset),
                     priceAlertService: priceAlertService,

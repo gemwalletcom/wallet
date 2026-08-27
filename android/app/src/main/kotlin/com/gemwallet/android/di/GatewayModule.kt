@@ -218,7 +218,7 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemChartService(apiClient: GemstoneApiClient): GemChartService = GemChartService(apiClient)
+    fun provideGemChartService(apiClient: GemstoneApiClient, priceService: GemPriceService): GemChartService = GemChartService(apiClient, priceService)
 
     @Provides
     @Singleton
