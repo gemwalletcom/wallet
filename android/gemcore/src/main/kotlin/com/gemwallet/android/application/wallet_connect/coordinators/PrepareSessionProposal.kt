@@ -13,5 +13,5 @@ interface PrepareSessionProposal {
         optionalChainIds: List<String>,
         origin: String?,
         validation: WalletConnectionVerificationStatus,
-    ): WalletConnectPairingProposal?
+    ): WalletConnectPairingProposal
 }

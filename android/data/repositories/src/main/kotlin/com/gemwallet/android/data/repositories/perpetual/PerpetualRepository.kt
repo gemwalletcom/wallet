@@ -12,8 +12,6 @@ import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 
 interface PerpetualRepository {
-    suspend fun putPerpetuals(items: List<PerpetualData>)
-
     fun getPerpetuals(query: String? = null): Flow<List<PerpetualData>>
 
     fun getPerpetual(perpetualId: PerpetualId): Flow<PerpetualData?>

@@ -67,14 +67,12 @@ object PerpetualModule {
         perpetualPositionDao: PerpetualPositionDao,
         balancesDao: BalancesDao,
         searchDao: SearchDao,
-        perpetualStore: GemstonePerpetualStore,
     ): PerpetualRepository {
         return PerpetualRepositoryImpl(
             perpetualDao = perpetualDao,
             perpetualPositionDao = perpetualPositionDao,
             balancesDao = balancesDao,
             searchDao = searchDao,
-            perpetualStore = perpetualStore,
         )
     }
 

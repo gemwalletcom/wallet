@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.perpetual
 
-import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
@@ -26,12 +25,7 @@ class PerpetualRepositoryImpl(
     private val perpetualPositionDao: PerpetualPositionDao,
     private val balancesDao: BalancesDao,
     private val searchDao: SearchDao,
-    private val perpetualStore: GemstonePerpetualStore,
 ) : PerpetualRepository {
-
-    override suspend fun putPerpetuals(items: List<PerpetualData>) {
-        perpetualStore.putPerpetuals(items)
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getPerpetuals(query: String?): Flow<List<PerpetualData>> {
