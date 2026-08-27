@@ -127,7 +127,7 @@ Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, And
 
 ## TODO — finish Core as the single owner of logic
 
-State on 2026-08-28: every app service forwards to a Core service or is platform glue; view-model rules for swaps, imports, stakes, fees, charts, portfolio, push navigation and WalletConnect proposals now live in `gemstone` with unit tests, both apps map Core errors to localized text, and the Android Room chain is a single 87→88 migration. What is left is two structural pieces and a handful of small rules that still sit in view models. Items are ordered easy → hard; each one lands with the app-side code it replaces deleted and a Core test that would flip if the rule flipped.
+State on 2026-08-28: every app service forwards to a Core service or is platform glue; the rules that used to live in view models (swaps, imports, stakes, fees, charts, portfolio, push navigation, WalletConnect proposals and auth chains, popular assets, default chains, perpetual collateral and market refresh, acquire-asset flow) now live in `gemstone` with unit tests, both apps map Core errors to localized text, and the Android Room chain is a single 87→88 migration. What is left is two structural pieces; everything else that surfaced in the last audit (coordinators mixing Core with repositories, unused store dependencies) has been folded in. Each remaining item lands with the app-side code it replaces deleted and a Core test that would flip if the rule flipped.
 
 ### Rust (core/gemstone)
 
