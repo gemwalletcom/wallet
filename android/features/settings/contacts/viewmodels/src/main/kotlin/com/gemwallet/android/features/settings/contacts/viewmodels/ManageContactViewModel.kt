@@ -63,7 +63,6 @@ class ManageContactViewModel @Inject constructor(
     private val addressInput = AddressInputModel(
         getNameRecord = getNameRecord,
         scope = viewModelScope,
-        validateAddress = { address, chain -> chain.isValidAddress(address) },
     )
 
     private val state = MutableStateFlow(ManageContactState(isEdit = mode is Mode.Edit))

@@ -17,7 +17,6 @@ import com.gemwallet.android.ext.decodePayment
 import com.gemwallet.android.ext.exactAmount
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
-import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.request
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
@@ -40,7 +39,10 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NameRecord
+import uniffi.gemstone.GemRecipientException
+import uniffi.gemstone.GemRecipientService
 import com.wallet.core.primitives.PaymentRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineStart
@@ -76,13 +78,9 @@ class RecipientViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val validateAddress: (address: String, chain: Chain) -> Boolean =
-        { address, chain -> chain.isValidAddress(address) }
-
     private val addressInput = AddressInputModel(
         getNameRecord = getNameRecord,
         scope = viewModelScope,
-        validateAddress = validateAddress,
     )
 
     val address: StateFlow<String> = addressInput.text
@@ -166,17 +164,7 @@ class RecipientViewModel @Inject constructor(
         confirmAction: ConfirmTransactionAction,
     ) {
         if (!addressInput.validate()) return
-        val resolvedNameRecord = addressInput.nameRecord
-        submit(
-            type = type,
-            destination = DestinationAddress(
-                address = addressInput.resolvedAddress,
-                name = resolvedNameRecord?.name,
-            ),
-            amountAction = amountAction,
-            confirmAction = confirmAction,
-            nameRecord = resolvedNameRecord,
-        )
+        submit(type, address.value, addressInput.nameRecord, amountAction, confirmAction)
     }
 
     fun onDestination(
@@ -185,30 +173,31 @@ class RecipientViewModel @Inject constructor(
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
-        submit(type, destination, amountAction, confirmAction)
+        submit(type, destination.address, null, amountAction, confirmAction)
     }
 
     private fun submit(
         type: RecipientType,
-        destination: DestinationAddress,
+        input: String,
+        nameRecord: NameRecord?,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
-        nameRecord: NameRecord? = null,
     ) {
-        val asset = type.assetInfo.asset
-        destination.copy(address = asset.chain.checksumAddress(destination.address)).let { destination ->
-            if (!destination.isValidRecipient(address.value, asset.chain, nameRecord, validateAddress)) {
-                if (!getNameRecord.isNameSupported(destination.address)) {
-                    addressInput.markInvalid()
-                }
-                return
+        val chain = type.assetInfo.asset.chain
+        val recipient = try {
+            GemRecipientService().recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
+        } catch (_: GemRecipientException) {
+            if (!getNameRecord.isNameSupported(input)) {
+                addressInput.markInvalid()
             }
-            when (type) {
-                is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
-                is RecipientType.Asset -> amountAction(
-                    AmountParams.Transfer(type.assetInfo.id(), destination, memo.value, references, requestedAmount)
-                )
-            }
+            return
+        }
+        val destination = DestinationAddress(address = recipient.address, name = recipient.name)
+        when (type) {
+            is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
+            is RecipientType.Asset -> amountAction(
+                AmountParams.Transfer(type.assetInfo.id(), destination, memo.value, references, requestedAmount)
+            )
         }
     }
 

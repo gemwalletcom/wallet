@@ -1,3 +1,4 @@
+pub mod amount;
 pub mod app_start;
 pub mod app_update;
 pub mod asset_discovery;
@@ -23,6 +24,7 @@ pub mod portfolio;
 pub mod preferences;
 pub mod price;
 pub mod price_alert;
+pub mod recipient;
 pub mod rewards;
 pub mod scan;
 pub mod search;

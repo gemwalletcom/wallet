@@ -130,17 +130,16 @@ extension RecipientSceneViewModel {
     func onContinue() {
         guard addressInputModel.validate() else { return }
 
-        handle(
-            recipientData: RecipientData(
-                recipient: Recipient(
-                    name: addressInputModel.nameResolveState.result?.name,
-                    address: addressInputModel.resolvedAddress,
-                    memo: memo,
-                    references: recipientData?.recipient.references ?? [],
+        do {
+            handle(
+                recipientData: RecipientData(
+                    recipient: try addressInputModel.recipient(memo: memo, references: recipientData?.recipient.references ?? []),
+                    amount: recipientData?.amount,
                 ),
-                amount: recipientData?.amount,
-            ),
-        )
+            )
+        } catch {
+            addressInputModel.update(error: error)
+        }
     }
 
     func onSelectScan(field: RecipientScene.Field) {

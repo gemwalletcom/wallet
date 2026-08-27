@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemNameServiceProtocol
+import class Gemstone.GemRecipientService
+import struct Gemstone.GemRecipientValidation
 import Components
 import Foundation
 import GemstonePrimitives
@@ -15,6 +17,7 @@ import Validators
 public final class AddressInputViewModel {
     let placeholder: String
     public let nameRecordViewModel: NameRecordViewModel
+    private let recipientService = GemRecipientService()
 
     public var chain: Chain {
         didSet { onChangeChain() }
@@ -48,18 +51,32 @@ public final class AddressInputViewModel {
 
     public var isValid: Bool {
         switch nameResolveState {
-        case .none: inputModel.isValid && inputModel.text.isNotEmpty
+        case .none: inputModel.isValid && validation.isValid
         case .loading, .error: false
-        case let .complete(record):
-            record.isValidRecipient(name: text, chain: chain)
+        case .complete: validation.isValid
         }
     }
 
     public var resolvedAddress: String {
-        if let resolved = nameResolveState.result {
-            return chain.checksumAddress(resolved.address)
+        validation.address
+    }
+
+    public func recipient(memo: String?, references: [String] = []) throws -> Recipient {
+        try Recipient(recipientService.recipient(
+            chain: chain.rawValue,
+            input: text,
+            nameRecord: nameResolveState.result?.json(),
+            memo: memo,
+            references: references,
+        ))
+    }
+
+    private var validation: GemRecipientValidation {
+        do {
+            return try recipientService.validate(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.json())
+        } catch {
+            preconditionFailure("Unencodable name record: \(error)")
         }
-        return chain.checksumAddress(inputModel.text)
     }
 
     @discardableResult
