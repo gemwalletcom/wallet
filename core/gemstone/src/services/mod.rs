@@ -10,6 +10,7 @@ pub mod banner;
 pub mod chart;
 pub mod collections;
 pub mod config;
+pub mod confirm;
 pub mod contact;
 pub mod device;
 pub mod error;

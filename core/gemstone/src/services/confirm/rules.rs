@@ -1,305 +1,53 @@
-mod rules;
-mod signer;
-
-use std::sync::Arc;
-use std::time::Duration;
-
-pub use signer::GemTransactionSigner;
-
-use serde::{Deserialize, Serialize};
-
-use crate::GemstoneError;
-use crate::fee::custom_gas_price;
-use crate::gateway::{GatewayError, GemGateway};
-use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
-use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput, GemTransactionLoadMetadata};
-use crate::services::GemScanService;
-use crate::services::transaction_state::GemTransactionStateService;
-use crate::services::transfer::{GemPendingTransactionInput, GemTransferData, rules as transfer_rules};
-use crate::signer::GemSignerError;
-use crate::transaction_simulation::TransactionSimulationService;
 use num_bigint::BigInt;
 use primitives::{
-    Account, ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, SimulationResult, Transaction, TransactionPreloadInput,
-    TransferDataOutputAction, Wallet,
+    ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction, TransactionPreloadInput,
+    TransferDataOutputAction,
 };
-use primitives::{ScanTransaction, ScanTransactionPayload};
 
-pub type GemAccount = Account;
+use super::error::GemConfirmError;
+use super::model::{GemAcquireAssetFlow, GemConfirmFeeSelection, GemSendInput};
+use crate::fee::custom_gas_price;
+use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
+use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
+use crate::services::transfer::{GemPendingTransactionInput, rules as transfer_rules};
 
-#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
-pub struct GemConfirmInput {
-    pub from: GemAccount,
-    pub transfer: GemTransferData,
+pub fn signer_input(input: &GemSendInput) -> Result<GemSignerInput, GemConfirmError> {
+    let chain = input.transfer.input_type.asset().chain();
+    let sender = input.wallet.account(chain).ok_or(GemConfirmError::AccountMissing { chain })?;
+    Ok(GemSignerInput {
+        input: GemTransactionLoadInput {
+            input_type: input.transfer.input_type.clone(),
+            sender_address: sender.address.clone(),
+            destination_address: input.transfer.recipient.address.clone(),
+            value: input.value.clone(),
+            gas_price: input.fee.gas_price_type.clone(),
+            memo: input.transfer.recipient.memo.clone(),
+            is_max_value: input.transfer.use_max_amount,
+            metadata: input.metadata.clone(),
+        },
+        fee: GemTransactionLoadFee {
+            fee: input.network_fee.clone(),
+            ..input.fee.clone()
+        },
+    })
 }
 
-#[uniffi::export]
-pub fn confirm_input_encode(input: &GemConfirmInput) -> Result<String, GemstoneError> {
-    serde_json::to_string(input).map_err(GemstoneError::from)
-}
-
-#[uniffi::export]
-pub fn confirm_input_decode(input: &str) -> Result<GemConfirmInput, GemstoneError> {
-    serde_json::from_str(input).map_err(GemstoneError::from)
-}
-
-#[derive(Debug, Clone, uniffi::Enum)]
-pub enum GemConfirmFeeSelection {
-    Priority { priority: String },
-    Custom { gas_price: String },
-}
-
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemConfirmLoadOptions {
-    pub fee_selection: GemConfirmFeeSelection,
-    pub fee_asset_id: Option<AssetId>,
-}
-
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemConfirmData {
-    pub fee: GemTransactionLoadFee,
-    pub selected_priority: String,
-    pub fee_rates: Vec<GemFeeRate>,
-    pub metadata: GemTransactionLoadMetadata,
-    pub scan: Option<ScanTransaction>,
-    pub simulation: Option<SimulationResult>,
-}
-
-#[derive(Debug, uniffi::Error)]
-pub enum GemConfirmError {
-    ScanMalicious,
-    ScanMemoRequired { symbol: String },
-    FeeRatesMissing,
-    Offline,
-    Network { msg: String },
-    Load { msg: String },
-    Broadcast { hashes: Vec<String>, msg: String },
-    Record { msg: String },
-    AccountMissing { chain: Chain },
-    Sign { error: GemSignerError, msg: String },
-    ApprovalInvalid { msg: String },
-}
-
-#[derive(Debug, Clone, uniffi::Enum)]
-pub enum GemExecuteResult {
-    Signed { data: Vec<String> },
-    Sent { hashes: Vec<String>, transactions: Vec<Transaction> },
-}
-
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemSendResult {
-    pub hashes: Vec<String>,
-    pub transactions: Vec<Transaction>,
-}
-
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemSendInput {
-    pub wallet: Wallet,
-    pub transfer: GemTransferData,
-    pub value: String,
-    pub fee: GemTransactionLoadFee,
-    pub network_fee: String,
-    pub metadata: GemTransactionLoadMetadata,
-    pub simulation: Option<SimulationResult>,
-}
-
-impl std::fmt::Display for GemConfirmError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::ScanMalicious => write!(f, "transaction flagged as malicious"),
-            Self::ScanMemoRequired { symbol } => write!(f, "{symbol} transfer requires a memo"),
-            Self::FeeRatesMissing => write!(f, "fee rates not found"),
-            Self::Offline => write!(f, "network offline"),
-            Self::AccountMissing { chain } => write!(f, "wallet has no {chain} account"),
-            Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
-                write!(f, "{msg}")
-            }
-        }
-    }
-}
-
-impl std::error::Error for GemConfirmError {}
-
-impl From<GemstoneError> for GemConfirmError {
-    fn from(error: GemstoneError) -> Self {
-        match error {
-            GemstoneError::SignerError { error, msg } => Self::Sign { error, msg },
-            GemstoneError::AnyError { msg } => Self::Sign {
-                error: GemSignerError::SigningError(msg.clone()),
-                msg,
-            },
-        }
-    }
-}
-
-#[derive(uniffi::Object)]
-pub struct GemConfirmService {
-    gateway: Arc<GemGateway>,
-    simulation: Arc<TransactionSimulationService>,
-    scanner: Arc<GemScanService>,
-    transaction_state: Arc<GemTransactionStateService>,
-}
-
-#[uniffi::export]
-impl GemConfirmService {
-    #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, simulation: Arc<TransactionSimulationService>, scanner: Arc<GemScanService>, transaction_state: Arc<GemTransactionStateService>) -> Self {
-        Self {
-            gateway,
-            simulation,
-            scanner,
-            transaction_state,
-        }
-    }
-
-    pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
-        let transactions = signer.sign(input.wallet.clone(), rules::signer_input(&input)?).await?;
-        if transactions.is_empty() {
-            return Err(GemConfirmError::Sign {
-                error: GemSignerError::SigningError("no signed transactions".to_string()),
-                msg: "no signed transactions".to_string(),
+pub fn validate_approvals(input_type: &GemTransactionInputType, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError> {
+    for transaction in transactions {
+        let approval = transfer_rules::approval(input_type, transaction.transaction_type.clone()).map_err(|msg| GemConfirmError::ApprovalInvalid { msg })?;
+        if let Some(approval) = approval
+            && approval.value.parse::<BigInt>().is_err()
+        {
+            return Err(GemConfirmError::ApprovalInvalid {
+                msg: format!("approval value is not an integer: {}", approval.value),
             });
         }
-        rules::validate_approvals(&input.transfer.input_type, &transactions)?;
-        match rules::output_action(&input.transfer.input_type) {
-            TransferDataOutputAction::Sign => Ok(GemExecuteResult::Signed {
-                data: transactions.into_iter().map(|transaction| transaction.data).collect(),
-            }),
-            TransferDataOutputAction::Send => {
-                let result = self.send(input, transactions).await?;
-                Ok(GemExecuteResult::Sent {
-                    hashes: result.hashes,
-                    transactions: result.transactions,
-                })
-            }
-        }
     }
-
-    pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
-        let transfer = &input.transfer;
-        let asset = transfer.input_type.asset();
-        let chain = asset.id.chain;
-        let symbol = asset.symbol.clone();
-        let destination = transfer.recipient.address.clone();
-        let preload_input = GemTransactionPreloadInput {
-            input_type: transfer.input_type.clone(),
-            sender_address: input.from.address.clone(),
-            destination_address: destination.clone(),
-            references: transfer.recipient.references.clone(),
-        };
-
-        // A scanner outage fails open by design: the send continues without a verdict.
-        let scan_future = async { self.scanner.scan_transaction(scan_payload(preload_input.clone())).await.ok() };
-        let (metadata, fee_rates, scan, simulation) = futures::join!(
-            self.gateway.get_transaction_preload(chain, preload_input.clone()),
-            self.gateway.get_fee_rates(chain, transfer.input_type.clone()),
-            scan_future,
-            self.simulate(chain, &input),
-        );
-        let metadata = metadata.map_err(load_error)?;
-        let fee_rates = fee_rates.map_err(load_error)?;
-        let simulation = simulation?;
-
-        validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;
-
-        let selected = select_fee_rate(&fee_rates, &options.fee_selection)?;
-        let load = self
-            .gateway
-            .get_transaction_load(
-                chain,
-                GemTransactionLoadInput {
-                    input_type: transfer.input_type.clone(),
-                    sender_address: input.from.address.clone(),
-                    destination_address: destination,
-                    value: transfer.value.clone(),
-                    gas_price: selected.gas_price_type.clone(),
-                    memo: transfer.recipient.memo.clone(),
-                    is_max_value: transfer.use_max_amount,
-                    metadata,
-                },
-            )
-            .await
-            .map_err(load_error)?;
-
-        let mut fee = load.fee;
-        if let Some(fee_asset_id) = options.fee_asset_id {
-            fee.fee_asset = fee_asset_id;
-        }
-
-        Ok(GemConfirmData {
-            fee,
-            selected_priority: selected.priority,
-            fee_rates,
-            metadata: load.metadata,
-            scan,
-            simulation,
-        })
-    }
+    Ok(())
 }
 
-impl GemConfirmService {
-    async fn send(&self, input: GemSendInput, transactions: Vec<GemSignedTransaction>) -> Result<GemSendResult, GemConfirmError> {
-        let hashes = match self.broadcast(input.transfer.input_type.clone(), transactions.clone()).await {
-            Ok(hashes) => hashes,
-            Err(GemConfirmError::Broadcast { hashes, msg }) => {
-                self.record(&input, &hashes, &transactions).await?;
-                return Err(GemConfirmError::Broadcast { hashes, msg });
-            }
-            Err(error) => return Err(error),
-        };
-        let transactions = self.record(&input, &hashes, &transactions).await?;
-        Ok(GemSendResult { hashes, transactions })
-    }
-
-    async fn broadcast(&self, input_type: GemTransactionInputType, transactions: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
-        let chain = input_type.asset().id.chain;
-        let options = broadcast_options(chain, &input_type);
-        let delay = broadcast_delay_milliseconds(chain);
-        let mut hashes: Vec<String> = Vec::with_capacity(transactions.len());
-
-        for (index, transaction) in transactions.iter().enumerate() {
-            match self.gateway.transaction_broadcast(chain, transaction.data.clone(), options.clone()).await {
-                Ok(hash) => hashes.push(hash),
-                Err(error) => {
-                    return Err(broadcast_error(hashes, error));
-                }
-            }
-            if index < transactions.len() - 1 && delay > 0 {
-                sleep(Duration::from_millis(delay)).await;
-            }
-        }
-
-        Ok(hashes)
-    }
-
-    async fn record(&self, input: &GemSendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
-        let pending = pending_transactions(input, hashes, transactions)?;
-        if pending.is_empty() {
-            return Ok(pending);
-        }
-        self.transaction_state
-            .add_transactions(input.wallet.id.clone(), pending.clone())
-            .await
-            .map_err(|error| GemConfirmError::Record { msg: error.to_string() })?;
-        Ok(pending)
-    }
-
-    async fn simulate(&self, chain: Chain, input: &GemConfirmInput) -> Result<Option<SimulationResult>, GemConfirmError> {
-        let Some(transaction) = simulation_payload(&input.transfer.input_type) else {
-            return Ok(None);
-        };
-        self.simulation
-            .simulate_transaction(chain, transaction, Some(input.from.address.clone()))
-            .await
-            .map(Some)
-            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAcquireAssetFlow {
-    Options,
-    Fiat,
+pub fn output_action(input_type: &GemTransactionInputType) -> TransferDataOutputAction {
+    transfer_rules::output(input_type).output_action
 }
 
 #[uniffi::export]
@@ -327,7 +75,7 @@ pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: String)
     fee_available.trim().is_empty() || fee_available.trim().chars().all(|character| character == '0')
 }
 
-fn pending_transactions(input: &GemSendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
+pub(super) fn pending_transactions(input: &GemSendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
     let chain = input.transfer.input_type.asset().chain();
     let sender = input.wallet.account(chain).map(|account| account.address.clone()).ok_or_else(|| GemConfirmError::Record {
         msg: format!("wallet has no {chain} account"),
@@ -359,7 +107,7 @@ fn pending_transactions(input: &GemSendInput, hashes: &[String], transactions: &
         .map(|transactions| transactions.into_iter().flatten().collect())
 }
 
-fn simulation_payload(input_type: &GemTransactionInputType) -> Option<String> {
+pub(super) fn simulation_payload(input_type: &GemTransactionInputType) -> Option<String> {
     let GemTransactionInputType::Generic { metadata, extra, .. } = input_type else {
         return None;
     };
@@ -369,14 +117,14 @@ fn simulation_payload(input_type: &GemTransactionInputType) -> Option<String> {
     }
 }
 
-fn broadcast_options(chain: Chain, input_type: &GemTransactionInputType) -> GemBroadcastOptions {
+pub(super) fn broadcast_options(chain: Chain, input_type: &GemTransactionInputType) -> GemBroadcastOptions {
     match (chain, input_type) {
         (Chain::Solana, GemTransactionInputType::Swap { .. } | GemTransactionInputType::Generic { .. }) => GemBroadcastOptions { skip_preflight: true },
         _ => GemBroadcastOptions { skip_preflight: false },
     }
 }
 
-fn broadcast_delay_milliseconds(chain: Chain) -> u64 {
+pub(super) fn broadcast_delay_milliseconds(chain: Chain) -> u64 {
     match chain.chain_type() {
         ChainType::Ethereum | ChainType::HyperCore => 0,
         ChainType::Solana
@@ -395,16 +143,7 @@ fn broadcast_delay_milliseconds(chain: Chain) -> u64 {
     }
 }
 
-async fn sleep(duration: Duration) {
-    let (sender, receiver) = futures::channel::oneshot::channel();
-    std::thread::spawn(move || {
-        std::thread::sleep(duration);
-        let _ = sender.send(());
-    });
-    let _ = receiver.await;
-}
-
-fn validate_scan(scan: Option<&ScanTransaction>, memo: Option<&str>, symbol: &str) -> Result<(), GemConfirmError> {
+pub(super) fn validate_scan(scan: Option<&ScanTransaction>, memo: Option<&str>, symbol: &str) -> Result<(), GemConfirmError> {
     let Some(scan) = scan else {
         return Ok(());
     };
@@ -417,23 +156,7 @@ fn validate_scan(scan: Option<&ScanTransaction>, memo: Option<&str>, symbol: &st
     Ok(())
 }
 
-fn load_error(error: GatewayError) -> GemConfirmError {
-    match error {
-        GatewayError::Offline => GemConfirmError::Offline,
-        GatewayError::NetworkError { msg } => GemConfirmError::Network { msg },
-        error => GemConfirmError::Load { msg: error.to_string() },
-    }
-}
-
-fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemConfirmError {
-    match error {
-        GatewayError::Offline if hashes.is_empty() => GemConfirmError::Offline,
-        GatewayError::NetworkError { msg } if hashes.is_empty() => GemConfirmError::Network { msg },
-        error => GemConfirmError::Broadcast { hashes, msg: error.to_string() },
-    }
-}
-
-fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransactionPayload {
+pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransactionPayload {
     let input: TransactionPreloadInput = input.into();
     ScanTransactionPayload {
         origin: ScanAddressTarget {
@@ -449,7 +172,7 @@ fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransactionPayload {
     }
 }
 
-fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSelection) -> Result<GemFeeRate, GemConfirmError> {
+pub(super) fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSelection) -> Result<GemFeeRate, GemConfirmError> {
     match selection {
         GemConfirmFeeSelection::Priority { priority } => rates
             .iter()
@@ -476,11 +199,133 @@ fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSelection) -> 
 mod tests {
     use super::*;
     use crate::models::gateway::GemGasPriceType;
+    use crate::models::transaction::GemTransactionLoadMetadata;
+    use crate::services::transfer::{GemRecipient, GemTransferData};
     use primitives::{
-        ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, StakeType, TransactionType, TransferDataExtra,
+        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, StakeType, TransactionType, TransferDataExtra, Wallet, WalletId,
+        WalletSource, WalletType,
         swap::{ApprovalData, SwapData},
     };
 
+    fn wallet(chain: Chain) -> Wallet {
+        Wallet {
+            id: WalletId::Multicoin("wallet".to_string()),
+            external_id: None,
+            name: "wallet".to_string(),
+            index: 0,
+            wallet_type: WalletType::Multicoin,
+            accounts: vec![Account {
+                chain,
+                address: "sender".to_string(),
+                derivation_path: String::new(),
+                extended_public_key: None,
+            }],
+            is_pinned: false,
+            image_url: None,
+            source: WalletSource::Import,
+        }
+    }
+
+    fn send_input(chain: Chain, input_type: GemTransactionInputType) -> GemSendInput {
+        GemSendInput {
+            wallet: wallet(chain),
+            transfer: GemTransferData {
+                input_type,
+                recipient: GemRecipient {
+                    address: "recipient".to_string(),
+                    name: None,
+                    memo: Some("memo".to_string()),
+                    references: vec![],
+                },
+                value: "10".to_string(),
+                use_max_amount: true,
+                minimum_value: None,
+            },
+            value: "9".to_string(),
+            fee: GemTransactionLoadFee {
+                fee: "0".to_string(),
+                gas_price_type: GemGasPriceType::Regular { gas_price: "5".to_string() },
+                gas_limit: "21000".to_string(),
+                options: Default::default(),
+                fee_asset: AssetId::from_chain(Chain::Solana),
+            },
+            network_fee: "1".to_string(),
+            metadata: GemTransactionLoadMetadata::None,
+            simulation: None,
+        }
+    }
+
+    #[test]
+    fn test_signer_input_uses_wallet_account_and_network_fee() {
+        let input = send_input(Chain::Solana, GemTransactionInputType::Transfer { asset: Asset::mock_sol() });
+
+        let signer_input = signer_input(&input).unwrap();
+
+        assert_eq!(signer_input.input.sender_address, "sender");
+        assert_eq!(signer_input.input.destination_address, "recipient");
+        assert_eq!(signer_input.input.value, "9");
+        assert_eq!(signer_input.input.memo.as_deref(), Some("memo"));
+        assert!(signer_input.input.is_max_value);
+        assert_eq!(signer_input.fee.fee, "1");
+        assert_eq!(signer_input.fee.gas_limit, "21000");
+    }
+
+    #[test]
+    fn test_signer_input_requires_account_for_chain() {
+        let input = send_input(Chain::Ethereum, GemTransactionInputType::Transfer { asset: Asset::mock_sol() });
+
+        match signer_input(&input) {
+            Err(GemConfirmError::AccountMissing { chain: Chain::Solana }) => {}
+            result => panic!("expected a missing account error, got {result:?}"),
+        }
+    }
+
+    #[test]
+    fn test_validate_approvals_rejects_non_integer_value() {
+        let approval = |value: &str| GemTransactionInputType::TokenApprove {
+            asset: Asset::mock_sol(),
+            approval_data: ApprovalData {
+                value: value.to_string(),
+                ..ApprovalData::mock()
+            },
+        };
+        let signed = |transaction_type: TransactionType| {
+            vec![GemSignedTransaction {
+                data: "signed".to_string(),
+                transaction_type,
+            }]
+        };
+
+        assert!(validate_approvals(&approval("1000"), &signed(TransactionType::TokenApproval)).is_ok());
+        assert!(validate_approvals(&approval("abc"), &signed(TransactionType::Transfer)).is_ok());
+        match validate_approvals(&approval("abc"), &signed(TransactionType::TokenApproval)) {
+            Err(GemConfirmError::ApprovalInvalid { .. }) => {}
+            result => panic!("expected an invalid approval error, got {result:?}"),
+        }
+        match validate_approvals(&GemTransactionInputType::Transfer { asset: Asset::mock_sol() }, &signed(TransactionType::TokenApproval)) {
+            Err(GemConfirmError::ApprovalInvalid { .. }) => {}
+            result => panic!("expected an invalid approval error, got {result:?}"),
+        }
+    }
+
+    #[test]
+    fn test_output_action_only_generic_transfers_can_sign() {
+        let generic = GemTransactionInputType::Generic {
+            asset: Asset::mock_sol(),
+            metadata: ApplicationMetadata::mock(),
+            extra: TransferDataExtra {
+                output_action: TransferDataOutputAction::Sign,
+                ..TransferDataExtra::mock()
+            }
+            .into(),
+        };
+
+        assert_eq!(output_action(&generic), TransferDataOutputAction::Sign);
+        assert_eq!(
+            output_action(&GemTransactionInputType::Transfer { asset: Asset::mock_sol() }),
+            TransferDataOutputAction::Send
+        );
+    }
     fn rate(priority: &str, gas_price: &str) -> GemFeeRate {
         GemFeeRate {
             priority: priority.to_string(),
@@ -764,29 +609,6 @@ mod tests {
             AssetId::from(Chain::Ethereum, Some("0xdac17f958d2ee523a2206206994597c13d831ec7".into())),
             "0".into()
         ));
-    }
-
-    #[test]
-    fn test_gateway_errors_keep_their_kind() {
-        match load_error(GatewayError::NetworkError { msg: "timeout".to_string() }) {
-            GemConfirmError::Network { msg } => assert_eq!(msg, "timeout"),
-            error => panic!("expected a network error, got {error:?}"),
-        }
-        assert!(matches!(load_error(GatewayError::Offline), GemConfirmError::Offline));
-        assert!(matches!(broadcast_error(vec![], GatewayError::Offline), GemConfirmError::Offline));
-        assert!(matches!(broadcast_error(vec!["h1".to_string()], GatewayError::Offline), GemConfirmError::Broadcast { .. }));
-        match load_error(GatewayError::PlatformError { msg: "dust".to_string() }) {
-            GemConfirmError::Load { msg } => assert_eq!(msg, "Platform error: dust"),
-            error => panic!("expected a load error, got {error:?}"),
-        }
-        match broadcast_error(vec![], GatewayError::NetworkError { msg: "offline".to_string() }) {
-            GemConfirmError::Network { msg } => assert_eq!(msg, "offline"),
-            error => panic!("expected a network error, got {error:?}"),
-        }
-        match broadcast_error(vec!["h1".to_string()], GatewayError::NetworkError { msg: "offline".to_string() }) {
-            GemConfirmError::Broadcast { hashes, .. } => assert_eq!(hashes, vec!["h1".to_string()]),
-            error => panic!("expected a partial broadcast error, got {error:?}"),
-        }
     }
 
     #[test]

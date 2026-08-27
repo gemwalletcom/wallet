@@ -8,7 +8,6 @@ pub mod balance_calculator;
 pub mod block_explorer;
 pub mod clock;
 pub mod config;
-pub mod confirm;
 pub mod crypto_fiat_converter;
 pub mod deeplink;
 pub mod device;
