@@ -238,7 +238,7 @@ struct ServicesFactory {
         let rateService = RateService(preferences: preferences)
 
         let onStartService = OnstartService(
-            assetStore: storeManager.assetStore,
+            assetsService: gemAssetsService,
             nodeStore: storeManager.nodeStore,
             preferences: preferences,
             preferencesService: preferencesService,

@@ -23,6 +23,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.assetDefaultRank
+import uniffi.gemstone.GemAssetsService
 
 class CheckAccountsServiceTest {
     private val walletsRepository = mockk<WalletsRepository>(relaxed = true)
@@ -31,10 +32,14 @@ class CheckAccountsServiceTest {
         coEvery { setupChains(any()) } returns emptyList()
     }
 
+    private val assetsService = mockk<GemAssetsService> {
+        coJustRun { syncDefaultAssets() }
+    }
     private val subject = CheckAccountsService(
         walletsRepository = walletsRepository,
         assetsRepository = assetsRepository,
         walletService = walletService,
+        assetsService = assetsService,
     )
 
     @Before
@@ -62,7 +67,6 @@ class CheckAccountsServiceTest {
             .map { chain -> mockAsset(chain = chain) }
 
         every { walletsRepository.getAll() } returns flowOf(listOf(wallet))
-        coJustRun { assetsRepository.updateNativeAssetRanks() }
         every { assetsRepository.invalidateDefault(wallet) } returns Job()
         coJustRun { walletsRepository.updateWallet(any()) }
         coJustRun { walletsRepository.updateAccounts(any()) }
@@ -70,7 +74,7 @@ class CheckAccountsServiceTest {
 
         subject()
 
-        coVerify(exactly = 1) { assetsRepository.updateNativeAssetRanks() }
+        coVerify(exactly = 1) { assetsService.syncDefaultAssets() }
         verify(exactly = 1) { walletsRepository.getAll() }
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 1) { assetsRepository.invalidateDefault(wallet) }
@@ -95,7 +99,6 @@ class CheckAccountsServiceTest {
         )
 
         every { walletsRepository.getAll() } returns flowOf(listOf(wallet))
-        coJustRun { assetsRepository.updateNativeAssetRanks() }
         coEvery { assetsRepository.getNativeAssets(wallet) } returns nativeAssets
 
         subject()

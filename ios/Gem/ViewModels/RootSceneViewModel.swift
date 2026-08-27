@@ -118,7 +118,7 @@ extension RootSceneViewModel {
         Task { try await deviceService.update() }
         transactionStateScheduler.setup()
         Task { await appLifecycleService.setup() }
-        Task { await migrateV3KeystoresThenSetupChains() }
+        Task { await setupWallets() }
     }
 
     func onScenePhaseChanged(_: ScenePhase, _ newPhase: ScenePhase) {
@@ -177,9 +177,9 @@ extension RootSceneViewModel {
         }
     }
 
-    private func migrateV3KeystoresThenSetupChains() async {
+    private func setupWallets() async {
         await lockManager.lockModel.waitUntilUnlocked()
-        await onstartService.migrateV3KeystoresThenSetupChains()
+        await onstartService.setupWallets()
     }
 
     private func checkForUpdate() async {

@@ -2,6 +2,7 @@
 
 import GemstoneServices
 import Foundation
+import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import Preferences
 import Primitives
@@ -11,20 +12,20 @@ import UIKit
 /// OnstartService runs services before the app starts.
 /// See OnstartAsyncService for any background tasks to run after start
 public struct OnstartService: Sendable {
-    private let assetStore: AssetStore
+    private let assetsService: any GemAssetsServiceProtocol
     private let nodeStore: NodeStore
     private let preferences: Preferences
     private let preferencesService: any GemPreferencesServiceProtocol
     private let walletService: WalletService
 
     public init(
-        assetStore: AssetStore,
+        assetsService: any GemAssetsServiceProtocol,
         nodeStore: NodeStore,
         preferences: Preferences,
         preferencesService: any GemPreferencesServiceProtocol,
         walletService: WalletService,
     ) {
-        self.assetStore = assetStore
+        self.assetsService = assetsService
         self.nodeStore = nodeStore
         self.preferences = preferences
         self.preferencesService = preferencesService
@@ -37,7 +38,6 @@ public struct OnstartService: Sendable {
         configureURLCache()
         do {
             try excludeDirectoriesFromBackup()
-            try migrateAssets()
             try migratePriceAlertsPreference()
             configureDefaultCurrency()
         } catch {
@@ -50,7 +50,12 @@ public struct OnstartService: Sendable {
         #endif
     }
 
-    public func migrateV3KeystoresThenSetupChains() async {
+    public func setupWallets() async {
+        do {
+            try await assetsService.syncDefaultAssets()
+        } catch {
+            debugLog("default assets sync error: \(error)")
+        }
         do {
             try await walletService.migrateV3Keystores()
         } catch {
@@ -67,13 +72,6 @@ public struct OnstartService: Sendable {
 // MARK: - Private
 
 extension OnstartService {
-    private func migrateAssets() throws {
-        try ImportAssetsService(
-            assetStore: assetStore,
-            preferences: preferences,
-        ).migrate()
-    }
-
     private func migratePriceAlertsPreference() throws {
         guard let enabled = preferences.removeLegacyPriceAlertsEnabled() else { return }
         try preferencesService.setPriceAlertsEnabled(enabled: enabled)

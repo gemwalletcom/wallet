@@ -20,7 +20,6 @@ import com.gemwallet.android.domains.asset.defaultAssets
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.Asset
@@ -326,15 +325,6 @@ class AssetsRepository @Inject constructor(
         }
     }
 
-
-    suspend fun updateNativeAssetRanks() = withContext(Dispatchers.IO) {
-        val basics = Chain.available().map { it.asset().defaultBasic }
-        assetsDao.insert(basics.map { it.toRecord() })
-        for (basic in basics) {
-            runCatching { assetsDao.updateAssetRank(basic.asset.id.toIdentifier(), basic.score.rank) }
-                .onFailure { Log.e(TAG, "Failed to update native asset rank for ${basic.asset.id}", it) }
-        }
-    }
 
     private suspend fun insertLocalAsset(walletId: String, asset: Asset, visible: Boolean) {
         assetsDao.insert(asset.defaultBasic.toRecord())

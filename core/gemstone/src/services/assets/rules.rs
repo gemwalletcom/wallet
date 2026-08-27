@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, Wallet};
+use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, Chain, Wallet};
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 
@@ -16,6 +16,23 @@ pub fn missing_asset_ids(requested: Vec<AssetId>, existing: Vec<AssetId>) -> Vec
 pub fn default_asset_basic(asset: Asset) -> AssetBasic {
     let asset_id = asset.id.clone();
     AssetBasic::new(asset, AssetProperties::default(asset_id.clone()), AssetScore::new(asset_id.default_rank()))
+}
+
+pub fn default_assets() -> Vec<AssetBasic> {
+    Chain::all()
+        .into_iter()
+        .flat_map(|chain| std::iter::once(Asset::from_chain(chain)).chain(wallet_default_assets(chain)))
+        .map(default_asset_basic)
+        .collect()
+}
+
+pub fn missing_assets(assets: Vec<AssetBasic>, existing: Vec<AssetId>) -> Vec<AssetBasic> {
+    let existing: HashSet<AssetId> = existing.into_iter().collect();
+    assets.into_iter().filter(|asset| !existing.contains(&asset.asset.id)).collect()
+}
+
+pub fn stakeable_asset_ids() -> Vec<AssetId> {
+    Chain::all().into_iter().filter(Chain::is_stake_supported).map(AssetId::from_chain).collect()
 }
 
 pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
@@ -35,6 +52,21 @@ pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default_assets_and_missing() {
+        let assets = default_assets();
+        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+        let tron_usdt = wallet_default_assets(Chain::Tron)[0].id.clone();
+        assert!(assets.iter().any(|asset| asset.asset.id == bitcoin));
+        assert!(assets.iter().any(|asset| asset.asset.id == tron_usdt));
+
+        let missing = missing_assets(assets.clone(), vec![bitcoin.clone()]);
+        assert_eq!(missing.len(), assets.len() - 1);
+        assert!(!missing.iter().any(|asset| asset.asset.id == bitcoin));
+        assert!(stakeable_asset_ids().contains(&AssetId::from_chain(Chain::Cosmos)));
+        assert!(!stakeable_asset_ids().contains(&bitcoin));
+    }
     use primitives::{Account, Chain, WalletId, WalletSource, WalletType};
 
     fn wallet(wallet_type: WalletType, chains: &[Chain]) -> Wallet {

@@ -62,6 +62,10 @@ class GemstoneAssetStore(
 
     override suspend fun setSwappableAssets(assetIds: List<String>) = availabilityService.updateSwapAvailable(assetIds)
 
+    override suspend fun setStakeableAssets(assetIds: List<String>) = withContext(Dispatchers.IO) {
+        assetsDao.setStakeEnabled(assetIds)
+    }
+
     override suspend fun addMissingBalances(walletId: String, assetIds: List<String>) = withContext(Dispatchers.IO) {
         for (assetId in assetsDao.getAssetIds(assetIds)) {
             assetsDao.insertBalance(

@@ -15,16 +15,17 @@ import uniffi.gemstone.GemWalletService
 import com.wallet.core.primitives.Wallet
 import javax.inject.Inject
 import javax.inject.Singleton
+import uniffi.gemstone.GemAssetsService
 
 @Singleton
 class CheckAccountsService @Inject constructor(
     private val walletsRepository: WalletsRepository,
     private val assetsRepository: AssetsRepository,
     private val walletService: GemWalletService,
+    private val assetsService: GemAssetsService,
 ) {
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
-        // TODO: Remove after legacy native assets with stale rank = 0 have been repaired.
-        assetsRepository.updateNativeAssetRanks()
+        assetsService.syncDefaultAssets()
 
         val updatedWallets = walletService.setupChains(Chain.available().map { it.string })
             .map { it.decodeJson<Wallet>() }

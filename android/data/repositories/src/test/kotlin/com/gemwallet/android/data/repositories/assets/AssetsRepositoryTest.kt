@@ -348,7 +348,6 @@ class AssetsRepositoryTest {
         val assetSlot = slot<DbAsset>()
         coVerify { assetsDao.insert(capture(assetSlot)) }
         coVerify(exactly = 0) { assetsDao.updateBasicAssets(any()) }
-        coVerify(exactly = 0) { assetsDao.updateAssetRank(any(), any()) }
         coVerify {
             assetsDao.setWalletAssetVisibility(
                 walletId = "wallet-1",
@@ -374,28 +373,6 @@ class AssetsRepositoryTest {
 
         coVerify(exactly = 1) { assetsService.setupWallet(wallet.toJson()) }
         coVerify { streamSubscriptionService.addPrices(listOf(Chain.Bitcoin.asset().id.toIdentifier(), Chain.Tron.asset().id.toIdentifier())) }
-    }
-
-    @Test
-    fun updateNativeAssetRanks_repairsLegacyNativeRanks() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-        mockkStatic("com.gemwallet.android.ext.ChainKt")
-        mockkStatic("uniffi.gemstone.GemstoneKt")
-        every { Chain.available() } returns setOf(Chain.Solana, Chain.Ethereum)
-        every { Chain.Solana.asset() } returns mockAssetSolana()
-        every { Chain.Ethereum.asset() } returns mockAssetEthereum()
-        every { Chain.Solana.isSwapSupport() } returns true
-        every { Chain.Solana.isStakeSupported() } returns true
-        every { Chain.Ethereum.isSwapSupport() } returns true
-        every { Chain.Ethereum.isStakeSupported() } returns false
-        every { assetDefaultRank(Chain.Solana.string) } returns 99
-        every { assetDefaultRank(Chain.Ethereum.string) } returns 77
-
-        val subject = createSubject()
-        subject.updateNativeAssetRanks()
-
-        coVerify { assetsDao.updateAssetRank("solana", 99) }
-        coVerify { assetsDao.updateAssetRank("ethereum", 77) }
     }
 
     @Test

@@ -89,6 +89,8 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
 
     public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
 
+    public func syncDefaultAssets() async throws {}
+
     public func syncSwappableChains() async throws {}
 
     public func syncAvailability(versions _: Gemstone.ConfigVersions) async throws {}

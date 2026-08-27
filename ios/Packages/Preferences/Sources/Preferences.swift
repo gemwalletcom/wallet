@@ -12,7 +12,6 @@ public final class Preferences: @unchecked Sendable {
         static let currency = "currency"
         static let importFiatMappingsVersion = "migrate_fiat_mappings_version"
         static let importFiatPurchaseAssetsVersion = "migrate_fiat_purchase_assets_version"
-        static let localAssetsVersion = "local_assets_version"
         static let swapSlippageBps = "swap_slippage_bps"
         static let launchesCount = "launches_count"
         static let subscriptionsVersion = "subscriptions_version"
@@ -46,9 +45,6 @@ public final class Preferences: @unchecked Sendable {
 
     @ConfigurableDefaults(key: Keys.importFiatPurchaseAssetsVersion, defaultValue: 0)
     public var importFiatPurchaseAssetsVersion: Int
-
-    @ConfigurableDefaults(key: Keys.localAssetsVersion, defaultValue: 0)
-    public var localAssetsVersion: Int
 
     @ConfigurableDefaults(key: Keys.swapSlippageBps, defaultValue: 0)
     private var swapSlippageBpsRawValue: Int
@@ -133,7 +129,6 @@ public final class Preferences: @unchecked Sendable {
         configure(\._currency, key: Keys.currency, defaultValue: Currency.usd.rawValue, sharedDefaults: sharedDefaults)
         configure(\._importFiatMappingsVersion, key: Keys.importFiatMappingsVersion, defaultValue: 0)
         configure(\._importFiatPurchaseAssetsVersion, key: Keys.importFiatPurchaseAssetsVersion, defaultValue: 0)
-        configure(\._localAssetsVersion, key: Keys.localAssetsVersion, defaultValue: 0)
         configure(\._swapSlippageBpsRawValue, key: Keys.swapSlippageBps, defaultValue: 0)
         configure(\._launchesCount, key: Keys.launchesCount, defaultValue: 0)
         configure(\._subscriptionsVersion, key: Keys.subscriptionsVersion, defaultValue: 0)

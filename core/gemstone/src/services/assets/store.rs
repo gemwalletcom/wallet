@@ -14,4 +14,5 @@ pub trait GemAssetStore: Send + Sync {
     async fn set_buyable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError>;
     async fn set_sellable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError>;
     async fn set_swappable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError>;
+    async fn set_stakeable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError>;
 }

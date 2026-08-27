@@ -28,7 +28,6 @@ struct PreferencesTests {
 
         #expect(preferences.importFiatMappingsVersion == 0)
         #expect(preferences.importFiatPurchaseAssetsVersion == 0)
-        #expect(preferences.localAssetsVersion == 0)
         #expect(preferences.launchesCount == 0)
         #expect(preferences.subscriptionsVersion == 0)
         #expect(preferences.authenticationLockOption == 0)
@@ -72,12 +71,6 @@ struct PreferencesTests {
 
         preferences.importFiatPurchaseAssetsVersion = 2
         #expect(preferences.importFiatPurchaseAssetsVersion == 2)
-
-        preferences.localAssetsVersion = 3
-        #expect(preferences.localAssetsVersion == 3)
-
-
-
 
         preferences.launchesCount = 7
         #expect(preferences.launchesCount == 7)
@@ -125,7 +118,6 @@ struct PreferencesTests {
         preferences.currency = Currency.eur.rawValue
         preferences.importFiatMappingsVersion = 1
         preferences.importFiatPurchaseAssetsVersion = 2
-        preferences.localAssetsVersion = 3
         preferences.launchesCount = 7
         preferences.subscriptionsVersion = 8
         preferences.authenticationLockOption = 9
@@ -142,7 +134,6 @@ struct PreferencesTests {
         #expect(preferences.currency == Currency.eur.rawValue)
         #expect(preferences.importFiatMappingsVersion == 1)
         #expect(preferences.importFiatPurchaseAssetsVersion == 2)
-        #expect(preferences.localAssetsVersion == 3)
         #expect(preferences.launchesCount == 7)
         #expect(preferences.subscriptionsVersion == 8)
         #expect(preferences.authenticationLockOption == 9)
@@ -160,7 +151,6 @@ struct PreferencesTests {
         #expect(preferences.currency == Currency.usd.rawValue)
         #expect(preferences.importFiatMappingsVersion == 0)
         #expect(preferences.importFiatPurchaseAssetsVersion == 0)
-        #expect(preferences.localAssetsVersion == 0)
         #expect(preferences.launchesCount == 0)
         #expect(preferences.subscriptionsVersion == 0)
         #expect(preferences.authenticationLockOption == 0)
