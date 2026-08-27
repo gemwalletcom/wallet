@@ -117,4 +117,23 @@ mod tests {
         );
         assert_eq!(merged.len(), 3);
     }
+
+    #[test]
+    fn test_prices_skip_assets_without_price() {
+        let mut priced = asset(Chain::Ethereum, None);
+        priced.price = Some(primitives::Price {
+            price: 2.0,
+            price_change_percentage_24h: 1.5,
+            updated_at: chrono::Utc::now(),
+            provider: Default::default(),
+        });
+
+        let prices = prices(&[priced, asset(Chain::Bitcoin, None)]);
+
+        assert_eq!(prices.len(), 1);
+        assert_eq!(
+            (prices[0].asset_id.chain, prices[0].price, prices[0].price_change_percentage_24h),
+            (Chain::Ethereum, 2.0, 1.5)
+        );
+    }
 }

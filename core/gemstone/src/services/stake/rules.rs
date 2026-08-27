@@ -147,6 +147,7 @@ pub fn earn_validators(providers: Vec<DelegationValidator>, apr: f64) -> Vec<Del
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::AssetId;
 
     fn validator(id: &str) -> DelegationValidator {
         DelegationValidator {
@@ -209,5 +210,82 @@ mod tests {
         assert_eq!(recommended_validator(Chain::Cosmos, validators).unwrap().id, recommended[0]);
         assert_eq!(recommended_validator(Chain::Cosmos, vec![validator("other")]).unwrap().id, "other");
         assert!(recommended_validator(Chain::Cosmos, vec![]).is_none());
+    }
+
+    #[test]
+    fn test_merge_validators_fills_names_and_keeps_active_first() {
+        let names = HashMap::from([("b".to_string(), "Bee".to_string())]);
+        let mut unnamed = validator("b");
+        unnamed.name = String::new();
+        let mut inactive = validator("a");
+        inactive.is_active = false;
+
+        let merged = merge_validators(vec![validator("a"), unnamed], vec![inactive, validator("c")], &names);
+
+        assert_eq!(merged.iter().map(|validator| validator.id.as_str()).collect::<Vec<_>>(), vec!["a", "b", "c"]);
+        assert!(merged[0].is_active);
+        assert_eq!(merged[1].name, "Bee");
+    }
+
+    #[test]
+    fn test_missing_validators_become_inactive_placeholders() {
+        let delegation = |validator_id: &str| DelegationBase {
+            asset_id: AssetId::from_chain(Chain::Cosmos),
+            state: DelegationState::Active,
+            balance: BigUint::from(1u8),
+            shares: BigUint::ZERO,
+            rewards: BigUint::ZERO,
+            completion_date: None,
+            delegation_id: validator_id.to_string(),
+            validator_id: validator_id.to_string(),
+        };
+        let existing = HashMap::from([("known".to_string(), validator("known"))]);
+        let names = HashMap::from([("named".to_string(), "Named".to_string())]);
+
+        let missing = missing_validators(
+            Chain::Cosmos,
+            &[delegation("known"), delegation("named"), delegation("anon"), delegation("anon")],
+            &existing,
+            &names,
+        );
+
+        assert_eq!(
+            missing
+                .iter()
+                .map(|validator| (validator.id.as_str(), validator.name.as_str(), validator.is_active))
+                .collect::<Vec<_>>(),
+            vec![("named", "Named", false), ("anon", "anon", false)]
+        );
+        assert_eq!(
+            stale_delegation_ids(vec![delegation("known").id(), "gone".to_string()], &[delegation("known")]),
+            vec!["gone"]
+        );
+        let applied = apply_validator_state(
+            vec![delegation("known"), delegation("anon")],
+            &HashMap::from([("anon".to_string(), inactive_validator(Chain::Cosmos, "anon".to_string(), String::new()))]),
+        );
+        assert_eq!(
+            applied.iter().map(|delegation| delegation.state).collect::<Vec<_>>(),
+            vec![DelegationState::Active, DelegationState::Inactive]
+        );
+    }
+
+    #[test]
+    fn test_validator_names_and_earn_apr() {
+        let mut inactive = validator("old");
+        inactive.is_active = false;
+        assert_eq!(
+            stale_validator_ids(vec![validator("kept"), validator("gone"), inactive], &[validator("kept")]),
+            vec!["gone"]
+        );
+
+        let names = validator_address_names(&[validator("v1")]);
+        assert_eq!(
+            (names[0].address.as_str(), names[0].name.as_str(), &names[0].address_type),
+            ("v1", "v1", &AddressType::Validator)
+        );
+
+        let earn = earn_validators(vec![validator("p")], 4.5);
+        assert_eq!(earn[0].apr, 4.5);
     }
 }

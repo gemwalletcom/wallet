@@ -44,3 +44,58 @@ pub fn default_nodes(chain: Chain) -> Vec<Node> {
         .chain(node_config::get_nodes_for_chain(chain).into_iter().map(config_node))
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn node(url: &str, priority: i32) -> Node {
+        Node {
+            url: url.to_string(),
+            status: NodeState::Active,
+            priority,
+        }
+    }
+
+    #[test]
+    fn test_merge_nodes_keeps_defaults_first_and_drops_duplicate_urls() {
+        let merged = merge_nodes(vec![node("https://a", 1)], vec![node("https://a", 5), node("https://b", 2)]);
+
+        assert_eq!(merged.iter().map(|node| node.url.as_str()).collect::<Vec<_>>(), vec!["https://a", "https://b"]);
+        assert_eq!(merged[0].priority, 1);
+        assert!(is_default_node("https://a", &[node("https://a", 1)]));
+        assert!(!is_default_node("https://b", &[node("https://a", 1)]));
+    }
+
+    #[test]
+    fn test_selected_node_falls_back_when_url_is_missing() {
+        let nodes = vec![node("https://a", 1), node("https://b", 2)];
+
+        assert_eq!(selected_node(Some("https://b".to_string()), nodes.clone(), node("https://f", 0)).url, "https://b");
+        assert_eq!(selected_node(Some("https://c".to_string()), nodes.clone(), node("https://f", 0)).url, "https://f");
+        assert_eq!(selected_node(None, nodes, node("https://f", 0)).url, "https://f");
+    }
+
+    #[test]
+    fn test_chain_node_defaults_to_us_region() {
+        let chain = Chain::Ethereum;
+
+        assert_eq!(chain_node(chain, None, vec![]).url, NodeRegion::Us.url(chain));
+        assert_eq!(chain_node(chain, Some("https://custom".to_string()), vec![node("https://custom", 1)]).url, "https://custom");
+        assert!(default_nodes(chain).iter().any(|node| node.url == NodeRegion::Eu.url(chain)));
+    }
+
+    #[test]
+    fn test_config_node_maps_priority_to_state() {
+        let config = |priority: NodePriority| {
+            config_node(node_config::Node {
+                url: "https://n".to_string(),
+                priority,
+            })
+        };
+
+        assert_eq!((config(NodePriority::High).status, config(NodePriority::High).priority), (NodeState::Active, 3));
+        assert_eq!((config(NodePriority::Low).status, config(NodePriority::Low).priority), (NodeState::Active, 1));
+        assert_eq!((config(NodePriority::Inactive).status, config(NodePriority::Inactive).priority), (NodeState::Inactive, 0));
+    }
+}

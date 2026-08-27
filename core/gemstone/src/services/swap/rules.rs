@@ -224,4 +224,25 @@ mod tests {
         assert_eq!(permit.details.nonce, 7);
         assert_eq!(permit.spender, "0xspender");
     }
+
+    #[test]
+    fn test_sort_quotes_prefers_highest_output() {
+        let wallet = wallet(&[Chain::Ethereum, Chain::Solana]);
+        let quote = |to_value: &str| Quote {
+            from_value: "100".to_string(),
+            min_from_value: None,
+            to_value: to_value.to_string(),
+            data: swapper::ProviderData {
+                provider: swapper::ProviderType::new(swapper::SwapperProvider::Jupiter),
+                slippage_bps: 50,
+                routes: vec![],
+            },
+            request: quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), "100".to_string(), false, None).unwrap(),
+            eta_in_seconds: None,
+        };
+
+        let sorted = sort_quotes(vec![quote("5"), quote("50"), quote("abc"), quote("7")]);
+
+        assert_eq!(sorted.iter().map(|quote| quote.to_value.as_str()).collect::<Vec<_>>(), vec!["50", "7", "5", "abc"]);
+    }
 }

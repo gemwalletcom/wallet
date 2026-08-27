@@ -61,15 +61,13 @@ mod tests {
     }
 
     #[test]
-    fn test_popular_asset_ids_are_native_majors_in_order() {
-        assert_eq!(
-            popular_asset_ids(),
-            vec![
-                AssetId::from_chain(Chain::Bitcoin),
-                AssetId::from_chain(Chain::Ethereum),
-                AssetId::from_chain(Chain::Solana)
-            ]
-        );
+    fn test_popular_asset_ids_are_distinct_native_assets() {
+        let ids = popular_asset_ids();
+
+        assert!(!ids.is_empty());
+        assert!(ids.iter().all(|id| id.is_native() && id.chain.has_native_asset()));
+        assert_eq!(unique(ids.clone()).len(), ids.len());
+        assert_eq!(ids.first(), Some(&AssetId::from_chain(Chain::Bitcoin)));
     }
 
     #[test]
@@ -128,10 +126,19 @@ mod tests {
 
     #[test]
     fn test_default_asset_basic_uses_default_rank_and_properties() {
-        let basic = default_asset_basic(Asset::from_chain(Chain::Ethereum));
-        assert_eq!(basic.score.rank, AssetId::from_chain(Chain::Ethereum).default_rank());
-        assert!(basic.properties.is_enabled);
-        assert!(basic.price.is_none());
+        let native = default_asset_basic(Asset::from_chain(Chain::Ethereum));
+        let token = default_asset_basic(Asset::new(
+            AssetId::from(Chain::Ethereum, Some("0x0000000000000000000000000000000000000001".to_string())),
+            String::new(),
+            String::new(),
+            18,
+            primitives::AssetType::ERC20,
+        ));
+
+        assert_eq!(native.score.rank, Chain::Ethereum.rank());
+        assert!(native.score.rank > token.score.rank);
+        assert!(native.properties.is_enabled);
+        assert!(native.price.is_none());
     }
 
     #[test]

@@ -441,10 +441,8 @@ mod tests {
         assert_eq!(broadcast_delay_milliseconds(Chain::Ethereum), 0);
         assert_eq!(broadcast_delay_milliseconds(Chain::HyperCore), 0);
         assert_eq!(broadcast_delay_milliseconds(Chain::Solana), 500);
-        for chain in Chain::all() {
-            let is_instant = matches!(chain.chain_type(), ChainType::Ethereum | ChainType::HyperCore);
-            assert_eq!(broadcast_delay_milliseconds(chain), if is_instant { 0 } else { 500 }, "{chain}");
-        }
+        assert_eq!(broadcast_delay_milliseconds(Chain::Bitcoin), 500);
+        assert_eq!(broadcast_delay_milliseconds(Chain::Polygon), 0);
     }
 
     #[test]

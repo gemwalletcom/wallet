@@ -297,4 +297,32 @@ mod tests {
         };
         assert_eq!(events(&visible_banners(wallet, &empty)), vec![BannerEvent::Onboarding, BannerEvent::EnableNotifications]);
     }
+
+    #[test]
+    fn test_state_and_event_policies() {
+        assert!(is_visible(BannerState::Active));
+        assert!(is_visible(BannerState::AlwaysActive));
+        assert!(!is_visible(BannerState::Cancelled));
+        assert_eq!(default_state(BannerEvent::ActivateAsset), BannerState::AlwaysActive);
+        assert_eq!(default_state(BannerEvent::Stake), BannerState::Active);
+        assert!(closes_on_action(BannerEvent::EnableNotifications));
+        assert!(!closes_on_action(BannerEvent::Stake));
+    }
+
+    #[test]
+    fn test_notifications_banner_waits_for_launches() {
+        let mut no_asset = context(false);
+        no_asset.has_wallet = false;
+        assert!(is_available(BannerEvent::EnableNotifications, &no_asset));
+        assert_eq!(suggested_events(&no_asset), vec![BannerEvent::EnableNotifications]);
+
+        no_asset.launch_count = ENABLE_NOTIFICATIONS_MINIMUM_LAUNCHES - 1;
+        assert!(!is_available(BannerEvent::EnableNotifications, &no_asset));
+        assert!(suggested_events(&no_asset).is_empty());
+        assert!(is_available(BannerEvent::Stake, &no_asset));
+
+        let mut asset = context(true);
+        asset.is_asset_activated = false;
+        assert_eq!(suggested_events(&asset), vec![BannerEvent::Stake, BannerEvent::ActivateAsset]);
+    }
 }
