@@ -66,8 +66,6 @@ import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import dagger.Lazy
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemNftService
@@ -235,14 +233,14 @@ object AssetModule {
         balanceService: GemBalanceService,
         transactionsService: GemTransactionsService,
         nftService: GemNftService,
-        walletsRepository: Lazy<WalletsRepository>,
+        walletStore: GemstoneWalletStore,
         walletPreferencesService: GemWalletPreferencesService,
     ): GemAssetDiscoveryService = GemAssetDiscoveryService(
         apiClient,
         balanceService,
         transactionsService,
         nftService,
-        GemstoneWalletStore(walletsRepository),
+        walletStore,
         walletPreferencesService,
     )
 

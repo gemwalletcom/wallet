@@ -18,7 +18,6 @@ import com.gemwallet.android.data.repositories.support.SupportChatRepository
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import com.gemwallet.android.data.repositories.stream.WebSocketConnection
 import com.gemwallet.android.data.repositories.stream.WebSocketRequest
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.math.fromHex
@@ -89,7 +88,7 @@ object AssetsModule {
     @Singleton
     fun provideGemBalanceService(
         gateway: GemGateway,
-        walletsRepository: Lazy<WalletsRepository>,
+        walletStore: GemstoneWalletStore,
         assetsDao: AssetsDao,
         balancesDao: BalancesDao,
         availabilityService: AssetsAvailabilityService,
@@ -97,7 +96,7 @@ object AssetsModule {
         priceService: GemPriceService,
     ): GemBalanceService = GemBalanceService(
         gateway,
-        GemstoneWalletStore(walletsRepository),
+        walletStore,
         GemstoneAssetStore(assetsDao, availabilityService),
         GemstoneBalanceStore(balancesDao, assetsDao),
         assetsService,
@@ -122,7 +121,7 @@ object AssetsModule {
         fiatService: GemFiatService,
         notificationStore: GemNotificationStore,
         supportStore: GemSupportStore,
-        walletsRepository: Lazy<WalletsRepository>,
+        walletStore: GemstoneWalletStore,
     ): GemStreamService = GemStreamService(
         priceService,
         priceAlertService,
@@ -133,7 +132,7 @@ object AssetsModule {
         fiatService,
         notificationStore,
         supportStore,
-        GemstoneWalletStore(walletsRepository),
+        walletStore,
     )
 
     @Provides

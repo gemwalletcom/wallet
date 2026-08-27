@@ -45,18 +45,18 @@ object DeviceModule {
     fun provideGemDeviceService(
         @Named("registration") apiClient: GemDeviceApiClient,
         subscriptionService: GemSubscriptionService,
-        walletsRepository: Lazy<WalletsRepository>,
+        walletStore: GemstoneWalletStore,
         deviceStore: GemstoneDeviceStore,
         platform: DeviceRepository,
         preferencesService: GemPreferencesService,
-    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, GemstoneWalletStore(walletsRepository), deviceStore, platform, preferencesService)
+    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, walletStore, deviceStore, platform, preferencesService)
 
     @Provides
     @Singleton
     fun provideGemSubscriptionService(
         @Named("registration") apiClient: GemDeviceApiClient,
-        walletsRepository: Lazy<WalletsRepository>,
-    ): GemSubscriptionService = GemSubscriptionService(apiClient, GemstoneWalletStore(walletsRepository))
+        walletStore: GemstoneWalletStore,
+    ): GemSubscriptionService = GemSubscriptionService(apiClient, walletStore)
 
     @Provides
     @Singleton

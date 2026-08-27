@@ -7,7 +7,6 @@ import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.session.SessionRepositoryImpl
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.SessionDao
-import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,8 +22,8 @@ object SessionModule {
     @Provides
     fun provideGemWalletSessionService(
         sessionDao: SessionDao,
-        walletsRepository: Lazy<WalletsRepository>,
-    ): GemWalletSessionService = GemWalletSessionService(GemstoneWalletSessionStore(sessionDao), GemstoneWalletStore(walletsRepository))
+        walletStore: GemstoneWalletStore,
+    ): GemWalletSessionService = GemWalletSessionService(GemstoneWalletSessionStore(sessionDao), walletStore)
 
     @Singleton
     @Provides

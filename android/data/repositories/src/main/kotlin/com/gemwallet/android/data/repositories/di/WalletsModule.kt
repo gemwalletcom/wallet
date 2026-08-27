@@ -60,7 +60,7 @@ object WalletsModule {
     fun provideGemWalletService(
         keystore: GemKeystore,
         passwordStore: PasswordStore,
-        walletsRepository: Lazy<WalletsRepository>,
+        walletStore: GemstoneWalletStore,
         walletSessionService: GemWalletSessionService,
         deviceStore: GemstoneDeviceStore,
         fileStore: GemFileStore,
@@ -68,7 +68,7 @@ object WalletsModule {
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore),
-        GemstoneWalletStore(walletsRepository),
+        walletStore,
         walletSessionService,
         deviceStore,
         fileStore,
@@ -86,12 +86,16 @@ object WalletsModule {
 
     @Provides
     @Singleton
+    fun provideGemWalletStore(walletsRepository: Lazy<WalletsRepository>): GemstoneWalletStore = GemstoneWalletStore(walletsRepository)
+
+    @Provides
+    @Singleton
     fun provideGemAvatarService(
-        walletsRepository: Lazy<WalletsRepository>,
+        walletStore: GemstoneWalletStore,
         fileStore: GemFileStore,
         alienProvider: AlienProvider,
     ): GemAvatarService = GemAvatarService(
-        wallets = GemstoneWalletStore(walletsRepository),
+        wallets = walletStore,
         files = fileStore,
         provider = alienProvider,
     )
