@@ -61,7 +61,6 @@ object AssetsModule {
     @Singleton
     fun provideAssetsRepository(
         assetsDao: AssetsDao,
-        balancesDao: BalancesDao,
         pricesRepository: PricesRepository,
         sessionRepository: SessionRepository,
         searchTokensCase: SearchTokensCase,
@@ -72,7 +71,6 @@ object AssetsModule {
         assetsService: Lazy<GemAssetsService>,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
-        balancesDao = balancesDao,
         pricesRepository = pricesRepository,
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,

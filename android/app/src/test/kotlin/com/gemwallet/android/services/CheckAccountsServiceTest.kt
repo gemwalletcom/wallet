@@ -1,105 +1,22 @@
 package com.gemwallet.android.services
 
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.ext.available
-import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockWallet
-import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
-import io.mockk.coJustRun
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkAll
-import io.mockk.verify
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAppStartService
-import uniffi.gemstone.assetDefaultRank
 
 class CheckAccountsServiceTest {
-    private val walletsRepository = mockk<WalletsRepository>(relaxed = true)
-    private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
+
     private val appStartService = mockk<GemAppStartService> {
         coEvery { setupWallets() } returns emptyList()
     }
-    private val subject = CheckAccountsService(
-        walletsRepository = walletsRepository,
-        assetsRepository = assetsRepository,
-        appStartService = appStartService,
-    )
-
-    @Before
-    fun setUp() {
-        mockkStatic("uniffi.gemstone.GemstoneKt")
-        every { assetDefaultRank(any()) } returns 1
-    }
-
-    @After
-    fun tearDown() {
-        unmockkAll()
-    }
 
     @Test
-    fun invoke_repairsMissingNativeAssetsWithoutCreatingNewAccounts() = runBlocking {
-        val accounts = Chain.available().map { chain ->
-            mockAccount(chain = chain)
-        }
-        val wallet = mockWallet(
-            id = "wallet-1",
-            accounts = accounts,
-        )
-        val nativeAssets = Chain.available()
-            .filterNot { it == Chain.Ethereum }
-            .map { chain -> mockAsset(chain = chain) }
-
-        every { walletsRepository.getAll() } returns flowOf(listOf(wallet))
-        every { assetsRepository.invalidateDefault(wallet) } returns Job()
-        coJustRun { walletsRepository.updateWallet(any()) }
-        coJustRun { walletsRepository.updateAccounts(any()) }
-        coEvery { assetsRepository.getNativeAssets(wallet) } returns nativeAssets
-
-        subject()
+    fun invoke_setsUpWalletsThroughCore() = runBlocking {
+        CheckAccountsService(appStartService).invoke()
 
         coVerify(exactly = 1) { appStartService.setupWallets() }
-        verify(exactly = 1) { walletsRepository.getAll() }
-        coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
-        verify(exactly = 1) { assetsRepository.invalidateDefault(wallet) }
-        coVerify(exactly = 1) { assetsRepository.ensureDefaultAssets(wallet) }
-        coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
-        coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
-    }
-
-    @Test
-    fun invoke_doesNotRepairWhenExpectedNativeAssetsExist() = runBlocking {
-        mockkStatic("com.gemwallet.android.ext.ChainKt")
-        every { Chain.available() } returns setOf(Chain.Solana)
-
-        val wallet = mockWallet(
-            id = "wallet-1",
-            accounts = listOf(mockAccount(chain = Chain.Solana)),
-        )
-        val nativeAssets = listOf(
-            mockAsset(chain = Chain.Solana),
-            mockAsset(chain = Chain.Ethereum),
-        )
-
-        every { walletsRepository.getAll() } returns flowOf(listOf(wallet))
-        coEvery { assetsRepository.getNativeAssets(wallet) } returns nativeAssets
-
-        subject()
-
-        coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
-        verify(exactly = 0) { assetsRepository.invalidateDefault(any()) }
-        coVerify(exactly = 1) { assetsRepository.ensureDefaultAssets(wallet) }
-        coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
-        coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
     }
 }

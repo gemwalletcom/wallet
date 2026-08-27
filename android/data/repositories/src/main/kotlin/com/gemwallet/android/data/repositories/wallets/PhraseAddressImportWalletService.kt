@@ -8,7 +8,6 @@ import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.cases.wallet.WalletImportResult
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.isValidAddress
@@ -26,7 +25,6 @@ import uniffi.gemstone.GemWalletSource
 
 class PhraseAddressImportWalletService(
     private val walletService: GemWalletService,
-    private val assetsRepository: AssetsRepository,
     private val sessionRepository: SessionRepository,
     private val phraseValidate: ValidatePhraseOperator,
     private val syncDevice: SyncDevice,
@@ -82,7 +80,6 @@ class PhraseAddressImportWalletService(
     }
 
     private suspend fun setupWallet(wallet: Wallet) {
-        assetsRepository.createAssets(wallet)
         sessionRepository.setWallet(wallet)
     }
 

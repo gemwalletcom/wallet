@@ -5,7 +5,6 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
@@ -15,8 +14,6 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.defaultBasic
-import com.gemwallet.android.domains.asset.defaultAssetRank
-import com.gemwallet.android.domains.asset.defaultAssets
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
@@ -48,7 +45,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.walletAssetIsEnabled
 import dagger.Lazy
 import uniffi.gemstone.GemAssetsService
 import com.gemwallet.android.serializer.toJson
@@ -63,7 +59,6 @@ private const val TAG = "AssetsRepository"
 @Singleton
 class AssetsRepository @Inject constructor(
     private val assetsDao: AssetsDao,
-    private val balancesDao: BalancesDao,
     private val pricesRepository: PricesRepository,
     private val sessionRepository: SessionRepository,
     private val searchTokensCase: SearchTokensCase,
@@ -90,46 +85,6 @@ class AssetsRepository @Inject constructor(
     }
 
 
-
-    /**
-     *  Create assets for new wallet(import or create wallet)
-     *  */
-    suspend fun createAssets(wallet: Wallet) {
-        assetsService.get().setupWallet(wallet.toJson())
-        val assetIds = wallet.accounts
-            .map { it.chain.asset() }
-            .filter { it.chain.defaultAssetRank >= 0 && walletAssetIsEnabled(it.id.toIdentifier(), wallet.type.toGem()) }
-            .map { it.id }
-        if (assetIds.isNotEmpty()) {
-            streamSubscriptionService.addPrices(assetIds.map { it.toIdentifier() })
-        }
-        ensureDefaultAssets(wallet)
-    }
-
-    suspend fun ensureDefaultAssets(wallet: Wallet) {
-        val assets = wallet.accounts
-            .flatMap { it.chain.defaultAssets }
-            .distinctBy { it.id }
-        val existing = hasWalletAssets(wallet.id.id, assets.map { it.id })
-        val missing = assets.filterNot { existing.contains(it.id) }
-        val stored = hasAssets(missing.map { it.id })
-
-        missing.forEach { asset ->
-            val visible = walletAssetIsEnabled(asset.id.toIdentifier(), wallet.type.toGem())
-            if (stored.contains(asset.id)) {
-                linkAssetToWallet(wallet.id.id, asset.id, visible)
-            } else {
-                add(wallet.id.id, asset, visible)
-            }
-        }
-    }
-
-    suspend fun getNativeAssets(wallet: Wallet): List<Asset> = withContext(Dispatchers.IO) {
-        assetsDao.getNativeWalletAssets(wallet.id.id)
-            .firstOrNull()
-            ?.toDTO()
-            ?: emptyList()
-    }
 
     suspend fun hasAssets(assetIds: List<AssetId>): Set<AssetId> = withContext(Dispatchers.IO) {
         if (assetIds.isEmpty()) {
@@ -226,24 +181,6 @@ class AssetsRepository @Inject constructor(
     /**
      * Check and add new coins and active tokens
      * */
-    fun invalidateDefault(wallet: Wallet) = scope.launch(Dispatchers.IO) {
-        val assets = getNativeAssets(wallet).associateBy( { it.id.toIdentifier() }, { it })
-
-        wallet.accounts.filter { it.chain.defaultAssetRank >= 0 }.map { account ->
-            val asset = account.chain.asset()
-            async {
-                if (assets[account.chain.string] == null) {
-                    add(wallet.id.id, asset, false)
-                    updateBalances.updateBalances(wallet.id.id, listOf(account.chain.string))
-                    val totalAmount = balancesDao.getByAsset(wallet.id.id, account.chain.string)?.totalAmount ?: 0.0
-                    if (totalAmount > 0.0) {
-                        linkAssetToWallet(wallet.id.id, asset.id, true)
-                    }
-                }
-            }
-        }.awaitAll()
-    }
-
     suspend fun updateBalances(vararg tokens: AssetId) {
         getAssetsInfo(tokens.toList()).firstOrNull()?.refreshBalances()?.awaitAll()
     }

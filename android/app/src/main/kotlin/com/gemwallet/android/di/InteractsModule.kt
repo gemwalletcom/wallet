@@ -20,7 +20,6 @@ import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.data.password.TinkPasswordStore
 import com.gemwallet.android.data.password.TinkSecurityStore
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.PhraseAddressImportWalletService
 import dagger.Module
@@ -90,14 +89,12 @@ object InteractsModule {
     @Provides
     fun provideAddWalletInteract(
         walletService: GemWalletService,
-        assetsRepository: AssetsRepository,
         sessionRepository: SessionRepository,
         phraseValidate: ValidatePhraseOperator,
         syncDevice: SyncDevice,
         walletImportSync: SyncWalletImport,
     ): ImportWalletService = PhraseAddressImportWalletService(
         walletService = walletService,
-        assetsRepository = assetsRepository,
         sessionRepository = sessionRepository,
         phraseValidate = phraseValidate,
         syncDevice = syncDevice,

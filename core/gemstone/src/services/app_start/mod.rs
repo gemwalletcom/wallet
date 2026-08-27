@@ -44,7 +44,11 @@ impl GemAppStartService {
 
     pub async fn setup_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
         self.assets.sync_default_assets().await?;
-        self.wallet.setup_chains(Chain::all()).await
+        let updated = self.wallet.setup_chains(Chain::all()).await?;
+        for wallet in &updated {
+            self.assets.setup_wallet(wallet.clone()).await?;
+        }
+        Ok(updated)
     }
 
     pub async fn run(&self) -> Vec<GemAppStartFailure> {
