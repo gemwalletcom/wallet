@@ -331,6 +331,6 @@ extension WalletSceneViewModel {
     }
 
     private func handleBanner(action: BannerAction) async throws {
-        try await bannerService.handleAction(key: action.banner.gemKey, action: action.type.gemAction)
+        try await bannerService.applyAction(key: action.banner.gemKey, action: action.type.gemAction)
     }
 }

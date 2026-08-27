@@ -68,7 +68,7 @@ impl GemAssetDiscoveryService {
         let asset_ids = self.api.client.get_assets_list(wallet_id.id(), from_timestamp).await.map_err(GemApiError::from)?;
         let asset_ids = rules::discoverable_asset_ids(asset_ids, &wallet.accounts);
         if !asset_ids.is_empty() {
-            self.balance.enable_assets(wallet_id.clone(), asset_ids.clone(), true, currency).await?;
+            self.balance.set_assets_enabled(wallet_id.clone(), asset_ids.clone(), true, currency).await?;
         }
         self.preferences.set_assets_timestamp(wallet_id.clone(), timestamp)?;
         self.preferences.set_initial_load_completed(wallet_id, GemDiscoveryStep::Assets)?;

@@ -14,7 +14,7 @@ class SetAssetPinnedImpl(
 
     override suspend fun invoke(assetId: AssetId, pinned: Boolean) {
         val session = sessionRepository.session().value ?: return
-        balanceService.pinAsset(
+        balanceService.setAssetPinned(
             walletId = session.wallet.id.id,
             assetId = assetId.toIdentifier(),
             pinned = pinned,

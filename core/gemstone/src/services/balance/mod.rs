@@ -53,7 +53,7 @@ impl GemBalanceService {
         }
     }
 
-    pub async fn enable_assets(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool, currency: Currency) -> Result<(), GemServiceError> {
+    pub async fn set_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool, currency: Currency) -> Result<(), GemServiceError> {
         let asset_ids = rules::unique_asset_ids(asset_ids);
         if asset_ids.is_empty() {
             return Ok(());
@@ -77,9 +77,9 @@ impl GemBalanceService {
         self.update(wallet_id, new_asset_ids).await
     }
 
-    pub async fn pin_asset(&self, wallet_id: WalletId, asset_id: AssetId, pinned: bool, currency: Currency) -> Result<(), GemServiceError> {
+    pub async fn set_asset_pinned(&self, wallet_id: WalletId, asset_id: AssetId, pinned: bool, currency: Currency) -> Result<(), GemServiceError> {
         if pinned {
-            self.enable_assets(wallet_id.clone(), vec![asset_id.clone()], true, currency).await?;
+            self.set_assets_enabled(wallet_id.clone(), vec![asset_id.clone()], true, currency).await?;
         }
         self.store.set_pinned(wallet_id, asset_id, pinned).await
     }

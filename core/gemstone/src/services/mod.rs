@@ -14,6 +14,7 @@ pub mod contact;
 pub mod device;
 pub mod error;
 pub mod explorer;
+pub mod failures;
 pub mod fiat;
 pub mod file;
 pub mod name;

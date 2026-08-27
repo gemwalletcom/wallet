@@ -20,11 +20,11 @@ public struct AssetsEnablerService: AssetsEnabler {
     }
 
     public func enableAssets(wallet: Wallet, assetIds: [AssetId], enabled: Bool) async throws {
-        try await service.enableAssets(walletId: wallet.id.id, assetIds: assetIds.ids, enabled: enabled, currency: currency())
+        try await service.setAssetsEnabled(walletId: wallet.id.id, assetIds: assetIds.ids, enabled: enabled, currency: currency())
     }
 
     public func pinAsset(wallet: Wallet, assetId: AssetId, pinned: Bool) async throws {
-        try await service.pinAsset(walletId: wallet.id.id, assetId: assetId.identifier, pinned: pinned, currency: currency())
+        try await service.setAssetPinned(walletId: wallet.id.id, assetId: assetId.identifier, pinned: pinned, currency: currency())
     }
 
     private func currency() throws -> Gemstone.Currency {

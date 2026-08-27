@@ -282,9 +282,9 @@ public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked 
         await onUpdate(walletId, assetIds)
     }
 
-    public func enableAssets(walletId _: String, assetIds _: [Gemstone.AssetId], enabled _: Bool, currency _: Gemstone.Currency) async throws {}
+    public func setAssetsEnabled(walletId _: String, assetIds _: [Gemstone.AssetId], enabled _: Bool, currency _: Gemstone.Currency) async throws {}
 
-    public func pinAsset(walletId _: String, assetId _: Gemstone.AssetId, pinned _: Bool, currency _: Gemstone.Currency) async throws {}
+    public func setAssetPinned(walletId _: String, assetId _: Gemstone.AssetId, pinned _: Bool, currency _: Gemstone.Currency) async throws {}
 }
 
 public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchecked Sendable {
@@ -406,7 +406,7 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
         false
     }
 
-    public func handleAction(key _: GemBannerKey, action: GemBannerAction) async throws {
+    public func applyAction(key _: GemBannerKey, action: GemBannerAction) async throws {
         handledActions.append(action)
     }
 

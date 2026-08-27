@@ -16,7 +16,7 @@ struct GemBannerServiceTests {
     func closeActionCancelsBanner() async throws {
         let (store, banner, service, _) = try makeService()
 
-        try await service.handleAction(key: banner.gemKey, action: .close)
+        try await service.applyAction(key: banner.gemKey, action: .close)
 
         #expect(try store.getBanner(id: banner.id)?.state == .cancelled)
     }
@@ -27,7 +27,7 @@ struct GemBannerServiceTests {
             let banner = Banner(wallet: nil, asset: nil, chain: nil, event: .enableNotifications, state: .active)
             let (store, _, service, permissions) = try makeService(banner: banner, granted: granted)
 
-            try await service.handleAction(key: banner.gemKey, action: .event(event: BannerEvent.enableNotifications.json()))
+            try await service.applyAction(key: banner.gemKey, action: .event(event: BannerEvent.enableNotifications.json()))
 
             #expect(permissions.requestCount == 1)
             #expect(try store.getBanner(id: banner.id)?.state == (granted ? .cancelled : .active))

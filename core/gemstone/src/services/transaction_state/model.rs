@@ -1,3 +1,4 @@
+use crate::services::failures::StepFailure;
 use primitives::{AssetId, Chain, Transaction, TransactionId, TransactionState, Wallet};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -58,4 +59,12 @@ pub struct GemTransactionPostProcessing {
     pub stake_chains: Vec<Chain>,
     pub earn_asset_ids: Vec<AssetId>,
     pub sync_nfts: bool,
+}
+
+impl StepFailure for GemPostProcessingFailure {
+    type Step = GemPostProcessingStep;
+
+    fn new(step: GemPostProcessingStep, message: String) -> Self {
+        Self { step, message }
+    }
 }

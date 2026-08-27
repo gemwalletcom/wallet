@@ -3,6 +3,7 @@ pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
+use crate::services::failures::record;
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
@@ -74,7 +75,7 @@ impl GemTransactionStateService {
         if asset_ids.is_empty() {
             return Ok(());
         }
-        self.balance.enable_assets(wallet_id, asset_ids, true, currency).await
+        self.balance.set_assets_enabled(wallet_id, asset_ids, true, currency).await
     }
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
@@ -121,15 +122,6 @@ impl GemTransactionStateService {
             record(&mut failures, GemPostProcessingStep::Nfts, async { self.nft.sync(wallet_id).await.map(|_| ()) }).await;
         }
         failures
-    }
-}
-
-async fn record<F>(failures: &mut Vec<GemPostProcessingFailure>, step: GemPostProcessingStep, future: F)
-where
-    F: std::future::Future<Output = Result<(), GemServiceError>>,
-{
-    if let Err(error) = future.await {
-        failures.push(GemPostProcessingFailure { step, message: error.to_string() });
     }
 }
 
