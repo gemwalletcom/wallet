@@ -127,23 +127,30 @@ Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, And
 
 ## TODO — finish Core as the single owner of logic
 
-State on 2026-08-27: every app service either forwards to a Core service or is platform glue (reown/WalletKit, keystore files, sockets, navigation). What is left is mostly (a) rules still duplicated in view models, (b) store adapters that diverge in what they write, and (c) three product decisions. Rough size: Rust ~1 week, iOS ~1 week, Android ~1.5 weeks (the Earn flow is the largest piece). Items are ordered by risk; each one should land with the app-side code it replaces deleted.
+State on 2026-08-28: every app service forwards to a Core service or is platform glue; view-model rules for swaps, imports, stakes, fees, charts, portfolio, push navigation and WalletConnect proposals now live in `gemstone` with unit tests, both apps map Core errors to localized text, and the Android Room chain is a single 87→88 migration. What is left is two structural pieces and a handful of small rules that still sit in view models. Items are ordered easy → hard; each one lands with the app-side code it replaces deleted and a Core test that would flip if the rule flipped.
 
 ### Rust (core/gemstone)
 
-- Transfer model: generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums collapse; add `Earn` to the Android side when its flow lands.
+- Amount percent presets: iOS `SwapSceneViewModel.inputPercentSuggestions` and Android `SwapViewModel.percentSuggestions` both hardcode `[25, 50, 100]`; put them next to the slippage presets in `SwapConfig` (or an amount config) and read them on both apps.
+- Popular assets for the asset picker: Android `BaseAssetSelectViewModel.popular` hardcodes ETH/BTC/SOL and iOS `SelectAssetViewModel` has its own list; expose one `rules::popular_asset_ids()` from the search/assets service.
+- Perpetual markets refresh interval: iOS `PerpetualsSceneViewModel.marketsUpdateIntervalHours = 1` gates `sync_markets`, Android syncs on every wallet change; add `GemPerpetualService::sync_markets_if_stale(chain, currency)` that owns the interval and use it on both apps.
+- Get-asset flow for an insufficient fee asset: iOS `ConfirmTransferSceneViewModel.onSelectGetAsset` routes Tron to the get-asset sheet and everything else to fiat; Android has no equivalent. Decide the rule in Core (`GemFiatService`/confirm rule returning the destination) so both apps share it.
+- WalletConnect auth chain rule: Android `WCAuthViewModel` checks `toChainType() == Ethereum` before building the auth response; move the "which chains can authenticate" rule into `GemWalletConnectService`.
+- Transfer model: generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums collapse (132 Core, 49 Android, 7 iOS call sites — do it last, transaction construction is wallet-critical).
 
 ### iOS
 
+- Wallet limit: `WalletsSceneViewModel.walletsLimit` (100, 1000 in debug) is an app constant; if Android enforces a limit too, move it to Core config, otherwise delete the debug variant.
 
 ### Android
 
 - Earn flow: `ConfirmParams` has no Earn variant and `AmountDataProvider` has no earn provider; add both on top of `GemTransactionInputType::Earn` and `GemAmountType::Earn` (iOS `AmountEarnViewModel` is the reference).
+- Default chains: `AddAssetViewModel` falls back to Ethereum and `ManageContactUIState` to Bitcoin; if these are product defaults, read them from Core config, otherwise derive them from the wallet's accounts.
 
 ### Verification
 
-- Core: `cargo fmt --all && cargo clippy -p gemstone --all-targets -- -D warnings && cargo test -p gemstone`; regenerate bindings only when an exported signature changes.
-- Android: root `./gradlew compileGoogleDebugKotlin compileGoogleDebugUnitTestKotlin` plus the touched modules' unit tests.
+- Core: `cargo fmt --all && cargo clippy -p gemstone --all-targets --all-features -- -D warnings && cargo test -p gemstone --lib --all-features`; regenerate bindings only when an exported signature changes. CI also compiles the workspace with `--features unit_tests` and `chain_integration_tests`.
+- Android: root `./gradlew compileGoogleDebugKotlin compileGoogleDebugUnitTestKotlin` plus the touched modules' `testDebugUnitTest` (the root task does not compile every module's unit tests).
 - iOS: `just build && just test` from `ios/`.
 - After each batch: compare the pre-change app logic (`git show <sha>^:<path>`) with the Core rule and add the Core test that would flip if the rule flipped.
 
