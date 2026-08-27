@@ -163,3 +163,8 @@ fn provider(chain: Chain) -> Result<PerpetualProvider, GemServiceError> {
         msg: format!("perpetuals unsupported on {chain}"),
     })
 }
+
+#[uniffi::export]
+pub fn includes_perpetual_collateral(mode: PerpetualAccountMode) -> bool {
+    rules::includes_perpetual_collateral(mode)
+}

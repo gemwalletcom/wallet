@@ -2,13 +2,20 @@ use chrono::Utc;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::PerpetualBalance;
-use primitives::{AssetId, AssetPrice, AssetType, Chain, PerpetualPosition, PerpetualProvider};
+use primitives::{AssetId, AssetPrice, AssetType, Chain, PerpetualAccountMode, PerpetualPosition, PerpetualProvider};
 
 use crate::models::asset::wallet_default_assets;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 use crate::services::collections::stale;
 
 const MARKETS_REFRESH_INTERVAL_SECONDS: i64 = 60 * 60;
+
+pub fn includes_perpetual_collateral(mode: PerpetualAccountMode) -> bool {
+    match mode {
+        PerpetualAccountMode::Standard => true,
+        PerpetualAccountMode::Unified => false,
+    }
+}
 
 pub fn is_markets_stale(updated_at: Option<i64>, now: i64) -> bool {
     updated_at.is_none_or(|updated_at| now - updated_at >= MARKETS_REFRESH_INTERVAL_SECONDS)
@@ -62,6 +69,12 @@ pub fn collateral_price(chain: Chain) -> Option<AssetPrice> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_perpetual_collateral_counts_only_in_standard_mode() {
+        assert!(includes_perpetual_collateral(PerpetualAccountMode::Standard));
+        assert!(!includes_perpetual_collateral(PerpetualAccountMode::Unified));
+    }
 
     #[test]
     fn test_markets_stale_after_an_hour_or_when_never_synced() {

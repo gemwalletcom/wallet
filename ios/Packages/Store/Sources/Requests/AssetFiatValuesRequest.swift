@@ -6,12 +6,12 @@ import Primitives
 public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
     public var walletId: WalletId
     public var type: TotalValueType
-    public var perpetualAccountMode: PerpetualAccountMode
+    public var includesPerpetualCollateral: Bool
 
-    public init(walletId: WalletId, type: TotalValueType, perpetualAccountMode: PerpetualAccountMode = .standard) {
+    public init(walletId: WalletId, type: TotalValueType, includesPerpetualCollateral: Bool = true) {
         self.walletId = walletId
         self.type = type
-        self.perpetualAccountMode = perpetualAccountMode
+        self.includesPerpetualCollateral = includesPerpetualCollateral
     }
 
     public func fetch(_ db: Database) throws -> [AssetFiatValue] {
@@ -22,10 +22,7 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
             let assets = try assetRecords(db).compactMap {
                 AssetFiatValue(record: $0, amount: $0.balance.totalAmount)
             }
-            switch perpetualAccountMode {
-            case .unified: return assets
-            case .standard: return try assets + [perpetualFiatValue(db)]
-            }
+            return includesPerpetualCollateral ? try assets + [perpetualFiatValue(db)] : assets
         case .earn:
             return try assetRecords(db).compactMap {
                 AssetFiatValue(record: $0, amount: $0.balance.stakedAmount + $0.balance.earnAmount)

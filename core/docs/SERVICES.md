@@ -138,7 +138,6 @@ State on 2026-08-28: every app service forwards to a Core service or is platform
 
 ### Android
 
-- Read-model coordinators that still mix Core with repositories: `GetTransactionDetailsImpl` and `BuildConfirmPropertiesImpl` only use the stateless `GemExplorerService` for links (fine), but `GetWalletSummaryImpl` reads the perpetual account mode from `GemWalletPreferencesService` next to assets/perpetual repositories; expose a Core wallet-summary query (balances + perpetual mode) so the summary has one owner.
 - Earn flow: Android has no Earn surface yet (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`, `GemDelegationAction.DEPOSIT` maps to nothing); build the Earn scene, the amount provider and the confirm params on top of `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn` (iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference). This is a feature, not a consolidation, so plan it as its own batch.
 
 ### Verification
