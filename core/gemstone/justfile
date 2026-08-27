@@ -133,7 +133,7 @@ bindgen-swift:
         echo "Failed to locate ${DY_LIB_NAME} at ${LIB_OUTPUT_PATH} (mode ${BUILD_MODE})"; \
         exit 1; \
     fi; \
-    cargo run {{CARGO_BUILD_FLAG}} -p uniffi-bindgen -- generate --library --language swift --crate ${LIB_NAME} -o ${GEN_SWIFT_FOLDER} "${LIB_OUTPUT_PATH}"
+    cargo run {{CARGO_BUILD_FLAG}} -p uniffi-bindgen -- generate --language swift --crate ${LIB_NAME} -o ${GEN_SWIFT_FOLDER} "${LIB_OUTPUT_PATH}"
 
 prepare-ios-package: bindgen-swift
     #!/usr/bin/env bash
@@ -154,7 +154,7 @@ bindgen-kotlin:
         echo "Failed to locate ${DY_LIB_NAME} at ${LIB_OUTPUT_PATH} (mode ${BUILD_MODE})"; \
         exit 1; \
     fi; \
-    cargo run {{CARGO_BUILD_FLAG}} -p uniffi-bindgen -- generate --library --language kotlin --crate ${LIB_NAME} --no-format -o ${GEN_KOTLIN_FOLDER} "${LIB_OUTPUT_PATH}"
+    cargo run {{CARGO_BUILD_FLAG}} -p uniffi-bindgen -- generate --language kotlin --crate ${LIB_NAME} --no-format -o ${GEN_KOTLIN_FOLDER} "${LIB_OUTPUT_PATH}"
     cp -Rf ${GEN_KOTLIN_FOLDER}/uniffi ${ANDROID_MODULE_FOLDER}
 
 build-android: bindgen-kotlin

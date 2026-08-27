@@ -2,7 +2,7 @@ use crate::services::error::GemServiceError;
 use async_trait::async_trait;
 use primitives::{NFTAssetData, NFTAssetId, NFTData, WalletId};
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemNftStore: Send + Sync {
     async fn save(&self, wallet_id: WalletId, data: Vec<NFTData>) -> Result<(), GemServiceError>;

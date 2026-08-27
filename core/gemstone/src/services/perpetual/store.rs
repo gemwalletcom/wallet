@@ -4,7 +4,7 @@ use primitives::perpetual::{PerpetualBalance, PerpetualData};
 use primitives::{PerpetualMarketData, PerpetualPosition, PerpetualProvider, WalletId};
 use std::collections::HashMap;
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemPerpetualStore: Send + Sync {
     async fn save_perpetuals(&self, data: Vec<PerpetualData>) -> Result<(), GemServiceError>;

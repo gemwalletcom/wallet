@@ -2,7 +2,7 @@ use crate::services::error::GemServiceError;
 use async_trait::async_trait;
 use primitives::{Wallet, WalletId};
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemWalletStore: Send + Sync {
     fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError>;

@@ -2,7 +2,7 @@ use crate::services::error::GemServiceError;
 use async_trait::async_trait;
 use primitives::Device;
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemDeviceStore: Send + Sync {
     async fn is_registered(&self) -> Result<bool, GemServiceError>;

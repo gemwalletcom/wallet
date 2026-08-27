@@ -5,7 +5,7 @@ use gem_jsonrpc::rpc::{RpcProvider as GenericRpcProvider, RpcResponse};
 use primitives::Chain;
 use std::{fmt::Debug, sync::Arc};
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait AlienProvider: Send + Sync + Debug {
     async fn request(&self, target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError>;

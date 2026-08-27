@@ -2,7 +2,7 @@ use crate::services::error::GemServiceError;
 use async_trait::async_trait;
 use primitives::{AddressName, Chain};
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemAddressStore: Send + Sync {
     async fn get_address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError>;

@@ -2,7 +2,7 @@ use crate::services::error::GemServiceError;
 use async_trait::async_trait;
 use primitives::{AddressName, AssetId, DelegationBase, DelegationValidator, StakeProviderType, WalletId};
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemStakeStore: Send + Sync {
     async fn get_apr(&self, asset_id: AssetId, provider_type: StakeProviderType) -> Result<Option<f64>, GemServiceError>;

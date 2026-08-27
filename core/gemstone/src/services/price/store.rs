@@ -5,7 +5,7 @@ use primitives::{AssetId, AssetMarket, FiatRate, WalletId};
 
 use super::model::GemPriceUpdate;
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemPriceStore: Send + Sync {
     async fn get_rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemServiceError>;

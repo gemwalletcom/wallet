@@ -2,7 +2,7 @@ use crate::services::error::GemServiceError;
 use async_trait::async_trait;
 use primitives::{SupportMessage, SupportTyping};
 
-#[uniffi::export(with_foreign)]
+#[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemSupportStore: Send + Sync {
     async fn save_messages(&self, messages: Vec<SupportMessage>) -> Result<(), GemServiceError>;
