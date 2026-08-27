@@ -40,12 +40,12 @@ class GemstoneAssetStoreTest {
     }
 
     @Test
-    fun addBalances_insertsDefaultAssetRowAndMissingBalance() = runBlocking {
+    fun addBalances_insertsMissingBalanceWithoutTouchingAssets() = runBlocking {
         val walletId = mockWalletId()
 
         subject.addBalances(walletId.id, listOf("bitcoin"), true)
 
-        coVerify { assetsDao.insert(match<DbAsset> { it.id == "bitcoin" }) }
+        coVerify(exactly = 0) { assetsDao.insert(any<DbAsset>()) }
         coVerify { assetsDao.insertBalance(match { it.assetId == "bitcoin" && it.walletId == walletId.id && it.isVisible }) }
         coVerify(exactly = 0) { assetsDao.setWalletAssetVisibility(any(), any(), any()) }
     }
