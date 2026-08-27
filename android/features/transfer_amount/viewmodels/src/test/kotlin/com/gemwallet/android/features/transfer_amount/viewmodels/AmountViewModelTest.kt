@@ -124,9 +124,9 @@ class AmountViewModelTest {
     }
 
     @Test
-    fun `onNext marks isMax from the max flag`() = viewModelTest { viewModel ->
+    fun `onNext marks isMax when the amount equals the max value`() = viewModelTest { viewModel ->
         availableBalanceFlow.value = OneAtom
-        viewModel.setAmount("0.4", isMax = true)
+        viewModel.setAmount("1")
 
         viewModel.confirm()
 

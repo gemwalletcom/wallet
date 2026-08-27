@@ -270,9 +270,7 @@ private extension AmountSceneViewModel {
                 source: source,
                 decimals: asset.decimals.asInt,
                 validators: [
-                    PositiveValueValidator<BigInt>().silent,
-                    MinimumValueValidator<BigInt>(minimumValue: provider.minimumValue, asset: asset),
-                    BalanceValueValidator(available: provider.availableValue(from: assetData), asset: asset),
+                    AmountValueValidator(asset: asset, available: provider.availableValue(from: assetData), minimum: provider.minimumValue),
                 ],
             ),
         ]

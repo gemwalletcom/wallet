@@ -141,7 +141,7 @@ class AmountViewModel @Inject constructor(
                 val crypto = amountInputType.value.getAmount(amount, asset.decimals, price)
                 AmountValidation.validate(asset, crypto, provider.availableBalance.value, provider.minimumValue.value)
                 amountError.value = AmountError.None
-                val isMax = maxAmount.value || crypto.atomicValue == provider.availableBalance.value
+                val isMax = crypto.atomicValue == provider.maxValue()
                 onConfirm(provider.buildConfirmParams(crypto, isMax))
             } catch (err: AmountError) {
                 amountError.value = err
