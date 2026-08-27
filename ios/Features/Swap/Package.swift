@@ -27,7 +27,6 @@ let package = Package(
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "Validators", path: "../../Packages/Validators"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
-        .package(name: "GemAPI", path: "../../Packages/GemAPI"),
     ],
     targets: [
         .target(

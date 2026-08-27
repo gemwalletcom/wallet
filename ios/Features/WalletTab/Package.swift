@@ -31,7 +31,6 @@ let package = Package(
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "Preferences", path: "../../Packages/Preferences"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
-        .package(name: "GemAPI", path: "../../Packages/GemAPI"),
         .package(name: "Perpetuals", path: "../Perpetuals"),
         .package(name: "Recents", path: "../Recents"),
         .package(name: "NFT", path: "../NFT"),

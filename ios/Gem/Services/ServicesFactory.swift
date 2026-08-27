@@ -12,7 +12,6 @@ import ConnectionsService
 import ConnectionStatusService
 import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
-import GemAPI
 import Gemstone
 import GemstonePrimitives
 import NativeProviderService

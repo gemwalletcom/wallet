@@ -24,7 +24,6 @@ let package = Package(
         .package(name: "GemstoneServices", path: "../GemstoneServices"),
         .package(name: "Store", path: "../Store"),
         .package(name: "reown-swift", path: "../../Submodules/reown-swift"),
-        .package(name: "GemAPI", path: "../GemAPI"),
         .package(name: "Preferences", path: "../Preferences"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Gemstone", path: "../Gemstone"),
@@ -64,7 +63,6 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
-                "GemAPI",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "GemstonePrimitives",
                 "Preferences",

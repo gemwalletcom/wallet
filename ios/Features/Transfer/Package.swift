@@ -38,7 +38,6 @@ let package = Package(
         .package(name: "Perpetuals", path: "../Perpetuals"),
 
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
-        .package(name: "GemAPI", path: "../../Packages/GemAPI"),
     ],
     targets: [
         .target(

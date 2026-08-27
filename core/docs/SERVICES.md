@@ -113,6 +113,8 @@ Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, And
 
 ## Remaining
 
+- **iOS `Packages/GemAPI`** — only the widget's one-endpoint client (`GemPriceWidget`); the app and feature packages no longer depend on it.
+
 - Periodic review of app wrappers (`NodeService.node(for:)`, `PerpetualService`, `DeviceService`, `WalletService`) and of typeshare models unused by both apps (18 exports dropped 2026-08-27; the Rust types stay where Core uses them).
 
 ## Conventions

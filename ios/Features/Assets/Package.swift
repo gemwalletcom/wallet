@@ -33,7 +33,6 @@ let package = Package(
         .package(name: "QRScanner", path: "../QRScanner"),
         .package(name: "Recents", path: "../Recents"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
-        .package(name: "GemAPI", path: "../../Packages/GemAPI"),
     ],
     targets: [
         .target(
