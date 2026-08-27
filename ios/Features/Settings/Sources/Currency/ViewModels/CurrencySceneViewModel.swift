@@ -5,6 +5,7 @@ import protocol Gemstone.GemPriceServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
+import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
 import Primitives
 
@@ -13,7 +14,7 @@ import Primitives
 public final class CurrencySceneViewModel {
     private var currencyStorage: CurrencyStorable
     private let priceService: any GemPriceServiceProtocol
-    private let deviceService: any DeviceServiceable
+    private let deviceService: any GemDeviceServiceProtocol
     private let defaultCurrencies: [Currency] = [.usd, .eur, .gbp, .cny, .jpy, .inr, .rub]
 
     private(set) var currency: Currency {
@@ -31,7 +32,7 @@ public final class CurrencySceneViewModel {
     public init(
         currencyStorage: CurrencyStorable,
         priceService: any GemPriceServiceProtocol,
-        deviceService: any DeviceServiceable,
+        deviceService: any GemDeviceServiceProtocol,
     ) {
         self.currencyStorage = currencyStorage
         self.priceService = priceService
@@ -74,7 +75,7 @@ public final class CurrencySceneViewModel {
     }
 
     func updateDevice() async {
-        try? await deviceService.update()
+        _ = try? await deviceService.synchronize()
     }
 }
 

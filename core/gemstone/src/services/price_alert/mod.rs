@@ -8,7 +8,7 @@ use primitives::{AssetId, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::banner::GemNotificationPermissions;
-use crate::services::device::GemDeviceSync;
+use crate::services::device::GemDeviceService;
 use crate::services::preferences::GemPreferencesService;
 
 pub use store::GemPriceAlertStore;
@@ -18,7 +18,7 @@ pub struct GemPriceAlertService {
     api: Arc<GemDeviceApiClient>,
     preferences: Arc<GemPreferencesService>,
     store: Arc<dyn GemPriceAlertStore>,
-    device: Arc<dyn GemDeviceSync>,
+    device: Arc<GemDeviceService>,
     permissions: Arc<dyn GemNotificationPermissions>,
 }
 
@@ -29,7 +29,7 @@ impl GemPriceAlertService {
         api: Arc<GemDeviceApiClient>,
         preferences: Arc<GemPreferencesService>,
         store: Arc<dyn GemPriceAlertStore>,
-        device: Arc<dyn GemDeviceSync>,
+        device: Arc<GemDeviceService>,
         permissions: Arc<dyn GemNotificationPermissions>,
     ) -> Self {
         Self {
@@ -52,7 +52,7 @@ impl GemPriceAlertService {
             }
             self.preferences.set_price_alerts_enabled(enabled)?;
         }
-        self.device.sync_device().await
+        self.device.synchronize().await.map(|_| ())
     }
 
     pub async fn enable_price_alert(&self, alert: PriceAlert) -> Result<(), GemServiceError> {

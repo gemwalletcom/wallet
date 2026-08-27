@@ -6,6 +6,7 @@ import GemstonePrimitives
 import GemstoneServices
 import Components
 import Foundation
+import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
 import Preferences
 import Primitives
@@ -14,7 +15,7 @@ import Style
 @Observable
 @MainActor
 public final class NotificationsViewModel {
-    private let deviceService: any DeviceServiceable
+    private let deviceService: any GemDeviceServiceProtocol
     private let preferences: Preferences
     private let pushNotificationService: PushNotificationEnablerService
     private let bannerService: any GemBannerServiceProtocol
@@ -22,7 +23,7 @@ public final class NotificationsViewModel {
     var isEnabled: Bool
 
     public init(
-        deviceService: any DeviceServiceable,
+        deviceService: any GemDeviceServiceProtocol,
         bannerService: any GemBannerServiceProtocol,
         preferences: Preferences = .standard,
     ) {
@@ -67,7 +68,7 @@ extension NotificationsViewModel {
 
 extension NotificationsViewModel {
     private func update() async throws {
-        try await deviceService.update()
+        _ = try await deviceService.synchronize()
     }
 
     private func requestPermissionsOrOpenSettings() async throws -> Bool {

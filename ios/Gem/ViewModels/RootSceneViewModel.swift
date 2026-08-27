@@ -9,6 +9,7 @@ import AppService
 import GemstoneServices
 import Components
 import Foundation
+import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
 import LockManager
 import Onboarding
@@ -30,7 +31,7 @@ final class RootSceneViewModel {
     private let appUpdateService: any GemAppUpdateServiceProtocol
     private let rateService: RateService
     private let toastPresenter: ToastPresenter
-    private let deviceService: any DeviceServiceable
+    private let deviceService: any GemDeviceServiceProtocol
 
     let observablePreferences: ObservablePreferences
     let walletService: WalletService
@@ -89,7 +90,7 @@ final class RootSceneViewModel {
         rateService: RateService,
         toastPresenter: ToastPresenter,
         avatarService: any GemAvatarServiceProtocol,
-        deviceService: any DeviceServiceable,
+        deviceService: any GemDeviceServiceProtocol,
     ) {
         self.observablePreferences = observablePreferences
         self.walletConnectorPresenter = walletConnectorPresenter
@@ -117,7 +118,7 @@ extension RootSceneViewModel {
     func setup() {
         rateService.perform()
         Task { await checkForUpdate() }
-        Task { try await deviceService.update() }
+        Task { _ = try await deviceService.synchronize() }
         transactionStateScheduler.setup()
         Task { await appLifecycleService.setup() }
         Task { await setupWallets() }
@@ -227,7 +228,7 @@ extension RootSceneViewModel {
         Task {
             do {
                 if try await pushNotificationEnablerService.requestPermissionsIfNotDetermined() {
-                    try await deviceService.update()
+                    _ = try await deviceService.synchronize()
                 }
             } catch {
                 debugLog("requestPushPermissions error: \(error)")

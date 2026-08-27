@@ -36,22 +36,19 @@ struct ServicesFactory {
             service: GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore)),
         )
         let nativeProvider = NativeProvider(nodeProvider: nodeService)
-        let devicePrivateKey = (try? DeviceService.getOrCreateKeyPair(securePreferences: securePreferences))?.privateKey ?? Data()
+        let devicePrivateKey = (try? securePreferences.getOrCreateDeviceKeyPair())?.privateKey ?? Data()
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
 
         let gemWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
         let walletPreferencesService = Gemstone.GemWalletPreferencesService(store: GemstoneWalletPreferencesStore())
         let gemDeviceStore = GemstoneDeviceStore()
-        let gemDeviceService = Gemstone.GemDeviceService(
+        let deviceService = Gemstone.GemDeviceService(
             api: deviceRegistrationClient,
             subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, store: gemWalletStore),
             walletStore: gemWalletStore,
             store: gemDeviceStore,
-        )
-        let deviceService = DeviceService(
-            deviceProvider: gemDeviceService,
-            preferencesService: preferencesService,
-            securePreferences: securePreferences,
+            platform: MainActor.assumeIsolated { GemstoneDevicePlatform(securePreferences: securePreferences) },
+            preferences: preferencesService,
         )
         let gemDeviceApiClient = Self.makeDeviceApiClient(
             provider: nativeProvider,
@@ -167,7 +164,7 @@ struct ServicesFactory {
             api: gemDeviceApiClient,
             preferences: preferencesService,
             store: GemstonePriceAlertStore(store: storeManager.priceAlertStore),
-            device: GemstoneDeviceSync(service: deviceService),
+            device: deviceService,
             permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
         )
         let gemFiatService = Gemstone.GemFiatService(
@@ -428,7 +425,7 @@ extension ServicesFactory {
     }
 
     private static func makeDeviceObserverService(
-        deviceService: any DeviceServiceable,
+        deviceService: any GemDeviceServiceProtocol,
         walletStore: WalletStore,
     ) -> DeviceObserverService {
         DeviceObserverService(

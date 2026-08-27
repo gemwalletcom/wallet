@@ -1,15 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemDeviceServiceProtocol
 import Store
 
 public actor DeviceObserverService {
-    private let deviceService: any DeviceServiceable
+    private let deviceService: any GemDeviceServiceProtocol
     private let subscriptionsObserver: SubscriptionsObserver
 
 
     public init(
-        deviceService: any DeviceServiceable,
+        deviceService: any GemDeviceServiceProtocol,
         subscriptionsObserver: SubscriptionsObserver,
     ) {
         self.deviceService = deviceService
@@ -27,6 +28,6 @@ public actor DeviceObserverService {
     }
 
     func handleSubscriptionsChange() async throws {
-        try await deviceService.update()
+        _ = try await deviceService.synchronize()
     }
 }

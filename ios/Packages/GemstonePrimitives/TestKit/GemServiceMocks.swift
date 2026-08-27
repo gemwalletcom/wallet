@@ -4,44 +4,29 @@ import Foundation
 import Gemstone
 import GemstonePrimitives
 import Primitives
+import PrimitivesTestKit
 
 public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
-    private let delay: Duration?
-    private let needsSyncResult: Bool
     private let syncError: Error?
+    public private(set) var synchronizeCalls = 0
+    public private(set) var synchronizeIfNeededCalls = 0
 
-    public private(set) var needsSyncCalls = 0
-    public private(set) var syncCalls = 0
-    public private(set) var syncedDeviceIds: [String] = []
-
-    public init(
-        delay: Duration? = nil,
-        needsSync: Bool = true,
-        syncError: Error? = nil,
-    ) {
-        self.delay = delay
-        needsSyncResult = needsSync
+    public init(syncError: Error? = nil) {
         self.syncError = syncError
     }
 
-    public func needsSync(device _: Gemstone.Device) async throws -> Bool {
-        needsSyncCalls += 1
-        return needsSyncResult
-    }
-
-    public func sync(device: Gemstone.Device) async throws -> Gemstone.Device {
-        syncCalls += 1
-        syncedDeviceIds.append(try Primitives.Device(device).id)
-        try await sleepIfNeeded()
+    public func synchronize() async throws -> Gemstone.Device {
+        synchronizeCalls += 1
         if let syncError {
             throw syncError
         }
-        return device
+        return try Primitives.Device.mock().json()
     }
 
-    private func sleepIfNeeded() async throws {
-        if let delay {
-            try await Task.sleep(for: delay)
+    public func synchronizeIfNeeded() async throws {
+        synchronizeIfNeededCalls += 1
+        if let syncError {
+            throw syncError
         }
     }
 }

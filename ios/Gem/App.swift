@@ -65,7 +65,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UIWindowSceneDelegate {
 
         Task {
             let _ = try SecurePreferences.standard.set(value: token, key: .deviceToken)
-            try await AppResolver.main.services.deviceService.update()
+            _ = try await AppResolver.main.services.deviceService.synchronize()
         }
     }
 

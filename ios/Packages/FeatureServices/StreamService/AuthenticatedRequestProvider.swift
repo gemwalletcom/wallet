@@ -16,7 +16,7 @@ public struct AuthenticatedRequestProvider: WebSocketRequestProvider {
     }
 
     public func makeRequest() throws -> URLRequest {
-        let keyPair = try DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
+        let keyPair = try securePreferences.getOrCreateDeviceKeyPair()
         let signer = try GemDeviceRequestSigner(privateKey: keyPair.privateKey)
         var request = URLRequest(url: Constants.deviceStreamWebSocketURL)
         request.httpMethod = "GET"

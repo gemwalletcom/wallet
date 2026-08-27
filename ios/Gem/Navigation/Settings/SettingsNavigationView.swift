@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemDeviceServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
 import Contacts
 import GemstoneServices
@@ -51,14 +52,14 @@ struct SettingsNavigationView: View {
     @State private var currencyModel: CurrencySceneViewModel
 
     let walletId: WalletId
-    private let deviceService: any DeviceServiceable
+    private let deviceService: any GemDeviceServiceProtocol
     @Binding var isPresentingSupport: Bool
 
     init(
         walletId: WalletId,
         preferences: Preferences = .standard,
         priceService: any GemPriceServiceProtocol,
-        deviceService: any DeviceServiceable,
+        deviceService: any GemDeviceServiceProtocol,
         isPresentingSupport: Binding<Bool>,
     ) {
         self.walletId = walletId

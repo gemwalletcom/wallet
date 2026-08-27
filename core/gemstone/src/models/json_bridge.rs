@@ -31,6 +31,7 @@ use primitives::{
     SearchResponse, StreamEvent, StreamMessage, SupportTyping,
 };
 use primitives::{ChartPeriod, Charts};
+use primitives::{DeviceLocale, Platform};
 
 macro_rules! json_bridge {
     ($($type:ident),* $(,)?) => {
@@ -91,6 +92,7 @@ json_bridge!(
     DelegationState,
     DelegationValidator,
     Device,
+    DeviceLocale,
     EarnType,
     FiatAssets,
     FiatQuote,
@@ -130,6 +132,7 @@ json_bridge!(
     PerpetualOrderType,
     PerpetualPortfolio,
     PerpetualPortfolioTimeframeData,
+    Platform,
     PlatformStore,
     Release,
     PerpetualPosition,

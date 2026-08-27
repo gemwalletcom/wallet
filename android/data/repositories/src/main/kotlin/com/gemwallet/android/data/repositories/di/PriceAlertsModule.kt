@@ -10,11 +10,10 @@ import dagger.hilt.components.SingletonComponent
 import com.gemwallet.android.data.repositories.gemstone.GemstonePriceAlertStore
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemPriceAlertStore
 import javax.inject.Singleton
-import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.data.repositories.gemstone.GemstoneDeviceSync
 import uniffi.gemstone.GemNotificationPermissions
 
 @InstallIn(SingletonComponent::class)
@@ -31,13 +30,13 @@ object PriceAlertsModule {
         apiClient: GemDeviceApiClient,
         preferencesService: GemPreferencesService,
         store: GemPriceAlertStore,
-        syncDevice: SyncDevice,
+        deviceService: GemDeviceService,
         notificationPermissions: GemNotificationPermissions,
     ): GemPriceAlertService = GemPriceAlertService(
         api = apiClient,
         preferences = preferencesService,
         store = store,
-        device = GemstoneDeviceSync(syncDevice),
+        device = deviceService,
         permissions = notificationPermissions,
     )
 

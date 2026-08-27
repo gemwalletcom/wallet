@@ -53,7 +53,7 @@ pub use banner::{GemBannerAction, GemBannerService, GemBannerStore, GemNotificat
 pub use chart::GemChartService;
 pub use config::GemConfigService;
 pub use contact::{GemContactService, GemContactStore};
-pub use device::{GemDeviceRequestSigner, GemDeviceService, GemDeviceStore, GemDeviceSync};
+pub use device::{GemDeviceInfo, GemDevicePlatform, GemDeviceRequestSigner, GemDeviceService, GemDeviceStore};
 pub use error::GemServiceError;
 pub use explorer::GemExplorerService;
 pub use fiat::{GemFiatService, GemFiatStore};

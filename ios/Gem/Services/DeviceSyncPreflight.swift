@@ -4,9 +4,9 @@ import GemstoneServices
 import Gemstone
 
 final class DeviceSyncPreflight: GemWalletRequestPreflight, @unchecked Sendable {
-    private let deviceService: any DeviceServiceable
+    private let deviceService: any GemDeviceServiceProtocol
 
-    init(deviceService: any DeviceServiceable) {
+    init(deviceService: any GemDeviceServiceProtocol) {
         self.deviceService = deviceService
     }
 

@@ -47,7 +47,9 @@ object DeviceModule {
         subscriptionService: GemSubscriptionService,
         walletsRepository: Lazy<WalletsRepository>,
         deviceStore: GemstoneDeviceStore,
-    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, GemstoneWalletStore(walletsRepository), deviceStore)
+        platform: DeviceRepository,
+        preferencesService: GemPreferencesService,
+    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, GemstoneWalletStore(walletsRepository), deviceStore, platform, preferencesService)
 
     @Provides
     @Singleton
@@ -61,10 +63,9 @@ object DeviceModule {
     fun provideDeviceRepository(
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
-        deviceService: GemDeviceService,
+        deviceService: Lazy<GemDeviceService>,
         deviceStore: GemstoneDeviceStore,
         getDeviceId: GetDeviceId,
-        preferencesService: GemPreferencesService,
         getCurrentCurrency: GetCurrentCurrency,
         notificationsAvailable: NotificationsAvailable,
     ): DeviceRepository {
@@ -78,7 +79,6 @@ object DeviceModule {
             platformStore = buildInfo.platformStore,
             notificationsAvailable = notificationsAvailable,
             versionName = buildInfo.versionName,
-            preferencesService = preferencesService,
             getCurrentCurrency = getCurrentCurrency,
         )
     }

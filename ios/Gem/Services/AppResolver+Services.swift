@@ -24,6 +24,7 @@ import ConnectionsService
 import ConnectionStatusService
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
+import protocol Gemstone.GemDeviceServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemChartServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
@@ -44,7 +45,7 @@ extension AppResolver {
         let chainServiceFactory: ChainServiceFactory
         let connectionsService: ConnectionsService
         let connectionStatusObserver: ConnectionStatusObserver
-        let deviceService: DeviceService
+        let deviceService: any GemDeviceServiceProtocol
         let nodeService: NodeService
         let serviceStatusService: any GemServiceStatusProtocol
         let navigationHandler: NavigationHandler

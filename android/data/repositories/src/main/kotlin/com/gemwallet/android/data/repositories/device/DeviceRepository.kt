@@ -20,7 +20,7 @@ import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.serializer.toJson
-import com.wallet.core.primitives.Device
+import dagger.Lazy
 import com.wallet.core.primitives.DeviceLocale
 import com.wallet.core.primitives.Platform
 import com.wallet.core.primitives.PlatformStore
@@ -31,13 +31,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemDeviceInfo
+import uniffi.gemstone.GemDevicePlatform
 import uniffi.gemstone.GemDeviceService
-import uniffi.gemstone.GemPreferencesService
+import kotlinx.coroutines.runBlocking
 import java.util.Locale
 
 class DeviceRepository(
     private val context: Context,
-    private val deviceService: GemDeviceService,
+    private val deviceService: Lazy<GemDeviceService>,
     private val deviceStore: GemstoneDeviceStore,
     private val configStore: ConfigStore,
     private val requestPushToken: RequestPushToken,
@@ -45,7 +47,6 @@ class DeviceRepository(
     private val notificationsAvailable: NotificationsAvailable,
     private val versionName: String,
     private val getDeviceId: GetDeviceId,
-    private val preferencesService: GemPreferencesService,
     private val getCurrentCurrency: GetCurrentCurrency,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : SwitchPushEnabled,
@@ -53,23 +54,13 @@ class DeviceRepository(
     GetPushToken,
     SetPushToken,
     SyncDevice,
-    IsDeviceRegistered
+    IsDeviceRegistered,
+    GemDevicePlatform
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
 
-    private val syncCoordinator = DeviceSyncCoordinator(scope)
-
     override suspend fun syncDevice() {
-        val device = localDevice() ?: return
-        if (!deviceService.needsSync(device.toJson())) {
-            return
-        }
-        syncCoordinator.synchronize {
-            val current = localDevice() ?: return@synchronize
-            if (deviceService.needsSync(current.toJson())) {
-                deviceService.sync(current.toJson())
-            }
-        }
+        deviceService.get().synchronizeIfNeeded()
     }
 
     override suspend fun switchPushEnabled(enabled: Boolean) {
@@ -98,45 +89,32 @@ class DeviceRepository(
 
     override suspend fun isDeviceRegistered(): Boolean = deviceStore.isRegistered()
 
-    private suspend fun localDevice(): Device? {
-        val pushState = resolvePushState() ?: return null
-        return buildDevice(pushToken = pushState.token, pushEnabled = pushState.enabled)
-    }
+    override fun deviceId(): String = runBlocking { getDeviceId.getDeviceId() }
 
-    private suspend fun resolvePushState(): PushState? {
-        val pushEnabled = getPushEnabled().firstOrNull() ?: false
-        val pushToken = if (pushEnabled) getPushToken() else ""
+    override fun deviceInfo(): GemDeviceInfo = GemDeviceInfo(
+        platform = Platform.Android.toJson(),
+        platformStore = platformStore.toJson(),
+        os = Platform.os,
+        model = Platform.model,
+        version = versionName,
+        locale = getDeviceLocale(Locale.getDefault()).toJson(),
+    )
 
-        if (pushEnabled && pushToken.isEmpty()) {
-            requestPushToken.requestToken { token ->
-                setPushToken(token)
-                scope.launch { syncDevice() }
+    override fun pushToken(): String = runBlocking {
+        val enabled = getPushEnabled().firstOrNull() ?: false
+        val token = if (enabled) getPushToken() else ""
+        if (enabled && token.isEmpty()) {
+            requestPushToken.requestToken { requested ->
+                setPushToken(requested)
+                scope.launch { runCatching { syncDevice() } }
             }
-            return null
         }
-
-        return PushState(
-            enabled = pushEnabled,
-            token = pushToken,
-        )
+        token
     }
 
-    private suspend fun buildDevice(pushToken: String, pushEnabled: Boolean): Device {
-        return Device(
-            id = getDeviceId.getDeviceId(),
-            platform = Platform.Android,
-            platformStore = platformStore,
-            os = Platform.os,
-            model = Platform.model,
-            token = pushToken,
-            locale = getDeviceLocale(Locale.getDefault()),
-            isPushEnabled = pushEnabled,
-            isPriceAlertsEnabled = preferencesService.isPriceAlertsEnabled(),
-            version = versionName,
-            currency = getCurrentCurrency.getCurrentCurrency(),
-            subscriptionsVersion = 0,
-        )
-    }
+    override fun isPushEnabled(): Boolean = runBlocking { getPushEnabled().firstOrNull() ?: false }
+
+    override fun currency(): String = runBlocking { getCurrentCurrency.getCurrentCurrency().toJson() }
 
     internal enum class ConfigKey(val string: String) {
         PushToken("push_token"),
@@ -159,8 +137,3 @@ class DeviceRepository(
         }
     }
 }
-
-private data class PushState(
-    val enabled: Boolean,
-    val token: String,
-)
