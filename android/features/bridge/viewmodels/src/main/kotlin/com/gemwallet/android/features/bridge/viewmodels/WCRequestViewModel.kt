@@ -88,6 +88,11 @@ class WCRequestViewModel @Inject constructor(
                 requestHandler.handle(sessionRequest, appMetadata.url)
             } catch (err: CancellationException) {
                 throw err
+            } catch (err: Throwable) {
+                Log.e(TAG, "Request failed method=${sessionRequest.request.method} id=${sessionRequest.request.id}", err)
+                onError(err.message ?: "Request failed")
+                rejectRequest(sessionRequest)
+                return@launch
             }
             respond(sessionRequest, response, onError)
         }

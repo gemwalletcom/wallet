@@ -9,6 +9,7 @@ import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemWalletConnectResponse
@@ -50,7 +51,8 @@ class WalletConnectRequestHandlerTest {
         }
 
         assertEquals(WalletConnectJsonRpcResponse.Error(-32601, "Method not found"), WalletConnectRequestHandler(notFound).handle(request, "https://dapp"))
-        assertEquals(WalletConnectJsonRpcResponse.Error(4001, "User rejected the request"), WalletConnectRequestHandler(failing).handle(request, "https://dapp"))
+        val failure = runCatching { WalletConnectRequestHandler(failing).handle(request, "https://dapp") }.exceptionOrNull()
+        assertTrue(failure is IllegalStateException)
         assertEquals(WalletConnectJsonRpcResponse.Error(4001, "User rejected the request"), WalletConnectRequestHandler(failing).handle(request.copy(chainId = null), "https://dapp"))
     }
 }
