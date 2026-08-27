@@ -10,7 +10,7 @@ import com.wallet.core.primitives.Wallet
 @Entity(tableName = "session")
 data class DbSession(
     @PrimaryKey val id: Int = 1,
-    @ColumnInfo("wallet_id") val walletId: String,
+    @ColumnInfo("wallet_id") val walletId: String?,
     val currency: Currency,
 )
 
