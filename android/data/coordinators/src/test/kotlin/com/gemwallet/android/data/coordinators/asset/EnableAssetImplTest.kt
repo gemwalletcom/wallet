@@ -19,7 +19,7 @@ class EnableAssetImplTest {
         coEvery { getCurrentCurrency() } returns Currency.USD
     }
     private val balanceService = mockk<GemBalanceService> {
-        coEvery { enableAssets(any(), any(), any(), any()) } returns Unit
+        coEvery { setAssetsEnabled(any(), any(), any(), any()) } returns Unit
     }
     private val subject = EnableAssetImpl(sessionRepository, balanceService)
 
@@ -30,6 +30,6 @@ class EnableAssetImplTest {
 
         subject(walletId, asset.id)
 
-        coVerify { balanceService.enableAssets(walletId.id, listOf(asset.id.toIdentifier()), true, Currency.USD.toJson()) }
+        coVerify { balanceService.setAssetsEnabled(walletId.id, listOf(asset.id.toIdentifier()), true, Currency.USD.toJson()) }
     }
 }

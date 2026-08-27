@@ -1,7 +1,9 @@
-use std::collections::HashSet;
-
 use primitives::contact::ContactAddress;
-use primitives::{AddressName, AddressType, Contact, VerificationStatus};
+use primitives::{AddressName, AddressType, Chain, Contact, VerificationStatus};
+
+pub fn default_contact_chain() -> Chain {
+    Chain::Bitcoin
+}
 
 pub fn address_names(contact: &Contact, addresses: &[ContactAddress]) -> Vec<AddressName> {
     addresses
@@ -17,9 +19,9 @@ pub fn address_names(contact: &Contact, addresses: &[ContactAddress]) -> Vec<Add
         .collect()
 }
 
-pub fn stale_address_ids(existing_ids: Vec<String>, addresses: &[ContactAddress]) -> Vec<String> {
-    let kept: HashSet<&str> = addresses.iter().map(|address| address.id.as_str()).collect();
-    existing_ids.into_iter().filter(|id| !kept.contains(id.as_str())).collect()
+pub fn stale_addresses(existing: Vec<ContactAddress>, addresses: &[ContactAddress]) -> Vec<ContactAddress> {
+    let kept: Vec<String> = addresses.iter().map(|address| address.id.clone()).collect();
+    existing.into_iter().filter(|address| !kept.contains(&address.id)).collect()
 }
 
 #[cfg(test)]
@@ -55,6 +57,10 @@ mod tests {
         assert_eq!(names[0].status, VerificationStatus::Verified);
         assert_eq!(names[0].image_url.as_deref(), Some("image"));
 
-        assert_eq!(stale_address_ids(vec!["a".into(), "b".into()], &[address("a"), address("c")]), vec!["b".to_string()]);
+        let stale: Vec<String> = stale_addresses(vec![address("a"), address("b")], &[address("a"), address("c")])
+            .into_iter()
+            .map(|address| address.id)
+            .collect();
+        assert_eq!(stale, vec!["b".to_string()]);
     }
 }

@@ -3,20 +3,23 @@ import GRDB
 import Primitives
 
 public struct AssetsRequest: DatabaseQueryable {
-    static let defaultQueryLimit = 100
+    public static let defaultQueryLimit = 100
 
     public var walletId: WalletId
     public var searchBy: String
     public var filters: [AssetsRequestFilter]
+    public var limit: Int?
 
     public init(
         walletId: WalletId,
         searchBy: String = "",
         filters: [AssetsRequestFilter] = [],
+        limit: Int? = AssetsRequest.defaultQueryLimit,
     ) {
         self.walletId = walletId
         self.searchBy = searchBy
         self.filters = filters
+        self.limit = limit
     }
 
     public func fetch(_ db: Database) throws -> [AssetData] {
@@ -160,9 +163,8 @@ extension AssetsRequest {
                 (totalValue == 0).desc,
                 AssetRecord.Columns.rank.desc,
             )
-            .limit(Self.defaultQueryLimit)
 
-        return Self.applyFilters(request: request, filters)
+        return Self.applyFilters(request: limit.map { request.limit($0) } ?? request, filters)
             .asRequest(of: AssetRecordInfo.self)
     }
 }

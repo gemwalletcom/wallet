@@ -1,6 +1,6 @@
 pub mod client;
 pub mod error;
-pub mod fiat_cacher_client;
+mod fiat_cacher_client;
 pub mod hmac_signature;
 pub mod ip_check_client;
 pub mod model;
@@ -19,15 +19,15 @@ use settings::Settings;
 use std::time::Duration;
 
 pub use client::FiatClient;
+pub use model::FiatDeviceContext;
 
 fn request_client(timeout: Duration) -> reqwest::Client {
     gem_client::builder().timeout(timeout).build().expect("fiat HTTP client configuration is valid")
 }
-pub use fiat_cacher_client::{CachedFiatQuoteData, FiatCacherClient};
 pub use ip_check_client::{IPAddressInfo, IPCheckClient};
 pub use transaction_info_mapper::fiat_transaction_info;
 
-#[cfg(all(test, feature = "fiat_integration_tests"))]
+#[cfg(test)]
 pub mod testkit;
 
 pub struct FiatProviderFactory {}

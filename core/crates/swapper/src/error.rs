@@ -60,6 +60,7 @@ impl From<AlienError> for SwapperError {
             AlienError::RequestError { msg } => Self::ComputeQuoteError(msg),
             AlienError::ResponseError { msg } => Self::ComputeQuoteError(msg),
             AlienError::Http { status, .. } => Self::ComputeQuoteError(format!("HTTP error: status {}", status)),
+            AlienError::Offline => Self::ComputeQuoteError(err.to_string()),
         }
     }
 }

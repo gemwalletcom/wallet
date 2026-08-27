@@ -5,11 +5,11 @@ import com.gemwallet.android.data.service.store.database.entities.DbBanner
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.BannerEvent
-import com.wallet.core.primitives.Chain
 import uniffi.gemstone.BannerState
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemBannerStore
 import uniffi.gemstone.bannerIdentifier
+import com.gemwallet.android.ext.requireChain
 
 class GemstoneBannerStore(
     private val bannersDao: BannersDao,
@@ -33,7 +33,7 @@ class GemstoneBannerStore(
         id = bannerIdentifier(this),
         walletId = walletId,
         assetId = assetId,
-        chain = chain?.let { chain -> Chain.entries.firstOrNull { it.string == chain } },
+        chain = chain?.requireChain(),
         event = event.decodeJson<BannerEvent>(),
         state = state.decodeJson(),
     )

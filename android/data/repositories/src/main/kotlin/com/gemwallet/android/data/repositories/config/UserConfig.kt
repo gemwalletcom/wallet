@@ -13,7 +13,6 @@ import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
-import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -62,13 +61,7 @@ class UserConfig(
 
     suspend fun setAppearance(appearance: Appearance) = write(Key.Appearance, appearance.string)
 
-    fun perpetualAccountMode(walletId: WalletId): Flow<PerpetualAccountMode> =
-        read(Key.perpetualAccountMode(walletId), "").map { value ->
-            PerpetualAccountMode.entries.firstOrNull { it.string == value } ?: PerpetualAccountMode.Standard
-        }
 
-    suspend fun setPerpetualAccountMode(walletId: WalletId, mode: PerpetualAccountMode) =
-        write(Key.perpetualAccountMode(walletId), mode.string)
 
     fun perpetualLeverage(): Flow<Int> = read(Key.PerpetualLeverage, PerpetualConfig.defaultLeverage)
 
@@ -128,7 +121,6 @@ class UserConfig(
         val IsTermsAccepted = booleanPreferencesKey("is_terms_accepted")
         val AskNotifications = longPreferencesKey("ask_notifications")
         val IsPerpetualEnabled = booleanPreferencesKey("is_perpetual_enabled")
-        fun perpetualAccountMode(walletId: WalletId) = stringPreferencesKey("perpetual_account_mode_${walletId.id}")
         val PerpetualLeverage = intPreferencesKey("perpetual_leverage")
         val PerpetualTakeProfit = intPreferencesKey("perpetual_take_profit")
         val PerpetualStopLoss = intPreferencesKey("perpetual_stop_loss")

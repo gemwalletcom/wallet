@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "รหัสโทเค็นไม่ถูกต้อง";
 "errors.import.invalid_secret_phrase" = "วลีลับไม่ถูกต้อง";
 "errors.import.invalid_secret_phrase_word" = "คำวลีลับไม่ถูกต้อง: %@";
+"errors.import.invalid_private_key" = "คีย์ส่วนตัวไม่ถูกต้อง";
 "errors.invalid_url" = "URL ไม่ถูกต้อง";
 "errors.error_occurred" = "เกิดข้อผิดพลาด!";
 "errors.invalid_network_id" = "รหัสเครือข่ายไม่ถูกต้อง";
@@ -211,6 +212,7 @@
 "errors.swap.minimum_amount" = "จำนวนเงินขั้นต่ำในการซื้อขายคือ %@ กรุณาป้อนจำนวนเงินที่สูงกว่านี้";
 "errors.perpetual.trigger_price_lower" = "ราคา Trigger ควรต่ำกว่าราคาตลาด";
 "errors.perpetual.trigger_price_higher" = "ราคา Trigger ควรสูงกว่าราคาตลาด";
+"errors.network_offline" = "ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์";
 "errors.no_internet_connection" = "ไม่มีการเชื่อมต่ออินเทอร์เน็ต";
 "errors.no_service_connection" = "ไม่มีการเชื่อมต่อบริการ";
 "errors.balances_activity_outdated" = "ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน";

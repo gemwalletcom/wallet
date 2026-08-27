@@ -53,12 +53,12 @@ impl GemDeviceService {
 
     pub async fn synchronize(&self) -> Result<Device, GemServiceError> {
         let _guard = self.sync_lock.lock().await;
-        self.sync(self.current_device()?).await
+        self.sync(self.current_device().await?).await
     }
 
     pub async fn synchronize_if_needed(&self) -> Result<(), GemServiceError> {
         let _guard = self.sync_lock.lock().await;
-        let device = self.current_device()?;
+        let device = self.current_device().await?;
         if self.needs_sync(device.clone()).await? {
             self.sync(device).await?;
         }
@@ -67,19 +67,19 @@ impl GemDeviceService {
 }
 
 impl GemDeviceService {
-    fn current_device(&self) -> Result<Device, GemServiceError> {
-        let info = self.platform.device_info()?;
+    async fn current_device(&self) -> Result<Device, GemServiceError> {
+        let info = self.platform.device_info().await?;
         Ok(Device {
-            id: self.platform.device_id()?,
+            id: self.platform.device_id().await?,
             platform: info.platform,
             platform_store: info.platform_store,
             os: info.os,
             model: info.model,
-            token: self.platform.push_token()?,
+            token: self.platform.push_token().await?,
             locale: info.locale,
             version: info.version,
-            currency: self.platform.currency()?,
-            is_push_enabled: self.platform.is_push_enabled()?,
+            currency: self.platform.currency().await?,
+            is_push_enabled: self.platform.is_push_enabled().await?,
             is_price_alerts_enabled: Some(self.preferences.is_price_alerts_enabled()?),
             subscriptions_version: 0,
         })

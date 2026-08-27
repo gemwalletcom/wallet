@@ -12,7 +12,9 @@ import java.security.cert.CertPathValidatorException
 import javax.net.ssl.SSLHandshakeException
 
 fun Throwable.toGemNetworkError(): GemNetworkError? = when (this) {
+    is GatewayException.Offline -> GemNetworkError.Offline
     is GatewayException.NetworkException -> GemNetworkError.Display(msg)
+    is AlienException.Offline -> GemNetworkError.Offline
     is AlienException.RequestException -> GemNetworkError.Generic(msg)
     is AlienException.ResponseException -> GemNetworkError.Generic(msg)
     is IOException -> if (isNetworkUnavailable()) {
@@ -23,15 +25,12 @@ fun Throwable.toGemNetworkError(): GemNetworkError? = when (this) {
     else -> cause?.toGemNetworkError()
 }
 
-fun IOException.toGatewayNetworkMessage(
-    offlineMessage: String? = null,
-): String = when {
-    isNetworkUnavailable() -> offlineMessage ?: message ?: toString()
+fun IOException.toGatewayNetworkMessage(): String = when {
     this is SSLHandshakeException -> certPathValidationMessage() ?: message ?: toString()
     else -> message ?: toString()
 }
 
-private fun IOException.isNetworkUnavailable(): Boolean {
+fun IOException.isNetworkUnavailable(): Boolean {
     return this is UnknownHostException ||
         this is ConnectException ||
         this is NoRouteToHostException ||

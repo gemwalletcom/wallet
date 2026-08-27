@@ -15,7 +15,7 @@ public struct ConnectionsStore: Sendable {
 
     public func addConnection(_ connection: WalletConnection) throws {
         try db.write { db in
-            try connection.record.insert(db)
+            try connection.record.upsert(db)
         }
     }
 

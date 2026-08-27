@@ -19,8 +19,6 @@ public extension GemWalletConnectServiceProtocol {
     }
 
     func prepareSessionProposal(
-        wallets: [Wallet],
-        currentWalletId: WalletId?,
         requiredChainIds: [String],
         optionalChainIds: [String],
         metadata: Primitives.ApplicationMetadata,
@@ -28,8 +26,6 @@ public extension GemWalletConnectServiceProtocol {
         validation: WalletConnectionVerificationStatus,
     ) throws -> (proposal: WalletConnectionSessionProposal, verificationStatus: WalletConnectionVerificationStatus) {
         let result = try prepareSessionProposal(
-            wallets: wallets.map { try $0.json() },
-            currentWalletId: currentWalletId?.id,
             requiredChainIds: requiredChainIds,
             optionalChainIds: optionalChainIds,
             metadata: metadata.json(),

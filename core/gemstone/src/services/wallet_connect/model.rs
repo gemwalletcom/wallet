@@ -19,7 +19,7 @@ pub enum GemWalletConnectResponse {
     MethodNotFound,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemSessionWallets {
     pub default_wallet: Wallet,
     pub wallets: Vec<Wallet>,

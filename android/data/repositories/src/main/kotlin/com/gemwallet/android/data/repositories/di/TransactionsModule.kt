@@ -3,7 +3,6 @@ package com.gemwallet.android.data.repositories.di
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionStateScheduler
@@ -49,13 +48,13 @@ object TransactionsModule {
     fun provideTransactionsService(
         apiClient: GemDeviceApiClient,
         assetsService: GemAssetsService,
-        transactionsRepository: TransactionsRepositoryImpl,
+        transactionsDao: TransactionsDao,
         addressesDao: AddressesDao,
         walletPreferencesService: GemWalletPreferencesService,
     ): GemTransactionsService = GemTransactionsService(
         apiClient,
         assetsService,
-        GemstoneTransactionStore(transactionsRepository),
+        GemstoneTransactionStore(transactionsDao),
         GemstoneAddressStore(addressesDao),
         walletPreferencesService,
     )
@@ -66,12 +65,14 @@ object TransactionsModule {
         transactionsDao: TransactionsDao,
         walletsRepository: Lazy<WalletsRepository>,
         gateway: GemGateway,
+        assetsService: GemAssetsService,
         balanceService: GemBalanceService,
         stakeService: GemStakeService,
         nftService: GemNftService,
     ): GemTransactionStateService = GemTransactionStateService(
         gateway,
         GemstoneTransactionStateStore(transactionsDao, walletsRepository),
+        assetsService,
         balanceService,
         stakeService,
         nftService,
@@ -92,12 +93,6 @@ object TransactionsModule {
     @Singleton
     @Provides
     fun provideGetPendingTransactionsCount(transactionsRepository: TransactionsRepositoryImpl): GetPendingTransactionsCount {
-        return transactionsRepository
-    }
-
-    @Singleton
-    @Provides
-    fun provideSaveTransactionsCase(transactionsRepository: TransactionsRepositoryImpl): SaveTransactions {
         return transactionsRepository
     }
 

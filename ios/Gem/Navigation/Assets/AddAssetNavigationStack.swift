@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
+import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
@@ -11,7 +12,7 @@ struct AddAssetNavigationStack: View {
     let wallet: Wallet
     @Environment(\.gatewayService) private var gatewayService
     @Environment(\.explorerService) private var explorerService
-    @Environment(\.assetStore) private var assetStore
+    @Environment(\.assetsService) private var assetsService
     @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.dismiss) private var dismiss
 
@@ -42,7 +43,7 @@ extension AddAssetNavigationStack {
     private func addAsset(_ asset: Asset) {
         Task {
             do {
-                try assetStore.add(assets: [asset.defaultBasic])
+                let asset = try await assetsService.ensureTokenAsset(for: asset.id)
                 try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
             } catch {
                 debugLog("AddAssetNavigationStack add asset error: \(error)")

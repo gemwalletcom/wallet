@@ -94,7 +94,7 @@ class ConfirmTransactionImplTest {
             coEvery { broadcast(any(), any()) } returns listOf("approval-hash", "swap-hash")
         }
         val createTransaction = mockk<CreateTransaction>()
-        coEvery { createTransaction.createTransaction(any(), capture(created)) } returns mockk<Transaction>()
+        coEvery { createTransaction.createTransaction(any(), capture(created), any()) } returns mockk<Transaction>()
         val fromAmount = BigInteger.valueOf(10_000_000)
         val approvalValue = BigInteger.TWO.pow(256).subtract(BigInteger.ONE)
         val signerParams = SignerParams(
@@ -209,7 +209,7 @@ class ConfirmTransactionImplTest {
         val confirmService = mockk<GemConfirmServiceInterface> {
             coEvery { broadcast(any(), any()) } returns listOf("action:1", "action:2", "order:3")
         }
-        coEvery { createTransaction.createTransaction(any(), capture(created)) } returns mockk<Transaction>()
+        coEvery { createTransaction.createTransaction(any(), capture(created), any()) } returns mockk<Transaction>()
 
         val result = ConfirmTransactionImpl(
             passwordStore = passwordStore,

@@ -27,7 +27,6 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
                 isActive: update.isActive,
             )
         }
-        try store.addBalance(assetIds: balances.map(\.assetId), isEnabled: false, for: walletId)
         try store.updateBalances(balances, for: walletId)
     }
 
@@ -64,6 +63,8 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
             ))
         case let .earn(balance):
             .earn(UpdateEarnBalance(balance: value(balance)))
+        case let .perpetual(available, reserved, withdrawable):
+            .perpetual(UpdatePerpetualBalance(available: value(available), reserved: value(reserved), withdrawable: value(withdrawable)))
         }
     }
 

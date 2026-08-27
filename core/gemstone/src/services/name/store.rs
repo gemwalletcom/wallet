@@ -7,4 +7,5 @@ use primitives::{AddressName, Chain};
 pub trait GemAddressStore: Send + Sync {
     async fn get_address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError>;
     async fn save_address_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError>;
+    async fn delete_address_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError>;
 }

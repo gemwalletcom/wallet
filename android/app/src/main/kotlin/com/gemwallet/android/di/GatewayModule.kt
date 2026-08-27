@@ -11,8 +11,6 @@ import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.runBlocking
 import com.gemwallet.android.data.services.gemapi.NativeProvider
-import com.gemwallet.android.data.services.gemapi.NativeProviderConfig
-import com.gemwallet.android.ui.R as UiR
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
@@ -80,14 +78,10 @@ object GatewayModule {
     fun provideAlienProvider(
         getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
-        @ApplicationContext context: Context,
     ): AlienProvider {
         return NativeProvider(
             getNodeUrlCase = getNodeUrlCase,
             httpClient = okHttpClient,
-            config = NativeProviderConfig(
-                networkOfflineMessage = context.getString(UiR.string.errors_network_offline),
-            ),
         )
     }
 
@@ -213,8 +207,8 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemPortfolioService(apiClient: GemstoneDeviceApiClient, assetsRepository: Lazy<AssetsRepository>): GemPortfolioService =
-        GemPortfolioService(apiClient, GemstonePortfolioStore(assetsRepository))
+    fun provideGemPortfolioService(apiClient: GemstoneDeviceApiClient, assetsRepository: Lazy<AssetsRepository>, priceService: GemPriceService): GemPortfolioService =
+        GemPortfolioService(apiClient, GemstonePortfolioStore(assetsRepository), priceService)
 
     @Provides
     @Singleton
@@ -224,7 +218,7 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemChartService(apiClient: GemstoneApiClient): GemChartService = GemChartService(apiClient)
+    fun provideGemChartService(apiClient: GemstoneApiClient, priceService: GemPriceService): GemChartService = GemChartService(apiClient, priceService)
 
     @Provides
     @Singleton
@@ -248,7 +242,6 @@ object GatewayModule {
     fun provideGemServiceStatus(
         getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
-        @ApplicationContext context: Context,
     ): GemServiceStatus {
         val httpClient = okHttpClient.newBuilder()
             .callTimeout(serviceStatusTimeoutSeconds().toLong(), TimeUnit.SECONDS)
@@ -256,9 +249,6 @@ object GatewayModule {
         val provider = NativeProvider(
             getNodeUrlCase = getNodeUrlCase,
             httpClient = httpClient,
-            config = NativeProviderConfig(
-                networkOfflineMessage = context.getString(UiR.string.errors_network_offline),
-            ),
         )
         return GemServiceStatus(provider)
     }

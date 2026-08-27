@@ -182,6 +182,7 @@
   <string name="errors_token_invalid_id">รหัสโทเค็นไม่ถูกต้อง</string>
   <string name="errors_import_invalid_secret_phrase">วลีลับไม่ถูกต้อง</string>
   <string name="errors_import_invalid_secret_phrase_word">คำวลีลับไม่ถูกต้อง: %1$s</string>
+  <string name="errors_import_invalid_private_key">คีย์ส่วนตัวไม่ถูกต้อง</string>
   <string name="errors_invalid_url">URL ไม่ถูกต้อง</string>
   <string name="errors_error_occurred">เกิดข้อผิดพลาด!</string>
   <string name="errors_invalid_network_id">รหัสเครือข่ายไม่ถูกต้อง</string>

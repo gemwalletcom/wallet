@@ -27,10 +27,7 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
 
     public func getRate(currency: Gemstone.Currency) async throws -> Gemstone.FiatRate? {
         let currency = try Primitives.Currency(currency)
-        guard let rate = try? priceStore.getRate(currency: currency.rawValue) else {
-            return nil
-        }
-        return try Primitives.FiatRate(symbol: currency, rate: rate.rate).json()
+        return try priceStore.getRate(currency: currency.rawValue).map { try Primitives.FiatRate(symbol: currency, rate: $0.rate).json() }
     }
 
     public func saveRates(rates: [Gemstone.FiatRate]) async throws {

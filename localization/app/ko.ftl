@@ -212,6 +212,7 @@ errors_invalid_amount = 잘못된 금액
 errors_token_invalid_id = 잘못된 토큰 ID
 errors_import_invalid_secret_phrase = 잘못된 비밀번호 문구
 errors_import_invalid_secret_phrase_word = 잘못된 비밀 문구 단어: %@
+errors_import_invalid_private_key = 잘못된 개인 키
 errors_invalid_url = 잘못된 URL
 errors_error_occurred = 오류가 발생했습니다!
 errors_invalid_network_id = 잘못된 네트워크 ID

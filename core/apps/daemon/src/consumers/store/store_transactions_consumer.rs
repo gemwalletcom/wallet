@@ -200,7 +200,7 @@ impl StoreTransactionsConsumer {
                 let key = (sub.device.id.clone(), sub.address.clone());
                 best.entry(key)
                     .and_modify(|existing| {
-                        if sub.wallet_id.wallet_type().notification_priority() < existing.wallet_id.wallet_type().notification_priority() {
+                        if sub.wallet_id.wallet_type().rank() < existing.wallet_id.wallet_type().rank() {
                             *existing = sub.clone();
                         }
                     })

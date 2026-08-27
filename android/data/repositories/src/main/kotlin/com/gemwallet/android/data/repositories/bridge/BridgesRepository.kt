@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.bridge
 
 import android.util.Log
 import androidx.core.net.toUri
+import com.gemwallet.android.data.repositories.gemstone.GemstoneConnectionStore
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.Wallet as GemWallet
@@ -24,7 +25,7 @@ import uniffi.gemstone.WalletConnect
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BridgesRepository(
-    private val connectionsRepository: ConnectionsRepository,
+    private val connectionStore: GemstoneConnectionStore,
     private val walletConnectClient: WalletConnectClient,
     private val walletConnectService: GemWalletConnectServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
@@ -44,7 +45,7 @@ class BridgesRepository(
 
     init {
         scope.launch(Dispatchers.IO) {
-            if ((getConnections().firstOrNull() ?: emptyList()).isNotEmpty()) {
+            if (walletConnectService.hasSessions()) {
                 initWalletConnect()
                 sync()
                 pingActiveSessions()
@@ -76,15 +77,15 @@ class BridgesRepository(
     }
 
     fun getConnections(): Flow<List<WalletConnection>> {
-        return connectionsRepository.getConnections()
+        return connectionStore.observeConnections()
     }
 
     suspend fun getConnectionByTopic(topic: String): WalletConnection? {
-        return connectionsRepository.getConnectionByTopic(topic)
+        return connectionStore.getConnectionBySessionId(topic)
     }
 
     fun getConnection(connectionId: String): Flow<WalletConnection?> {
-        return connectionsRepository.getConnection(connectionId)
+        return connectionStore.observeConnection(connectionId)
     }
 
     private suspend fun sync() {

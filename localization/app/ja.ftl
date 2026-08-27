@@ -212,6 +212,7 @@ errors_invalid_amount = 無効な金額
 errors_token_invalid_id = 無効なトークンID
 errors_import_invalid_secret_phrase = 無効な秘密フレーズ
 errors_import_invalid_secret_phrase_word = 無効なシークレットフレーズの単語: %@
+errors_import_invalid_private_key = 無効な秘密鍵
 errors_invalid_url = 無効なURL
 errors_error_occurred = エラーが発生しました！
 errors_invalid_network_id = 無効なネットワークID

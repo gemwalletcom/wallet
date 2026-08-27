@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "Invalid Token ID";
 "errors.import.invalid_secret_phrase" = "Invalid Secret Phrase";
 "errors.import.invalid_secret_phrase_word" = "Invalid Secret Phrase word: %@";
+"errors.import.invalid_private_key" = "Invalid private key";
 "errors.invalid_url" = "Invalid URL";
 "errors.error_occurred" = "An error occurred!";
 "errors.invalid_network_id" = "Invalid Network ID";
@@ -211,6 +212,7 @@
 "errors.swap.minimum_amount" = "Minimum trade amount is %@. Please enter a higher amount.";
 "errors.perpetual.trigger_price_lower" = "Trigger price should be lower than market price";
 "errors.perpetual.trigger_price_higher" = "Trigger price should be higher than market price";
+"errors.network_offline" = "The Internet connection appears to be offline.";
 "errors.no_internet_connection" = "No internet connection";
 "errors.no_service_connection" = "No service connection";
 "errors.balances_activity_outdated" = "Balances and activity may be outdated.";

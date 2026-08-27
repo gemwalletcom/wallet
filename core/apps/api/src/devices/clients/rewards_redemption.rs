@@ -1,6 +1,6 @@
 use gem_rewards::{RewardsRedemptionError, redeem_points};
 use primitives::rewards::{RedemptionResult, Rewards};
-use primitives::{ConfigKey, NaiveDateTimeExt, now};
+use primitives::{ConfigKey, NaiveDateTimeExt, RateLimitKey, RateLimitWindow, now};
 use storage::{ConfigCacher, Database, RewardsRedemptionsRepository, RewardsRepository};
 use streamer::{StreamProducer, StreamProducerQueue};
 
@@ -51,16 +51,12 @@ impl RewardsRedemptionClient {
             return Err(RewardsRedemptionError::CooldownNotElapsed.into());
         }
 
-        let daily_limit = self.config.get_i64(ConfigKey::RedemptionPerUserDaily)?;
-        let daily_count = self.database.rewards_redemptions()?.count_redemptions_since_days(username, 1)?;
-        if daily_count >= daily_limit {
-            return Err(RewardsRedemptionError::DailyLimitReached.into());
-        }
-
-        let weekly_limit = self.config.get_i64(ConfigKey::RedemptionPerUserWeekly)?;
-        let weekly_count = self.database.rewards_redemptions()?.count_redemptions_since_days(username, 7)?;
-        if weekly_count >= weekly_limit {
-            return Err(RewardsRedemptionError::WeeklyLimitReached.into());
+        let limits = self.config.get_rate_limit(RateLimitKey::RedemptionPerUserLimit)?;
+        for window in RateLimitWindow::ALL {
+            let count = self.database.rewards_redemptions()?.count_redemptions_since(username, current.ago(window.duration()))?;
+            if count >= limits.get(window) {
+                return Err(RewardsRedemptionError::LimitReached.into());
+            }
         }
 
         Ok(())

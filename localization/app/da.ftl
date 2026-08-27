@@ -212,6 +212,7 @@ errors_invalid_amount = Ugyldigt beløb
 errors_token_invalid_id = Ugyldigt token-id
 errors_import_invalid_secret_phrase = Ugyldig hemmelig sætning
 errors_import_invalid_secret_phrase_word = Ugyldigt ord i hemmelig sætning: %@
+errors_import_invalid_private_key = Ugyldig privat nøgle
 errors_invalid_url = Ugyldig URL
 errors_error_occurred = Der opstod en fejl!
 errors_invalid_network_id = Ugyldigt netværks-id

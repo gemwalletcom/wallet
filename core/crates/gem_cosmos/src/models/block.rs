@@ -12,11 +12,6 @@ pub struct NodeInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Syncing {
-    pub syncing: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlockResponse {
     pub block: Block,
 }

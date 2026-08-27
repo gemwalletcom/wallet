@@ -80,7 +80,7 @@ class BannersRepository(
     }
 
     override suspend fun applyBannerAction(banner: Banner, action: BannerAction) = withContext(Dispatchers.IO) {
-        bannerService.handleAction(banner.toGemKey(), action.toGem())
+        bannerService.applyAction(banner.toGemKey(), action.toGem())
     }
 
     override fun hasMultiSign(wallet: Wallet): Flow<Boolean> {

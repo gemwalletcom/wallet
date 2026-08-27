@@ -182,6 +182,7 @@
   <string name="errors_token_invalid_id">Kitambulisho Batili cha Tokeni</string>
   <string name="errors_import_invalid_secret_phrase">Maneno ya Siri Batili</string>
   <string name="errors_import_invalid_secret_phrase_word">Neno batili la Neno la Siri: %1$s</string>
+  <string name="errors_import_invalid_private_key">Ufunguo wa faragha si sahihi</string>
   <string name="errors_invalid_url">URL batili</string>
   <string name="errors_error_occurred">Hitilafu imetokea!</string>
   <string name="errors_invalid_network_id">Kitambulisho batili cha Mtandao</string>

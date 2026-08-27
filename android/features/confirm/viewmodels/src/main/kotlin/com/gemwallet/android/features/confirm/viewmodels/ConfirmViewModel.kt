@@ -1,8 +1,15 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemTransferService
+import com.wallet.core.primitives.ApprovalData
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.domains.confirm.toTransferData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import uniffi.gemstone.defaultFeePriority
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
@@ -319,6 +326,7 @@ class ConfirmViewModel @Inject constructor(
 
     fun init(params: ConfirmParams, simulationResult: SimulationResult? = null) {
         this.simulationResult.value = simulationResult
+        feeSelection.value = FeeSelection.Preset(defaultFeePriority(params.toTransferData().inputType).toFeePriority())
         viewModelScope.launch(Dispatchers.IO) {
             val assetIds = simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(params.approvalAssetId())
             prefetchAssets.prefetchAssets(assetIds.distinct())
@@ -388,7 +396,11 @@ class ConfirmViewModel @Inject constructor(
     }
 
     private suspend fun getBalance(assetInfo: AssetInfo, params: ConfirmParams): BigInteger {
-        return transactionBalanceService.getBalance(assetInfo, params)
+        return try {
+            transactionBalanceService.getBalance(assetInfo, params)
+        } catch (_: GemAmountException) {
+            throw ConfirmError.TransactionIncorrect
+        }
     }
 
     private fun List<AssetInfo>.getByAssetId(assetId: AssetId): AssetInfo? {
@@ -454,6 +466,10 @@ private fun ConfirmParams?.approvalAssetId(): AssetId? =
     (this as? ConfirmParams.TransferParams.Generic)
         ?.takeIf { it.getTransactionType() == TransactionType.TokenApproval }
         ?.let { generic ->
-            val tokenAddress = generic.destination().address
-            AssetId(generic.assetId.chain, tokenId = tokenAddress).takeIf { tokenAddress.isNotEmpty() }
+            GemTransferService()
+                .approval(generic.toTransferData().inputType, TransactionType.TokenApproval.toJson())
+                ?.decodeJson<ApprovalData>()
+                ?.let { approval -> AssetId(generic.assetId.chain, tokenId = approval.token) }
         }
+
+private fun String.toFeePriority(): FeePriority = FeePriority.entries.firstOrNull { it.string == this } ?: FeePriority.Normal

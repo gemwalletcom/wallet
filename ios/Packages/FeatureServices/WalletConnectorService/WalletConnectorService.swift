@@ -86,6 +86,10 @@ extension WalletConnectorService: WalletConnectorServiceable {
             await updateSessions(interactor.sessions)
         }
     }
+
+    public func hasSessions() async throws -> Bool {
+        try await service.hasSessions()
+    }
 }
 
 // MARK: - Private
@@ -234,10 +238,7 @@ extension WalletConnectorService {
             return
         }
 
-        let currentWalletId = try? signer.getCurrentWallet().id
         let (payload, status) = try service.prepareSessionProposal(
-            wallets: signer.getWallets(),
-            currentWalletId: currentWalletId,
             requiredChainIds: proposal.requiredNamespaces.chainIds,
             optionalChainIds: proposal.optionalNamespaces?.chainIds ?? [],
             metadata: metadata(proposal.proposer),

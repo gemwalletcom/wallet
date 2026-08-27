@@ -5,30 +5,14 @@ use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 #[strum(serialize_all = "camelCase")]
 pub enum ConfigKey {
     // Referral
-    ReferralPerDeviceDaily,
-    ReferralPerIpDaily,
-    ReferralPerIpWeekly,
-    ReferralPerCountryDaily,
-    ReferralPerUserDaily,
-    ReferralPerUserWeekly,
-    ReferralPerUserHourly,
     ReferralVerifiedMultiplier,
     ReferralTrustedMultiplier,
     ReferralCooldown,
-    ReferralUseDailyLimit,
     ReferralIneligibleCountries,
     ReferralVerificationDelay,
     ReferralEligibility,
 
-    // Username
-    UsernameCreationPerIp,
-    UsernameCreationPerDevice,
-    UsernameCreationGlobalDailyLimit,
-    UsernameCreationPerCountryDailyLimit,
-
     // Redemption
-    RedemptionPerUserDaily,
-    RedemptionPerUserWeekly,
     RedemptionMinAccountAge,
     RedemptionCooldownAfterReferral,
     RedemptionRetryMaxRetries,
@@ -240,26 +224,12 @@ impl ConfigKey {
 
     pub fn default_value(&self) -> &'static str {
         match self {
-            Self::ReferralPerDeviceDaily => "1",
-            Self::ReferralPerIpDaily => "3",
-            Self::ReferralPerIpWeekly => "10",
-            Self::ReferralPerCountryDaily => "100",
-            Self::ReferralPerUserDaily => "5",
-            Self::ReferralPerUserWeekly => "15",
-            Self::ReferralPerUserHourly => "2",
             Self::ReferralVerifiedMultiplier => "2",
             Self::ReferralTrustedMultiplier => "3",
             Self::ReferralCooldown => "1m",
-            Self::ReferralUseDailyLimit => "1000",
             Self::ReferralIneligibleCountries => "[]",
             Self::ReferralVerificationDelay => "24h",
             Self::ReferralEligibility => "7d",
-            Self::UsernameCreationPerIp => "10",
-            Self::UsernameCreationPerDevice => "1",
-            Self::UsernameCreationGlobalDailyLimit => "1000",
-            Self::UsernameCreationPerCountryDailyLimit => "100",
-            Self::RedemptionPerUserDaily => "1",
-            Self::RedemptionPerUserWeekly => "3",
             Self::RedemptionMinAccountAge => "1h",
             Self::RedemptionCooldownAfterReferral => "1m",
             Self::RedemptionRetryMaxRetries => "1",

@@ -11,7 +11,6 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
 import com.gemwallet.android.data.repositories.gemstone.GemstoneNodeStore
 import uniffi.gemstone.GemNodeService
 
@@ -36,13 +35,10 @@ class NodesRepository(
 
     override suspend fun deleteNode(chain: Chain, node: Node) = nodeService.deleteNode(chain.string, node.url)
 
-    override fun setCurrentNode(chain: Chain, node: Node) = runBlocking {
-        nodeService.setSelectedNode(chain.string, node.url)
-    }
+    override suspend fun setCurrentNode(chain: Chain, node: Node) = nodeService.setSelectedNode(chain.string, node.url)
 
-    override fun getCurrentNode(chain: Chain): Node? = runBlocking {
-        nodeService.getSelectedNode(chain.string).decodeJson<Node>()
-    }
+    override fun getCurrentNode(chain: Chain): Node? =
+        nodeService.selectedNode(chain.string, nodeStore.selectedUrl(chain), nodeStore.storedNodes(chain)).decodeJson<Node>()
 
     override fun getNodeUrl(chain: Chain): String =
         nodeService.nodeUrl(chain.string, nodeStore.selectedUrl(chain), nodeStore.storedNodes(chain))

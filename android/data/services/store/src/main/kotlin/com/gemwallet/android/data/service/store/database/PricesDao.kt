@@ -21,7 +21,7 @@ interface PricesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun setRates(rates: List<DbFiatRate>)
 
-    @Query("UPDATE prices SET value = usd_value * :rate WHERE currency = :currency")
+    @Query("UPDATE prices SET value = usd_value * :rate, currency = :currency")
     suspend fun updateValues(currency: Currency, rate: Double)
 
     @Query("SELECT * FROM prices")

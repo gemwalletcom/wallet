@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "ID Token tidak sah";
 "errors.import.invalid_secret_phrase" = "Frasa Rahsia Tidak Sah";
 "errors.import.invalid_secret_phrase_word" = "Perkataan Frasa Rahsia tidak sah: %@";
+"errors.import.invalid_private_key" = "Kunci peribadi tidak sah";
 "errors.invalid_url" = "URL tidak sah";
 "errors.error_occurred" = "Ralat berlaku!";
 "errors.invalid_network_id" = "ID Rangkaian tidak sah";
@@ -211,6 +212,7 @@
 "errors.swap.minimum_amount" = "Jumlah dagangan minimum ialah %@. Sila masukkan jumlah yang lebih tinggi.";
 "errors.perpetual.trigger_price_lower" = "Harga pencetus perlu lebih rendah daripada harga pasaran";
 "errors.perpetual.trigger_price_higher" = "Harga pencetus perlu lebih tinggi daripada harga pasaran";
+"errors.network_offline" = "Sambungan Internet nampaknya di luar talian.";
 "errors.no_internet_connection" = "Tiada sambungan internet";
 "errors.no_service_connection" = "Tiada sambungan perkhidmatan";
 "errors.balances_activity_outdated" = "Baki dan aktiviti mungkin tidak terkini.";

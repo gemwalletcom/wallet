@@ -60,6 +60,9 @@ extension NativeProvider: AlienProvider {
 
             return AlienResponse(status: statusCode.map(UInt16.init), data: data)
         } catch {
+            if isNetworkError(error) {
+                throw AlienError.Offline
+            }
             if (error as NSError).domain == NSURLErrorDomain {
                 throw AlienError.ResponseError(msg: error.localizedDescription)
             }

@@ -130,13 +130,4 @@ impl FiatAssetLimits {
             max_amount: Some(10000.0),
         }
     }
-
-    pub fn mock_usd(min_amount: f64, max_amount: f64) -> Self {
-        FiatAssetLimits {
-            currency: Currency::USD,
-            payment_type: PaymentType::Card,
-            min_amount: Some(min_amount),
-            max_amount: Some(max_amount),
-        }
-    }
 }

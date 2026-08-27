@@ -212,6 +212,7 @@ errors_invalid_amount = Sumă nevalidă
 errors_token_invalid_id = ID token nevalid
 errors_import_invalid_secret_phrase = Expresie secretă nevalidă
 errors_import_invalid_secret_phrase_word = Cuvânt expresie secretă nevalid: %@
+errors_import_invalid_private_key = Cheie privată invalidă
 errors_invalid_url = Adresă URL nevalidă
 errors_error_occurred = A apărut o eroare!
 errors_invalid_network_id = ID de rețea nevalid

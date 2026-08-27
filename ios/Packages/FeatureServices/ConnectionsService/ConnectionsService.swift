@@ -1,40 +1,29 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Preferences
 import Primitives
 import WalletConnectorService
 
 public final class ConnectionsService: Sendable {
     private let connector: WalletConnectorServiceable
-    private let preferences: Preferences
+    private let lock = NSLock()
+    nonisolated(unsafe) private var isConnectorReady = false
 
-    public var isWalletConnectActivated: Bool {
-        get { preferences.isWalletConnectActivated == true }
-        set { preferences.isWalletConnectActivated = newValue }
-    }
-
-    public init(
-        connector: WalletConnectorServiceable,
-        preferences: Preferences = .standard,
-    ) {
+    public init(connector: WalletConnectorServiceable) {
         self.connector = connector
-        self.preferences = preferences
     }
 }
 
 public extension ConnectionsService {
     func setup() async throws {
         try connector.configure()
-        if isWalletConnectActivated {
-            try await setupConnector()
+        if try await connector.hasSessions() {
+            await setupConnector()
         }
     }
 
     func pair(uri: String) async throws {
-        if !isWalletConnectActivated {
-            try await setupConnector()
-        }
+        await setupConnector()
         try await connector.pair(uri: uri)
     }
 
@@ -48,9 +37,13 @@ public extension ConnectionsService {
 }
 
 extension ConnectionsService {
-    private func setupConnector() async throws {
-        if !isWalletConnectActivated {
-            isWalletConnectActivated = true
+    private func setupConnector() async {
+        let alreadyReady = lock.withLock {
+            defer { isConnectorReady = true }
+            return isConnectorReady
+        }
+        if alreadyReady {
+            return
         }
         await connector.setup()
     }

@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "ID de token inválido";
 "errors.import.invalid_secret_phrase" = "Frase secreta inválida";
 "errors.import.invalid_secret_phrase_word" = "Palavra de frase secreta inválida: %@";
+"errors.import.invalid_private_key" = "Chave privada inválida";
 "errors.invalid_url" = "URL inválida";
 "errors.error_occurred" = "Ocorreu um erro!";
 "errors.invalid_network_id" = "ID de rede inválida";
@@ -211,6 +212,7 @@
 "errors.swap.minimum_amount" = "O valor mínimo de transação é %@. Por favor, insira um valor maior.";
 "errors.perpetual.trigger_price_lower" = "O preço de acionamento deve ser menor que o preço de mercado";
 "errors.perpetual.trigger_price_higher" = "O preço de acionamento deve ser maior que o preço de mercado";
+"errors.network_offline" = "A conexão com a internet parece estar offline.";
 "errors.no_internet_connection" = "Sem conexão com a internet";
 "errors.no_service_connection" = "Sem conexão com o serviço";
 "errors.balances_activity_outdated" = "Os saldos e a atividade podem estar desatualizados.";

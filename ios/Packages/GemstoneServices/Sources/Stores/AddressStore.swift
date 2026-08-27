@@ -22,4 +22,8 @@ public final class GemstoneAddressStore: GemAddressStore, @unchecked Sendable {
     public func saveAddressNames(names: [Gemstone.AddressName]) async throws {
         try store.updateAddressNames(names.map { try Primitives.AddressName($0) })
     }
+
+    public func deleteAddressNames(names: [Gemstone.AddressName]) async throws {
+        try store.deleteAddressNames(names.map { try Primitives.AddressName($0) })
+    }
 }

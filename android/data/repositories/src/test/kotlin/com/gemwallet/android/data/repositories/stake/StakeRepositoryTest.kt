@@ -8,32 +8,6 @@ import org.junit.Test
 class StakeRepositoryTest {
 
     @Test
-    fun pickRecommendedValidator_returnsRecommendedMatch() {
-        val first = mockDelegationValidator(chain = Chain.Cosmos, id = "first")
-        val recommended = mockDelegationValidator(chain = Chain.Cosmos, id = "recommended")
-
-        val result = pickRecommendedValidator(
-            validators = listOf(first, recommended),
-            recommendedIds = listOf("recommended", "missing"),
-        )
-
-        assertEquals("recommended", result?.id)
-    }
-
-    @Test
-    fun pickRecommendedValidator_returnsFirstValidatorWhenRecommendedMissing() {
-        val first = mockDelegationValidator(chain = Chain.Bitcoin, id = "first", apr = 12.0)
-        val second = mockDelegationValidator(chain = Chain.Bitcoin, id = "second")
-
-        val result = pickRecommendedValidator(
-            validators = listOf(first, second),
-            recommendedIds = listOf("missing"),
-        )
-
-        assertEquals("first", result?.id)
-    }
-
-    @Test
     fun selectableValidators_filtersOutUnnamedValidators() {
         val active = mockDelegationValidator(chain = Chain.Bitcoin, id = "active", name = "Active", apr = 10.0)
         val unnamed = mockDelegationValidator(chain = Chain.Bitcoin, name = "")

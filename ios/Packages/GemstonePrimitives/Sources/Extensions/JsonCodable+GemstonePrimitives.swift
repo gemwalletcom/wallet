@@ -46,6 +46,7 @@ extension Primitives.ChainAsset: JsonCodable {}
 extension Primitives.ChartCandleStick: JsonCodable {}
 extension Primitives.ChartCandleUpdate: JsonCodable {}
 extension Primitives.ChartDateValue: JsonCodable {}
+extension Primitives.ChartValuePercentage: JsonCodable {}
 extension Primitives.ChartPeriod: JsonCodable {}
 extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}

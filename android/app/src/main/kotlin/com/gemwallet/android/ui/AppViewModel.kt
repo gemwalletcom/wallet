@@ -164,6 +164,7 @@ class AppViewModel @Inject constructor(
             WalletRootRoute
         } else {
             val wallet = walletsRepository.getAll().firstOrNull()
+                ?.filter { it.accounts.isNotEmpty() }
                 ?.sortedWith(compareBy({ it.index }, { it.id.id }))
                 ?.firstOrNull()
             if (wallet != null) {

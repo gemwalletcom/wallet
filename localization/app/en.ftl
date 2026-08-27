@@ -401,6 +401,8 @@ errors_token_invalid_id = Invalid Token ID
 errors_import_invalid_secret_phrase = Invalid Secret Phrase
 # Used in error cards and validation UI for the import invalid secret phrase word label. Contains 1 string placeholder.
 errors_import_invalid_secret_phrase_word = Invalid Secret Phrase word: %@
+# Shown when an imported private key cannot be decoded for the selected chain.
+errors_import_invalid_private_key = Invalid private key
 # Used in error cards and validation UI for the invalid url label.
 errors_invalid_url = Invalid URL
 # Used in error cards and validation UI for the error occurred label.

@@ -36,7 +36,7 @@ interface BalancesDao {
             reserved_amount = :reservedAmount,
             pending_unconfirmed = :pendingUnconfirmed,
             pending_unconfirmed_amount = :pendingUnconfirmedAmount,
-            total_amount = :availableAmount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount,
+            total_amount = :availableAmount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount + earn_amount,
             updated_at = :updatedAt,
             is_active = :isActive
         WHERE wallet_id = :walletId AND asset_id = :assetId
@@ -58,6 +58,7 @@ interface BalancesDao {
         UPDATE balances SET
             earn = :earn,
             earn_amount = :earnAmount,
+            total_amount = available_amount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount + :earnAmount,
             updated_at = :updatedAt,
             is_active = :isActive
         WHERE wallet_id = :walletId AND asset_id = :assetId
@@ -75,7 +76,7 @@ interface BalancesDao {
         UPDATE balances SET
             available = :available,
             available_amount = :availableAmount,
-            total_amount = :availableAmount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount,
+            total_amount = :availableAmount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount + earn_amount,
             updated_at = :updatedAt,
             is_active = :isActive
         WHERE wallet_id = :walletId AND asset_id = :assetId
@@ -85,6 +86,32 @@ interface BalancesDao {
         assetId: String,
         available: String,
         availableAmount: Double,
+        isActive: Boolean,
+        updatedAt: Long,
+    )
+
+    @Query("""
+        UPDATE balances SET
+            available = :available,
+            available_amount = :availableAmount,
+            reserved = :reserved,
+            reserved_amount = :reservedAmount,
+            withdrawable = :withdrawable,
+            withdrawableAmount = :withdrawableAmount,
+            total_amount = :availableAmount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount + earn_amount,
+            updated_at = :updatedAt,
+            is_active = :isActive
+        WHERE wallet_id = :walletId AND asset_id = :assetId
+    """)
+    fun updatePerpetualBalance(
+        walletId: String,
+        assetId: String,
+        available: String,
+        availableAmount: Double,
+        reserved: String,
+        reservedAmount: Double,
+        withdrawable: String,
+        withdrawableAmount: Double,
         isActive: Boolean,
         updatedAt: Long,
     )
@@ -104,13 +131,14 @@ interface BalancesDao {
             pending_amount = :pendingAmount,
             rewards = :rewards,
             rewards_amount = :rewardsAmount,
-            votes = :votes,
-            energy_available = :energyAvailable,
-            energy_total = :energyTotal,
-            bandwidth_available = :bandwidthAvailable,
-            bandwidth_total = :bandwidthTotal,
-            total_amount = available_amount + :frozenAmount + :lockedAmount + :stakedAmount + :pendingAmount + :rewardsAmount,
-            updated_at = :updatedAt
+            votes = COALESCE(:votes, votes),
+            energy_available = COALESCE(:energyAvailable, energy_available),
+            energy_total = COALESCE(:energyTotal, energy_total),
+            bandwidth_available = COALESCE(:bandwidthAvailable, bandwidth_available),
+            bandwidth_total = COALESCE(:bandwidthTotal, bandwidth_total),
+            total_amount = available_amount + :frozenAmount + :lockedAmount + :stakedAmount + :pendingAmount + :rewardsAmount + earn_amount,
+            updated_at = :updatedAt,
+            is_active = :isActive
         WHERE wallet_id = :walletId AND asset_id = :assetId
     """)
     fun updateStakeBalance(
@@ -126,11 +154,12 @@ interface BalancesDao {
         pendingAmount: Double,
         rewards: String,
         rewardsAmount: Double,
-        votes: Long,
-        energyAvailable: Long,
-        energyTotal: Long,
-        bandwidthAvailable: Long,
-        bandwidthTotal: Long,
+        votes: Long?,
+        energyAvailable: Long?,
+        energyTotal: Long?,
+        bandwidthAvailable: Long?,
+        bandwidthTotal: Long?,
+        isActive: Boolean,
         updatedAt: Long,
     )
 }

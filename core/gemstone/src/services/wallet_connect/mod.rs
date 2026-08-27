@@ -1,3 +1,4 @@
+pub mod error;
 pub mod model;
 mod rules;
 pub mod signer;
@@ -12,9 +13,11 @@ use primitives::{
 };
 
 use crate::services::error::GemServiceError;
+use crate::services::wallet_session::GemWalletSessionService;
 use crate::transaction_simulation::TransactionSimulationService;
 use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
 
+pub use error::GemWalletConnectError;
 pub use model::{
     GemSessionApproval, GemSessionProposal, GemSessionWallets, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectSignPayload, GemWalletConnectSignRequest,
     GemWalletConnectTransactionAction,
@@ -28,17 +31,24 @@ pub struct GemWalletConnectService {
     simulation: Arc<TransactionSimulationService>,
     store: Arc<dyn GemConnectionStore>,
     signer: Arc<dyn GemWalletConnectSigner>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemWalletConnectService {
     #[uniffi::constructor]
-    pub fn new(simulation: Arc<TransactionSimulationService>, store: Arc<dyn GemConnectionStore>, signer: Arc<dyn GemWalletConnectSigner>) -> Self {
+    pub fn new(
+        simulation: Arc<TransactionSimulationService>,
+        store: Arc<dyn GemConnectionStore>,
+        signer: Arc<dyn GemWalletConnectSigner>,
+        session: Arc<GemWalletSessionService>,
+    ) -> Self {
         Self {
             wallet_connect: WalletConnect::new(),
             simulation,
             store,
             signer,
+            session,
         }
     }
 
@@ -58,38 +68,40 @@ impl GemWalletConnectService {
         Ok(())
     }
 
+    pub fn authentication_chain_ids(&self, chain_ids: Vec<String>) -> Vec<String> {
+        rules::authentication_chain_ids(&self.wallet_connect, &chain_ids)
+    }
+
+    pub async fn has_sessions(&self) -> Result<bool, GemServiceError> {
+        Ok(!self.store.get_sessions().await?.is_empty())
+    }
+
     pub async fn delete_session(&self, session_id: String) -> Result<(), GemServiceError> {
         self.store.delete_sessions(vec![session_id]).await
     }
 
     pub fn prepare_session_proposal(
         &self,
-        wallets: Vec<Wallet>,
-        current_wallet_id: Option<WalletId>,
         required_chain_ids: Vec<String>,
         optional_chain_ids: Vec<String>,
         metadata: ApplicationMetadata,
         origin: Option<String>,
         validation: WalletConnectionVerificationStatus,
-    ) -> Result<GemSessionProposal, GemServiceError> {
-        let required = rules::parse_chains(&self.wallet_connect, &required_chain_ids).ok_or_else(|| GemServiceError::Status {
-            msg: "unsupported chains".to_string(),
-        })?;
+    ) -> Result<GemSessionProposal, GemWalletConnectError> {
+        let wallets = self.session.get_wallets()?;
+        let current_wallet_id = self.session.get_current_wallet_id()?;
+        let required = rules::parse_chains(&self.wallet_connect, &required_chain_ids).ok_or(GemWalletConnectError::UnsupportedChains)?;
         let optional = rules::parse_known_chains(&self.wallet_connect, &optional_chain_ids);
         let verification_status = self.wallet_connect.validate_origin(metadata.url.clone(), origin, validation);
         if matches!(
             verification_status,
             WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious
         ) {
-            return Err(GemServiceError::Status {
-                msg: "invalid origin".to_string(),
-            });
+            return Err(GemWalletConnectError::InvalidOrigin);
         }
         let session_wallets = self
             .select_session_wallets(wallets, current_wallet_id, required, optional)
-            .ok_or_else(|| GemServiceError::Status {
-                msg: "wallets unsupported".to_string(),
-            })?;
+            .ok_or(GemWalletConnectError::UnsupportedWallets)?;
         Ok(GemSessionProposal {
             proposal: WalletConnectionSessionProposal {
                 default_wallet: session_wallets.default_wallet,
@@ -115,10 +127,12 @@ impl GemWalletConnectService {
         }
     }
 
-    pub fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> WalletConnectionSession {
+    pub fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> Result<WalletConnectionSession, GemServiceError> {
         let chains = rules::account_chains(&self.wallet_connect, &accounts);
-        let expire_at = DateTime::<Utc>::from_timestamp(expire_at, 0).unwrap_or_else(Utc::now);
-        rules::session(topic, chains, expire_at, metadata)
+        let expire_at = DateTime::<Utc>::from_timestamp(expire_at, 0).ok_or_else(|| GemServiceError::Status {
+            msg: format!("invalid session expiry {expire_at}"),
+        })?;
+        Ok(rules::session(topic, chains, expire_at, metadata))
     }
 
     pub async fn handle_request(&self, request: GemWalletConnectRequest) -> Result<GemWalletConnectResponse, GemServiceError> {

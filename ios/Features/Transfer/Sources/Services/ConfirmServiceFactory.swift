@@ -7,6 +7,7 @@ import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import class Gemstone.GemConfirmService
+import Preferences
 import Primitives
 import PrimitivesComponents
 
@@ -14,8 +15,6 @@ public enum ConfirmServiceFactory {
     public static func create(
         explorerService: any GemExplorerServiceProtocol,
         keystore: any Keystore,
-        chainServiceFactory: any ChainServiceFactorable,
-        assetsEnabler: any AssetsEnabler,
         gemConfirmService: GemConfirmService,
         balanceStore: BalanceStore,
         assetStore: AssetStore,
@@ -26,10 +25,7 @@ public enum ConfirmServiceFactory {
         addressStore: AddressStore,
         recentActivityStore: RecentActivityStore,
         toastPresenter: ToastPresenter,
-        chain: Chain,
     ) -> ConfirmService {
-        let chainService = chainServiceFactory.service(for: chain)
-
         return ConfirmService(
             metadataProvider: TransferMetadataProvider(
                 balanceStore: balanceStore,
@@ -49,13 +45,12 @@ public enum ConfirmServiceFactory {
             transferExecutor: TransferExecutor(
                 signer: TransactionSigner(keystore: keystore),
                 confirmService: gemConfirmService,
-                assetsEnabler: assetsEnabler,
+                preferences: .standard,
                 transactionStateScheduler: transactionStateScheduler,
             ),
             recentActivityStore: recentActivityStore,
             toastPresenter: toastPresenter,
             keystore: keystore,
-            chainService: chainService,
             explorerService: explorerService,
             addressStore: addressStore,
         )

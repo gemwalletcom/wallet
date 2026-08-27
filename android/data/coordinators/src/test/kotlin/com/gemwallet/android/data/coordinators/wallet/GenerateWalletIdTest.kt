@@ -10,7 +10,7 @@ import org.junit.Test
 
 class GenerateWalletIdTest {
 
-    val generator: WalletIdGenerator = WalletIdGeneratorImpl()
+    val generator: WalletIdGenerator = object : WalletIdGenerator {}
 
     @Test
     fun `generateWalletId for Multicoin wallet type`() {

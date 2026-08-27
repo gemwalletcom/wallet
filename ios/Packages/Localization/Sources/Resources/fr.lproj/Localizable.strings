@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "ID de jeton invalide";
 "errors.import.invalid_secret_phrase" = "Phrase secrète invalide";
 "errors.import.invalid_secret_phrase_word" = "Mot de phrase secrète non valide : %@";
+"errors.import.invalid_private_key" = "Clé privée invalide";
 "errors.invalid_url" = "URL invalide";
 "errors.error_occurred" = "Une erreur s'est produite !";
 "errors.invalid_network_id" = "ID de réseau invalide";
@@ -211,6 +212,7 @@
 "errors.swap.minimum_amount" = "Le montant minimum de transaction est %@. Veuillez saisir un montant plus élevé.";
 "errors.perpetual.trigger_price_lower" = "Le prix de déclenchement doit être inférieur au prix du marché";
 "errors.perpetual.trigger_price_higher" = "Le prix de déclenchement doit être supérieur au prix du marché";
+"errors.network_offline" = "La connexion Internet semble être hors ligne.";
 "errors.no_internet_connection" = "Pas de connexion Internet";
 "errors.no_service_connection" = "Pas de connexion au service";
 "errors.balances_activity_outdated" = "Les soldes et l'activité peuvent être obsolètes.";

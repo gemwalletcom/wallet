@@ -9,12 +9,14 @@ import uniffi.gemstone.WalletConnect
 
 internal fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInterface): WalletConnectionSession? {
     val metadata = metadata ?: return null
-    return service.session(
-        topic = topic,
-        accounts = namespaces.values.flatMap { it.accounts },
-        expireAt = expiry,
-        metadata = metadata.toJson(),
-    ).decodeJson()
+    return runCatching {
+        service.session(
+            topic = topic,
+            accounts = namespaces.values.flatMap { it.accounts },
+            expireAt = expiry,
+            metadata = metadata.toJson(),
+        )
+    }.getOrNull()?.decodeJson()
 }
 
 internal fun GemSessionApproval.toSupportedNamespaces(): Map<String, WalletConnectSessionNamespace> {

@@ -86,7 +86,7 @@ impl GemStreamService {
                 let Some(account) = rules::hyperliquid_account(&wallet.accounts) else {
                     return Ok(());
                 };
-                self.perpetual.sync_positions(update.wallet_id, Chain::HyperCore, account.address.clone()).await
+                self.perpetual.sync_positions(update.wallet_id, Chain::HyperCore, account.address.clone()).await.map(|_| ())
             }
             StreamEvent::InAppNotification(update) => self.notifications.save(vec![update.notification]).await,
             StreamEvent::FiatTransaction(update) => self.fiat.sync_transactions(update.wallet_id).await,

@@ -212,6 +212,7 @@ errors_invalid_amount = Ungültiger Betrag
 errors_token_invalid_id = Ungültige Token-ID
 errors_import_invalid_secret_phrase = Ungültige geheime Phrase
 errors_import_invalid_secret_phrase_word = Ungültiges geheimes Phrasenwort: %@
+errors_import_invalid_private_key = Ungültiger privater Schlüssel
 errors_invalid_url = Ungültige URL
 errors_error_occurred = Es ist ein Fehler aufgetreten!
 errors_invalid_network_id = Ungültige Netzwerk-ID

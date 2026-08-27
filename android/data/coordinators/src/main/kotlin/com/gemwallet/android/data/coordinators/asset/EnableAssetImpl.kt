@@ -16,6 +16,6 @@ class EnableAssetImpl(
     override suspend fun invoke(walletId: WalletId, assetId: AssetId, enabled: Boolean) = invoke(walletId, listOf(assetId), enabled)
 
     override suspend fun invoke(walletId: WalletId, assetIds: List<AssetId>, enabled: Boolean) {
-        balanceService.enableAssets(walletId.id, assetIds.map { it.toIdentifier() }, enabled, sessionRepository.getCurrentCurrency().toJson())
+        balanceService.setAssetsEnabled(walletId.id, assetIds.map { it.toIdentifier() }, enabled, sessionRepository.getCurrentCurrency().toJson())
     }
 }

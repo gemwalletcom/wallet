@@ -212,6 +212,7 @@ errors_invalid_amount = จำนวนเงินไม่ถูกต้อ�
 errors_token_invalid_id = รหัสโทเค็นไม่ถูกต้อง
 errors_import_invalid_secret_phrase = วลีลับไม่ถูกต้อง
 errors_import_invalid_secret_phrase_word = คำวลีลับไม่ถูกต้อง: %@
+errors_import_invalid_private_key = คีย์ส่วนตัวไม่ถูกต้อง
 errors_invalid_url = URL ไม่ถูกต้อง
 errors_error_occurred = เกิดข้อผิดพลาด!
 errors_invalid_network_id = รหัสเครือข่ายไม่ถูกต้อง

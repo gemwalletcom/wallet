@@ -212,6 +212,7 @@ errors_invalid_amount = Cantidad no válida
 errors_token_invalid_id = ID de token no válido
 errors_import_invalid_secret_phrase = Frase secreta no válida
 errors_import_invalid_secret_phrase_word = Palabra de frase secreta no válida: %@
+errors_import_invalid_private_key = Clave privada no válida
 errors_invalid_url = URL invalida
 errors_error_occurred = ¡Ocurrió un error!
 errors_invalid_network_id = ID de red no válida

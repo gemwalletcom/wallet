@@ -3,7 +3,7 @@ use std::sync::RwLock;
 use std::time::{Duration, Instant};
 
 use chrono::{DateTime, NaiveDateTime};
-use primitives::{ConfigKey, ConfigParamKey};
+use primitives::{ConfigKey, ConfigParamKey, RateLimit, RateLimitKey, RateLimitWindow};
 use serde::de::DeserializeOwned;
 use std::hash::Hash;
 
@@ -24,7 +24,7 @@ struct CachedValue {
 
 pub struct ConfigCacher {
     database: Database,
-    cache: RwLock<HashMap<ConfigKey, CachedValue>>,
+    cache: RwLock<HashMap<String, CachedValue>>,
     ttl: Duration,
 }
 
@@ -37,13 +37,13 @@ impl ConfigCacher {
         }
     }
 
-    fn get_cached(&self, key: &ConfigKey) -> Option<String> {
+    fn get_cached(&self, key: &str) -> Option<String> {
         let cache = self.cache.read().ok()?;
         let cached = cache.get(key)?;
         if cached.expires_at > Instant::now() { Some(cached.value.clone()) } else { None }
     }
 
-    fn set_cached(&self, key: ConfigKey, value: String) {
+    fn set_cached(&self, key: String, value: String) {
         if let Ok(mut cache) = self.cache.write() {
             cache.insert(
                 key,
@@ -56,11 +56,12 @@ impl ConfigCacher {
     }
 
     pub fn get(&self, key: ConfigKey) -> Result<String, DatabaseError> {
-        if let Some(value) = self.get_cached(&key) {
+        let cache_key = key.as_ref().to_string();
+        if let Some(value) = self.get_cached(&cache_key) {
             return Ok(value);
         }
-        let value = self.database.client().map_err(|e| DatabaseError::Error(e.to_string()))?.get_config(key.clone())?;
-        self.set_cached(key, value.clone());
+        let value = self.database.client().map_err(|e| DatabaseError::Error(e.to_string()))?.get_config(key)?;
+        self.set_cached(cache_key, value.clone());
         Ok(value)
     }
 
@@ -102,6 +103,11 @@ impl ConfigCacher {
         Ok(self.get_param_value(param).parse()?)
     }
 
+    pub fn get_rate_limit(&self, key: RateLimitKey) -> Result<RateLimit, DatabaseError> {
+        let [minute, hour, day, week] = RateLimitWindow::ALL.map(|window| self.get_param_usize(&ConfigParamKey::RateLimit(key, window)).map(|limit| limit as i64));
+        Ok(RateLimit::new(minute?, hour?, day?, week?))
+    }
+
     pub fn get_datetime(&self, key: ConfigKey) -> Result<NaiveDateTime, DatabaseError> {
         let ts = self.get_i64(key)?;
         DateTime::from_timestamp(ts, 0)
@@ -133,15 +139,22 @@ impl ConfigCacher {
 
     pub fn invalidate(&self, key: &ConfigKey) {
         if let Ok(mut cache) = self.cache.write() {
-            cache.remove(key);
+            cache.remove(key.as_ref());
         }
     }
 
     fn get_param_value(&self, param: &ConfigParamKey) -> String {
-        self.database
+        let key = param.key();
+        if let Some(value) = self.get_cached(&key) {
+            return value;
+        }
+        let value = self
+            .database
             .client()
             .ok()
-            .and_then(|mut c| ConfigStore::get_config_key(&mut c, &param.key()).ok())
-            .map_or_else(|| param.default_value().to_string(), |row| row.value)
+            .and_then(|mut client| ConfigStore::get_config_key(&mut client, &key).ok())
+            .map_or_else(|| param.default_value(), |row| row.value);
+        self.set_cached(key, value.clone());
+        value
     }
 }

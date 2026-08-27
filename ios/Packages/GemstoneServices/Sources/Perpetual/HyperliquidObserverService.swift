@@ -59,12 +59,14 @@ public actor HyperliquidObserverService: PerpetualObservable {
         try await subscriptionService.unsubscribe(subscription)
     }
 
-    public func update(for wallet: Wallet) async {
-        guard let address = wallet.hyperliquidAccount?.address else { return }
+    @discardableResult
+    public func update(for wallet: Wallet) async -> PerpetualAccountMode? {
+        guard let address = wallet.hyperliquidAccount?.address else { return nil }
         do {
-            try await perpetualService.getPositions(walletId: wallet.id, address: address)
+            return try await perpetualService.getPositions(walletId: wallet.id, address: address)
         } catch {
             debugLog("HyperliquidObserver: update failed: \(error)")
+            return nil
         }
     }
 
@@ -75,8 +77,11 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
         await disconnect()
         currentWallet = wallet
-        let mode = await accountMode(for: wallet)
-        await update(for: wallet)
+        let mode = if let synced = await update(for: wallet) {
+            synced
+        } else {
+            await accountMode(for: wallet)
+        }
 
         guard observeTask == nil else { return }
 

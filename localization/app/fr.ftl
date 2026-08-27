@@ -212,6 +212,7 @@ errors_invalid_amount = Montant invalide
 errors_token_invalid_id = ID de jeton invalide
 errors_import_invalid_secret_phrase = Phrase secrète invalide
 errors_import_invalid_secret_phrase_word = Mot de phrase secrète non valide : %@
+errors_import_invalid_private_key = Clé privée invalide
 errors_invalid_url = URL invalide
 errors_error_occurred = Une erreur s'est produite !
 errors_invalid_network_id = ID de réseau invalide

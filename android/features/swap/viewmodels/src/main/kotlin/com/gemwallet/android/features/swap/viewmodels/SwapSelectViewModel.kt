@@ -5,7 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
@@ -39,7 +39,7 @@ class SwapSelectViewModel @Inject constructor(
     getRecentAssets: GetRecentAssets,
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
-    toggleAssetPin: ToggleAssetPin,
+    setAssetPinned: SetAssetPinned,
     searchTokensCase: SearchTokensCase,
     searchSwapAssets: SearchSwapAssets,
     savedStateHandle: SavedStateHandle,
@@ -48,7 +48,7 @@ class SwapSelectViewModel @Inject constructor(
     getRecentAssets = getRecentAssets,
     updateRecentAsset = updateRecentAsset,
     switchAssetVisibility = switchAssetVisibility,
-    toggleAssetPin = toggleAssetPin,
+    setAssetPinned = setAssetPinned,
     searchTokensCase = searchTokensCase,
     search = SwapSelectSearch(searchSwapAssets),
     remoteSearch = savedStateHandle.requireSwapItemType() == SwapItemType.Receive,

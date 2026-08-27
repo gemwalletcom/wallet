@@ -212,6 +212,7 @@ errors_invalid_amount = Jumlah tidak valid
 errors_token_invalid_id = ID Token Tidak Valid
 errors_import_invalid_secret_phrase = Frasa Rahasia Tidak Valid
 errors_import_invalid_secret_phrase_word = Kata Frasa Rahasia Tidak Valid: %@
+errors_import_invalid_private_key = Kunci privat tidak valid
 errors_invalid_url = URL Tidak Valid
 errors_error_occurred = Terjadi kesalahan!
 errors_invalid_network_id = ID Jaringan Tidak Valid

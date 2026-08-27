@@ -33,7 +33,7 @@ class GemstonePerpetualStore(
     override suspend fun savePerpetuals(data: List<String>) =
         putPerpetuals(data.map { it.decodeJson<PerpetualData>() })
 
-    suspend fun putPerpetuals(items: List<PerpetualData>) {
+    private suspend fun putPerpetuals(items: List<PerpetualData>) {
         assetsDao.insert(items.map { it.asset.toRecord() })
         perpetualDao.upsert(items.map { it.perpetual.toDB() })
     }
@@ -71,41 +71,12 @@ class GemstonePerpetualStore(
     override suspend fun updatePositions(walletId: String, positions: List<String>, deleteIds: List<String>) =
         putPositions(WalletId(walletId), positions.map { it.decodeJson<PerpetualPosition>() }, deleteIds)
 
-    suspend fun putPositions(walletId: WalletId, positions: List<PerpetualPosition>, deleteIds: List<String>) {
+    private suspend fun putPositions(walletId: WalletId, positions: List<PerpetualPosition>, deleteIds: List<String>) {
         if (deleteIds.isEmpty() && positions.isEmpty()) return
         perpetualPositionDao.applyDiff(walletId.id, deleteIds, positions.map { it.toDB(walletId.id) })
-    }
-
-    override suspend fun updateBalance(walletId: String, balance: String) =
-        putBalance(WalletId(walletId), balance.decodeJson<PerpetualBalance>())
-
-    suspend fun putBalance(walletId: WalletId, balance: PerpetualBalance) {
-        assetsDao.insert(HypercoreUSDC.toRecord())
-        balancesDao.insert(balance.toDbBalance(walletId, HypercoreUSDC, System.currentTimeMillis()))
     }
 
     private fun GemPerpetualProvider.toPrimitives(): PerpetualProvider = when (this) {
         GemPerpetualProvider.HYPERCORE -> PerpetualProvider.Hypercore
     }
 }
-
-internal fun PerpetualBalance.toDbBalance(
-    walletId: WalletId,
-    asset: Asset,
-    updatedAt: Long,
-): DbBalance = DbBalance(
-    assetId = asset.id.toIdentifier(),
-    walletId = walletId.id,
-    available = available.toAtomicUnits(asset.decimals),
-    availableAmount = available,
-    reserved = reserved.toAtomicUnits(asset.decimals),
-    reservedAmount = reserved,
-    withdrawable = withdrawable.toAtomicUnits(asset.decimals),
-    withdrawableAmount = withdrawable,
-    totalAmount = available + reserved,
-    isActive = true,
-    updatedAt = updatedAt,
-)
-
-private fun Double.toAtomicUnits(decimals: Int): String =
-    Crypto(toBigDecimal(), decimals).atomicValue.toString()

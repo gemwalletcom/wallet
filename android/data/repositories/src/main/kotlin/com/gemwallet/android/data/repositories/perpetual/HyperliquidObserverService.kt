@@ -47,8 +47,8 @@ class HyperliquidObserverService(
                 .distinctUntilChangedBy { it?.id?.id }
                 .collectLatest { wallet ->
                     val address = wallet?.hyperliquidAccount?.address ?: return@collectLatest
-                    val mode = getPerpetualAccountMode.getPerpetualAccountMode(wallet.id, address)
-                    runCatching { syncPerpetualPositions.syncPerpetualPositions() }
+                    val mode = syncPerpetualPositions.syncPerpetualPositions()
+                        ?: getPerpetualAccountMode.getPerpetualAccountMode(wallet.id, address)
                     observeConnection(wallet.id, address, mode)
                 }
         }

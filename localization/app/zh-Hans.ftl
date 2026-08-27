@@ -212,6 +212,7 @@ errors_invalid_amount = 数额无效
 errors_token_invalid_id = 代币 ID 无效
 errors_import_invalid_secret_phrase = 助记词无效
 errors_import_invalid_secret_phrase_word = 助记词无效：%@
+errors_import_invalid_private_key = 无效的私钥
 errors_invalid_url = 无效的网址
 errors_error_occurred = 出错了！
 errors_invalid_network_id = 网络 ID 无效

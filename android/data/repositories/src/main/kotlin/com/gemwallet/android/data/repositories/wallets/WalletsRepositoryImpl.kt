@@ -34,9 +34,15 @@ class WalletsRepositoryImpl @Inject constructor(
 
     override suspend fun addWallet(wallet: Wallet): Wallet = putWallet(wallet)
 
-    override suspend fun updateWallet(wallet: Wallet) {
-        walletsDao.update(wallet.toRecord())
-    }
+    override fun getAllNow(): List<Wallet> = walletsDao.getAllNow().toDTO()
+
+    override fun getWalletNow(walletId: WalletId): Wallet? = walletsDao.getByIdNow(walletId.id).toDTO().firstOrNull()
+
+    override suspend fun setPinned(walletId: WalletId, pinned: Boolean) = walletsDao.setPinned(walletId.id, pinned)
+
+    override suspend fun rename(walletId: WalletId, name: String) = walletsDao.setName(walletId.id, name)
+
+    override suspend fun setImageUrl(walletId: WalletId, imageUrl: String?) = walletsDao.setImageUrl(walletId.id, imageUrl)
 
     override suspend fun updateAccounts(wallet: Wallet) = withContext(Dispatchers.IO) {
         transactionRunner.run {
@@ -58,9 +64,7 @@ class WalletsRepositoryImpl @Inject constructor(
 
     override fun getWallet(walletId: WalletId): Flow<Wallet?> {
         return walletsDao.getById(walletId.id).map { walletRecord ->
-            val accounts = accountsDao.getByWalletId(walletId.id)
-            if (accounts.isEmpty()) return@map null
-            walletRecord?.toDTO(accounts)
+            walletRecord?.toDTO(accountsDao.getByWalletId(walletId.id))
         }.flowOn(Dispatchers.IO)
     }
 

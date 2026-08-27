@@ -1,11 +1,13 @@
 use std::str::FromStr;
 
 use num_bigint::{BigInt, BigUint};
-use primitives::{Asset, Chain, Resource, StakeChain};
+use primitives::{Asset, Chain, StakeChain};
 
-use super::model::{GemAmountBalance, GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType};
+use super::model::{GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType};
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
+use crate::services::transfer::GemTransferBalance;
+use crate::services::transfer::rules as transfer_rules;
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
 
 const USDC_SYMBOL: &str = "USDC";
@@ -20,16 +22,20 @@ pub fn rules(amount_type: &GemAmountType, asset: &Asset) -> GemAmountRules {
     }
 }
 
-pub fn limits(amount_type: &GemAmountType, asset: &Asset, balance: &GemAmountBalance) -> GemAmountLimits {
-    let available = available_value(amount_type, asset, balance);
+pub fn limits(amount_type: &GemAmountType, asset: &Asset, balance: &GemTransferBalance) -> Result<GemAmountLimits, GemAmountError> {
+    let available = available_value(amount_type, asset, balance)?;
     let reserve = reserve_for_fee(amount_type, asset);
     let max_after_fee = (&available - &reserve).max(BigInt::from(0));
     let reserves_fee = reserves_fee(amount_type, &reserve, &max_after_fee, &minimum_value(amount_type, asset));
-    GemAmountLimits {
+    Ok(GemAmountLimits {
         available_value: available.to_string(),
         max_value: if reserves_fee { max_after_fee.to_string() } else { available.to_string() },
         reserves_fee,
-    }
+    })
+}
+
+pub fn parse_value(value: &str) -> Result<BigInt, GemAmountError> {
+    value.parse::<BigInt>().map_err(|_| GemAmountError::InvalidValue { value: value.to_string() })
 }
 
 pub fn validate(value: &BigInt, available: &BigInt, minimum: &BigInt) -> Result<(), GemAmountError> {
@@ -54,10 +60,11 @@ fn minimum_value(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
         GemAmountType::Stake { stake_type } => match stake_type {
             GemAmountStakeType::Stake | GemAmountStakeType::Freeze { .. } => stake_config.map(|config| BigInt::from(config.min_amount)).unwrap_or_default(),
             GemAmountStakeType::Redelegate { .. } if asset.chain() == Chain::SmartChain => stake_config.map(|config| BigInt::from(config.min_amount)).unwrap_or_default(),
-            GemAmountStakeType::Withdraw { .. } => usdc_minimum(asset, MIN_DEPOSIT_AMOUNT),
-            GemAmountStakeType::Redelegate { .. } | GemAmountStakeType::Unstake { .. } | GemAmountStakeType::Unfreeze { .. } | GemAmountStakeType::Rewards { .. } => {
-                BigInt::from(0)
-            }
+            GemAmountStakeType::Withdraw { .. }
+            | GemAmountStakeType::Redelegate { .. }
+            | GemAmountStakeType::Unstake { .. }
+            | GemAmountStakeType::Unfreeze { .. }
+            | GemAmountStakeType::Rewards { .. } => BigInt::from(0),
         },
         GemAmountType::Perpetual {
             price, leverage, size_decimals, ..
@@ -108,35 +115,28 @@ fn reserves_fee(amount_type: &GemAmountType, reserve: &BigInt, max_after_fee: &B
     }
 }
 
-pub fn available_value(amount_type: &GemAmountType, asset: &Asset, balance: &GemAmountBalance) -> BigInt {
-    let parse = |value: &str| value.parse::<BigInt>().unwrap_or_default();
-    match amount_type {
-        GemAmountType::Transfer | GemAmountType::Deposit => parse(&balance.available),
-        GemAmountType::Withdraw => parse(&balance.withdrawable),
+pub fn available_value(amount_type: &GemAmountType, asset: &Asset, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
+    Ok(match amount_type {
+        GemAmountType::Transfer | GemAmountType::Deposit => parse_value(&balance.available)?,
+        GemAmountType::Withdraw => parse_value(&balance.withdrawable)?,
         GemAmountType::Stake { stake_type } => match stake_type {
-            GemAmountStakeType::Stake if asset.chain() == Chain::Tron => {
-                let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
-                parse(&balance.frozen) + parse(&balance.locked) - staked
-            }
-            GemAmountStakeType::Stake | GemAmountStakeType::Freeze { .. } => parse(&balance.available),
+            GemAmountStakeType::Stake if asset.chain() == Chain::Tron => transfer_rules::tron_stake_available(asset, balance)?,
+            GemAmountStakeType::Stake | GemAmountStakeType::Freeze { .. } => parse_value(&balance.available)?,
             GemAmountStakeType::Unstake { delegation } | GemAmountStakeType::Redelegate { delegation } | GemAmountStakeType::Withdraw { delegation } => {
                 BigInt::from(delegation.base.balance.clone())
             }
             GemAmountStakeType::Rewards { delegations } => BigInt::from(delegations.iter().map(|delegation| delegation.base.rewards.clone()).sum::<BigUint>()),
-            GemAmountStakeType::Unfreeze { resource } => match resource {
-                Resource::Bandwidth => parse(&balance.frozen),
-                Resource::Energy => parse(&balance.locked),
-            },
+            GemAmountStakeType::Unfreeze { resource } => transfer_rules::unfreeze_available(resource, balance)?,
         },
         GemAmountType::Earn { earn_type } => match earn_type {
-            GemAmountEarnType::Deposit => parse(&balance.available),
+            GemAmountEarnType::Deposit => parse_value(&balance.available)?,
             GemAmountEarnType::Withdraw { delegation } => BigInt::from(delegation.base.balance.clone()),
         },
         GemAmountType::Perpetual { position, .. } => match position {
-            GemAmountPerpetualPosition::Open | GemAmountPerpetualPosition::Increase => parse(&balance.available),
-            GemAmountPerpetualPosition::Reduce { available } => parse(available),
+            GemAmountPerpetualPosition::Open | GemAmountPerpetualPosition::Increase => parse_value(&balance.available)?,
+            GemAmountPerpetualPosition::Reduce { available } => parse_value(available)?,
         },
-    }
+    })
 }
 
 fn usdc_minimum(asset: &Asset, minimum: u64) -> BigInt {
@@ -150,6 +150,7 @@ fn stake_chain(chain: Chain) -> Option<StakeChain> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Resource;
     use primitives::{AssetId, AssetType, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
 
     fn asset(chain: Chain) -> Asset {
@@ -160,8 +161,8 @@ mod tests {
         Asset::new(AssetId::from(Chain::HyperCore, Some("usdc".into())), "USDC".into(), "USDC".into(), 6, AssetType::TOKEN)
     }
 
-    fn balance(available: u64, frozen: u64, locked: u64, votes: u32) -> GemAmountBalance {
-        GemAmountBalance {
+    fn balance(available: u64, frozen: u64, locked: u64, votes: u32) -> GemTransferBalance {
+        GemTransferBalance {
             available: available.to_string(),
             frozen: frozen.to_string(),
             locked: locked.to_string(),
@@ -208,21 +209,45 @@ mod tests {
         assert_eq!(stake_rules.reserve_for_fee, config.reserved_for_fees.to_string());
         assert!(stake_rules.can_change_value);
 
-        let limits = limits(
+        let stake_limits = limits(
             &stake(GemAmountStakeType::Stake),
             &cosmos,
             &balance(config.reserved_for_fees * 10 + config.min_amount * 10, 0, 0, 0),
-        );
-        assert!(limits.reserves_fee);
-        assert_eq!(limits.max_value, (config.reserved_for_fees * 9 + config.min_amount * 10).to_string());
+        )
+        .unwrap();
+        assert!(stake_limits.reserves_fee);
+        assert_eq!(stake_limits.max_value, (config.reserved_for_fees * 9 + config.min_amount * 10).to_string());
 
         let tron = asset(Chain::Tron);
+        let tron_config = get_stake_config(StakeChain::Tron);
         let tron_rules = rules(&stake(GemAmountStakeType::Stake), &tron);
         assert_eq!(tron_rules.reserve_for_fee, "0");
         assert_eq!(
-            available_value(&stake(GemAmountStakeType::Stake), &tron, &balance(1, 5_000_000, 3_000_000, 2)),
+            available_value(&stake(GemAmountStakeType::Stake), &tron, &balance(1, 5_000_000, 3_000_000, 2)).unwrap(),
             BigInt::from(6_000_000)
         );
+        let freeze = stake(GemAmountStakeType::Freeze { resource: Resource::Bandwidth });
+        assert!(tron_config.reserved_for_fees > 0);
+        assert_eq!(rules(&freeze, &tron).reserve_for_fee, tron_config.reserved_for_fees.to_string());
+        let freeze_limits = limits(&freeze, &tron, &balance(tron_config.reserved_for_fees + tron_config.min_amount + 1, 99, 98, 0)).unwrap();
+        assert_eq!(freeze_limits.available_value, (tron_config.reserved_for_fees + tron_config.min_amount + 1).to_string());
+        assert!(freeze_limits.reserves_fee);
+        assert_eq!(freeze_limits.max_value, (tron_config.min_amount + 1).to_string());
+
+        let smart_chain = asset(Chain::SmartChain);
+        let redelegate = stake(GemAmountStakeType::Redelegate { delegation: delegation(50, 0) });
+        let smart_chain_minimum = get_stake_config(StakeChain::SmartChain).min_amount;
+        assert!(smart_chain_minimum > 0);
+        assert_eq!(rules(&redelegate, &smart_chain).minimum_value, smart_chain_minimum.to_string());
+        assert_eq!(rules(&redelegate, &cosmos).minimum_value, "0");
+
+        let unstake = stake(GemAmountStakeType::Unstake { delegation: delegation(50, 0) });
+        let solana_unstake = rules(&unstake, &asset(Chain::Solana));
+        assert!(!solana_unstake.can_change_value);
+        assert!(!solana_unstake.shows_asset_balance);
+        let cosmos_unstake = rules(&unstake, &cosmos);
+        assert!(cosmos_unstake.can_change_value);
+        assert!(cosmos_unstake.shows_asset_balance);
 
         let rewards = rules(&stake(GemAmountStakeType::Rewards { delegations: vec![] }), &cosmos);
         assert!(!rewards.can_change_value);
@@ -234,17 +259,93 @@ mod tests {
                 }),
                 &cosmos,
                 &balance(1, 0, 0, 0)
-            ),
+            )
+            .unwrap(),
             BigInt::from(7)
         );
         assert_eq!(
-            available_value(&stake(GemAmountStakeType::Unstake { delegation: delegation(50, 0) }), &cosmos, &balance(1, 0, 0, 0)),
+            available_value(&stake(GemAmountStakeType::Unstake { delegation: delegation(50, 0) }), &cosmos, &balance(1, 0, 0, 0)).unwrap(),
             BigInt::from(50)
         );
         assert_eq!(
-            available_value(&stake(GemAmountStakeType::Unfreeze { resource: Resource::Energy }), &tron, &balance(1, 2, 3, 0)),
+            available_value(&stake(GemAmountStakeType::Unfreeze { resource: Resource::Energy }), &tron, &balance(1, 2, 3, 0)).unwrap(),
             BigInt::from(3)
         );
+        assert_eq!(
+            available_value(&stake(GemAmountStakeType::Unfreeze { resource: Resource::Bandwidth }), &tron, &balance(1, 2, 3, 0)).unwrap(),
+            BigInt::from(2)
+        );
+    }
+
+    #[test]
+    fn test_limits_reserve_boundary() {
+        let solana = asset(Chain::Solana);
+        let config = get_stake_config(StakeChain::Solana);
+        let reserve = config.reserved_for_fees;
+        let minimum = config.min_amount;
+        assert!(reserve > 0 && minimum > 0);
+
+        let at_boundary = limits(&stake(GemAmountStakeType::Stake), &solana, &balance(reserve + minimum, 0, 0, 0)).unwrap();
+        assert!(!at_boundary.reserves_fee);
+        assert_eq!(at_boundary.max_value, (reserve + minimum).to_string());
+
+        let above_boundary = limits(&stake(GemAmountStakeType::Stake), &solana, &balance(reserve + minimum + 1, 0, 0, 0)).unwrap();
+        assert!(above_boundary.reserves_fee);
+        assert_eq!(above_boundary.max_value, (minimum + 1).to_string());
+
+        let below_reserve = limits(&stake(GemAmountStakeType::Stake), &solana, &balance(reserve - 1, 0, 0, 0)).unwrap();
+        assert!(!below_reserve.reserves_fee);
+        assert_eq!(below_reserve.max_value, (reserve - 1).to_string());
+        assert_eq!(below_reserve.available_value, (reserve - 1).to_string());
+    }
+
+    #[test]
+    fn test_earn_perpetual_and_deposit_sources() {
+        let ethereum = asset(Chain::Ethereum);
+        assert_eq!(
+            available_value(
+                &GemAmountType::Earn {
+                    earn_type: GemAmountEarnType::Deposit
+                },
+                &ethereum,
+                &balance(11, 0, 0, 0)
+            )
+            .unwrap(),
+            BigInt::from(11)
+        );
+        assert_eq!(
+            available_value(
+                &GemAmountType::Earn {
+                    earn_type: GemAmountEarnType::Withdraw { delegation: delegation(33, 0) }
+                },
+                &ethereum,
+                &balance(11, 0, 0, 0)
+            )
+            .unwrap(),
+            BigInt::from(33)
+        );
+        assert_eq!(available_value(&GemAmountType::Deposit, &usdc(), &balance(5, 0, 0, 0)).unwrap(), BigInt::from(5));
+        assert_eq!(available_value(&GemAmountType::Withdraw, &usdc(), &balance(5, 0, 0, 0)).unwrap(), BigInt::from(7));
+
+        let perpetual = |leverage: u8, size_decimals: i32| GemAmountType::Perpetual {
+            position: GemAmountPerpetualPosition::Open,
+            price: 4.0,
+            leverage,
+            size_decimals,
+        };
+        assert_eq!(rules(&perpetual(1, 0), &usdc()).minimum_value, "12000000");
+        assert_eq!(rules(&perpetual(1, 1), &usdc()).minimum_value, "10000000");
+        assert_eq!(rules(&perpetual(2, 0), &usdc()).minimum_value, "6000000");
+        assert_eq!(available_value(&perpetual(1, 0), &usdc(), &balance(9, 0, 0, 0)).unwrap(), BigInt::from(9));
+    }
+
+    #[test]
+    fn test_stake_withdraw_has_no_minimum() {
+        let withdraw = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Withdraw { delegation: delegation(700, 0) },
+        };
+        assert_eq!(rules(&withdraw, &usdc()).minimum_value, "0");
+        assert!(!rules(&withdraw, &usdc()).can_change_value);
     }
 
     #[test]
@@ -253,7 +354,7 @@ mod tests {
         assert_eq!(rules(&GemAmountType::Deposit, &usdc()).minimum_value, MIN_DEPOSIT_AMOUNT.to_string());
         assert_eq!(rules(&GemAmountType::Withdraw, &usdc()).minimum_value, MIN_WITHDRAW_AMOUNT.to_string());
         assert_eq!(rules(&GemAmountType::Deposit, &asset(Chain::Ethereum)).minimum_value, "0");
-        assert_eq!(available_value(&GemAmountType::Withdraw, &usdc(), &balance(1, 0, 0, 0)), BigInt::from(7));
+        assert_eq!(available_value(&GemAmountType::Withdraw, &usdc(), &balance(1, 0, 0, 0)).unwrap(), BigInt::from(7));
         assert_eq!(
             available_value(
                 &GemAmountType::Perpetual {
@@ -264,7 +365,8 @@ mod tests {
                 },
                 &usdc(),
                 &balance(1, 0, 0, 0)
-            ),
+            )
+            .unwrap(),
             BigInt::from(42)
         );
     }
@@ -281,5 +383,16 @@ mod tests {
             Err(GemAmountError::InsufficientBalance { available: "10".into() })
         );
         assert_eq!(validate(&BigInt::from(5), &BigInt::from(10), &BigInt::from(2)), Ok(()));
+        assert_eq!(validate(&BigInt::from(0), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
+        assert_eq!(validate(&BigInt::from(-1), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
+        assert_eq!(parse_value("abc"), Err(GemAmountError::InvalidValue { value: "abc".into() }));
+        let malformed = GemTransferBalance {
+            available: "1.5".to_string(),
+            ..balance(0, 0, 0, 0)
+        };
+        assert_eq!(
+            available_value(&GemAmountType::Transfer, &asset(Chain::Ethereum), &malformed),
+            Err(GemAmountError::InvalidValue { value: "1.5".into() })
+        );
     }
 }

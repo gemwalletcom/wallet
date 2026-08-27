@@ -212,6 +212,7 @@ errors_invalid_amount = Kiasi kisicho sahihi
 errors_token_invalid_id = Kitambulisho Batili cha Tokeni
 errors_import_invalid_secret_phrase = Maneno ya Siri Batili
 errors_import_invalid_secret_phrase_word = Neno batili la Neno la Siri: %@
+errors_import_invalid_private_key = Ufunguo wa faragha si sahihi
 errors_invalid_url = URL batili
 errors_error_occurred = Hitilafu imetokea!
 errors_invalid_network_id = Kitambulisho batili cha Mtandao

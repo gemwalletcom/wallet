@@ -53,10 +53,10 @@ class GetPriceAlertsImpl(
 
 @Stable
 class PriceAlertDataAggregateImpl(
-    override val id: Int,
+    override val id: String,
     override val asset: Asset,
     val assetPrice: AssetPriceInfo?,
-    val priceAlert: PriceAlert
+    override val priceAlert: PriceAlert
 ) : PriceAlertDataAggregate {
     override val assetId: AssetId = asset.id
     override val title: String = asset.name

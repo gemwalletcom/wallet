@@ -119,13 +119,14 @@ class PriceAlertViewModel @Inject constructor(
         if (enabled) {
             includePriceAlert(assetId)
         } else {
-            val autoAlert = data.value[null]?.firstOrNull()
-            autoAlert?.let { excludePriceAlert(it.id) }
+            val autoAlert = data.value[null]?.firstOrNull() ?: return@launch
+            excludePriceAlert(autoAlert.priceAlert)
         }
     }
 
-    fun excludeAsset(priceAlertId: Int) = viewModelScope.launch(Dispatchers.IO) {
-        excludePriceAlert(priceAlertId)
+    fun excludeAsset(priceAlertId: String) = viewModelScope.launch(Dispatchers.IO) {
+        val alert = data.value.values.flatten().firstOrNull { it.id == priceAlertId } ?: return@launch
+        excludePriceAlert(alert.priceAlert)
     }
 
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(Dispatchers.IO) {

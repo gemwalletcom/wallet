@@ -1,13 +1,12 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
-import com.gemwallet.android.application.assets.coordinators.GetAssetById
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.cases.transactions.SaveTransactions
+import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.ext.getAssociatedAssetIds
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationData
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
@@ -22,55 +21,51 @@ import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PushNotificationTypes
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Wallet
 import io.mockk.coEvery
-import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAssetsService
 
 class NotificationNavigationTest {
     private val currentWallet = mockWallet(id = "current-wallet")
     private val session = MutableStateFlow(mockSession(wallet = currentWallet))
     private val sessionRepository = mockk<SessionRepository>()
     private val walletsRepository = mockk<WalletsRepository>()
-    private val saveTransactions = mockk<SaveTransactions>()
+    private val createTransaction = mockk<CreateTransaction>()
     private val prefetchAssets = mockk<PrefetchAssets>()
-    private val ensureWalletAssets = mockk<EnsureWalletAssets>()
-    private val getAssetById = mockk<GetAssetById>()
+    private val assetsService = mockk<GemAssetsService>()
 
     private val subject = NotificationNavigation(
         sessionRepository = sessionRepository,
         walletsRepository = walletsRepository,
-        saveTransactions = saveTransactions,
+        createTransaction = createTransaction,
         prefetchAssets = prefetchAssets,
-        ensureWalletAssets = ensureWalletAssets,
-        getAssetById = getAssetById,
+        assetsService = assetsService,
     )
 
     @Before
     fun setup() {
         every { sessionRepository.session() } returns session
+        coEvery { sessionRepository.getCurrentCurrency() } returns Currency.USD
         coEvery { sessionRepository.setWallet(any()) } coAnswers {
             session.value = mockSession(wallet = invocation.args.first() as Wallet)
         }
-        coJustRun { saveTransactions.saveTransactions(any(), any()) }
         coEvery { prefetchAssets.prefetchAssets(any()) } returns emptyList()
-        coJustRun { ensureWalletAssets.ensureWalletAssets(any(), any()) }
-        every { getAssetById(any()) } returns flowOf(null)
     }
 
     @Test
-    fun transactionNotification_preloadsWalletDataBeforeReturningRoute() = runBlocking {
+    fun transactionNotification_addsTransactionThroughCoreBeforeReturningRoute() = runBlocking {
         val assetId = mockAssetId(Chain.Ethereum)
         val walletId = mockWalletId()
         val asset = mockAsset(chain = assetId.chain, tokenId = assetId.tokenId)
@@ -79,9 +74,8 @@ class NotificationNavigationTest {
             id = walletId.id,
             accounts = listOf(mockAccount(chain = assetId.chain)),
         )
-        val assetIds = transaction.getAssociatedAssetIds()
         every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
-        every { getAssetById(assetId) } returns flowOf(asset)
+        coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction, Currency.USD) } returns asset
 
         val route = subject.prepareNavigation(
             type = PushNotificationTypes.Transaction.string,
@@ -93,10 +87,29 @@ class NotificationNavigationTest {
         )
 
         assertEquals(listOf(AssetRoute(asset.id), TransactionDetailsRoute(transaction.id)), route)
-        coVerify { prefetchAssets.prefetchAssets(assetIds) }
-        coVerify { ensureWalletAssets.ensureWalletAssets(wallet, assetIds) }
         coVerify { sessionRepository.setWallet(wallet) }
-        coVerify { saveTransactions.saveTransactions(walletId, listOf(transaction)) }
+    }
+
+    @Test
+    fun transactionNotification_isRejectedWhenCoreDoesNotOpenAsset() = runBlocking {
+        val assetId = mockAssetId(Chain.Ethereum)
+        val walletId = mockWalletId()
+        val transaction = mockTransaction(assetId = assetId)
+        val wallet = mockWallet(id = walletId.id)
+        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction, Currency.USD) } returns null
+
+        val route = subject.prepareNavigation(
+            type = PushNotificationTypes.Transaction.string,
+            data = PushNotificationData.Transaction(
+                walletId = walletId,
+                assetId = assetId,
+                transaction = transaction,
+            ),
+        )
+
+        assertEquals(emptyList<Any>(), route)
+        coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
     }
 
     @Test
@@ -119,7 +132,7 @@ class NotificationNavigationTest {
             accounts = listOf(mockAccount(chain = assetId.chain)),
         )
         every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
-        every { getAssetById(assetId) } returns flowOf(asset)
+        coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction, Currency.USD) } returns asset
 
         val route = subject.prepareNavigation(
             type = PushNotificationTypes.Transaction.string,
@@ -138,8 +151,27 @@ class NotificationNavigationTest {
             ),
             route,
         )
-        verify { getAssetById(assetId) }
-        coVerify { saveTransactions.saveTransactions(walletId, listOf(transaction)) }
+    }
+
+    @Test
+    fun stakeNotification_opensWalletAssetThroughCore() = runBlocking {
+        val assetId = mockAssetId(Chain.Solana)
+        val walletId = mockWalletId()
+        val asset = mockAsset(chain = assetId.chain, tokenId = assetId.tokenId)
+        val wallet = mockWallet(
+            id = walletId.id,
+            accounts = listOf(mockAccount(chain = assetId.chain)),
+        )
+        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        coEvery { assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier()) } returns asset.toJson()
+
+        val route = subject.prepareNavigation(
+            type = PushNotificationTypes.Stake.string,
+            data = PushNotificationData.Stake(assetId = assetId, walletId = walletId),
+        )
+
+        assertEquals(listOf(AssetRoute(asset.id)), route)
+        coVerify { sessionRepository.setWallet(wallet) }
     }
 
     @Test
@@ -154,10 +186,9 @@ class NotificationNavigationTest {
         )
 
         assertEquals(emptyList<Any>(), route)
-        coVerify(exactly = 0) { prefetchAssets.prefetchAssets(any()) }
-        coVerify(exactly = 0) { ensureWalletAssets.ensureWalletAssets(any(), any()) }
+        coVerify(exactly = 0) { assetsService.openWalletAsset(any(), any()) }
         coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
-        coVerify(exactly = 0) { saveTransactions.saveTransactions(any(), any()) }
+        coVerify(exactly = 0) { createTransaction.createNotificationTransaction(any(), any(), any(), any()) }
     }
 
     @Test
@@ -166,9 +197,7 @@ class NotificationNavigationTest {
 
         assertEquals(listOf(SupportRoute), route)
         coVerify(exactly = 0) { prefetchAssets.prefetchAssets(any()) }
-        coVerify(exactly = 0) { ensureWalletAssets.ensureWalletAssets(any(), any()) }
         coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
-        coVerify(exactly = 0) { saveTransactions.saveTransactions(any(), any()) }
     }
 
     @Test
@@ -183,6 +212,5 @@ class NotificationNavigationTest {
         assertEquals(listOf(AssetRoute(assetId)), route)
         coVerify { prefetchAssets.prefetchAssets(listOf(assetId)) }
         coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
-        coVerify(exactly = 0) { saveTransactions.saveTransactions(any(), any()) }
     }
 }

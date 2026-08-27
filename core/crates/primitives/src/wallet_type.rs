@@ -14,7 +14,7 @@ pub enum WalletType {
 }
 
 impl WalletType {
-    pub fn notification_priority(&self) -> u8 {
+    pub fn rank(&self) -> u8 {
         match self {
             WalletType::Multicoin => 0,
             WalletType::Single => 1,

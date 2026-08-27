@@ -23,6 +23,8 @@ struct AmountValueValidator: ValueValidator {
             try GemAmountService().validate(value: value.description, availableValue: available.description, minimumValue: minimum.description)
         } catch GemAmountError.Zero {
             throw SilentValidationError()
+        } catch GemAmountError.InvalidValue {
+            throw TransferError.invalidAmount
         } catch GemAmountError.BelowMinimum {
             throw TransferError.minimumAmount(asset: asset, required: minimum)
         } catch GemAmountError.InsufficientBalance {

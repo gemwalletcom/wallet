@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemAmountBalance
+import uniffi.gemstone.GemTransferBalance
 import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountType
 
@@ -164,7 +164,7 @@ class AmountPerpetualProvider(
         .flatMapLatest { getAssetInfo(HypercoreUSDC.id) }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override val balance: StateFlow<GemAmountBalance?> = getPerpetualBalance.getBalance()
+    override val balance: StateFlow<GemTransferBalance?> = getPerpetualBalance.getBalance()
         .combine(assetInfo.filterNotNull()) { perpetualBalance, current ->
             val available = perpetualBalance?.available ?: 0.0
             current.toAmountBalance().copy(available = Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue.toString())

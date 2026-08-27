@@ -45,6 +45,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 fun SwapSlippageBottomSheet(
     isVisible: Boolean,
     currentBps: UInt?,
+    defaultBps: UInt?,
     warningThresholdBps: UInt,
     onConfirm: (UInt?) -> Unit,
     onDismiss: () -> Unit,
@@ -56,8 +57,8 @@ fun SwapSlippageBottomSheet(
         title = stringResource(R.string.swap_slippage),
     ) {
         var isAuto by remember(currentBps) { mutableStateOf(currentBps == null) }
-        var input by remember(currentBps) {
-            mutableStateOf(SwapSlippage.format(currentBps ?: SwapSlippage.defaultBps))
+        var input by remember(currentBps, defaultBps) {
+            mutableStateOf((currentBps ?: defaultBps)?.let(SwapSlippage::format).orEmpty())
         }
         val focusRequester = remember { FocusRequester() }
 

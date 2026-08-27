@@ -8,10 +8,10 @@ import com.gemwallet.android.application.asset_select.coordinators.GetRecentAsse
 import com.gemwallet.android.application.asset_select.coordinators.SearchListAssets
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
-import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
+import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualPinned
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.cases.tokens.WalletSearchScopeCase
@@ -59,12 +59,12 @@ class AssetsResultsViewModel @Inject constructor(
     getRecentAssets: GetRecentAssets,
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
-    toggleAssetPin: ToggleAssetPin,
+    setAssetPinned: SetAssetPinned,
     @WalletSearch searchTokensCase: SearchTokensCase,
     private val searchScopeCase: WalletSearchScopeCase,
     getPerpetuals: GetPerpetuals,
     userConfig: UserConfig,
-    private val togglePerpetualPin: TogglePerpetualPin,
+    private val setPerpetualPinned: SetPerpetualPinned,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
@@ -72,7 +72,7 @@ class AssetsResultsViewModel @Inject constructor(
     getRecentAssets,
     updateRecentAsset,
     switchAssetVisibility,
-    toggleAssetPin,
+    setAssetPinned,
     searchTokensCase,
     resolveSearch(savedStateHandle, searchSelectAssets, searchListAssets),
     remoteSearch = false,
@@ -141,10 +141,10 @@ class AssetsResultsViewModel @Inject constructor(
         }
     }
 
-    fun onTogglePerpetualPin(perpetualId: PerpetualId) {
-        val item = previewPerpetuals.value.firstOrNull { it.id == perpetualId }
-        togglePerpetualPin.togglePin(perpetualId)
-        item?.let { emitToast(AssetToast.Pin(it.name, !it.isPinned)) }
+    fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
+        val item = previewPerpetuals.value.firstOrNull { it.id == perpetualId } ?: return@launch
+        setPerpetualPinned(perpetualId, !item.isPinned)
+        emitToast(AssetToast.Pin(item.name, !item.isPinned))
     }
 
     fun onOpenPerpetual(assetId: AssetId) {

@@ -98,8 +98,10 @@ class NetworksViewModel @Inject constructor(
 
     fun onSelectNode(node: Node) {
         val chain = state.value.chain ?: return
-        setCurrentNodeCase.setCurrentNode(chain, node)
-        updateState { it.copy(currentNode = node) }
+        viewModelScope.launch {
+            setCurrentNodeCase.setCurrentNode(chain, node)
+            updateState { it.copy(currentNode = node) }
+        }
     }
 
     fun onSelectBlockExplorer(name: String) {

@@ -41,7 +41,8 @@ public struct WalletService: Sendable {
     }
 
     public func importWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> WalletImportResult {
-        switch try await service.importWallet(name: name, import: type.walletImport, source: source.map()) {
+        let walletImport = try service.validateImport(import: type.walletImport)
+        return switch try await service.importWallet(name: name, import: walletImport, source: source.map()) {
         case let .new(wallet): try .new(Wallet(wallet))
         case let .existing(wallet): try .existing(Wallet(wallet))
         }
@@ -49,7 +50,7 @@ public struct WalletService: Sendable {
 
     public func delete(_ wallet: Wallet) async throws {
         try await keystore.deleteKey(for: wallet)
-        let hasWallets = try await service.deleteWallet(wallet: wallet.json())
+        let hasWallets = try await service.deleteWallet(walletId: wallet.id.id)
         if !hasWallets {
             preferences.preferences.clear()
             preferences.preferences.invalidateSubscriptions()

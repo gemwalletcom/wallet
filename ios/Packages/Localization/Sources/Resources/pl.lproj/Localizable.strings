@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "Nieprawidłowy identyfikator tokena";
 "errors.import.invalid_secret_phrase" = "Nieprawidłowe tajne zdanie";
 "errors.import.invalid_secret_phrase_word" = "Nieprawidłowe tajne słowo: %@";
+"errors.import.invalid_private_key" = "Nieprawidłowy klucz prywatny";
 "errors.invalid_url" = "nieprawidłowy URL";
 "errors.error_occurred" = "Wystąpił błąd!";
 "errors.invalid_network_id" = "Nieprawidłowy identyfikator sieci";
@@ -211,6 +212,7 @@
 "errors.swap.minimum_amount" = "Minimalna kwota transakcji wynosi %@. Proszę wprowadzić wyższą kwotę.";
 "errors.perpetual.trigger_price_lower" = "Cena aktywacji powinna być niższa niż cena rynkowa";
 "errors.perpetual.trigger_price_higher" = "Cena aktywacji powinna być wyższa niż cena rynkowa";
+"errors.network_offline" = "Połączenie internetowe wydaje się być niedostępne.";
 "errors.no_internet_connection" = "Brak połączenia z internetem";
 "errors.no_service_connection" = "Brak połączenia z usługą";
 "errors.balances_activity_outdated" = "Salda i aktywność mogą być nieaktualne.";

@@ -212,6 +212,7 @@ errors_invalid_amount = مبلغ غير صالح
 errors_token_invalid_id = معرف الرمز المميز غير صالح
 errors_import_invalid_secret_phrase = العبارة السرية غير صالحة
 errors_import_invalid_secret_phrase_word = كلمة عبارة سرية غير صالحة: %@
+errors_import_invalid_private_key = مفتاح خاص غير صالح
 errors_invalid_url = URL غير صالح
 errors_error_occurred = حدث خطأ!
 errors_invalid_network_id = معرف الشبكة غير صالح

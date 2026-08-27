@@ -6,6 +6,8 @@ use std::{error::Error, fmt::Display};
 /// Errors that can occur during gateway operations.
 #[derive(Debug, Clone, uniffi::Error)]
 pub enum GatewayError {
+    /// The platform transport reported no connectivity.
+    Offline,
     /// Network-related errors such as timeouts, connection failures, or HTTP errors.
     NetworkError { msg: String },
     /// Non-network errors from platform code (Kotlin/Swift), allowing clients to
@@ -16,6 +18,7 @@ pub enum GatewayError {
 impl Display for GatewayError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Offline => write!(f, "Network offline"),
             Self::NetworkError { msg } => write!(f, "Network error: {}", msg),
             Self::PlatformError { msg } => write!(f, "Platform error: {}", msg),
         }
@@ -33,6 +36,7 @@ impl From<uniffi::UnexpectedUniFFICallbackError> for GatewayError {
 impl From<TransactionStatusError> for GatewayError {
     fn from(err: TransactionStatusError) -> Self {
         match err {
+            TransactionStatusError::Offline => Self::Offline,
             TransactionStatusError::NetworkError(msg) => Self::NetworkError { msg },
             TransactionStatusError::PlatformError(msg) => Self::PlatformError { msg },
         }
@@ -40,6 +44,9 @@ impl From<TransactionStatusError> for GatewayError {
 }
 
 pub(crate) fn map_network_error(error: Box<dyn Error + Send + Sync>) -> GatewayError {
+    if is_offline(error.as_ref()) {
+        return GatewayError::Offline;
+    }
     if let Some(jsonrpc_error) = error.downcast_ref::<JsonRpcError>()
         && jsonrpc_error.code == ERROR_CLIENT_ERROR
     {
@@ -60,6 +67,18 @@ pub(crate) fn map_network_error(error: Box<dyn Error + Send + Sync>) -> GatewayE
     };
 
     GatewayError::NetworkError { msg: message }
+}
+
+fn is_offline(error: &(dyn Error + 'static)) -> bool {
+    let offline = AlienError::Offline.to_string();
+    let mut current_error: Option<&(dyn Error + 'static)> = Some(error);
+    while let Some(err) = current_error {
+        if matches!(err.downcast_ref::<AlienError>(), Some(AlienError::Offline)) || err.to_string().contains(&offline) {
+            return true;
+        }
+        current_error = err.source();
+    }
+    false
 }
 
 fn http_status_from_error(error: &(dyn Error + 'static)) -> Option<u16> {
@@ -95,8 +114,29 @@ mod tests {
 
         match mapped {
             GatewayError::NetworkError { msg } => assert_eq!(msg, "HTTP error: status 404"),
-            GatewayError::PlatformError { .. } => panic!("Expected NetworkError"),
+            error => panic!("Expected NetworkError, got {error:?}"),
         }
+    }
+
+    #[test]
+    fn test_map_network_error_keeps_offline_kind() {
+        assert!(matches!(map_network_error(Box::new(AlienError::Offline)), GatewayError::Offline));
+        assert!(matches!(
+            map_network_error(Box::new(gem_client::ClientError::Network(AlienError::Offline.to_string()))),
+            GatewayError::Offline
+        ));
+        assert!(matches!(
+            map_network_error(Box::new(JsonRpcError {
+                code: ERROR_CLIENT_ERROR,
+                message: "Network error: network offline".to_string(),
+                cause: None,
+            })),
+            GatewayError::Offline
+        ));
+        assert!(matches!(
+            map_network_error(Box::new(AlienError::ResponseError { msg: "timeout".into() })),
+            GatewayError::NetworkError { .. }
+        ));
     }
 
     #[test]
@@ -108,7 +148,7 @@ mod tests {
 
         match gateway_error {
             GatewayError::PlatformError { msg } => assert_eq!(msg, "SomeSwiftError: something went wrong"),
-            GatewayError::NetworkError { .. } => panic!("Expected PlatformError"),
+            error => panic!("Expected PlatformError, got {error:?}"),
         }
     }
 
@@ -123,7 +163,7 @@ mod tests {
 
         match mapped {
             GatewayError::NetworkError { msg } => assert_eq!(msg, "HTTP error: status 404"),
-            GatewayError::PlatformError { .. } => panic!("Expected NetworkError"),
+            error => panic!("Expected NetworkError, got {error:?}"),
         }
     }
 }

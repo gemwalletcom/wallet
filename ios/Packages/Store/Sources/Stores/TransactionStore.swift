@@ -88,7 +88,7 @@ public struct TransactionStore: Sendable {
                 .filter(TransactionRecord.Columns.walletId == walletId.id)
                 .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
                 .fetchOne(db)
-                .flatMap { TransactionState(rawValue: $0.state) }
+                .map(\.state)
         }
     }
 

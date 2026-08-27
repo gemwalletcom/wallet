@@ -20,10 +20,11 @@ impl ConfigRow {
     }
 
     pub fn from_param(key: ConfigParamKey) -> Self {
+        let default_value = key.default_value();
         Self {
             key: key.key(),
-            value: key.default_value().to_string(),
-            default_value: key.default_value().to_string(),
+            value: default_value.clone(),
+            default_value,
         }
     }
 }

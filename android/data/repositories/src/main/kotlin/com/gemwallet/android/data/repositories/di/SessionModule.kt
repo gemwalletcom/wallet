@@ -23,7 +23,8 @@ object SessionModule {
     fun provideGemWalletSessionService(
         sessionDao: SessionDao,
         walletStore: GemstoneWalletStore,
-    ): GemWalletSessionService = GemWalletSessionService(GemstoneWalletSessionStore(sessionDao), walletStore)
+        preferencesService: GemPreferencesService,
+    ): GemWalletSessionService = GemWalletSessionService(GemstoneWalletSessionStore(sessionDao, preferencesService), walletStore)
 
     @Singleton
     @Provides

@@ -4,8 +4,10 @@ use redis::{AsyncCommands, Client, aio::ConnectionManager};
 
 mod error;
 mod keys;
+mod rate_limiter;
 pub use error::*;
 pub use keys::*;
+pub use rate_limiter::*;
 
 #[derive(Clone)]
 pub struct CacherClient {

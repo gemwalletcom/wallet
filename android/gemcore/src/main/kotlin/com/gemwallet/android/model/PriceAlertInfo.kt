@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PriceAlertInfo(
-    val id: Int,
+    val id: String,
     val priceAlert: PriceAlert,
 )

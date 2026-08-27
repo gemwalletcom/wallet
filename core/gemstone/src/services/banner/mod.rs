@@ -33,7 +33,7 @@ impl GemBannerService {
         self.store.add_banners(rules::wallet_setup_keys(&wallet), BannerState::Active).await
     }
 
-    pub async fn handle_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
+    pub async fn apply_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
         let closes = match action {
             GemBannerAction::Event { event } => rules::closes_on_action(event) && self.permissions.request_permissions_or_open_settings().await?,
             GemBannerAction::Close => true,
@@ -64,10 +64,6 @@ impl GemBannerService {
 
     pub async fn close(&self, key: GemBannerKey) -> Result<(), GemServiceError> {
         self.store.set_state(key, BannerState::Cancelled).await
-    }
-
-    pub fn closes_on_action(&self, event: BannerEvent) -> bool {
-        rules::closes_on_action(event)
     }
 
     pub fn visible_banners(&self, stored: Vec<GemBannerItem>, context: GemBannerContext) -> Vec<GemBannerItem> {

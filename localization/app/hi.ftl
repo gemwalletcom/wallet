@@ -212,6 +212,7 @@ errors_invalid_amount = अमान्य राशि
 errors_token_invalid_id = अमान्य टोकन आईडी
 errors_import_invalid_secret_phrase = अमान्य गुप्त वाक्यांश
 errors_import_invalid_secret_phrase_word = अमान्य गुप्त वाक्यांश शब्द: %@
+errors_import_invalid_private_key = अमान्य प्राइवेट की
 errors_invalid_url = अमान्य यूआरएल
 errors_error_occurred = एक त्रुटि पाई गई!
 errors_invalid_network_id = अमान्य नेटवर्क आईडी

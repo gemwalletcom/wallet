@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "অবৈধ টোকেন আইডি";
 "errors.import.invalid_secret_phrase" = "অবৈধ গোপন বাক্যাংশ";
 "errors.import.invalid_secret_phrase_word" = "অবৈধ গোপন বাক্যাংশ শব্দ: %@";
+"errors.import.invalid_private_key" = "অবৈধ প্রাইভেট কী";
 "errors.invalid_url" = "অবৈধ URL";
 "errors.error_occurred" = "একটি ত্রুটি ঘটেছে!";
 "errors.invalid_network_id" = "অবৈধ নেটওয়ার্ক আইডি";
@@ -211,6 +212,7 @@
 "errors.swap.minimum_amount" = "সর্বনিম্ন ট্রেডের পরিমাণ হল %@. অনুগ্রহ করে আরও বেশি পরিমাণ লিখুন।";
 "errors.perpetual.trigger_price_lower" = "ট্রিগার মূল্য বাজার মূল্যের চেয়ে কম হওয়া উচিত";
 "errors.perpetual.trigger_price_higher" = "ট্রিগার মূল্য বাজার মূল্যের চেয়ে বেশি হওয়া উচিত";
+"errors.network_offline" = "ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।";
 "errors.no_internet_connection" = "ইন্টারনেট সংযোগ নেই";
 "errors.no_service_connection" = "পরিষেবা সংযোগ নেই";
 "errors.balances_activity_outdated" = "ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।";

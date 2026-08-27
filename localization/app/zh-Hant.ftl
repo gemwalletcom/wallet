@@ -212,6 +212,7 @@ errors_invalid_amount = 金額無效
 errors_token_invalid_id = 無效的代幣 ID
 errors_import_invalid_secret_phrase = 助記詞無效
 errors_import_invalid_secret_phrase_word = 助記詞無效： %@
+errors_import_invalid_private_key = 無效的私鑰
 errors_invalid_url = 無效的網址
 errors_error_occurred = 出錯了！
 errors_invalid_network_id = 無效的網路ID

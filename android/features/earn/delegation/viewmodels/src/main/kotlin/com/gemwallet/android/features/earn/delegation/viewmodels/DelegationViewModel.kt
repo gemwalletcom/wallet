@@ -1,6 +1,11 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.StakeProviderType
 import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.canClaimDelegationRewards
+import uniffi.gemstone.delegationActions
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,9 +16,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.ext.byChain
-import com.gemwallet.android.ext.canClaimRewards
 import com.gemwallet.android.ext.changeAmountOnUnstake
-import com.gemwallet.android.ext.redelegated
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
@@ -23,11 +26,10 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.features.earn.delegation.models.DelegationActions
+import com.gemwallet.android.features.earn.delegation.models.toDelegationAction
 import com.gemwallet.android.features.earn.delegation.models.DelegationProperty
 import com.gemwallet.android.features.earn.delegation.models.HeadDelegationInfo
 import com.wallet.core.primitives.DelegationState
-import com.wallet.core.primitives.StakeChain
-import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,22 +115,15 @@ class DelegationViewModel @Inject constructor(
         assetInfo,
         sessionRepository.session().filterNotNull(),
     ) { delegation, assetInfo, session ->
-        if (delegation == null || assetInfo == null || session.wallet.type == WalletType.View) {
+        if (delegation == null || assetInfo == null) {
             return@combine emptyList()
         }
-        val stakeChain = StakeChain.byChain(assetInfo.asset.id.chain)!!
-        when (delegation.base.state) {
-            DelegationState.Inactive,
-            DelegationState.Active -> listOfNotNull(
-                DelegationActions.StakeAction,
-                DelegationActions.UnstakeAction,
-                assetInfo.chain.takeIf { it.redelegated }?.let { DelegationActions.RedelegateAction },
-            )
-            DelegationState.AwaitingWithdrawal -> listOf( DelegationActions.WithdrawalAction )
-            DelegationState.Pending,
-            DelegationState.Activating,
-            DelegationState.Deactivating -> emptyList()
-        }
+        delegationActions(
+            walletType = session.wallet.type.toGem(),
+            chain = assetInfo.asset.id.chain.string,
+            provider = StakeProviderType.Stake.toJson(),
+            state = delegation.base.state.toJson(),
+        ).mapNotNull { it.toDelegationAction() }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -137,11 +132,15 @@ class DelegationViewModel @Inject constructor(
         assetInfo,
         sessionRepository.session().filterNotNull(),
     ) { delegation, assetInfo, session ->
-        if (delegation == null || assetInfo == null || session.wallet.type == WalletType.View) {
+        if (delegation == null || assetInfo == null) {
             return@combine false
         }
-        assetInfo.asset.id.chain.canClaimRewards
-            && delegation.hasRewards()
+        canClaimDelegationRewards(
+            walletType = session.wallet.type.toGem(),
+            chain = assetInfo.asset.id.chain.string,
+            state = delegation.base.state.toJson(),
+            rewards = delegation.base.rewards,
+        )
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 

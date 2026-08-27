@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemNameServiceProtocol
+import class Gemstone.GemRecipientService
 import Components
 import Foundation
 import GemstonePrimitives
@@ -166,16 +167,23 @@ extension RecipientSceneViewModel {
     }
 
     func onSelectRecipient(_ recipient: Recipient) {
-        handle(
-            recipientData: RecipientData(
-                recipient: Recipient(
-                    name: recipient.name,
-                    address: asset.chain.checksumAddress(recipient.address),
-                    memo: recipient.memo,
+        do {
+            let validated = try Recipient(GemRecipientService().recipient(
+                chain: asset.chain.rawValue,
+                input: recipient.address,
+                nameRecord: nil,
+                memo: recipient.memo,
+                references: [],
+            ))
+            handle(
+                recipientData: RecipientData(
+                    recipient: Recipient(name: recipient.name, address: validated.address, memo: validated.memo),
+                    amount: .none,
                 ),
-                amount: .none,
-            ),
-        )
+            )
+        } catch {
+            addressInputModel.text = recipient.address
+        }
     }
 }
 

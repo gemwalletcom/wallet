@@ -1,10 +1,12 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import uniffi.gemstone.includesPerpetualCollateral
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
+import uniffi.gemstone.GemWalletPreferencesService
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -44,6 +46,7 @@ class GetWalletSummaryImpl(
     private val observePerpetualWallet: ObservePerpetualWallet,
     private val hasMultiSign: HasMultiSign,
     private val userConfig: UserConfig,
+    private val walletPreferencesService: GemWalletPreferencesService,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetWalletSummary {
     private val balanceCalculator = GemBalanceCalculator()
@@ -51,14 +54,10 @@ class GetWalletSummaryImpl(
     private val perpetualCollateral: Flow<PerpetualBalance?> =
         observePerpetualWallet().flatMapLatest { wallet ->
             wallet ?: return@flatMapLatest flowOf(null)
-            combine(
-                perpetualRepository.getBalance(wallet.id, HypercoreUSDC.id),
-                userConfig.perpetualAccountMode(wallet.id),
-            ) { balance, mode ->
-                when (mode) {
-                    PerpetualAccountMode.Unified -> null
-                    PerpetualAccountMode.Standard -> balance
-                }
+            if (includesPerpetualCollateral(walletPreferencesService.getPerpetualAccountMode(wallet.id.id))) {
+                perpetualRepository.getBalance(wallet.id, HypercoreUSDC.id)
+            } else {
+                flowOf(null)
             }
         }
 

@@ -15,7 +15,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.Config
+import uniffi.gemstone.recommendedValidator
+import uniffi.gemstone.recommendedValidatorIds
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.serializer.decodeJson
 import uniffi.gemstone.GemStakeService
 import java.math.BigInteger
 
@@ -23,19 +26,18 @@ class StakeRepository(
     private val stakeService: GemStakeService,
     private val stakeDao: StakeDao,
 ) : SyncStakeDelegations {
-    private val recommendedValidators by lazy { Config().getValidators() }
-
     override suspend fun sync(walletId: WalletId, assetId: AssetId, address: String) = withContext(Dispatchers.IO) {
         stakeService.sync(walletId.id, assetId.chain.string, address)
     }
 
     fun getRecommendValidators(assetId: AssetId): List<String> {
-        return recommendedValidators[assetId.chain.string].orEmpty()
+        return recommendedValidatorIds(assetId.chain.string)
     }
 
     fun getRecommended(assetId: AssetId): Flow<DelegationValidator?> {
-        val recommendedIds = getRecommendValidators(assetId)
-        return getValidators(assetId).map { pickRecommendedValidator(it, recommendedIds) }
+        return getValidators(assetId).map { validators ->
+            recommendedValidator(assetId.chain.string, validators.map { it.toJson() })?.decodeJson<DelegationValidator>()
+        }
     }
 
     fun getValidators(assetId: AssetId): Flow<List<DelegationValidator>> {
@@ -65,16 +67,6 @@ class StakeRepository(
         stakeDao.getValidator(assetId, validatorId)?.toDTO()
     }
 
-}
-
-internal fun pickRecommendedValidator(
-    validators: List<DelegationValidator>,
-    recommendedIds: Collection<String>,
-): DelegationValidator? {
-    return validators
-        .filter { recommendedIds.contains(it.id) }
-        .randomOrNull()
-        ?: validators.firstOrNull()
 }
 
 internal fun selectableValidators(validators: List<DelegationValidator>): List<DelegationValidator> {

@@ -18,6 +18,7 @@ reqwest_provider = ["swapper/reqwest_provider"]
 swap_integration_tests = ["reqwest_provider"]
 
 [dependencies]
+rand = { workspace = true }
 swapper = { path = "../crates/swapper" }
 payment = { path = "../crates/payment" }
 primitives = { path = "../crates/primitives" }

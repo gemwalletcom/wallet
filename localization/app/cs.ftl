@@ -212,6 +212,7 @@ errors_invalid_amount = Neplatná částka
 errors_token_invalid_id = Neplatné ID tokenu
 errors_import_invalid_secret_phrase = Neplatná tajná fráze
 errors_import_invalid_secret_phrase_word = Neplatné slovo tajné fráze: %@
+errors_import_invalid_private_key = Neplatný soukromý klíč
 errors_invalid_url = Neplatná adresa URL
 errors_error_occurred = Došlo k chybě!
 errors_invalid_network_id = Neplatné ID sítě

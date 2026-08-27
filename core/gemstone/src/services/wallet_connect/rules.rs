@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 
+use crate::services::collections::stale;
+
 use chrono::{DateTime, Utc};
+use primitives::ChainType;
 use primitives::{
     Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession,
     WalletConnectionState, WalletId, WalletType,
@@ -32,12 +35,13 @@ pub fn validate_session_chain(session: &WalletConnectionSession, chain: Chain) -
 }
 
 pub fn sessions_to_delete(local: &[WalletConnectionSession], remote: &[WalletConnectionSession]) -> Vec<String> {
-    let remote_ids: HashSet<&str> = remote.iter().map(|session| session.id.as_str()).collect();
-    local
-        .iter()
-        .filter(|session| session.state == WalletConnectionState::Active && !remote_ids.contains(session.id.as_str()))
-        .map(|session| session.id.clone())
-        .collect()
+    stale(
+        local
+            .iter()
+            .filter(|session| session.state == WalletConnectionState::Active)
+            .map(|session| session.id.clone()),
+        remote.iter().map(|session| session.id.clone()),
+    )
 }
 
 pub fn sessions_to_update(local: &[WalletConnectionSession], remote: Vec<WalletConnectionSession>) -> Vec<WalletConnectionSession> {
@@ -57,7 +61,7 @@ pub fn session_wallets(wallets: Vec<Wallet>, required: &[Chain], optional: &[Cha
         .into_iter()
         .filter(|wallet| wallet.wallet_type != WalletType::View && supports(wallet, required, optional, &wallet_connect))
         .collect();
-    supported.sort_by_key(|wallet| wallet_type_rank(&wallet.wallet_type));
+    supported.sort_by_key(|wallet| wallet.wallet_type.rank());
     supported
 }
 
@@ -81,6 +85,16 @@ pub fn parse_chains(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Opt
 
 pub fn parse_known_chains(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Vec<Chain> {
     chain_ids.iter().filter_map(|chain_id| parse_chain(wallet_connect, chain_id)).collect()
+}
+
+pub fn authentication_chain_ids(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Vec<String> {
+    let mut seen = HashSet::new();
+    chain_ids
+        .iter()
+        .filter(|chain_id| parse_chain(wallet_connect, chain_id).is_some_and(|chain| chain.chain_type() == ChainType::Ethereum))
+        .filter(|chain_id| seen.insert((*chain_id).clone()))
+        .cloned()
+        .collect()
 }
 
 pub fn account_chains(wallet_connect: &WalletConnect, accounts: &[String]) -> Vec<Chain> {
@@ -159,15 +173,6 @@ fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain], wallet_conn
         return required.iter().all(|chain| chains.contains(chain));
     }
     optional.is_empty() || optional.iter().any(|chain| chains.contains(chain))
-}
-
-fn wallet_type_rank(wallet_type: &WalletType) -> u8 {
-    match wallet_type {
-        WalletType::Multicoin => 0,
-        WalletType::Single => 1,
-        WalletType::PrivateKey => 2,
-        WalletType::View => 3,
-    }
 }
 
 #[cfg(test)]
@@ -297,6 +302,18 @@ mod tests {
                 &["eip155:1:0xabc".to_string(), "eip155:137:0xabc".to_string(), "eip155:1:0xdef".to_string()]
             ),
             vec![Chain::Ethereum, Chain::Polygon]
+        );
+        assert_eq!(
+            authentication_chain_ids(
+                &wallet_connect,
+                &[
+                    "eip155:1".to_string(),
+                    "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string(),
+                    "eip155:1".to_string(),
+                    "eip155:137".to_string()
+                ]
+            ),
+            vec!["eip155:1".to_string(), "eip155:137".to_string()]
         );
 
         let metadata = application_metadata(

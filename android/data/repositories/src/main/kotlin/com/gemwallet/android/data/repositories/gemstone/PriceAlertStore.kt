@@ -4,7 +4,6 @@ import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.ext.id
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.PriceAlert
 import uniffi.gemstone.GemPriceAlertStore
@@ -19,18 +18,6 @@ class GemstonePriceAlertStore(
     }
 
     override suspend fun update(alerts: List<String>, deleteIds: List<String>) {
-        val local = priceAlertsDao.getAllPriceAlerts()
-        val localIdsByKey = local.associate { it.toDTO().priceAlert.id to it.id }
-
-        val staleIds = deleteIds.mapNotNull { localIdsByKey[it] }
-        if (staleIds.isNotEmpty()) {
-            priceAlertsDao.delete(staleIds)
-        }
-
-        val records = alerts.map { it.decodeJson<PriceAlert>() }
-            .map { alert -> alert.toRecord().copy(id = localIdsByKey[alert.id] ?: 0) }
-        if (records.isNotEmpty()) {
-            priceAlertsDao.put(records)
-        }
+        priceAlertsDao.update(alerts.map { it.decodeJson<PriceAlert>().toRecord() }, deleteIds)
     }
 }

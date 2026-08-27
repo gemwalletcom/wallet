@@ -24,11 +24,6 @@ pub fn spot_token_id_for_asset_id(asset_id: &AssetId) -> Option<String> {
     (!symbol.is_empty()).then(|| format!("{symbol}:{contract}"))
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpotTokensResponse {
-    pub tokens: Vec<SpotToken>,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -100,7 +100,7 @@ class ConfirmTransactionImpl(
             } catch (_: GemstoneException) {
                 throw ConfirmError.TransactionIncorrect
             } ?: continue
-            createTransactionsCase.createTransaction(session.wallet.id, transaction.decodeJson<Transaction>())
+            createTransactionsCase.createTransaction(session.wallet.id, transaction.decodeJson<Transaction>(), session.currency)
         }
     }
 

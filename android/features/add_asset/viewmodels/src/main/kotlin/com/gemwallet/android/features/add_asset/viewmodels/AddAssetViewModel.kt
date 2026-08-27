@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
+import com.gemwallet.android.ext.toChain
+import uniffi.gemstone.defaultTokenChain
 import uniffi.gemstone.GemExplorerService
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
@@ -62,10 +64,8 @@ class AddAssetViewModel @Inject constructor(
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val defaultChain = availableChains.map {
-        it.let {
-            it?.firstOrNull { chain -> chain == Chain.Ethereum } ?: it?.firstOrNull() ?: Chain.Ethereum
-        }
+    val defaultChain = availableChains.map { chains ->
+        defaultTokenChain(chains.orEmpty().map { it.string })?.toChain() ?: Chain.Ethereum
     }
     private val chain = MutableStateFlow<Chain?>(null)
     val selectedChain = defaultChain.combine(chain) {defaultChain, chain ->

@@ -2,7 +2,7 @@ package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
@@ -25,7 +25,7 @@ class PriceAlertsSelectViewModel @Inject constructor(
     getRecentAssets: GetRecentAssets,
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
-    toggleAssetPin: ToggleAssetPin,
+    setAssetPinned: SetAssetPinned,
     searchService: AssetsSearchService,
     searchTokensCase: SearchTokensCase,
 ) : BaseAssetSelectViewModel(
@@ -33,7 +33,7 @@ class PriceAlertsSelectViewModel @Inject constructor(
     getRecentAssets,
     updateRecentAsset,
     switchAssetVisibility,
-    toggleAssetPin,
+    setAssetPinned,
     searchTokensCase,
     PriceAlertSelectSearch(searchService),
 ) {

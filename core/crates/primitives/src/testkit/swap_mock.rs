@@ -148,10 +148,6 @@ impl SwapQuoteData {
         }
     }
 
-    pub fn mock_with_gas_limit(gas_limit: Option<String>) -> Self {
-        SwapQuoteData { gas_limit, ..Self::mock() }
-    }
-
     pub fn mock_contract_call(to: &str, value: &str, data: &str, memo: Option<&str>) -> Self {
         SwapQuoteData {
             data_type: SwapQuoteDataType::Contract,

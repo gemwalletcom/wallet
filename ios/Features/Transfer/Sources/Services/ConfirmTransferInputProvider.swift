@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.isInsufficientNetworkFee
 import Primitives
 import PrimitivesComponents
 import Validators
@@ -23,20 +24,16 @@ public struct ConfirmTransferInputProvider: Sendable {
         selection: FeeSelection,
         feeAssetSelection: FeeAssetSelection,
     ) async throws -> ConfirmTransferPreload {
-        let loadedTransactionData: TransferTransactionData
+        let transactionData: TransferTransactionData
         do {
-            loadedTransactionData = try await transferTransactionProvider.loadTransferTransactionData(
+            transactionData = try await transferTransactionProvider.loadTransferTransactionData(
                 wallet: request.wallet,
                 data: request.data,
                 selection: selection,
+                feeAssetId: feeAssetSelection.selectedAssetId,
             )
         } catch {
             throw preloadFailureError(metadata: metadata) ?? error
-        }
-
-        let transactionData = switch feeAssetSelection {
-        case .automatic: loadedTransactionData
-        case let .selected(assetId): loadedTransactionData.withFeeAsset(assetId)
         }
         let fee = transactionData.transactionData.fee
         let feeAssetId = fee.feeAssetId
@@ -77,10 +74,7 @@ public struct ConfirmTransferInputProvider: Sendable {
     }
 
     private func preloadFailureError(metadata: TransferDataMetadata) -> TransferAmountCalculatorError? {
-        if [Chain.hyperCore, Chain.tron].contains(metadata.feeAssetId.chain) {
-            return nil
-        }
-        guard metadata.feeAvailable.isZero, metadata.feeAssetId.type == .native else {
+        guard isInsufficientNetworkFee(feeAssetId: metadata.feeAssetId.identifier, feeAvailable: metadata.feeAvailable.description) else {
             return nil
         }
         return .insufficientNetworkFee(metadata.feeAssetId.chain.asset, requirement: nil)

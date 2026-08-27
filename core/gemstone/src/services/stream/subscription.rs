@@ -9,6 +9,7 @@ use super::connection::GemStreamConnection;
 use super::rules;
 use crate::services::error::GemServiceError;
 use crate::services::price::GemPriceService;
+use crate::services::price_alert::GemPriceAlertStore;
 
 #[derive(Default)]
 struct SubscriptionState {
@@ -19,6 +20,7 @@ struct SubscriptionState {
 #[derive(uniffi::Object)]
 pub struct GemStreamSubscriptionService {
     price: Arc<GemPriceService>,
+    alerts: Arc<dyn GemPriceAlertStore>,
     connection: Arc<dyn GemStreamConnection>,
     state: Mutex<SubscriptionState>,
 }
@@ -26,9 +28,10 @@ pub struct GemStreamSubscriptionService {
 #[uniffi::export]
 impl GemStreamSubscriptionService {
     #[uniffi::constructor]
-    pub fn new(price: Arc<GemPriceService>, connection: Arc<dyn GemStreamConnection>) -> Self {
+    pub fn new(price: Arc<GemPriceService>, alerts: Arc<dyn GemPriceAlertStore>, connection: Arc<dyn GemStreamConnection>) -> Self {
         Self {
             price,
+            alerts,
             connection,
             state: Mutex::new(SubscriptionState::default()),
         }
@@ -50,7 +53,8 @@ impl GemStreamSubscriptionService {
         if !self.connection.is_connected().await {
             return Ok(());
         }
-        let asset_ids = self.price.observable_asset_ids(wallet_id).await?;
+        let alert_asset_ids = self.alerts.get_price_alerts(None).await?.into_iter().map(|alert| alert.asset_id).collect();
+        let asset_ids = self.price.observable_asset_ids(wallet_id, alert_asset_ids).await?;
         let target: HashSet<AssetId> = asset_ids.iter().cloned().collect();
         if subscribed == target {
             return Ok(());
@@ -85,7 +89,7 @@ mod tests {
     use crate::services::price::{GemPriceStore, GemPriceUpdate};
     use async_trait::async_trait;
     use primitives::currency::Currency;
-    use primitives::{AssetMarket, Chain, FiatRate};
+    use primitives::{AssetMarket, Chain, FiatRate, PriceAlert};
     use std::sync::atomic::{AtomicBool, Ordering};
 
     #[derive(Debug)]
@@ -126,6 +130,30 @@ mod tests {
         }
     }
 
+    struct AlertStore(Vec<AssetId>);
+
+    #[async_trait]
+    impl GemPriceAlertStore for AlertStore {
+        async fn get_price_alerts(&self, _asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, GemServiceError> {
+            Ok(self
+                .0
+                .iter()
+                .map(|asset_id| PriceAlert {
+                    asset_id: asset_id.clone(),
+                    currency: Currency::USD,
+                    price: None,
+                    price_percent_change: None,
+                    price_direction: None,
+                    identifier: String::new(),
+                    last_notified_at: None,
+                })
+                .collect())
+        }
+        async fn update(&self, _alerts: Vec<PriceAlert>, _delete_ids: Vec<String>) -> Result<(), GemServiceError> {
+            Ok(())
+        }
+    }
+
     #[derive(Default)]
     struct Connection {
         connected: AtomicBool,
@@ -148,7 +176,7 @@ mod tests {
             Arc::new(GemApiClient::new(Arc::new(NoopProvider), "https://example.com".into())),
             Arc::new(EnabledStore(vec![AssetId::from_chain(Chain::Bitcoin)])),
         );
-        GemStreamSubscriptionService::new(Arc::new(price), connection)
+        GemStreamSubscriptionService::new(Arc::new(price), Arc::new(AlertStore(vec![AssetId::from_chain(Chain::Bitcoin)])), connection)
     }
 
     fn subscribed(connection: &Connection) -> Vec<Vec<AssetId>> {

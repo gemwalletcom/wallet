@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import func Gemstone.defaultFeePriority
 import Store
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -15,7 +16,6 @@ public struct ConfirmService: Sendable {
     private let recentActivityStore: RecentActivityStore
     private let toastPresenter: ToastPresenter
     private let keystore: any Keystore
-    private let chainService: any ChainServiceable
     private let explorerService: any GemExplorerServiceProtocol
     private let addressStore: AddressStore
 
@@ -27,7 +27,6 @@ public struct ConfirmService: Sendable {
         recentActivityStore: RecentActivityStore,
         toastPresenter: ToastPresenter,
         keystore: any Keystore,
-        chainService: any ChainServiceable,
         explorerService: any GemExplorerServiceProtocol,
         addressStore: AddressStore,
     ) {
@@ -38,7 +37,6 @@ public struct ConfirmService: Sendable {
         self.recentActivityStore = recentActivityStore
         self.toastPresenter = toastPresenter
         self.keystore = keystore
-        self.chainService = chainService
         self.explorerService = explorerService
         self.addressStore = addressStore
     }
@@ -101,7 +99,7 @@ public struct ConfirmService: Sendable {
     }
 
     public func defaultPriority(for type: TransferDataType) -> FeePriority {
-        chainService.defaultPriority(for: type)
+        (try? type.map()).flatMap { FeePriority(rawValue: defaultFeePriority(inputType: $0)) } ?? .normal
     }
 }
 

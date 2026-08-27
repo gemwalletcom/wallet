@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import func Gemstone.defaultTokenChain
 import Primitives
 
 struct AddAssetInput {
@@ -14,6 +15,6 @@ struct AddAssetInput {
 
     init(chains: [Chain]) {
         self.chains = chains
-        chain = chains.first
+        chain = defaultTokenChain(chains: chains.map(\.rawValue)).flatMap { Chain(rawValue: $0) }
     }
 }

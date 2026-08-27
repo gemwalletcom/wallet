@@ -1,54 +1,30 @@
 package com.gemwallet.android.data.repositories.gemstone
 
-import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.ContactsDao
-import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.testkit.mockContact
-import com.gemwallet.android.testkit.mockContactAddress
-import com.wallet.core.primitives.AddressType
+import com.gemwallet.android.data.service.store.database.entities.DbContactAddress
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ContactAddress
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class GemstoneContactStoreTest {
+class ContactStoreTest {
 
     private val contactsDao = mockk<ContactsDao>(relaxed = true)
-    private val addressesDao = mockk<AddressesDao>(relaxed = true)
-    private val store = GemstoneContactStore(contactsDao, addressesDao)
+    private val store = GemstoneContactStore(contactsDao)
 
     @Test
-    fun updateContact_removesDroppedAddressesFromAddressBook() = runTest {
+    fun getAddresses_returnsContactAddressesForCore() = runTest {
         coEvery { contactsDao.getAddresses("contact-1") } returns listOf(
-            mockContactAddress("a1", Chain.Bitcoin).toRecord(),
-            mockContactAddress("a2", Chain.Ethereum).toRecord(),
+            DbContactAddress(id = "address-a1", contactId = "contact-1", chain = Chain.Bitcoin, address = "bc1", memo = null),
         )
 
-        store.updateContact(
-            contact = mockContact("contact-1").toJson(),
-            addresses = listOf(mockContactAddress("a1", Chain.Bitcoin).toJson()),
-            deleteAddressIds = listOf("a2"),
-        )
+        val addresses = store.getAddresses("contact-1").map { it.decodeJson<ContactAddress>() }
 
-        coVerify { contactsDao.updateContact(any(), listOf("a2"), any()) }
-        coVerify { addressesDao.delete(Chain.Ethereum, "address-a2", AddressType.Contact) }
-        coVerify(exactly = 0) { addressesDao.delete(Chain.Bitcoin, "address-a1", AddressType.Contact) }
-    }
-
-    @Test
-    fun deleteContact_removesContactAddressBookEntries() = runTest {
-        coEvery { contactsDao.getAddresses("contact-1") } returns listOf(
-            mockContactAddress("a1", Chain.Bitcoin).toRecord(),
-            mockContactAddress("a2", Chain.Ethereum).toRecord(),
-        )
-
-        store.deleteContact("contact-1")
-
-        coVerify { addressesDao.delete(Chain.Bitcoin, "address-a1", AddressType.Contact) }
-        coVerify { addressesDao.delete(Chain.Ethereum, "address-a2", AddressType.Contact) }
-        coVerify { contactsDao.deleteContact("contact-1") }
+        assertEquals(listOf("address-a1"), addresses.map { it.id })
+        assertEquals(Chain.Bitcoin, addresses.single().chain)
     }
 }

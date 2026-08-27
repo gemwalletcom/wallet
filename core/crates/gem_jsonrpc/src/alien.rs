@@ -11,6 +11,7 @@ pub enum AlienError {
     RequestError { msg: String },
     ResponseError { msg: String },
     Http { status: u16, len: u32 },
+    Offline,
 }
 
 impl AlienError {
@@ -29,6 +30,7 @@ impl std::fmt::Display for AlienError {
             Self::RequestError { msg } => write!(f, "Request error: {msg}"),
             Self::ResponseError { msg } => write!(f, "Response error: {msg}"),
             Self::Http { status, .. } => write!(f, "HTTP error: status {status}"),
+            Self::Offline => write!(f, "network offline"),
         }
     }
 }
@@ -39,6 +41,7 @@ impl RpcClientError for AlienError {
     fn into_client_error(self) -> ClientError {
         match self {
             Self::RequestError { msg } | Self::ResponseError { msg } => ClientError::Network(msg),
+            Self::Offline => ClientError::Network(Self::Offline.to_string()),
             Self::Http { status, .. } => ClientError::Http { status, body: Vec::new() },
         }
     }

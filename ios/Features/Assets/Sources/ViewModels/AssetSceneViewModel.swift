@@ -406,7 +406,7 @@ public extension AssetSceneViewModel {
                  .accountBlockedMultiSignature,
                  .onboarding:
                 Task {
-                    try await bannerService.handleAction(key: action.banner.gemKey, action: action.type.gemAction)
+                    try await bannerService.applyAction(key: action.banner.gemKey, action: action.type.gemAction)
                 }
             case .suspiciousAsset: break
             case .tradePerpetuals:
@@ -420,7 +420,7 @@ public extension AssetSceneViewModel {
             }
         case .closeBanner:
             Task {
-                try await bannerService.handleAction(key: action.banner.gemKey, action: action.type.gemAction)
+                try await bannerService.applyAction(key: action.banner.gemKey, action: action.type.gemAction)
             }
         }
         onSelect(url: action.url)

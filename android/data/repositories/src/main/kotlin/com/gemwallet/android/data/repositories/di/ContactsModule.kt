@@ -25,7 +25,7 @@ object ContactsModule {
     @Singleton
     @Provides
     fun provideGemContactStore(contactsDao: ContactsDao, addressesDao: AddressesDao): GemContactStore =
-        GemstoneContactStore(contactsDao, addressesDao)
+        GemstoneContactStore(contactsDao)
 
     @Singleton
     @Provides

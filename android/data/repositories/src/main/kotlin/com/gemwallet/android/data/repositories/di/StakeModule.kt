@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.cases.addresses.SaveAddressNames
 import com.gemwallet.android.data.repositories.gemstone.GemstoneStakeStore
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.repositories.stake.StakeRepository
@@ -11,6 +10,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemStakeService
 import uniffi.gemstone.GemStakeStore
 import uniffi.gemstone.GemStaticApiClient
@@ -21,13 +21,13 @@ import javax.inject.Singleton
 object StakeModule {
     @Singleton
     @Provides
-    fun provideGemStakeStore(stakeDao: StakeDao, assetsDao: AssetsDao, saveAddressNames: SaveAddressNames): GemStakeStore =
-        GemstoneStakeStore(stakeDao, assetsDao, saveAddressNames)
+    fun provideGemStakeStore(stakeDao: StakeDao, assetsDao: AssetsDao): GemStakeStore =
+        GemstoneStakeStore(stakeDao, assetsDao)
 
     @Singleton
     @Provides
-    fun provideGemStakeService(gateway: GemGateway, staticApiClient: GemStaticApiClient, store: GemStakeStore): GemStakeService =
-        GemStakeService(gateway, staticApiClient, store)
+    fun provideGemStakeService(gateway: GemGateway, staticApiClient: GemStaticApiClient, store: GemStakeStore, addressStore: GemAddressStore): GemStakeService =
+        GemStakeService(gateway, staticApiClient, store, addressStore)
 
     @Singleton
     @Provides

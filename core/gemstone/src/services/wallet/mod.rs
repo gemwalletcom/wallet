@@ -1,3 +1,4 @@
+pub mod error;
 pub mod model;
 pub mod password;
 mod rules;
@@ -15,6 +16,7 @@ use crate::services::file::GemFileStore;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
+pub use error::GemWalletImportError;
 pub use model::{GemWalletImportResult, GemWalletImportType, GemWalletSource};
 pub use password::GemKeystorePassword;
 pub use store::GemWalletStore;
@@ -63,8 +65,12 @@ impl GemWalletService {
         Ok(rules::next_wallet_index(&self.store.get_wallets()?))
     }
 
+    pub fn validate_import(&self, import: GemWalletImportType) -> Result<GemWalletImportType, GemWalletImportError> {
+        rules::validate_import(import)
+    }
+
     pub fn preview_import(&self, import: GemWalletImportType) -> Result<GemWalletImport, GemServiceError> {
-        match import {
+        match rules::validate_import(import)? {
             GemWalletImportType::Address { address, chain } => {
                 let wallet = rules::view_wallet(String::new(), chain, address);
                 Ok(GemWalletImport {
@@ -78,6 +84,7 @@ impl GemWalletService {
     }
 
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: GemWalletSource) -> Result<GemWalletImportResult, GemServiceError> {
+        let import = rules::validate_import(import)?;
         let preview = self.preview_import(import.clone())?;
         let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Status {
             msg: "invalid wallet id".to_string(),
@@ -93,7 +100,7 @@ impl GemWalletService {
                 ..rules::view_wallet(name, chain, address)
             },
             import => {
-                let password = self.password.get_password(wallet_id.clone(), true)?;
+                let password = self.password.get_password(wallet_id.clone(), rules::can_create_password(&wallets))?;
                 let stored = self.keystore.create_store(keystore_import(import), password)?;
                 Wallet {
                     id: wallet_id,
@@ -116,7 +123,10 @@ impl GemWalletService {
         Ok(GemWalletImportResult::New { wallet })
     }
 
-    pub async fn delete_wallet(&self, wallet: Wallet) -> Result<bool, GemServiceError> {
+    pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<bool, GemServiceError> {
+        let wallet = self.store.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::Status {
+            msg: format!("wallet {} not found", wallet_id.id()),
+        })?;
         if wallet.wallet_type != WalletType::View {
             self.keystore.delete(keystore_id_for_wallet(wallet.id.id()))?;
         }
@@ -165,16 +175,16 @@ impl GemWalletService {
         self.store.set_pinned(wallet_id, pinned).await
     }
 
-    pub async fn set_image_url(&self, wallet_id: WalletId, image_url: Option<String>) -> Result<(), GemServiceError> {
-        self.store.set_image_url(wallet_id, image_url).await
-    }
-
     pub async fn rename(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError> {
         self.store.rename(wallet_id, name).await
     }
 }
 
 impl GemWalletService {
+    pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        self.store.get_wallets()
+    }
+
     async fn invalidate_subscriptions(&self) -> Result<(), GemServiceError> {
         let version = self.device_store.get_subscriptions_version().await?;
         self.device_store.set_subscriptions_version(version + 1).await

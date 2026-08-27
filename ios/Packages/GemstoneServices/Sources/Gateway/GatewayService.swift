@@ -31,17 +31,18 @@ public actor GatewayService: Sendable {
         GatewayService(provider: provider, preferences: preferences, securePreferences: securePreferences)
     }
 
-    public nonisolated func stakeService(staticApi: GemStaticApiClient, store: any GemStakeStore) -> GemStakeService {
-        GemStakeService(gateway: gateway, staticApi: staticApi, store: store)
+    public nonisolated func stakeService(staticApi: GemStaticApiClient, store: any GemStakeStore, addressStore: any GemAddressStore) -> GemStakeService {
+        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, addressStore: addressStore)
     }
 
     public nonisolated func transactionStateService(
         store: any GemTransactionStateStore,
+        assets: GemAssetsService,
         balance: GemBalanceService,
         stake: GemStakeService,
         nft: GemNftService,
     ) -> GemTransactionStateService {
-        GemTransactionStateService(gateway: gateway, store: store, balance: balance, stake: stake, nft: nft)
+        GemTransactionStateService(gateway: gateway, store: store, assets: assets, balance: balance, stake: stake, nft: nft)
     }
 
     public nonisolated func balanceService(
@@ -50,8 +51,9 @@ public actor GatewayService: Sendable {
         store: any GemBalanceStore,
         assets: GemAssetsService,
         price: GemPriceService,
+        stream: GemStreamSubscriptionService,
     ) -> GemBalanceService {
-        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, price: price)
+        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, price: price, stream: stream)
     }
 
     public nonisolated func assetsService(
@@ -63,8 +65,14 @@ public actor GatewayService: Sendable {
         GemAssetsService(api: api, gateway: gateway, store: store, price: price, preferences: preferences)
     }
 
-    public nonisolated func perpetualService(price: GemPriceService, store: any GemPerpetualStore, preferences: GemPreferencesService) -> GemPerpetualService {
-        GemPerpetualService(gateway: gateway, price: price, store: store, preferences: preferences)
+    public nonisolated func perpetualService(
+        price: GemPriceService,
+        store: any GemPerpetualStore,
+        preferences: GemPreferencesService,
+        balance: GemBalanceService,
+        walletPreferences: GemWalletPreferencesService,
+    ) -> GemPerpetualService {
+        GemPerpetualService(gateway: gateway, price: price, store: store, preferences: preferences, balance: balance, walletPreferences: walletPreferences)
     }
 
     public nonisolated func confirmService(

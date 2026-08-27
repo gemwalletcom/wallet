@@ -50,13 +50,14 @@ struct ConfirmTransferInputProviderTests {
     @Test
     func loadUsesSelectedFeeAsset() async throws {
         let selectedAsset = Asset.mockTempoUSDC()
+        let transferProvider = TransferTransactionProviderMock(result: .success(
+            TransferTransactionData(
+                allRates: [],
+                transactionData: .mock(feeAsset: selectedAsset),
+            ),
+        ))
         let provider = ConfirmTransferInputProvider(
-            transferTransactionProvider: TransferTransactionProviderMock(result: .success(
-                TransferTransactionData(
-                    allRates: [],
-                    transactionData: .mock(feeAsset: .mockTempoPathUSD()),
-                ),
-            )),
+            transferTransactionProvider: transferProvider,
             feeAssetProvider: FeeAssetProviderMock(
                 asset: selectedAsset,
                 balance: .mock(available: 42),
@@ -71,7 +72,7 @@ struct ConfirmTransferInputProviderTests {
             feeAssetSelection: .selected(selectedAsset.id),
         )
 
-        #expect(result.input.transactionData.fee.feeAssetId == selectedAsset.id)
+        #expect(transferProvider.loadedFeeAssetId == selectedAsset.id)
         #expect(result.input.feeAsset == selectedAsset)
         #expect(result.metadata.feeAssetId == selectedAsset.id)
     }

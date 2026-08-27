@@ -2,13 +2,11 @@ use std::error::Error;
 use std::sync::Arc;
 
 use cacher::{CacheKey, CacherClient};
-use primitives::{ConfigKey, try_in_order};
+use primitives::try_in_order;
 
-use crate::UsernameError;
 use crate::ip_check_provider::IpCheckProvider;
 use crate::model::IpCheckResult;
 
-#[derive(Clone)]
 pub struct IpSecurityClient {
     providers: Vec<Arc<dyn IpCheckProvider>>,
     cacher: CacherClient,
@@ -31,48 +29,5 @@ impl IpSecurityClient {
             Some(result) => Ok(result),
             None => Err("No IP check providers configured".into()),
         }
-    }
-
-    pub async fn check_username_creation_limits(
-        &self,
-        ip_address: &str,
-        device_id: i32,
-        global_daily_limit: i64,
-        ip_limit: i64,
-        device_limit: i64,
-    ) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let global_count = self.cacher.get_cached_counter(CacheKey::UsernameCreationGlobalDaily).await?;
-        if global_count >= global_daily_limit {
-            return Err(UsernameError::LimitReached(ConfigKey::UsernameCreationGlobalDailyLimit).into());
-        }
-
-        let ip_count = self.cacher.get_cached_counter(CacheKey::UsernameCreationPerIp(ip_address)).await?;
-        if ip_count >= ip_limit {
-            return Err(UsernameError::LimitReached(ConfigKey::UsernameCreationPerIp).into());
-        }
-
-        let device_count = self.cacher.get_cached_counter(CacheKey::UsernameCreationPerDevice(device_id)).await?;
-        if device_count >= device_limit {
-            return Err(UsernameError::LimitReached(ConfigKey::UsernameCreationPerDevice).into());
-        }
-
-        Ok(())
-    }
-
-    pub async fn check_username_creation_country_limit(&self, country_code: &str, country_daily_limit: i64) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let country_count = self.cacher.get_cached_counter(CacheKey::UsernameCreationPerCountryDaily(country_code)).await?;
-        if country_count >= country_daily_limit {
-            return Err(UsernameError::LimitReached(ConfigKey::UsernameCreationPerCountryDailyLimit).into());
-        }
-
-        Ok(())
-    }
-
-    pub async fn record_username_creation(&self, country_code: &str, ip_address: &str, device_id: i32) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cacher.increment_cached(CacheKey::UsernameCreationGlobalDaily).await?;
-        self.cacher.increment_cached(CacheKey::UsernameCreationPerCountryDaily(country_code)).await?;
-        self.cacher.increment_cached(CacheKey::UsernameCreationPerIp(ip_address)).await?;
-        self.cacher.increment_cached(CacheKey::UsernameCreationPerDevice(device_id)).await?;
-        Ok(())
     }
 }

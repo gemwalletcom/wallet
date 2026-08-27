@@ -5,6 +5,7 @@ import Components
 import protocol Gemstone.GemSearchServiceProtocol
 import GemstoneServices
 import Foundation
+import func Gemstone.popularAssetIds
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -90,8 +91,10 @@ public final class SelectAssetViewModel {
     }
 
     var sections: AssetsSections {
-        AssetsSections.from(assets, enablePopular: flow.capabilities.contains(.popularSection))
+        AssetsSections.from(assets, popularIds: flow.capabilities.contains(.popularSection) ? Self.popularIds : [])
     }
+
+    private static let popularIds = Set(popularAssetIds().compactMap { try? AssetId(id: $0) })
 
     var showPopularSection: Bool {
         sections.popular.isNotEmpty

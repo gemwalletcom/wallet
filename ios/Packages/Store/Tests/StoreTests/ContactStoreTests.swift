@@ -9,63 +9,41 @@ import Testing
 
 struct ContactStoreTests {
     @Test
-    func deleteContactRemovesAddressName() throws {
+    func deleteAddressNamesRemovesContactName() throws {
         let test = try setupTest(
             chain: .bitcoin,
             address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw",
             addressType: .contact,
         )
-
-        try test.contactStore.deleteContact(id: test.contact.id)
-
+        try test.addressStore.deleteAddressNames([test.addressName])
         #expect(try test.addressStore.getAddressName(chain: test.chain, address: test.address) == nil)
     }
 
     @Test
-    func deleteContactPreservesNonContactAddressName() throws {
+    func deleteAddressNamesPreservesOtherTypes() throws {
         let test = try setupTest(
             chain: .ethereum,
             address: "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7",
             addressType: .contract,
         )
-
-        try test.contactStore.deleteContact(id: test.contact.id)
-
+        try test.addressStore.deleteAddressNames([AddressName.mock(chain: test.chain, address: test.address, name: test.contact.name, type: .contact)])
         #expect(try test.addressStore.getAddressName(chain: test.chain, address: test.address) == test.addressName)
     }
 
     @Test
-    func updateContactRemovesAddressNameForRemovedAddress() throws {
+    func updateContactDropsRemovedAddresses() throws {
         let test = try setupTest(
             chain: .bitcoin,
             address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw",
             addressType: .contact,
         )
-        let addressIds = try test.contactStore.getAddressIds(contactId: test.contact.id)
+        let addresses = try test.contactStore.getAddresses(contactId: test.contact.id)
+        #expect(addresses.map(\.address) == [test.address])
 
-        try test.contactStore.updateContact(test.contact, deleteAddressIds: addressIds, addresses: [])
-
-        #expect(try test.addressStore.getAddressName(chain: test.chain, address: test.address) == nil)
+        try test.contactStore.updateContact(test.contact, deleteAddressIds: addresses.map(\.id), addresses: [])
+        #expect(try test.contactStore.getAddresses(contactId: test.contact.id).isEmpty)
     }
 
-    @Test
-    func updateContactPreservesNonContactAddressName() throws {
-        let test = try setupTest(
-            chain: .ethereum,
-            address: "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7",
-            addressType: .contract,
-        )
-        let addressIds = try test.contactStore.getAddressIds(contactId: test.contact.id)
-
-        try test.contactStore.updateContact(test.contact, deleteAddressIds: addressIds, addresses: [])
-
-        #expect(try test.addressStore.getAddressName(chain: test.chain, address: test.address) == test.addressName)
-    }
-}
-
-// MARK: - Private
-
-extension ContactStoreTests {
     private func setupTest(
         chain: Chain,
         address: String,

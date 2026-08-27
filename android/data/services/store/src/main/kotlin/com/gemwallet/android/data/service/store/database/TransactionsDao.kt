@@ -146,11 +146,8 @@ interface TransactionsDao {
     @Insert(entity = DbTxSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
     fun addSwapMetadata(metadata: List<DbTxSwapMetadata>)
 
-    @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId")
-    fun deleteSwapMetadata(transactionId: String)
-
-    @Query("UPDATE tx_swap_metadata SET tx_id = :newTransactionId WHERE tx_id = :oldTransactionId")
-    fun updateSwapMetadataTransactionId(oldTransactionId: String, newTransactionId: String)
+    @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId AND NOT EXISTS (SELECT 1 FROM transactions WHERE transactions.id = :transactionId)")
+    fun deleteUnreferencedSwapMetadata(transactionId: String)
 
     @Query("DELETE FROM transactions WHERE state = :state")
     fun deleteByState(state: TransactionState)

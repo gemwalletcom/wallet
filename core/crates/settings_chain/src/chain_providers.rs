@@ -3,10 +3,7 @@ use std::error::Error;
 use chain_traits::{ChainTraits, TransactionFeeEstimates, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use futures::{StreamExt, stream};
 use gem_tracing::warn_with_fields;
-use primitives::{
-    AddressStatus, Asset, AssetBalance, Chain, DelegationBase, PerpetualPosition, PerpetualPositionsSummary, StakeValidator, Transaction, TransactionStateRequest,
-    TransactionUpdate,
-};
+use primitives::{AddressStatus, Asset, AssetBalance, Chain, DelegationBase, PerpetualPosition, StakeValidator, Transaction, TransactionStateRequest, TransactionUpdate};
 use settings::Settings;
 
 use crate::ProviderFactory;
@@ -38,10 +35,6 @@ impl ChainProviders {
 
     pub async fn get_token_data(&self, chain: Chain, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
         self.get_provider(chain)?.get_token_data(token_id).await
-    }
-
-    pub fn get_is_token_address(&self, chain: Chain, token_id: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_provider(chain)?.get_is_token_address(token_id))
     }
 
     pub async fn get_balance_coin(&self, chain: Chain, address: String) -> Result<AssetBalance, Box<dyn Error + Send + Sync>> {
@@ -123,10 +116,6 @@ impl ChainProviders {
 
     pub async fn get_staking_delegations(&self, chain: Chain, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Send + Sync>> {
         self.get_provider(chain)?.get_staking_delegations(address).await
-    }
-
-    pub async fn get_perpetual_positions(&self, chain: Chain, address: String) -> Result<PerpetualPositionsSummary, Box<dyn Error + Send + Sync>> {
-        self.get_provider(chain)?.get_positions(address).await
     }
 
     pub async fn get_perpetual_positions_for_classification(&self, chain: Chain, address: String) -> Result<Vec<PerpetualPosition>, Box<dyn Error + Send + Sync>> {

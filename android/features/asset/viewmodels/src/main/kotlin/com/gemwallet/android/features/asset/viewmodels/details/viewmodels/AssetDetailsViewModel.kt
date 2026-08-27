@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.GetChainAssetInfo
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.pricealerts.coordinators.SyncAssetPriceAlerts
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
@@ -47,7 +47,7 @@ class AssetDetailsViewModel @Inject constructor(
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     private val getChainAssetInfo: GetChainAssetInfo,
-    private val toggleAssetPin: ToggleAssetPin,
+    private val setAssetPinned: SetAssetPinned,
     private val enableAsset: EnableAsset,
     private val syncAssetInfo: SyncAssetInfo,
     private val getTransactions: GetTransactions,
@@ -139,7 +139,7 @@ class AssetDetailsViewModel @Inject constructor(
         val assetInfo = model.value?.chainAssetInfo?.assetInfo ?: return@launch
         val assetId = assetInfo.id()
         wallet.getAccount(assetId) ?: return@launch
-        toggleAssetPin(assetId)
+        setAssetPinned(assetId, assetInfo.metadata?.isPinned != true)
     }
 
     fun add() = viewModelScope.launch(Dispatchers.IO) {

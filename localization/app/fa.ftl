@@ -212,6 +212,7 @@ errors_invalid_amount = مبلغ نامعتبر.
 errors_token_invalid_id = شناسه توکن نامعتبر است.
 errors_import_invalid_secret_phrase = عبارات خصوصی نامعتبر.
 errors_import_invalid_secret_phrase_word = عبارت خصوصی نامعتبر: %@
+errors_import_invalid_private_key = کلید خصوصی نامعتبر
 errors_invalid_url = URL نامعتبر
 errors_error_occurred = خطایی رخ داد!
 errors_invalid_network_id = شناسه شبکه نامعتبر است.

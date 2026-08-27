@@ -10,11 +10,7 @@ import GemstoneServices
 @Observable
 @MainActor
 public final class WalletsSceneViewModel {
-    #if DEBUG
-        public static let walletsLimit = 1000
-    #else
-        public static let walletsLimit = 100
-    #endif
+    public static let walletsLimit = 100
 
     private let service: WalletService
     private let walletSessionService: any WalletSessionManageable

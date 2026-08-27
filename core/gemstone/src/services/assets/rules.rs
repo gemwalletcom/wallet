@@ -3,14 +3,10 @@ use std::collections::HashSet;
 use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, Chain, Wallet};
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
+use crate::services::collections::missing;
 
 pub fn missing_asset_ids(requested: Vec<AssetId>, existing: Vec<AssetId>) -> Vec<AssetId> {
-    let existing: HashSet<AssetId> = existing.into_iter().collect();
-    let mut seen: HashSet<AssetId> = HashSet::new();
-    requested
-        .into_iter()
-        .filter(|asset_id| !existing.contains(asset_id) && seen.insert(asset_id.clone()))
-        .collect()
+    missing(requested, existing)
 }
 
 pub fn default_asset_basic(asset: Asset) -> AssetBasic {
@@ -35,6 +31,18 @@ pub fn stakeable_asset_ids() -> Vec<AssetId> {
     Chain::all().into_iter().filter(Chain::is_stake_supported).map(AssetId::from_chain).collect()
 }
 
+pub fn default_token_chain(chains: &[Chain]) -> Option<Chain> {
+    chains.iter().find(|chain| **chain == Chain::Ethereum).or(chains.first()).copied()
+}
+
+pub fn popular_asset_ids() -> Vec<AssetId> {
+    [Chain::Bitcoin, Chain::Ethereum, Chain::Solana].into_iter().map(AssetId::from_chain).collect()
+}
+
+pub fn can_open(wallet: &Wallet, asset_id: &AssetId) -> bool {
+    (asset_id.is_token() || asset_id.chain.has_native_asset()) && wallet.account(asset_id.chain).is_some()
+}
+
 pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
     let mut seen: HashSet<AssetId> = HashSet::new();
     wallet
@@ -52,6 +60,40 @@ pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn test_default_token_chain_prefers_ethereum_then_first() {
+        assert_eq!(default_token_chain(&[Chain::Solana, Chain::Ethereum]), Some(Chain::Ethereum));
+        assert_eq!(default_token_chain(&[Chain::Solana, Chain::Tron]), Some(Chain::Solana));
+        assert_eq!(default_token_chain(&[]), None);
+    }
+
+    #[test]
+    fn test_popular_asset_ids_are_native_majors_in_order() {
+        assert_eq!(
+            popular_asset_ids(),
+            vec![
+                AssetId::from_chain(Chain::Bitcoin),
+                AssetId::from_chain(Chain::Ethereum),
+                AssetId::from_chain(Chain::Solana)
+            ]
+        );
+    }
+
+    #[test]
+    fn test_can_open_requires_account_and_native_asset() {
+        let wallet = wallet(WalletType::Multicoin, &[Chain::Ethereum, Chain::Tempo]);
+        assert!(can_open(&wallet, &AssetId::from_chain(Chain::Ethereum)));
+        assert!(can_open(
+            &wallet,
+            &AssetId::from(Chain::Ethereum, Some("0xdac17f958d2ee523a2206206994597c13d831ec7".to_string()))
+        ));
+        assert!(!can_open(&wallet, &AssetId::from_chain(Chain::Bitcoin)));
+        assert!(!can_open(&wallet, &AssetId::from_chain(Chain::Tempo)));
+        assert!(can_open(
+            &wallet,
+            &AssetId::from(Chain::Tempo, Some("0x20c000000000000000000000c48d6a3bd5b7b0c2".to_string()))
+        ));
+    }
 
     #[test]
     fn test_default_assets_and_missing() {

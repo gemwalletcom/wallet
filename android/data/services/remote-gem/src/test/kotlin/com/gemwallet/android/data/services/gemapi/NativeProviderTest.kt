@@ -64,7 +64,6 @@ class NativeProviderTest {
                     throw UnknownHostException("api.example.com")
                 }
                 .build(),
-            config = NativeProviderConfig(networkOfflineMessage = "offline"),
         )
 
         try {
@@ -78,8 +77,7 @@ class NativeProviderTest {
                     )
                 )
             }
-        } catch (err: AlienException.RequestException) {
-            assertEquals("offline", err.msg)
+        } catch (_: AlienException.Offline) {
             return
         }
         throw AssertionError("Expected offline request exception")
@@ -93,7 +91,6 @@ class NativeProviderTest {
                     throw IOException("unexpected end of stream on https://gemnodes.com/...", EOFException())
                 }
                 .build(),
-            config = NativeProviderConfig(networkOfflineMessage = "offline"),
         )
 
         try {
@@ -107,8 +104,7 @@ class NativeProviderTest {
                     )
                 )
             }
-        } catch (err: AlienException.RequestException) {
-            assertEquals("offline", err.msg)
+        } catch (_: AlienException.Offline) {
             return
         }
         throw AssertionError("Expected request exception")
@@ -151,14 +147,12 @@ class NativeProviderTest {
 
     private fun nativeProvider(
         httpClient: OkHttpClient = OkHttpClient(),
-        config: NativeProviderConfig = NativeProviderConfig(networkOfflineMessage = "offline"),
     ): NativeProvider {
         return NativeProvider(
             getNodeUrlCase = object : GetNodeUrlCase {
                 override fun getNodeUrl(chain: Chain): String = "https://gemnodes.com/${chain.string}"
             },
             httpClient = httpClient,
-            config = config,
         )
     }
 }

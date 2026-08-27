@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "代币 ID 无效";
 "errors.import.invalid_secret_phrase" = "助记词无效";
 "errors.import.invalid_secret_phrase_word" = "助记词无效：%@";
+"errors.import.invalid_private_key" = "无效的私钥";
 "errors.invalid_url" = "无效的网址";
 "errors.error_occurred" = "出错了！";
 "errors.invalid_network_id" = "网络 ID 无效";
@@ -211,6 +212,7 @@
 "errors.swap.minimum_amount" = "最低交易金额为 %@。请输入更高的金额。";
 "errors.perpetual.trigger_price_lower" = "触发价格应低于市场价格";
 "errors.perpetual.trigger_price_higher" = "触发价格应高于市场价格";
+"errors.network_offline" = "网络连接似乎已断开。";
 "errors.no_internet_connection" = "无互联网连接";
 "errors.no_service_connection" = "无服务连接";
 "errors.balances_activity_outdated" = "余额和活动可能不是最新的。";

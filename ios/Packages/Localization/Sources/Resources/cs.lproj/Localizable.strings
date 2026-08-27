@@ -175,6 +175,7 @@
 "errors.token.invalid_id" = "Neplatné ID tokenu";
 "errors.import.invalid_secret_phrase" = "Neplatná tajná fráze";
 "errors.import.invalid_secret_phrase_word" = "Neplatné slovo tajné fráze: %@";
+"errors.import.invalid_private_key" = "Neplatný soukromý klíč";
 "errors.invalid_url" = "Neplatná adresa URL";
 "errors.error_occurred" = "Došlo k chybě!";
 "errors.invalid_network_id" = "Neplatné ID sítě";
@@ -211,6 +212,7 @@
 "errors.swap.minimum_amount" = "Minimální částka obchodu je %@. Zadejte prosím vyšší částku.";
 "errors.perpetual.trigger_price_lower" = "Spouštěcí cena musí být nižší než tržní cena";
 "errors.perpetual.trigger_price_higher" = "Spouštěcí cena musí být vyšší než tržní cena";
+"errors.network_offline" = "Zdá se, že je internetové připojení offline.";
 "errors.no_internet_connection" = "Žádné připojení k internetu";
 "errors.no_service_connection" = "Žádné připojení ke službě";
 "errors.balances_activity_outdated" = "Zůstatky a aktivita mohou být zastaralé.";

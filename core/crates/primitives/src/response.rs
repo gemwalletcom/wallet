@@ -1,5 +1,19 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::fmt;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RequestError {
+    Forbidden,
+}
+
+impl fmt::Display for RequestError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Forbidden")
+    }
+}
+
+impl std::error::Error for RequestError {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]

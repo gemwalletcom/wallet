@@ -3,7 +3,7 @@ package com.gemwallet.android.features.asset_select.viewmodels
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.coordinators.GetSession
@@ -23,14 +23,14 @@ class BuySelectViewModel @Inject constructor(
     getRecentAssets: GetRecentAssets,
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
-    toggleAssetPin: ToggleAssetPin,
+    setAssetPinned: SetAssetPinned,
     searchTokensCase: SearchTokensCase,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
     updateRecentAsset,
     switchAssetVisibility,
-    toggleAssetPin,
+    setAssetPinned,
     searchTokensCase,
     BuySelectSearch(searchSelectAssets),
 ) {
