@@ -5,6 +5,7 @@ import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.ext.isCompleted
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.Wallet
@@ -47,8 +48,10 @@ class TransactionStateScheduler(
         pollingTransactionJobs.clear()
     }
 
-    override suspend fun createTransaction(walletId: WalletId, transaction: Transaction): Transaction {
-        stateService.addTransactions(walletId.id, listOf(transaction.toJson()))
+    override suspend fun createTransaction(walletId: WalletId, transaction: Transaction, currency: Currency): Transaction {
+        stateService.addTransactions(walletId.id, listOf(transaction.toJson()), currency.toJson()).forEach { failure ->
+            Log.e(TAG, "${failure.step} failed after adding ${transaction.id.hash}: ${failure.message}")
+        }
         schedule(walletId, transaction)
         return transaction
     }

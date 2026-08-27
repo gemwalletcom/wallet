@@ -262,8 +262,9 @@ public final class GemTransactionStateServiceMock: GemTransactionStateServicePro
         try await store?.getTransaction(walletId: walletId, transactionId: transactionId)
     }
 
-    public func addTransactions(walletId: Gemstone.WalletId, transactions: [Gemstone.Transaction]) async throws {
+    public func addTransactions(walletId: Gemstone.WalletId, transactions: [Gemstone.Transaction], currency _: Gemstone.Currency) async throws -> [Gemstone.GemPostProcessingFailure] {
         try await store?.addTransactions(walletId: walletId, transactions: transactions)
+        return []
     }
 }
 

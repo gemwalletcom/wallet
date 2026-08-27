@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
-use primitives::{Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
+use primitives::{AssetId, Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
+use std::collections::HashSet;
 
 use super::model::{GemTransactionPostProcessing, GemTransactionStateUpdate};
 
@@ -78,4 +79,14 @@ fn metadata_json(metadata: &TransactionMetadata) -> Result<String, serde_json::E
         TransactionMetadata::Swap(swap) => serde_json::to_string(swap),
         TransactionMetadata::Perpetual(perpetual) => serde_json::to_string(perpetual),
     }
+}
+
+pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
+    let mut seen = HashSet::new();
+    transactions
+        .iter()
+        .flat_map(Transaction::asset_ids)
+        .filter(|asset_id| asset_id.chain != Chain::HyperCore)
+        .filter(|asset_id| seen.insert(asset_id.clone()))
+        .collect()
 }

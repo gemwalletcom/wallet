@@ -47,7 +47,14 @@ public struct TransactionStateService: Sendable {
         try await service.pendingTransactions().map { try TransactionWallet(transaction: Transaction($0.transaction), wallet: Wallet($0.wallet)) }
     }
 
-    func addTransactions(wallet: Wallet, transactions: [Transaction]) async throws {
-        try await service.addTransactions(walletId: wallet.id.id, transactions: transactions.map { try $0.json() })
+    func addTransactions(wallet: Wallet, transactions: [Transaction], currency: String) async throws {
+        let failures = try await service.addTransactions(
+            walletId: wallet.id.id,
+            transactions: transactions.map { try $0.json() },
+            currency: Currency(id: currency).json(),
+        )
+        for failure in failures {
+            debugLog("TransactionStateService add transactions \(failure.step) failed: \(failure.message)")
+        }
     }
 }

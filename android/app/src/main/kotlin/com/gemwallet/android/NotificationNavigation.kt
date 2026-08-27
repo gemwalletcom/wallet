@@ -83,7 +83,7 @@ class NotificationNavigation @Inject constructor(
         val associatedAssetIds = transactionsService.associatedAssetIds(data.transaction.toJson()).map { it.toAssetId() ?: return false }
         val assetIds = (associatedAssetIds + data.assetId).distinct()
         prepareWallet(data.walletId, assetIds) ?: return false
-        createTransaction.createTransaction(data.walletId, data.transaction)
+        createTransaction.createTransaction(data.walletId, data.transaction, sessionRepository.getCurrentCurrency())
         return true
     }
 

@@ -21,8 +21,8 @@ public struct TransactionStateScheduler: Sendable {
         }
     }
 
-    public func addTransactions(wallet: Wallet, transactions: [Transaction]) async throws {
-        try await service.addTransactions(wallet: wallet, transactions: transactions)
+    public func addTransactions(wallet: Wallet, transactions: [Transaction], currency: String) async throws {
+        try await service.addTransactions(wallet: wallet, transactions: transactions, currency: currency)
         scheduleUpdate(for: transactions.map { TransactionWallet(transaction: $0, wallet: wallet) })
     }
 }
