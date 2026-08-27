@@ -87,16 +87,16 @@ object AssetsModule {
     fun provideGemBalanceService(
         gateway: GemGateway,
         walletStore: GemstoneWalletStore,
+        assetStore: GemAssetStore,
         assetsDao: AssetsDao,
         balancesDao: BalancesDao,
-        availabilityService: AssetsAvailabilityService,
         assetsService: GemAssetsService,
         priceService: GemPriceService,
         streamSubscriptionService: GemStreamSubscriptionService,
     ): GemBalanceService = GemBalanceService(
         gateway,
         walletStore,
-        GemstoneAssetStore(assetsDao, availabilityService),
+        assetStore,
         GemstoneBalanceStore(balancesDao, assetsDao),
         assetsService,
         priceService,

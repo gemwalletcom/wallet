@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import android.util.Log
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -33,20 +34,19 @@ class SyncAssetInfoImpl(
 
         streamSubscriptionService.addPrices(listOf(assetId.toIdentifier()))
 
+        val assetFull = syncAssetMetadata(assetId)
         coroutineScope {
             launch { syncBalance(wallet, assetId) }
-            launch {
-                val assetFull = syncAssetMetadata(assetId) ?: return@launch
-                prefetchAssets.prefetchAssets(assetFull.associations.map { it.assetId })
-            }
+            assetFull?.let { launch { prefetchAssets.prefetchAssets(it.associations.map { association -> association.assetId }) } }
         }
     }
 
     private suspend fun syncBalance(wallet: Wallet, assetId: AssetId) {
         try {
             balanceService.update(wallet.id.id, listOf(assetId.toIdentifier()))
-        } catch (_: Exception) {
+        } catch (error: Exception) {
             currentCoroutineContext().ensureActive()
+            Log.e(TAG, "balance update failed for ${assetId.toIdentifier()}", error)
         }
     }
 
@@ -57,5 +57,9 @@ class SyncAssetInfoImpl(
             currentCoroutineContext().ensureActive()
             null
         }
+    }
+
+    private companion object {
+        const val TAG = "SyncAssetInfo"
     }
 }
