@@ -1,5 +1,10 @@
+mod rules;
+mod signer;
+
 use std::sync::Arc;
 use std::time::Duration;
+
+pub use signer::GemTransactionSigner;
 
 use serde::{Deserialize, Serialize};
 
@@ -11,9 +16,13 @@ use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, 
 use crate::services::GemScanService;
 use crate::services::transaction_state::GemTransactionStateService;
 use crate::services::transfer::{GemPendingTransactionInput, GemTransferData, rules as transfer_rules};
+use crate::signer::GemSignerError;
 use crate::transaction_simulation::TransactionSimulationService;
 use num_bigint::BigInt;
-use primitives::{Account, ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, SimulationResult, Transaction, TransactionPreloadInput, Wallet};
+use primitives::{
+    Account, ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, SimulationResult, Transaction, TransactionPreloadInput,
+    TransferDataOutputAction, Wallet,
+};
 use primitives::{ScanTransaction, ScanTransactionPayload};
 
 pub type GemAccount = Account;
@@ -66,6 +75,15 @@ pub enum GemConfirmError {
     Load { msg: String },
     Broadcast { hashes: Vec<String>, msg: String },
     Record { msg: String },
+    AccountMissing { chain: Chain },
+    Sign { error: GemSignerError, msg: String },
+    ApprovalInvalid { msg: String },
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemExecuteResult {
+    Signed { data: Vec<String> },
+    Sent { hashes: Vec<String>, transactions: Vec<Transaction> },
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -92,12 +110,27 @@ impl std::fmt::Display for GemConfirmError {
             Self::ScanMemoRequired { symbol } => write!(f, "{symbol} transfer requires a memo"),
             Self::FeeRatesMissing => write!(f, "fee rates not found"),
             Self::Offline => write!(f, "network offline"),
-            Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } => write!(f, "{msg}"),
+            Self::AccountMissing { chain } => write!(f, "wallet has no {chain} account"),
+            Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
+                write!(f, "{msg}")
+            }
         }
     }
 }
 
 impl std::error::Error for GemConfirmError {}
+
+impl From<GemstoneError> for GemConfirmError {
+    fn from(error: GemstoneError) -> Self {
+        match error {
+            GemstoneError::SignerError { error, msg } => Self::Sign { error, msg },
+            GemstoneError::AnyError { msg } => Self::Sign {
+                error: GemSignerError::SigningError(msg.clone()),
+                msg,
+            },
+        }
+    }
+}
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -119,17 +152,27 @@ impl GemConfirmService {
         }
     }
 
-    pub async fn send(&self, input: GemSendInput, transactions: Vec<GemSignedTransaction>) -> Result<GemSendResult, GemConfirmError> {
-        let hashes = match self.broadcast(input.transfer.input_type.clone(), transactions.clone()).await {
-            Ok(hashes) => hashes,
-            Err(GemConfirmError::Broadcast { hashes, msg }) => {
-                self.record(&input, &hashes, &transactions).await?;
-                return Err(GemConfirmError::Broadcast { hashes, msg });
+    pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
+        let transactions = signer.sign(input.wallet.clone(), rules::signer_input(&input)?).await?;
+        if transactions.is_empty() {
+            return Err(GemConfirmError::Sign {
+                error: GemSignerError::SigningError("no signed transactions".to_string()),
+                msg: "no signed transactions".to_string(),
+            });
+        }
+        rules::validate_approvals(&input.transfer.input_type, &transactions)?;
+        match rules::output_action(&input.transfer.input_type) {
+            TransferDataOutputAction::Sign => Ok(GemExecuteResult::Signed {
+                data: transactions.into_iter().map(|transaction| transaction.data).collect(),
+            }),
+            TransferDataOutputAction::Send => {
+                let result = self.send(input, transactions).await?;
+                Ok(GemExecuteResult::Sent {
+                    hashes: result.hashes,
+                    transactions: result.transactions,
+                })
             }
-            Err(error) => return Err(error),
-        };
-        let transactions = self.record(&input, &hashes, &transactions).await?;
-        Ok(GemSendResult { hashes, transactions })
+        }
     }
 
     pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
@@ -192,8 +235,23 @@ impl GemConfirmService {
             simulation,
         })
     }
+}
 
-    pub async fn broadcast(&self, input_type: GemTransactionInputType, transactions: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
+impl GemConfirmService {
+    async fn send(&self, input: GemSendInput, transactions: Vec<GemSignedTransaction>) -> Result<GemSendResult, GemConfirmError> {
+        let hashes = match self.broadcast(input.transfer.input_type.clone(), transactions.clone()).await {
+            Ok(hashes) => hashes,
+            Err(GemConfirmError::Broadcast { hashes, msg }) => {
+                self.record(&input, &hashes, &transactions).await?;
+                return Err(GemConfirmError::Broadcast { hashes, msg });
+            }
+            Err(error) => return Err(error),
+        };
+        let transactions = self.record(&input, &hashes, &transactions).await?;
+        Ok(GemSendResult { hashes, transactions })
+    }
+
+    async fn broadcast(&self, input_type: GemTransactionInputType, transactions: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
         let chain = input_type.asset().id.chain;
         let options = broadcast_options(chain, &input_type);
         let delay = broadcast_delay_milliseconds(chain);
@@ -213,9 +271,7 @@ impl GemConfirmService {
 
         Ok(hashes)
     }
-}
 
-impl GemConfirmService {
     async fn record(&self, input: &GemSendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
         let pending = pending_transactions(input, hashes, transactions)?;
         if pending.is_empty() {

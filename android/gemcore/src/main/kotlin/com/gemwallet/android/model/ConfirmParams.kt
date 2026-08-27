@@ -1,7 +1,6 @@
 package com.gemwallet.android.model
 
 import com.gemwallet.android.domains.asset.toGem
-import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.toConfirmInput
 import com.gemwallet.android.domains.confirm.toConfirmParams
 import com.gemwallet.android.domains.perpetual.toGem
@@ -40,7 +39,6 @@ import uniffi.gemstone.GemTransferDataExtra
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.confirmInputDecode
 import uniffi.gemstone.confirmInputEncode
-import uniffi.gemstone.GemstoneException
 import uniffi.gemstone.GemTransferService
 sealed class ConfirmParams() {
 
@@ -482,12 +480,6 @@ sealed class ConfirmParams() {
             asset = asset.toGem(),
             perpetualType = perpetualType.toGem(),
         )
-    }
-
-    fun approvalData(transactionType: TransactionType): ApprovalData? = try {
-        GemTransferService().approval(toDto(), transactionType.toJson())?.decodeJson<ApprovalData>()
-    } catch (_: GemstoneException) {
-        throw ConfirmError.TransactionIncorrect
     }
 
     fun pack(): String? = runCatching { confirmInputEncode(toConfirmInput()).packRouteString() }.getOrNull()

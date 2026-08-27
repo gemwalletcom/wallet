@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemConfirmError
 import Foundation
 import Primitives
 
@@ -13,7 +14,7 @@ public enum ChainCoreError: String, Error, Equatable {
     case insufficientBalance
 
     public static func fromError(_ error: Error) -> ChainCoreError? {
-        if case let GemstoneError.SignerError(error: signerError, msg: _) = error {
+        if let signerError = Self.signerError(error) {
             return switch signerError {
             case .dustThreshold: .dustThreshold
             case .insufficientFunds: .insufficientBalance
@@ -30,6 +31,16 @@ public enum ChainCoreError: String, Error, Equatable {
             }
         }
 
+        return nil
+    }
+
+    private static func signerError(_ error: Error) -> GemSignerError? {
+        if case let GemstoneError.SignerError(signerError, _) = error {
+            return signerError
+        }
+        if case let GemConfirmError.Sign(signerError, _) = error {
+            return signerError
+        }
         return nil
     }
 }

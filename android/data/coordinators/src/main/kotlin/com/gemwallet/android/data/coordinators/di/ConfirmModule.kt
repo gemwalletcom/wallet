@@ -1,13 +1,12 @@
 package com.gemwallet.android.data.coordinators.di
 
 import uniffi.gemstone.GemExplorerService
-import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
 import com.gemwallet.android.application.confirm.coordinators.GetFeeAssets
 import uniffi.gemstone.GemConfirmServiceInterface
-import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
+import uniffi.gemstone.GemTransactionSigner
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImpl
 import com.gemwallet.android.data.coordinators.confirm.ConfirmTransactionImpl
@@ -41,14 +40,12 @@ object ConfirmModule {
     @Provides
     @Singleton
     fun provideConfirmTransaction(
-        passwordStore: PasswordStore,
-        signTransactionOperator: GemSignTransactionOperator,
+        signer: GemTransactionSigner,
         confirmService: GemConfirmServiceInterface,
         createTransactionsCase: CreateTransaction,
         recentAssetsService: RecentAssetsService,
     ): ConfirmTransaction = ConfirmTransactionImpl(
-        passwordStore,
-        signTransactionOperator,
+        signer,
         confirmService,
         createTransactionsCase,
         recentAssetsService,

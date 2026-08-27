@@ -3,7 +3,13 @@
 import func Gemstone.defaultFeePriority
 import Store
 import GemstoneServices
+import enum Gemstone.GemConfirmError
+import protocol Gemstone.GemConfirmServiceProtocol
+import enum Gemstone.GemExecuteResult
 import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
+import struct Gemstone.GemSendInput
+import protocol Gemstone.GemTransactionSigner
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -12,7 +18,10 @@ public struct ConfirmService: Sendable {
     private let metadataProvider: any TransferMetadataProvidable
     private let inputProvider: ConfirmTransferInputProvider
     private let simulationService: ConfirmSimulationService
-    private let transferExecutor: any TransferExecutable
+    private let gemConfirmService: any GemConfirmServiceProtocol
+    private let signer: any GemTransactionSigner
+    private let preferencesService: any GemPreferencesServiceProtocol
+    private let transactionStateScheduler: TransactionStateScheduler
     private let recentActivityStore: RecentActivityStore
     private let toastPresenter: ToastPresenter
     private let keystore: any Keystore
@@ -23,7 +32,10 @@ public struct ConfirmService: Sendable {
         metadataProvider: any TransferMetadataProvidable,
         inputProvider: ConfirmTransferInputProvider,
         simulationService: ConfirmSimulationService,
-        transferExecutor: any TransferExecutable,
+        gemConfirmService: any GemConfirmServiceProtocol,
+        signer: any GemTransactionSigner,
+        preferencesService: any GemPreferencesServiceProtocol,
+        transactionStateScheduler: TransactionStateScheduler,
         recentActivityStore: RecentActivityStore,
         toastPresenter: ToastPresenter,
         keystore: any Keystore,
@@ -33,7 +45,10 @@ public struct ConfirmService: Sendable {
         self.metadataProvider = metadataProvider
         self.inputProvider = inputProvider
         self.simulationService = simulationService
-        self.transferExecutor = transferExecutor
+        self.gemConfirmService = gemConfirmService
+        self.signer = signer
+        self.preferencesService = preferencesService
+        self.transactionStateScheduler = transactionStateScheduler
         self.recentActivityStore = recentActivityStore
         self.toastPresenter = toastPresenter
         self.keystore = keystore
@@ -71,15 +86,34 @@ public struct ConfirmService: Sendable {
     }
 
     func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount, simulation: SimulationResult?) async throws {
-        let input = TransferConfirmationInput(
-            data: request.data,
-            wallet: request.wallet,
-            transactionData: transactionData,
-            amount: amount,
-            simulation: simulation,
-            delegate: request.delegate,
+        let input = try GemSendInput(
+            wallet: request.wallet.json(),
+            transfer: request.data.gem,
+            value: amount.value.description,
+            fee: transactionData.fee.map(),
+            networkFee: amount.networkFee.description,
+            metadata: transactionData.metadata,
+            simulation: simulation?.json(),
         )
-        try await transferExecutor.execute(input: input)
+        let result: GemExecuteResult
+        do {
+            result = try await gemConfirmService.execute(input: input, signer: signer)
+        } catch let GemConfirmError.Broadcast(hashes, msg) {
+            hashes.forEach { request.delegate?(.success($0)) }
+            transactionStateScheduler.trackPendingTransactions()
+            throw GemConfirmError.Broadcast(hashes: hashes, msg: msg)
+        }
+        switch result {
+        case let .signed(data):
+            data.forEach { request.delegate?(.success($0)) }
+        case let .sent(hashes, transactions):
+            hashes.forEach { request.delegate?(.success($0)) }
+            transactionStateScheduler.track(
+                wallet: request.wallet,
+                transactions: try transactions.map { try Transaction($0) },
+                currency: preferencesService.currencyCode,
+            )
+        }
         await toastPresenter.present(.transfer(for: request.data.type))
         if let recent = request.data.type.recentActivityData {
             updateRecent(data: recent, walletId: request.wallet.id)

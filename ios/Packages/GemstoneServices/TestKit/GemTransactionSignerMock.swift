@@ -1,25 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 public import struct Gemstone.GemSignedTransaction
+public import struct Gemstone.GemSignerInput
+public import protocol Gemstone.GemTransactionSigner
 public import GemstonePrimitives
-import GemstoneServices
 import Primitives
 
-public struct TransactionSignerMock: TransactionSigning {
+public final class GemTransactionSignerMock: GemTransactionSigner {
     public static let transferType = (try? Primitives.TransactionType.transfer.json()) ?? ""
 
     public let signedTransactions: [GemSignedTransaction]
 
-    public init(signedTransactions: [GemSignedTransaction] = [GemSignedTransaction(data: "signed_data", transactionType: TransactionSignerMock.transferType)]) {
+    public init(signedTransactions: [GemSignedTransaction] = [GemSignedTransaction(data: "signed_data", transactionType: GemTransactionSignerMock.transferType)]) {
         self.signedTransactions = signedTransactions
     }
 
-    public func sign(
-        transfer _: TransferData,
-        transactionData _: TransactionData,
-        amount _: TransferAmount,
-        wallet _: Wallet,
-    ) throws -> [GemSignedTransaction] {
+    public func sign(wallet _: String, input _: GemSignerInput) throws -> [GemSignedTransaction] {
         signedTransactions
     }
 }

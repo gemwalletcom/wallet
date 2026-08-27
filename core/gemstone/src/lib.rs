@@ -64,6 +64,12 @@ impl std::fmt::Display for GemstoneError {
 
 impl std::error::Error for GemstoneError {}
 
+impl From<uniffi::UnexpectedUniFFICallbackError> for GemstoneError {
+    fn from(error: uniffi::UnexpectedUniFFICallbackError) -> Self {
+        Self::AnyError { msg: error.reason }
+    }
+}
+
 impl From<Box<dyn std::error::Error + Send + Sync>> for GemstoneError {
     fn from(error: Box<dyn std::error::Error + Send + Sync>) -> Self {
         Self::AnyError { msg: error.to_string() }

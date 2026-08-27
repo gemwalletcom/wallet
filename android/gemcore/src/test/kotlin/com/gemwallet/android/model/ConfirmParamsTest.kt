@@ -1,6 +1,5 @@
 package com.gemwallet.android.model
 
-import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -25,25 +24,11 @@ import com.wallet.core.primitives.swap.ApprovalData
 import java.math.BigInteger
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemTransactionInputType
 
 class ConfirmParamsTest {
-
-    @Test
-    fun approvalDataMatchesTransactionType() {
-        val approval = ApprovalData(token = "token", spender = "spender", value = "1", isUnlimited = false)
-        val swap = mockSwapParams(approval = approval)
-
-        assertEquals(approval, swap.approvalData(TransactionType.TokenApproval))
-        assertNull(swap.approvalData(TransactionType.Swap))
-        assertThrows(ConfirmError.TransactionIncorrect::class.java) {
-            mockSwapParams().approvalData(TransactionType.TokenApproval)
-        }
-    }
 
     @Test
     fun genericInputPreservesDecodedTransactionType() {
@@ -68,7 +53,6 @@ class ConfirmParamsTest {
         assertEquals("21000", input.extra.gasLimit)
         assertEquals(listOf(1.toByte()), input.extra.data?.toList())
         assertEquals("memo", params.memo)
-        assertEquals(approval, params.approvalData(TransactionType.TokenApproval))
     }
 
     @Test

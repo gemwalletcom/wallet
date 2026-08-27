@@ -15,7 +15,8 @@ import com.gemwallet.android.blockchain.operators.gemstone.GemLoadPrivateDataOpe
 import com.gemwallet.android.blockchain.operators.gemstone.GemMigrateKeystoreOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
-import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
+import com.gemwallet.android.blockchain.services.KeystoreTransactionSigner
+import uniffi.gemstone.GemTransactionSigner
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.data.password.TinkPasswordStore
@@ -58,9 +59,10 @@ object InteractsModule {
 
     @Singleton
     @Provides
-    fun provideSignTransactionOperator(
+    fun provideTransactionSigner(
         @ApplicationContext context: Context,
-    ): GemSignTransactionOperator = GemSignTransactionOperator(context.dataDir.toString())
+        passwordStore: PasswordStore,
+    ): GemTransactionSigner = KeystoreTransactionSigner(context.dataDir.toString(), passwordStore)
 
     @Singleton
     @Provides

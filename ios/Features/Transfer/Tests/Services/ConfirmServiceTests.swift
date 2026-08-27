@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemConfirmError
+import enum Gemstone.GemExecuteResult
 import GemstoneServicesTestKit
 import GemstoneServices
 import BigInt
@@ -14,6 +16,55 @@ import Testing
 @testable import Transfer
 
 struct ConfirmServiceTests {
+    @Test
+    func confirmReportsEveryHashAndTracksSentTransactions() async throws {
+        let tracked = Primitives.Transaction.mock()
+        let gemConfirmService = GemConfirmServiceMock(execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [try tracked.json()])))
+        let reported = ReportedValues()
+
+        try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
+            request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
+            transactionData: .mock(),
+            amount: .mock(),
+            simulation: nil,
+        )
+
+        #expect(reported.values == ["hash-1", "hash-2"])
+        #expect(gemConfirmService.executedInputs.count == 1)
+    }
+
+    @Test
+    func confirmReportsSignedDataWithoutTracking() async throws {
+        let gemConfirmService = GemConfirmServiceMock(execute: .success(.signed(data: ["signed"])))
+        let reported = ReportedValues()
+
+        try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
+            request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
+            transactionData: .mock(),
+            amount: .mock(),
+            simulation: nil,
+        )
+
+        #expect(reported.values == ["signed"])
+    }
+
+    @Test
+    func partialBroadcastReportsBroadcastHashesAndRethrows() async throws {
+        let gemConfirmService = GemConfirmServiceMock(execute: .failure(GemConfirmError.Broadcast(hashes: ["hash-1"], msg: "second leg failed")))
+        let reported = ReportedValues()
+
+        await #expect(throws: GemConfirmError.self) {
+            try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
+                request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
+                transactionData: .mock(),
+                amount: .mock(),
+                simulation: nil,
+            )
+        }
+
+        #expect(reported.values == ["hash-1"])
+    }
+
     @Test
     func simulationStateUsesTransferApprovalValue() {
         let service = ConfirmSimulationService(
@@ -160,5 +211,17 @@ struct ConfirmServiceTests {
         #expect(state.payload.primaryFields.count == 1)
         #expect(state.payload.secondaryFields.isEmpty)
         #expect(state.payload.addressNames.isEmpty)
+    }
+}
+
+private final class ReportedValues: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storage: [String] = []
+
+    var values: [String] { lock.withLock { storage } }
+
+    func append(_ value: String?) {
+        guard let value else { return }
+        lock.withLock { storage.append(value) }
     }
 }

@@ -670,25 +670,6 @@ struct ConfirmTransferSceneViewModelTests {
     }
 }
 
-private extension ConfirmService {
-    static func mock(transaction: Result<TransferTransactionData, Error>) -> ConfirmService {
-        ConfirmService(
-            metadataProvider: TransferMetadataProviderMock(metadataResult: .success(.mock())),
-            inputProvider: ConfirmTransferInputProvider(
-                transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
-                feeAssetProvider: FeeAssetProviderMock(),
-            ),
-            simulationService: ConfirmSimulationService(nameService: GemNameServiceMock(), assetsService: GemAssetsServiceMock(), assetStore: .mock()),
-            transferExecutor: TransferExecutorMock(),
-            recentActivityStore: .mock(),
-            toastPresenter: ToastPresenter(),
-            keystore: KeystoreMock(),
-            explorerService: GemExplorerServiceMock(),
-            addressStore: .mock(),
-        )
-    }
-}
-
 private extension ConfirmTransferSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
