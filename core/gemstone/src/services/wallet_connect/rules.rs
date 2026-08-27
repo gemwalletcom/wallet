@@ -60,7 +60,7 @@ pub fn session_wallets(wallets: Vec<Wallet>, required: &[Chain], optional: &[Cha
         .into_iter()
         .filter(|wallet| wallet.wallet_type != WalletType::View && supports(wallet, required, optional, &wallet_connect))
         .collect();
-    supported.sort_by_key(|wallet| wallet_type_rank(&wallet.wallet_type));
+    supported.sort_by_key(|wallet| wallet.wallet_type.rank());
     supported
 }
 
@@ -162,15 +162,6 @@ fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain], wallet_conn
         return required.iter().all(|chain| chains.contains(chain));
     }
     optional.is_empty() || optional.iter().any(|chain| chains.contains(chain))
-}
-
-fn wallet_type_rank(wallet_type: &WalletType) -> u8 {
-    match wallet_type {
-        WalletType::Multicoin => 0,
-        WalletType::Single => 1,
-        WalletType::PrivateKey => 2,
-        WalletType::View => 3,
-    }
 }
 
 #[cfg(test)]

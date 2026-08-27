@@ -6,7 +6,6 @@ use std::sync::Arc;
 
 use primitives::Chain;
 use primitives::node::{Node, NodeState};
-use primitives::node_config::{self, NodePriority, NodeRegion};
 
 pub use store::GemNodeStore;
 
@@ -23,18 +22,18 @@ impl GemNodeService {
     }
 
     pub fn get_default_nodes(&self, chain: Chain) -> Vec<Node> {
-        default_nodes(chain)
+        rules::default_nodes(chain)
     }
 
     pub async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError> {
         let stored = self.store.get_nodes(chain).await?;
-        Ok(rules::merge_nodes(default_nodes(chain), stored))
+        Ok(rules::merge_nodes(rules::default_nodes(chain), stored))
     }
 
     pub async fn get_selected_node(&self, chain: Chain) -> Result<Node, GemServiceError> {
         let selected_url = self.store.get_selected_url(chain).await?;
         let stored_nodes = self.store.get_nodes(chain).await?;
-        Ok(selected_node(chain, selected_url, stored_nodes))
+        Ok(rules::chain_node(chain, selected_url, stored_nodes))
     }
 
     pub async fn get_node_url(&self, chain: Chain) -> Result<String, GemServiceError> {
@@ -42,7 +41,7 @@ impl GemNodeService {
     }
 
     pub fn node_url(&self, chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> String {
-        selected_node(chain, selected_url, stored_nodes).url
+        rules::chain_node(chain, selected_url, stored_nodes).url
     }
 
     pub async fn set_selected_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
@@ -63,7 +62,7 @@ impl GemNodeService {
     }
 
     pub async fn delete_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
-        if rules::is_default_node(&url, &default_nodes(chain)) {
+        if rules::is_default_node(&url, &rules::default_nodes(chain)) {
             return Ok(());
         }
         self.store.delete_node(chain, url.clone()).await?;
@@ -74,40 +73,11 @@ impl GemNodeService {
     }
 }
 
-fn selected_node(chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> Node {
-    rules::selected_node(selected_url, rules::merge_nodes(default_nodes(chain), stored_nodes), region_node(chain, NodeRegion::Us))
-}
-
-fn region_node(chain: Chain, region: NodeRegion) -> Node {
-    Node {
-        url: region.url(chain),
-        status: NodeState::Active,
-        priority: region.priority(),
-    }
-}
-
-fn config_node(node: node_config::Node) -> Node {
-    let (status, priority) = match node.priority {
-        NodePriority::High => (NodeState::Active, 3),
-        NodePriority::Medium => (NodeState::Active, 2),
-        NodePriority::Low => (NodeState::Active, 1),
-        NodePriority::Inactive => (NodeState::Inactive, 0),
-    };
-    Node { url: node.url, status, priority }
-}
-
-fn default_nodes(chain: Chain) -> Vec<Node> {
-    NodeRegion::all()
-        .into_iter()
-        .map(|region| region_node(chain, region))
-        .chain(node_config::get_nodes_for_chain(chain).into_iter().map(config_node))
-        .collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::rules::*;
     use super::*;
+    use primitives::node_config::NodeRegion;
     use std::sync::Mutex;
 
     #[derive(Default)]
