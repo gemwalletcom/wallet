@@ -9,6 +9,10 @@ public extension GemAssetsServiceProtocol {
         try await Primitives.Asset(ensureAsset(assetId: assetId.identifier))
     }
 
+    func openWalletAsset(wallet: Primitives.Wallet, assetId: Primitives.AssetId) async throws -> Primitives.Asset? {
+        try await openWalletAsset(wallet: wallet.json(), assetId: assetId.identifier).map { try Primitives.Asset($0) }
+    }
+
     func ensureTokenAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset {
         try await Primitives.Asset(ensureTokenAsset(assetId: assetId.identifier))
     }
@@ -16,10 +20,6 @@ public extension GemAssetsServiceProtocol {
     @discardableResult
     func prefetchAssets(for assetIds: [Primitives.AssetId]) async throws -> [Primitives.AssetId] {
         try await prefetchAssets(assetIds: assetIds.ids).map { try Primitives.AssetId(id: $0) }
-    }
-
-    func addMissingBalances(walletId: Primitives.WalletId, assetIds: [Primitives.AssetId]) async throws {
-        try await addMissingBalances(walletId: walletId.id, assetIds: assetIds.ids)
     }
 
     @discardableResult

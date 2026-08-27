@@ -2,14 +2,16 @@ package com.gemwallet.android
 
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.application.assets.coordinators.GetAssetById
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.cases.parseNotificationData
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.model.PushNotificationField
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
@@ -18,27 +20,21 @@ import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
-import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemAssetsService
-import uniffi.gemstone.GemTransactionsService
-import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.firstOrNull
+import uniffi.gemstone.GemAssetsService
 import javax.inject.Inject
 
 class NotificationNavigation @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val walletsRepository: WalletsRepository,
     private val createTransaction: CreateTransaction,
-    private val transactionsService: GemTransactionsService,
     private val prefetchAssets: PrefetchAssets,
     private val assetsService: GemAssetsService,
-    private val getAssetById: GetAssetById,
 ) {
     suspend fun prepareNavigation(intent: Intent): List<NavKey> {
         if (!intent.hasNotificationPayload()) {
@@ -59,14 +55,8 @@ class NotificationNavigation @Inject constructor(
                 prepareAssets(payload.assetId)
                 listOf(FiatInputRoute(payload.assetId))
             }
-            is PushNotificationData.WalletAsset -> {
-                prepareWallet(payload.walletId, listOf(payload.assetId)) ?: return emptyList()
-                listOf(AssetRoute(payload.assetId))
-            }
-            is PushNotificationData.Stake -> {
-                prepareWallet(payload.walletId, listOf(payload.assetId)) ?: return emptyList()
-                listOf(AssetRoute(payload.assetId))
-            }
+            is PushNotificationData.WalletAsset -> prepareAssetRoutes(payload.walletId, payload.assetId)
+            is PushNotificationData.Stake -> prepareAssetRoutes(payload.walletId, payload.assetId)
             is PushNotificationData.Swap -> {
                 prepareAssets(payload.fromAssetId, payload.toAssetId)
                 listOf(SwapPairRoute(payload.fromAssetId, payload.toAssetId))
@@ -81,37 +71,33 @@ class NotificationNavigation @Inject constructor(
         prefetchAssets.prefetchAssets(assetIds.toList())
     }
 
-    private suspend fun prepareTransaction(data: PushNotificationData.Transaction): Boolean {
-        val associatedAssetIds = transactionsService.associatedAssetIds(data.transaction.toJson()).map { it.toAssetId() ?: return false }
-        val assetIds = (associatedAssetIds + data.assetId).distinct()
-        prepareWallet(data.walletId, assetIds) ?: return false
-        createTransaction.createTransaction(data.walletId, data.transaction, sessionRepository.getCurrentCurrency())
-        return true
+    private suspend fun prepareAssetRoutes(walletId: WalletId, assetId: AssetId): List<NavKey> {
+        val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return emptyList()
+        val asset = assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier())?.decodeJson<Asset>() ?: return emptyList()
+        selectWallet(wallet)
+        return listOf(AssetRoute(asset.id))
     }
 
     private suspend fun prepareTransactionRoutes(data: PushNotificationData.Transaction): List<NavKey> {
-        if (!prepareTransaction(data)) {
-            return emptyList()
-        }
+        val wallet = walletsRepository.getWallet(data.walletId).firstOrNull() ?: return emptyList()
+        val asset = createTransaction.createNotificationTransaction(
+            wallet = wallet,
+            assetId = data.assetId,
+            transaction = data.transaction,
+            currency = sessionRepository.getCurrentCurrency(),
+        ) ?: return emptyList()
+        selectWallet(wallet)
         val transactionRoute = TransactionDetailsRoute(data.transaction.id)
-        val asset = getAssetById(data.assetId).firstOrNull() ?: return emptyList()
         if (asset.type != AssetType.PERPETUAL) {
             return listOf(AssetRoute(asset.id), transactionRoute)
         }
-        return listOf(PerpetualRoute, PerpetualPositionRoute(data.assetId), transactionRoute)
+        return listOf(PerpetualRoute, PerpetualPositionRoute(asset.id), transactionRoute)
     }
 
-    private suspend fun prepareWallet(walletId: WalletId, assetIds: List<AssetId>): Wallet? {
-        val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return null
-        prefetchAssets.prefetchAssets(assetIds)
-        assetsService.addMissingBalances(
-            wallet.id.id,
-            assetIds.filter { wallet.getAccount(it.chain) != null }.map { it.toIdentifier() },
-        )
+    private suspend fun selectWallet(wallet: Wallet) {
         if (sessionRepository.session().firstOrNull()?.wallet?.id != wallet.id) {
             sessionRepository.setWallet(wallet)
         }
-        return wallet
     }
 }
 

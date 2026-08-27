@@ -155,6 +155,15 @@ impl GemAssetsService {
         self.store.add_missing_balances(wallet_id, asset_ids).await
     }
 
+    pub async fn open_wallet_asset(&self, wallet: Wallet, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
+        if !rules::can_open(&wallet, &asset_id) {
+            return Ok(None);
+        }
+        let asset = self.ensure_asset(asset_id.clone()).await?;
+        self.add_missing_balances(wallet.id, vec![asset_id]).await?;
+        Ok(Some(asset))
+    }
+
     pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
         let (enabled, disabled) = rules::default_balances(&wallet);
         self.store.add_balances(wallet.id.clone(), enabled, true).await?;

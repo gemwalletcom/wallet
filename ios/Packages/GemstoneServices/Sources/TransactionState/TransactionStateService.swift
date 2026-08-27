@@ -47,6 +47,11 @@ public struct TransactionStateService: Sendable {
         try await service.pendingTransactions().map { try TransactionWallet(transaction: Transaction($0.transaction), wallet: Wallet($0.wallet)) }
     }
 
+    func addNotificationTransaction(wallet: Wallet, assetId: AssetId, transaction: Transaction) async throws -> Asset? {
+        try await service.addNotificationTransaction(wallet: wallet.json(), assetId: assetId.identifier, transaction: transaction.json())
+            .map { try Asset($0) }
+    }
+
     func addTransactions(wallet: Wallet, transactions: [Transaction]) async throws {
         try await service.addTransactions(walletId: wallet.id.id, transactions: transactions.map { try $0.json() })
     }

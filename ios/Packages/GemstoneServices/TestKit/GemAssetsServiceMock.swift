@@ -73,6 +73,10 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         return try asset.asset.json()
     }
 
+    public func openWalletAsset(wallet _: Gemstone.Wallet, assetId: Gemstone.AssetId) async throws -> Gemstone.Asset? {
+        try await ensureAsset(assetId: assetId)
+    }
+
     public func ensureTokenAsset(assetId: Gemstone.AssetId) async throws -> Gemstone.Asset {
         try await ensureAsset(assetId: assetId)
     }

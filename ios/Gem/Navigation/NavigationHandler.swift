@@ -233,14 +233,18 @@ extension NavigationHandler {
     }
 
     private func navigateToAsset(_ assetId: AssetId) async throws {
-        guard let asset = try await preparedAssetForNavigation(assetId: assetId, wallet: walletSessionService.currentWallet) else {
+        guard let wallet = walletSessionService.currentWallet,
+              let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId)
+        else {
             return
         }
         navigationState.openAsset(asset)
     }
 
     private func navigateToAsset(walletId: WalletId, assetId: AssetId) async throws {
-        guard let asset = try await assetForWalletNavigation(walletId: walletId, assetId: assetId) else {
+        guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
+              let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId)
+        else {
             return
         }
 
@@ -250,12 +254,15 @@ extension NavigationHandler {
 
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
         guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
-              let asset = try await preparedAssetForNavigation(assetId: assetId, wallet: wallet)
+              let asset = try await transactionStateScheduler.addNotificationTransaction(
+                  wallet: wallet,
+                  assetId: assetId,
+                  transaction: transaction,
+                  currency: preferences.currency,
+              )
         else {
             return
         }
-
-        try await transactionStateScheduler.addTransactions(wallet: wallet, transactions: [transaction], currency: preferences.currency)
         let transaction = try transactionStore.getTransaction(walletId: walletId, transactionId: transaction.id)
 
         await selectWalletIfNeeded(walletId)
@@ -267,25 +274,6 @@ extension NavigationHandler {
         }
 
         navigationState.selectedTab = .wallet
-    }
-
-    private func assetForWalletNavigation(walletId: WalletId, assetId: AssetId) async throws -> Asset? {
-        guard let wallet = try? walletSessionService.getWallet(walletId: walletId) else {
-            return nil
-        }
-        return try await preparedAssetForNavigation(assetId: assetId, wallet: wallet)
-    }
-
-    private func preparedAssetForNavigation(assetId: AssetId, wallet: Wallet?) async throws -> Asset? {
-        guard AssetNavigationPolicy.canOpen(assetId),
-              let wallet,
-              wallet.accounts.contains(where: { $0.chain == assetId.chain })
-        else {
-            return nil
-        }
-        let asset = try await assetsService.ensureAsset(for: assetId)
-        try await assetsService.addMissingBalances(walletId: wallet.id, assetIds: [asset.id])
-        return asset
     }
 
     private func selectWalletIfNeeded(_ walletId: WalletId) async {

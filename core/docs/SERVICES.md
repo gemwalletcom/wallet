@@ -131,7 +131,6 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 
 ### Rust (core/gemstone)
 
-- Push-notification transaction preparation: one Core method (ensure asset, add hidden balance row, `add_transactions`) replacing iOS `NavigationHandler.preparedAssetForNavigation` + `navigateToTransaction` and Android `NotificationNavigation.prepareWallet/prepareTransaction`.
 - Perpetual account mode changes are invisible to the wallet summary until a wallet switch on both apps: return the mode from `sync_positions`/`account_mode` to the caller and let the apps refresh, or expose a change signal.
 - `GemConfirmError`: add an `Offline` kind (from `GatewayError::NetworkError` when the transport reports no connectivity) so Android `ConfirmErrorMapper` can map to `GemNetworkError.Offline` again; decide whether `simulate` returning `None` for a Payment without UTF-8 data should be an error and pin it with a test.
 - Missing tests (need a light `GemConfirmService` test constructor: mock gateway + scanner): `simulate` gate; `services/swap/rules.rs` quote→transfer mapping; `transaction_state` post-processing per transaction type; `wallet_connect` per-chain sign/send mapping.
@@ -151,11 +150,11 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 - WalletConnect rejection texts: Core messages ("invalid origin", "unsupported chains", "wallets unsupported") reach the Android sheets untranslated; give `GemWalletConnectService` typed errors and localize them on both apps.
 - Room: the unreleased chain is 87→90 only; before any further schema change, batch it into one migration and prefer drop + recreate for Core-seeded tables (banners, nodes are re-added by users, so copy those).
 
-### Verification rules for whoever runs this
+### Verification
 
 - Core: `cargo fmt --all && cargo clippy -p gemstone --all-targets -- -D warnings && cargo test -p gemstone`; regenerate bindings only when an exported signature changes.
-- Android: root `./gradlew compileGoogleDebugKotlin compileGoogleDebugUnitTestKotlin` plus the touched modules' `testDebugUnitTest` / `:app:testGoogleDebugUnitTest` (per-module compile misses `app/src/test`).
-- iOS: `just build && just test` from `ios/`, gated on the log's `exit 0` and zero `❌` (compile) and `✖` (test) lines.
+- Android: root `./gradlew compileGoogleDebugKotlin compileGoogleDebugUnitTestKotlin` plus the touched modules' unit tests.
+- iOS: `just build && just test` from `ios/`.
 - After each batch: compare the pre-change app logic (`git show <sha>^:<path>`) with the Core rule and add the Core test that would flip if the rule flipped.
 
 ## Conventions

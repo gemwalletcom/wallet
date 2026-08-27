@@ -77,10 +77,9 @@ extension NavigationPresenter {
     ) async throws {
         switch action {
         case let .asset(assetId), let .perpetual(assetId):
-            guard wallet.accounts.contains(where: { $0.chain == assetId.chain }) else {
+            guard let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId) else {
                 return
             }
-            let asset = try await assetsService.ensureAsset(for: assetId)
             navigationState.openAsset(asset)
         case let .swap(fromAssetId, toAssetId):
             try await presentSwap(

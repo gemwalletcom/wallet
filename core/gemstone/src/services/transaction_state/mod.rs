@@ -7,12 +7,13 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
 use primitives::currency::Currency;
-use primitives::{Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
+use primitives::{Asset, AssetId, Transaction, TransactionId, TransactionState, TransactionUpdate, Wallet, WalletId};
 
 pub use model::{GemPendingTransaction, GemPostProcessingFailure, GemPostProcessingStep, GemTransactionStateResult, GemTransactionStateUpdate};
 pub use store::GemTransactionStateStore;
 
 use crate::gateway::GemGateway;
+use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::nft::GemNftService;
 use crate::services::stake::GemStakeService;
@@ -21,6 +22,7 @@ use crate::services::stake::GemStakeService;
 pub struct GemTransactionStateService {
     gateway: Arc<GemGateway>,
     store: Arc<dyn GemTransactionStateStore>,
+    assets: Arc<GemAssetsService>,
     balance: Arc<GemBalanceService>,
     stake: Arc<GemStakeService>,
     nft: Arc<GemNftService>,
@@ -29,10 +31,18 @@ pub struct GemTransactionStateService {
 #[uniffi::export]
 impl GemTransactionStateService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, store: Arc<dyn GemTransactionStateStore>, balance: Arc<GemBalanceService>, stake: Arc<GemStakeService>, nft: Arc<GemNftService>) -> Self {
+    pub fn new(
+        gateway: Arc<GemGateway>,
+        store: Arc<dyn GemTransactionStateStore>,
+        assets: Arc<GemAssetsService>,
+        balance: Arc<GemBalanceService>,
+        stake: Arc<GemStakeService>,
+        nft: Arc<GemNftService>,
+    ) -> Self {
         Self {
             gateway,
             store,
+            assets,
             balance,
             stake,
             nft,
@@ -49,6 +59,14 @@ impl GemTransactionStateService {
 
     pub async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
         self.store.add_transactions(wallet_id, transactions).await
+    }
+
+    pub async fn add_notification_transaction(&self, wallet: Wallet, asset_id: AssetId, transaction: Transaction) -> Result<Option<Asset>, GemServiceError> {
+        let Some(asset) = self.assets.open_wallet_asset(wallet.clone(), asset_id).await? else {
+            return Ok(None);
+        };
+        self.add_transactions(wallet.id, vec![transaction]).await?;
+        Ok(Some(asset))
     }
 
     pub async fn enable_transaction_assets(&self, wallet_id: WalletId, transactions: Vec<Transaction>, currency: Currency) -> Result<(), GemServiceError> {
