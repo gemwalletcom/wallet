@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import func Gemstone.canClaimDelegationRewards
+import func Gemstone.delegationActions
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -99,22 +101,9 @@ public struct DelegationSceneViewModel {
     }
 
     public var availableActions: [DelegationActionType] {
-        guard wallet.canSign else { return [] }
-        return switch providerType {
-        case .stake:
-            switch model.state {
-            case .active: stakeChain.supportRedelegate ? [.stake, .unstake, .redelegate] : [.unstake]
-            case .inactive: stakeChain.supportRedelegate ? [.unstake, .redelegate] : [.unstake]
-            case .awaitingWithdrawal: stakeChain.supportWithdraw ? [.withdraw] : []
-            case .pending, .activating, .deactivating: []
-            }
-        case .earn:
-            switch model.state {
-            case .active: [.deposit, .withdraw]
-            case .inactive: [.withdraw]
-            case .pending, .activating, .deactivating, .awaitingWithdrawal: []
-            }
-        }
+        guard let provider = try? providerType.json(), let state = try? model.state.json() else { return [] }
+        return delegationActions(walletType: wallet.type.map(), chain: asset.chain.rawValue, provider: provider, state: state)
+            .map(DelegationActionType.init)
     }
 
     public var showManage: Bool {
@@ -122,10 +111,8 @@ public struct DelegationSceneViewModel {
     }
 
     public var canClaimRewards: Bool {
-        wallet.canSign
-            && stakeChain.supportClaimRewards
-            && model.state == .active
-            && model.delegation.base.rewardsValue > 0
+        guard let state = try? model.state.json() else { return false }
+        return canClaimDelegationRewards(walletType: wallet.type.map(), chain: asset.chain.rawValue, state: state, rewards: model.delegation.base.rewards)
     }
 
     public func actionTitle(_ action: DelegationActionType) -> String {

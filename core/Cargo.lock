@@ -4130,6 +4130,7 @@ dependencies = [
  "number_formatter",
  "payment",
  "primitives",
+ "rand 0.10.2",
  "serde",
  "serde_json",
  "signer",

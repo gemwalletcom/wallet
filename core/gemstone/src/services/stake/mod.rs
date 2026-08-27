@@ -1,3 +1,4 @@
+pub mod model;
 pub mod rules;
 pub mod store;
 
@@ -5,12 +6,13 @@ use crate::services::error::GemServiceError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{AssetId, Chain, DelegationValidator, StakeProviderType, WalletId};
+use primitives::{AssetId, Chain, DelegationState, DelegationValidator, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
 use crate::models::{GemContractCallData, GemEarnType};
 
+pub use model::GemDelegationAction;
 pub use store::GemStakeStore;
 
 use crate::services::name::GemAddressStore;
@@ -211,4 +213,24 @@ mod tests {
         assert_eq!(validators[0].apr, 4.5);
         assert_eq!(validators[0].provider_type, StakeProviderType::Earn);
     }
+}
+
+#[uniffi::export]
+pub fn delegation_actions(wallet_type: WalletType, chain: Chain, provider: StakeProviderType, state: DelegationState) -> Vec<GemDelegationAction> {
+    rules::delegation_actions(wallet_type, chain, provider, state)
+}
+
+#[uniffi::export]
+pub fn can_claim_delegation_rewards(wallet_type: WalletType, chain: Chain, state: DelegationState, rewards: String) -> bool {
+    rules::can_claim_rewards(wallet_type, chain, state, &rewards)
+}
+
+#[uniffi::export]
+pub fn recommended_validator_ids(chain: Chain) -> Vec<String> {
+    rules::recommended_validator_ids(chain)
+}
+
+#[uniffi::export]
+pub fn recommended_validator(chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
+    rules::recommended_validator(chain, validators)
 }
