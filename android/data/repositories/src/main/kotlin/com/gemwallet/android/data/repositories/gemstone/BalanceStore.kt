@@ -69,11 +69,12 @@ class GemstoneBalanceStore(
                         pendingAmount = type.pending.amount,
                         rewards = type.rewards.value,
                         rewardsAmount = type.rewards.amount,
-                        votes = metadata?.votes?.toLong() ?: 0L,
-                        energyAvailable = metadata?.energyAvailable?.toLong() ?: 0L,
-                        energyTotal = metadata?.energyTotal?.toLong() ?: 0L,
-                        bandwidthAvailable = metadata?.bandwidthAvailable?.toLong() ?: 0L,
-                        bandwidthTotal = metadata?.bandwidthTotal?.toLong() ?: 0L,
+                        votes = metadata?.votes?.toLong(),
+                        energyAvailable = metadata?.energyAvailable?.toLong(),
+                        energyTotal = metadata?.energyTotal?.toLong(),
+                        bandwidthAvailable = metadata?.bandwidthAvailable?.toLong(),
+                        bandwidthTotal = metadata?.bandwidthTotal?.toLong(),
+                        isActive = update.isActive,
                         updatedAt = updatedAt,
                     )
                 }

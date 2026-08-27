@@ -53,6 +53,6 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     }
 
     public func saveAddressNames(names: [Gemstone.AddressName]) async throws {
-        try addressStore.addAddressNames(names.map { try Primitives.AddressName($0) })
+        try addressStore.updateAddressNames(names.map { try Primitives.AddressName($0) })
     }
 }

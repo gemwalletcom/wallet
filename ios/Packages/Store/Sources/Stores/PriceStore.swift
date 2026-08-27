@@ -11,12 +11,9 @@ public struct PriceStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func getRate(currency: String) throws -> FiatRateRecord {
+    public func getRate(currency: String) throws -> FiatRateRecord? {
         try db.read { db in
-            guard let rate = try FiatRateRecord.filter(key: currency).fetchOne(db) else {
-                throw AnyError("unknown currency: \(currency)")
-            }
-            return rate
+            try FiatRateRecord.filter(key: currency).fetchOne(db)
         }
     }
 
