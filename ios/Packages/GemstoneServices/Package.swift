@@ -55,7 +55,6 @@ let package = Package(
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
-                .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "NativeProviderService", package: "NativeProviderService"),
                 "Gemstone",
                 "GemstoneServices",
@@ -65,7 +64,6 @@ let package = Package(
         .testTarget(
             name: "GemstoneServicesTests",
             dependencies: [
-                .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),

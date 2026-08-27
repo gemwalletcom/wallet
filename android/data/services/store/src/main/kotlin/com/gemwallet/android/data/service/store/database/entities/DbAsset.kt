@@ -205,8 +205,6 @@ fun AssetLink.toRecord(assetId: AssetId) = DbAssetLink(
     url = url,
 )
 
-fun List<AssetFull>.toAssetFullRecord() = map { it.toRecord() }
-
 fun List<DbAssetLink>.toAssetLinksModel() = map { it.toDTO() }
 
 fun Flow<List<DbAssetLink>>.toAssetLinksModel() = map { it.toAssetLinksModel() }
@@ -237,8 +235,6 @@ fun AssetMarket.toRecord(assetId: AssetId, rate: Double) = copy(
     allTimeHighValue = allTimeHighValue?.withRate(rate),
     allTimeLowValue = allTimeLowValue?.withRate(rate),
 ).toRecord(assetId)
-
-fun AssetFull.toMarketRecord(rate: Double) = market?.toRecord(asset.id, rate)
 
 fun  DbAssetMarket.toDTO() = AssetMarket(
     marketCap = marketCap,

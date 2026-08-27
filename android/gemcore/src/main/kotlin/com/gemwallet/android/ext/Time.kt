@@ -7,5 +7,3 @@ fun Long.millisToSeconds(): Long = this / MILLIS_PER_SECOND
 fun Long.secondsToMillis(): Long = this * MILLIS_PER_SECOND
 
 fun currentTimestamp(): Long = System.currentTimeMillis().millisToSeconds()
-
-fun nowSeconds(): ULong = currentTimestamp().toULong()

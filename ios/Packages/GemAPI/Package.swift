@@ -10,10 +10,6 @@ let package = Package(
             name: "GemAPI",
             targets: ["GemAPI"],
         ),
-        .library(
-            name: "GemAPITestKit",
-            targets: ["GemAPITestKit"],
-        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
@@ -27,15 +23,6 @@ let package = Package(
                 "SwiftHTTPClient",
             ],
             path: "Sources",
-        ),
-        .target(
-            name: "GemAPITestKit",
-            dependencies: [
-                "GemAPI",
-                "SwiftHTTPClient",
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
-            ],
-            path: "TestKit",
         ),
     ],
 )

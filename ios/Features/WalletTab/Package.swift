@@ -77,7 +77,6 @@ let package = Package(
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "StoreTestKit", package: "Store"),
                 "NFT",
                 "WalletTab",

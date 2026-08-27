@@ -810,7 +810,6 @@
 				D869D95F2E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9612E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9632E358A9C0025A94D /* PBXTargetDependency */,
-				D869D9652E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9672E358A9C0025A94D /* PBXTargetDependency */,
 				D869D96D2E358A9C0025A94D /* PBXTargetDependency */,
 				C30952C3299C39D80004C0F9 /* PBXTargetDependency */,
@@ -1141,10 +1140,6 @@
 		D869D9632E358A9C0025A94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			productRef = D869D9622E358A9C0025A94D /* PreferencesTestKit */;
-		};
-		D869D9652E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D9642E358A9C0025A94D /* GemAPITestKit */;
 		};
 		D869D9672E358A9C0025A94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1881,10 +1876,6 @@
 		D869D9622E358A9C0025A94D /* PreferencesTestKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PreferencesTestKit;
-		};
-		D869D9642E358A9C0025A94D /* GemAPITestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = GemAPITestKit;
 		};
 		D869D9662E358A9C0025A94D /* StoreTestKit */ = {
 			isa = XCSwiftPackageProductDependency;

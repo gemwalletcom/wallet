@@ -5,7 +5,6 @@ import GemstoneServices
 import BigInt
 import Foundation
 import GemstonePrimitivesTestKit
-import GemAPITestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit

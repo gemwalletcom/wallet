@@ -46,49 +46,6 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     }
 }
 
-public final class GemSubscriptionServiceMock: GemSubscriptionServiceProtocol, @unchecked Sendable {
-    private let lock = NSLock()
-    private let delay: Duration?
-    private let syncError: Error?
-    private var calls = 0
-
-    public init(delay: Duration? = nil, syncError: Error? = nil) {
-        self.delay = delay
-        self.syncError = syncError
-    }
-
-    public var syncCalls: Int {
-        lock.withLock { calls }
-    }
-
-    public func sync() async throws -> Bool {
-        lock.withLock { calls += 1 }
-        if let delay {
-            try await Task.sleep(for: delay)
-        }
-        if let syncError {
-            throw syncError
-        }
-        return false
-    }
-}
-
-public final class GemConfigServiceMock: GemConfigServiceProtocol, @unchecked Sendable {
-    private let config: Primitives.ConfigResponse
-
-    public init(config: Primitives.ConfigResponse) {
-        self.config = config
-    }
-
-    public func getConfig() async throws -> Gemstone.ConfigResponse {
-        try config.json()
-    }
-
-    public func updateConfig() async throws -> Gemstone.ConfigResponse {
-        try config.json()
-    }
-}
-
 public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Sendable {
     private let lock = NSLock()
     private var values: [String: String] = [:]
@@ -185,16 +142,6 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
 
 }
 
-public actor GemWalletConfigurationServiceMock: GemWalletConfigurationServiceProtocol {
-    public private(set) var walletIds: [String] = []
-
-    public init() {}
-
-    public func sync(walletId: String) async throws {
-        walletIds.append(walletId)
-    }
-}
-
 public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked Sendable {
     public init() {}
 
@@ -215,61 +162,6 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
     public init() {}
 
     public func handle(event _: Gemstone.StreamEvent, currency _: Gemstone.Currency) async throws {}
-}
-
-public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked Sendable {
-    public init() {}
-
-    public func syncMessages(fromTimestamp _: UInt64) async throws {}
-
-    public func sendText(content _: String) async throws {}
-
-    public func sendImage(image _: Data, fileName _: String, mimeType _: String) async throws {}
-
-    public func retryMessage(message _: Gemstone.SupportMessage) async throws {}
-
-    public func imageFile(url: String) async throws -> String {
-        url
-    }
-}
-
-public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked Sendable {
-    private let rewards: Primitives.Rewards?
-    private let redemption: Primitives.RedemptionResult?
-
-    public init(rewards: Primitives.Rewards? = nil, redemption: Primitives.RedemptionResult? = nil) {
-        self.rewards = rewards
-        self.redemption = redemption
-    }
-
-    public func referralLink(code: String) -> String {
-        "https://gemwallet.com/join?code=\(code)"
-    }
-
-    public func getRewards(walletId _: String) async throws -> Gemstone.Rewards {
-        guard let rewards else { throw AnyError("not stubbed") }
-        return try rewards.json()
-    }
-
-    public func createReferral(wallet _: Gemstone.Wallet, code _: String) async throws -> Gemstone.Rewards {
-        guard let rewards else { throw AnyError("not stubbed") }
-        return try rewards.json()
-    }
-
-    public func useReferralCode(wallet _: Gemstone.Wallet, code _: String) async throws {}
-
-    public func redeem(wallet _: Gemstone.Wallet, redemptionId _: String) async throws -> Gemstone.RedemptionResult {
-        guard let redemption else { throw AnyError("not stubbed") }
-        return try redemption.json()
-    }
-}
-
-public final class GemNotificationServiceMock: GemNotificationServiceProtocol, @unchecked Sendable {
-    public init() {}
-
-    public func sync(walletId _: String) async throws {}
-
-    public func markRead() async throws {}
 }
 
 public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendable {
@@ -337,22 +229,6 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
 
     public func getWalletAssets(walletId _: Gemstone.WalletId, period: Gemstone.ChartPeriod) async throws -> Gemstone.PortfolioAssets {
         try await getAssets(period: period, request: Primitives.PortfolioAssetsRequest(assets: []).json())
-    }
-}
-
-public final class GemAuthServiceMock: GemAuthServiceProtocol, @unchecked Sendable {
-    private let nonce: Primitives.AuthNonce
-
-    public init(nonce: Primitives.AuthNonce = AuthNonce(nonce: "nonce", timestamp: 0)) {
-        self.nonce = nonce
-    }
-
-    public func getNonce() async throws -> Gemstone.AuthNonce {
-        try nonce.json()
-    }
-
-    public func getAuthPayload(wallet _: Gemstone.Wallet) async throws -> Gemstone.AuthPayload {
-        try Primitives.AuthPayload(deviceId: "device", chain: .ethereum, address: "0x1", nonce: nonce.nonce, signature: "0x").json()
     }
 }
 
@@ -556,36 +432,6 @@ public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Se
     public func searchAssets(wallet _: Gemstone.Wallet, query _: String, currency _: Gemstone.Currency) async throws -> [Gemstone.AssetBasic] {
         try assets.map { try $0.json() }
     }
-}
-
-public final class GemWalletServiceMock: GemWalletServiceProtocol, @unchecked Sendable {
-    public private(set) var imageUrls: [String: String?] = [:]
-
-    public init() {}
-
-    public func createWallet() throws -> [String] { [] }
-
-    public func deleteWallet(wallet _: Gemstone.Wallet) async throws -> Bool { false }
-
-    public func importWallet(name _: String, import _: GemWalletImportType, source _: GemWalletSource) async throws -> GemWalletImportResult {
-        throw AnyError("not stubbed")
-    }
-
-    public func nextWalletIndex() async throws -> Int32 { 1 }
-
-    public func previewImport(import _: GemWalletImportType) throws -> GemWalletImport {
-        throw AnyError("not stubbed")
-    }
-
-    public func rename(walletId _: Gemstone.WalletId, name _: String) async throws {}
-
-    public func setImageUrl(walletId: Gemstone.WalletId, imageUrl: String?) async throws {
-        imageUrls[walletId] = imageUrl
-    }
-
-    public func setPinned(walletId _: Gemstone.WalletId, pinned _: Bool) async throws {}
-
-    public func setupChains(chains _: [Gemstone.Chain]) async throws -> [Gemstone.Wallet] { [] }
 }
 
 public final class GemStreamSubscriptionServiceMock: GemStreamSubscriptionServiceProtocol, @unchecked Sendable {
