@@ -1,9 +1,7 @@
 package com.gemwallet.android.data.repositories.bridge
 
 import com.gemwallet.android.ext.toChain
-import com.gemwallet.android.ext.toChainType
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.WalletConnectionEvents
 import com.wallet.core.primitives.WalletConnectionMethods
 import uniffi.gemstone.WalletConnect
@@ -74,21 +72,6 @@ enum class ChainNamespace(val string: String, val methods: List<WalletConnection
             WalletConnectionEvents.AccountsChanged.string,
         )
     }
-}
-
-fun Chain.walletConnectNamespace(): ChainNamespace? {
-    return when (this.toChainType()) {
-        ChainType.Ethereum -> ChainNamespace.Eip155
-        ChainType.Solana -> ChainNamespace.Solana
-        ChainType.Sui -> ChainNamespace.Sui
-        ChainType.Ton -> ChainNamespace.Ton
-        ChainType.Tron -> ChainNamespace.Tron
-        else -> null
-    }
-}
-
-fun Chain.walletConnectReference(): String? {
-    return WalletConnect().getReference(string)
 }
 
 fun Chain.Companion.fromWalletConnectChainId(walletConnectChainId: String?): Chain? {

@@ -44,7 +44,6 @@ interface WalletConnectClient {
 }
 
 sealed interface WalletConnectEvent {
-    data class SessionSettled(val session: WalletConnectSession) : WalletConnectEvent
     data class SessionDeleted(val topic: String) : WalletConnectEvent
     data class SessionProposal(val proposal: WalletConnectSessionProposal, val verifyContext: WalletConnectVerifyContext) : WalletConnectEvent
     data class SessionRequest(val request: WalletConnectSessionRequest, val verifyContext: WalletConnectVerifyContext) : WalletConnectEvent

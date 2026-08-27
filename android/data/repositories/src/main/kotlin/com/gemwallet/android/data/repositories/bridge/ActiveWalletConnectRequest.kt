@@ -70,6 +70,5 @@ private fun WalletConnectEvent.toUserRequest(): WalletConnectUserRequest? = when
     is WalletConnectEvent.SessionRequest -> WalletConnectUserRequest.SessionRequest(request, verifyContext)
     is WalletConnectEvent.AuthenticationRequest -> WalletConnectUserRequest.AuthenticationRequest(request, verifyContext)
     is WalletConnectEvent.SessionProposal -> WalletConnectUserRequest.SessionProposal(proposal, verifyContext)
-    is WalletConnectEvent.SessionSettled,
     is WalletConnectEvent.SessionDeleted -> null
 }

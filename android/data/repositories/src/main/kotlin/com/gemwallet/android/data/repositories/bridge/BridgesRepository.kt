@@ -2,7 +2,7 @@ package com.gemwallet.android.data.repositories.bridge
 
 import android.util.Log
 import androidx.core.net.toUri
-import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.Wallet as GemWallet
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.Config
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnect
 
@@ -53,7 +54,6 @@ class BridgesRepository(
         scope.launch(Dispatchers.IO) {
             bridgeEvents.collect { event ->
                 when (event) {
-                    is WalletConnectEvent.SessionSettled -> connectionsRepository.addConnection(event.session)
                     is WalletConnectEvent.SessionDeleted -> connectionsRepository.deleteConnection(event.topic)
                     else -> Unit
                 }
@@ -89,7 +89,7 @@ class BridgesRepository(
 
     private suspend fun sync() {
         val sessions = activeSessions() ?: return
-        walletConnectService.updateSessions(sessions.mapNotNull { it.toConnectionSession(walletConnectService) })
+        walletConnectService.updateSessions(sessions.mapNotNull { it.toConnectionSession(walletConnectService)?.toJson() })
     }
 
     private fun handlePendingRequests() {
@@ -143,15 +143,18 @@ class BridgesRepository(
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        val supportedNamespaces = connectionsRepository.getSupportedNamespaces(wallet)
+        val approval = walletConnectService.sessionApproval(
+            wallet = wallet.toJson(),
+            supportedChains = Config().getWalletConnectConfig().chains,
+        )
         val sessionNamespaces = walletConnectClient.generateApprovedNamespaces(
             proposal = proposal,
-            supportedNamespaces = supportedNamespaces,
+            supportedNamespaces = approval.toSupportedNamespaces(),
         )
         val sessionProperties = WalletConnect().configSessionProperties(
             properties = proposal.properties ?: emptyMap(),
             caip2Chains = sessionNamespaces.values.flatMap { it.chains.orEmpty() },
-            accounts = wallet.accounts.map { it.toGem() },
+            accounts = approval.accounts,
         )
         approveAndStoreSession(wallet, "Connection failed", onSuccess, onError) { onApproved, onFailure ->
             walletConnectClient.approveSession(
@@ -263,6 +266,11 @@ class BridgesRepository(
         wallet: GemWallet,
         activeBefore: Set<String>,
     ) {
-        connectionsRepository.addNewSessions(wallet, activeSessions().orEmpty(), activeBefore)
+        activeSessions().orEmpty()
+            .filter { it.topic !in activeBefore }
+            .mapNotNull { it.toConnectionSession(walletConnectService) }
+            .forEach { session ->
+                walletConnectService.addConnection(WalletConnection(session = session, wallet = wallet).toJson())
+            }
     }
 }

@@ -271,11 +271,7 @@ class ReownWalletConnectClient @Inject constructor(
         walletEvents.tryEmit(WalletConnectEvent.SessionRequest(sessionRequest.toWalletConnectSessionRequest(), verifyContext.toWalletConnectVerifyContext()))
     }
 
-    override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) {
-        if (settleSessionResponse is Wallet.Model.SettledSessionResponse.Result) {
-            walletEvents.tryEmit(WalletConnectEvent.SessionSettled(settleSessionResponse.session.toWalletConnectSession()))
-        }
-    }
+    override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) = Unit
 
     override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) = Unit
 
