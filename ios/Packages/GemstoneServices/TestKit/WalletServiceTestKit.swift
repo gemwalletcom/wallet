@@ -22,7 +22,7 @@ public extension WalletService {
         let session = GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: preferences), wallets: gemWalletStore)
         let gemWalletService = GemWalletService(
             keystore: keystore.gemKeystore,
-            password: GemstoneKeystorePassword(keystore: keystore, walletStore: walletStore),
+            password: GemstoneKeystorePassword(keystore: keystore),
             store: gemWalletStore,
             session: session,
             deviceStore: GemstoneDeviceStore(preferences: preferences.preferences),

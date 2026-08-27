@@ -129,13 +129,6 @@ Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, And
 
 State on 2026-08-27: every app service either forwards to a Core service or is platform glue (reown/WalletKit, keystore files, sockets, navigation). What is left is mostly (a) rules still duplicated in view models, (b) store adapters that diverge in what they write, and (c) three product decisions. Rough size: Rust ~1 week, iOS ~1 week, Android ~1.5 weeks (the Earn flow is the largest piece). Items are ordered by risk; each one should land with the app-side code it replaces deleted.
 
-### Decisions needed first (product)
-
-- [ ] Keystore password creation: iOS `GemstoneServices/Sources/Keystore/KeystorePasswordStore.swift` refuses `createIfMissing` unless every wallet is view-only (lost password ⇒ every import fails), Android `data/repositories/.../gemstone/KeystorePasswordStore.kt` creates a new one. Pick one rule, put it in `services/wallet/rules.rs` behind a `has_password()` trait method.
-- [ ] WalletConnect activation gate: iOS gates connector setup on `isWalletConnectActivated` (`ConnectionsService`), Android on "any stored connection". Pick one and keep it in `GemPreferencesService`.
-
-Decided: a security scan outage fails open on purpose — `confirm.rs` `scan_transaction(...).await.ok()` lets the send continue when the scanner is unreachable (same as both pre-Core apps); keep it that way unless product says otherwise.
-
 ### Rust (core/gemstone)
 
 - [ ] `GemBalanceService::update` should call `asset_store.add_missing_balances` itself; then drop the row-creating `insertIgnore` (Android `BalanceStore.updateBalances`) and `addBalance` (iOS `BalanceStore.updateBalances`) from the adapters so `update_balances` is a pure update on both.

@@ -45,7 +45,7 @@ class BridgesRepository(
 
     init {
         scope.launch(Dispatchers.IO) {
-            if ((getConnections().firstOrNull() ?: emptyList()).isNotEmpty()) {
+            if (walletConnectService.hasSessions()) {
                 initWalletConnect()
                 sync()
                 pingActiveSessions()

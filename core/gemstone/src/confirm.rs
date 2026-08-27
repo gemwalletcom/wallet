@@ -105,6 +105,7 @@ impl GemConfirmService {
             references: transfer.recipient.references.clone(),
         };
 
+        // A scanner outage fails open by design: the send continues without a verdict.
         let scan_future = async { self.scanner.scan_transaction(scan_payload(preload_input.clone())).await.ok() };
         let (metadata, fee_rates, scan, simulation) = futures::join!(
             self.gateway.get_transaction_preload(chain, preload_input.clone()),

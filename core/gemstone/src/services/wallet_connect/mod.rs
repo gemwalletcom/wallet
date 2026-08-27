@@ -58,6 +58,10 @@ impl GemWalletConnectService {
         Ok(())
     }
 
+    pub async fn has_sessions(&self) -> Result<bool, GemServiceError> {
+        Ok(!self.store.get_sessions().await?.is_empty())
+    }
+
     pub async fn delete_session(&self, session_id: String) -> Result<(), GemServiceError> {
         self.store.delete_sessions(vec![session_id]).await
     }

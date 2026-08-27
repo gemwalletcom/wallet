@@ -5,8 +5,11 @@ import WalletConnectorService
 
 public actor WalletConnectorServiceMock: WalletConnectorServiceable {
     public var isSetup: Bool = false
+    private let storedSessions: Bool
 
-    public init() {}
+    public init(hasSessions: Bool = false) {
+        storedSessions = hasSessions
+    }
 
     public func setup() async {
         isSetup = true
@@ -14,8 +17,7 @@ public actor WalletConnectorServiceMock: WalletConnectorServiceable {
 
     public func pair(uri _: String) async throws {}
     public func disconnect(sessionId _: String) async throws {}
-    public nonisolated var hasSessions: Bool { false }
-
+    public func hasSessions() async throws -> Bool { storedSessions }
     public nonisolated func configure() throws {}
     public nonisolated func updateSessions() {}
 }

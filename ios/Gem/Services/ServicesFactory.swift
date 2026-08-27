@@ -106,7 +106,7 @@ struct ServicesFactory {
         let walletSessionService = WalletSessionService(service: gemWalletSessionService)
         let gemWalletService = Gemstone.GemWalletService(
             keystore: storages.keystore.gemKeystore,
-            password: GemstoneKeystorePassword(keystore: storages.keystore, walletStore: storeManager.walletStore),
+            password: GemstoneKeystorePassword(keystore: storages.keystore),
             store: gemWalletStore,
             session: gemWalletSessionService,
             deviceStore: gemDeviceStore,
@@ -205,7 +205,7 @@ struct ServicesFactory {
         let swapService = Gemstone.GemSwapService(
             swapper: gemSwapper,
             keystore: storages.keystore.gemKeystore,
-            password: GemstoneKeystorePassword(keystore: storages.keystore, walletStore: storeManager.walletStore),
+            password: GemstoneKeystorePassword(keystore: storages.keystore),
         )
 
         let presenter = WalletConnectorPresenter()
@@ -265,7 +265,7 @@ struct ServicesFactory {
             auth: Gemstone.GemAuthService(
                 api: gemDeviceApiClient,
                 keystore: storages.keystore.gemKeystore,
-                password: GemstoneKeystorePassword(keystore: storages.keystore, walletStore: storeManager.walletStore),
+                password: GemstoneKeystorePassword(keystore: storages.keystore),
                 devicePrivateKey: devicePrivateKey,
             ),
             balance: gemBalanceService

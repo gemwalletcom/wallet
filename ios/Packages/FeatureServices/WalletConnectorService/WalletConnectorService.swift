@@ -87,8 +87,8 @@ extension WalletConnectorService: WalletConnectorServiceable {
         }
     }
 
-    public var hasSessions: Bool {
-        !interactor.sessions.isEmpty
+    public func hasSessions() async throws -> Bool {
+        try await service.hasSessions()
     }
 }
 
