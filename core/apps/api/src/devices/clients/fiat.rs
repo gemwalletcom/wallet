@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use fiat::{FiatClient, FiatWebhookRequest};
+use fiat::{FiatClient, FiatDeviceContext, FiatWebhookRequest};
 use primitives::{FiatAssets, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData};
 use storage::{Database, DevicesRepository, FiatRepository};
 
@@ -18,8 +18,12 @@ impl FiatQuotesClient {
         self.fiat_client.get_quotes(request).await
     }
 
-    pub async fn get_quote_url(&self, quote_id: &str, wallet_id: i32, device_id: i32, ip_address: &str, locale: &str) -> Result<FiatQuoteUrl, Box<dyn Error + Send + Sync>> {
-        self.fiat_client.get_quote_url(quote_id, wallet_id, device_id, ip_address, locale).await
+    pub async fn get_device_quotes(&self, request: FiatQuoteRequest, context: &FiatDeviceContext) -> Result<FiatQuotes, Box<dyn Error + Send + Sync>> {
+        self.fiat_client.get_device_quotes(request, context).await
+    }
+
+    pub async fn get_quote_url(&self, quote_id: &str, context: &FiatDeviceContext, locale: &str) -> Result<FiatQuoteUrl, Box<dyn Error + Send + Sync>> {
+        self.fiat_client.get_quote_url(quote_id, context, locale).await
     }
 
     pub async fn get_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {

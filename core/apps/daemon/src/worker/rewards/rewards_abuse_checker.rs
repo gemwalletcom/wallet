@@ -1,6 +1,6 @@
 use gem_tracing::info_with_fields;
 use primitives::rewards::RewardStatus;
-use primitives::{ConfigKey, NaiveDateTimeExt, now};
+use primitives::{ConfigKey, NaiveDateTimeExt, RateLimitKey, RateLimitWindow, now};
 use std::error::Error;
 use storage::{AbusePatterns, ConfigCacher, Database, RiskSignalsRepository};
 use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};
@@ -246,7 +246,7 @@ impl RewardsAbuseChecker {
             velocity_window: self.config.get_duration(ConfigKey::ReferralAbuseVelocityWindow)?,
             velocity_divisor: self.config.get_i64(ConfigKey::ReferralAbuseVelocityDivisor)?,
             velocity_penalty: self.config.get_i64(ConfigKey::ReferralAbuseVelocityPenaltyPerSignal)?,
-            referral_per_user_daily: self.config.get_i64(ConfigKey::ReferralPerUserDaily)?,
+            referral_per_user_daily: self.config.get_rate_limit(RateLimitKey::ReferralPerUserLimit)?.get(RateLimitWindow::Day),
             verified_multiplier: self.config.get_i64(ConfigKey::ReferralVerifiedMultiplier)?,
             trusted_multiplier: self.config.get_i64(ConfigKey::ReferralTrustedMultiplier)?,
             disabled_referrer_penalty: self.config.get_i64(ConfigKey::ReferralAbuseDisabledReferrerPenalty)?,

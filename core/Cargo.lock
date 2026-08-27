@@ -1583,6 +1583,7 @@ dependencies = [
 name = "cacher"
 version = "2.114.11"
 dependencies = [
+ "primitives",
  "redis",
  "serde",
  "serde_json",

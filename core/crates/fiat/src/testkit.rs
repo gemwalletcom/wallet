@@ -1,3 +1,16 @@
+use crate::model::FiatDeviceContext;
+use primitives::WalletType;
+
+impl FiatDeviceContext {
+    pub fn mock() -> Self {
+        Self::mock_with_wallet_type(WalletType::Multicoin)
+    }
+
+    pub fn mock_with_wallet_type(wallet_type: WalletType) -> Self {
+        Self::new(1, 2, wallet_type, "192.0.2.1".to_string())
+    }
+}
+
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use crate::model::FiatMapping;
 #[cfg(all(test, feature = "fiat_integration_tests"))]

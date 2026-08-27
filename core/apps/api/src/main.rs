@@ -263,7 +263,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         Arc::new(IpApiClient::new(settings.security.ipapi.url.clone(), settings.security.ipapi.key.secret.clone())),
     ];
     let ip_security_client = IpSecurityClient::new(ip_check_providers, cacher_client.clone());
-    let rewards_client = RewardsClient::new(database.clone(), stream_producer.clone(), ip_security_client, pusher_client.clone());
+    let rewards_client = RewardsClient::new(database.clone(), cacher_client.clone(), stream_producer.clone(), ip_security_client, pusher_client.clone());
     let redemption_client = RewardsRedemptionClient::new(database.clone(), stream_producer.clone());
     let notifications_client = NotificationsClient::new(database.clone());
     let support_client = SupportApiClient::new(

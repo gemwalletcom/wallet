@@ -1,7 +1,7 @@
 use cacher::CacheError;
 use fiat::error::FiatQuoteError;
 use gem_rewards::{RewardsError, RewardsRedemptionError, UsernameError};
-use primitives::ResponseResult;
+use primitives::{RequestError, ResponseResult};
 use rocket::response::{Responder, Response};
 use rocket::serde::json::Json;
 use rocket::{Request, http::Status};
@@ -28,10 +28,11 @@ where
     error.downcast_ref::<T>().map(ToString::to_string)
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ApiError {
     OkError(String),
     BadRequest(String),
+    Forbidden,
     NotFound(String),
     InternalServerError(String),
 }
@@ -41,6 +42,7 @@ impl<'r> Responder<'r, 'static> for ApiError {
         let (status, message) = match self {
             ApiError::OkError(msg) => (Status::Ok, msg),
             ApiError::BadRequest(msg) => (Status::BadRequest, msg),
+            ApiError::Forbidden => (Status::Forbidden, "Forbidden".to_string()),
             ApiError::NotFound(msg) => (Status::NotFound, msg),
             ApiError::InternalServerError(msg) => (Status::InternalServerError, msg),
         };
@@ -94,6 +96,12 @@ impl From<FiatQuoteError> for ApiError {
     }
 }
 
+impl From<RequestError> for ApiError {
+    fn from(_: RequestError) -> Self {
+        ApiError::Forbidden
+    }
+}
+
 impl From<RewardsError> for ApiError {
     fn from(error: RewardsError) -> Self {
         ApiError::OkError(error.to_string())
@@ -121,6 +129,9 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
             }
             if let Some(db_error) = current_error.downcast_ref::<DatabaseError>() {
                 return db_error.clone().into();
+            }
+            if let Some(request_error) = current_error.downcast_ref::<RequestError>() {
+                return (*request_error).into();
             }
             if let Some(fiat_error) = current_error.downcast_ref::<FiatQuoteError>() {
                 return fiat_error.clone().into();
@@ -157,50 +168,41 @@ mod tests {
     use super::ApiError;
     use cacher::CacheError;
     use gem_rewards::{RewardsError, RewardsRedemptionError};
+    use primitives::RequestError;
     use storage::DatabaseError;
 
     #[test]
     fn test_cache_not_found_maps_to_public_not_found() {
         let error = ApiError::from(CacheError::not_found("FiatQuote", "abc"));
-        match error {
-            ApiError::NotFound(message) => assert_eq!(message, "FiatQuote abc not found"),
-            _ => panic!("expected not found"),
-        }
+        assert_eq!(error, ApiError::NotFound("FiatQuote abc not found".to_string()));
     }
 
     #[test]
     fn test_cache_key_not_found_maps_to_internal_server_error() {
         let error = ApiError::from(CacheError::KeyNotFound("fiat:quote:abc".to_string()));
-        match error {
-            ApiError::InternalServerError(message) => assert_eq!(message, "Unexpected cache miss"),
-            _ => panic!("expected internal server error"),
-        }
+        assert_eq!(error, ApiError::InternalServerError("Unexpected cache miss".to_string()));
     }
 
     #[test]
     fn test_boxed_database_not_found_hides_internal_lookup() {
         let error: Box<dyn std::error::Error + Send + Sync> = Box::new(DatabaseError::not_found_internal("Device", "1"));
-        match ApiError::from(error) {
-            ApiError::NotFound(message) => assert_eq!(message, "Device not found"),
-            _ => panic!("expected not found"),
-        }
+        assert_eq!(ApiError::from(error), ApiError::NotFound("Device not found".to_string()));
     }
 
     #[test]
     fn test_boxed_rewards_error_maps_to_ok_error() {
         let error: Box<dyn std::error::Error + Send + Sync> = Box::new(RewardsError::Username("Daily username creation limit has been reached".to_string()));
-        match ApiError::from(error) {
-            ApiError::OkError(message) => assert_eq!(message, "Daily username creation limit has been reached"),
-            _ => panic!("expected ok error"),
-        }
+        assert_eq!(ApiError::from(error), ApiError::OkError("Daily username creation limit has been reached".to_string()));
     }
 
     #[test]
     fn test_boxed_rewards_redemption_error_maps_to_ok_error() {
-        let error: Box<dyn std::error::Error + Send + Sync> = Box::new(RewardsRedemptionError::DailyLimitReached);
-        match ApiError::from(error) {
-            ApiError::OkError(message) => assert_eq!(message, "Daily redemption limit reached"),
-            _ => panic!("expected ok error"),
-        }
+        let error: Box<dyn std::error::Error + Send + Sync> = Box::new(RewardsRedemptionError::LimitReached);
+        assert_eq!(ApiError::from(error), ApiError::OkError("Redemption limit reached".to_string()));
+    }
+
+    #[test]
+    fn test_request_error_maps_to_forbidden() {
+        assert_eq!(ApiError::from(RequestError::Forbidden), ApiError::Forbidden);
     }
 }
