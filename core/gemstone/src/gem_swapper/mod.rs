@@ -1,6 +1,7 @@
 mod error;
 mod permit2;
-use error::SwapperError;
+pub use error::SwapperError;
+pub use permit2::permit2_data_to_eip712_json;
 use permit2::*;
 mod remote_types;
 use remote_types::*;

@@ -3,7 +3,7 @@
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import BigInt
-import protocol Gemstone.GemSwapperProtocol
+import protocol Gemstone.GemSwapServiceProtocol
 import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote
 import GemstoneServices
@@ -120,11 +120,11 @@ struct SwapSceneViewModelTests {
 
     @Test
     func cancelledTaskDoesNotUpdateStateWithError() async throws {
-        let swapper = GemSwapperMock(
-            fetchQuoteDelay: .milliseconds(100),
-            fetchQuoteError: SwapperError.NoQuoteAvailable,
+        let swapService = GemSwapServiceMock(
+            quotesDelay: .milliseconds(100),
+            quotesError: SwapperError.NoQuoteAvailable,
         )
-        let model = SwapSceneViewModel.mock(swapper: swapper)
+        let model = SwapSceneViewModel.mock(swapService: swapService)
 
         let task = Task {
             await model.fetch()
@@ -141,11 +141,11 @@ struct SwapSceneViewModelTests {
 
     @Test
     func emptyInputDoesNotApplyLateQuote() async throws {
-        let swapper = GemSwapperMock(
+        let swapService = GemSwapServiceMock(
             quotes: [.mock()],
-            fetchQuoteDelay: .milliseconds(100),
+            quotesDelay: .milliseconds(100),
         )
-        let model = SwapSceneViewModel.mock(swapper: swapper)
+        let model = SwapSceneViewModel.mock(swapService: swapService)
 
         let task = Task {
             await model.fetch()
@@ -179,11 +179,11 @@ struct SwapSceneViewModelTests {
 
     @Test
     func emptyInputDoesNotApplyLateError() async throws {
-        let swapper = GemSwapperMock(
-            fetchQuoteDelay: .milliseconds(100),
-            fetchQuoteError: SwapperError.NoQuoteAvailable,
+        let swapService = GemSwapServiceMock(
+            quotesDelay: .milliseconds(100),
+            quotesError: SwapperError.NoQuoteAvailable,
         )
-        let model = SwapSceneViewModel.mock(swapper: swapper)
+        let model = SwapSceneViewModel.mock(swapService: swapService)
 
         let task = Task {
             await model.fetch()
@@ -264,13 +264,13 @@ struct SwapSceneViewModelTests {
 
     @Test
     func refreshedQuotesKeepSelectedProvider() async {
-        let swapper = GemSwapperMock(
+        let swapService = GemSwapServiceMock(
             quotes: [
                 .mock(toValue: "260000000000", provider: .uniswapV3),
                 .mock(toValue: "250000000000", provider: .thorchain),
             ],
         )
-        let model = SwapSceneViewModel.mock(swapper: swapper)
+        let model = SwapSceneViewModel.mock(swapService: swapService)
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
         await model.fetch()
@@ -281,13 +281,13 @@ struct SwapSceneViewModelTests {
 
     @Test
     func providerSelectionAppliesWithoutRefetch() async {
-        let swapper = GemSwapperMock(
+        let swapService = GemSwapServiceMock(
             quotes: [
                 .mock(toValue: "260000000000", provider: .uniswapV3),
                 .mock(toValue: "250000000000", provider: .thorchain),
             ],
         )
-        let model = SwapSceneViewModel.mock(swapper: swapper)
+        let model = SwapSceneViewModel.mock(swapService: swapService)
         await model.fetch()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
@@ -309,7 +309,7 @@ struct SwapSceneViewModelTests {
 
     @Test
     func increasedAmountSelectsBestProviderWithoutManualSelection() async {
-        let model = SwapSceneViewModel.mock(swapQuotesProvider: SwapQuotesProviderMock())
+        let model = SwapSceneViewModel.mock(swapService: GemSwapServiceMock(quotes: quotesByAmount))
 
         await model.fetch()
 
@@ -324,8 +324,8 @@ struct SwapSceneViewModelTests {
 
     @Test
     func refreshedQuotesFallBackWhenSelectedProviderDisappears() async {
-        let swapper = GemSwapperMock(quotes: [.mock(toValue: "260000000000", provider: .uniswapV3)])
-        let model = SwapSceneViewModel.mock(swapper: swapper)
+        let swapService = GemSwapServiceMock(quotes: [.mock(toValue: "260000000000", provider: .uniswapV3)])
+        let model = SwapSceneViewModel.mock(swapService: swapService)
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
         await model.fetch()
@@ -335,13 +335,13 @@ struct SwapSceneViewModelTests {
 
     @Test
     func changedPairDropsManualProviderSelection() async {
-        let swapper = GemSwapperMock(
+        let swapService = GemSwapServiceMock(
             quotes: [
                 .mock(toValue: "260000000000", provider: .uniswapV3),
                 .mock(toValue: "250000000000", provider: .thorchain),
             ],
         )
-        let model = SwapSceneViewModel.mock(swapper: swapper)
+        let model = SwapSceneViewModel.mock(swapService: swapService)
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
         model.onChangeToAsset(old: .mock(asset: .mockEthereum()), new: .mock(asset: .mockEthereumUSDT()))
@@ -367,8 +367,8 @@ struct SwapSceneViewModelTests {
     private func model(
         toValueMock: String = "250000000000",
     ) async -> SwapSceneViewModel {
-        let swapper = GemSwapperMock(quotes: [.mock(toValue: toValueMock)])
-        let model = SwapSceneViewModel.mock(swapper: swapper)
+        let swapService = GemSwapServiceMock(quotes: [.mock(toValue: toValueMock)])
+        let model = SwapSceneViewModel.mock(swapService: swapService)
         await model.fetch()
         return model
     }
@@ -376,8 +376,7 @@ struct SwapSceneViewModelTests {
 
 extension SwapSceneViewModel {
     static func mock(
-        swapper: GemSwapperProtocol = GemSwapperMock(),
-        swapQuotesProvider: (any SwapQuotesProvidable)? = nil,
+        swapService: any GemSwapServiceProtocol = GemSwapServiceMock(),
         preferences: Preferences = .mock(),
     ) -> SwapSceneViewModel {
         let model = SwapSceneViewModel(
@@ -388,8 +387,7 @@ extension SwapSceneViewModel {
             ),
             balanceService: GemBalanceServiceMock(),
             priceUpdater: .mock(),
-            swapQuotesProvider: swapQuotesProvider ?? SwapQuotesProvider(swapService: .mock(swapper: swapper)),
-            swapQuoteDataProvider: SwapQuoteDataProvider(keystore: LocalKeystore.mock(), swapService: .mock(swapper: swapper)),
+            swapService: swapService,
         )
         model.fromAssetQuery.value = .mock(asset: .mockEthereum(), balance: .mock())
         model.toAssetQuery.value = .mock(asset: .mockEthereumUSDT())
@@ -403,25 +401,12 @@ private struct TestError: Error, RetryableError {
     var isRetryAvailable: Bool = true
 }
 
-private struct SwapQuotesProviderMock: SwapQuotesProvidable {
-    func supportedAssets(for _: Primitives.AssetId) -> ([Primitives.Chain], [Primitives.AssetId]) {
-        ([], [])
+private let quotesByAmount: @Sendable (BigInt) -> [SwapperQuote] = { amount in
+    guard amount > BigInt(stringLiteral: "2000000000000000000") else {
+        return [.mock(toValue: "250000000000", provider: .thorchain)]
     }
-
-    func fetchQuotes(
-        wallet _: Wallet,
-        fromAsset _: Asset,
-        toAsset _: Asset,
-        amount: BigInt,
-        useMaxAmount _: Bool,
-        slippage _: SwapSlippage,
-    ) async throws -> [SwapperQuote] {
-        guard amount > BigInt(stringLiteral: "2000000000000000000") else {
-            return [.mock(toValue: "250000000000", provider: .thorchain)]
-        }
-        return [
-            .mock(toValue: "260000000000", provider: .uniswapV3),
-            .mock(toValue: "250000000000", provider: .thorchain),
-        ]
-    }
+    return [
+        .mock(toValue: "260000000000", provider: .uniswapV3),
+        .mock(toValue: "250000000000", provider: .thorchain),
+    ]
 }

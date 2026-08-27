@@ -205,9 +205,12 @@ struct ServicesFactory {
             webSocket: webSocket,
         )
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
-        ExplorerPreferencesMigration(service: explorerService).migrate()
         let gemSwapper = GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider))
-        let swapService = SwapService(swapper: gemSwapper)
+        let swapService = Gemstone.GemSwapService(
+            swapper: gemSwapper,
+            keystore: storages.keystore.gemKeystore,
+            password: GemstoneKeystorePassword(keystore: storages.keystore, walletStore: storeManager.walletStore),
+        )
 
         let presenter = WalletConnectorPresenter()
         let walletConnectorManager = WalletConnectorManager(presenter: presenter)

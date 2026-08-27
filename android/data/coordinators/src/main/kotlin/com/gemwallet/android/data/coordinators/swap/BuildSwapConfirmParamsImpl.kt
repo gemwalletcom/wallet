@@ -1,20 +1,21 @@
 package com.gemwallet.android.data.coordinators.swap
 
 import com.gemwallet.android.application.swap.coordinators.BuildSwapConfirmParams
-import com.gemwallet.android.application.swap.coordinators.GetSwapQuoteData
 import com.gemwallet.android.application.swap.coordinators.SwapNoQuoteException
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.swap.SwapQuoteData
 import java.math.BigInteger
 import kotlinx.coroutines.flow.firstOrNull
+import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperQuote
 
 class BuildSwapConfirmParamsImpl(
     private val sessionRepository: SessionRepository,
-    private val getSwapQuoteData: GetSwapQuoteData,
+    private val swapService: GemSwapServiceInterface,
 ) : BuildSwapConfirmParams {
 
     override suspend fun invoke(
@@ -25,7 +26,7 @@ class BuildSwapConfirmParamsImpl(
         val wallet = sessionRepository.session().firstOrNull()?.wallet ?: return null
 
         val swapData = try {
-            getSwapQuoteData(quote, wallet).decodeJson<SwapQuoteData>()
+            swapService.getQuoteData(wallet.toJson(), quote).decodeJson<SwapQuoteData>()
         } catch (_: Throwable) {
             throw SwapNoQuoteException()
         }

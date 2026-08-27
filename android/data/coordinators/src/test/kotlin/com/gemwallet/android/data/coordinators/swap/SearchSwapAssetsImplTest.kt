@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.GetSwapSupported
 import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperAssetList
 
 class SearchSwapAssetsImplTest {
@@ -55,14 +55,14 @@ class SearchSwapAssetsImplTest {
                 )
             } returns flowOf(listOf(stakedOnlyAsset, fundedAsset))
         }
-        val getSwapSupported = mockk<GetSwapSupported> {
-            every { getSwapSupportChains(oppositeAsset.id) } returns SwapperAssetList(
+        val swapService = mockk<GemSwapServiceInterface> {
+            every { supportedAssets(oppositeAsset.id.toIdentifier()) } returns SwapperAssetList(
                 chains = listOf(Chain.HyperCore.string),
                 assetIds = listOf(hypeAsset.id.toIdentifier(), usdcAsset.id.toIdentifier()),
             )
         }
 
-        val subject = SearchSwapAssetsImpl(searchService, getSwapSupported)
+        val subject = SearchSwapAssetsImpl(searchService, swapService)
 
         val result = subject.invoke(
             wallet = wallet,

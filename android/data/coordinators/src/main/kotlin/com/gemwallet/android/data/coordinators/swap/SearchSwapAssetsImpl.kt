@@ -1,12 +1,12 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.GetSwapSupported
 import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
 import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.hasAvailable
 import com.wallet.core.primitives.AssetId
@@ -18,12 +18,13 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperAssetList
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchSwapAssetsImpl(
     private val searchService: AssetsSearchService,
-    private val getSwapSupported: GetSwapSupported,
+    private val swapService: GemSwapServiceInterface,
 ) : SearchSwapAssets {
 
     override fun invoke(
@@ -40,10 +41,10 @@ class SearchSwapAssetsImpl(
                 val chains = wallet.accounts.map { it.chain }.filter { it.isSwapSupport() }
                 val chainNames = chains.map { it.string }
                 emit(SwapperAssetList(chainNames, emptyList()))
-                val assetIds = chains.flatMap { getSwapSupported.getSwapSupportChains(AssetId(it)).assetIds }
+                val assetIds = chains.flatMap { swapService.supportedAssets(AssetId(it).toIdentifier()).assetIds }
                 emit(SwapperAssetList(chainNames, assetIds))
             } else {
-                emit(getSwapSupported.getSwapSupportChains(oppositeAssetId))
+                emit(swapService.supportedAssets(oppositeAssetId.toIdentifier()))
             }
         }
         .flatMapLatest { supported ->

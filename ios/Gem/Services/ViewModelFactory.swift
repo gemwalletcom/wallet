@@ -12,6 +12,7 @@ import FiatConnect
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
+import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
 import Preferences
 import Primitives
@@ -29,7 +30,7 @@ public struct ViewModelFactory: Sendable {
     let keystore: any Keystore
     let chainServiceFactory: ChainServiceFactory
     let gemConfirmService: GemConfirmService
-    let swapService: SwapService
+    let swapService: any GemSwapServiceProtocol
     let assetsEnabler: any AssetsEnabler
     let priceUpdater: any PriceUpdater
     let walletSessionService: any WalletSessionManageable
@@ -189,8 +190,7 @@ public struct ViewModelFactory: Sendable {
             input: input,
             balanceService: balanceService,
             priceUpdater: priceUpdater,
-            swapQuotesProvider: SwapQuotesProvider(swapService: swapService),
-            swapQuoteDataProvider: SwapQuoteDataProvider(keystore: keystore, swapService: swapService),
+            swapService: swapService,
             onSwap: onSwap,
         )
     }

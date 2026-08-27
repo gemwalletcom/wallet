@@ -5,6 +5,7 @@ import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemRewardsServiceProtocol
 import protocol Gemstone.GemSearchServiceProtocol
+import protocol Gemstone.GemSwapServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemBannerServiceProtocol
@@ -59,7 +60,7 @@ extension AppResolver {
         let gatewayService: GatewayService
         let nftService: any GemNftServiceProtocol
         let avatarService: AvatarService
-        let swapService: SwapService
+        let swapService: any GemSwapServiceProtocol
         let releaseAlertService: ReleaseAlertService
         let rateService: RateService
         let deviceObserverService: DeviceObserverService

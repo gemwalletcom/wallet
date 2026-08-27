@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemSwapServiceProtocol
 import GemstoneServices
 import BigInt
 import Components
@@ -54,8 +55,7 @@ public final class SwapSceneViewModel {
     var selectedSlippage: SwapSlippage = .auto
 
     private let onSwap: TransferDataAction
-    private let swapQuotesProvider: any SwapQuotesProvidable
-    private let swapQuoteDataProvider: any SwapQuoteDataProvidable
+    private let swapService: any GemSwapServiceProtocol
     private let preferences: Preferences
     private let formatter = SwapValueFormatter(valueFormatter: .full)
     private let toValueFormatter = SwapValueFormatter(valueFormatter: ValueFormatter(style: .auto))
@@ -65,8 +65,7 @@ public final class SwapSceneViewModel {
         input: SwapInput,
         balanceService: any GemBalanceServiceProtocol,
         priceUpdater: any PriceUpdater,
-        swapQuotesProvider: SwapQuotesProvidable,
-        swapQuoteDataProvider: any SwapQuoteDataProvidable,
+        swapService: any GemSwapServiceProtocol,
         onSwap: TransferDataAction = nil,
     ) {
         let pairSelectorModel = input.pairSelector
@@ -78,8 +77,7 @@ public final class SwapSceneViewModel {
 
         fromAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
         toAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.toAssetId), initialValue: nil)
-        self.swapQuotesProvider = swapQuotesProvider
-        self.swapQuoteDataProvider = swapQuoteDataProvider
+        self.swapService = swapService
         self.onSwap = onSwap
         selectedSlippage = preferences.swapSlippage
     }
@@ -280,7 +278,7 @@ extension SwapSceneViewModel {
 
     func onSelectAssetReceive() {
         guard let fromAsset else { return }
-        let (chains, assetIds) = swapQuotesProvider.supportedAssets(for: fromAsset.asset.id)
+        let (chains, assetIds) = swapService.supportedAssets(for: fromAsset.asset.id)
         isPresentingInfoSheet = .selectAsset(.receive(chains: chains, assetIds: assetIds))
     }
 
@@ -394,7 +392,7 @@ extension SwapSceneViewModel {
         Task {
             do {
                 swapState.swapTransferData = .loading
-                let data = try await swapQuoteDataProvider.fetchQuoteData(wallet: wallet, quote: quote)
+                let data = try await swapService.getQuoteData(wallet: wallet, quote: quote)
                 let transferData = try SwapTransferDataFactory.swap(
                     wallet: wallet,
                     fromAsset: fromAsset.asset,
@@ -416,7 +414,7 @@ extension SwapSceneViewModel {
         do {
             swapState.quotes = .loading
             resetToValue()
-            let swapQuotes = try await swapQuotesProvider.fetchQuotes(
+            let swapQuotes = try await swapService.getQuotes(
                 wallet: wallet,
                 fromAsset: input.fromAsset,
                 toAsset: input.toAsset,
