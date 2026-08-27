@@ -192,3 +192,8 @@ impl GemAssetsService {
         Ok(self.store.get_assets(vec![asset_id.clone()]).await?.into_iter().next())
     }
 }
+
+#[uniffi::export]
+pub fn popular_asset_ids() -> Vec<AssetId> {
+    rules::popular_asset_ids()
+}

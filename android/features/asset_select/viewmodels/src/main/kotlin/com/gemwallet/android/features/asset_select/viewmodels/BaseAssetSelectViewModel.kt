@@ -30,6 +30,8 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ext.toAssetId
+import uniffi.gemstone.popularAssetIds
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
@@ -116,9 +118,8 @@ open class BaseAssetSelectViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>())
 
     val popular = assets.map { items ->
-        items.filter {
-            it.asset.id in listOf(AssetId(Chain.Ethereum), AssetId(Chain.Bitcoin), AssetId(Chain.Solana))
-        }.toImmutableList()
+        val popularIds = popularAssetIds().mapNotNull { it.toAssetId() }
+        items.filter { it.asset.id in popularIds }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
