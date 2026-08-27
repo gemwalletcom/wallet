@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.application.wallet_import.coordinators.SetupWallet
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
 import com.gemwallet.android.cases.device.SyncDevice
@@ -16,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemAssetDiscoveryService
@@ -25,7 +23,6 @@ class ImportWalletService(
     private val discoveryService: GemAssetDiscoveryService,
     private val sessionRepository: SessionRepository,
     private val syncDevice: SyncDevice,
-    private val setupWallet: SetupWallet,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }),
 ) : SyncWalletImport, GetImportWalletState {
 
@@ -44,10 +41,7 @@ class ImportWalletService(
 
     private suspend fun syncWallet(wallet: Wallet) {
         syncDevice.syncDevice()
-        supervisorScope {
-            launch { setupWallet.setup(wallet) }
-            launch { discoverAssets(wallet) }
-        }
+        discoverAssets(wallet)
     }
 
     private suspend fun discoverAssets(wallet: Wallet) {

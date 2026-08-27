@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.application.update.coordinators.SkipAppUpdate
 import com.gemwallet.android.application.update.coordinators.SyncAppUpdate
+import com.gemwallet.android.application.wallet_import.coordinators.SetupWallet
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
@@ -25,6 +26,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -44,6 +47,7 @@ class AppViewModel @Inject constructor(
     private val skipAppUpdate: SkipAppUpdate,
     private val notificationsAvailable: NotificationsAvailable,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
+    private val setupWallet: SetupWallet,
     getWalletSummary: GetWalletSummary,
 ) : ViewModel() {
 
@@ -90,6 +94,12 @@ class AppViewModel @Inject constructor(
             sessionRepository.session().collectLatest {
                 onSession(it ?: return@collectLatest)
             }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            sessionRepository.session()
+                .filterNotNull()
+                .distinctUntilChangedBy { it.wallet.id }
+                .collectLatest { setupWallet.setup(it.wallet) }
         }
     }
 

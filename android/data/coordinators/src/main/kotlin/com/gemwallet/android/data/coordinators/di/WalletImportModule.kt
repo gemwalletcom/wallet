@@ -32,12 +32,10 @@ object WalletImportModule {
         discoveryService: GemAssetDiscoveryService,
         sessionRepository: SessionRepository,
         syncDevice: SyncDevice,
-        setupWallet: SetupWallet,
     ): ImportWalletService = ImportWalletService(
         discoveryService = discoveryService,
         sessionRepository = sessionRepository,
         syncDevice = syncDevice,
-        setupWallet = setupWallet,
     )
 
     @Provides
