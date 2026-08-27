@@ -69,6 +69,12 @@ pub enum GemConfirmError {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
+pub struct GemSendResult {
+    pub hashes: Vec<String>,
+    pub transactions: Vec<Transaction>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemSendInput {
     pub wallet: Wallet,
     pub transfer: GemTransferData,
@@ -113,7 +119,7 @@ impl GemConfirmService {
         }
     }
 
-    pub async fn send(&self, input: GemSendInput, transactions: Vec<GemSignedTransaction>) -> Result<Vec<Transaction>, GemConfirmError> {
+    pub async fn send(&self, input: GemSendInput, transactions: Vec<GemSignedTransaction>) -> Result<GemSendResult, GemConfirmError> {
         let hashes = match self.broadcast(input.transfer.input_type.clone(), transactions.clone()).await {
             Ok(hashes) => hashes,
             Err(GemConfirmError::Broadcast { hashes, msg }) => {
@@ -122,7 +128,8 @@ impl GemConfirmService {
             }
             Err(error) => return Err(error),
         };
-        self.record(&input, &hashes, &transactions).await
+        let transactions = self.record(&input, &hashes, &transactions).await?;
+        Ok(GemSendResult { hashes, transactions })
     }
 
     pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
@@ -605,6 +612,61 @@ mod tests {
             swap_data: SwapData::mock(),
         };
         assert_eq!(simulation_payload(&swap), None);
+    }
+
+    #[test]
+    fn test_pending_transactions_follow_broadcast_hashes() {
+        let wallet = primitives::Wallet {
+            id: primitives::WalletId::Multicoin("wallet".to_string()),
+            external_id: None,
+            name: "wallet".to_string(),
+            index: 0,
+            wallet_type: primitives::WalletType::Multicoin,
+            accounts: vec![Account {
+                chain: Chain::Solana,
+                address: "sender".to_string(),
+                derivation_path: String::new(),
+                extended_public_key: None,
+            }],
+            is_pinned: false,
+            image_url: None,
+            source: primitives::WalletSource::Import,
+        };
+        let input = GemSendInput {
+            wallet: wallet.clone(),
+            transfer: GemTransferData {
+                input_type: GemTransactionInputType::Transfer { asset: Asset::mock_sol() },
+                recipient: crate::services::transfer::GemRecipient {
+                    address: "recipient".to_string(),
+                    name: None,
+                    memo: None,
+                    references: vec![],
+                },
+                value: "10".to_string(),
+                use_max_amount: false,
+                minimum_value: None,
+            },
+            value: "10".to_string(),
+            fee: primitives::TransactionFee::new_from_fee(BigInt::from(1), AssetId::from_chain(Chain::Solana)).into(),
+            network_fee: "1".to_string(),
+            metadata: GemTransactionLoadMetadata::None,
+            simulation: None,
+        };
+        let signed = vec![GemSignedTransaction {
+            data: "signed".to_string(),
+            transaction_type: primitives::TransactionType::Transfer,
+        }];
+        let transactions = pending_transactions(&input, &["hash".to_string()], &signed).unwrap();
+        assert_eq!(transactions.len(), 1);
+        assert_eq!(transactions[0].id.hash, "hash");
+        assert_eq!(transactions[0].from, "sender");
+
+        let mut no_account = input.clone();
+        no_account.wallet.accounts.clear();
+        assert!(matches!(
+            pending_transactions(&no_account, &["hash".to_string()], &signed),
+            Err(GemConfirmError::Record { .. })
+        ));
     }
 
     #[test]

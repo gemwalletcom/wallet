@@ -12,6 +12,10 @@ public struct TransactionStateScheduler: Sendable {
     }
 
     public func setup() {
+        trackPendingTransactions()
+    }
+
+    public func trackPendingTransactions() {
         Task {
             do {
                 scheduleUpdate(for: try await service.pendingTransactions())
@@ -34,7 +38,7 @@ public struct TransactionStateScheduler: Sendable {
         return asset
     }
 
-    private func track(wallet: Wallet, transactions: [Transaction], currency: String) {
+    public func track(wallet: Wallet, transactions: [Transaction], currency: String) {
         scheduleUpdate(for: transactions.map { TransactionWallet(transaction: $0, wallet: wallet) })
         Task {
             do {

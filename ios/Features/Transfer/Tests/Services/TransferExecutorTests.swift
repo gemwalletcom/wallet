@@ -1,293 +1,111 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmData
 import struct Gemstone.GemConfirmInput
 import struct Gemstone.GemConfirmLoadOptions
 import protocol Gemstone.GemConfirmServiceProtocol
-import struct Gemstone.GemSignedTransaction
-import typealias Gemstone.Transaction
 import struct Gemstone.GemSendInput
+import struct Gemstone.GemSendResult
+import struct Gemstone.GemSignedTransaction
 import enum Gemstone.GemTransactionInputType
+import typealias Gemstone.Transaction
+import Foundation
+import GemstonePrimitives
+import GemstonePrimitivesTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import Store
 import StoreTestKit
-import GemstonePrimitivesTestKit
 import Testing
-import GemstoneServices
-import GemstoneServicesTestKit
 @testable import Transfer
+import TransferTestKit
 
 struct TransferExecutorTests {
     @Test
-    func hyperCorePerpetualStoresPrimaryOrder() async throws {
-        let db = DB.mockAssets(assets: [.mock(asset: Asset.mockHypercoreUSDC())])
-        let transactionStore = TransactionStore(db: db)
+    func sendReportsEveryHashAndTracksReturnedTransactions() async throws {
+        let tracked = Primitives.Transaction.mock()
+        let confirmService = GemConfirmServiceMock(result: .success(GemSendResult(hashes: ["hash-1", "hash-2"], transactions: [try tracked.json()])))
         let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedTransactions: [
-                GemSignedTransaction(data: "update_leverage", type: .perpetualOpenPosition),
-                GemSignedTransaction(data: "primary_order", type: .perpetualOpenPosition),
-                GemSignedTransaction(data: "position_tpsl", type: .perpetualOpenPosition),
-            ]),
-            confirmService: GemConfirmServiceMock(hashes: ["action:1", "order:413978262893", "action:2"]),
+            signer: TransactionSignerMock(signedTransactions: [GemSignedTransaction(data: "signed", type: .transfer)]),
+            confirmService: confirmService,
             preferencesService: GemPreferencesServiceMock(),
-            transactionStateScheduler: .mock(transactionStore: transactionStore),
+            transactionStateScheduler: .mock(),
         )
-
-        let input = TransferConfirmationInput(
-            data: .mock(type: .perpetual(Asset.mockHypercoreUSDC(), .open(.mock()))),
-            wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
-            transactionData: .mock(feeAsset: Asset.mockHypercoreUSDC()),
-            amount: .mock(),
-            delegate: nil,
-        )
-        try await executor.execute(input: input)
-
-        let transactions = try transactionStore.getTransactions(states: [.pending])
-        #expect(transactions.count == 1)
-        #expect(transactions.first?.id.hash == "order:413978262893")
-    }
-
-    @Test
-    func swapTransactions() async throws {
-        let spender = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
-        let approvalValue = "115792089237316195423570985008687907853269984665640564039457584007913129639935"
-        let fromAsset = Asset.mockEthereumUSDT()
-        let swapData = SwapData.mock(data: SwapQuoteData(
-            to: "0x111111125421cA6dc452d289314280a0f8842A65",
-            dataType: .contract,
-            value: "0",
-            data: "swap-data",
-            memo: nil,
-            approval: ApprovalData(token: fromAsset.id.tokenId ?? "", spender: spender, value: approvalValue, isUnlimited: true),
-            gasLimit: nil,
-        ))
-        let db = DB.mockAssets()
-        let transactionStore = TransactionStore(db: db)
-        let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedTransactions: [
-                GemSignedTransaction(data: "approval_tx", type: .tokenApproval),
-                GemSignedTransaction(data: "swap_tx", type: .swap),
-            ]),
-            confirmService: GemConfirmServiceMock(hashes: ["hash0", "hash1"]),
-            preferencesService: GemPreferencesServiceMock(),
-            transactionStateScheduler: .mock(transactionStore: transactionStore),
-        )
-
-        let input = TransferConfirmationInput(
-            data: .mock(type: .swap(fromAsset, .mock(), swapData)),
-            wallet: .mock(accounts: [.mock(chain: .ethereum), .mock(chain: .bitcoin)]),
-            transactionData: .mock(),
-            amount: .mock(),
-            delegate: nil,
-        )
-        try await executor.execute(input: input)
-
-        let transactions = try transactionStore.getTransactions(states: [.pending])
-        #expect(transactions.count == 2)
-        #expect(transactions.map(\.id.hash).sorted() == ["hash0", "hash1"])
-        let approvalTransaction = try #require(transactions.first { $0.id.hash == "hash0" })
-        #expect(approvalTransaction.assetId == fromAsset.id)
-        #expect(approvalTransaction.to == spender)
-        #expect(approvalTransaction.value == approvalValue)
-        #expect(approvalTransaction.type == .tokenApproval)
-        let swapTransaction = try #require(transactions.first { $0.id.hash == "hash1" })
-        #expect(swapTransaction.to == swapData.data.to)
-        #expect(swapTransaction.type == .swap)
-    }
-
-    @Test
-    func genericApprovalTransaction() async throws {
-        let token = Asset.mockEthereumUSDT()
-        let spender = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
-        let approval = try ApprovalData(
-            token: #require(token.id.tokenId),
-            spender: spender,
-            value: "100",
-            isUnlimited: false,
-        )
-        let db = DB.mockAssets()
-        let transactionStore = TransactionStore(db: db)
-        let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedTransactions: [
-                GemSignedTransaction(data: "approval_tx", type: .tokenApproval),
-            ]),
-            confirmService: GemConfirmServiceMock(hashes: ["approval-hash"]),
-            preferencesService: GemPreferencesServiceMock(),
-            transactionStateScheduler: .mock(transactionStore: transactionStore),
-        )
-        let transferData = TransferData.mock(
-            type: .generic(
-                asset: .mockEthereum(),
-                metadata: .mock(),
-                extra: .mock(
-                    to: approval.token,
-                    transactionType: .tokenApproval,
-                    approval: approval,
-                ),
-            ),
-        )
+        let reported = ReportedHashes()
 
         try await executor.execute(input: TransferConfirmationInput(
-            data: transferData,
-            wallet: .mock(accounts: [.mock(chain: .ethereum)]),
+            data: .mock(),
+            wallet: .mock(accounts: [Account.mock(chain: .ethereum)]),
             transactionData: .mock(),
             amount: .mock(),
-            delegate: nil,
+            delegate: { result in reported.append(try? result.get()) },
         ))
 
-        let transaction = try #require(transactionStore.getTransactions(states: [.pending]).first)
-        #expect(transaction.assetId == token.id)
-        #expect(transaction.to == spender)
-        #expect(transaction.value == approval.value)
-        #expect(transaction.type == .tokenApproval)
+        #expect(reported.values == ["hash-1", "hash-2"])
+        #expect(confirmService.sentTransactions.map(\.data) == ["signed"])
     }
 
     @Test
-    func hyperCoreSpotSwapStoresOnlyFinalOrder() async throws {
-        let hype = Asset.mockHypercore()
-        let usdc = Asset.mockHypercoreSpotUSDC()
-        let db = DB.mockAssets(assets: [.mock(asset: hype), .mock(asset: usdc)])
-        let transactionStore = TransactionStore(db: db)
+    func partialBroadcastReportsBroadcastHashesAndRethrows() async throws {
+        let confirmService = GemConfirmServiceMock(result: .failure(GemConfirmError.Broadcast(hashes: ["hash-1"], msg: "second leg failed")))
         let executor = TransferExecutor(
             signer: TransactionSignerMock(signedTransactions: [
-                GemSignedTransaction(data: "approve_referral", type: .swap),
-                GemSignedTransaction(data: "approve_agent", type: .swap),
-                GemSignedTransaction(data: "place_order", type: .swap),
+                GemSignedTransaction(data: "first", type: .transfer),
+                GemSignedTransaction(data: "second", type: .transfer),
             ]),
-            confirmService: GemConfirmServiceMock(hashes: [
-                "action:1",
-                "action:2",
-                "order:413978262893",
-            ]),
+            confirmService: confirmService,
             preferencesService: GemPreferencesServiceMock(),
-            transactionStateScheduler: .mock(transactionStore: transactionStore),
+            transactionStateScheduler: .mock(),
         )
-        let swapData = SwapData.mock(
-            quote: .mock(
-                providerData: SwapProviderData(
-                    provider: .hyperliquid,
-                    name: "Hyperliquid",
-                    protocolName: "Hyperliquid",
-                ),
-            ),
-        )
+        let reported = ReportedHashes()
 
-        let input = TransferConfirmationInput(
-            data: .mock(type: .swap(hype, usdc, swapData)),
-            wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
-            transactionData: .mock(feeAsset: Asset.mockHypercoreSpotUSDC()),
-            amount: .mock(),
-            delegate: nil,
-        )
-        try await executor.execute(input: input)
+        await #expect(throws: (any Error).self) {
+            try await executor.execute(input: TransferConfirmationInput(
+                data: .mock(),
+                wallet: .mock(accounts: [Account.mock(chain: .ethereum)]),
+                transactionData: .mock(),
+                amount: .mock(),
+                delegate: { result in reported.append(try? result.get()) },
+            ))
+        }
 
-        let transactions = try transactionStore.getTransactions(states: [.pending])
-        #expect(transactions.count == 1)
-        #expect(transactions.first?.id.hash == "order:413978262893")
-        #expect(transactions.first?.type == .swap)
+        #expect(reported.values == ["hash-1"])
     }
+}
 
-    @Test
-    func hyperCoreUnstakeStoresFinalAction() async throws {
-        let db = DB.mockAssets(assets: [
-            .mock(asset: .mockHypercore()),
-            .mock(asset: Asset.mockHypercoreSpotUSDC()),
-        ])
-        let transactionStore = TransactionStore(db: db)
-        let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedTransactions: [
-                GemSignedTransaction(data: "undelegate", type: .stakeUndelegate),
-                GemSignedTransaction(data: "withdraw", type: .stakeUndelegate),
-            ]),
-            confirmService: GemConfirmServiceMock(hashes: [
-                "action:tokenDelegate:3001423:unstake:1780078264488",
-                "action:cWithdraw:3001423:1780078264489",
-            ]),
-            preferencesService: GemPreferencesServiceMock(),
-            transactionStateScheduler: .mock(transactionStore: transactionStore),
-        )
+private final class ReportedHashes: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storage: [String] = []
 
-        let input = TransferConfirmationInput(
-            data: .mock(type: .stake(.mockHypercore(), .unstake(.mock()))),
-            wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
-            transactionData: .mock(feeAsset: Asset.mockHypercoreSpotUSDC()),
-            amount: .mock(),
-            delegate: nil,
-        )
-        try await executor.execute(input: input)
+    var values: [String] { lock.withLock { storage } }
 
-        let transactions = try transactionStore.getTransactions(states: [.pending])
-        #expect(transactions.count == 1)
-        #expect(transactions.first?.id.hash == "action:cWithdraw:3001423:1780078264489")
-    }
-
-    @Test
-    func hyperCoreTransferKeepsTransaction() async throws {
-        let db = DB.mockAssets()
-        let transactionStore = TransactionStore(db: db)
-        let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedTransactions: [GemSignedTransaction(data: "tx", type: .transfer)]),
-            confirmService: GemConfirmServiceMock(hashes: ["hash"]),
-            preferencesService: GemPreferencesServiceMock(),
-            transactionStateScheduler: .mock(transactionStore: transactionStore),
-        )
-
-        let input = TransferConfirmationInput(
-            data: .mock(type: .transfer(.mockEthereum())),
-            wallet: .mock(accounts: [.mock(chain: .ethereum)]),
-            transactionData: .mock(),
-            amount: .mock(),
-            delegate: nil,
-        )
-
-        try await executor.execute(input: input)
-
-        let transactions = try transactionStore.getTransactions(states: [.pending])
-        #expect(transactions.count == 1)
-        #expect(transactions.first?.id.hash == "hash")
-    }
-
-    @Test
-    func perpetualModifyDoesNotStoreTransaction() async throws {
-        let db = DB.mockAssets(assets: [.mock(asset: Asset.mockHypercoreUSDC())])
-        let transactionStore = TransactionStore(db: db)
-        let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedTransactions: [GemSignedTransaction(data: "modify_tx", type: .perpetualModifyPosition)]),
-            confirmService: GemConfirmServiceMock(hashes: ["hash"]),
-            preferencesService: GemPreferencesServiceMock(),
-            transactionStateScheduler: .mock(transactionStore: transactionStore),
-        )
-
-        let input = TransferConfirmationInput(
-            data: .mock(type: .perpetual(Asset.mockHypercoreUSDC(), .mockModify())),
-            wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
-            transactionData: .mock(),
-            amount: .mock(),
-            delegate: nil,
-        )
-
-        try await executor.execute(input: input)
-
-        let transactions = try transactionStore.getTransactions(states: [.pending])
-        #expect(transactions.isEmpty)
+    func append(_ hash: String?) {
+        guard let hash else { return }
+        lock.withLock { storage.append(hash) }
     }
 }
 
 private final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked Sendable {
-    private let hashes: [String]
+    private let result: Result<GemSendResult, any Error>
+    private(set) var sentTransactions: [GemSignedTransaction] = []
 
-    init(hashes: [String]) {
-        self.hashes = hashes
-    }
-
-    func send(input _: GemSendInput, transactions _: [GemSignedTransaction]) async throws -> [Gemstone.Transaction] { [] }
-
-    func broadcast(inputType _: GemTransactionInputType, transactions: [GemSignedTransaction]) async throws -> [String] {
-        Array(hashes.prefix(transactions.count))
+    init(result: Result<GemSendResult, any Error>) {
+        self.result = result
     }
 
     func load(input _: GemConfirmInput, options _: GemConfirmLoadOptions) async throws -> GemConfirmData {
-        throw AnyError("not supported")
+        fatalError("not used")
+    }
+
+    func broadcast(inputType _: GemTransactionInputType, transactions _: [GemSignedTransaction]) async throws -> [String] {
+        fatalError("not used")
+    }
+
+    func send(input _: GemSendInput, transactions: [GemSignedTransaction]) async throws -> GemSendResult {
+        sentTransactions = transactions
+        return try result.get()
     }
 }

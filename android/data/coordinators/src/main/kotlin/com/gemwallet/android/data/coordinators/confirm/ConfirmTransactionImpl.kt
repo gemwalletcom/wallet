@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.coordinators.confirm
 
+import com.wallet.core.primitives.Wallet
+import uniffi.gemstone.GemSendInput
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
@@ -17,9 +19,6 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.Transaction
-import uniffi.gemstone.GemPendingTransactionInput
-import uniffi.gemstone.GemTransferService
-import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,49 +59,29 @@ class ConfirmTransactionImpl(
             }
         }
 
-        val hashes = try {
-            confirmService.broadcast(signerParams.input.toDto(), signedTransactions)
+        val result = try {
+            confirmService.send(signerParams.toSendInput(session.wallet, simulation), signedTransactions)
         } catch (error: GemConfirmException.Broadcast) {
-            addTransactions(error.hashes, signedTransactions, signerParams, session, account, simulation)
+            createTransactionsCase.trackPendingTransactions()
             throw error
         }
-        addTransactions(hashes, signedTransactions, signerParams, session, account, simulation)
+        result.transactions.forEach { transaction ->
+            createTransactionsCase.trackTransaction(session.wallet.id, transaction.decodeJson<Transaction>(), session.currency)
+        }
         scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
 
-        return hashes.last()
+        return result.hashes.last()
     }
 
-    private suspend fun addTransactions(
-        hashes: List<String>,
-        signedTransactions: List<GemSignedTransaction>,
-        signerParams: SignerParams,
-        session: Session,
-        account: Account,
-        simulation: SimulationResult?,
-    ) {
-        for ((index, transactionHash) in hashes.withIndex()) {
-            val transaction = try {
-                GemTransferService().pendingTransaction(
-                    GemPendingTransactionInput(
-                        sender = account.address,
-                        transfer = signerParams.input.toTransferData(),
-                        value = signerParams.finalAmount.toString(),
-                        transactionType = signedTransactions[index].transactionType,
-                        hash = transactionHash,
-                        fee = signerParams.fee().toGemSignerFee(),
-                        networkFee = signerParams.fee().amount.toString(),
-                        metadata = signerParams.data().metadata,
-                        simulation = simulation?.toJson(),
-                        transactionIndex = index.toUInt(),
-                        transactionCount = signedTransactions.size.toUInt(),
-                    )
-                )
-            } catch (_: GemstoneException) {
-                throw ConfirmError.TransactionIncorrect
-            } ?: continue
-            createTransactionsCase.createTransaction(session.wallet.id, transaction.decodeJson<Transaction>(), session.currency)
-        }
-    }
+    private fun SignerParams.toSendInput(wallet: Wallet, simulation: SimulationResult?): GemSendInput = GemSendInput(
+        wallet = wallet.toJson(),
+        transfer = input.toTransferData(),
+        value = finalAmount.toString(),
+        fee = fee().toGemSignerFee(),
+        networkFee = fee().amount.toString(),
+        metadata = data().metadata,
+        simulation = simulation?.toJson(),
+    )
 
     private suspend fun sign(
         signerParams: SignerParams,

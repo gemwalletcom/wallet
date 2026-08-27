@@ -36,6 +36,10 @@ class TransactionStateScheduler(
     private val pollingTransactionJobs = ConcurrentHashMap<TransactionId, Job>()
 
     fun start() {
+        trackPendingTransactions()
+    }
+
+    override fun trackPendingTransactions() {
         scope.launch {
             val pending = try {
                 stateService.pendingTransactions()
@@ -52,10 +56,8 @@ class TransactionStateScheduler(
         pollingTransactionJobs.clear()
     }
 
-    override suspend fun createTransaction(walletId: WalletId, transaction: Transaction, currency: Currency): Transaction {
-        stateService.addTransactions(walletId.id, listOf(transaction.toJson()))
+    override suspend fun trackTransaction(walletId: WalletId, transaction: Transaction, currency: Currency) {
         track(walletId, transaction, currency)
-        return transaction
     }
 
     override suspend fun createNotificationTransaction(wallet: Wallet, assetId: AssetId, transaction: Transaction, currency: Currency): Asset? {
