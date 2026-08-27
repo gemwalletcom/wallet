@@ -10,12 +10,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemStreamService
+import uniffi.gemstone.GemStreamSubscriptionService
 
 class StreamObserverService(
     private val sessionRepository: SessionRepository,
     private val syncAssets: SyncAssets,
-    private val subscriptionService: StreamSubscriptionService,
-    private val eventHandler: StreamEventHandler,
+    private val subscriptionService: GemStreamSubscriptionService,
+    private val streamService: GemStreamService,
     private val connection: WebSocketConnectable,
     private val syncDevice: SyncDevice,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
@@ -29,7 +31,8 @@ class StreamObserverService(
                 val wallet = session?.wallet ?: return@collectLatest
                 if (wallet.id.id == currentWalletId) return@collectLatest
                 currentWalletId = wallet.id.id
-                subscriptionService.setupAssets(wallet.id)
+                runCatching { subscriptionService.setupAssets(wallet.id.id) }
+                    .onFailure { Log.e(TAG, "Setup assets error", it) }
                 if (connectionJob == null) start()
                 runCatching { syncAssets() }
             }
@@ -39,20 +42,15 @@ class StreamObserverService(
     fun start() {
         if (connectionJob != null) return
         if (sessionRepository.session().value?.wallet == null) return
-
         connectionJob = scope.launch {
             runCatching { syncDevice.syncDevice() }
                 .onFailure { Log.e(TAG, "Device synchronization error", it) }
-            launch {
-                for (message in subscriptionService.messages) {
-                    connection.send(message.toJson())
-                }
-            }
             connection.connect().collect { event ->
                 when (event) {
-                    WebSocketEvent.Connected -> subscriptionService.resubscribe()
+                    WebSocketEvent.Connected -> runCatching { subscriptionService.resubscribe() }
+                        .onFailure { Log.e(TAG, "Resubscribe error", it) }
                     is WebSocketEvent.Message -> handleMessage(event.text)
-                    WebSocketEvent.Disconnected -> Unit
+                    WebSocketEvent.Disconnected -> subscriptionService.reset()
                 }
             }
         }
@@ -64,7 +62,10 @@ class StreamObserverService(
     }
 
     private fun handleMessage(text: String) {
-        scope.launch { eventHandler.handle(text) }
+        scope.launch {
+            runCatching { streamService.handle(text, sessionRepository.getCurrentCurrency().toJson()) }
+                .onFailure { Log.e(TAG, "Event handler error", it) }
+        }
     }
 
     companion object {

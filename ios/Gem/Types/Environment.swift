@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemStreamSubscriptionService
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
@@ -37,7 +38,7 @@ extension EnvironmentValues {
     @Entry var priceStore: PriceStore = StoreManager(db: AppResolver.main.storages.db).priceStore
     @Entry var chartService: any GemChartServiceProtocol = AppResolver.main.services.chartService
     @Entry var marketService: any GemPriceServiceProtocol = AppResolver.main.services.marketService
-    @Entry var streamSubscriptionService: StreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
+    @Entry var streamSubscriptionService: GemStreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
     @Entry var assetsEnabler: any AssetsEnabler = AppResolver.main.services.assetsEnabler
     @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
     @Entry var walletService: WalletService = AppResolver.main.services.walletService

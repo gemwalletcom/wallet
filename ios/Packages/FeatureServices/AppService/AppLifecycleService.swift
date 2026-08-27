@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemStreamSubscriptionServiceProtocol
 import ConnectionsService
 import ConnectionStatusService
 import GemstoneServices
@@ -15,7 +16,7 @@ public actor AppLifecycleService: Sendable {
     private let connectionStatusObserver: ConnectionStatusObserver
     private let deviceObserverService: DeviceObserverService
     private let streamObserverService: StreamObserverService
-    private let streamSubscriptionService: StreamSubscriptionService
+    private let streamSubscriptionService: any GemStreamSubscriptionServiceProtocol
     private let perpetualEnablerService: PerpetualEnablerService
     private let walletSessionService: any WalletSessionManageable
 
@@ -25,7 +26,7 @@ public actor AppLifecycleService: Sendable {
         connectionStatusObserver: ConnectionStatusObserver,
         deviceObserverService: DeviceObserverService,
         streamObserverService: StreamObserverService,
-        streamSubscriptionService: StreamSubscriptionService,
+        streamSubscriptionService: any GemStreamSubscriptionServiceProtocol,
         perpetualEnablerService: PerpetualEnablerService,
         walletSessionService: any WalletSessionManageable,
     ) {
@@ -94,8 +95,9 @@ extension AppLifecycleService {
     }
 
     private func setupPriceAssets() async {
+        guard let walletId = walletSessionService.currentWalletId else { return }
         do {
-            try await streamSubscriptionService.setupAssets()
+            try await streamSubscriptionService.setupAssets(walletId: walletId.id)
         } catch {
             debugLog("AppLifecycleService setupPriceAssets error: \(error)")
         }

@@ -29,6 +29,8 @@ sealed interface WebSocketEvent {
 }
 
 interface WebSocketConnectable {
+    val isConnected: Boolean
+
     fun connect(): Flow<WebSocketEvent>
     suspend fun send(message: String): Boolean
 }
@@ -43,6 +45,9 @@ class WebSocketConnection(
         .pingInterval(pingInterval, TimeUnit.MILLISECONDS)
         .build()
     private val activeWebSocket = AtomicReference<WebSocket?>()
+
+    override val isConnected: Boolean
+        get() = activeWebSocket.get() != null
 
     override fun connect(): Flow<WebSocketEvent> = channelFlow {
         var reconnectAttempt = 0

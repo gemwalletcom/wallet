@@ -110,6 +110,7 @@ class HyperliquidObserverServiceTest {
 
     private class RecordingConnection(private val events: List<WebSocketEvent>) : WebSocketConnectable {
         val sent = mutableListOf<String>()
+        override val isConnected: Boolean = true
         override fun connect(): Flow<WebSocketEvent> = events.asFlow()
         override suspend fun send(message: String): Boolean {
             sent.add(message)

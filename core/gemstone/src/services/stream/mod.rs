@@ -1,10 +1,15 @@
+pub mod connection;
 pub mod rules;
+pub mod subscription;
+
+pub use connection::GemStreamConnection;
+pub use subscription::GemStreamSubscriptionService;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Chain, StreamEvent, SupportStreamEvent};
+use primitives::{Chain, StreamEvent, SupportMessageSender, SupportStreamEvent};
 
 use crate::services::balance::GemBalanceService;
 use crate::services::fiat::GemFiatService;
@@ -85,8 +90,15 @@ impl GemStreamService {
             }
             StreamEvent::InAppNotification(update) => self.notifications.save(vec![update.notification]).await,
             StreamEvent::FiatTransaction(update) => self.fiat.sync_transactions(update.wallet_id).await,
-            StreamEvent::Support(SupportStreamEvent::Message(message)) => self.support.save_messages(vec![message]).await,
-            StreamEvent::Support(SupportStreamEvent::Typing(_)) => Ok(()),
+            StreamEvent::Support(SupportStreamEvent::Message(message)) => {
+                let from_agent = matches!(message.sender, SupportMessageSender::Agent(_));
+                self.support.save_messages(vec![message]).await?;
+                if from_agent {
+                    self.support.clear_typing()?;
+                }
+                Ok(())
+            }
+            StreamEvent::Support(SupportStreamEvent::Typing(typing)) => self.support.update_typing(typing),
         }
     }
 }

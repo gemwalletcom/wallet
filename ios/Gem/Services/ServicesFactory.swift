@@ -159,10 +159,9 @@ struct ServicesFactory {
             service: gemPerpetualService,
         )
         let webSocket = Self.makeWebSocket(securePreferences: securePreferences)
-        let streamSubscriptionService = StreamSubscriptionService(
-            priceService: priceService,
-            walletSessionService: walletSessionService,
-            webSocket: webSocket,
+        let streamSubscriptionService = Gemstone.GemStreamSubscriptionService(
+            price: gemPriceService,
+            connection: GemstoneStreamConnection(webSocket: webSocket),
         )
         let priceAlertService = Gemstone.GemPriceAlertService(
             api: gemDeviceApiClient,
@@ -178,30 +177,27 @@ struct ServicesFactory {
         )
         let fiatService = gemFiatService
         let supportTypingState = SupportTypingState()
-        let gemSupportStore = GemstoneSupportStore(store: storeManager.supportChatStore)
+        let gemSupportStore = GemstoneSupportStore(store: storeManager.supportChatStore, typing: supportTypingState)
         let supportChatService = SupportChatService(
             provider: Gemstone.GemSupportService(api: gemDeviceApiClient, store: gemSupportStore),
             typing: supportTypingState,
         )
-        let streamEventService = StreamEventService(
-            service: Gemstone.GemStreamService(
-                price: gemPriceService,
-                priceAlert: priceAlertService,
-                balance: gemBalanceService,
-                transactions: gemTransactionsService,
-                nft: gemNftService,
-                perpetual: gemPerpetualService,
-                fiat: gemFiatService,
-                notifications: GemstoneNotificationStore(store: storeManager.inAppNotificationStore),
-                support: gemSupportStore,
-                walletStore: gemWalletStore,
-            ),
-            typing: supportTypingState,
-            preferences: preferences,
+        let streamService = Gemstone.GemStreamService(
+            price: gemPriceService,
+            priceAlert: priceAlertService,
+            balance: gemBalanceService,
+            transactions: gemTransactionsService,
+            nft: gemNftService,
+            perpetual: gemPerpetualService,
+            fiat: gemFiatService,
+            notifications: GemstoneNotificationStore(store: storeManager.inAppNotificationStore),
+            support: gemSupportStore,
+            walletStore: gemWalletStore,
         )
         let streamObserverService = StreamObserverService(
             subscriptionService: streamSubscriptionService,
-            eventService: streamEventService,
+            service: streamService,
+            preferences: preferences,
             webSocket: webSocket,
         )
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)

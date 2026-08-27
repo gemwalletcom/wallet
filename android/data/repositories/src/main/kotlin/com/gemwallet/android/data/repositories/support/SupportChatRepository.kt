@@ -7,7 +7,6 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.SupportAgent
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageStatus
-import com.wallet.core.primitives.SupportTyping
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -22,7 +21,7 @@ class SupportChatRepository(
 
     fun clearTyping() = supportTypingState.clear()
 
-    fun updateTyping(typing: SupportTyping) = supportTypingState.update(typing)
+
 
     fun getMessages(): Flow<List<SupportMessage>> =
         supportMessagesDao.getMessages().map { records -> records.map { it.toModel() } }

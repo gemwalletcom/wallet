@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.service.store.database.AssetListDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
@@ -57,6 +56,7 @@ import org.junit.Test
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.assetDefaultRank
 import uniffi.gemstone.defaultTokenRank
+import uniffi.gemstone.GemStreamSubscriptionService
 
 class AssetsRepositoryTest {
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
@@ -67,7 +67,7 @@ class AssetsRepositoryTest {
     private val priceService = mockk<GemPriceService>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>()
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
-    private val streamSubscriptionService = mockk<StreamSubscriptionService>(relaxed = true)
+    private val streamSubscriptionService = mockk<GemStreamSubscriptionService>(relaxed = true)
     private val updateBalances = mockk<UpdateBalances>(relaxed = true)
     private val scope = CoroutineScope(Job())
     private val sessionFlow = MutableStateFlow<com.gemwallet.android.model.Session?>(null)
@@ -115,7 +115,7 @@ class AssetsRepositoryTest {
         assets.forEach { asset ->
             coVerify { assetsDao.insert(match<DbAsset> { it.id == asset.id.toIdentifier() }) }
             coVerify { assetsDao.setWalletAssetVisibility(wallet.id.id, asset.id.toIdentifier(), true) }
-            coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+            coVerify { streamSubscriptionService.addPrices(listOf(asset.id.toIdentifier())) }
         }
     }
 
@@ -185,7 +185,7 @@ class AssetsRepositoryTest {
 
         assets.forEach { asset ->
             coVerify { assetsDao.setWalletAssetVisibility(wallet.id.id, asset.id.toIdentifier(), true) }
-            coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+            coVerify { streamSubscriptionService.addPrices(listOf(asset.id.toIdentifier())) }
         }
     }
 
@@ -206,7 +206,7 @@ class AssetsRepositoryTest {
         assets.forEach { asset ->
             coVerify { assetsDao.setWalletAssetVisibility(wallet.id.id, asset.id.toIdentifier(), false) }
         }
-        coVerify(exactly = 0) { streamSubscriptionService.addAssetIds(any()) }
+        coVerify(exactly = 0) { streamSubscriptionService.addPrices(any()) }
     }
 
     @Test
@@ -310,7 +310,7 @@ class AssetsRepositoryTest {
                 isVisible = true,
             )
         }
-        coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+        coVerify { streamSubscriptionService.addPrices(listOf(asset.id.toIdentifier())) }
     }
 
     @Test
@@ -329,7 +329,7 @@ class AssetsRepositoryTest {
                 isVisible = false,
             )
         }
-        coVerify(exactly = 0) { streamSubscriptionService.addAssetIds(any()) }
+        coVerify(exactly = 0) { streamSubscriptionService.addPrices(any()) }
     }
 
     @Test
@@ -373,7 +373,7 @@ class AssetsRepositoryTest {
         subject.createAssets(wallet)
 
         coVerify(exactly = 1) { assetsService.setupWallet(wallet.toJson()) }
-        coVerify { streamSubscriptionService.addAssetIds(listOf(Chain.Bitcoin.asset().id, Chain.Tron.asset().id)) }
+        coVerify { streamSubscriptionService.addPrices(listOf(Chain.Bitcoin.asset().id.toIdentifier(), Chain.Tron.asset().id.toIdentifier())) }
     }
 
     @Test

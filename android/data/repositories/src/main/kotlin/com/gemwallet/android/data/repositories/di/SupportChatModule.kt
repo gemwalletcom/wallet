@@ -22,7 +22,10 @@ object SupportChatModule {
 
     @Provides
     @Singleton
-    fun provideGemSupportStore(supportMessagesDao: SupportMessagesDao): GemSupportStore = GemstoneSupportStore(supportMessagesDao)
+    fun provideGemSupportStore(
+        supportMessagesDao: SupportMessagesDao,
+        supportTypingState: SupportTypingState,
+    ): GemSupportStore = GemstoneSupportStore(supportMessagesDao, supportTypingState)
 
     @Provides
     @Singleton

@@ -577,3 +577,15 @@ public final class GemWalletServiceMock: GemWalletServiceProtocol, @unchecked Se
 
     public func setupChains(chains _: [Gemstone.Chain]) async throws -> [Gemstone.Wallet] { [] }
 }
+
+public final class GemStreamSubscriptionServiceMock: GemStreamSubscriptionServiceProtocol, @unchecked Sendable {
+    public init() {}
+
+    public func setupAssets(walletId _: Gemstone.WalletId) async throws {}
+
+    public func resubscribe() async throws {}
+
+    public func addPrices(assetIds _: [Gemstone.AssetId]) async throws {}
+
+    public func reset() {}
+}

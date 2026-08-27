@@ -4,7 +4,6 @@ import android.util.Log
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
@@ -19,9 +18,9 @@ import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.domains.asset.defaultAssetRank
 import com.gemwallet.android.domains.asset.defaultAssets
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.Asset
@@ -56,6 +55,7 @@ import uniffi.gemstone.GemAssetsService
 import com.gemwallet.android.serializer.toJson
 import javax.inject.Inject
 import javax.inject.Singleton
+import uniffi.gemstone.GemStreamSubscriptionService
 
 private const val TAG = "AssetsRepository"
 
@@ -67,7 +67,7 @@ class AssetsRepository @Inject constructor(
     private val pricesRepository: PricesRepository,
     private val sessionRepository: SessionRepository,
     private val searchTokensCase: SearchTokensCase,
-    private val streamSubscriptionService: StreamSubscriptionService,
+    private val streamSubscriptionService: GemStreamSubscriptionService,
     private val availabilityService: AssetsAvailabilityService,
     private val currencyRatesService: CurrencyRatesService,
     private val updateBalances: UpdateBalances,
@@ -104,7 +104,7 @@ class AssetsRepository @Inject constructor(
             .filter { it.chain.defaultAssetRank >= 0 && walletAssetIsEnabled(it.id.toIdentifier(), wallet.type.toGem()) }
             .map { it.id }
         if (assetIds.isNotEmpty()) {
-            streamSubscriptionService.addAssetIds(assetIds)
+            streamSubscriptionService.addPrices(assetIds.map { it.toIdentifier() })
         }
         ensureDefaultAssets(wallet)
     }
@@ -288,7 +288,7 @@ class AssetsRepository @Inject constructor(
     suspend fun add(walletId: String, asset: Asset, visible: Boolean) {
         insertLocalAsset(walletId, asset, visible)
         if (visible) {
-            streamSubscriptionService.addAssetIds(listOf(asset.id))
+            streamSubscriptionService.addPrices(listOf(asset.id.toIdentifier()))
         }
     }
 
@@ -300,7 +300,7 @@ class AssetsRepository @Inject constructor(
             visible = visible,
         )
         if (visible) {
-            streamSubscriptionService.addAssetIds(listOf(asset.asset.id))
+            streamSubscriptionService.addPrices(listOf(asset.asset.id.toIdentifier()))
         }
     }
 
@@ -322,7 +322,7 @@ class AssetsRepository @Inject constructor(
     ) = withContext(Dispatchers.IO) {
         assetsDao.setWalletAssetVisibility(walletId, assetId.toIdentifier(), visible)
         if (visible) {
-            streamSubscriptionService.addAssetIds(listOf(assetId))
+            streamSubscriptionService.addPrices(listOf(assetId.toIdentifier()))
         }
     }
 

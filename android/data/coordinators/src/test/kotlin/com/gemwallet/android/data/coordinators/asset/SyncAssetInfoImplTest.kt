@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -27,12 +26,14 @@ import org.junit.Test
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemStreamSubscriptionService
+import com.gemwallet.android.ext.toIdentifier
 
 class SyncAssetInfoImplTest {
 
     private val assetsService = mockk<GemAssetsService>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
-    private val streamSubscriptionService = mockk<StreamSubscriptionService>(relaxed = true)
+    private val streamSubscriptionService = mockk<GemStreamSubscriptionService>(relaxed = true)
     private val prefetchAssets = mockk<PrefetchAssets>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
         coEvery { getCurrentCurrency() } returns Currency.USD
@@ -100,7 +101,7 @@ class SyncAssetInfoImplTest {
         }
         coVerify { assetsRepository.updateBalances(asset.id) }
         coVerify { assetsService.syncAsset("bitcoin", Currency.USD.toJson()) }
-        coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+        coVerify { streamSubscriptionService.addPrices(listOf(asset.id.toIdentifier())) }
     }
 
     @Test
@@ -129,7 +130,7 @@ class SyncAssetInfoImplTest {
         }
         coVerify { assetsRepository.updateBalances(asset.id) }
         coVerify { assetsService.syncAsset("bitcoin", Currency.USD.toJson()) }
-        coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+        coVerify { streamSubscriptionService.addPrices(listOf(asset.id.toIdentifier())) }
     }
 
     @Test

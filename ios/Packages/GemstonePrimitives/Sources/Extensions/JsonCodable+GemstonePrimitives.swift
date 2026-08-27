@@ -133,6 +133,7 @@ extension Primitives.StakeType: JsonCodable {}
 extension Primitives.StakeValidator: JsonCodable {}
 extension Primitives.SupportMessage: JsonCodable {}
 extension Primitives.SupportMessageInput: JsonCodable {}
+extension Primitives.SupportTyping: JsonCodable {}
 extension Primitives.SwapData: JsonCodable {}
 extension Primitives.SwapPriceImpact: JsonCodable {}
 extension Primitives.SwapPriceImpactType: JsonCodable {}

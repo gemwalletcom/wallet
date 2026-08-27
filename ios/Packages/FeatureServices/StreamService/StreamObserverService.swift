@@ -1,22 +1,29 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemStreamServiceProtocol
+import protocol Gemstone.GemStreamSubscriptionServiceProtocol
+import GemstonePrimitives
+import Preferences
 import Primitives
 import WebSocketClient
 
 public actor StreamObserverService: Sendable {
-    private let subscriptionService: StreamSubscriptionService
-    private let eventService: StreamEventService
+    private let subscriptionService: any GemStreamSubscriptionServiceProtocol
+    private let service: any GemStreamServiceProtocol
+    private let preferences: Preferences
     private let webSocket: any WebSocketConnectable
     private var observeTask: Task<Void, Never>?
 
     public init(
-        subscriptionService: StreamSubscriptionService,
-        eventService: StreamEventService,
+        subscriptionService: any GemStreamSubscriptionServiceProtocol,
+        service: any GemStreamServiceProtocol,
+        preferences: Preferences,
         webSocket: any WebSocketConnectable,
     ) {
         self.subscriptionService = subscriptionService
-        self.eventService = eventService
+        self.service = service
+        self.preferences = preferences
         self.webSocket = webSocket
     }
 
@@ -28,7 +35,6 @@ public actor StreamObserverService: Sendable {
 
     public func connect() {
         guard observeTask == nil else { return }
-
         observeTask = Task { [weak self] in
             guard let self else { return }
             await observeConnection()
@@ -37,11 +43,9 @@ public actor StreamObserverService: Sendable {
 
     public func disconnect() async {
         guard observeTask != nil else { return }
-
         observeTask?.cancel()
         observeTask = nil
-        await subscriptionService.resetSubscriptions()
-
+        subscriptionService.reset()
         await webSocket.disconnect()
     }
 
@@ -50,16 +54,27 @@ public actor StreamObserverService: Sendable {
     private func observeConnection() async {
         for await event in await webSocket.connect() {
             guard !Task.isCancelled else { break }
-
             switch event {
-            case .connected: await subscriptionService.resubscribe()
+            case .connected: await resubscribe()
             case let .message(data): await handleMessage(data)
-            case .disconnected: await subscriptionService.resetSubscriptions()
+            case .disconnected: subscriptionService.reset()
             }
         }
     }
 
+    private func resubscribe() async {
+        do {
+            try await subscriptionService.resubscribe()
+        } catch {
+            debugLog("stream subscription: resubscribe failed: \(error)")
+        }
+    }
+
     private func handleMessage(_ data: Data) async {
-        await eventService.handle(data)
+        do {
+            try await service.handle(event: String(decoding: data, as: UTF8.self), currency: Currency(id: preferences.currency).json())
+        } catch {
+            debugLog("stream event handler error: \(error)")
+        }
     }
 }

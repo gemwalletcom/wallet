@@ -65,7 +65,6 @@ import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetDiscoveryStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -84,6 +83,7 @@ import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemPortfolioService
 import javax.inject.Singleton
+import uniffi.gemstone.GemStreamSubscriptionService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -218,7 +218,7 @@ object AssetModule {
     fun provideSyncAssetInfo(
         assetsService: GemAssetsService,
         assetsRepository: AssetsRepository,
-        streamSubscriptionService: StreamSubscriptionService,
+        streamSubscriptionService: GemStreamSubscriptionService,
         prefetchAssets: PrefetchAssets,
         sessionRepository: SessionRepository,
     ): SyncAssetInfo = SyncAssetInfoImpl(

@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import AppService
+import GemstonePrimitivesTestKit
+import protocol Gemstone.GemStreamSubscriptionServiceProtocol
 import ConnectionsService
 import ConnectionsServiceTestKit
 import ConnectionStatusService
@@ -19,7 +21,7 @@ public extension AppLifecycleService {
         connectionStatusObserver: ConnectionStatusObserver = ConnectionStatusObserver(monitors: []),
         deviceObserverService: DeviceObserverService = .mock(),
         streamObserverService: StreamObserverService = .mock(),
-        streamSubscriptionService: StreamSubscriptionService = .mock(),
+        streamSubscriptionService: any GemStreamSubscriptionServiceProtocol = GemStreamSubscriptionServiceMock(),
         hyperliquidObserverService: PerpetualObserverMock = PerpetualObserverMock(),
         perpetualService: any PerpetualServiceable = PerpetualServiceMock(),
         walletSessionService: any WalletSessionManageable = WalletSessionService.mock(),

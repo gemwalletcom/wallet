@@ -14,10 +14,8 @@ import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
-import com.gemwallet.android.data.repositories.stream.StreamEventHandler
 import com.gemwallet.android.data.repositories.support.SupportChatRepository
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
-import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.repositories.stream.WebSocketConnection
 import com.gemwallet.android.data.repositories.stream.WebSocketRequest
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -53,6 +51,9 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import uniffi.gemstone.GemGateway
 import javax.inject.Singleton
+import com.gemwallet.android.data.repositories.gemstone.GemstoneStreamConnection
+import com.gemwallet.android.data.repositories.stream.WebSocketConnectable
+import uniffi.gemstone.GemStreamSubscriptionService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -65,7 +66,7 @@ object AssetsModule {
         pricesRepository: PricesRepository,
         sessionRepository: SessionRepository,
         searchTokensCase: SearchTokensCase,
-        streamSubscriptionService: StreamSubscriptionService,
+        streamSubscriptionService: GemStreamSubscriptionService,
         availabilityService: AssetsAvailabilityService,
         currencyRatesService: CurrencyRatesService,
         updateBalances: UpdateBalances,
@@ -137,20 +138,28 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideStreamEventHandler(
-        streamService: GemStreamService,
-        sessionRepository: SessionRepository,
-        supportChatRepository: SupportChatRepository,
-    ): StreamEventHandler = StreamEventHandler(streamService, sessionRepository, supportChatRepository)
+    fun provideStreamConnection(
+        deviceRequestSigner: Lazy<GemDeviceRequestSigner>,
+        okHttpClient: OkHttpClient,
+    ): WebSocketConnectable = WebSocketConnection(
+        client = okHttpClient,
+        requestProvider = {
+            WebSocketRequest(
+                url = Constants.DEVICE_STREAM_WEBSOCKET_URL,
+                headers = mapOf("Authorization" to deviceRequestSigner.get().sign("GET", Constants.DEVICE_STREAM_PATH, "", ByteArray(0))),
+            )
+        },
+        reconnection = ExponentialReconnection(maxDelay = 30.0),
+    )
 
     @Provides
     @Singleton
     fun provideStreamSubscriptionService(
-        assetsDao: AssetsDao,
-        priceAlertRepository: PriceAlertRepository,
-    ): StreamSubscriptionService = StreamSubscriptionService(
-        assetsDao = assetsDao,
-        priceAlertRepository = priceAlertRepository,
+        priceService: GemPriceService,
+        connection: WebSocketConnectable,
+    ): GemStreamSubscriptionService = GemStreamSubscriptionService(
+        price = priceService,
+        connection = GemstoneStreamConnection(connection),
     )
 
     @Provides
@@ -166,26 +175,16 @@ object AssetsModule {
     fun provideStreamObserverService(
         sessionRepository: SessionRepository,
         syncAssets: SyncAssets,
-        deviceRequestSigner: Lazy<GemDeviceRequestSigner>,
-        streamSubscriptionService: StreamSubscriptionService,
-        eventHandler: StreamEventHandler,
+        streamSubscriptionService: GemStreamSubscriptionService,
+        streamService: GemStreamService,
+        connection: WebSocketConnectable,
         syncDevice: SyncDevice,
-        okHttpClient: OkHttpClient,
     ): StreamObserverService = StreamObserverService(
         sessionRepository = sessionRepository,
         syncAssets = syncAssets,
         subscriptionService = streamSubscriptionService,
-        eventHandler = eventHandler,
-        connection = WebSocketConnection(
-            client = okHttpClient,
-            requestProvider = {
-                WebSocketRequest(
-                    url = Constants.DEVICE_STREAM_WEBSOCKET_URL,
-                    headers = mapOf("Authorization" to deviceRequestSigner.get().sign("GET", Constants.DEVICE_STREAM_PATH, "", ByteArray(0))),
-                )
-            },
-            reconnection = ExponentialReconnection(maxDelay = 30.0),
-        ),
+        streamService = streamService,
+        connection = connection,
         syncDevice = syncDevice,
     )
 

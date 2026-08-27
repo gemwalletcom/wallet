@@ -35,6 +35,8 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Store",
+                "Gemstone",
+                "GemstonePrimitives",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Preferences",
                 .product(name: "WebSocketClient", package: "SwiftHTTPClient"),
@@ -128,19 +130,6 @@ let package = Package(
                 .product(name: "WalletConnectorServiceTestKit", package: "ChainServices"),
             ],
             path: "ConnectionsService/TestKit",
-        ),
-        .testTarget(
-            name: "StreamServiceTests",
-            dependencies: [
-                "StreamService",
-                "StreamServiceTestKit",
-                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
-                "Gemstone",
-                .product(name: "GemstoneServices", package: "GemstoneServices"),
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "WebSocketClientTestKit", package: "SwiftHTTPClient"),
-            ],
-            path: "StreamService/Tests",
         ),
         .testTarget(
             name: "AppServiceTests",

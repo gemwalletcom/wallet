@@ -63,7 +63,7 @@ pub use rewards::GemRewardsService;
 pub use scan::GemScanService;
 pub use search::{GemSearchScope, GemSearchService, GemSearchStore};
 pub use stake::{GemStakeService, GemStakeStore};
-pub use stream::GemStreamService;
+pub use stream::{GemStreamConnection, GemStreamService, GemStreamSubscriptionService};
 pub use subscription::GemSubscriptionService;
 pub use support::{GemSupportService, GemSupportStore};
 pub use swap::GemSwapService;
