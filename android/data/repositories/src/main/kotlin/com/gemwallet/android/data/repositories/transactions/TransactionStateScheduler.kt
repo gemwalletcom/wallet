@@ -72,6 +72,9 @@ class TransactionStateScheduler(
                     Log.d(TAG, "transaction status check failed: id=${currentTransaction.id.identifier}, error=${err.message}")
                     continue
                 } ?: return@launch
+                result.failures.forEach { failure ->
+                    Log.d(TAG, "transaction post-processing ${failure.step} failed: id=${currentTransaction.id.identifier}, error=${failure.message}")
+                }
                 val transactionId = result.transactionId.decodeJson<TransactionId>()
                 if (transactionId != currentTransaction.id) {
                     pollingTransactionJobs[transactionId] = coroutineContext.job

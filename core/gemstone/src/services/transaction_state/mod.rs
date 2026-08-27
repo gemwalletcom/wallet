@@ -8,7 +8,7 @@ use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use primitives::{Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
 
-pub use model::{GemPendingTransaction, GemTransactionStateResult, GemTransactionStateUpdate};
+pub use model::{GemPendingTransaction, GemPostProcessingFailure, GemPostProcessingStep, GemTransactionStateResult, GemTransactionStateUpdate};
 pub use store::GemTransactionStateStore;
 
 use crate::gateway::GemGateway;
@@ -54,28 +54,55 @@ impl GemTransactionStateService {
         let update = self.gateway.get_transaction_update(transaction.clone()).await.map_err(|error| error.to_string());
         let previous_state = transaction.state;
         let result = apply(self.store.as_ref(), wallet_id.clone(), transaction.clone(), update, Utc::now()).await?;
-        if let Some(result) = &result {
-            self.post_process(wallet_id, &transaction, previous_state, result.state).await;
-        }
-        Ok(result)
+        let Some(mut result) = result else {
+            return Ok(None);
+        };
+        result.failures = self.post_process(wallet_id, &transaction, previous_state, result.state).await;
+        Ok(Some(result))
     }
 }
 
 impl GemTransactionStateService {
-    async fn post_process(&self, wallet_id: WalletId, transaction: &Transaction, previous_state: TransactionState, state: TransactionState) {
+    async fn post_process(&self, wallet_id: WalletId, transaction: &Transaction, previous_state: TransactionState, state: TransactionState) -> Vec<GemPostProcessingFailure> {
         let Some(processing) = rules::post_processing(transaction, previous_state, state) else {
-            return;
+            return Vec::new();
         };
-        let _ = self.balance.update(wallet_id.clone(), processing.balance_asset_ids).await;
+        let mut failures = Vec::new();
+        record(
+            &mut failures,
+            GemPostProcessingStep::Balances,
+            self.balance.update(wallet_id.clone(), processing.balance_asset_ids),
+        )
+        .await;
         for chain in processing.stake_chains {
-            let _ = self.stake.sync(wallet_id.clone(), chain, transaction.from.clone()).await;
+            record(
+                &mut failures,
+                GemPostProcessingStep::Stake,
+                self.stake.sync(wallet_id.clone(), chain, transaction.from.clone()),
+            )
+            .await;
         }
         for asset_id in processing.earn_asset_ids {
-            let _ = self.stake.sync_earn(wallet_id.clone(), asset_id, transaction.from.clone()).await;
+            record(
+                &mut failures,
+                GemPostProcessingStep::Earn,
+                self.stake.sync_earn(wallet_id.clone(), asset_id, transaction.from.clone()),
+            )
+            .await;
         }
         if processing.sync_nfts {
-            let _ = self.nft.sync(wallet_id).await;
+            record(&mut failures, GemPostProcessingStep::Nfts, async { self.nft.sync(wallet_id).await.map(|_| ()) }).await;
         }
+        failures
+    }
+}
+
+async fn record<F>(failures: &mut Vec<GemPostProcessingFailure>, step: GemPostProcessingStep, future: F)
+where
+    F: std::future::Future<Output = Result<(), GemServiceError>>,
+{
+    if let Err(error) = future.await {
+        failures.push(GemPostProcessingFailure { step, message: error.to_string() });
     }
 }
 
@@ -103,7 +130,11 @@ async fn apply(
     let fields = rules::state_update(next_state, &update.changes);
     if next_state == current_state && !fields.has_field_changes() {
         let state = store.get_state(wallet_id, transaction_id.clone()).await?;
-        return Ok(state.map(|state| GemTransactionStateResult { transaction_id, state }));
+        return Ok(state.map(|state| GemTransactionStateResult {
+            transaction_id,
+            state,
+            failures: Vec::new(),
+        }));
     }
     if !store.update_transaction(wallet_id, transaction_id.clone(), fields).await? {
         return Ok(None);
@@ -111,6 +142,7 @@ async fn apply(
     Ok(Some(GemTransactionStateResult {
         transaction_id,
         state: next_state,
+        failures: Vec::new(),
     }))
 }
 
@@ -308,7 +340,8 @@ mod tests {
             result,
             GemTransactionStateResult {
                 transaction_id: id("new-hash"),
-                state: TransactionState::Confirmed
+                state: TransactionState::Confirmed,
+                failures: Vec::new(),
             }
         );
         assert_eq!(store.deleted.lock().unwrap().as_slice(), &[id("hash")]);

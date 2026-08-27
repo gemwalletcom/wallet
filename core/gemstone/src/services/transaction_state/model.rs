@@ -29,6 +29,21 @@ impl GemTransactionStateUpdate {
 pub struct GemTransactionStateResult {
     pub transaction_id: TransactionId,
     pub state: TransactionState,
+    pub failures: Vec<GemPostProcessingFailure>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPostProcessingStep {
+    Balances,
+    Stake,
+    Earn,
+    Nfts,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemPostProcessingFailure {
+    pub step: GemPostProcessingStep,
+    pub message: String,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

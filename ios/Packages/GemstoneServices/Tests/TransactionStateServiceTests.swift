@@ -21,10 +21,10 @@ struct TransactionStateServiceTests {
             if transaction.id.hash == "hash" {
                 let newId = TransactionId(chain: transaction.assetId.chain, hash: "new-hash")
                 try store.renameTransaction(walletId: walletId, transactionId: transaction.id, newTransactionId: newId)
-                return try GemTransactionStateResult(transactionId: newId.json(), state: TransactionState.inTransit.json())
+                return try GemTransactionStateResult(transactionId: newId.json(), state: TransactionState.inTransit.json(), failures: [])
             }
             _ = try store.updateTransaction(walletId: walletId, transactionId: transaction.id, state: .confirmed, fee: nil, blockNumber: nil, metadata: nil, confirmationEtaSeconds: nil)
-            return try GemTransactionStateResult(transactionId: transaction.id.json(), state: TransactionState.confirmed.json())
+            return try GemTransactionStateResult(transactionId: transaction.id.json(), state: TransactionState.confirmed.json(), failures: [])
         }
         let job = TransactionStateJob(
             wallet: TransactionWallet(transaction: fixture.transaction, wallet: fixture.wallet),
@@ -40,7 +40,7 @@ struct TransactionStateServiceTests {
     @Test
     func jobStopsWhenWalletRemoved() async throws {
         let fixture = try makeFixture { _, _, transaction in
-            try GemTransactionStateResult(transactionId: transaction.id.json(), state: TransactionState.confirmed.json())
+            try GemTransactionStateResult(transactionId: transaction.id.json(), state: TransactionState.confirmed.json(), failures: [])
         }
         let job = TransactionStateJob(
             wallet: TransactionWallet(transaction: fixture.transaction, wallet: fixture.wallet),

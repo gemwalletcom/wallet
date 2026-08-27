@@ -22,6 +22,9 @@ public struct TransactionStateService: Sendable {
             guard let result = try await service.update(walletId: walletId.id, transaction: transaction.json()) else {
                 return TransactionStateUpdateResult(transactionId: transaction.id, status: .cancelled)
             }
+            for failure in result.failures {
+                debugLog("TransactionStateService post-processing \(failure.step) failed: \(failure.message)")
+            }
             let state = try Primitives.TransactionState(result.state)
             return TransactionStateUpdateResult(
                 transactionId: try Primitives.TransactionId(result.transactionId),
