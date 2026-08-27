@@ -31,9 +31,9 @@ public struct TransactionSigner: TransactionSigning {
             value: amount.value,
             fee: fee,
             isMaxAmount: amount.useMaxAmount,
-            memo: transfer.recipientData.recipient.memo,
+            memo: transfer.recipient.memo,
             senderAddress: wallet.account(for: transfer.type.chain).address,
-            destinationAddress: transfer.recipientData.recipient.address,
+            destinationAddress: transfer.recipient.address,
             metadata: transactionData.metadata,
         )
 

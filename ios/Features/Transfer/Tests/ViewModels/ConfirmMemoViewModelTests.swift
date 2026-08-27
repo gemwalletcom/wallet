@@ -12,7 +12,7 @@ struct ConfirmMemoViewModelTests {
     func cosmos() {
         let asset = Asset.mock(id: AssetId(chain: .cosmos, tokenId: nil))
         let memo = "test memo"
-        let model = ConfirmMemoViewModel(type: .transfer(asset), recipientData: .mock(recipient: .mock(memo: memo)))
+        let model = ConfirmMemoViewModel(type: .transfer(asset), recipient: .mock(memo: memo))
 
         guard case let .memo(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.memo)
@@ -23,7 +23,7 @@ struct ConfirmMemoViewModelTests {
     func stellar() {
         let asset = Asset.mock(id: AssetId(chain: .stellar, tokenId: nil))
         let memo = "stellar memo"
-        let model = ConfirmMemoViewModel(type: .deposit(asset), recipientData: .mock(recipient: .mock(memo: memo)))
+        let model = ConfirmMemoViewModel(type: .deposit(asset), recipient: .mock(memo: memo))
 
         guard case let .memo(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.memo)
@@ -34,7 +34,7 @@ struct ConfirmMemoViewModelTests {
     func ton() {
         let asset = Asset.mock(id: AssetId(chain: .ton, tokenId: nil))
         let memo = "ton comment"
-        let model = ConfirmMemoViewModel(type: .withdrawal(asset), recipientData: .mock(recipient: .mock(memo: memo)))
+        let model = ConfirmMemoViewModel(type: .withdrawal(asset), recipient: .mock(memo: memo))
 
         guard case let .memo(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.memo)
@@ -44,7 +44,7 @@ struct ConfirmMemoViewModelTests {
     @Test
     func emptyMemo() {
         let asset = Asset.mock(id: AssetId(chain: .solana, tokenId: nil))
-        let model = ConfirmMemoViewModel(type: .transfer(asset), recipientData: .mock())
+        let model = ConfirmMemoViewModel(type: .transfer(asset), recipient: .mock())
 
         if case let .memo(item) = model.itemModel {
             #expect(item.subtitle == "-")

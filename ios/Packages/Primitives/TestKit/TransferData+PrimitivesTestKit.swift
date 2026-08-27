@@ -7,14 +7,16 @@ import Primitives
 public extension TransferData {
     static func mock(
         type: TransferDataType = .transfer(.mock()),
-        recipient: RecipientData = .mock(),
-        amount: TransferAmountValue = .exact(.zero),
+        recipient: Recipient = .mock(),
+        value: BigInt = .zero,
+        useMaxAmount: Bool = false,
         minimumValue: BigInt? = nil,
     ) -> TransferData {
         TransferData(
             type: type,
-            recipientData: recipient,
-            amount: amount,
+            recipient: recipient,
+            value: value,
+            useMaxAmount: useMaxAmount,
             minimumValue: minimumValue,
         )
     }
@@ -22,8 +24,8 @@ public extension TransferData {
     static func mockPayment(
         asset: Asset = .mockSolana(),
         transaction: String = "transaction",
-        recipient: RecipientData = .mock(),
-        amount: TransferAmountValue = .exact(.zero),
+        recipient: Recipient = .mock(),
+        value: BigInt = .zero,
     ) -> TransferData {
         .mock(
             type: .generic(
@@ -37,7 +39,7 @@ public extension TransferData {
                 ),
             ),
             recipient: recipient,
-            amount: amount,
+            value: value,
         )
     }
 }

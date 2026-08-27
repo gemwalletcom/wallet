@@ -50,6 +50,7 @@ class TransactionBalanceServiceTest {
         val confirmParams = ConfirmParams.Builder(
             asset = asset,
             from = requireNotNull(assetInfo.owner),
+            amount = BigInteger("60"),
         ).rewards(
             validators = listOf(mockDelegationValidator(chain = asset.id.chain)),
         )
@@ -65,113 +66,20 @@ class TransactionBalanceServiceTest {
     }
 
     @Test
-    fun getBalance_withdraw_usesFreshDelegationBalanceFromRepository() = runBlocking {
+    fun getBalance_withdrawAndRedelegate_useDelegationBalance() = runBlocking {
         val asset = mockAssetCosmos()
         val assetInfo = mockAssetInfo(
             asset = asset,
-            balance = AssetBalance.create(asset = asset, frozen = "0"),
+            balance = AssetBalance.create(asset = asset, available = "1"),
         )
-        val delegation = mockDelegation(
-            assetId = asset.id,
-            balance = "10",
-            delegationId = "delegation-1",
-            validatorId = "validator-1",
-        )
-        every {
-            stakeRepository.getDelegation(requireNotNull(assetInfo.walletId), "validator-1", "delegation-1")
-        } returns flowOf(
-            mockDelegation(
-                assetId = asset.id,
-                balance = "44",
-                delegationId = "delegation-1",
-                validatorId = "validator-1",
-            )
-        )
+        val delegation = mockDelegation(assetId = asset.id, balance = "10", delegationId = "delegation-1", validatorId = "validator-1")
+        val from = requireNotNull(assetInfo.owner)
 
-        val params = ConfirmParams.Builder(
-            asset = asset,
-            from = requireNotNull(assetInfo.owner),
-        ).withdraw(delegation)
-
+        assertEquals(BigInteger("10"), subject.getBalance(assetInfo, ConfirmParams.Builder(asset = asset, from = from).withdraw(delegation)))
         assertEquals(
-            BigInteger("44"),
-            subject.getBalance(assetInfo, params),
+            BigInteger("10"),
+            subject.getBalance(assetInfo, ConfirmParams.Builder(asset = asset, from = from).redelegate(mockDelegationValidator(chain = asset.id.chain), delegation)),
         )
     }
 
-    @Test
-    fun getBalance_redelegate_usesDelegationIdForFreshBalanceLookup() = runBlocking {
-        val asset = mockAssetCosmos()
-        val assetInfo = mockAssetInfo(
-            asset = asset,
-            balance = AssetBalance.create(asset = asset, frozen = "0"),
-        )
-        val delegation = mockDelegation(
-            assetId = asset.id,
-            balance = "10",
-            delegationId = "delegation-1",
-            validatorId = "validator-1",
-        )
-        every {
-            stakeRepository.getDelegation(requireNotNull(assetInfo.walletId), "validator-1", "delegation-1")
-        } returns flowOf(
-            mockDelegation(
-                assetId = asset.id,
-                balance = "44",
-                delegationId = "delegation-1",
-                validatorId = "validator-1",
-            )
-        )
-
-        val params = ConfirmParams.Builder(
-            asset = asset,
-            from = requireNotNull(assetInfo.owner),
-        ).redelegate(
-            destinationValidator = mockDelegationValidator(chain = asset.id.chain, id = "validator-2"),
-            delegation = delegation,
-        )
-
-        assertEquals(
-            BigInteger("44"),
-            subject.getBalance(assetInfo, params),
-        )
-    }
-
-    @Test
-    fun getBalance_withdraw_scopesFreshDelegationLookupToOwningWallet() = runBlocking {
-        val asset = mockAssetCosmos()
-        val ownWalletId = mockWalletId("wallet-own")
-        val otherWalletId = mockWalletId("wallet-other")
-        val assetInfo = mockAssetInfo(
-            asset = asset,
-            balance = AssetBalance.create(asset = asset, frozen = "0"),
-            walletId = ownWalletId,
-        )
-        val delegation = mockDelegation(
-            assetId = asset.id,
-            balance = "10",
-            delegationId = "delegation-1",
-            validatorId = "validator-1",
-        )
-        every {
-            stakeRepository.getDelegation(ownWalletId, "validator-1", "delegation-1")
-        } returns flowOf(
-            mockDelegation(assetId = asset.id, balance = "44", delegationId = "delegation-1", validatorId = "validator-1")
-        )
-        every {
-            stakeRepository.getDelegation(otherWalletId, "validator-1", "delegation-1")
-        } returns flowOf(
-            mockDelegation(assetId = asset.id, balance = "999999", delegationId = "delegation-1", validatorId = "validator-1")
-        )
-
-        val params = ConfirmParams.Builder(
-            asset = asset,
-            from = requireNotNull(assetInfo.owner),
-        ).withdraw(delegation)
-
-        assertEquals(
-            BigInteger("44"),
-            subject.getBalance(assetInfo, params),
-        )
-    }
 }

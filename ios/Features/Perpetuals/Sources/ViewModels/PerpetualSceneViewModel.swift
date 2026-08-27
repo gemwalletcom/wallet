@@ -259,8 +259,8 @@ public extension PerpetualSceneViewModel {
 
         let transferData = TransferData(
             type: .perpetual(asset, .close(data)),
-            recipientData: .hyperliquid(),
-            amount: .exact(.zero),
+            recipient: .hyperliquidProvider,
+            value: .zero,
         )
 
         onTransferData?(transferData)

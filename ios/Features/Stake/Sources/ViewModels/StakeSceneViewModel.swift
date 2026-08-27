@@ -146,11 +146,8 @@ public final class StakeSceneViewModel {
         case .awaitingWithdrawal:
             TransferData(
                 type: .stake(asset, .withdraw(delegation.delegation)),
-                recipientData: RecipientData(
-                    recipient: Recipient(name: delegation.validatorText, address: delegation.delegation.validator.id, memo: ""),
-                    amount: .none,
-                ),
-                amount: .exact(delegation.delegation.base.balanceValue),
+                recipient: Recipient(name: delegation.validatorText, address: delegation.delegation.validator.id, memo: ""),
+                value: delegation.delegation.base.balanceValue,
             )
         case .active, .pending, .inactive, .activating, .deactivating:
             delegation.delegation
@@ -198,11 +195,8 @@ public final class StakeSceneViewModel {
             }
             return TransferData(
                 type: .stake(chain.chain.asset, .rewards(validators)),
-                recipientData: RecipientData(
-                    recipient: recipient,
-                    amount: .none,
-                ),
-                amount: .exact(rewardsValue),
+                recipient: recipient,
+                value: rewardsValue,
             )
         }
         return AmountInput(

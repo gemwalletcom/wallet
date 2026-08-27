@@ -82,7 +82,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         action.recipient
     }
 
-    func makeTransferData(amount: TransferAmountValue) throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> TransferData {
         let transferType: TransferDataType = switch action {
         case .send: .transfer(asset)
         case .deposit: .deposit(asset)
@@ -90,8 +90,9 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         }
         return TransferData(
             type: transferType,
-            recipientData: action.recipient,
-            amount: amount,
+            recipient: action.recipient.recipient,
+            value: value,
+            useMaxAmount: useMaxAmount,
         )
     }
 }

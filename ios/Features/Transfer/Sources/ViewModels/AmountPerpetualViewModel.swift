@@ -124,12 +124,12 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         data.recipient
     }
 
-    func makeTransferData(amount: TransferAmountValue) throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> TransferData {
         let formatter = PerpetualFormatter(provider: .hypercore)
 
         let perpetualType = PerpetualOrderFactory().makePerpetualOrder(
             positionAction: data.positionAction,
-            usdcAmount: amount.value,
+            usdcAmount: value,
             usdcDecimals: asset.decimals.asInt,
             leverage: leverage,
             takeProfit: takeProfit
@@ -142,8 +142,9 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
 
         return TransferData(
             type: .perpetual(transferData.asset, perpetualType),
-            recipientData: data.recipient,
-            amount: amount,
+            recipient: data.recipient.recipient,
+            value: value,
+            useMaxAmount: useMaxAmount,
         )
     }
 

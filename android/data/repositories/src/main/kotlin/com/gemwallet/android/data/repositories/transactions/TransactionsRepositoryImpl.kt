@@ -79,40 +79,7 @@ class TransactionsRepositoryImpl(
         transactionsDao.deleteByState(TransactionState.Pending)
     }
 
-    override suspend fun createTransaction(
-        hash: String,
-        walletId: WalletId,
-        assetId: AssetId,
-        owner: Account,
-        to: String,
-        state: TransactionState,
-        fee: Fee,
-        amount: BigInteger,
-        memo: String?,
-        type: TransactionType,
-        metadata: String?,
-        direction: TransactionDirection,
-        blockNumber: String,
-    ): Transaction = withContext(Dispatchers.IO) {
-        val transaction = Transaction(
-            id = TransactionId(assetId.chain, hash),
-            assetId = assetId,
-            feeAssetId = fee.feeAssetId,
-            from = owner.address,
-            to = to,
-            type = type,
-            state = state,
-            blockNumber = blockNumber,
-            sequence = "", // Nonce
-            fee = fee.amount.toString(),
-            value = amount.toString(),
-            memo = if (type == TransactionType.Swap) "" else memo,
-            direction = direction,
-            metadata = metadata,
-            utxoInputs = emptyList(),
-            utxoOutputs = emptyList(),
-            createdAt = System.currentTimeMillis(),
-        )
+    override suspend fun createTransaction(walletId: WalletId, transaction: Transaction): Transaction = withContext(Dispatchers.IO) {
         transactionsDao.insert(listOf(transaction.toRecord(walletId)))
         transactionsDao.addSwapMetadata(listOf(transaction))
         transaction

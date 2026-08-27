@@ -81,21 +81,19 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         )
     }
 
-    func makeTransferData(amount: TransferAmountValue) async throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> TransferData {
         let address = try wallet.account(for: asset.chain).address
         let earnData = try await ContractCallData(stakeService.getEarnData(
             assetId: asset.id.identifier,
             address: address,
-            value: String(amount.value),
+            value: String(value),
             earnType: action.json(),
         ))
         return TransferData(
             type: .earn(asset, action, earnData),
-            recipientData: RecipientData(
-                recipient: Recipient(name: provider.name, address: earnData.contractAddress, memo: nil),
-                amount: nil,
-            ),
-            amount: amount,
+            recipient: Recipient(name: provider.name, address: earnData.contractAddress, memo: nil),
+            value: value,
+            useMaxAmount: useMaxAmount,
         )
     }
 }

@@ -70,19 +70,16 @@ public enum PaymentDestinationBuilder {
             return .confirm(
                 TransferData(
                     type: type,
-                    recipientData: RecipientData(
-                        recipient: Recipient(name: nil, address: "", memo: transaction.memo),
-                        amount: nil,
-                    ),
-                    amount: .exact(.zero),
+                    recipient: Recipient(name: nil, address: "", memo: transaction.memo),
+                    value: .zero,
                 ),
             )
         }
         return try .confirm(
             TransferData(
                 type: type,
-                recipientData: transferData(transfer: transfer, asset: asset).recipientData,
-                amount: .exact(BigInt.from(string: transfer.value)),
+                recipient: transferData(transfer: transfer, asset: asset).recipient,
+                value: BigInt.from(string: transfer.value),
             ),
         )
     }
@@ -94,11 +91,8 @@ public enum PaymentDestinationBuilder {
     private static func transferData(transfer: GemPaymentConfirmTransfer, asset: Primitives.Asset) throws -> TransferData {
         try TransferData(
             type: .transfer(asset),
-            recipientData: RecipientData(
-                recipient: Recipient(name: nil, address: transfer.address, memo: transfer.memo, references: transfer.references),
-                amount: nil,
-            ),
-            amount: .exact(BigInt.from(string: transfer.value)),
+            recipient: Recipient(name: nil, address: transfer.address, memo: transfer.memo, references: transfer.references),
+            value: BigInt.from(string: transfer.value),
         )
     }
 

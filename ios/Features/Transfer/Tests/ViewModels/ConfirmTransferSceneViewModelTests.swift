@@ -105,7 +105,7 @@ struct ConfirmTransferSceneViewModelTests {
         let address = "0x1234567890123456789012345678901234567890"
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(
             type: .transfer(.mock()),
-            recipient: RecipientData.mock(recipient: .mock(address: address)),
+            recipient: .mock(address: address),
         ))
         let recipientItem = model.itemModel(for: .recipient) as? ConfirmRecipientViewModel
 
@@ -124,7 +124,7 @@ struct ConfirmTransferSceneViewModelTests {
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(
                 type: .transfer(.mock()),
-                recipient: RecipientData.mock(recipient: .mock(address: address)),
+                recipient: .mock(address: address),
             ),
             addressStore: .mockAddresses(db: db),
         )
@@ -153,7 +153,7 @@ struct ConfirmTransferSceneViewModelTests {
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(
                 type: .transfer(.mockEthereum()),
-                recipient: RecipientData.mock(recipient: .mock(address: checksummedAddress)),
+                recipient: .mock(address: checksummedAddress),
             ),
             addressStore: addressStore,
         )
@@ -293,7 +293,7 @@ struct ConfirmTransferSceneViewModelTests {
         let modelWithMemo = ConfirmTransferSceneViewModel.mock(
             data: .mock(
                 type: .transfer(.mock(id: .mockSolana())),
-                recipient: RecipientData.mock(recipient: .mock(memo: "Test memo")),
+                recipient: .mock(memo: "Test memo"),
             ),
         )
         let memoItem = modelWithMemo.itemModel(for: .memo) as? ConfirmMemoViewModel

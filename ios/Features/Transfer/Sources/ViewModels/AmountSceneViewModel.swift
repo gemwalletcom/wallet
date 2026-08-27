@@ -245,8 +245,7 @@ private extension AmountSceneViewModel {
         do {
             transferState = .loading
             let value = try amountTransferValue
-            let amount: TransferAmountValue = value == provider.maxValue(from: assetData) ? .max(value) : .exact(value)
-            let transfer = try await provider.makeTransferData(amount: amount)
+            let transfer = try await provider.makeTransferData(value: value, useMaxAmount: value == provider.maxValue(from: assetData))
             transferState = .noData
             onTransferAction?(transfer)
         } catch {

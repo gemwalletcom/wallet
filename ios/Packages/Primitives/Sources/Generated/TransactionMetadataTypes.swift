@@ -53,3 +53,11 @@ public struct TransactionSwapMetadata: Codable, Equatable, Hashable, Sendable {
 		self.provider = provider
 	}
 }
+
+public struct TransactionWalletConnectMetadata: Codable, Sendable {
+	public let outputAction: TransferDataOutputAction
+
+	public init(outputAction: TransferDataOutputAction) {
+		self.outputAction = outputAction
+	}
+}

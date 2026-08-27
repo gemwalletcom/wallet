@@ -182,22 +182,16 @@ extension DelegationSceneViewModel {
     private func stakeTransferData(_ stakeType: StakeType) -> TransferData {
         TransferData(
             type: .stake(asset, stakeType),
-            recipientData: RecipientData(
-                recipient: Recipient(name: providerText, address: model.delegation.validator.id, memo: ""),
-                amount: .none,
-            ),
-            amount: .exact(model.delegation.base.balanceValue),
+            recipient: Recipient(name: providerText, address: model.delegation.validator.id, memo: ""),
+            value: model.delegation.base.balanceValue,
         )
     }
 
     private func claimRewardsTransferData() -> TransferData {
         TransferData(
             type: .stake(asset, .rewards([model.delegation.validator])),
-            recipientData: RecipientData(
-                recipient: Recipient(name: model.delegation.validator.name, address: model.delegation.validator.id, memo: .none),
-                amount: .none,
-            ),
-            amount: .exact(model.delegation.base.rewardsValue),
+            recipient: Recipient(name: model.delegation.validator.name, address: model.delegation.validator.id, memo: .none),
+            value: model.delegation.base.rewardsValue,
         )
     }
 

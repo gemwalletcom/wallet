@@ -12,12 +12,8 @@ struct TransferDataViewModel {
         data.type
     }
 
-    var recipientData: RecipientData {
-        data.recipientData
-    }
-
     var recipient: Recipient {
-        recipientData.recipient
+        data.recipient
     }
 
     var asset: Asset {
@@ -25,7 +21,7 @@ struct TransferDataViewModel {
     }
 
     var memo: String? {
-        recipientData.recipient.memo
+        recipient.memo
     }
 
     var chain: Chain {

@@ -11,19 +11,16 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.SignerParams
+import com.gemwallet.android.blockchain.gemstone.toGemSignerFee
+import com.gemwallet.android.domains.confirm.toTransferData
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.jsonEncoder
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.SimulationResult
+import com.wallet.core.primitives.Transaction
+import uniffi.gemstone.GemPendingTransactionInput
+import uniffi.gemstone.GemTransferService
 import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.TransactionDirection
-import com.wallet.core.primitives.TransactionNFTTransferMetadata
-import com.wallet.core.primitives.TransactionResourceTypeMetadata
-import com.wallet.core.primitives.TransactionState
-import com.wallet.core.primitives.TransactionSwapMetadata
-import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.swap.ApprovalData
-import java.math.BigInteger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,7 +29,6 @@ import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemSignedTransaction
 import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemstoneException
-import uniffi.gemstone.transactionMetadataBlockNumber
 
 class ConfirmTransactionImpl(
     private val passwordStore: PasswordStore,
@@ -46,7 +42,7 @@ class ConfirmTransactionImpl(
         session: Session,
         assetInfo: AssetInfo,
         scope: CoroutineScope,
-        transactionAssetId: AssetId?,
+        simulation: SimulationResult?,
     ): String {
         val account = assetInfo.owner ?: throw ConfirmError.TransactionIncorrect
 
@@ -67,10 +63,10 @@ class ConfirmTransactionImpl(
         val hashes = try {
             confirmService.broadcast(signerParams.input.toDto(), signedTransactions)
         } catch (error: GemConfirmException.Broadcast) {
-            addTransactions(error.hashes, signedTransactions, signerParams, session, assetInfo, account, transactionAssetId)
+            addTransactions(error.hashes, signedTransactions, signerParams, session, account, simulation)
             throw error
         }
-        addTransactions(hashes, signedTransactions, signerParams, session, assetInfo, account, transactionAssetId)
+        addTransactions(hashes, signedTransactions, signerParams, session, account, simulation)
         scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
 
         return hashes.last()
@@ -81,29 +77,30 @@ class ConfirmTransactionImpl(
         signedTransactions: List<GemSignedTransaction>,
         signerParams: SignerParams,
         session: Session,
-        assetInfo: AssetInfo,
         account: Account,
-        transactionAssetId: AssetId?,
+        simulation: SimulationResult?,
     ) {
         for ((index, transactionHash) in hashes.withIndex()) {
-            val isFinalTransaction = index == signedTransactions.lastIndex
-            val transactionType = signedTransactions[index].transactionType.decodeJson<TransactionType>()
-            val approval = signerParams.input.approvalData(transactionType)
-            val approvalAmount = approval?.let {
-                it.value.toBigIntegerOrNull() ?: throw ConfirmError.TransactionIncorrect
-            }
-            addTransaction(
-                transactionHash = transactionHash,
-                signerParams = signerParams,
-                assetInfo = assetInfo,
-                account = account,
-                session = session,
-                transactionAssetId = transactionAssetId,
-                transactionType = transactionType,
-                approval = approval,
-                approvalAmount = approvalAmount,
-                isFinalTransaction = isFinalTransaction,
-            )
+            val transaction = try {
+                GemTransferService().pendingTransaction(
+                    GemPendingTransactionInput(
+                        sender = account.address,
+                        transfer = signerParams.input.toTransferData(),
+                        value = signerParams.finalAmount.toString(),
+                        transactionType = signedTransactions[index].transactionType,
+                        hash = transactionHash,
+                        fee = signerParams.fee().toGemSignerFee(),
+                        networkFee = signerParams.fee().amount.toString(),
+                        metadata = signerParams.data().metadata,
+                        simulation = simulation?.toJson(),
+                        transactionIndex = index.toUInt(),
+                        transactionCount = signedTransactions.size.toUInt(),
+                    )
+                )
+            } catch (_: GemstoneException) {
+                throw ConfirmError.TransactionIncorrect
+            } ?: continue
+            createTransactionsCase.createTransaction(session.wallet.id, transaction.decodeJson<Transaction>())
         }
     }
 
@@ -122,59 +119,6 @@ class ConfirmTransactionImpl(
         } catch (_: Throwable) {
             throw ConfirmError.SignFail
         }
-    }
-
-    private suspend fun addTransaction(
-        transactionHash: String,
-        signerParams: SignerParams,
-        assetInfo: AssetInfo,
-        account: Account,
-        session: Session,
-        transactionAssetId: AssetId?,
-        transactionType: TransactionType,
-        approval: ApprovalData?,
-        approvalAmount: BigInteger?,
-        isFinalTransaction: Boolean,
-    ) {
-        val assetId: AssetId
-        val destinationAddress: String
-        val amount: BigInteger
-        val memo: String?
-        val metadata: String?
-        if (approval != null) {
-            assetId = transactionAssetId ?: AssetId(signerParams.input.asset.id.chain, approval.token)
-            destinationAddress = approval.spender
-            amount = requireNotNull(approvalAmount)
-            memo = null
-            metadata = null
-        } else {
-            if (!isFinalTransaction) return
-            assetId = transactionAssetId ?: assetInfo.id()
-            destinationAddress = signerParams.input.destination()?.address.orEmpty()
-            amount = signerParams.finalAmount
-            memo = signerParams.input.memo().orEmpty()
-            metadata = signerParams.input.toTransactionMetadataJson()
-        }
-
-        createTransactionsCase.createTransaction(
-            hash = transactionHash,
-            walletId = session.wallet.id,
-            assetId = assetId,
-            owner = account,
-            to = destinationAddress,
-            state = TransactionState.Pending,
-            fee = signerParams.fee(),
-            amount = amount,
-            memo = memo,
-            type = transactionType,
-            metadata = metadata,
-            direction = if (destinationAddress == account.address) {
-                TransactionDirection.SelfTransfer
-            } else {
-                TransactionDirection.Outgoing
-            },
-            blockNumber = transactionMetadataBlockNumber(signerParams.data().metadata)
-        )
     }
 
     private suspend fun addRecent(assetInfo: AssetInfo, request: ConfirmParams) {
@@ -201,28 +145,4 @@ internal fun GemSignerError.toConfirmError(chain: Chain): ConfirmError = when (t
     is GemSignerError.SigningError,
     GemSignerError.InsufficientFunds,
     GemSignerError.SwapValueBelowMinimum -> ConfirmError.SignFail
-}
-
-internal fun ConfirmParams.toTransactionMetadataJson(): String? = when (this) {
-    is ConfirmParams.SwapParams -> {
-        jsonEncoder.encodeToString(
-            TransactionSwapMetadata(
-                fromAsset = fromAsset.id,
-                toAsset = toAsset.id,
-                fromValue = fromAmount.toString(),
-                toValue = toAmount.toString(),
-                provider = protocolId,
-            )
-        )
-    }
-    is ConfirmParams.NftParams -> jsonEncoder.encodeToString(
-        TransactionNFTTransferMetadata(nftAsset.id, nftAsset.name)
-    )
-    is ConfirmParams.Stake.Freeze -> jsonEncoder.encodeToString(
-        TransactionResourceTypeMetadata(resource)
-    )
-    is ConfirmParams.Stake.Unfreeze -> jsonEncoder.encodeToString(
-        TransactionResourceTypeMetadata(resource)
-    )
-    else -> null
 }

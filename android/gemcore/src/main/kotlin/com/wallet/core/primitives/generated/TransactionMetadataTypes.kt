@@ -36,3 +36,8 @@ data class TransactionSwapMetadata (
 	val provider: String? = null
 )
 
+@Serializable
+data class TransactionWalletConnectMetadata (
+	val outputAction: TransferDataOutputAction
+)
+

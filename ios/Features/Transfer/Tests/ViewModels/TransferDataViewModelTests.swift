@@ -26,23 +26,11 @@ struct TransferDataViewModelTests {
     }
 
     @Test
-    func availableValueForUnfreeze() {
-        let metadata = TransferDataMetadata(
-            assetId: .mock(),
-            feeAssetId: .mock(),
-            assetBalance: Balance(available: 1000, frozen: 500, locked: 300),
-            assetFeeBalance: Balance(available: 1000),
-            assetPrices: [:],
-        )
+    func availableValueForUnfreeze() throws {
+        let balance = Balance(available: 1000, frozen: 500, locked: 300)
 
-        #expect(
-            TransferData.mock(type: .stake(.mock(), .unfreeze(.bandwidth)))
-                .availableValue(metadata: metadata) == BigInt(500),
-        )
-        #expect(
-            TransferData.mock(type: .stake(.mock(), .unfreeze(.energy)))
-                .availableValue(metadata: metadata) == BigInt(300),
-        )
+        #expect(try TransferData.mock(type: .stake(.mock(), .unfreeze(.bandwidth))).availableValue(balance: balance) == BigInt(500))
+        #expect(try TransferData.mock(type: .stake(.mock(), .unfreeze(.energy))).availableValue(balance: balance) == BigInt(300))
     }
 }
 

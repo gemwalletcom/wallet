@@ -26,7 +26,6 @@ import java.math.BigInteger
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -39,7 +38,7 @@ class ConfirmParamsTest {
         val approval = ApprovalData(token = "token", spender = "spender", value = "1", isUnlimited = false)
         val swap = mockSwapParams(approval = approval)
 
-        assertSame(approval, swap.approvalData(TransactionType.TokenApproval))
+        assertEquals(approval, swap.approvalData(TransactionType.TokenApproval))
         assertNull(swap.approvalData(TransactionType.Swap))
         assertThrows(ConfirmError.TransactionIncorrect::class.java) {
             mockSwapParams().approvalData(TransactionType.TokenApproval)
@@ -76,7 +75,7 @@ class ConfirmParamsTest {
         assertEquals("21000", input.extra.gasLimit)
         assertEquals(listOf(1.toByte()), input.extra.data?.toList())
         assertEquals("memo", params.memo)
-        assertSame(approval, params.approvalData(TransactionType.TokenApproval))
+        assertEquals(approval, params.approvalData(TransactionType.TokenApproval))
     }
 
     @Test

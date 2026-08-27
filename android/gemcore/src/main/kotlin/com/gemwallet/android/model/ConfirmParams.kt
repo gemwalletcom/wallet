@@ -45,6 +45,8 @@ import uniffi.gemstone.GemTransferDataExtra
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.confirmInputDecode
 import uniffi.gemstone.confirmInputEncode
+import uniffi.gemstone.GemstoneException
+import uniffi.gemstone.GemTransferService
 
 @Serializable
 sealed class ConfirmParams() {
@@ -57,8 +59,6 @@ sealed class ConfirmParams() {
     abstract val amount: BigInteger
 
     abstract val useMaxAmount: Boolean
-
-    abstract val shouldIgnoreValueCheck: Boolean
 
     open val minimumAmount: BigInteger?
         get() = null
@@ -144,8 +144,6 @@ sealed class ConfirmParams() {
                 amount,
                 delegation,
                 destinationValidator,
-                delegation.base.shares,
-                delegation.base.balance,
             )
         }
 
@@ -172,9 +170,6 @@ sealed class ConfirmParams() {
         abstract val destination: DestinationAddress
         abstract val memo: String?
         abstract val inputType: InputType?
-
-        override val shouldIgnoreValueCheck: Boolean
-            get() = false
 
         override fun destination(): DestinationAddress {
             return destination
@@ -318,9 +313,6 @@ sealed class ConfirmParams() {
     ) : ConfirmParams() {
         override val useMaxAmount: Boolean = false
 
-        override val shouldIgnoreValueCheck: Boolean
-            get() = false
-
         val approval: ApprovalData
             get() = ApprovalData(
                 token = requireNotNull(asset.id.tokenId),
@@ -374,9 +366,6 @@ sealed class ConfirmParams() {
         override val minimumAmount: BigInteger?
             get() = minFromAmount
 
-        override val shouldIgnoreValueCheck: Boolean
-            get() = false
-
         override fun toDto(): GemTransactionInputType = Swap(
             fromAsset = fromAsset.toGem(),
             toAsset = toAsset.toGem(),
@@ -398,9 +387,6 @@ sealed class ConfirmParams() {
         override val useMaxAmount: Boolean
             get() = false
 
-        override val shouldIgnoreValueCheck: Boolean
-            get() = false
-
         override fun toDto(): GemTransactionInputType =
             Account(asset.toGem(), AccountDataType.Activate.toJson())
 
@@ -418,9 +404,6 @@ sealed class ConfirmParams() {
     ) : ConfirmParams() {
         override val useMaxAmount: Boolean
             get() = false
-
-        override val shouldIgnoreValueCheck: Boolean
-            get() = true
 
         override fun toDto(): GemTransactionInputType = TransferNft(
                 asset.toGem(),
@@ -445,8 +428,6 @@ sealed class ConfirmParams() {
             val validator: DelegationValidator,
             override val useMaxAmount: Boolean = false,
         ) : Stake() {
-            override val shouldIgnoreValueCheck: Boolean
-                get() = false
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
@@ -468,9 +449,6 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
-            override val shouldIgnoreValueCheck: Boolean
-                get() = true
-
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
                 stakeType = (StakeType.Withdraw(delegation) as StakeType).toJson()
@@ -491,9 +469,6 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
-            override val shouldIgnoreValueCheck: Boolean
-                get() = true
-
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
                 stakeType = (StakeType.Unstake(delegation) as StakeType).toJson()
@@ -511,14 +486,9 @@ sealed class ConfirmParams() {
             @Serializable(BigIntegerSerializer::class) override val amount: BigInteger,
             val delegation: Delegation,
             val destinationValidator: DelegationValidator,
-            val share: String?,
-            val balance: String?,
         ) : Stake() {
             override val useMaxAmount: Boolean
                 get() = false
-
-            override val shouldIgnoreValueCheck: Boolean
-                get() = true
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
@@ -540,9 +510,6 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
-            override val shouldIgnoreValueCheck: Boolean
-                get() = true
-
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
                 stakeType = (StakeType.Rewards(validators) as StakeType).toJson()
@@ -561,8 +528,6 @@ sealed class ConfirmParams() {
             val resource: Resource,
             override val useMaxAmount: Boolean = false,
         ) : Stake() {
-            override val shouldIgnoreValueCheck: Boolean
-                get() = false
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
@@ -584,9 +549,6 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
-            override val shouldIgnoreValueCheck: Boolean
-                get() = true
-
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
                 stakeType = (StakeType.Unfreeze(resource) as StakeType).toJson()
@@ -607,9 +569,6 @@ sealed class ConfirmParams() {
         val perpetualType: PerpetualType,
     ) : ConfirmParams() {
 
-        override val shouldIgnoreValueCheck: Boolean
-            get() = true
-
         override fun destination(): DestinationAddress = DestinationAddress.hyperliquidProvider
 
         override fun toDto(): GemTransactionInputType = GemTransactionInputType.Perpetual(
@@ -618,15 +577,10 @@ sealed class ConfirmParams() {
         )
     }
 
-    fun approvalData(transactionType: TransactionType): ApprovalData? {
-        if (transactionType != TransactionType.TokenApproval) return null
-
-        return when (this) {
-            is SwapParams -> approval ?: throw ConfirmError.TransactionIncorrect
-            is TokenApprovalParams -> approval
-            is TransferParams.Generic -> approval
-            else -> throw ConfirmError.TransactionIncorrect
-        }
+    fun approvalData(transactionType: TransactionType): ApprovalData? = try {
+        GemTransferService().approval(toDto(), transactionType.toJson())?.decodeJson<ApprovalData>()
+    } catch (_: GemstoneException) {
+        throw ConfirmError.TransactionIncorrect
     }
 
     fun pack(): String? = when (this) {
@@ -635,31 +589,7 @@ sealed class ConfirmParams() {
         else -> packRoutePayload()
     }
 
-    fun getTransactionType() : TransactionType {
-        return when (this) {
-            is TransferParams.Generic -> decodedTransactionType
-            is TransferParams -> TransactionType.Transfer
-            is TokenApprovalParams -> TransactionType.TokenApproval
-            is SwapParams -> TransactionType.Swap
-            is Activate -> TransactionType.AssetActivation
-            is NftParams -> TransactionType.TransferNFT
-            is Stake.DelegateParams -> TransactionType.StakeDelegate
-            is Stake.RewardsParams -> TransactionType.StakeRewards
-            is Stake.RedelegateParams -> TransactionType.StakeRedelegate
-            is Stake.UndelegateParams -> TransactionType.StakeUndelegate
-            is Stake.WithdrawParams -> TransactionType.StakeWithdraw
-            is Stake.Freeze -> TransactionType.StakeFreeze
-            is Stake.Unfreeze -> TransactionType.StakeUnfreeze
-            is Stake -> throw IllegalArgumentException("Invalid stake parameter")
-            is PerpetualParams -> when (perpetualType) {
-                is PerpetualType.Open -> TransactionType.PerpetualOpenPosition
-                is PerpetualType.Close -> TransactionType.PerpetualClosePosition
-                is PerpetualType.Increase,
-                is PerpetualType.Reduce,
-                is PerpetualType.Modify -> TransactionType.PerpetualModifyPosition
-            }
-        }
-    }
+    fun getTransactionType(): TransactionType = GemTransferService().transactionType(toDto()).decodeJson<TransactionType>()
 
     open fun destination(): DestinationAddress? = null
 

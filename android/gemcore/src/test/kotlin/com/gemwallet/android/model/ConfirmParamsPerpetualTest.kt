@@ -91,11 +91,11 @@ class ConfirmParamsPerpetualTest {
             perpetualParams(PerpetualType.Close(mockPerpetualConfirmData())).getTransactionType(),
         )
         assertEquals(
-            TransactionType.PerpetualModifyPosition,
+            TransactionType.PerpetualOpenPosition,
             perpetualParams(PerpetualType.Increase(mockPerpetualConfirmData())).getTransactionType(),
         )
         assertEquals(
-            TransactionType.PerpetualModifyPosition,
+            TransactionType.PerpetualClosePosition,
             perpetualParams(PerpetualType.Reduce(mockPerpetualReduceData())).getTransactionType(),
         )
     }

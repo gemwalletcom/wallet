@@ -33,6 +33,7 @@ pub mod support;
 pub mod swap;
 pub mod transaction_state;
 pub mod transactions;
+pub mod transfer;
 pub mod wallet;
 pub mod wallet_configuration;
 pub mod wallet_connect;

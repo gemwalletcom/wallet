@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 use strum::{AsRefStr, Display, EnumString};
 use typeshare::typeshare;
 
@@ -22,8 +23,11 @@ pub struct Delegation {
 pub struct DelegationBase {
     pub asset_id: AssetId,
     pub state: DelegationState,
+    #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
     pub balance: BigUint,
+    #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
     pub shares: BigUint,
+    #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
     pub rewards: BigUint,
     pub completion_date: Option<DateTime<Utc>>,
     pub delegation_id: String,

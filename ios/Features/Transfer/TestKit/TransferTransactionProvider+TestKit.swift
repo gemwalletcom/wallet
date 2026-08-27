@@ -17,7 +17,6 @@ public struct TransferTransactionProviderMock: TransferTransactionProvidable {
         wallet _: Wallet,
         data _: TransferData,
         selection _: FeeSelection,
-        available _: BigInt,
     ) async throws -> TransferTransactionData {
         try result.get()
     }

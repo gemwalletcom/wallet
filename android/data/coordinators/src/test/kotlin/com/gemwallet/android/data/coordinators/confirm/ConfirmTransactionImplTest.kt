@@ -29,35 +29,19 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import java.math.BigInteger
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemSignedTransaction
 import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.SwapperProvider
-import uniffi.gemstone.transactionMetadataBlockNumber
 
 class ConfirmTransactionImplTest {
-
-    @Before
-    fun setUp() {
-        mockkStatic("uniffi.gemstone.GemstoneKt")
-        every { transactionMetadataBlockNumber(any()) } returns "0"
-    }
-
-    @After
-    fun tearDown() {
-        unmockkStatic("uniffi.gemstone.GemstoneKt")
-    }
 
     @Test
     fun signerErrorsMapToConfirmErrors() {
@@ -99,11 +83,7 @@ class ConfirmTransactionImplTest {
             GemSignedTransaction("approval", TransactionType.TokenApproval.toJson()),
             GemSignedTransaction("swap", TransactionType.Swap.toJson()),
         )
-        val createdHashes = mutableListOf<String>()
-        val createdAssetIds = mutableListOf<AssetId>()
-        val createdDestinations = mutableListOf<String>()
-        val createdAmounts = mutableListOf<BigInteger>()
-        val createdTypes = mutableListOf<TransactionType>()
+        val created = mutableListOf<Transaction>()
         val passwordStore = mockk<PasswordStore> {
             every { getPassword(wallet.id.id) } returns "password"
         }
@@ -114,23 +94,7 @@ class ConfirmTransactionImplTest {
             coEvery { broadcast(any(), any()) } returns listOf("approval-hash", "swap-hash")
         }
         val createTransaction = mockk<CreateTransaction>()
-        coEvery {
-            createTransaction.createTransaction(
-                hash = capture(createdHashes),
-                walletId = any(),
-                assetId = capture(createdAssetIds),
-                owner = any(),
-                to = capture(createdDestinations),
-                state = any(),
-                fee = any(),
-                amount = capture(createdAmounts),
-                memo = any(),
-                type = capture(createdTypes),
-                metadata = any(),
-                direction = any(),
-                blockNumber = any(),
-            )
-        } returns mockk<Transaction>()
+        coEvery { createTransaction.createTransaction(any(), capture(created)) } returns mockk<Transaction>()
         val fromAmount = BigInteger.valueOf(10_000_000)
         val approvalValue = BigInteger.TWO.pow(256).subtract(BigInteger.ONE)
         val signerParams = SignerParams(
@@ -180,11 +144,11 @@ class ConfirmTransactionImplTest {
         )
 
         assertEquals("swap-hash", result)
-        assertEquals(listOf("approval-hash", "swap-hash"), createdHashes)
-        assertEquals(listOf(usdc.id, usdc.id), createdAssetIds)
-        assertEquals(listOf(spender, swapAddress), createdDestinations)
-        assertEquals(listOf(approvalValue, fromAmount), createdAmounts)
-        assertEquals(listOf(TransactionType.TokenApproval, TransactionType.Swap), createdTypes)
+        assertEquals(listOf("approval-hash", "swap-hash"), created.map { it.id.hash })
+        assertEquals(listOf(usdc.id, usdc.id), created.map { it.assetId })
+        assertEquals(listOf(spender, swapAddress), created.map { it.to })
+        assertEquals(listOf(approvalValue, fromAmount).map { it.toString() }, created.map { it.value })
+        assertEquals(listOf(TransactionType.TokenApproval, TransactionType.Swap), created.map { it.type })
         coVerify(exactly = 1) { confirmService.broadcast(any(), any()) }
         
     }
@@ -242,7 +206,7 @@ class ConfirmTransactionImplTest {
         val account = mockAccount(hype.id.chain)
         val wallet = mockWallet(accounts = listOf(account))
         val createTransaction = mockk<CreateTransaction>()
-        val createdHashes = mutableListOf<String>()
+        val created = mutableListOf<Transaction>()
         val signedTransactions = List(3) { GemSignedTransaction("swap", TransactionType.Swap.toJson()) }
         val passwordStore = mockk<PasswordStore> {
             every { getPassword(wallet.id.id) } returns "password"
@@ -253,23 +217,7 @@ class ConfirmTransactionImplTest {
         val confirmService = mockk<GemConfirmServiceInterface> {
             coEvery { broadcast(any(), any()) } returns listOf("action:1", "action:2", "order:3")
         }
-        coEvery {
-            createTransaction.createTransaction(
-                hash = capture(createdHashes),
-                walletId = any(),
-                assetId = any(),
-                owner = any(),
-                to = any(),
-                state = any(),
-                fee = any(),
-                amount = any(),
-                memo = any(),
-                type = any(),
-                metadata = any(),
-                direction = any(),
-                blockNumber = any(),
-            )
-        } returns mockk<Transaction>()
+        coEvery { createTransaction.createTransaction(any(), capture(created)) } returns mockk<Transaction>()
 
         val result = ConfirmTransactionImpl(
             passwordStore = passwordStore,
@@ -310,7 +258,7 @@ class ConfirmTransactionImplTest {
         )
 
         assertEquals("order:3", result)
-        assertEquals(listOf("order:3"), createdHashes)
+        assertEquals(listOf("order:3"), created.map { it.id.hash })
         coVerify(exactly = 1) { confirmService.broadcast(any(), any()) }
     }
 }

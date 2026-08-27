@@ -194,11 +194,12 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         }
     }
 
-    func makeTransferData(amount: TransferAmountValue) throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> TransferData {
         try TransferData(
             type: .stake(asset, getStakeType()),
-            recipientData: recipientData(),
-            amount: amount,
+            recipient: recipientData().recipient,
+            value: value,
+            useMaxAmount: useMaxAmount,
         )
     }
 

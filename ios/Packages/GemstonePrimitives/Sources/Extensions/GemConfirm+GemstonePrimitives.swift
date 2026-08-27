@@ -17,20 +17,8 @@ public extension Primitives.Account {
 }
 
 public extension TransferData {
-    func confirmInput(from account: Primitives.Account, available: BigInt) throws -> GemConfirmInput {
-        try GemConfirmInput(
-            inputType: type.map(),
-            from: account.map(),
-            destination: GemConfirmDestination(
-                address: recipientData.recipient.address,
-                name: recipientData.recipient.name,
-            ),
-            value: value.description,
-            memo: recipientData.recipient.memo,
-            references: recipientData.recipient.references,
-            useMax: available > 0 && available == value,
-            minimumValue: minimumValue?.description,
-        )
+    func confirmInput(from account: Primitives.Account) -> GemConfirmInput {
+        GemConfirmInput(from: account.map(), transfer: gem)
     }
 }
 

@@ -110,8 +110,8 @@ public extension AutocloseSceneViewModel {
             onTransferAction?(
                 TransferData(
                     type: .perpetual(position.asset, .modify(data)),
-                    recipientData: .hyperliquid(),
-                    amount: .exact(.zero),
+                    recipient: .hyperliquidProvider,
+                    value: .zero,
                 ),
             )
 

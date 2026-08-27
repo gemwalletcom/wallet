@@ -27,11 +27,9 @@ public extension TransferData {
         let value = try BigInt.from(string: transfer.value)
         self.init(
             type: .swap(fromAsset, toAsset, SwapData(quote: quote, data: try Primitives.SwapQuoteData(transfer.data))),
-            recipientData: RecipientData(
-                recipient: Recipient(name: .none, address: transfer.recipient, memo: .none),
-                amount: .none,
-            ),
-            amount: transfer.useMaxAmount ? .max(value) : .exact(value),
+            recipient: Recipient(name: .none, address: transfer.recipient, memo: .none),
+            value: value,
+            useMaxAmount: transfer.useMaxAmount,
             minimumValue: quote.minFromValueBigInt,
         )
     }

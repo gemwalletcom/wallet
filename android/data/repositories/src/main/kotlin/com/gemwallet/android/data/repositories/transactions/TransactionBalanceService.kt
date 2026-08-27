@@ -4,6 +4,7 @@ import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.ext.HypercoreUSDC
+import com.gemwallet.android.domains.confirm.toTransferData
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.transaction.TransactionBalanceContext
@@ -16,6 +17,8 @@ import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
 import kotlinx.coroutines.flow.firstOrNull
+import uniffi.gemstone.GemTransferBalance
+import uniffi.gemstone.GemTransferService
 import java.math.BigInteger
 import javax.inject.Inject
 
@@ -26,39 +29,19 @@ class TransactionBalanceService @Inject constructor(
 ) {
 
     suspend fun getBalance(assetInfo: AssetInfo, params: ConfirmParams): BigInteger {
-        return assetInfo.balance(params.getTransactionType(), getContext(assetInfo, params))
-    }
-
-    suspend fun getContext(assetInfo: AssetInfo, params: ConfirmParams): TransactionBalanceContext {
-        return when (params) {
-            is ConfirmParams.Stake.Unfreeze -> TransactionBalanceContext(resource = params.resource)
-            is ConfirmParams.Stake.RedelegateParams -> delegationContext(assetInfo, params.delegation)
-            is ConfirmParams.Stake.UndelegateParams -> delegationContext(assetInfo, params.delegation)
-            is ConfirmParams.Stake.WithdrawParams -> delegationContext(assetInfo, params.delegation)
-            is ConfirmParams.Stake.RewardsParams -> TransactionBalanceContext(
-                rewardsBalance = getRewardsBalance(assetInfo),
-            )
-            is ConfirmParams.PerpetualParams -> TransactionBalanceContext(
-                perpetualBalance = getPerpetualBalance(assetInfo),
-            )
-            else -> TransactionBalanceContext()
+        if (params is ConfirmParams.PerpetualParams) {
+            return getPerpetualBalance(assetInfo)
         }
-    }
-
-    private suspend fun delegationContext(assetInfo: AssetInfo, delegation: Delegation): TransactionBalanceContext {
-        val walletId = assetInfo.walletId
-        val currentDelegation = if (walletId == null) {
-            delegation
-        } else {
-            stakeRepository.getDelegation(
-                walletId = walletId,
-                validatorId = delegation.base.validatorId,
-                delegationId = delegation.base.delegationId,
-            ).firstOrNull() ?: delegation
-        }
-        return TransactionBalanceContext(
-            delegationBalance = currentDelegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO,
-        )
+        val balance = assetInfo.balance.balance
+        return GemTransferService().availableValue(
+            params.toTransferData(),
+            GemTransferBalance(
+                available = balance.available,
+                frozen = balance.frozen,
+                locked = balance.locked,
+                withdrawable = balance.withdrawable,
+            ),
+        ).toBigIntegerOrNull() ?: BigInteger.ZERO
     }
 
     suspend fun getBalance(

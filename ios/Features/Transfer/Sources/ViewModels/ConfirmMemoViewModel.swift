@@ -6,11 +6,11 @@ import PrimitivesComponents
 
 struct ConfirmMemoViewModel {
     private let type: TransferDataType
-    private let recipientData: RecipientData
+    private let recipient: Recipient
 
-    init(type: TransferDataType, recipientData: RecipientData) {
+    init(type: TransferDataType, recipient: Recipient) {
         self.type = type
-        self.recipientData = recipientData
+        self.recipient = recipient
     }
 }
 
@@ -19,7 +19,7 @@ struct ConfirmMemoViewModel {
 extension ConfirmMemoViewModel: ItemModelProvidable {
     var itemModel: ConfirmTransferItemModel {
         guard showMemo else { return .empty }
-        return .memo(MemoViewModel(memo: recipientData.recipient.memo).listItemModel)
+        return .memo(MemoViewModel(memo: recipient.memo).listItemModel)
     }
 }
 

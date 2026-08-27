@@ -29,7 +29,6 @@ public struct ConfirmTransferInputProvider: Sendable {
                 wallet: request.wallet,
                 data: request.data,
                 selection: selection,
-                available: metadata.available,
             )
         } catch {
             throw preloadFailureError(metadata: metadata) ?? error
@@ -58,7 +57,7 @@ public struct ConfirmTransferInputProvider: Sendable {
             transactionData: transactionData.transactionData,
             transferAmount: TransferAmountCalculator().validate(
                 transferData: request.data,
-                availableValue: request.data.availableValue(metadata: metadata),
+                availableValue: try request.data.availableValue(balance: metadata.assetBalance),
                 feeAsset: feeAssetData.asset,
                 assetFeeBalance: metadata.feeAvailable,
                 fee: fee.fee,

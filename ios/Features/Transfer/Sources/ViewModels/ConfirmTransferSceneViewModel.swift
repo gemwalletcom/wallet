@@ -62,7 +62,7 @@ public final class ConfirmTransferSceneViewModel {
         feeSelection = .preset(confirmService.defaultPriority(for: request.data.type))
         feeAssetSelection = .automatic
 
-        let recipientAddress = request.data.recipientData.recipient.address
+        let recipientAddress = request.data.recipient.address
         recipientAddressNameQuery = ObservableQuery(
             AddressNameRequest(chain: request.data.chain, address: recipientAddress),
             initialValue: try? confirmService.addressName(chain: request.data.chain, address: recipientAddress),
@@ -198,7 +198,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 onAddContact: onSelectAddRecipientToContacts,
             )
         case .memo:
-            ConfirmMemoViewModel(type: request.data.type, recipientData: request.data.recipientData)
+            ConfirmMemoViewModel(type: request.data.type, recipient: request.data.recipient)
         case .details:
             detailsViewModel
         case .payload:

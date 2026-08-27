@@ -254,7 +254,7 @@ extension RecipientSceneViewModel {
         case .asset:
             onRecipientDataAction?(recipientData)
         case let .nft(asset):
-            handle(transferData: TransferData(type: .transferNft(asset), recipientData: recipientData, amount: .exact(.zero)))
+            handle(transferData: TransferData(type: .transferNft(asset), recipient: recipientData.recipient, value: .zero))
         }
     }
 

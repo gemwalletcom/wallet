@@ -12,31 +12,38 @@ import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
-import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
+
+fun ConfirmParams.toTransferData(): GemTransferData = GemTransferData(
+    inputType = toDto(),
+    recipient = GemRecipient(
+        address = destination()?.address.orEmpty(),
+        name = destination()?.name,
+        memo = memo(),
+        references = references,
+    ),
+    value = amount.toString(),
+    useMaxAmount = useMaxAmount,
+    minimumValue = minimumAmount?.toString(),
+)
 
 fun ConfirmParams.toConfirmInput(): GemConfirmInput = GemConfirmInput(
-    inputType = toDto(),
     from = from.toGem(),
-    destination = destination()?.let { GemConfirmDestination(address = it.address, name = it.name) },
-    value = amount.toString(),
-    memo = memo(),
-    references = references,
-    useMax = useMaxAmount,
-    minimumValue = minimumAmount?.toString(),
+    transfer = toTransferData(),
 )
 
 fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
     val from = from.toPrimitives() ?: return null
-    val value = value.toBigIntegerOrNull() ?: return null
-
-    return when (val inputType = inputType) {
+    val value = transfer.value.toBigIntegerOrNull() ?: return null
+    val recipient = transfer.recipient
+    return when (val inputType = transfer.inputType) {
         is GemTransactionInputType.Transfer -> {
             val asset = inputType.asset.toPrimitives() ?: return null
-            val destination = destination ?: return null
-            ConfirmParams.Builder(asset, from, value, useMax)
-                .transfer(DestinationAddress(destination.address, destination.name), memo, references)
+            ConfirmParams.Builder(asset, from, value, transfer.useMaxAmount)
+                .transfer(DestinationAddress(recipient.address, recipient.name), recipient.memo, recipient.references)
         }
         is GemTransactionInputType.Generic -> {
             val asset = inputType.asset.toPrimitives() ?: return null
@@ -45,9 +52,9 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
                 asset = asset,
                 from = from,
                 amount = value,
-                destination = DestinationAddress(destination?.address.orEmpty(), destination?.name),
-                memo = memo,
-                useMaxAmount = useMax,
+                destination = DestinationAddress(recipient.address, recipient.name),
+                memo = recipient.memo,
+                useMaxAmount = transfer.useMaxAmount,
                 inputType = when (extra.outputType.decodeJson<TransferDataOutputType>()) {
                     TransferDataOutputType.Signature -> ConfirmParams.TransferParams.InputType.Signature
                     TransferDataOutputType.EncodedTransaction -> ConfirmParams.TransferParams.InputType.EncodeTransaction

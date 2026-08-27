@@ -30,7 +30,7 @@ internal fun Fee.toGemGasPriceType(): GemGasPriceType = when (this) {
     )
 }
 
-internal fun Fee.toGemSignerFee(): GemTransactionLoadFee = GemTransactionLoadFee(
+fun Fee.toGemSignerFee(): GemTransactionLoadFee = GemTransactionLoadFee(
     fee = amount.toString(),
     gasPriceType = toGemGasPriceType(),
     gasLimit = when (this) {

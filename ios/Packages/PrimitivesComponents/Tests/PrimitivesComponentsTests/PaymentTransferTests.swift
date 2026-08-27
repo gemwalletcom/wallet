@@ -32,9 +32,9 @@ struct PaymentTransferTests {
 
         #expect(data.type.asset == asset)
         #expect(data.value == 19_000_000)
-        #expect(data.recipientData.recipient.address == recipient)
-        #expect(data.recipientData.recipient.memo == "payment-memo")
-        #expect(try data.encodedTransaction() == "encoded-transaction")
+        #expect(data.recipient.address == recipient)
+        #expect(data.recipient.memo == "payment-memo")
+        #expect(data.encodedTransaction == "encoded-transaction")
     }
 
     @Test
@@ -59,9 +59,9 @@ struct PaymentTransferTests {
         }
 
         #expect(data.value == 19_000_000)
-        #expect(data.recipientData.recipient.address == recipient)
-        #expect(data.recipientData.recipient.memo == nil)
-        #expect(try data.encodedTransaction() == "encoded-transaction")
+        #expect(data.recipient.address == recipient)
+        #expect(data.recipient.memo == nil)
+        #expect(data.encodedTransaction == "encoded-transaction")
     }
 
     @Test
@@ -85,9 +85,9 @@ struct PaymentTransferTests {
         }
 
         #expect(data.value == .zero)
-        #expect(data.recipientData.recipient.address.isEmpty)
-        #expect(data.recipientData.recipient.memo == "payment-memo")
-        #expect(try data.encodedTransaction() == "encoded-transaction")
+        #expect(data.recipient.address.isEmpty)
+        #expect(data.recipient.memo == "payment-memo")
+        #expect(data.encodedTransaction == "encoded-transaction")
     }
 
     @Test
@@ -103,8 +103,8 @@ struct PaymentTransferTests {
             Issue.record("Expected confirmation")
             return
         }
-        #expect(data.recipientData.recipient.address == checksummedAddress)
-        #expect(data.amount == .exact(BigInt("1234000000000000000")))
+        #expect(data.recipient.address == checksummedAddress)
+        #expect(data.value == BigInt("1234000000000000000"))
     }
 
     @Test
@@ -135,9 +135,9 @@ struct PaymentTransferTests {
             Issue.record("Expected confirmation for tagged XRP payment")
             return
         }
-        #expect(data.recipientData.recipient.address == Self.xrpAddress)
-        #expect(data.recipientData.recipient.memo == "12345")
-        #expect(data.amount == .exact(BigInt(10_000_000)))
+        #expect(data.recipient.address == Self.xrpAddress)
+        #expect(data.recipient.memo == "12345")
+        #expect(data.value == BigInt(10_000_000))
     }
 
     @Test
@@ -188,8 +188,8 @@ struct PaymentTransferTests {
             Issue.record("Expected a Solana payment without a memo to confirm")
             return
         }
-        #expect(data.amount == .exact(BigInt(1_000_000)))
-        #expect(data.recipientData.recipient.memo == nil)
+        #expect(data.value == BigInt(1_000_000))
+        #expect(data.recipient.memo == nil)
     }
 
     private static let xrpAddress = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
@@ -209,5 +209,12 @@ struct PaymentTransferTests {
             memo: memo,
             request: request.map { try $0.json() },
         )
+    }
+}
+
+private extension TransferData {
+    var encodedTransaction: String? {
+        guard case let .generic(_, _, extra) = type, let data = extra.data else { return nil }
+        return String(decoding: data, as: UTF8.self)
     }
 }

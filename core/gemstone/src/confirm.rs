@@ -9,6 +9,7 @@ use crate::gateway::GemGateway;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput, GemTransactionLoadMetadata};
 use crate::services::GemScanService;
+use crate::services::transfer::GemTransferData;
 use crate::transaction_simulation::TransactionSimulationService;
 use num_bigint::BigInt;
 use primitives::{Account, ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, SimulationResult, TransactionPreloadInput};
@@ -16,22 +17,10 @@ use primitives::{ScanTransaction, ScanTransactionPayload};
 
 pub type GemAccount = Account;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Record)]
-pub struct GemConfirmDestination {
-    pub address: String,
-    pub name: Option<String>,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
 pub struct GemConfirmInput {
-    pub input_type: GemTransactionInputType,
     pub from: GemAccount,
-    pub destination: Option<GemConfirmDestination>,
-    pub value: String,
-    pub memo: Option<String>,
-    pub references: Vec<String>,
-    pub use_max: bool,
-    pub minimum_value: Option<String>,
+    pub transfer: GemTransferData,
 }
 
 #[uniffi::export]
@@ -103,15 +92,16 @@ impl GemConfirmService {
     }
 
     pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
-        let asset = input.input_type.asset();
+        let transfer = &input.transfer;
+        let asset = transfer.input_type.asset();
         let chain = asset.id.chain;
         let symbol = asset.symbol.clone();
-        let destination = input.destination.as_ref().map(|destination| destination.address.clone()).unwrap_or_default();
+        let destination = transfer.recipient.address.clone();
         let preload_input = GemTransactionPreloadInput {
-            input_type: input.input_type.clone(),
+            input_type: transfer.input_type.clone(),
             sender_address: input.from.address.clone(),
             destination_address: destination.clone(),
-            references: input.references.clone(),
+            references: transfer.recipient.references.clone(),
         };
 
         let scan_future = async {
@@ -122,7 +112,7 @@ impl GemConfirmService {
         };
         let (metadata, fee_rates, scan, simulation) = futures::join!(
             self.gateway.get_transaction_preload(chain, preload_input.clone()),
-            self.gateway.get_fee_rates(chain, input.input_type.clone()),
+            self.gateway.get_fee_rates(chain, transfer.input_type.clone()),
             scan_future,
             self.simulate(chain, &input),
         );
@@ -130,7 +120,7 @@ impl GemConfirmService {
         let fee_rates = fee_rates.map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         let simulation = simulation?;
 
-        validate_scan(scan.as_ref(), input.memo.as_deref(), &symbol)?;
+        validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;
 
         let selected = select_fee_rate(&fee_rates, &options.fee_selection)?;
         let load = self
@@ -138,13 +128,13 @@ impl GemConfirmService {
             .get_transaction_load(
                 chain,
                 GemTransactionLoadInput {
-                    input_type: input.input_type.clone(),
+                    input_type: transfer.input_type.clone(),
                     sender_address: input.from.address.clone(),
                     destination_address: destination,
-                    value: input.value.clone(),
+                    value: transfer.value.clone(),
                     gas_price: selected.gas_price_type.clone(),
-                    memo: input.memo.clone(),
-                    is_max_value: input.use_max,
+                    memo: transfer.recipient.memo.clone(),
+                    is_max_value: transfer.use_max_amount,
                     metadata,
                 },
             )
@@ -190,7 +180,7 @@ impl GemConfirmService {
 
 impl GemConfirmService {
     async fn simulate(&self, chain: Chain, input: &GemConfirmInput) -> Result<Option<SimulationResult>, GemConfirmError> {
-        let (metadata, extra) = match &input.input_type {
+        let (metadata, extra) = match &input.transfer.input_type {
             GemTransactionInputType::Generic { metadata, extra, .. } => (metadata, extra),
             _ => return Ok(None),
         };

@@ -4,7 +4,9 @@ import GemstoneServices
 import Foundation
 import enum Gemstone.GemConfirmError
 import protocol Gemstone.GemConfirmServiceProtocol
+import struct Gemstone.GemPendingTransactionInput
 import struct Gemstone.GemSignedTransaction
+import class Gemstone.GemTransferService
 import GemstonePrimitives
 import Primitives
 
@@ -13,9 +15,7 @@ public protocol TransferExecutable: Sendable {
 }
 
 public struct TransferExecutor: TransferExecutable {
-    private static let ignoredTransactionTypes: Set<TransactionType> = [.perpetualModifyPosition]
     private static let ignoredAssetChains: Set<Chain> = [.hyperCore]
-    private static let hyperCoreOrderIdPrefix = "order:"
 
     private let signer: any TransactionSigning
     private let confirmService: any GemConfirmServiceProtocol
@@ -73,27 +73,23 @@ extension TransferExecutor {
     private func record(input: TransferConfirmationInput, hashes: [String], transactions: [GemSignedTransaction]) async throws {
         for (index, hash) in hashes.enumerated() {
             debugLog("TransferExecutor broadcast response hash \(hash)")
-
             input.delegate?(.success(hash))
-
-            let transaction = try TransactionFactory.makePendingTransaction(
-                wallet: input.wallet,
-                transferData: input.data,
-                transactionData: input.transactionData,
-                amount: input.amount,
+            let pending = try GemTransferService().pendingTransaction(input: GemPendingTransactionInput(
+                sender: input.wallet.account(for: input.data.chain).address,
+                transfer: input.data.gem,
+                value: input.amount.value.description,
+                transactionType: transactions[index].transactionType,
                 hash: hash,
-                transactionType: Primitives.TransactionType(transactions[index].transactionType),
-                simulation: input.simulation,
-            )
+                fee: input.transactionData.fee.map(),
+                networkFee: input.amount.networkFee.description,
+                metadata: input.transactionData.metadata,
+                simulation: input.simulation?.json(),
+                transactionIndex: UInt32(index),
+                transactionCount: UInt32(transactions.count),
+            )).map { try Transaction($0) }
+            guard let transaction = pending else { continue }
+            try await transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: [transaction])
             let assetIds = assetIdsToEnable(for: transaction)
-            let pending = pendingTransactions(
-                for: transaction,
-                transferData: input.data,
-                transactionIndex: index,
-                totalTransactions: transactions.count,
-            )
-
-            try await transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: pending)
             Task {
                 do {
                     try await assetsEnabler.enableAssets(wallet: input.wallet, assetIds: assetIds, enabled: true)
@@ -102,38 +98,6 @@ extension TransferExecutor {
                 }
             }
         }
-    }
-
-    private func pendingTransactions(
-        for transaction: Transaction,
-        transferData: TransferData,
-        transactionIndex: Int,
-        totalTransactions: Int,
-    ) -> [Transaction] {
-        guard !Self.ignoredTransactionTypes.contains(transaction.type) else {
-            return []
-        }
-
-        switch transaction.assetId.chain {
-        case .hyperCore:
-            switch transferData.type {
-            case .stake where transactionIndex < totalTransactions - 1:
-                return []
-            case .perpetual where !transaction.id.hash.hasPrefix(Self.hyperCoreOrderIdPrefix):
-                return []
-            case let .swap(_, toAsset, data)
-                where toAsset.chain == .hyperCore
-                && data.quote.providerData.provider == .hyperliquid
-                && transactionIndex < totalTransactions - 1:
-                return []
-            case .stake, .perpetual, .transfer, .deposit, .withdrawal, .transferNft, .swap, .tokenApprove, .generic, .account, .earn:
-                break
-            }
-        default:
-            break
-        }
-
-        return [transaction]
     }
 
     private func assetIdsToEnable(for transaction: Transaction) -> [AssetId] {

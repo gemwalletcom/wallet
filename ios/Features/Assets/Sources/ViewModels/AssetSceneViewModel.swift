@@ -376,15 +376,12 @@ public extension AssetSceneViewModel {
                 isPresentingAssetSheet = .transfer(
                     TransferData(
                         type: .account(assetData.asset, .activate),
-                        recipientData: RecipientData(
-                            recipient: Recipient(
+                        recipient: Recipient(
                                 name: .none,
                                 address: "",
                                 memo: .none,
                             ),
-                            amount: .none,
-                        ),
-                        amount: .exact(0),
+                        value: 0,
                     ),
                 )
             case .enableNotifications,

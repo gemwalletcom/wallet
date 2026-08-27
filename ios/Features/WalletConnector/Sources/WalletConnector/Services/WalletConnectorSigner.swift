@@ -106,11 +106,8 @@ public final class WalletConnectorSigner: WalletConnectorSignable, GemWalletConn
                         transactionType: transaction.transactionType,
                     ),
                 ),
-                recipientData: RecipientData(
-                    recipient: Recipient(name: nil, address: "", memo: nil),
-                    amount: nil,
-                ),
-                amount: .exact(.zero),
+                recipient: Recipient(name: nil, address: "", memo: nil),
+                value: .zero,
             )
         }
     }
@@ -143,11 +140,8 @@ public final class WalletConnectorSigner: WalletConnectorSignable, GemWalletConn
                 transactionType: kind.transactionType,
                 approval: kind.approvalData,
             )),
-            recipientData: RecipientData(
-                recipient: Recipient(name: .none, address: transaction.to, memo: .none),
-                amount: .none,
-            ),
-            amount: .exact(value),
+            recipient: Recipient(name: .none, address: transaction.to, memo: .none),
+            value: value,
         )
     }
 }

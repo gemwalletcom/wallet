@@ -13,10 +13,6 @@ public extension TransferAmount {
         assetFeeBalance: BigInt,
         fee: BigInt,
     ) throws -> TransferAmount {
-        let isMaxAmount = switch transferData.amount {
-        case .exact: false
-        case .max: true
-        }
         let input = try GemTransferAmountInput(
             inputType: transferData.type.map(),
             value: transferData.value.description,
@@ -24,7 +20,7 @@ public extension TransferAmount {
             feeAsset: feeAssetId.identifier,
             feeAssetBalance: assetFeeBalance.description,
             fee: fee.description,
-            isMaxAmount: isMaxAmount,
+            isMaxAmount: transferData.useMaxAmount,
             minimumValue: transferData.minimumValue?.description,
         )
         do {

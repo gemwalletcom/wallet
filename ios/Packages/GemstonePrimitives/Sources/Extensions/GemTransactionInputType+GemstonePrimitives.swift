@@ -70,10 +70,7 @@ public extension TransferDataType {
         case let .generic(asset, metadata, extra):
             return try .generic(asset: asset.json(), metadata: metadata.json(), extra: extra.map())
         case let .withdrawal(asset):
-            if asset.chain == .hyperCore {
-                return try .withdrawal(asset: asset.json())
-            }
-            throw AnyError("Unsupported transaction type: \(self)")
+            return try .withdrawal(asset: asset.json())
         case let .account(asset, accountData):
             return try .account(asset: asset.json(), accountType: accountData.json())
         case let .perpetual(asset, perpetualType):
