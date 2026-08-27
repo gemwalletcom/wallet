@@ -131,13 +131,16 @@ State on 2026-08-28: every app service forwards to a Core service or is platform
 
 ### Rust (core/gemstone)
 
+- WalletConnect proposal wallets: both apps read the wallet list and current wallet id themselves and hand them to `prepare_session_proposal`; give `GemWalletConnectService` the wallet store and session so the apps pass only the proposal.
 - Transfer model: generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums collapse (132 Core, 49 Android, 7 iOS call sites — do it last, transaction construction is wallet-critical).
 
 ### iOS
 
+- `OnstartService` reads `NodeStore` next to Core services; route the node lookups through `GemNodeService` (only `NodeService.node(for:)` keeps the documented sync exception).
 
 ### Android
 
+- Coordinators that still compose a Core service with repositories other than the session: `GetTransactionDetailsImpl` (transactions + assets), `GetWalletSummaryImpl` (assets + perpetuals), `BuildConfirmPropertiesImpl` (stake), `PrepareSessionProposalImpl` (wallets). Either move the composition into a Core query or make the coordinator repository-only.
 - Earn flow: Android has no Earn surface yet (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`, `GemDelegationAction.DEPOSIT` maps to nothing); build the Earn scene, the amount provider and the confirm params on top of `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn` (iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference). This is a feature, not a consolidation, so plan it as its own batch.
 
 ### Verification
