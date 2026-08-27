@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import func Gemstone.includesPerpetualCollateral
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import struct Gemstone.GemBannerContext
@@ -84,7 +83,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             AssetFiatValuesRequest(
                 walletId: wallet.id,
                 type: .wallet,
-                includesPerpetualCollateral: Self.perpetualCollateralIncluded(walletPreferencesService: walletPreferencesService, walletId: wallet.id),
+                includesPerpetualCollateral: walletPreferencesService.includesPerpetualCollateral(walletId: wallet.id.id),
             ),
             initialValue: [],
         )
@@ -333,12 +332,5 @@ extension WalletSceneViewModel {
 
     private func handleBanner(action: BannerAction) async throws {
         try await bannerService.applyAction(key: action.banner.gemKey, action: action.type.gemAction)
-    }
-}
-
-extension WalletSceneViewModel {
-    private static func perpetualCollateralIncluded(walletPreferencesService: any GemWalletPreferencesServiceProtocol, walletId: WalletId) -> Bool {
-        let mode = (try? walletPreferencesService.getPerpetualAccountMode(walletId: walletId)) ?? .standard
-        return (try? includesPerpetualCollateral(mode: mode.json())) ?? true
     }
 }

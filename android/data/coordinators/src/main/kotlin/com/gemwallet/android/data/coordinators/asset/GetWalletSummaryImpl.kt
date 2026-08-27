@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import uniffi.gemstone.includesPerpetualCollateral
+import com.gemwallet.android.ext.toAssetId
+import uniffi.gemstone.perpetualCollateralAssetId
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.cases.banners.HasMultiSign
@@ -16,9 +17,9 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
-import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.model.CurrencyFormatter
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualAccountMode
@@ -54,8 +55,9 @@ class GetWalletSummaryImpl(
     private val perpetualCollateral: Flow<PerpetualBalance?> =
         observePerpetualWallet().flatMapLatest { wallet ->
             wallet ?: return@flatMapLatest flowOf(null)
-            if (includesPerpetualCollateral(walletPreferencesService.getPerpetualAccountMode(wallet.id.id))) {
-                perpetualRepository.getBalance(wallet.id, HypercoreUSDC.id)
+            val collateralAssetId = perpetualCollateralAssetId(Chain.HyperCore.string)?.toAssetId()
+            if (collateralAssetId != null && walletPreferencesService.includesPerpetualCollateral(wallet.id.id)) {
+                perpetualRepository.getBalance(wallet.id, collateralAssetId)
             } else {
                 flowOf(null)
             }

@@ -87,6 +87,11 @@ impl GemWalletPreferencesService {
         self.get_flag(wallet_id, initial_load_key(step))
     }
 
+    pub fn includes_perpetual_collateral(&self, wallet_id: WalletId) -> bool {
+        let mode = self.get_perpetual_account_mode(wallet_id).unwrap_or(PerpetualAccountMode::Standard);
+        crate::services::perpetual::rules::includes_perpetual_collateral(mode)
+    }
+
     pub fn get_perpetual_account_mode(&self, wallet_id: WalletId) -> Result<PerpetualAccountMode, GemServiceError> {
         Ok(
             match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string())?.as_deref() {

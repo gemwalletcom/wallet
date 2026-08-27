@@ -10,7 +10,7 @@ use gem_hypercore::models::websocket::HyperliquidSocketMessage;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
 use primitives::currency::Currency;
 use primitives::perpetual::PerpetualBalance;
-use primitives::{Chain, PerpetualAccountMode, PerpetualProvider, WalletId};
+use primitives::{AssetId, Chain, PerpetualAccountMode, PerpetualProvider, WalletId};
 use std::collections::HashMap;
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
@@ -165,6 +165,6 @@ fn provider(chain: Chain) -> Result<PerpetualProvider, GemServiceError> {
 }
 
 #[uniffi::export]
-pub fn includes_perpetual_collateral(mode: PerpetualAccountMode) -> bool {
-    rules::includes_perpetual_collateral(mode)
+pub fn perpetual_collateral_asset_id(chain: Chain) -> Option<AssetId> {
+    rules::collateral_asset_id(chain)
 }
