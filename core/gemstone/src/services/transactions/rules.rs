@@ -1,14 +1,9 @@
-use std::collections::HashSet;
-
 use primitives::{AssetId, Transaction};
 
+use crate::services::collections::unique;
+
 pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
-    let mut seen: HashSet<AssetId> = HashSet::new();
-    transactions
-        .iter()
-        .flat_map(|transaction| transaction.associated_asset_ids())
-        .filter(|asset_id| seen.insert(asset_id.clone()))
-        .collect()
+    unique(transactions.iter().flat_map(|transaction| transaction.associated_asset_ids()))
 }
 
 #[cfg(test)]

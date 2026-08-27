@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::services::collections::stale;
+use crate::services::collections::{stale, unique};
 
 use chrono::{DateTime, Utc};
 use primitives::ChainType;
@@ -88,23 +88,21 @@ pub fn parse_known_chains(wallet_connect: &WalletConnect, chain_ids: &[String]) 
 }
 
 pub fn authentication_chain_ids(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Vec<String> {
-    let mut seen = HashSet::new();
-    chain_ids
-        .iter()
-        .filter(|chain_id| parse_chain(wallet_connect, chain_id).is_some_and(|chain| chain.chain_type() == ChainType::Ethereum))
-        .filter(|chain_id| seen.insert((*chain_id).clone()))
-        .cloned()
-        .collect()
+    unique(
+        chain_ids
+            .iter()
+            .filter(|chain_id| parse_chain(wallet_connect, chain_id).is_some_and(|chain| chain.chain_type() == ChainType::Ethereum))
+            .cloned(),
+    )
 }
 
 pub fn account_chains(wallet_connect: &WalletConnect, accounts: &[String]) -> Vec<Chain> {
-    let mut seen = HashSet::new();
-    accounts
-        .iter()
-        .filter_map(|account| wallet_connect.parse_account(account.clone()))
-        .map(|address| address.chain)
-        .filter(|chain| seen.insert(*chain))
-        .collect()
+    unique(
+        accounts
+            .iter()
+            .filter_map(|account| wallet_connect.parse_account(account.clone()))
+            .map(|address| address.chain),
+    )
 }
 
 pub fn application_metadata(name: String, description: String, url: String, icons: Vec<String>) -> ApplicationMetadata {

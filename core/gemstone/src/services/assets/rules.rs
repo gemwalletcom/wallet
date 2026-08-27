@@ -1,9 +1,7 @@
-use std::collections::HashSet;
-
 use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, Chain, Wallet};
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
-use crate::services::collections::missing;
+use crate::services::collections::{missing, missing_by, unique};
 
 pub fn missing_asset_ids(requested: Vec<AssetId>, existing: Vec<AssetId>) -> Vec<AssetId> {
     missing(requested, existing)
@@ -23,8 +21,7 @@ pub fn default_assets() -> Vec<AssetBasic> {
 }
 
 pub fn missing_assets(assets: Vec<AssetBasic>, existing: Vec<AssetId>) -> Vec<AssetBasic> {
-    let existing: HashSet<AssetId> = existing.into_iter().collect();
-    assets.into_iter().filter(|asset| !existing.contains(&asset.asset.id)).collect()
+    missing_by(assets, existing, |asset| asset.asset.id.clone())
 }
 
 pub fn stakeable_asset_ids() -> Vec<AssetId> {
@@ -44,17 +41,13 @@ pub fn can_open(wallet: &Wallet, asset_id: &AssetId) -> bool {
 }
 
 pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
-    let mut seen: HashSet<AssetId> = HashSet::new();
-    wallet
-        .accounts
-        .iter()
-        .flat_map(|account| {
-            let chain = account.chain;
-            let native = (chain.rank() >= 0).then(|| AssetId::from_chain(chain));
-            native.into_iter().chain(wallet_default_assets(chain).into_iter().map(|asset| asset.id))
-        })
-        .filter(|asset_id| seen.insert(asset_id.clone()))
-        .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type.clone()))
+    unique(wallet.accounts.iter().flat_map(|account| {
+        let chain = account.chain;
+        let native = (chain.rank() >= 0).then(|| AssetId::from_chain(chain));
+        native.into_iter().chain(wallet_default_assets(chain).into_iter().map(|asset| asset.id))
+    }))
+    .into_iter()
+    .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type.clone()))
 }
 
 #[cfg(test)]

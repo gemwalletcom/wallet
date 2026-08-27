@@ -1,7 +1,6 @@
 pub mod rules;
 pub mod store;
 
-use crate::services::collections::unique_by;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
@@ -34,7 +33,7 @@ impl GemNameService {
     }
 
     pub async fn get_address_names(&self, requests: Vec<ChainAddress>) -> Result<Vec<AddressName>, GemServiceError> {
-        let requests = unique_requests(requests);
+        let requests = rules::unique_requests(requests);
         if requests.is_empty() {
             return Ok(Vec::new());
         }
@@ -58,31 +57,5 @@ impl GemNameService {
         self.store.save_address_names(remote.clone()).await?;
         cached.extend(remote);
         Ok(cached)
-    }
-}
-
-fn unique_requests(requests: Vec<ChainAddress>) -> Vec<ChainAddress> {
-    unique_by(requests.into_iter().filter(|request| !request.address.is_empty()), |request| {
-        (request.chain, request.address.clone())
-    })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use primitives::Chain;
-
-    #[test]
-    fn test_unique_requests() {
-        let requests = vec![
-            ChainAddress::new(Chain::Ethereum, "0xa".to_string()),
-            ChainAddress::new(Chain::Ethereum, "0xa".to_string()),
-            ChainAddress::new(Chain::Bitcoin, "0xa".to_string()),
-            ChainAddress::new(Chain::Ethereum, String::new()),
-        ];
-        let unique = unique_requests(requests);
-        assert_eq!(unique.len(), 2);
-        assert_eq!(unique[0], ChainAddress::new(Chain::Ethereum, "0xa".to_string()));
-        assert_eq!(unique[1], ChainAddress::new(Chain::Bitcoin, "0xa".to_string()));
     }
 }

@@ -2,14 +2,11 @@ use std::collections::HashSet;
 
 use primitives::{Account, AssetId, Chain};
 
+use crate::services::collections::unique;
+
 pub fn discoverable_asset_ids(asset_ids: Vec<String>, accounts: &[Account]) -> Vec<AssetId> {
     let chains: HashSet<Chain> = accounts.iter().map(|account| account.chain).collect();
-    let mut seen: HashSet<AssetId> = HashSet::new();
-    asset_ids
-        .into_iter()
-        .filter_map(|id| AssetId::new(&id))
-        .filter(|asset_id| chains.contains(&asset_id.chain) && seen.insert(asset_id.clone()))
-        .collect()
+    unique(asset_ids.into_iter().filter_map(|id| AssetId::new(&id)).filter(|asset_id| chains.contains(&asset_id.chain)))
 }
 
 #[cfg(test)]

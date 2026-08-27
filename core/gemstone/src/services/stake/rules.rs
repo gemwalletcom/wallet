@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::services::collections::stale;
+use crate::services::collections::{stale, unique};
 
 use std::str::FromStr;
 
@@ -91,11 +91,8 @@ pub fn missing_validators(
     existing: &HashMap<String, DelegationValidator>,
     names: &HashMap<String, String>,
 ) -> Vec<DelegationValidator> {
-    let mut seen = HashSet::new();
-    delegations
-        .iter()
-        .map(|delegation| delegation.validator_id.clone())
-        .filter(|id| !existing.contains_key(id) && seen.insert(id.clone()))
+    unique(delegations.iter().map(|delegation| delegation.validator_id.clone()).filter(|id| !existing.contains_key(id)))
+        .into_iter()
         .map(|id| {
             let name = names.get(&id).filter(|name| !name.is_empty()).cloned().unwrap_or_else(|| id.clone());
             inactive_validator(chain, id, name)

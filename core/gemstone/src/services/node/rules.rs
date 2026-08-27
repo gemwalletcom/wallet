@@ -1,12 +1,10 @@
-use std::collections::HashSet;
-
+use crate::services::collections::unique_by;
 use primitives::Chain;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::{self, NodePriority, NodeRegion};
 
 pub fn merge_nodes(default_nodes: Vec<Node>, stored_nodes: Vec<Node>) -> Vec<Node> {
-    let mut seen: HashSet<String> = HashSet::new();
-    default_nodes.into_iter().chain(stored_nodes).filter(|node| seen.insert(node.url.clone())).collect()
+    unique_by(default_nodes.into_iter().chain(stored_nodes), |node| node.url.clone())
 }
 
 pub fn is_default_node(url: &str, default_nodes: &[Node]) -> bool {

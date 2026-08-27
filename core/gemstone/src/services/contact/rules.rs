@@ -1,3 +1,4 @@
+use crate::services::collections::stale_by;
 use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Chain, Contact, VerificationStatus};
 
@@ -20,8 +21,7 @@ pub fn address_names(contact: &Contact, addresses: &[ContactAddress]) -> Vec<Add
 }
 
 pub fn stale_addresses(existing: Vec<ContactAddress>, addresses: &[ContactAddress]) -> Vec<ContactAddress> {
-    let kept: Vec<String> = addresses.iter().map(|address| address.id.clone()).collect();
-    existing.into_iter().filter(|address| !kept.contains(&address.id)).collect()
+    stale_by(existing, addresses.iter().map(|address| address.id.clone()), |address| address.id.clone())
 }
 
 #[cfg(test)]

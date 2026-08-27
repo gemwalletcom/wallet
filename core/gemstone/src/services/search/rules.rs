@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use crate::services::collections::unique_by;
 
 use primitives::{AssetBasic, AssetPrice, Chain, Wallet, WalletType};
 
@@ -35,8 +35,7 @@ pub fn search_key(scope: &GemSearchScope, query: &str) -> String {
 }
 
 pub fn merge_assets(assets: Vec<AssetBasic>, tokens: Vec<AssetBasic>) -> Vec<AssetBasic> {
-    let mut seen = HashSet::new();
-    assets.into_iter().chain(tokens).filter(|asset| seen.insert(asset.asset.id.clone())).collect()
+    unique_by(assets.into_iter().chain(tokens), |asset| asset.asset.id.clone())
 }
 
 pub fn prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
