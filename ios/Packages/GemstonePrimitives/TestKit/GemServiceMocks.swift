@@ -310,7 +310,9 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt = nil
     }
 
-    public func syncPositions(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}
+    public func syncPositions(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualAccountMode {
+        try Primitives.PerpetualAccountMode.standard.json()
+    }
 
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
 

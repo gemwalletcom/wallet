@@ -181,7 +181,7 @@ public final class PerpetualSceneViewModel {
 
 public extension PerpetualSceneViewModel {
     func fetch() async {
-        async let updateObserver: () = observerService.update(for: wallet)
+        async let updateObserver: PerpetualAccountMode? = observerService.update(for: wallet)
         async let refreshTransactions: () = updateTransactions()
         async let refreshCandlesticks: () = chart.refresh(symbol: perpetual.coin)
         _ = await (updateObserver, refreshTransactions, refreshCandlesticks)

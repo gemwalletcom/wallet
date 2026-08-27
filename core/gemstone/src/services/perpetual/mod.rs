@@ -124,12 +124,14 @@ impl GemPerpetualService {
         }
     }
 
-    pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
+    pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
+        let mode = self.account_mode(wallet_id.clone(), chain, address.clone()).await?;
         let summary = self.gateway.get_positions(chain, address).await?;
         let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
         let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
         self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
-        self.update_balance(wallet_id, summary.balance).await
+        self.update_balance(wallet_id, summary.balance).await?;
+        Ok(mode)
     }
 }
 

@@ -46,8 +46,9 @@ public struct PerpetualService: PerpetualServiceable {
         try await service.setPinned(perpetualId: perpetualId.identifier, pinned: isPinned)
     }
 
-    public func getPositions(walletId: WalletId, address: String) async throws {
-        try await service.syncPositions(walletId: walletId.id, chain: Chain.hyperCore.rawValue, address: address)
+    @discardableResult
+    public func getPositions(walletId: WalletId, address: String) async throws -> PerpetualAccountMode {
+        try await PerpetualAccountMode(service.syncPositions(walletId: walletId.id, chain: Chain.hyperCore.rawValue, address: address))
     }
 }
 

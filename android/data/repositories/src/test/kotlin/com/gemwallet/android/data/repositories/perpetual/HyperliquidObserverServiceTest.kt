@@ -48,8 +48,8 @@ class HyperliquidObserverServiceTest {
         val observer = HyperliquidObserverService(
             observePerpetualWallet = observePerpetualWallet,
             syncPerpetuals = mockk(relaxed = true),
-            syncPerpetualPositions = mockk(relaxed = true),
-            getPerpetualAccountMode = mockk { coEvery { getPerpetualAccountMode(any(), any()) } returns PerpetualAccountMode.Standard },
+            syncPerpetualPositions = mockk { coEvery { syncPerpetualPositions() } returns PerpetualAccountMode.Standard },
+            getPerpetualAccountMode = mockk(),
             eventHandler = eventHandler,
             subscriptionService = HyperliquidSubscriptionService(HyperliquidSubscriptions()),
             connection = connection,
@@ -84,7 +84,7 @@ class HyperliquidObserverServiceTest {
         val observer = HyperliquidObserverService(
             observePerpetualWallet = observePerpetualWallet,
             syncPerpetuals = mockk(relaxed = true),
-            syncPerpetualPositions = mockk(relaxed = true),
+            syncPerpetualPositions = mockk { coEvery { syncPerpetualPositions() } returns null },
             getPerpetualAccountMode = mockk { coEvery { getPerpetualAccountMode(any(), any()) } returns PerpetualAccountMode.Standard },
             eventHandler = eventHandler,
             subscriptionService = HyperliquidSubscriptionService(HyperliquidSubscriptions()),

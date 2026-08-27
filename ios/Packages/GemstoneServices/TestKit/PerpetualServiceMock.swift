@@ -24,7 +24,7 @@ public struct PerpetualServiceMock: PerpetualServiceable {
 
     public func setPinned(_: Bool, perpetualId _: PerpetualId) async throws {}
 
-    public func getPositions(walletId _: WalletId, address _: String) async throws {}
+    public func getPositions(walletId _: WalletId, address _: String) async throws -> PerpetualAccountMode { .standard }
 }
 
 // MARK: - HyperliquidPerpetualServiceable

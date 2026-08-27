@@ -133,7 +133,7 @@ final class PerpetualsSceneViewModel {
 
 extension PerpetualsSceneViewModel {
     func fetch() async {
-        async let updateObserver: () = observerService.update(for: wallet)
+        async let updateObserver: PerpetualAccountMode? = observerService.update(for: wallet)
         async let refreshMarkets: () = updateMarkets()
         _ = await (updateObserver, refreshMarkets)
     }
