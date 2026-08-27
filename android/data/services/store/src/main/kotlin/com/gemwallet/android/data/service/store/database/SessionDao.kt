@@ -19,6 +19,12 @@ interface SessionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(session: DbSession)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun updateNow(session: DbSession)
+
+    @Query("DELETE FROM session")
+    fun clearNow()
+
     @Query("UPDATE session SET currency = :currency WHERE id = 1")
     suspend fun setCurrency(currency: Currency)
 

@@ -154,7 +154,7 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 ### Android
 
 - [ ] Earn flow: `ConfirmParams` has no Earn variant and `AmountDataProvider` has no earn provider; add both on top of `GemTransactionInputType::Earn` and `GemAmountType::Earn` (iOS `AmountEarnViewModel` is the reference).
-- [ ] Sync reads through `runBlocking`: wallets done (769a046649, `WalletsRepository.getAllNow/getWalletNow`); still `gemstone/WalletSessionStore.setCurrentWalletId`, `nodes/NodesRepository.setCurrentNode/getCurrentNode` (make the repository interface suspend) and `device/DeviceRepository.deviceId/pushToken/currency` (DataStore flows behind `GemDevicePlatform`).
+- [ ] Sync reads through `runBlocking`: wallets (769a046649) and the session store write are done; still `nodes/NodesRepository.setCurrentNode/getCurrentNode` (the `NetworksViewModel` callers are non-suspending, so make the cases suspend together) and `device/DeviceRepository.deviceId/pushToken/currency` (DataStore flows behind `GemDevicePlatform`).
 - [x] `SyncAssetInfoImpl` saves the asset row before the balance refresh and logs failures (6334dfb5d2).
 - [x] `AppViewModel.getStartDestination` skips wallets without accounts (6334dfb5d2).
 - [x] `GemstoneAssetStore` is provided once (6334dfb5d2).
