@@ -262,15 +262,16 @@ object AssetModule {
     @Singleton
     fun provideHideAsset(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): HideAsset = HideAssetImpl(sessionRepository, assetsRepository)
+        enableAsset: EnableAsset,
+    ): HideAsset = HideAssetImpl(sessionRepository, enableAsset)
 
     @Provides
     @Singleton
     fun provideToggleAssetPin(
         sessionRepository: SessionRepository,
         assetsRepository: AssetsRepository,
-    ): ToggleAssetPin = ToggleAssetPinImpl(sessionRepository, assetsRepository)
+        balanceService: GemBalanceService,
+    ): ToggleAssetPin = ToggleAssetPinImpl(sessionRepository, assetsRepository, balanceService)
 
     @Provides
     @Singleton

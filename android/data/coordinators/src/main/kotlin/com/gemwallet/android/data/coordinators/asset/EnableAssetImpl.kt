@@ -13,9 +13,9 @@ class EnableAssetImpl(
     private val balanceService: GemBalanceService,
 ) : EnableAsset {
 
-    override suspend fun invoke(walletId: WalletId, assetId: AssetId) = invoke(walletId, listOf(assetId))
+    override suspend fun invoke(walletId: WalletId, assetId: AssetId, enabled: Boolean) = invoke(walletId, listOf(assetId), enabled)
 
-    override suspend fun invoke(walletId: WalletId, assetIds: List<AssetId>) {
-        balanceService.enableAssets(walletId.id, assetIds.map { it.toIdentifier() }, true, sessionRepository.getCurrentCurrency().toJson())
+    override suspend fun invoke(walletId: WalletId, assetIds: List<AssetId>, enabled: Boolean) {
+        balanceService.enableAssets(walletId.id, assetIds.map { it.toIdentifier() }, enabled, sessionRepository.getCurrentCurrency().toJson())
     }
 }

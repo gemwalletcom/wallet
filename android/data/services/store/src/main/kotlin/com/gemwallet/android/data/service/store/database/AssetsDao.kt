@@ -158,30 +158,6 @@ interface AssetsDao {
         )
     }
 
-    @Transaction
-    suspend fun toggleWalletAssetPin(walletId: String, assetId: String) {
-        val balance = getBalance(walletId, assetId)
-        if (balance == null) {
-            insertBalance(
-                DbBalance(
-                    assetId = assetId,
-                    walletId = walletId,
-                    isPinned = true,
-                    isVisible = true,
-                    updatedAt = null,
-                )
-            )
-            return
-        }
-        setBalanceConfig(
-            walletId = walletId,
-            assetId = balance.assetId,
-            isPinned = !balance.isVisible || !balance.isPinned,
-            isVisible = true,
-            listPosition = balance.listPosition,
-        )
-    }
-
     @Update(entity = DbAsset::class)
     suspend fun updateBasicAssets(assets: List<DbAssetBasicUpdate>)
 

@@ -65,8 +65,7 @@ object AssetSelectModule {
     @Singleton
     fun provideSwitchAssetVisibility(
         enableAsset: EnableAsset,
-        assetsRepository: AssetsRepository,
-    ): SwitchAssetVisibility = SwitchAssetVisibilityImpl(enableAsset, assetsRepository)
+    ): SwitchAssetVisibility = SwitchAssetVisibilityImpl(enableAsset)
 
     @Provides
     @Singleton

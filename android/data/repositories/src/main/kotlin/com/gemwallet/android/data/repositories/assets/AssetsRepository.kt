@@ -247,36 +247,6 @@ class AssetsRepository @Inject constructor(
         }.awaitAll()
     }
 
-    suspend fun switchVisibility(
-        walletId: WalletId,
-        assetId: AssetId,
-        visibility: Boolean,
-    ) = withContext(Dispatchers.IO) {
-        val assetInfo = getAssetInfo(assetId).firstOrNull()
-        val isCurrentWalletAsset = assetInfo?.walletId == walletId
-        val isVisible = assetInfo?.metadata?.isBalanceEnabled == true
-
-        if (!isCurrentWalletAsset) {
-            if (!visibility) {
-                return@withContext
-            }
-            linkAssetToWallet(walletId.id, assetId, true)
-            updateBalances(assetId)
-            return@withContext
-        }
-        if (isVisible == visibility) {
-            return@withContext
-        }
-        linkAssetToWallet(walletId.id, assetId, visibility)
-        if (visibility) {
-            updateBalances(assetId)
-        }
-    }
-
-    suspend fun togglePin(walletId: String, assetId: AssetId) = withContext(Dispatchers.IO) {
-        assetsDao.toggleWalletAssetPin(walletId, assetId.toIdentifier())
-    }
-
     suspend fun updateBalances(vararg tokens: AssetId) {
         getAssetsInfo(tokens.toList()).firstOrNull()?.refreshBalances()?.awaitAll()
     }

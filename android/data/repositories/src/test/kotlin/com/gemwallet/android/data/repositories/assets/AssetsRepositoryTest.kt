@@ -374,37 +374,6 @@ class AssetsRepositoryTest {
     }
 
     @Test
-    fun switchVisibility_hideUnlinkedAsset_doesNotCreateWalletAsset() = runBlocking {
-        sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
-        every { sessionRepository.session() } returns sessionFlow
-        every { assetsDao.getAssetInfo("wallet-1", "solana", Chain.Solana) } returns flowOf(null)
-
-        val subject = createSubject()
-        subject.switchVisibility(mockWalletId(), AssetId(Chain.Solana), false)
-
-        coVerify(exactly = 0) { assetsDao.setWalletAssetVisibility(any(), any(), any()) }
-    }
-
-    @Test
-    fun switchVisibility_showUnlinkedAsset_linksOnce() = runBlocking {
-        sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
-        every { sessionRepository.session() } returns sessionFlow
-        every { assetsDao.getAssetInfo("wallet-1", "solana", Chain.Solana) } returns flowOf(null)
-        every { assetsDao.getAssetsInfo("wallet-1", listOf("solana")) } returns flowOf(emptyList())
-
-        val subject = createSubject()
-        subject.switchVisibility(mockWalletId(), AssetId(Chain.Solana), true)
-
-        coVerify(exactly = 1) {
-            assetsDao.setWalletAssetVisibility(
-                walletId = "wallet-1",
-                assetId = "solana",
-                isVisible = true,
-            )
-        }
-    }
-
-    @Test
     fun swapSearch_includesEnabledHiddenAndUnlinkedAssets() = runBlocking {
         every { searchDao.hasAssetPriorities("") } returns flowOf(0)
 

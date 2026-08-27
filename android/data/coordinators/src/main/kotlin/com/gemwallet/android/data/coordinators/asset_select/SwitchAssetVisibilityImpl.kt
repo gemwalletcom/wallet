@@ -2,19 +2,13 @@ package com.gemwallet.android.data.coordinators.asset_select
 
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.WalletId
 
 class SwitchAssetVisibilityImpl(
     private val enableAsset: EnableAsset,
-    private val assetsRepository: AssetsRepository,
 ) : SwitchAssetVisibility {
     override suspend fun invoke(walletId: WalletId, assetId: AssetId, visible: Boolean) {
-        if (visible) {
-            enableAsset(walletId, assetId)
-        } else {
-            assetsRepository.linkAssetToWallet(walletId.id, assetId, visible = false)
-        }
+        enableAsset(walletId, assetId, visible)
     }
 }
