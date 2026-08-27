@@ -4,15 +4,9 @@ import GemstoneServices
 import BigInt
 import Foundation
 import Primitives
-import PrimitivesTestKit
-
-public import enum Gemstone.GemTransactionLoadMetadata
-public import GemstonePrimitives
 
 public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     // Injected data
-    public var fee: Fee = .init(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero, feeAssetId: Asset.mock().id)
-    public var feeRates: [FeeRate] = []
     public var chainID: String?
     public var latestBlock: BigInt = .zero
     public var validators: [DelegationValidator] = []
@@ -20,24 +14,12 @@ public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     public var inSync: Bool = true
     public var tokenData: [String: Asset] = [:]
     public var tokenDataError: (any Error)?
-    public var transactionData: TransactionData = .init(fee: Fee(fee: .zero, gasPriceType: .regular(gasPrice: .zero), gasLimit: .zero, feeAssetId: Asset.mock().id))
-    public var transactionPreload: GemTransactionLoadMetadata = .none
     public var nodeStatus: NodeStatus = .init(chainId: "1", latestBlockNumber: .zero, latency: .from(duration: 1000))
-    public var onLoad: (@Sendable (TransactionInput) async -> Void)?
 
     public init() {}
 }
 
 public extension ChainServiceMock {
-
-    func getFee(asset _: Asset, input _: FeeInput) async throws -> Fee {
-        fee
-    }
-
-    func feeRates(type _: TransferDataType) async throws -> [FeeRate] {
-        feeRates
-    }
-
     func getChainID() async throws -> String {
         chainID ?? ""
     }
@@ -76,15 +58,6 @@ public extension ChainServiceMock {
 
     func getIsTokenAddress(tokenId: String) -> Bool {
         tokenData[tokenId] != nil
-    }
-
-    func load(input: TransactionInput) async throws -> TransactionData {
-        await onLoad?(input)
-        return transactionData
-    }
-
-    func preload(input _: TransactionPreloadInput) async throws -> GemTransactionLoadMetadata {
-        transactionPreload
     }
 
     func getNodeStatus(url _: String) async throws -> NodeStatus {

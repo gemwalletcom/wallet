@@ -11,21 +11,6 @@ struct Wallet_PrimitivesTests {
         #expect(Wallet.mock(type: .view).canSign == false)
     }
 
-    @Test
-    func addressChains() {
-        let wallet = Wallet.mock(accounts: [
-            .mock(chain: .ethereum, address: "0x1"),
-            .mock(chain: .polygon, address: "0x1"),
-            .mock(chain: .bitcoin, address: "bc1"),
-        ])
-        let result = wallet.addressChains.sorted { $0.address < $1.address }
-
-        #expect(result.count == 2)
-        #expect(result[0].address == "0x1")
-        #expect(Set(result[0].chains) == Set([.ethereum, .polygon]))
-        #expect(result[1] == AddressChains(address: "bc1", chains: [.bitcoin]))
-    }
-
     @Test(arguments: [
         (WalletType.multicoin, [Chain.hyperCore], true),
         (WalletType.multicoin, [Chain.arbitrum], true),

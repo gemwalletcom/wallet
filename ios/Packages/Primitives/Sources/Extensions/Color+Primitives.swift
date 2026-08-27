@@ -11,8 +11,4 @@ public extension Color {
             opacity: 1,
         )
     }
-
-    func randomOpacity() -> Color {
-        opacity(Double.random(in: 0 ... 1))
-    }
 }

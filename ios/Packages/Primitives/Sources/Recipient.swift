@@ -14,6 +14,12 @@ public struct Recipient: Codable, Equatable, Hashable, Sendable {
     }
 }
 
+extension Recipient: Identifiable {
+    public var id: String {
+        [name ?? "", address, memo ?? ""].joined(separator: "_")
+    }
+}
+
 public enum RecipientAssetType: Codable, Equatable, Hashable, Sendable {
     case asset(Asset)
     case nft(NFTAsset)

@@ -26,26 +26,6 @@ public extension URL {
         appending(queryItems: [URLQueryItem(name: "utm_source", value: source)])
     }
 
-    func queryValue(for name: String) -> String? {
-        URLComponents(url: self, resolvingAgainstBaseURL: false)?
-            .queryItems?
-            .first { $0.name == name }?
-            .value
-    }
-
-    func queryValue<T: LosslessStringConvertible>(for name: String) -> T? {
-        queryValue(for: name).flatMap { T($0) }
-    }
-
-    func isDomainAllowed(_ allowedDomains: [String]) -> Bool {
-        guard let host = host?.lowercased() else {
-            return false
-        }
-        return allowedDomains.contains { domain in
-            host == domain || host.hasSuffix(".\(domain)")
-        }
-    }
-
     func toWebSocketURL() -> URL {
         guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
             return self

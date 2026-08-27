@@ -103,10 +103,6 @@ public extension GatewayService {
         try await gateway.getBlockNumber(chain: chain.rawValue).asBigInt
     }
 
-    func feeRates(chain: Primitives.Chain, input: TransferDataType) async throws -> [FeeRate] {
-        try await gateway.getFeeRates(chain: chain.rawValue, input: input.map()).map { try $0.map() }
-    }
-
     func nodeStatus(chain: Primitives.Chain, url: String) async throws -> Primitives.NodeStatus {
         try await gateway.getNodeStatus(chain: chain.rawValue, url: url).map()
     }
@@ -124,13 +120,9 @@ public extension GatewayService {
     }
 }
 
-// MARK: - Transaction Preload
+// MARK: - Transaction Load
 
 public extension GatewayService {
-    func transactionPreload(chain: Primitives.Chain, input: TransactionPreloadInput) async throws -> GemTransactionLoadMetadata {
-        try await gateway.getTransactionPreload(chain: chain.rawValue, input: input.map())
-    }
-
     func transactionLoad(chain: Primitives.Chain, input: GemTransactionLoadInput) async throws -> TransactionData {
         try await gateway.getTransactionLoad(chain: chain.rawValue, input: input).map()
     }

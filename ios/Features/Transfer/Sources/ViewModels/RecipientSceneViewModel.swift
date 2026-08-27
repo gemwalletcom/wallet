@@ -111,7 +111,7 @@ public final class RecipientSceneViewModel {
         asset.chain
     }
 
-    var recipientSections: [ListItemValueSection<RecipientAddress>] {
+    var recipientSections: [ListItemValueSection<Recipient>] {
         RecipientAddressType.allCases
             .map {
                 ListItemValueSection(
@@ -165,7 +165,7 @@ extension RecipientSceneViewModel {
         recipientData = .none
     }
 
-    func onSelectRecipient(_ recipient: RecipientAddress) {
+    func onSelectRecipient(_ recipient: Recipient) {
         handle(
             recipientData: RecipientData(
                 recipient: Recipient(
@@ -182,7 +182,7 @@ extension RecipientSceneViewModel {
 // MARK: - Private
 
 extension RecipientSceneViewModel {
-    private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<RecipientAddress>] {
+    private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<Recipient>] {
         switch section {
         case .contacts:
             ContactRecipientSectionViewModel(contacts: contacts).listItems

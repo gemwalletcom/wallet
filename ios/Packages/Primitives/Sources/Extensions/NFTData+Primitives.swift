@@ -7,12 +7,3 @@ extension NFTData: Identifiable {
         collection.id.identifier
     }
 }
-
-public extension NFTAsset {
-    func getContractAddress() throws -> String {
-        guard let contractAddress else {
-            throw AnyError("No contract address")
-        }
-        return contractAddress
-    }
-}

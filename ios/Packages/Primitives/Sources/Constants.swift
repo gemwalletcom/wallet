@@ -19,10 +19,6 @@ public enum Constants {
     public enum Support {
         public static let chatwootURL = URL(string: "https://support.gemwallet.com")!
         public static let chatwootPublicToken = "21yu9Az48rJHe1rg4poHqLSr"
-        public static let domainPolicy = WebViewDomainPolicy(
-            allowedDomains: ["gemwallet.com"],
-            openExternalLinksInSafari: true,
-        )
     }
 
     public static let deviceStreamWebSocketURL = URL(string: "wss://api.gemwallet.com/v2/devices/stream")!

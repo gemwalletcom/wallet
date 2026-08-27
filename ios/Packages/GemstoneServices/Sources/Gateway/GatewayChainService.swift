@@ -4,10 +4,6 @@ import BigInt
 import Foundation
 import Primitives
 
-import enum Gemstone.GemTransactionLoadMetadata
-
-import GemstonePrimitives
-
 struct GatewayChainService {
     private let chain: Chain
     let gateway: GatewayService
@@ -22,19 +18,6 @@ struct GatewayChainService {
 }
 
 extension GatewayChainService: ChainServiceable {
-
-    func feeRates(type: TransferDataType) async throws -> [FeeRate] {
-        try await gateway.feeRates(chain: chain, input: type)
-    }
-
-    func preload(input: TransactionPreloadInput) async throws -> GemTransactionLoadMetadata {
-        try await gateway.transactionPreload(chain: chain, input: input)
-    }
-
-    func load(input: TransactionInput) async throws -> TransactionData {
-        try await gateway.transactionLoad(chain: chain, input: input.map())
-    }
-
     func getChainID() async throws -> String {
         try await gateway.chainId(chain: chain)
     }

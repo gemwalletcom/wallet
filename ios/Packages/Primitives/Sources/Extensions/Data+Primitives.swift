@@ -47,13 +47,6 @@ public extension Data {
         return UInt8(letter, radix: 16)
     }
 
-    var prettyJSON: String? {
-        guard let object = try? JSONSerialization.jsonObject(with: self, options: []),
-              let data = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted]),
-              let prettyPrintedString = String(data: data, encoding: .utf8) else { return nil }
-        return prettyPrintedString
-    }
-
     func encodeString() throws -> String {
         guard let string = String(data: self, encoding: .utf8) else {
             throw AnyError("unable to encode string")
