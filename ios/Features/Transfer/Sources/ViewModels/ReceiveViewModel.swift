@@ -206,7 +206,7 @@ extension ReceiveViewModel {
 
         Task {
             do {
-                let asset = try await assetsService.getOrFetchAsset(for: assetId)
+                let asset = try await assetsService.ensureAsset(for: assetId)
                 let account = try wallet.account(for: asset.chain)
                 assetModel = AssetViewModel(asset: asset)
                 address = account.address

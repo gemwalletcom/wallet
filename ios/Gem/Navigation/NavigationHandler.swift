@@ -150,7 +150,7 @@ extension NavigationHandler {
             let transaction = try await paymentService.load(link: link, addresses: addresses)
             let chain = try Primitives.ChainAddress(transaction.account).chain
             let assetId = try transaction.request?.map().assetId ?? chain.asset.id
-            let asset = try await assetsService.getOrFetchTokenAsset(for: assetId)
+            let asset = try await assetsService.ensureTokenAsset(for: assetId)
             toastPresenter.toastMessage = nil
             presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset)
         }
@@ -274,7 +274,7 @@ extension NavigationHandler {
         else {
             return nil
         }
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
+        let asset = try await assetsService.ensureAsset(for: assetId)
         try await assetsService.addMissingBalances(walletId: wallet.id, assetIds: [asset.id])
         return asset
     }
@@ -303,7 +303,7 @@ extension NavigationHandler {
     }
 
     private func presentFiat(type: FiatQuoteType, assetId: AssetId, amount: Int?) async throws {
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
+        let asset = try await assetsService.ensureAsset(for: assetId)
         let selectedType: SelectedAssetType = switch type {
         case .buy: .buy(asset, amount: amount)
         case .sell: .sell(asset, amount: amount)
@@ -312,7 +312,7 @@ extension NavigationHandler {
     }
 
     private func presentReceive(assetId: AssetId) async throws {
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
+        let asset = try await assetsService.ensureAsset(for: assetId)
         try presentAssetInput(type: .receive(.asset), for: asset)
     }
 

@@ -47,7 +47,7 @@ class TokensRepository(
 
     override suspend fun search(assetId: AssetId, currency: Currency): Boolean {
         val tokenId = assetId.tokenId ?: return false
-        return runCatchingCancellable { assetsService.getOrFetchTokenAsset(assetId.toIdentifier()) }
+        return runCatchingCancellable { assetsService.ensureTokenAsset(assetId.toIdentifier()) }
             .map { true }
             .getOrElse { search(tokenId, currency) }
     }

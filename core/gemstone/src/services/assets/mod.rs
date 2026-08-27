@@ -38,7 +38,7 @@ impl GemAssetsService {
         }
     }
 
-    pub async fn get_or_fetch_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
+    pub async fn ensure_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
         if let Some(asset) = self.stored_asset(&asset_id).await? {
             return Ok(asset);
         }
@@ -48,12 +48,12 @@ impl GemAssetsService {
         })
     }
 
-    pub async fn get_or_fetch_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
+    pub async fn ensure_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
         if let Some(asset) = self.stored_asset(&asset_id).await? {
             return Ok(asset);
         }
         let Some(token_id) = asset_id.token_id.clone() else {
-            return self.get_or_fetch_asset(asset_id).await;
+            return self.ensure_asset(asset_id).await;
         };
         let asset = self.gateway.get_token_data(asset_id.chain, token_id).await?;
         self.store.save_assets(vec![rules::default_asset_basic(asset.clone())]).await?;

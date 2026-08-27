@@ -56,13 +56,13 @@ class NftRepositoryTest {
 
         assertEquals(collectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
-        coVerify(exactly = 0) { nftService.getOrFetchAsset(any()) }
+        coVerify(exactly = 0) { nftService.ensureAsset(any()) }
     }
 
     @Test
     fun getAssetNftFallsBackToService() = runTest {
         every { nftDao.getAsset(assetId) } returns flowOf(null)
-        coEvery { nftService.getOrFetchAsset(assetId.toIdentifier()) } returns mockNftAssetData(
+        coEvery { nftService.ensureAsset(assetId.toIdentifier()) } returns mockNftAssetData(
             collection = mockNftCollection(id = collectionId),
             asset = mockNftAsset(id = assetId, collectionId = collectionId),
         ).toJson()
@@ -71,14 +71,14 @@ class NftRepositoryTest {
 
         assertEquals(collectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
-        coVerify { nftService.getOrFetchAsset(assetId.toIdentifier()) }
+        coVerify { nftService.ensureAsset(assetId.toIdentifier()) }
     }
 
     @Test
     fun getAssetNftFallsBackToServiceWhenCollectionIsMissing() = runTest {
         every { nftDao.getAsset(assetId) } returns flowOf(dbAsset(assetId, collectionId))
         every { nftDao.getCollection(collectionId) } returns flowOf(null)
-        coEvery { nftService.getOrFetchAsset(assetId.toIdentifier()) } returns mockNftAssetData(
+        coEvery { nftService.ensureAsset(assetId.toIdentifier()) } returns mockNftAssetData(
             collection = mockNftCollection(id = otherCollectionId),
             asset = mockNftAsset(id = assetId, collectionId = otherCollectionId),
         ).toJson()
@@ -87,7 +87,7 @@ class NftRepositoryTest {
 
         assertEquals(otherCollectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
-        coVerify { nftService.getOrFetchAsset(assetId.toIdentifier()) }
+        coVerify { nftService.ensureAsset(assetId.toIdentifier()) }
     }
 }
 

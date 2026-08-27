@@ -5,12 +5,12 @@ import protocol Gemstone.GemAssetsServiceProtocol
 import Primitives
 
 public extension GemAssetsServiceProtocol {
-    func getOrFetchAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset {
-        try await Primitives.Asset(getOrFetchAsset(assetId: assetId.identifier))
+    func ensureAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset {
+        try await Primitives.Asset(ensureAsset(assetId: assetId.identifier))
     }
 
-    func getOrFetchTokenAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset {
-        try await Primitives.Asset(getOrFetchTokenAsset(assetId: assetId.identifier))
+    func ensureTokenAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset {
+        try await Primitives.Asset(ensureTokenAsset(assetId: assetId.identifier))
     }
 
     @discardableResult

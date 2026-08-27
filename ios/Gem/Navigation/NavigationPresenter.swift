@@ -58,9 +58,9 @@ extension NavigationPresenter {
         wallet: Wallet,
         assetsService: any GemAssetsServiceProtocol,
     ) async throws {
-        let fromAsset = try await assetsService.getOrFetchAsset(for: fromAssetId)
+        let fromAsset = try await assetsService.ensureAsset(for: fromAssetId)
         let toAsset: Asset? = if let toAssetId {
-            try await assetsService.getOrFetchAsset(for: toAssetId)
+            try await assetsService.ensureAsset(for: toAssetId)
         } else {
             nil
         }
@@ -80,7 +80,7 @@ extension NavigationPresenter {
             guard wallet.accounts.contains(where: { $0.chain == assetId.chain }) else {
                 return
             }
-            let asset = try await assetsService.getOrFetchAsset(for: assetId)
+            let asset = try await assetsService.ensureAsset(for: assetId)
             navigationState.openAsset(asset)
         case let .swap(fromAssetId, toAssetId):
             try await presentSwap(
@@ -90,7 +90,7 @@ extension NavigationPresenter {
                 assetsService: assetsService,
             )
         case let .nft(assetId):
-            let assetData = try NFTAssetData(await nftService.getOrFetchAsset(assetId: assetId.identifier))
+            let assetData = try NFTAssetData(await nftService.ensureAsset(assetId: assetId.identifier))
             nftDestination.append(Scenes.Collectible(assetData: assetData))
         }
     }

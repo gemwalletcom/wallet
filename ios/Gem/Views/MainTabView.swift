@@ -187,7 +187,7 @@ extension MainTabView {
             presenter.isPresentingAssetInput.wrappedValue = nil
         case let .swap(fromAsset, _):
             Task {
-                let asset = try await assetsService.getOrFetchAsset(for: fromAsset.id)
+                let asset = try await assetsService.ensureAsset(for: fromAsset.id)
 
                 switch navigationState.selectedTab {
                 case .wallet:

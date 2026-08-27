@@ -30,7 +30,7 @@ impl GemNftService {
         Ok(count)
     }
 
-    pub async fn get_or_fetch_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, GemServiceError> {
+    pub async fn ensure_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, GemServiceError> {
         cached_or_fetched(self.store.as_ref(), asset_id.clone(), async move {
             Ok(self.api.client.get_nft_asset(asset_id).await.map_err(GemApiError::from)?)
         })

@@ -71,7 +71,7 @@ class NftRepository(
 
     private fun fetchAndAddNftAsset(assetId: NFTAssetId): Flow<NFTData> {
         return flow {
-            val assetData = nftService.getOrFetchAsset(assetId.toIdentifier()).decodeJson<NFTAssetData>()
+            val assetData = nftService.ensureAsset(assetId.toIdentifier()).decodeJson<NFTAssetData>()
             emit(NFTData(collection = assetData.collection, assets = listOf(assetData.asset)))
         }
     }
