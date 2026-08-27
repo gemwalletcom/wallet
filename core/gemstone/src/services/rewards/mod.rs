@@ -1,24 +1,27 @@
 use std::sync::Arc;
 
+use primitives::currency::Currency;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{AuthenticatedRequest, ReferralCode, Rewards, Wallet, WalletId};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::config::rewards::get_referral_url;
 use crate::services::auth::GemAuthService;
+use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 
 #[derive(uniffi::Object)]
 pub struct GemRewardsService {
     api: Arc<GemDeviceApiClient>,
     auth: Arc<GemAuthService>,
+    balance: Arc<GemBalanceService>,
 }
 
 #[uniffi::export]
 impl GemRewardsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>) -> Self {
-        Self { api, auth }
+    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>, balance: Arc<GemBalanceService>) -> Self {
+        Self { api, auth, balance }
     }
 
     pub fn referral_link(&self, code: String) -> String {
@@ -48,12 +51,16 @@ impl GemRewardsService {
         Ok(())
     }
 
-    pub async fn redeem(&self, wallet: Wallet, redemption_id: String) -> Result<RedemptionResult, GemServiceError> {
-        let wallet_id = wallet.id.id();
+    pub async fn redeem(&self, wallet: Wallet, redemption_id: String, currency: Currency) -> Result<RedemptionResult, GemServiceError> {
+        let wallet_id = wallet.id.clone();
         let request = AuthenticatedRequest {
             auth: self.auth.get_auth_payload(wallet).await?,
             data: RedemptionRequest { id: redemption_id },
         };
-        Ok(self.api.client.redeem_rewards(wallet_id, request).await.map_err(GemApiError::from)?)
+        let result = self.api.client.redeem_rewards(wallet_id.id(), request).await.map_err(GemApiError::from)?;
+        if let Some(asset) = &result.redemption.option.asset {
+            self.balance.enable_assets(wallet_id, vec![asset.id.clone()], true, currency).await.ok();
+        }
+        Ok(result)
     }
 }

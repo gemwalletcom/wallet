@@ -23,7 +23,7 @@ public final class RewardsViewModel: Sendable {
     }()
 
     private let rewardsService: any GemRewardsServiceProtocol
-    private let assetsEnabler: any AssetsEnabler
+    private let preferences: Preferences
     private let activateCode: String?
 
     private(set) var selectedWallet: Wallet
@@ -36,13 +36,13 @@ public final class RewardsViewModel: Sendable {
 
     public init(
         rewardsService: any GemRewardsServiceProtocol,
-        assetsEnabler: any AssetsEnabler,
         wallet: Wallet,
         wallets: [Wallet],
         activateCode: String? = nil,
+        preferences: Preferences = .standard,
     ) {
         self.rewardsService = rewardsService
-        self.assetsEnabler = assetsEnabler
+        self.preferences = preferences
         selectedWallet = wallet
         self.wallets = wallets
         self.activateCode = activateCode
@@ -291,17 +291,8 @@ public final class RewardsViewModel: Sendable {
 
     func redeem(option: RewardRedemptionOption) async {
         do {
-            let result = try await rewardsService.redeem(wallet: selectedWallet, redemptionId: option.id)
+            _ = try await rewardsService.redeem(wallet: selectedWallet, redemptionId: option.id, currency: Currency(id: preferences.currency))
             toastMessage = ToastMessage.success(Localized.Common.done)
-            if let asset = result.redemption.option.asset {
-                Task {
-                    do {
-                        try await assetsEnabler.enableAssets(wallet: selectedWallet, assetIds: [asset.id], enabled: true)
-                    } catch {
-                        debugLog("RewardsViewModel enable reward asset error: \(error)")
-                    }
-                }
-            }
         } catch {
             showError(error.localizedDescription)
         }

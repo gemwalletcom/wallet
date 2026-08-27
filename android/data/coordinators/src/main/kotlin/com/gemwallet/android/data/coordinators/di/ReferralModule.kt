@@ -45,12 +45,10 @@ object ReferralModule {
     fun provideRedeem(
         sessionRepository: SessionRepository,
         rewardsService: GemRewardsService,
-        enableAsset: EnableAsset,
     ): Redeem {
         return RedeemImpl(
             sessionRepository = sessionRepository,
             rewardsService = rewardsService,
-            enableAsset = enableAsset,
         )
     }
 

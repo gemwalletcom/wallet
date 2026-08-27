@@ -25,6 +25,7 @@ import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemAuthService
+import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneKeystorePassword
 import uniffi.gemstone.GemKeystore
@@ -194,7 +195,11 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemRewardsService(apiClient: GemstoneDeviceApiClient, authService: GemAuthService): GemRewardsService = GemRewardsService(apiClient, authService)
+    fun provideGemRewardsService(
+        apiClient: GemstoneDeviceApiClient,
+        authService: GemAuthService,
+        balanceService: GemBalanceService,
+    ): GemRewardsService = GemRewardsService(apiClient, authService, balanceService)
 
 
     @Provides

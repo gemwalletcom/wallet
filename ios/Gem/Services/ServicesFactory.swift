@@ -263,6 +263,7 @@ struct ServicesFactory {
                 password: GemstoneKeystorePassword(keystore: storages.keystore, walletStore: storeManager.walletStore),
                 devicePrivateKey: devicePrivateKey,
             ),
+            balance: gemBalanceService
         )
         let toastPresenter = ToastPresenter()
         let navigationHandler = NavigationHandler(

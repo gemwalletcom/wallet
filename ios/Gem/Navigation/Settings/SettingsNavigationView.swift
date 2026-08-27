@@ -188,7 +188,6 @@ struct SettingsNavigationView: View {
                 RewardsScene(
                     model: RewardsViewModel(
                         rewardsService: rewardsService,
-                        assetsEnabler: assetsEnabler,
                         wallet: wallet,
                         wallets: wallets,
                         activateCode: scene.code,
