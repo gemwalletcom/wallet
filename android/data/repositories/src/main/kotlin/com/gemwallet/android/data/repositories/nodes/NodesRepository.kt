@@ -12,10 +12,12 @@ import com.wallet.core.primitives.Node
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import com.gemwallet.android.data.repositories.gemstone.GemstoneNodeStore
 import uniffi.gemstone.GemNodeService
 
 class NodesRepository(
     private val nodeService: GemNodeService,
+    private val nodeStore: GemstoneNodeStore,
 ) : SetCurrentNodeCase,
     GetCurrentNodeCase,
     GetNodeUrlCase,
@@ -42,6 +44,7 @@ class NodesRepository(
         nodeService.getSelectedNode(chain.string).decodeJson<Node>()
     }
 
-    override fun getNodeUrl(chain: Chain): String = runBlocking { nodeService.getNodeUrl(chain.string) }
+    override fun getNodeUrl(chain: Chain): String =
+        nodeService.nodeUrl(chain.string, nodeStore.selectedUrl(chain), nodeStore.storedNodes(chain))
 
 }

@@ -48,10 +48,9 @@ public final class NodeService: Sendable {
 
 extension NodeService: NodeURLFetchable {
     public func node(for chain: Chain) -> URL {
-        guard let url = try? nodeStore.selectedNodeUrl(chain: chain)?.asURL else {
-            return chain.defaultBaseUrl
-        }
-        return url
+        let selectedUrl = try? nodeStore.selectedNodeUrl(chain: chain)
+        let storedNodes = (try? nodeStore.nodes(chain: chain).map { try $0.node.json() }) ?? []
+        return URL(string: service.nodeUrl(chain: chain.rawValue, selectedUrl: selectedUrl, storedNodes: storedNodes)) ?? chain.defaultBaseUrl
     }
 }
 

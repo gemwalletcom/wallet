@@ -20,4 +20,7 @@ interface NodesDao {
     @Query("SELECT * FROM nodes WHERE chain = :chain ORDER BY priority DESC, url ASC")
     fun getNodes(chain: Chain): Flow<List<DbNode>>
 
+    @Query("SELECT * FROM nodes WHERE chain = :chain ORDER BY priority DESC, url ASC")
+    fun getNodeList(chain: Chain): List<DbNode>
+
 }

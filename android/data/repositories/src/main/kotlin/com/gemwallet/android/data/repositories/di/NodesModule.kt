@@ -38,14 +38,21 @@ object NodesModule {
 
     @Provides
     @Singleton
-    fun provideNodeService(
+    fun provideNodeStore(
         nodesDao: NodesDao,
         @Named("node") configStore: ConfigStore,
-    ): GemNodeService = GemNodeService(GemstoneNodeStore(nodesDao, configStore))
+    ): GemstoneNodeStore = GemstoneNodeStore(nodesDao, configStore)
 
     @Provides
     @Singleton
-    fun provideNodesRepository(nodeService: GemNodeService): NodesRepository = NodesRepository(nodeService = nodeService)
+    fun provideNodeService(nodeStore: GemstoneNodeStore): GemNodeService = GemNodeService(nodeStore)
+
+    @Provides
+    @Singleton
+    fun provideNodesRepository(
+        nodeService: GemNodeService,
+        nodeStore: GemstoneNodeStore,
+    ): NodesRepository = NodesRepository(nodeService = nodeService, nodeStore = nodeStore)
 
     @Provides
     fun provideSetCurrentNodeCase(repository: NodesRepository): SetCurrentNodeCase = repository

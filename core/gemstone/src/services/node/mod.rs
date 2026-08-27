@@ -33,14 +33,16 @@ impl GemNodeService {
 
     pub async fn get_selected_node(&self, chain: Chain) -> Result<Node, GemServiceError> {
         let selected_url = self.store.get_selected_url(chain).await?;
-        let nodes = self.get_nodes(chain).await?;
-        Ok(selected_url
-            .and_then(|url| nodes.into_iter().find(|node| node.url == url))
-            .unwrap_or_else(|| region_node(chain, NodeRegion::Us)))
+        let stored_nodes = self.store.get_nodes(chain).await?;
+        Ok(selected_node(chain, selected_url, stored_nodes))
     }
 
     pub async fn get_node_url(&self, chain: Chain) -> Result<String, GemServiceError> {
         Ok(self.get_selected_node(chain).await?.url)
+    }
+
+    pub fn node_url(&self, chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> String {
+        selected_node(chain, selected_url, stored_nodes).url
     }
 
     pub async fn set_selected_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
@@ -70,6 +72,10 @@ impl GemNodeService {
         }
         Ok(())
     }
+}
+
+fn selected_node(chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> Node {
+    rules::selected_node(selected_url, rules::merge_nodes(default_nodes(chain), stored_nodes), region_node(chain, NodeRegion::Us))
 }
 
 fn region_node(chain: Chain, region: NodeRegion) -> Node {
@@ -181,5 +187,20 @@ mod tests {
             assert!(!service.get_nodes(Chain::Ethereum).await.unwrap().iter().any(|node| node.url == "https://custom.example"));
             assert!(service.get_nodes(Chain::Ethereum).await.unwrap().iter().any(|node| node.url == default_url));
         });
+    }
+
+    #[test]
+    fn test_node_url_uses_known_selection_and_falls_back_to_us_region() {
+        let service = GemNodeService::new(Arc::new(MemoryStore::default()));
+        let custom = Node {
+            url: "https://custom.example".to_string(),
+            status: NodeState::Active,
+            priority: 0,
+        };
+        let us_url = NodeRegion::Us.url(Chain::Ethereum);
+
+        assert_eq!(service.node_url(Chain::Ethereum, Some(custom.url.clone()), vec![custom.clone()]), custom.url);
+        assert_eq!(service.node_url(Chain::Ethereum, Some("https://unknown.example".to_string()), vec![custom]), us_url);
+        assert_eq!(service.node_url(Chain::Ethereum, None, vec![]), us_url);
     }
 }
