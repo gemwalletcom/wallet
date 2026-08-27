@@ -61,8 +61,8 @@ class ConfirmInputCodecTest {
             amount = BigInteger.ZERO,
             destination = DestinationAddress("merchant"),
             memo = "payment-memo",
-            inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
-            isSendable = true,
+            outputType = TransferDataOutputType.EncodedTransaction,
+            outputAction = TransferDataOutputAction.Send,
             metadata = ApplicationMetadata(
                 name = "Merchant",
                 description = "Payment",
@@ -84,7 +84,7 @@ class ConfirmInputCodecTest {
         assertEquals(account, params.from)
         assertEquals(DestinationAddress("merchant"), params.destination)
         assertEquals("payment-memo", params.memo)
-        assertEquals(ConfirmParams.TransferParams.InputType.EncodeTransaction, params.inputType)
+        assertEquals(TransferDataOutputType.EncodedTransaction, params.outputType)
         assertTrue(params.isSendable)
         assertEquals("Merchant", params.metadata.name)
         assertEquals(ApplicationMetadataSource.Payment, params.metadata.source)
@@ -103,8 +103,8 @@ class ConfirmInputCodecTest {
             amount = BigInteger.ZERO,
             destination = DestinationAddress("0x000000000022D473030F116dDEE9F6B43aC78BA3"),
             memo = null,
-            inputType = ConfirmParams.TransferParams.InputType.Signature,
-            isSendable = false,
+            outputType = TransferDataOutputType.Signature,
+            outputAction = TransferDataOutputAction.Sign,
             metadata = ApplicationMetadata(
                 name = "Dapp",
                 description = "",
@@ -122,7 +122,7 @@ class ConfirmInputCodecTest {
         assertTrue(unpacked is ConfirmParams.TransferParams.Generic)
         val params = unpacked as ConfirmParams.TransferParams.Generic
         assertEquals(original.data, params.data)
-        assertEquals(ConfirmParams.TransferParams.InputType.Signature, params.inputType)
+        assertEquals(TransferDataOutputType.Signature, params.outputType)
         assertEquals(false, params.isSendable)
         assertEquals(null, params.approval)
     }

@@ -66,8 +66,6 @@ class PaymentNavigation @Inject constructor(
             amount = transfer.amount,
             destination = transfer.destination,
             memo = transfer.memo,
-            inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
-            isSendable = true,
             metadata = payment.merchant.decodeJson(),
             data = payment.transaction,
             gasLimit = null,

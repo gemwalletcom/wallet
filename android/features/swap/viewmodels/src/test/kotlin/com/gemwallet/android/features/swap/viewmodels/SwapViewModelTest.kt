@@ -21,6 +21,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.testkit.mockSwapParams
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -461,7 +462,7 @@ class SwapViewModelTest {
         confirmParamsGate.complete(Unit)
         awaitCondition { confirmParams != null }
 
-        assertEquals(BigInteger("1000000000"), confirmParams?.fromAmount)
+        assertEquals(BigInteger("1000000000"), confirmParams?.amount)
     }
 
     @Test
@@ -523,25 +524,14 @@ class SwapViewModelTest {
             val quote = firstArg<SwapperQuote>()
             val pay = secondArg<AssetInfo>()
             val receive = thirdArg<AssetInfo>()
-            ConfirmParams.SwapParams(
+            mockSwapParams(
                 from = pay.owner!!,
                 fromAsset = pay.asset,
-                toAsset = receive.asset,
                 fromAmount = BigInteger(quote.fromValue),
+                toAsset = receive.asset,
                 toAmount = BigInteger(quote.toValue),
-                swapData = "0x",
-                providerId = quote.data.provider.id,
-                protocol = quote.data.provider.protocol,
-                providerName = quote.data.provider.name,
-                protocolId = quote.data.provider.protocolId,
-                toAddress = "0xconfirm",
-                value = "0",
-                approval = null,
-                gasLimit = BigInteger("210000"),
                 useMaxAmount = quote.request.options.useMaxAmount,
-                etaInSeconds = quote.etaInSeconds,
-                slippageBps = quote.data.slippageBps,
-                memo = null,
+                toAddress = "0xconfirm",
                 dataType = SwapQuoteDataType.Contract,
             )
         }

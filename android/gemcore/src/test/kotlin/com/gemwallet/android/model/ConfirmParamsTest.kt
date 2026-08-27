@@ -43,11 +43,6 @@ class ConfirmParamsTest {
         assertThrows(ConfirmError.TransactionIncorrect::class.java) {
             mockSwapParams().approvalData(TransactionType.TokenApproval)
         }
-
-        val directApproval = ConfirmParams.Builder(mockAssetSolanaUSDC(), mockAccount(chain = Chain.Solana))
-            .approval("data", "provider", "contract")
-            .approvalData(TransactionType.TokenApproval)
-        assertEquals("contract", directApproval?.spender)
     }
 
     @Test
@@ -59,8 +54,6 @@ class ConfirmParamsTest {
             amount = BigInteger.ONE,
             destination = DestinationAddress("destination"),
             memo = "memo",
-            inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
-            isSendable = true,
             metadata = applicationMetadata(),
             data = "0x01",
             gasLimit = "21000",
@@ -100,8 +93,6 @@ class ConfirmParamsTest {
                 amount = BigInteger.ONE,
                 destination = destination,
                 memo = "memo",
-                inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
-                isSendable = true,
                 metadata = applicationMetadata(),
                 data = "0x01",
                 gasLimit = "21000",
@@ -109,7 +100,6 @@ class ConfirmParamsTest {
             ),
             ConfirmParams.Builder(nativeAsset, nativeAccount, BigInteger.ONE).deposit(destination),
             ConfirmParams.Builder(nativeAsset, nativeAccount, BigInteger.ONE).withdrawal(destination),
-            ConfirmParams.Builder(tokenAsset, tokenAccount).approval("data", "Provider", "contract"),
             mockSwapParams(),
             ConfirmParams.Builder(nativeAsset, nativeAccount).activate(),
             ConfirmParams.NftParams(

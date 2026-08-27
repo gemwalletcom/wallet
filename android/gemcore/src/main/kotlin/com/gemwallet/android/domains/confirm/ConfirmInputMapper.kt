@@ -8,8 +8,7 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.toModel
 import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.TransferDataOutputAction
-import com.wallet.core.primitives.TransferDataOutputType
+import com.wallet.core.primitives.StakeType
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
 import uniffi.gemstone.GemConfirmInput
@@ -39,27 +38,25 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
     val from = from.toPrimitives() ?: return null
     val value = transfer.value.toBigIntegerOrNull() ?: return null
     val recipient = transfer.recipient
-    return when (val inputType = transfer.inputType) {
-        is GemTransactionInputType.Transfer -> {
-            val asset = inputType.asset.toPrimitives() ?: return null
-            ConfirmParams.Builder(asset, from, value, transfer.useMaxAmount)
-                .transfer(DestinationAddress(recipient.address, recipient.name), recipient.memo, recipient.references)
-        }
+    val destination = DestinationAddress(recipient.address, recipient.name)
+    val inputType = transfer.inputType
+    val asset = inputType.asset().toPrimitives() ?: return null
+    val builder = ConfirmParams.Builder(asset, from, value, transfer.useMaxAmount)
+    return when (inputType) {
+        is GemTransactionInputType.Transfer -> builder.transfer(destination, recipient.memo, recipient.references)
+        is GemTransactionInputType.Deposit -> builder.deposit(destination)
+        is GemTransactionInputType.Withdrawal -> builder.withdrawal(destination)
         is GemTransactionInputType.Generic -> {
-            val asset = inputType.asset.toPrimitives() ?: return null
             val extra = inputType.extra
             ConfirmParams.TransferParams.Generic(
                 asset = asset,
                 from = from,
                 amount = value,
-                destination = DestinationAddress(recipient.address, recipient.name),
+                destination = destination,
                 memo = recipient.memo,
                 useMaxAmount = transfer.useMaxAmount,
-                inputType = when (extra.outputType.decodeJson<TransferDataOutputType>()) {
-                    TransferDataOutputType.Signature -> ConfirmParams.TransferParams.InputType.Signature
-                    TransferDataOutputType.EncodedTransaction -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-                },
-                isSendable = extra.outputAction.decodeJson<TransferDataOutputAction>() == TransferDataOutputAction.Send,
+                outputType = extra.outputType.decodeJson(),
+                outputAction = extra.outputAction.decodeJson(),
                 metadata = inputType.metadata.decodeJson(),
                 data = extra.data.toGenericData(),
                 gasLimit = extra.gasLimit,
@@ -67,8 +64,46 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
                 approval = extra.approval?.toModel(),
             )
         }
-        else -> null
+        is GemTransactionInputType.Swap -> ConfirmParams.SwapParams(
+            from = from,
+            fromAsset = asset,
+            toAsset = inputType.toAsset.toPrimitives() ?: return null,
+            swapData = inputType.swapData.decodeJson(),
+            useMaxAmount = transfer.useMaxAmount,
+        )
+        is GemTransactionInputType.Stake -> when (val stakeType = inputType.stakeType.decodeJson<StakeType>()) {
+            is StakeType.Stake -> builder.delegate(stakeType.content)
+            is StakeType.Unstake -> builder.undelegate(stakeType.content)
+            is StakeType.Redelegate -> builder.redelegate(stakeType.content.toValidator, stakeType.content.delegation)
+            is StakeType.Rewards -> builder.rewards(stakeType.content)
+            is StakeType.Withdraw -> builder.withdraw(stakeType.content)
+            is StakeType.Freeze -> builder.freeze(stakeType.content)
+            is StakeType.Unfreeze -> builder.unfreeze(stakeType.content)
+        }
+        is GemTransactionInputType.TransferNft -> ConfirmParams.NftParams(
+            asset = asset,
+            from = from,
+            destination = destination,
+            nftAsset = inputType.nftAsset.decodeJson(),
+        )
+        is GemTransactionInputType.Account -> builder.activate()
+        is GemTransactionInputType.Perpetual -> builder.perpetual(inputType.perpetualType.decodeJson())
+        is GemTransactionInputType.TokenApprove, is GemTransactionInputType.Earn -> null
     }
+}
+
+private fun GemTransactionInputType.asset(): String = when (this) {
+    is GemTransactionInputType.Transfer -> asset
+    is GemTransactionInputType.Deposit -> asset
+    is GemTransactionInputType.Withdrawal -> asset
+    is GemTransactionInputType.Generic -> asset
+    is GemTransactionInputType.Swap -> fromAsset
+    is GemTransactionInputType.Stake -> asset
+    is GemTransactionInputType.TransferNft -> asset
+    is GemTransactionInputType.Account -> asset
+    is GemTransactionInputType.Perpetual -> asset
+    is GemTransactionInputType.TokenApprove -> asset
+    is GemTransactionInputType.Earn -> asset
 }
 
 private fun ByteArray?.toGenericData(): String {

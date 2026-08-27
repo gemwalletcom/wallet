@@ -23,6 +23,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.SwapProvider
 import com.wallet.core.primitives.swap.ApprovalData
 import com.wallet.core.primitives.swap.SwapQuoteDataType
 import io.mockk.coEvery
@@ -39,7 +40,6 @@ import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemSignedTransaction
 import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemTransactionLoadMetadata
-import uniffi.gemstone.SwapperProvider
 
 class ConfirmTransactionImplTest {
 
@@ -98,28 +98,20 @@ class ConfirmTransactionImplTest {
         val fromAmount = BigInteger.valueOf(10_000_000)
         val approvalValue = BigInteger.TWO.pow(256).subtract(BigInteger.ONE)
         val signerParams = SignerParams(
-            input = ConfirmParams.SwapParams(
+            input = mockSwapParams(
                 from = account,
                 fromAsset = usdc,
                 fromAmount = fromAmount,
                 toAsset = arbitrum,
                 toAmount = BigInteger.ONE,
-                swapData = "swap-data",
-                memo = null,
-                providerId = SwapperProvider.UNISWAP_V3,
-                providerName = "Uniswap",
-                protocol = "Uniswap v3",
-                protocolId = "uniswap_v3",
-                toAddress = swapAddress,
-                value = "0",
                 approval = ApprovalData(
                     token = tokenAddress,
                     spender = spender,
                     value = approvalValue.toString(),
                     isUnlimited = true,
                 ),
-                slippageBps = 50u,
-                etaInSeconds = null,
+                toAddress = swapAddress,
+                provider = SwapProvider.UniswapV3,
                 dataType = SwapQuoteDataType.Contract,
             ),
             selectedData = SignerParams.Data(
@@ -227,22 +219,14 @@ class ConfirmTransactionImplTest {
             recentAssetsService = mockk<RecentAssetsService>(relaxed = true),
         ).invoke(
             signerParams = SignerParams(
-                input = ConfirmParams.SwapParams(
+                input = mockSwapParams(
                     from = account,
                     fromAsset = hype,
                     fromAmount = BigInteger.TEN,
                     toAsset = usdc,
                     toAmount = BigInteger.ONE,
-                    swapData = "",
-                    memo = null,
-                    providerId = SwapperProvider.HYPERLIQUID,
-                    providerName = "Hyperliquid",
-                    protocol = "Hyperliquid",
-                    protocolId = "hyperliquid",
                     toAddress = account.address,
-                    value = "0",
-                    slippageBps = 50u,
-                    etaInSeconds = null,
+                    provider = SwapProvider.Hyperliquid,
                     dataType = SwapQuoteDataType.Transfer,
                 ),
                 selectedData = SignerParams.Data(

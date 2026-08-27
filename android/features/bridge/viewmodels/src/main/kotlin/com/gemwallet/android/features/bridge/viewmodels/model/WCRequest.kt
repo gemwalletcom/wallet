@@ -23,7 +23,7 @@ import com.wallet.core.primitives.SimulationWarning
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.swap.ApprovalData
-import com.wallet.core.primitives.TransferDataOutputType as PrimitiveOutputType
+import com.wallet.core.primitives.TransferDataOutputAction
 import uniffi.gemstone.EvmTransactionKind
 import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.TransferDataOutputType
@@ -84,8 +84,8 @@ sealed class WCRequest(
     ) : WCRequest(request) {
         val isSendable: Boolean get() = request.isSendable
 
-        val inputType: ConfirmParams.TransferParams.InputType
-            get() = if (isSendable) ConfirmParams.TransferParams.InputType.EncodeTransaction else ConfirmParams.TransferParams.InputType.Signature
+        val outputAction: TransferDataOutputAction
+            get() = if (isSendable) TransferDataOutputAction.Send else TransferDataOutputAction.Sign
 
         val confirmParams: Generic
             get() = request.transaction.map(this, isSendable)
@@ -103,10 +103,9 @@ private fun WalletConnectTransaction.map(
             metadata = request.appMetadata,
             data = data.data.orEmpty(),
             gasLimit = data.gasLimit,
-            inputType = request.inputType,
+            outputAction = request.outputAction,
             destination = DestinationAddress(data.to),
             amount = data.value?.hexToBigInteger() ?: BigInteger.ZERO,
-            isSendable = isSendable,
             decodedTransactionType = kind.transactionType,
             approval = kind.approvalData,
         )
@@ -147,11 +146,8 @@ private fun buildEncodedTransactionParams(
     metadata = request.appMetadata,
     data = encodedTransaction,
     gasLimit = null,
-    inputType = when (outputType.decodeJson<PrimitiveOutputType>()) {
-        PrimitiveOutputType.EncodedTransaction -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-        PrimitiveOutputType.Signature -> ConfirmParams.TransferParams.InputType.Signature
-    },
+    outputType = outputType.decodeJson(),
+    outputAction = request.outputAction,
     destination = DestinationAddress(""),
     amount = BigInteger.ZERO,
-    isSendable = isSendable,
 )

@@ -1,6 +1,5 @@
 package com.gemwallet.android.model
 
-import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
@@ -34,8 +33,7 @@ class ConfirmParamsPerpetualTest {
         val original: ConfirmParams = perpetualParams(
             PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)),
         )
-        val json = jsonEncoder.encodeToString(original)
-        assertEquals(original, jsonEncoder.decodeFromString<ConfirmParams>(json))
+        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack())))
     }
 
     @Test
@@ -43,8 +41,7 @@ class ConfirmParamsPerpetualTest {
         val original: ConfirmParams = perpetualParams(
             PerpetualType.Close(mockPerpetualConfirmData(direction = PerpetualDirection.Short)),
         )
-        val json = jsonEncoder.encodeToString(original)
-        assertEquals(original, jsonEncoder.decodeFromString<ConfirmParams>(json))
+        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack())))
     }
 
     @Test
@@ -52,8 +49,7 @@ class ConfirmParamsPerpetualTest {
         val original: ConfirmParams = perpetualParams(
             PerpetualType.Increase(mockPerpetualConfirmData()),
         )
-        val json = jsonEncoder.encodeToString(original)
-        assertEquals(original, jsonEncoder.decodeFromString<ConfirmParams>(json))
+        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack())))
     }
 
     @Test
@@ -61,8 +57,7 @@ class ConfirmParamsPerpetualTest {
         val original: ConfirmParams = perpetualParams(
             PerpetualType.Reduce(mockPerpetualReduceData(positionDirection = PerpetualDirection.Long)),
         )
-        val json = jsonEncoder.encodeToString(original)
-        assertEquals(original, jsonEncoder.decodeFromString<ConfirmParams>(json))
+        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack())))
     }
 
     @Test

@@ -433,7 +433,7 @@ class ConfirmViewModel @Inject constructor(
             SwapDetailsUIModelInput(
                 payAsset = fromAssetInfo,
                 receiveAsset = toAssetInfo,
-                fromValue = params.fromAmount.toString(),
+                fromValue = params.amount.toString(),
                 toValue = params.toAmount.toString(),
                 provider = provider,
                 slippageBps = params.slippageBps,

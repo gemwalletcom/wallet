@@ -7,6 +7,7 @@ import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.ConfirmParams
+import com.wallet.core.primitives.TransferDataOutputType
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolana
@@ -89,7 +90,7 @@ class PaymentNavigationTest {
         assertEquals(account.address, params.destination.address)
         assertEquals("19000000", params.amount.toString())
         assertEquals(ApplicationMetadataSource.Payment, params.metadata.source)
-        assertEquals(ConfirmParams.TransferParams.InputType.EncodeTransaction, params.inputType)
+        assertEquals(TransferDataOutputType.EncodedTransaction, params.outputType)
         assertTrue(params.isSendable)
     }
 
