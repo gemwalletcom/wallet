@@ -18,6 +18,7 @@ class GemstoneWalletSessionStore(
     override fun getCurrentWalletId(): String? = sessionDao.getSession()?.walletId
 
     override fun setCurrentWalletId(walletId: String?) = runBlocking(Dispatchers.IO) {
+        val walletId = walletId ?: return@runBlocking sessionDao.clear()
         val session = sessionDao.getSession()?.copy(walletId = walletId)
             ?: DbSession(walletId = walletId, currency = defaultCurrency())
         sessionDao.update(session)

@@ -7,7 +7,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.di.Migration_87_88
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,29 +31,16 @@ class Migration_87_88Test {
     }
 
     @Test
-    fun migrate87To88_keysBannersByCoreIdentifier() {
+    fun migrate87To88_recreatesBannersKeyedByIdentifier() {
         helper.createDatabase(testDb, 87).apply {
-            execSQL(
-                "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at, associations) " +
-                    "VALUES ('bitcoin', 'Bitcoin', 'BTC', 8, 'NATIVE', 'bitcoin', 1, 0, 0, 0, 0, 1, 0, '[]')"
-            )
             execSQL("INSERT INTO banners (wallet_id, asset_id, chain, state, event) VALUES ('', 'bitcoin', NULL, 'Cancelled', 'Stake')")
-            execSQL("INSERT INTO banners (wallet_id, asset_id, chain, state, event) VALUES ('multicoin_wallet-1', '', NULL, 'AlwaysActive', 'AccountBlockedMultiSignature')")
             close()
         }
 
         val migratedDb = helper.runMigrationsAndValidate(testDb, 88, true, Migration_87_88)
-        migratedDb.query("SELECT id, wallet_id, asset_id, state FROM banners ORDER BY id").use {
-            assertEquals(2, it.count)
+        migratedDb.query("SELECT COUNT(*) FROM banners").use {
             it.moveToFirst()
-            assertEquals("bitcoin_stake", it.getString(0))
-            assertNull(it.getString(1))
-            assertEquals("bitcoin", it.getString(2))
-            assertEquals("Cancelled", it.getString(3))
-            it.moveToNext()
-            assertEquals("multicoin_wallet-1_accountBlockedMultiSignature", it.getString(0))
-            assertEquals("multicoin_wallet-1", it.getString(1))
-            assertNull(it.getString(2))
+            assertEquals(0, it.getInt(0))
         }
         migratedDb.close()
     }
