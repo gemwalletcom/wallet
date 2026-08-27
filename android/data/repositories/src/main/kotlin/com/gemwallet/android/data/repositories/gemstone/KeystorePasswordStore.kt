@@ -9,7 +9,12 @@ class GemstoneKeystorePassword(
 ) : GemKeystorePassword {
 
     override fun getPassword(walletId: String, createIfMissing: Boolean): ByteArray {
-        val password = if (createIfMissing) passwordStore.createPassword(walletId) else passwordStore.getPassword(walletId)
+        val password = try {
+            passwordStore.getPassword(walletId)
+        } catch (error: IllegalStateException) {
+            if (!createIfMissing) throw error
+            passwordStore.createPassword(walletId)
+        }
         return password.v4KeystorePasswordBytes()
     }
 }

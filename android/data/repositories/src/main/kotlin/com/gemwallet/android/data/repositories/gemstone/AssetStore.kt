@@ -52,7 +52,14 @@ class GemstoneAssetStore(
             val assetId = identifier.toAssetId() ?: continue
             val asset = if (assetId.tokenId == null) assetId.chain.asset() else assetId.chain.defaultAssets.firstOrNull { it.id == assetId } ?: continue
             assetsDao.insert(asset.defaultBasic.toRecord())
-            assetsDao.setWalletAssetVisibility(walletId, identifier, enabled)
+            assetsDao.insertBalance(
+                DbBalance(
+                    assetId = identifier,
+                    walletId = walletId,
+                    isVisible = enabled,
+                    updatedAt = null,
+                )
+            )
         }
     }
 
