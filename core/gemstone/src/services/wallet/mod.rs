@@ -116,7 +116,10 @@ impl GemWalletService {
         Ok(GemWalletImportResult::New { wallet })
     }
 
-    pub async fn delete_wallet(&self, wallet: Wallet) -> Result<bool, GemServiceError> {
+    pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<bool, GemServiceError> {
+        let wallet = self.store.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::Status {
+            msg: format!("wallet {} not found", wallet_id.id()),
+        })?;
         if wallet.wallet_type != WalletType::View {
             self.keystore.delete(keystore_id_for_wallet(wallet.id.id()))?;
         }

@@ -10,7 +10,7 @@ import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
+import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualPinned
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.model.CurrencyFormatter
@@ -42,7 +42,7 @@ class PerpetualMarketViewModel @Inject constructor(
     private val getBalance: GetPerpetualBalances,
     private val syncPerpetuals: SyncPerpetuals,
     private val syncPerpetualPositions: SyncPerpetualPositions,
-    private val togglePin: TogglePerpetualPin,
+    private val setPerpetualPinned: SetPerpetualPinned,
     private val getRecentAssets: GetRecentAssets,
     private val updateRecentAsset: UpdateRecentAsset,
     private val perpetualObserver: PerpetualObserver,
@@ -104,8 +104,9 @@ class PerpetualMarketViewModel @Inject constructor(
         perpetualObserver.unsubscribe(GemPerpetualSubscription.MarketPrices)
     }
 
-    fun onTogglePin(perpetualId: PerpetualId) {
-        togglePin.togglePin(perpetualId)
+    fun onTogglePin(perpetualId: PerpetualId) = viewModelScope.launch {
+        val item = (pinnedPerpetuals.value + unpinnedPerpetuals.value).firstOrNull { it.id == perpetualId } ?: return@launch
+        setPerpetualPinned(perpetualId, !item.isPinned)
     }
 
     fun onOpenPerpetual(assetId: AssetId) {

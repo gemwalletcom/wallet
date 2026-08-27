@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
 import com.gemwallet.android.application.wallet.coordinators.GetAllWallets
 import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
-import com.gemwallet.android.application.wallet.coordinators.ToggleWalletPin
+import com.gemwallet.android.application.wallet.coordinators.SetWalletPinned
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,7 @@ import javax.inject.Inject
 class WalletsViewModel @Inject constructor(
     private val getAllWallets: GetAllWallets,
     private val setCurrentWallet: SetCurrentWallet,
-    private val toggleWalletPin: ToggleWalletPin,
+    private val setWalletPinned: SetWalletPinned,
     private val deleteWallet: DeleteWallet,
 ) : ViewModel() {
 
@@ -34,6 +34,7 @@ class WalletsViewModel @Inject constructor(
     }
 
     fun togglePin(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
-        toggleWalletPin.toggleWalletPin(walletId)
+        val wallet = wallets.value.firstOrNull { it.id == walletId.id } ?: return@launch
+        setWalletPinned(walletId, !wallet.isPinned)
     }
 }

@@ -4,7 +4,7 @@ import com.gemwallet.android.application.asset_select.coordinators.GetRecentAsse
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
@@ -22,7 +22,7 @@ class RecentAssetsConfigTest {
     private val getRecentAssets = mockk<GetRecentAssets>(relaxed = true)
     private val updateRecentAsset = mockk<UpdateRecentAsset>(relaxed = true)
     private val switchAssetVisibility = mockk<SwitchAssetVisibility>(relaxed = true)
-    private val toggleAssetPin = mockk<ToggleAssetPin>(relaxed = true)
+    private val setAssetPinned = mockk<SetAssetPinned>(relaxed = true)
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
     private val searchSelectAssets = mockk<SearchSelectAssets>(relaxed = true)
     private val getSelectAssetsInfo = mockk<GetSelectAssetsInfo>(relaxed = true)
@@ -31,7 +31,7 @@ class RecentAssetsConfigTest {
     fun `receive shows recents without filters`() {
         val vm = AssetSelectViewModel(
             getSession, searchSelectAssets, getRecentAssets, updateRecentAsset,
-            switchAssetVisibility, toggleAssetPin, searchTokensCase,
+            switchAssetVisibility, setAssetPinned, searchTokensCase,
         )
         assertTrue(vm.showRecents)
         assertEquals(emptySet<AssetFilter>(), vm.assetFilters())
@@ -41,7 +41,7 @@ class RecentAssetsConfigTest {
     fun `buy filters recents to buyable`() {
         val vm = BuySelectViewModel(
             getSession, searchSelectAssets, getRecentAssets, updateRecentAsset,
-            switchAssetVisibility, toggleAssetPin, searchTokensCase,
+            switchAssetVisibility, setAssetPinned, searchTokensCase,
         )
         assertTrue(vm.showRecents)
         assertEquals(setOf(AssetFilter.Buyable), vm.assetFilters())
@@ -51,7 +51,7 @@ class RecentAssetsConfigTest {
     fun `send filters recents to has balance`() {
         val vm = SendSelectViewModel(
             getSession, searchSelectAssets, getSelectAssetsInfo, getRecentAssets,
-            updateRecentAsset, switchAssetVisibility, toggleAssetPin, searchTokensCase,
+            updateRecentAsset, switchAssetVisibility, setAssetPinned, searchTokensCase,
         )
         assertTrue(vm.showRecents)
         assertEquals(setOf(AssetFilter.HasBalance), vm.assetFilters())

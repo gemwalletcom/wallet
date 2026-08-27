@@ -7,7 +7,7 @@ import com.gemwallet.android.application.wallet.coordinators.GetWalletDetails
 import com.gemwallet.android.application.wallet.coordinators.GetWalletSecretData
 import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
 import com.gemwallet.android.application.wallet.coordinators.SetWalletName
-import com.gemwallet.android.application.wallet.coordinators.ToggleWalletPin
+import com.gemwallet.android.application.wallet.coordinators.SetWalletPinned
 import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
@@ -18,7 +18,7 @@ import com.gemwallet.android.data.coordinators.wallet.GetWalletDetailsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletSecretDataImpl
 import com.gemwallet.android.data.coordinators.wallet.SetCurrentWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.SetWalletNameImpl
-import com.gemwallet.android.data.coordinators.wallet.ToggleWalletPinImpl
+import com.gemwallet.android.data.coordinators.wallet.SetWalletPinnedImpl
 import com.gemwallet.android.data.coordinators.wallet.WalletIdGeneratorImpl
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -81,19 +81,15 @@ object WalletModule {
     @Provides
     fun provideDeleteWallet(
         sessionRepository: SessionRepository,
-        walletsRepository: WalletsRepository,
         deleteKeyStoreOperator: DeleteKeyStoreOperator,
         walletService: GemWalletService,
     ): DeleteWallet {
-        return DeleteWalletImpl(sessionRepository, walletsRepository, deleteKeyStoreOperator, walletService)
+        return DeleteWalletImpl(sessionRepository, deleteKeyStoreOperator, walletService)
     }
 
     @Provides
-    fun provideToggleWalletPin(
-        walletsRepository: WalletsRepository,
-        walletService: GemWalletService,
-    ): ToggleWalletPin {
-        return ToggleWalletPinImpl(walletsRepository, walletService)
+    fun provideSetWalletPinned(walletService: GemWalletService): SetWalletPinned {
+        return SetWalletPinnedImpl(walletService)
     }
 
     @Provides

@@ -26,7 +26,7 @@ import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.assets.coordinators.SetChartPeriod
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
 import com.gemwallet.android.blockchain.services.PerpetualService
@@ -56,7 +56,7 @@ import com.gemwallet.android.data.coordinators.asset.PrefetchAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.SetChartPeriodImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
-import com.gemwallet.android.data.coordinators.asset.ToggleAssetPinImpl
+import com.gemwallet.android.data.coordinators.asset.SetAssetPinnedImpl
 import com.gemwallet.android.data.coordinators.asset.ToggleHideBalancesImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.AssetsSearchService
@@ -249,11 +249,10 @@ object AssetModule {
 
     @Provides
     @Singleton
-    fun provideToggleAssetPin(
+    fun provideSetAssetPinned(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
         balanceService: GemBalanceService,
-    ): ToggleAssetPin = ToggleAssetPinImpl(sessionRepository, assetsRepository, balanceService)
+    ): SetAssetPinned = SetAssetPinnedImpl(sessionRepository, balanceService)
 
     @Provides
     @Singleton

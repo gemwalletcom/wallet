@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.coordinators.GetChainAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.assets.coordinators.HideAsset
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -34,7 +34,7 @@ class NetworkAssetsViewModel @Inject constructor(
     getChainAssets: GetChainAssets,
     private val getSession: GetSession,
     private val hideAsset: HideAsset,
-    private val toggleAssetPin: ToggleAssetPin,
+    private val setAssetPinned: SetAssetPinned,
     private val switchAssetVisibility: SwitchAssetVisibility,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
@@ -77,7 +77,7 @@ class NetworkAssetsViewModel @Inject constructor(
     }
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch {
-        toggleAssetPin(assetId)
+        setAssetPinned(assetId, pinned.value.none { it.id == assetId })
     }
 
     fun addToWallet(assetId: AssetId) = viewModelScope.launch {

@@ -2,10 +2,8 @@ package com.gemwallet.android.data.coordinators.wallet
 
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.model.Session
-import com.gemwallet.android.testkit.mockWallet
-import com.wallet.core.primitives.WalletType
+import com.gemwallet.android.testkit.mockWalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -14,7 +12,6 @@ import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -28,14 +25,12 @@ import org.junit.Test
 class DeleteWalletImplTest {
 
     private val sessionRepository = mockk<SessionRepository>(relaxed = true)
-    private val walletsRepository = mockk<WalletsRepository>(relaxed = true)
     private val deleteKeyStoreOperator = mockk<DeleteKeyStoreOperator>()
 
     private val walletService = mockk<GemWalletService>()
 
     private val delete = DeleteWalletImpl(
         sessionRepository,
-        walletsRepository,
         deleteKeyStoreOperator,
         walletService,
     )
@@ -52,27 +47,25 @@ class DeleteWalletImplTest {
 
     @Test
     fun keepsWalletWhenKeystoreDeletionFails() = runTest {
-        val wallet = mockWallet(id = "wallet-1", type = WalletType.Multicoin)
-        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        val walletId = mockWalletId()
         every { sessionRepository.session() } returns MutableStateFlow<Session?>(null)
-        every { deleteKeyStoreOperator(wallet) } returns false
+        every { deleteKeyStoreOperator(walletId) } returns false
 
-        delete.deleteWallet(wallet.id, onBoard = {}, onComplete = {})
+        delete.deleteWallet(walletId, onBoard = {}, onComplete = {})
 
-        verify { deleteKeyStoreOperator(wallet) }
+        verify { deleteKeyStoreOperator(walletId) }
         coVerify(exactly = 0) { walletService.deleteWallet(any()) }
     }
 
     @Test
-    fun clearsWalletPreferencesWhenWalletDeleted() = runTest {
-        val wallet = mockWallet(id = "wallet-1", type = WalletType.Multicoin)
-        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
-        every { deleteKeyStoreOperator(wallet) } returns true
-        coEvery { walletService.deleteWallet(any()) } returns false
+    fun resetsSessionWhenLastWalletDeleted() = runTest {
+        val walletId = mockWalletId()
+        every { deleteKeyStoreOperator(walletId) } returns true
+        coEvery { walletService.deleteWallet(walletId.id) } returns false
 
-        delete.deleteWallet(wallet.id, onBoard = {}, onComplete = {})
+        delete.deleteWallet(walletId, onBoard = {}, onComplete = {})
 
-        coVerify { walletService.deleteWallet(any()) }
+        coVerify { walletService.deleteWallet(walletId.id) }
         coVerify { sessionRepository.reset() }
     }
 }

@@ -14,7 +14,7 @@ import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualChar
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
-import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
+import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualPinned
 import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.data.coordinators.perpetuals.BuildPerpetualParamsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualAccountModeImpl
@@ -29,7 +29,7 @@ import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualChartPeriodImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualPositionsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
-import com.gemwallet.android.data.coordinators.perpetuals.TogglePerpetualPinImpl
+import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualPinnedImpl
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -149,14 +149,8 @@ object PerpetualModule {
 
     @Provides
     @Singleton
-    fun provideTogglePerpetualPin(
-        perpetualRepository: PerpetualRepository,
-        perpetualService: GemPerpetualService,
-    ): TogglePerpetualPin {
-        return TogglePerpetualPinImpl(
-            perpetualRepository = perpetualRepository,
-            perpetualService = perpetualService,
-        )
+    fun provideSetPerpetualPinned(perpetualService: GemPerpetualService): SetPerpetualPinned {
+        return SetPerpetualPinnedImpl(perpetualService)
     }
 
     @Provides
