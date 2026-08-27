@@ -107,22 +107,6 @@ public struct WalletStore: Sendable {
     }
 }
 
-extension WalletRecord {
-    func mapToWallet() -> Wallet {
-        Wallet(
-            id: id,
-            externalId: externalId,
-            name: name,
-            index: index.asInt32,
-            type: type,
-            accounts: [],
-            isPinned: isPinned,
-            imageUrl: imageUrl,
-            source: source,
-        )
-    }
-}
-
 extension Wallet {
     var record: WalletRecord {
         WalletRecord(
