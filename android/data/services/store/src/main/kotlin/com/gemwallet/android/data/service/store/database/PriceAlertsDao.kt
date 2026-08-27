@@ -5,8 +5,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.gemwallet.android.data.service.store.database.entities.DbPriceAlert
-import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PriceAlertDirection
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -35,23 +33,6 @@ interface PriceAlertsDao {
 
     @Query("SELECT * FROM price_alerts WHERE assetId = :assetId AND price IS NULL AND pricePercentChange IS NULL AND priceDirection IS NULL AND enabled = 1")
     fun getAssetPriceAlert(assetId: String): Flow<DbPriceAlert?>
-
-    @Query(
-        """SELECT * FROM price_alerts
-            WHERE assetId = :assetId
-                AND currency = :currency
-                AND (price = :price OR (:price IS NULL AND price IS NULL))
-                AND (priceDirection = :priceDirection OR (:priceDirection IS NULL AND priceDirection IS NULL))
-                AND (pricePercentChange = :pricePercentChange OR (:pricePercentChange IS NULL AND pricePercentChange IS NULL))
-        """
-    )
-    suspend fun findSamePriceAlert(assetId: String, currency: Currency, price: Double?, priceDirection: PriceAlertDirection?, pricePercentChange: Double?): DbPriceAlert?
-
-    @Query("UPDATE price_alerts SET enabled = :enabled WHERE assetId = :assetId")
-    suspend fun enabled(assetId: String, enabled: Boolean)
-
-    @Query("UPDATE price_alerts SET enabled = :enabled WHERE id = :priceAlertId")
-    suspend fun enabled(priceAlertId: Int, enabled: Boolean)
 
     @Query("DELETE FROM price_alerts WHERE id IN (:ids)")
     suspend fun delete(ids: List<Int>)

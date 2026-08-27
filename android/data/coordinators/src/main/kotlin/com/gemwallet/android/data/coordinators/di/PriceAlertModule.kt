@@ -36,13 +36,11 @@ object PriceAlertModule {
     @Singleton
     fun provideAddPriceAlerts(
         priceAlertService: GemPriceAlertService,
-        priceAlertRepository: PriceAlertRepository,
         sessionRepository: SessionRepository,
         setPriceAlertsEnabled: SetPriceAlertsEnabled,
     ): IncludePriceAlert {
         return IncludePriceAlertImpl(
             priceAlertService = priceAlertService,
-            priceAlertRepository = priceAlertRepository,
             sessionRepository = sessionRepository,
             setPriceAlertsEnabled = setPriceAlertsEnabled,
         )
