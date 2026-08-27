@@ -46,7 +46,7 @@ Status: **Done** = flow in Core, both apps use it · **In progress** = being mig
 | [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals; authenticated calls take a wallet and build the auth payload through `GemAuthService` |
 | [`GemScanService`](../gemstone/src/services/scan/mod.rs) | — | — | — | Done | Transaction scanning |
 | [`GemSearchService`](../gemstone/src/services/search/mod.rs) | [`GemSearchStore`](../gemstone/src/services/search/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/SearchStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/SearchStore.kt) | Done | Wallet search: API + token lookup merge, asset/price/balance persistence, perpetuals, lists and search history keys ([rules](../gemstone/src/services/search/rules.rs)) |
-| [`GemWalletConnectService`](../gemstone/src/services/wallet_connect/mod.rs) | [`GemWalletConnectSigner`](../gemstone/src/services/wallet_connect/signer.rs) | [Swift](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorSigner.swift) | — | In progress | Request parse → simulate → decode → app signer → encode, session wallet selection and session chains ([rules](../gemstone/src/services/wallet_connect/rules.rs)); Android still handles requests in `WCRequestViewModel` |
+| [`GemWalletConnectService`](../gemstone/src/services/wallet_connect/mod.rs) | [`GemWalletConnectSigner`](../gemstone/src/services/wallet_connect/signer.rs) | [Swift](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorSigner.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/WalletConnectSigner.kt) | Done | Request parse → simulate → decode → app signer → encode, session wallet selection and session chains ([rules](../gemstone/src/services/wallet_connect/rules.rs)); Android `WalletConnectRequestHandler` runs `handle_request` and the signer publishes a `WalletConnectPendingRequest` the request screen approves or rejects |
 
 ## App services (iOS is the reference)
 
@@ -113,7 +113,7 @@ Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, And
 
 ## Remaining
 
-- **Android WalletConnect requests** — `WCRequestViewModel` still parses, simulates and encodes requests itself. Target: `BridgesRepository` hands each session request to `GemWalletConnectService.handle_request`; an Android `GemWalletConnectSigner` publishes the pending request to the UI (a suspending bridge the request screen resolves with the signature, or rejects), so parse → simulate → decode → sign → encode runs in Core exactly as on iOS. Proposal wallet selection can already use `select_session_wallets` / `session_chains`.
+- Periodic review of app wrappers (`ContactService`, `SupportChatService`, `NodeService.node(for:)`, `PerpetualService`, `DeviceService`, `WalletService`) and of typeshare models unused by both apps.
 
 ## Conventions
 
