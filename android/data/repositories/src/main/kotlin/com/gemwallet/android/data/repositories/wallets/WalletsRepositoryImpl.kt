@@ -34,9 +34,11 @@ class WalletsRepositoryImpl @Inject constructor(
 
     override suspend fun addWallet(wallet: Wallet): Wallet = putWallet(wallet)
 
-    override suspend fun updateWallet(wallet: Wallet) {
-        walletsDao.update(wallet.toRecord())
-    }
+    override suspend fun setPinned(walletId: WalletId, pinned: Boolean) = walletsDao.setPinned(walletId.id, pinned)
+
+    override suspend fun rename(walletId: WalletId, name: String) = walletsDao.setName(walletId.id, name)
+
+    override suspend fun setImageUrl(walletId: WalletId, imageUrl: String?) = walletsDao.setImageUrl(walletId.id, imageUrl)
 
     override suspend fun updateAccounts(wallet: Wallet) = withContext(Dispatchers.IO) {
         transactionRunner.run {

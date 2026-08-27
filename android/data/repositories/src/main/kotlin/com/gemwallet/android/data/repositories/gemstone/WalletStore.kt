@@ -28,14 +28,9 @@ class GemstoneWalletStore(
 
     override suspend fun deleteWallet(walletId: String): Boolean = walletsRepository.get().removeWallet(WalletId(walletId))
 
-    override suspend fun setPinned(walletId: String, pinned: Boolean) = updateWallet(walletId) { it.copy(isPinned = pinned) }
+    override suspend fun setPinned(walletId: String, pinned: Boolean) = walletsRepository.get().setPinned(WalletId(walletId), pinned)
 
-    override suspend fun rename(walletId: String, name: String) = updateWallet(walletId) { it.copy(name = name) }
+    override suspend fun rename(walletId: String, name: String) = walletsRepository.get().rename(WalletId(walletId), name)
 
-    override suspend fun setImageUrl(walletId: String, imageUrl: String?) = updateWallet(walletId) { it.copy(imageUrl = imageUrl) }
-
-    private suspend fun updateWallet(walletId: String, transform: (Wallet) -> Wallet) {
-        val wallet = walletsRepository.get().getWallet(WalletId(walletId)).firstOrNull() ?: return
-        walletsRepository.get().updateWallet(transform(wallet))
-    }
+    override suspend fun setImageUrl(walletId: String, imageUrl: String?) = walletsRepository.get().setImageUrl(WalletId(walletId), imageUrl)
 }
