@@ -40,8 +40,11 @@ impl GemStreamSubscriptionService {
     }
 
     pub async fn resubscribe(&self) -> Result<(), GemServiceError> {
-        let mut state = self.state.lock().await;
-        let Some(wallet_id) = state.wallet_id.clone() else {
+        let (wallet_id, subscribed) = {
+            let state = self.state.lock().await;
+            (state.wallet_id.clone(), state.subscribed.clone())
+        };
+        let Some(wallet_id) = wallet_id else {
             return Ok(());
         };
         if !self.connection.is_connected().await {
@@ -49,24 +52,23 @@ impl GemStreamSubscriptionService {
         }
         let asset_ids = self.price.observable_asset_ids(wallet_id).await?;
         let target: HashSet<AssetId> = asset_ids.iter().cloned().collect();
-        if state.subscribed == target {
+        if subscribed == target {
             return Ok(());
         }
         self.connection.send(StreamMessage::SubscribePrices(StreamMessagePrices { assets: asset_ids })).await?;
-        state.subscribed = target;
+        self.state.lock().await.subscribed = target;
         Ok(())
     }
 
     pub async fn add_prices(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        let mut state = self.state.lock().await;
-        let new_asset_ids = rules::new_asset_ids(&state.subscribed, asset_ids);
+        let new_asset_ids = rules::new_asset_ids(&self.state.lock().await.subscribed, asset_ids);
         if new_asset_ids.is_empty() || !self.connection.is_connected().await {
             return Ok(());
         }
         self.connection
             .send(StreamMessage::AddPrices(StreamMessagePrices { assets: new_asset_ids.clone() }))
             .await?;
-        state.subscribed.extend(new_asset_ids);
+        self.state.lock().await.subscribed.extend(new_asset_ids);
         Ok(())
     }
 
