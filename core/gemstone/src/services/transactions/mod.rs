@@ -5,7 +5,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{AssetId, Transaction, WalletId};
+use primitives::{AssetId, WalletId};
 
 pub use store::GemTransactionStore;
 
@@ -42,10 +42,6 @@ impl GemTransactionsService {
         }
     }
 
-    pub fn associated_asset_ids(&self, transaction: Transaction) -> Vec<AssetId> {
-        transaction.associated_asset_ids()
-    }
-
     pub async fn sync(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
         let from_timestamp = self.preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
@@ -65,3 +61,5 @@ impl GemTransactionsService {
         self.preferences.set_transactions_timestamp(wallet_id, asset_id, timestamp)
     }
 }
+
+impl GemTransactionsService {}

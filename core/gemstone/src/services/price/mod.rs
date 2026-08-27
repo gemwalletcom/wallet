@@ -40,10 +40,6 @@ impl GemPriceService {
         update_prices(self.store.as_ref(), prices, currency).await
     }
 
-    pub async fn update_asset_price(&self, asset_id: AssetId, price: Option<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
-        update_prices(self.store.as_ref(), vec![price.unwrap_or_else(|| AssetPrice::empty(asset_id))], currency).await
-    }
-
     pub async fn update_rates(&self, rates: Vec<FiatRate>, currency: Currency) -> Result<(), GemServiceError> {
         update_rates(self.store.as_ref(), rates, currency).await
     }
@@ -66,6 +62,10 @@ impl GemPriceService {
 }
 
 impl GemPriceService {
+    pub async fn update_asset_price(&self, asset_id: AssetId, price: Option<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
+        update_prices(self.store.as_ref(), vec![price.unwrap_or_else(|| AssetPrice::empty(asset_id))], currency).await
+    }
+
     pub async fn observable_asset_ids(&self, wallet_id: WalletId, alert_asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         Ok(rules::observable_asset_ids(
             self.store.get_enabled_price_asset_ids(wallet_id).await?,

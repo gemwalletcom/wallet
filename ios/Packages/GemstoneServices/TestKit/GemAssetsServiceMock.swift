@@ -41,17 +41,6 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         try assetsResult.map { try $0.json() }
     }
 
-    public func getFiatAssets(quoteType: Gemstone.FiatQuoteType) async throws -> Gemstone.FiatAssets {
-        let assets = try Primitives.FiatQuoteType(quoteType) == .buy ? buyableFiatAssets : sellableFiatAssets
-        guard let assets else { throw AnyError("not stubbed") }
-        return try assets.json()
-    }
-
-    public func getSwapAssets() async throws -> Gemstone.FiatAssets {
-        guard let swapAssets else { throw AnyError("not stubbed") }
-        return try swapAssets.json()
-    }
-
     public func search(query _: String, chains _: [Gemstone.Chain], tags _: [String]) async throws -> Gemstone.SearchResponse {
         try Primitives.SearchResponse(assets: [], perpetuals: [], nfts: [], lists: []).json()
     }
@@ -81,21 +70,9 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         try await ensureAsset(assetId: assetId)
     }
 
-    public func searchAssetsAndTokens(query _: String, chains _: [Gemstone.Chain]) async throws -> [Gemstone.AssetBasic] {
-        try searchAssetsResult.map { try $0.json() }
-    }
-
-    public func searchTokens(tokenId _: String, chains _: [Gemstone.Chain]) async -> [Gemstone.AssetBasic] {
-        []
-    }
-
     public func addMissingBalances(walletId _: String, assetIds _: [Gemstone.AssetId]) async throws {}
 
     public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
-
-    public func syncDefaultAssets() async throws {}
-
-    public func syncSwappableChains() async throws {}
 
     public func syncAvailability(versions _: Gemstone.ConfigVersions) async throws {}
 

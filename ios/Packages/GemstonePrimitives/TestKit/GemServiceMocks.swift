@@ -73,14 +73,6 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         self.priceAlertsEnabled = priceAlertsEnabled
     }
 
-    public func getSkippedAppVersion() -> String? {
-        lock.withLock { skippedAppVersion }
-    }
-
-    public func setSkippedAppVersion(version: String) throws {
-        lock.withLock { skippedAppVersion = version }
-    }
-
     public func isPriceAlertsEnabled() -> Bool {
         lock.withLock { priceAlertsEnabled }
     }
@@ -167,10 +159,6 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
 
     public func sync(walletId: String, assetId: Gemstone.AssetId?) async throws {
         try await lock.withLock { onSync }(walletId, assetId)
-    }
-
-    public func associatedAssetIds(transaction _: Gemstone.Transaction) -> [Gemstone.AssetId] {
-        []
     }
 
 }

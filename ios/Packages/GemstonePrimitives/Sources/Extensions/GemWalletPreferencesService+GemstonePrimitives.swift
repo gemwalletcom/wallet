@@ -10,10 +10,6 @@ public extension GemWalletPreferencesServiceProtocol {
         try Primitives.PerpetualAccountMode(getPerpetualAccountMode(walletId: walletId.id))
     }
 
-    func setPerpetualAccountMode(walletId: WalletId, mode: Primitives.PerpetualAccountMode) throws {
-        try setPerpetualAccountMode(walletId: walletId.id, mode: mode.json())
-    }
-
     func isInitialLoadCompleted(walletId: WalletId, step: GemDiscoveryStep) throws -> Bool {
         try isInitialLoadCompleted(walletId: walletId.id, step: step)
     }

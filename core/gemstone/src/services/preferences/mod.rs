@@ -36,12 +36,6 @@ pub struct GemPreferencesService {
 
 #[uniffi::export]
 impl GemPreferencesService {
-    pub fn get_skipped_app_version(&self) -> Option<String> {
-        self.store.get(SKIPPED_APP_VERSION.to_string())
-    }
-    pub fn set_skipped_app_version(&self, version: String) -> Result<(), GemServiceError> {
-        self.store.set(SKIPPED_APP_VERSION.to_string(), version)
-    }
     pub fn get_currency(&self) -> Currency {
         self.stored_currency().unwrap_or(Currency::USD)
     }
@@ -127,6 +121,14 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn get_skipped_app_version(&self) -> Option<String> {
+        self.store.get(SKIPPED_APP_VERSION.to_string())
+    }
+
+    pub fn set_skipped_app_version(&self, version: String) -> Result<(), GemServiceError> {
+        self.store.set(SKIPPED_APP_VERSION.to_string(), version)
+    }
+
     pub fn get_perpetual_markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
         self.get_timestamp(PERPETUAL_MARKETS_UPDATED_AT)
     }

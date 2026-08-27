@@ -27,26 +27,6 @@ pub struct GemAssetsService {
 
 #[uniffi::export]
 impl GemAssetsService {
-    pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Vec<AssetBasic> {
-        let lookups = chains.into_iter().map(|chain| {
-            let token_id = token_id.clone();
-            async move {
-                if self.gateway.get_is_token_address(chain, token_id.clone()).await.ok()? {
-                    self.gateway.get_token_data(chain, token_id).await.ok().map(rules::default_asset_basic)
-                } else {
-                    None
-                }
-            }
-        });
-        futures::future::join_all(lookups).await.into_iter().flatten().collect()
-    }
-    pub async fn search_assets_and_tokens(&self, query: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {
-        let token_chains = if chains.is_empty() { Chain::all() } else { chains.clone() };
-        let (assets, tokens) = futures::join!(self.search_assets(query.clone(), chains), self.search_tokens(query, token_chains));
-        let mut assets = assets?;
-        assets.extend(tokens);
-        Ok(assets)
-    }
     pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
         let lists = [
             (AssetList::Buy, versions.fiat_on_ramp_assets),
@@ -72,25 +52,6 @@ impl GemAssetsService {
             self.preferences.set_assets_version(list, assets.version.to_string())?;
         }
         Ok(())
-    }
-    pub async fn sync_default_assets(&self) -> Result<(), GemServiceError> {
-        let assets = rules::default_assets();
-        let existing = self.store.get_asset_ids(assets.iter().map(|asset| asset.asset.id.clone()).collect()).await?;
-        let missing = rules::missing_assets(assets, existing);
-        if !missing.is_empty() {
-            self.store.save_assets(missing).await?;
-        }
-        self.store.set_stakeable_assets(rules::stakeable_asset_ids()).await
-    }
-    pub async fn sync_swappable_chains(&self) -> Result<(), GemServiceError> {
-        let asset_ids = Chain::all().into_iter().filter(Chain::is_swap_supported).map(AssetId::from_chain).collect();
-        self.store.set_swappable_assets(asset_ids).await
-    }
-    pub async fn get_fiat_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, GemApiError> {
-        Ok(self.api.client.get_fiat_assets(quote_type).await?)
-    }
-    pub async fn get_swap_assets(&self) -> Result<FiatAssets, GemApiError> {
-        Ok(self.api.client.get_swap_assets().await?)
     }
 
     #[uniffi::constructor]
@@ -188,6 +149,51 @@ impl GemAssetsService {
 }
 
 impl GemAssetsService {
+    pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Vec<AssetBasic> {
+        let lookups = chains.into_iter().map(|chain| {
+            let token_id = token_id.clone();
+            async move {
+                if self.gateway.get_is_token_address(chain, token_id.clone()).await.ok()? {
+                    self.gateway.get_token_data(chain, token_id).await.ok().map(rules::default_asset_basic)
+                } else {
+                    None
+                }
+            }
+        });
+        futures::future::join_all(lookups).await.into_iter().flatten().collect()
+    }
+
+    pub async fn sync_default_assets(&self) -> Result<(), GemServiceError> {
+        let assets = rules::default_assets();
+        let existing = self.store.get_asset_ids(assets.iter().map(|asset| asset.asset.id.clone()).collect()).await?;
+        let missing = rules::missing_assets(assets, existing);
+        if !missing.is_empty() {
+            self.store.save_assets(missing).await?;
+        }
+        self.store.set_stakeable_assets(rules::stakeable_asset_ids()).await
+    }
+
+    pub async fn search_assets_and_tokens(&self, query: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {
+        let token_chains = if chains.is_empty() { Chain::all() } else { chains.clone() };
+        let (assets, tokens) = futures::join!(self.search_assets(query.clone(), chains), self.search_tokens(query, token_chains));
+        let mut assets = assets?;
+        assets.extend(tokens);
+        Ok(assets)
+    }
+
+    pub async fn sync_swappable_chains(&self) -> Result<(), GemServiceError> {
+        let asset_ids = Chain::all().into_iter().filter(Chain::is_swap_supported).map(AssetId::from_chain).collect();
+        self.store.set_swappable_assets(asset_ids).await
+    }
+
+    pub async fn get_fiat_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, GemApiError> {
+        Ok(self.api.client.get_fiat_assets(quote_type).await?)
+    }
+
+    pub async fn get_swap_assets(&self) -> Result<FiatAssets, GemApiError> {
+        Ok(self.api.client.get_swap_assets().await?)
+    }
+
     async fn stored_asset(&self, asset_id: &AssetId) -> Result<Option<Asset>, GemServiceError> {
         Ok(self.store.get_assets(vec![asset_id.clone()]).await?.into_iter().next())
     }

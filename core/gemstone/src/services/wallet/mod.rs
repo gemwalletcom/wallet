@@ -69,20 +69,6 @@ impl GemWalletService {
         rules::validate_import(import)
     }
 
-    pub fn preview_import(&self, import: GemWalletImportType) -> Result<GemWalletImport, GemServiceError> {
-        match rules::validate_import(import)? {
-            GemWalletImportType::Address { address, chain } => {
-                let wallet = rules::view_wallet(String::new(), chain, address);
-                Ok(GemWalletImport {
-                    wallet_id: wallet.id.id(),
-                    wallet_type: GemWalletType::View,
-                    accounts: wallet.accounts.into_iter().map(Into::into).collect(),
-                })
-            }
-            import => Ok(self.keystore.preview_import(keystore_import(import))?),
-        }
-    }
-
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: GemWalletSource) -> Result<GemWalletImportResult, GemServiceError> {
         let import = rules::validate_import(import)?;
         let preview = self.preview_import(import.clone())?;
@@ -176,6 +162,20 @@ impl GemWalletService {
 }
 
 impl GemWalletService {
+    pub fn preview_import(&self, import: GemWalletImportType) -> Result<GemWalletImport, GemServiceError> {
+        match rules::validate_import(import)? {
+            GemWalletImportType::Address { address, chain } => {
+                let wallet = rules::view_wallet(String::new(), chain, address);
+                Ok(GemWalletImport {
+                    wallet_id: wallet.id.id(),
+                    wallet_type: GemWalletType::View,
+                    accounts: wallet.accounts.into_iter().map(Into::into).collect(),
+                })
+            }
+            import => Ok(self.keystore.preview_import(keystore_import(import))?),
+        }
+    }
+
     pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
         self.store.get_wallets()
     }

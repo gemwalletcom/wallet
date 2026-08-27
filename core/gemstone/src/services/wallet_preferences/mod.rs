@@ -34,39 +34,6 @@ pub struct GemWalletPreferencesService {
 
 #[uniffi::export]
 impl GemWalletPreferencesService {
-    pub fn set_assets_timestamp(&self, wallet_id: WalletId, timestamp: u64) -> Result<(), GemServiceError> {
-        self.set_value(wallet_id, WalletPreferenceKey::AssetsTimestamp.as_ref().to_string(), timestamp.to_string())
-    }
-    pub fn get_transactions_timestamp(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> u64 {
-        self.get_timestamp_key(wallet_id, transactions_key(asset_id))
-    }
-    pub fn set_transactions_timestamp(&self, wallet_id: WalletId, asset_id: Option<AssetId>, timestamp: u64) -> Result<(), GemServiceError> {
-        self.set_value(wallet_id, transactions_key(asset_id), timestamp.to_string())
-    }
-    pub fn get_notifications_timestamp(&self, wallet_id: WalletId) -> u64 {
-        self.get_timestamp(wallet_id, WalletPreferenceKey::NotificationsTimestamp)
-    }
-    pub fn set_notifications_timestamp(&self, wallet_id: WalletId, timestamp: u64) -> Result<(), GemServiceError> {
-        self.store
-            .set(wallet_id, WalletPreferenceKey::NotificationsTimestamp.as_ref().to_string(), timestamp.to_string())
-    }
-    pub fn set_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> Result<(), GemServiceError> {
-        self.set_flag(wallet_id, initial_load_key(step))
-    }
-    pub fn is_wallet_configuration_completed(&self, wallet_id: WalletId) -> Result<bool, GemServiceError> {
-        self.get_flag(wallet_id, WalletPreferenceKey::CompleteInitialWalletConfiguration)
-    }
-    pub fn set_wallet_configuration_completed(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.set_flag(wallet_id, WalletPreferenceKey::CompleteInitialWalletConfiguration)
-    }
-    pub fn complete_initial_synchronization(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.set_flag(wallet_id.clone(), WalletPreferenceKey::CompleteInitialWalletConfiguration)?;
-        for step in [GemDiscoveryStep::Assets, GemDiscoveryStep::Transactions, GemDiscoveryStep::Nfts] {
-            self.set_flag(wallet_id.clone(), initial_load_key(step))?;
-        }
-        Ok(())
-    }
-
     #[uniffi::constructor]
     pub fn new(store: Arc<dyn GemWalletPreferencesStore>) -> Self {
         Self { store }
@@ -99,6 +66,53 @@ impl GemWalletPreferencesService {
         })
     }
 
+    pub fn clear(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        self.store.clear(wallet_id)
+    }
+}
+
+impl GemWalletPreferencesService {
+    pub fn set_assets_timestamp(&self, wallet_id: WalletId, timestamp: u64) -> Result<(), GemServiceError> {
+        self.set_value(wallet_id, WalletPreferenceKey::AssetsTimestamp.as_ref().to_string(), timestamp.to_string())
+    }
+
+    pub fn get_transactions_timestamp(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> u64 {
+        self.get_timestamp_key(wallet_id, transactions_key(asset_id))
+    }
+
+    pub fn set_transactions_timestamp(&self, wallet_id: WalletId, asset_id: Option<AssetId>, timestamp: u64) -> Result<(), GemServiceError> {
+        self.set_value(wallet_id, transactions_key(asset_id), timestamp.to_string())
+    }
+
+    pub fn get_notifications_timestamp(&self, wallet_id: WalletId) -> u64 {
+        self.get_timestamp(wallet_id, WalletPreferenceKey::NotificationsTimestamp)
+    }
+
+    pub fn set_notifications_timestamp(&self, wallet_id: WalletId, timestamp: u64) -> Result<(), GemServiceError> {
+        self.store
+            .set(wallet_id, WalletPreferenceKey::NotificationsTimestamp.as_ref().to_string(), timestamp.to_string())
+    }
+
+    pub fn set_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> Result<(), GemServiceError> {
+        self.set_flag(wallet_id, initial_load_key(step))
+    }
+
+    pub fn is_wallet_configuration_completed(&self, wallet_id: WalletId) -> Result<bool, GemServiceError> {
+        self.get_flag(wallet_id, WalletPreferenceKey::CompleteInitialWalletConfiguration)
+    }
+
+    pub fn set_wallet_configuration_completed(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        self.set_flag(wallet_id, WalletPreferenceKey::CompleteInitialWalletConfiguration)
+    }
+
+    pub fn complete_initial_synchronization(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        self.set_flag(wallet_id.clone(), WalletPreferenceKey::CompleteInitialWalletConfiguration)?;
+        for step in [GemDiscoveryStep::Assets, GemDiscoveryStep::Transactions, GemDiscoveryStep::Nfts] {
+            self.set_flag(wallet_id.clone(), initial_load_key(step))?;
+        }
+        Ok(())
+    }
+
     pub fn set_perpetual_account_mode(&self, wallet_id: WalletId, mode: PerpetualAccountMode) -> Result<(), GemServiceError> {
         let value = match mode {
             PerpetualAccountMode::Standard => "standard",
@@ -107,12 +121,6 @@ impl GemWalletPreferencesService {
         self.set_value(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string(), value.to_string())
     }
 
-    pub fn clear(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.store.clear(wallet_id)
-    }
-}
-
-impl GemWalletPreferencesService {
     fn get_timestamp(&self, wallet_id: WalletId, key: WalletPreferenceKey) -> u64 {
         self.get_timestamp_key(wallet_id, key.as_ref().to_string())
     }
