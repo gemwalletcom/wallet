@@ -103,7 +103,7 @@ impl GemBalanceService {
             .await
             .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
         let updates = rules::balance_updates(&assets, balances);
-        self.store.update_balances(wallet_id, updates).await
+        self.update_balances(wallet_id, updates).await
     }
 }
 

@@ -27,7 +27,6 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
                 isActive: update.isActive,
             )
         }
-        try store.addBalance(assetIds: balances.map(\.assetId), isEnabled: false, for: walletId)
         try store.updateBalances(balances, for: walletId)
     }
 

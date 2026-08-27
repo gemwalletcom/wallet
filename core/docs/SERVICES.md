@@ -131,7 +131,7 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 
 ### Rust (core/gemstone)
 
-- [ ] `GemBalanceService::update` should call `asset_store.add_missing_balances` itself; then drop the row-creating `insertIgnore` (Android `BalanceStore.updateBalances`) and `addBalance` (iOS `BalanceStore.updateBalances`) from the adapters so `update_balances` is a pure update on both.
+- [x] `GemBalanceService::update` adds missing balance rows itself; both `update_balances` adapters are pure updates.
 - [ ] Push-notification transaction preparation: one Core method (ensure asset, add hidden balance row, `add_transactions`) replacing iOS `NavigationHandler.preparedAssetForNavigation` + `navigateToTransaction` and Android `NotificationNavigation.prepareWallet/prepareTransaction`.
 - [ ] `GemStakeService` should save validator names through `GemAddressStore` (inject it) and `GemStakeStore.save_address_names` goes away; add `GemAddressStore.remove_address_names` so `GemContactService` owns the address-name cleanup both `ContactStore` adapters duplicate.
 - [ ] Perpetual account mode changes are invisible to the wallet summary until a wallet switch on both apps: return the mode from `sync_positions`/`account_mode` to the caller and let the apps refresh, or expose a change signal.
