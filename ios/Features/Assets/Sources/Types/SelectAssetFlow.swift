@@ -84,6 +84,7 @@ public extension SelectAssetType {
                     listType: .copy(.asset),
                     defaultFilters: [.enabled],
                     rowSelection: .navigate,
+                    selectionEffect: .recordRecent,
                     capabilities: [.networkSearch, .chainFilter, .recents],
                 )
             case .collection:
@@ -96,6 +97,7 @@ public extension SelectAssetType {
                         .chainsOrAssets([], Chain.allCases.filter(\.isNFTSupported).map(\.rawValue)),
                     ],
                     rowSelection: .navigate,
+                    selectionEffect: .recordRecent,
                     capabilities: [.networkSearch, .recents],
                 )
             }
@@ -105,6 +107,7 @@ public extension SelectAssetType {
                 listType: .view,
                 defaultFilters: [.enabled, .buyable],
                 rowSelection: .navigate,
+                selectionEffect: .recordRecent,
                 capabilities: [.networkSearch, .chainFilter, .recents, .popularSection],
             )
         case let .swap(type):

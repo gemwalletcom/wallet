@@ -163,16 +163,9 @@ extension SelectAssetSceneNavigationStack {
         isPresentingFilteringView.toggle()
     }
 
-    private func onChangeAssetSelection(_: AssetSelectionType?, new: AssetSelectionType?) {
-        if let new {
-            model.assetSelection = nil
-            switch new {
-            case let .regular(input):
-                model.updateRecent(assetId: input.asset.id)
-                navigationPath.append(input)
-            case let .recent(input):
-                navigationPath.append(input)
-            }
-        }
+    private func onChangeAssetSelection(_: SelectAssetInput?, new: SelectAssetInput?) {
+        guard let new else { return }
+        model.assetSelection = nil
+        navigationPath.append(new)
     }
 }
