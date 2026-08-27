@@ -44,6 +44,10 @@ impl GemNodeService {
         rules::chain_node(chain, selected_url, stored_nodes).url
     }
 
+    pub fn selected_node(&self, chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> Node {
+        rules::chain_node(chain, selected_url, stored_nodes)
+    }
+
     pub async fn set_selected_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         self.store.set_selected_url(chain, url).await
     }

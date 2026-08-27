@@ -149,7 +149,7 @@ State on 2026-08-27: every app service either forwards to a Core service or is p
 ### Android
 
 - Earn flow: `ConfirmParams` has no Earn variant and `AmountDataProvider` has no earn provider; add both on top of `GemTransactionInputType::Earn` and `GemAmountType::Earn` (iOS `AmountEarnViewModel` is the reference).
-- Sync reads through `runBlocking`: wallets (769a046649) and the session store write are done; still `nodes/NodesRepository.setCurrentNode/getCurrentNode` (the `NetworksViewModel` callers are non-suspending, so make the cases suspend together) and `device/DeviceRepository.deviceId/pushToken/currency` (DataStore flows behind `GemDevicePlatform`).
+- Sync reads through `runBlocking`: only `device/DeviceRepository.deviceId/pushToken/currency` remain (DataStore flows behind the synchronous `GemDevicePlatform`); back them with synchronous reads or make the platform trait async.
 - WalletConnect rejection texts: Core messages ("invalid origin", "unsupported chains", "wallets unsupported") reach the Android sheets untranslated; give `GemWalletConnectService` typed errors and localize them on both apps.
 - Room: the unreleased chain is 87→90 only; before any further schema change, batch it into one migration and prefer drop + recreate for Core-seeded tables (banners, nodes are re-added by users, so copy those).
 
