@@ -40,7 +40,7 @@ class GemstoneStakeStore(
 
     override suspend fun getDelegationIds(walletId: String, assetId: String, providerType: String): List<String> {
         val id = assetId.toAssetId() ?: return emptyList()
-        return stakeDao.getDelegationIds(WalletId(walletId), id)
+        return stakeDao.getDelegationIds(WalletId(walletId), id, providerType.decodeJson<StakeProviderType>())
     }
 
     override suspend fun updateDelegations(walletId: String, delegations: List<String>, deleteIds: List<String>) {

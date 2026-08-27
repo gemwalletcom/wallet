@@ -37,8 +37,12 @@ interface StakeDao {
     @Query("DELETE FROM stake_delegations WHERE walletId=:walletId AND id IN (:ids)")
     suspend fun deleteDelegations(walletId: WalletId, ids: List<String>)
 
-    @Query("SELECT id FROM stake_delegations WHERE walletId=:walletId AND assetId=:assetId")
-    suspend fun getDelegationIds(walletId: WalletId, assetId: AssetId): List<String>
+    @Query(
+        "SELECT base.id FROM stake_delegations as base " +
+            "INNER JOIN stake_validators as validator ON base.validatorId=validator.id " +
+            "WHERE base.walletId=:walletId AND base.assetId=:assetId AND validator.providerType=:providerType"
+    )
+    suspend fun getDelegationIds(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType): List<String>
 
     @Query(
         "SELECT * FROM stake_validators WHERE assetId=:assetId AND providerType=:providerType " +
