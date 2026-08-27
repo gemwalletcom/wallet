@@ -37,6 +37,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.math.BigInteger
+import uniffi.gemstone.GemAmountLimits
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountViewModelTest {
@@ -57,10 +58,11 @@ class AmountViewModelTest {
         every { assetInfo } returns assetInfoFlow
         every { availableBalance } returns availableBalanceFlow
         every { minimumValue } returns MutableStateFlow(BigInteger.ZERO)
-        every { canChangeValue } returns true
+        every { canChangeValue } returns MutableStateFlow(true)
         every { canSwitchInputType } returns true
-        every { reserveForFee } returns BigInteger.ZERO
-        every { shouldReserveFee(any()) } returns false
+        every { reserveForFee } returns MutableStateFlow(BigInteger.ZERO)
+        every { limits } returns MutableStateFlow(null)
+        every { maxValue() } answers { availableBalanceFlow.value }
         coEvery { buildConfirmParams(capture(builtAmounts), capture(builtIsMax)) } returns confirmParams
     }
     private val factory = mockk<AmountProviderFactory> { every { create(any(), any()) } returns provider }
@@ -166,8 +168,9 @@ class AmountViewModelTest {
     @Test
     fun `onMaxAmount reserves the network fee from the balance`() = viewModelTest { viewModel ->
         availableBalanceFlow.value = BigInteger("2000000")
-        every { provider.shouldReserveFee(true) } returns true
-        every { provider.reserveForFee } returns BigInteger("500000")
+        every { provider.limits } returns MutableStateFlow(GemAmountLimits(availableValue = "2000000", maxValue = "1500000", reservesFee = true))
+        every { provider.reserveForFee } returns MutableStateFlow(BigInteger("500000"))
+        every { provider.maxValue() } returns BigInteger("1500000")
 
         viewModel.onMaxAmount()
         runCurrent()

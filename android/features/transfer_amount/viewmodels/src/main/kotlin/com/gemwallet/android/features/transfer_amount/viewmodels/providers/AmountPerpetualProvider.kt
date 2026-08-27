@@ -33,6 +33,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigInteger
+import uniffi.gemstone.GemAmountBalance
+import uniffi.gemstone.GemAmountPerpetualPosition
+import uniffi.gemstone.GemAmountType
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProvider(
@@ -42,12 +45,10 @@ class AmountPerpetualProvider(
     getPerpetual: GetPerpetual,
     getPerpetualBalance: GetPerpetualBalance,
     private val scope: CoroutineScope,
-) : AmountDataProvider {
+) : AmountDataProvider(scope) {
 
     override val title: AmountTitle = AmountTitle.Perpetual(params.positionAction)
-    override val canChangeValue: Boolean = true
     override val canSwitchInputType: Boolean = false
-    override val reserveForFee: BigInteger = BigInteger.ZERO
 
     private val isOpenAction: Boolean =
         params.positionAction is PerpetualPositionAction.Open
@@ -147,36 +148,29 @@ class AmountPerpetualProvider(
         }
     }
 
-    override val minimumValue: StateFlow<BigInteger> = combine(
+    override val amountType: StateFlow<GemAmountType?> = combine(
         perpetual.filterNotNull(),
         leverageState,
     ) { current, state ->
+        val position = when (val action = params.positionAction) {
+            is PerpetualPositionAction.Reduce -> GemAmountPerpetualPosition.Reduce(action.available.toString())
+            is PerpetualPositionAction.Increase -> GemAmountPerpetualPosition.Increase
+            else -> GemAmountPerpetualPosition.Open
+        }
         val leverage = state?.current ?: params.positionAction.data.leverage.toInt()
-        BigInteger.valueOf(
-            PerpetualFormatter.minimumOrderUsdAmount(
-                provider = current.provider,
-                price = current.price,
-                decimals = current.asset.decimals,
-                leverage = leverage,
-            ).toLong()
-        )
-    }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO)
+        GemAmountType.Perpetual(position = position, price = current.price, leverage = leverage.toUByte())
+    }.stateIn(scope, SharingStarted.Eagerly, null)
 
     override val assetInfo: StateFlow<AssetInfo?> = perpetual.filterNotNull()
         .flatMapLatest { getAssetInfo(HypercoreUSDC.id) }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override val availableBalance: StateFlow<BigInteger> = when (val action = params.positionAction) {
-        is PerpetualPositionAction.Reduce -> MutableStateFlow(action.available)
-        else -> getPerpetualBalance.getBalance()
-            .combine(assetInfo.filterNotNull()) { balance, current ->
-                val available = balance?.available ?: 0.0
-                Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue
-            }
-            .stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO)
-    }
-
-    override fun shouldReserveFee(isMaxAmount: Boolean): Boolean = false
+    override val balance: StateFlow<GemAmountBalance?> = getPerpetualBalance.getBalance()
+        .combine(assetInfo.filterNotNull()) { perpetualBalance, current ->
+            val available = perpetualBalance?.available ?: 0.0
+            current.toAmountBalance().copy(available = Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue.toString())
+        }
+        .stateIn(scope, SharingStarted.Eagerly, null)
 
     override suspend fun buildConfirmParams(amount: Crypto, isMax: Boolean): ConfirmParams {
         val current = assetInfo.value ?: error("assetInfo not loaded")

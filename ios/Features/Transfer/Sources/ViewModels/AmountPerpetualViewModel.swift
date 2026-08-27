@@ -3,6 +3,8 @@
 import BigInt
 import Formatters
 import Foundation
+import enum Gemstone.GemAmountType
+import enum Gemstone.GemAmountPerpetualPosition
 import GemstonePrimitives
 import Localization
 import Perpetuals
@@ -91,33 +93,13 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         .perpetual(data)
     }
 
-    var minimumValue: BigInt {
-        BigInt(
-            PerpetualFormatter(provider: .hypercore).minimumOrderUsdAmount(
-                price: transferData.price,
-                decimals: transferData.asset.decimals,
-                leverage: leverage,
-            ),
-        )
-    }
-
-    var canChangeValue: Bool {
-        true
-    }
-
-    var reserveForFee: BigInt {
-        .zero
-    }
-
-    func shouldReserveFee(from _: AssetData) -> Bool {
-        false
-    }
-
-    func availableValue(from assetData: AssetData) -> BigInt {
-        switch data.positionAction {
-        case .open, .increase: assetData.balance.available
-        case let .reduce(_, available, _): available
+    var gemAmountType: GemAmountType {
+        let position: GemAmountPerpetualPosition = switch data.positionAction {
+        case .open: .open
+        case .increase: .increase
+        case let .reduce(_, available, _): .reduce(available: available.description)
         }
+        return .perpetual(position: position, price: transferData.price, leverage: leverage)
     }
 
     func recipientData() -> RecipientData {

@@ -2,6 +2,7 @@
 
 import BigInt
 import Foundation
+import enum Gemstone.GemAmountType
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Localization
@@ -47,31 +48,15 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         .earn(action)
     }
 
-    var minimumValue: BigInt {
-        .zero
-    }
-
-    var canChangeValue: Bool {
-        true
-    }
-
-    var reserveForFee: BigInt {
-        .zero
-    }
-
-    func shouldReserveFee(from _: AssetData) -> Bool {
-        false
-    }
-
-    func availableValue(from assetData: AssetData) -> BigInt {
-        switch action {
-        case .deposit: assetData.balance.available
-        case let .withdraw(delegation): delegation.base.balanceValue
+    var gemAmountType: GemAmountType {
+        do {
+            return switch action {
+            case .deposit: .earn(earnType: .deposit)
+            case let .withdraw(delegation): try .earn(earnType: .withdraw(delegation: delegation.json()))
+            }
+        } catch {
+            preconditionFailure("Unencodable delegation: \(error)")
         }
-    }
-
-    func maxValue(from assetData: AssetData) -> BigInt {
-        availableValue(from: assetData)
     }
 
     func recipientData() -> RecipientData {

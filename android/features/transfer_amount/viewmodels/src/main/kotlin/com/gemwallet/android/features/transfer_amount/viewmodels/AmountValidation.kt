@@ -1,43 +1,36 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels
 
 import com.gemwallet.android.features.transfer_amount.models.AmountError
-import com.gemwallet.android.math.parseInputNumber
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.math.parseInputNumber
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
-import java.math.BigDecimal
+import uniffi.gemstone.GemAmountException
+import uniffi.gemstone.GemAmountService
 import java.math.BigInteger
 
 object AmountValidation {
-
-    fun validateAmount(asset: Asset, amount: String, minValue: BigInteger) {
+    fun parseAmount(asset: Asset, amount: String): Crypto {
         if (amount.isEmpty()) {
             throw AmountError.Required
         }
-        try {
+        val number = try {
             amount.parseInputNumber()
         } catch (_: Throwable) {
             throw AmountError.IncorrectAmount
         }
-        val crypto = Crypto(amount.parseInputNumber(), asset.decimals)
-        if (minValue != BigInteger.ZERO && crypto.atomicValue < minValue) {
-            throw AmountError.MinimumValue(
-                ValueFormatter(style = ValueFormatter.Style.Full).string(minValue, asset)
-            )
-        }
+        return Crypto(number, asset.decimals)
     }
 
-    fun validateBalance(
-        assetInfo: AssetInfo,
-        amount: Crypto,
-        availableBalance: BigDecimal,
-    ) {
-        if (amount.atomicValue == BigInteger.ZERO) {
-            throw AmountError.ZeroAmount
-        }
-        if (amount.value(assetInfo.asset.decimals) > availableBalance) {
-            throw AmountError.InsufficientBalance(assetInfo.asset.symbol)
+    fun validate(asset: Asset, amount: Crypto, availableBalance: BigInteger, minimumValue: BigInteger) {
+        try {
+            GemAmountService().validate(amount.atomicValue.toString(), availableBalance.toString(), minimumValue.toString())
+        } catch (error: GemAmountException) {
+            throw when (error) {
+                is GemAmountException.Zero -> AmountError.ZeroAmount
+                is GemAmountException.BelowMinimum -> AmountError.MinimumValue(ValueFormatter(style = ValueFormatter.Style.Full).string(minimumValue, asset))
+                is GemAmountException.InsufficientBalance -> AmountError.InsufficientBalance(asset.symbol)
+            }
         }
     }
 }

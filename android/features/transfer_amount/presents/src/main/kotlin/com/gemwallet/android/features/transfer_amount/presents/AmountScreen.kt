@@ -41,6 +41,8 @@ fun AmountScreen(
     val reserve by viewModel.reserveForFeeFormatted.collectAsStateWithLifecycle()
     val currency by viewModel.currency.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
+    val canChangeValue by provider.canChangeValue.collectAsStateWithLifecycle()
+    val showsAssetBalance by provider.showsAssetBalance.collectAsStateWithLifecycle()
 
     AnimatedContent(
         isSelectValidator && canPickValidator,
@@ -69,8 +71,8 @@ fun AmountScreen(
                 asset = (provider as? AmountTransferProvider)?.displayAsset ?: assetInfo.asset,
                 currency = currency,
                 canSwitchInputType = provider.canSwitchInputType,
-                readOnly = !provider.canChangeValue,
-                showsAssetBalance = provider.showsAssetBalance,
+                readOnly = !canChangeValue,
+                showsAssetBalance = showsAssetBalance,
                 error = error,
                 equivalent = equivalent,
                 availableBalance = available,

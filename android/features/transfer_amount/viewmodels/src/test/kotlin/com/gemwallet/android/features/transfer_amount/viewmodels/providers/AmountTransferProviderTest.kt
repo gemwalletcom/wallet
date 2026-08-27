@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
 import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
@@ -32,9 +31,6 @@ class AmountTransferProviderTest {
     private val getAssetInfo = mockk<GetAssetInfo> {
         every { this@mockk.invoke(asset.id) } returns flowOf(assetInfo)
     }
-    private val balanceService = mockk<TransactionBalanceService> {
-        coEvery { getBalance(any(), any<AmountParams>(), any(), any()) } returns BigInteger("1000000")
-    }
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
     private val params = AmountParams.Transfer(
         assetId = asset.id,
@@ -45,7 +41,6 @@ class AmountTransferProviderTest {
     private fun makeProvider() = AmountTransferProvider(
         params = params,
         getAssetInfo = getAssetInfo,
-        transactionBalanceService = balanceService,
         scope = scope,
     )
 
@@ -57,7 +52,7 @@ class AmountTransferProviderTest {
     @Test
     fun `canChangeValue and canSwitchInputType are both true`() {
         val provider = makeProvider()
-        assertTrue(provider.canChangeValue)
+        assertTrue(provider.canChangeValue.value)
         assertTrue(provider.canSwitchInputType)
     }
 
@@ -65,7 +60,7 @@ class AmountTransferProviderTest {
     fun `minimumValue and reserveForFee are zero`() {
         val provider = makeProvider()
         assertEquals(BigInteger.ZERO, provider.minimumValue.value)
-        assertEquals(BigInteger.ZERO, provider.reserveForFee)
+        assertEquals(BigInteger.ZERO, provider.reserveForFee.value)
     }
 
     @Test
@@ -85,7 +80,6 @@ class AmountTransferProviderTest {
         val provider = AmountTransferProvider(
             params = AmountParams.Deposit(asset.id),
             getAssetInfo = getAssetInfo,
-            transactionBalanceService = balanceService,
             scope = scope,
         )
         assertEquals(AmountTitle.Deposit, provider.title)
@@ -96,7 +90,6 @@ class AmountTransferProviderTest {
         val provider = AmountTransferProvider(
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getAssetInfo,
-            transactionBalanceService = balanceService,
             scope = scope,
         )
         assertEquals(AmountTitle.Withdraw, provider.title)
@@ -114,7 +107,6 @@ class AmountTransferProviderTest {
         val provider = AmountTransferProvider(
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getInfo,
-            transactionBalanceService = balanceService,
             scope = scope,
         )
         assertEquals(BigInteger("5000000"), provider.availableBalance.first { it != BigInteger.ZERO })
@@ -125,7 +117,6 @@ class AmountTransferProviderTest {
         val provider = AmountTransferProvider(
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getAssetInfo,
-            transactionBalanceService = balanceService,
             scope = scope,
         )
         val owner = provider.assetInfo.filterNotNull().first().owner

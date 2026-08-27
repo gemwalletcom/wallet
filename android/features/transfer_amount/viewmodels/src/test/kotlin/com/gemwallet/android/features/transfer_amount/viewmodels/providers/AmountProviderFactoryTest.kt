@@ -29,7 +29,6 @@ class AmountProviderFactoryTest {
 
     private val asset = mockAssetCosmos()
     private val factory = AmountProviderFactory(
-        transactionBalanceService = mockk(relaxed = true),
         getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
             every { this@mockk.invoke(any()) } returns flowOf(null)
         },

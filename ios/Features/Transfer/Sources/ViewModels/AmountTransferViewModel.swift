@@ -2,6 +2,7 @@
 
 import BigInt
 import Foundation
+import enum Gemstone.GemAmountType
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -51,30 +52,11 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         }
     }
 
-    var minimumValue: BigInt {
+    var gemAmountType: GemAmountType {
         switch action {
-        case .send: .zero
-        case .deposit: asset.symbol == "USDC" ? PerpetualConfig.minDeposit : .zero
-        case .withdraw: asset.symbol == "USDC" ? PerpetualConfig.minWithdraw : .zero
-        }
-    }
-
-    var canChangeValue: Bool {
-        true
-    }
-
-    var reserveForFee: BigInt {
-        .zero
-    }
-
-    func shouldReserveFee(from _: AssetData) -> Bool {
-        false
-    }
-
-    func availableValue(from assetData: AssetData) -> BigInt {
-        switch action {
-        case .send, .deposit: assetData.balance.available
-        case .withdraw: assetData.balance.withdrawable
+        case .send: .transfer
+        case .deposit: .deposit
+        case .withdraw: .withdraw
         }
     }
 

@@ -3,6 +3,8 @@
 import BigInt
 import Formatters
 import Foundation
+import enum Gemstone.GemAmountType
+import enum Gemstone.GemAmountStakeType
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -96,82 +98,31 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         }
     }
 
-    var minimumValue: BigInt {
-        guard let stakeChain = asset.chain.stakeChain else { return .zero }
-        return switch action {
-        case .stake, .freeze:
-            BigInt(StakeConfig.config(chain: stakeChain).minAmount)
-        case .redelegate:
-            stakeChain == .smartChain ? BigInt(StakeConfig.config(chain: stakeChain).minAmount) : .zero
-        case .unstake, .unfreeze, .claimRewards:
-            .zero
-        case .withdraw:
-            asset.symbol == "USDC" ? PerpetualConfig.minDeposit : .zero
-        }
-    }
-
-    var canChangeValue: Bool {
-        switch action {
-        case .stake, .redelegate, .freeze, .unfreeze:
-            true
-        case .unstake:
-            StakeChain(rawValue: asset.chain.rawValue)?.canChangeAmountOnUnstake ?? true
-        case .withdraw, .claimRewards:
-            false
-        }
-    }
-
-    var showsAssetBalance: Bool {
-        switch action {
-        case .claimRewards: true
-        default: canChangeValue
-        }
-    }
-
-    func shouldReserveFee(from assetData: AssetData) -> Bool {
-        let maxAfterFee = max(.zero, availableValue(from: assetData) - reserveForFee)
-        return switch action {
-        case .stake:
-            asset.chain != .tron && maxAfterFee > minimumValue && !reserveForFee.isZero
-        case .freeze:
-            maxAfterFee > minimumValue
-        case .unstake, .redelegate, .withdraw, .claimRewards, .unfreeze:
-            false
-        }
-    }
-
-    var reserveForFee: BigInt {
-        guard let stakeChain = asset.chain.stakeChain else { return .zero }
-        return switch action {
-        case .stake where asset.chain != .tron, .freeze:
-            BigInt(StakeConfig.config(chain: stakeChain).reservedForFees)
-        default:
-            .zero
-        }
-    }
-
-    func availableValue(from assetData: AssetData) -> BigInt {
-        switch action {
-        case .stake:
-            if asset.chain == .tron {
-                let staked = BigNumberFormatter.standard.number(
-                    from: Int(assetData.balance.metadata?.votes ?? 0),
-                    decimals: Int(assetData.asset.decimals),
-                )
-                return (assetData.balance.frozen + assetData.balance.locked) - staked
+    var gemAmountType: GemAmountType {
+        do {
+            let stakeType: GemAmountStakeType = switch action {
+            case .stake: .stake
+            case let .unstake(delegation): try .unstake(delegation: delegation.json())
+            case let .redelegate(delegation, _, _): try .redelegate(delegation: delegation.json())
+            case let .withdraw(delegation): try .withdraw(delegation: delegation.json())
+            case let .claimRewards(delegations): try .rewards(delegations: selectedRewardsDelegations(delegations).map { try $0.json() })
+            case .freeze: try .freeze(resource: selectedResource.json())
+            case .unfreeze: try .unfreeze(resource: selectedResource.json())
             }
-            return assetData.balance.available
-        case let .unstake(delegation), let .redelegate(delegation, _, _), let .withdraw(delegation):
-            return delegation.base.balanceValue
-        case let .claimRewards(delegations):
-            guard case let .validator(state) = selection else { return .zero }
-            return delegations.first { $0.validator.id == state.selected.id }?.base.rewardsValue ?? .zero
-        case .freeze:
-            return assetData.balance.available
-        case .unfreeze:
-            guard case let .resource(state) = selection else { return .zero }
-            return state.selected == .bandwidth ? assetData.balance.frozen : assetData.balance.locked
+            return .stake(stakeType: stakeType)
+        } catch {
+            preconditionFailure("Unencodable stake amount type: \(error)")
         }
+    }
+
+    private var selectedResource: Resource {
+        guard case let .resource(state) = selection else { return .bandwidth }
+        return state.selected
+    }
+
+    private func selectedRewardsDelegations(_ delegations: [Delegation]) -> [Delegation] {
+        guard case let .validator(state) = selection else { return [] }
+        return delegations.filter { $0.validator.id == state.selected.id }
     }
 
     func recipientData() -> RecipientData {

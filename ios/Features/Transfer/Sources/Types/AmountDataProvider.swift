@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAmountType
 import BigInt
 import Primitives
 
@@ -42,33 +43,16 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         provider.amountType
     }
 
-    var minimumValue: BigInt {
-        provider.minimumValue
+    var gemAmountType: GemAmountType {
+        provider.gemAmountType
     }
 
-    var canChangeValue: Bool {
-        provider.canChangeValue
-    }
 
-    var showsAssetBalance: Bool {
-        provider.showsAssetBalance
-    }
 
-    var reserveForFee: BigInt {
-        provider.reserveForFee
-    }
 
-    func availableValue(from assetData: AssetData) -> BigInt {
-        provider.availableValue(from: assetData)
-    }
 
-    func shouldReserveFee(from assetData: AssetData) -> Bool {
-        provider.shouldReserveFee(from: assetData)
-    }
 
-    func maxValue(from assetData: AssetData) -> BigInt {
-        provider.maxValue(from: assetData)
-    }
+
 
     func recipientData() -> RecipientData {
         provider.recipientData()
