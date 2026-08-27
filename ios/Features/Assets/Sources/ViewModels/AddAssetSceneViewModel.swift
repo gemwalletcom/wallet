@@ -21,6 +21,7 @@ public final class AddAssetSceneViewModel {
     var input: AddAssetInput
 
     var isPresentingScanner = false
+    var fetchTrigger: AddAssetFetchTrigger?
 
     public init(wallet: Wallet, gatewayService: GatewayService, explorerService: any GemExplorerServiceProtocol) {
         self.gatewayService = gatewayService
@@ -96,19 +97,39 @@ public final class AddAssetSceneViewModel {
 // MARK: - Business Logic
 
 extension AddAssetSceneViewModel {
+    func setInput(_ address: String) {
+        input.address = address
+        setFetchTrigger(isImmediate: true)
+    }
+
+    func onChangeAddress() {
+        guard fetchTrigger?.address != input.address else { return }
+        setFetchTrigger(isImmediate: false)
+    }
+
+    func onSubmitAddress() {
+        setFetchTrigger(isImmediate: true)
+    }
+
     func fetch() async {
-        guard let chain = input.chain, let address = input.address, !address.isEmpty else {
-            state = .noData
-            return
-        }
+        guard let trigger = fetchTrigger else { return }
 
         state = .loading
 
         do {
-            let asset = try await gatewayService.tokenData(chain: chain, tokenId: address)
+            let asset = try await gatewayService.tokenData(chain: trigger.chain, tokenId: trigger.address)
             state = .data(AddAssetViewModel(asset: asset, explorerService: explorerService))
         } catch {
             state.setError(error)
         }
+    }
+
+    private func setFetchTrigger(isImmediate: Bool) {
+        guard let chain = input.chain, let address = input.address, !address.isEmpty else {
+            state = .noData
+            fetchTrigger = nil
+            return
+        }
+        fetchTrigger = AddAssetFetchTrigger(chain: chain, address: address, isImmediate: isImmediate)
     }
 }
