@@ -36,10 +36,6 @@ public struct PerpetualConfig {
         BigInt(Config.shared.getPerpetualConfig().minWithdraw)
     }
 
-    public static var pricesUpdateIntervalSeconds: TimeInterval {
-        TimeInterval(Config.shared.getPerpetualConfig().pricesUpdateIntervalSeconds)
-    }
-
     public static var leverageOptions: [UInt8] {
         Array(Config.shared.getPerpetualConfig().leverageOptions)
     }

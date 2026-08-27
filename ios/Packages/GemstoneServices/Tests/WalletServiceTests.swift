@@ -165,14 +165,15 @@ struct WalletServiceTests {
 
     @Test
     func setupChainsAddsMissingChains() async throws {
-        let service = WalletService.mock(walletStore: .mock(db: .mockWithChains([.ethereum, .solana])))
+        let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum, .solana]))
+        let service = WalletService.mock(walletStore: walletStore)
         _ = try await service.importWallet(name: "ETH only", type: .phrase(words: LocalKeystore.words, chains: [.ethereum]), source: .import)
         let store = WalletStore.mock(db: .mockWithChains([.ethereum, .solana]))
         _ = store
 
         try await service.setup(chains: [.ethereum, .solana])
 
-        let wallet = try #require(try service.mockWallets().first)
+        let wallet = try #require(try walletStore.getWallets().first)
         #expect(wallet.accounts.map(\.chain).asSet() == [Chain.ethereum, .solana].asSet())
     }
 
@@ -180,14 +181,15 @@ struct WalletServiceTests {
     func setupChainsSkipsWalletsWithoutKeystoreWithoutReadingPassword() async throws {
         let mockPassword = MockKeystorePassword()
         let keystore = LocalKeystore.mock(keystorePassword: mockPassword)
-        let service = WalletService.mock(keystore: keystore, walletStore: .mock(db: .mockWithChains([.ethereum, .solana])))
+        let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum, .solana]))
+        let service = WalletService.mock(keystore: keystore, walletStore: walletStore)
         let wallet = try await service.importWallet(name: "ETH only", type: .phrase(words: LocalKeystore.words, chains: [.ethereum]), source: .import).wallet
         try await keystore.deleteKey(for: wallet)
         let passwordReadsBefore = mockPassword.getPasswordCallsCount
 
         try await service.setup(chains: [.ethereum, .solana])
 
-        #expect(try service.mockWallets().first?.accounts.count == 1)
+        #expect(try walletStore.getWallets().first?.accounts.count == 1)
         #expect(mockPassword.getPasswordCallsCount == passwordReadsBefore)
     }
 
@@ -206,9 +208,10 @@ struct WalletServiceTests {
 
     @Test
     func concurrentImportAndDelete() async throws {
+        let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
         let service = WalletService.mock(
             keystore: LocalKeystore.mock(keystorePassword: MockKeystorePassword(memoryPassword: LocalKeystore.password)),
-            walletStore: .mock(db: .mockWithChains([.ethereum])),
+            walletStore: walletStore,
         )
         let words = try (0 ..< 5).map { _ in try service.createWallet() }
 
@@ -232,6 +235,6 @@ struct WalletServiceTests {
             }
             try await group.waitForAll()
         }
-        #expect(try service.mockWallets().isEmpty)
+        #expect(try walletStore.getWallets().isEmpty)
     }
 }

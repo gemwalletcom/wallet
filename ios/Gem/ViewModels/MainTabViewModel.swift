@@ -23,8 +23,4 @@ final class MainTabViewModel {
             initialValue: 0,
         )
     }
-
-    var isMarketEnabled: Bool {
-        false // TODO: Disabled. Preferences.standard.isDeveloperEnabled && wallet.type == .multicoin
-    }
 }

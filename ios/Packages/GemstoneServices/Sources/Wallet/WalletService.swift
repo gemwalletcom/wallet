@@ -86,10 +86,6 @@ public struct WalletService: Sendable {
         try await keystore.getMnemonic(wallet: wallet)
     }
 
-    package func mockWallets() throws -> [Wallet] {
-        try walletSessionService.getWallets()
-    }
-
     public func getPrivateKeyEncoded(wallet: Primitives.Wallet, chain: Chain) async throws -> String {
         try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: chain)
     }

@@ -29,10 +29,6 @@ public enum GemstoneConfig {
 public enum NodeURL {
     public static let regions = Config.shared.getNodeRegions()
 
-    public static func baseURL(region: NodeRegion) -> URL {
-        URL(string: Config.shared.getNodeBaseUrl(region: region))!
-    }
-
     public static func url(chain: Primitives.Chain, region: NodeRegion) -> URL {
         URL(string: Config.shared.getNodeUrl(chain: chain.rawValue, region: region))!
     }
@@ -73,12 +69,6 @@ public enum AppUrl {
         guard let socialUrl = Config.shared.getSocialUrl(item: item),
               let url = URL(string: socialUrl) else { return nil }
         return url
-    }
-}
-
-public enum StakeConfig {
-    public static func config(chain: StakeChain) -> StakeChainConfig {
-        Config.shared.getStakeConfig(chain: chain.rawValue)
     }
 }
 

@@ -11,10 +11,6 @@ public struct PerpetualFormatter {
         perpetual = Gemstone.Perpetual(provider: provider.map())
     }
 
-    public func minimumOrderUsdAmount(price: Double, decimals: Int32, leverage: UInt8) -> UInt64 {
-        perpetual.minimumOrderUsdAmount(price: price, decimals: decimals, leverage: leverage)
-    }
-
     public func formatPrice(_ price: Double, decimals: Int32) -> String {
         perpetual.formatPrice(price: price, decimals: decimals)
     }

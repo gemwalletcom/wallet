@@ -69,14 +69,6 @@ struct MainTabView: View {
             }
             .tag(TabItem.wallet)
 
-            if model.isMarketEnabled {
-                MarketsNavigationStack()
-                    .tabItem {
-                        tabItem("Markets", Images.Tabs.markets)
-                    }
-                    .tag(TabItem.markets)
-            }
-
             NavigationStack(path: navigationState.activity.binding) {
                 TransactionsNavigationView(
                     model: TransactionsViewModel(
@@ -195,7 +187,7 @@ extension MainTabView {
                 case .activity:
                     navigationState.wallet.setPath([Scenes.Asset(asset: asset)])
                     navigationState.selectedTab = .wallet
-                case .markets, .settings:
+                case .settings:
                     break
                 }
                 presenter.isPresentingAssetInput.wrappedValue = nil
