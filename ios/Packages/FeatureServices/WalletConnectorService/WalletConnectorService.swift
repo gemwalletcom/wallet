@@ -238,10 +238,7 @@ extension WalletConnectorService {
             return
         }
 
-        let currentWalletId = try? signer.getCurrentWallet().id
         let (payload, status) = try service.prepareSessionProposal(
-            wallets: signer.getWallets(),
-            currentWalletId: currentWalletId,
             requiredChainIds: proposal.requiredNamespaces.chainIds,
             optionalChainIds: proposal.optionalNamespaces?.chainIds ?? [],
             metadata: metadata(proposal.proposer),

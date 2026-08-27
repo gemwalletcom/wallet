@@ -14,6 +14,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemWalletConnectService
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.TransactionSimulationService
 import javax.inject.Singleton
 
@@ -60,10 +61,12 @@ object BridgesModule {
         simulationService: TransactionSimulationService,
         connectionStore: GemstoneConnectionStore,
         pendingRequests: WalletConnectPendingRequests,
+        walletSessionService: GemWalletSessionService,
     ): GemWalletConnectService = GemWalletConnectService(
         simulation = simulationService,
         store = connectionStore,
         signer = GemstoneWalletConnectSigner(pendingRequests),
+        session = walletSessionService,
     )
 
     @Singleton

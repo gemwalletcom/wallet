@@ -13,6 +13,7 @@ use primitives::{
 };
 
 use crate::services::error::GemServiceError;
+use crate::services::wallet_session::GemWalletSessionService;
 use crate::transaction_simulation::TransactionSimulationService;
 use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
 
@@ -30,17 +31,24 @@ pub struct GemWalletConnectService {
     simulation: Arc<TransactionSimulationService>,
     store: Arc<dyn GemConnectionStore>,
     signer: Arc<dyn GemWalletConnectSigner>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemWalletConnectService {
     #[uniffi::constructor]
-    pub fn new(simulation: Arc<TransactionSimulationService>, store: Arc<dyn GemConnectionStore>, signer: Arc<dyn GemWalletConnectSigner>) -> Self {
+    pub fn new(
+        simulation: Arc<TransactionSimulationService>,
+        store: Arc<dyn GemConnectionStore>,
+        signer: Arc<dyn GemWalletConnectSigner>,
+        session: Arc<GemWalletSessionService>,
+    ) -> Self {
         Self {
             wallet_connect: WalletConnect::new(),
             simulation,
             store,
             signer,
+            session,
         }
     }
 
@@ -74,14 +82,14 @@ impl GemWalletConnectService {
 
     pub fn prepare_session_proposal(
         &self,
-        wallets: Vec<Wallet>,
-        current_wallet_id: Option<WalletId>,
         required_chain_ids: Vec<String>,
         optional_chain_ids: Vec<String>,
         metadata: ApplicationMetadata,
         origin: Option<String>,
         validation: WalletConnectionVerificationStatus,
     ) -> Result<GemSessionProposal, GemWalletConnectError> {
+        let wallets = self.session.get_wallets()?;
+        let current_wallet_id = self.session.get_current_wallet_id()?;
         let required = rules::parse_chains(&self.wallet_connect, &required_chain_ids).ok_or(GemWalletConnectError::UnsupportedChains)?;
         let optional = rules::parse_known_chains(&self.wallet_connect, &optional_chain_ids);
         let verification_status = self.wallet_connect.validate_origin(metadata.url.clone(), origin, validation);

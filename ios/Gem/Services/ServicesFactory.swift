@@ -217,6 +217,7 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
             interactor: walletConnectorManager,
             transactionSimulationService: transactionSimulationService,
+            gemWalletSessionService: gemWalletSessionService,
         )
 
         let assetsEnabler = AssetsEnablerService(
@@ -469,6 +470,7 @@ extension ServicesFactory {
         walletSessionService: WalletSessionService,
         interactor: any WalletConnectorInteractable,
         transactionSimulationService: TransactionSimulationService,
+        gemWalletSessionService: GemWalletSessionService,
     ) -> ConnectionsService {
         let signer = WalletConnectorSigner(
             walletSessionService: walletSessionService,
@@ -481,6 +483,7 @@ extension ServicesFactory {
                     simulation: transactionSimulationService,
                     store: GemstoneConnectionStore(store: connectionsStore),
                     signer: signer,
+                    session: gemWalletSessionService,
                 ),
             ),
         )
