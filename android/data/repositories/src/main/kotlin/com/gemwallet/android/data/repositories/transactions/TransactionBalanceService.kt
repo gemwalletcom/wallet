@@ -19,14 +19,12 @@ class TransactionBalanceService @Inject constructor(
 ) {
 
     suspend fun getBalance(assetInfo: AssetInfo, params: ConfirmParams): BigInteger {
-        if (params is ConfirmParams.PerpetualParams) {
-            return getPerpetualBalance(assetInfo)
-        }
         val balance = assetInfo.balance.balance
+        val available = if (params is ConfirmParams.PerpetualParams) perpetualAvailable(assetInfo) else balance.available
         return GemTransferService().availableValue(
             params.toTransferData(),
             GemTransferBalance(
-                available = balance.available,
+                available = available,
                 frozen = balance.frozen,
                 locked = balance.locked,
                 withdrawable = balance.withdrawable,
@@ -35,9 +33,9 @@ class TransactionBalanceService @Inject constructor(
         ).toBigIntegerOrNull() ?: BigInteger.ZERO
     }
 
-    private suspend fun getPerpetualBalance(assetInfo: AssetInfo): BigInteger {
-        val walletId = sessionRepository.session().value?.wallet?.id ?: return BigInteger.ZERO
+    private suspend fun perpetualAvailable(assetInfo: AssetInfo): String {
+        val walletId = sessionRepository.session().value?.wallet?.id ?: return "0"
         val amount = perpetualRepository.getBalance(walletId, HypercoreUSDC.id).firstOrNull()?.available ?: 0.0
-        return Crypto(amount.toBigDecimal(), assetInfo.asset.decimals).atomicValue
+        return Crypto(amount.toBigDecimal(), assetInfo.asset.decimals).atomicValue.toString()
     }
 }

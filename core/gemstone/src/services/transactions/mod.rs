@@ -5,7 +5,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{AssetId, WalletId};
+use primitives::{AssetId, Transaction, WalletId};
 
 pub use store::GemTransactionStore;
 
@@ -40,6 +40,10 @@ impl GemTransactionsService {
             address_store,
             preferences,
         }
+    }
+
+    pub fn associated_asset_ids(&self, transaction: Transaction) -> Vec<AssetId> {
+        transaction.associated_asset_ids()
     }
 
     pub async fn sync(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {

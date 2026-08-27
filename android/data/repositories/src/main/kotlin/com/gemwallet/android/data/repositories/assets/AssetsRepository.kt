@@ -81,9 +81,6 @@ class AssetsRepository @Inject constructor(
                 pricesRepository.convertPricesToCurrency(it?.currency ?: return@collectLatest)
             }
         }
-        scope.launch(Dispatchers.IO) {
-            availabilityService.syncSwapSupportChains()
-        }
     }
 
     private fun currentWalletId(): Flow<String> = sessionRepository.currentWalletId()

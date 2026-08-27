@@ -80,7 +80,4 @@ class PerpetualRepositoryImpl(
             .map { it?.let { PerpetualBalance(available = it.available, reserved = it.reserved, withdrawable = it.withdrawable) } }
     }
 
-    override suspend fun setPinned(perpetualId: PerpetualId, isPinned: Boolean) {
-        perpetualDao.setPinned(perpetualId.toIdentifier(), isPinned)
-    }
 }

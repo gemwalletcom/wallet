@@ -6,10 +6,9 @@ import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.GetAssetById
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.cases.parseNotificationData
-import com.gemwallet.android.cases.transactions.SaveTransactions
+import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.model.PushNotificationField
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
@@ -22,6 +21,9 @@ import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
+import uniffi.gemstone.GemTransactionsService
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.firstOrNull
@@ -30,7 +32,8 @@ import javax.inject.Inject
 class NotificationNavigation @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val walletsRepository: WalletsRepository,
-    private val saveTransactions: SaveTransactions,
+    private val createTransaction: CreateTransaction,
+    private val transactionsService: GemTransactionsService,
     private val prefetchAssets: PrefetchAssets,
     private val ensureWalletAssets: EnsureWalletAssets,
     private val getAssetById: GetAssetById,
@@ -77,9 +80,10 @@ class NotificationNavigation @Inject constructor(
     }
 
     private suspend fun prepareTransaction(data: PushNotificationData.Transaction): Boolean {
-        val assetIds = (data.transaction.getAssociatedAssetIds() + data.assetId).distinct()
+        val associatedAssetIds = transactionsService.associatedAssetIds(data.transaction.toJson()).map { it.toAssetId() ?: return false }
+        val assetIds = (associatedAssetIds + data.assetId).distinct()
         prepareWallet(data.walletId, assetIds) ?: return false
-        saveTransactions.saveTransactions(data.walletId, listOf(data.transaction))
+        createTransaction.createTransaction(data.walletId, data.transaction)
         return true
     }
 

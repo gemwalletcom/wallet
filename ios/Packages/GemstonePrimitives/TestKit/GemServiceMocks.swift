@@ -129,6 +129,10 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
         try await lock.withLock { onSync }(walletId, assetId)
     }
 
+    public func associatedAssetIds(transaction _: Gemstone.Transaction) -> [Gemstone.AssetId] {
+        []
+    }
+
 }
 
 public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked Sendable {

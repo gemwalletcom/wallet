@@ -16,7 +16,6 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toChainType
-import com.gemwallet.android.ext.walletConnectAppName
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
@@ -30,7 +29,6 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.ApplicationMetadata
-import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,6 +45,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
+import uniffi.gemstone.GemWalletConnectService
 import javax.inject.Inject
 
 @HiltViewModel
@@ -58,6 +57,7 @@ class WCAuthViewModel @Inject constructor(
     private val signMessageOperator: GemSignMessageOperator,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
+    private val walletConnectService: GemWalletConnectService,
 ) : ViewModel() {
 
     private var authRequest: WalletConnectAuthenticationRequest? = null
@@ -333,13 +333,12 @@ class WCAuthViewModel @Inject constructor(
     }
 
     private fun WalletConnectAuthenticationRequest.toSessionUI(): SessionUI {
-        return ApplicationMetadata(
-            name = walletConnectAppName(metadata?.name, metadata?.url),
-            description = metadata?.description ?: "",
-            url = metadata?.url ?: "",
-            icon = metadata?.icon ?: "",
-            source = ApplicationMetadataSource.WalletConnect,
-        ).toSessionUI()
+        return walletConnectService.applicationMetadata(
+            name = metadata?.name.orEmpty(),
+            description = metadata?.description.orEmpty(),
+            url = metadata?.url.orEmpty(),
+            icons = listOfNotNull(metadata?.icon),
+        ).decodeJson<ApplicationMetadata>().toSessionUI()
     }
 
 }

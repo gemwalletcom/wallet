@@ -5,7 +5,6 @@ import com.gemwallet.android.math.parseInputNumberOrNull
 import java.math.BigDecimal
 
 object SwapSlippage {
-    val defaultBps: UInt = 100u
     val suggestionsBps: List<UInt> = listOf(30u, 50u, 300u)
     const val maxPercent: Int = 20
     private val minPercent: BigDecimal = BigDecimal("0.1")

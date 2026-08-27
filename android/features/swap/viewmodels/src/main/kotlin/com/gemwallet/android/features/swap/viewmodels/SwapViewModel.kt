@@ -76,6 +76,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.Config
+import uniffi.gemstone.getDefaultSlippage
 import uniffi.gemstone.SwapperProvider
 import java.math.BigDecimal
 import javax.inject.Inject
@@ -119,6 +120,10 @@ class SwapViewModel @Inject constructor(
         .map { it?.toAssetId() }
         .onEach { id -> id?.let { updateBalance(it) } }
         .flatMapLatest { assetId -> assetId?.let { assetsRepository.getAssetInfo(it) } ?: flow { emit(null) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val defaultSlippageBps: StateFlow<UInt?> = payAsset
+        .map { asset -> asset?.let { getDefaultSlippage(it.asset.id.chain.string).bps } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val receiveAsset = savedStateHandle.getStateFlow<String?>(RouteArgument.ToAssetId.key, null)

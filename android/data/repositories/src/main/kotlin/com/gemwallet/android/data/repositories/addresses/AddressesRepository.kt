@@ -3,7 +3,6 @@ package com.gemwallet.android.data.repositories.addresses
 import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.cases.addresses.GetAddressNames
 import com.gemwallet.android.cases.addresses.RenameWalletAddresses
-import com.gemwallet.android.cases.addresses.SaveAddressNames
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.entities.toAddressRecords
 import com.gemwallet.android.data.service.store.database.entities.toDTO
@@ -22,12 +21,7 @@ import com.gemwallet.android.serializer.toJson
 class AddressesRepository(
     private val addressesDao: AddressesDao,
     private val nameService: GemNameService,
-) : SaveAddressNames, GetAddressName, GetAddressNames, RenameWalletAddresses {
-
-    override suspend fun saveAddressNames(addressNames: List<AddressName>) {
-        if (addressNames.isEmpty()) return
-        addressesDao.updateNames(addressNames.toRecord())
-    }
+) : GetAddressName, GetAddressNames, RenameWalletAddresses {
 
     override fun getAddressNameFlow(chain: Chain, address: String): Flow<AddressName?> =
         addressesDao.getFlow(chain, address).map { it?.toDTO() }

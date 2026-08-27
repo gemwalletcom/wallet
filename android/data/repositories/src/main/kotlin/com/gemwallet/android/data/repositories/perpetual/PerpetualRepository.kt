@@ -33,5 +33,4 @@ interface PerpetualRepository {
 
     fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?>
 
-    suspend fun setPinned(perpetualId: PerpetualId, isPinned: Boolean)
 }

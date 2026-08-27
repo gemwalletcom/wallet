@@ -151,9 +151,11 @@ object PerpetualModule {
     @Singleton
     fun provideTogglePerpetualPin(
         perpetualRepository: PerpetualRepository,
+        perpetualService: GemPerpetualService,
     ): TogglePerpetualPin {
         return TogglePerpetualPinImpl(
             perpetualRepository = perpetualRepository,
+            perpetualService = perpetualService,
         )
     }
 

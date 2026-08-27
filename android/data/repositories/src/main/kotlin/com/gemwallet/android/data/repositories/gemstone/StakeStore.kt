@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.gemstone
 
-import com.gemwallet.android.cases.addresses.SaveAddressNames
 import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
@@ -19,7 +19,7 @@ import uniffi.gemstone.GemStakeStore
 class GemstoneStakeStore(
     private val stakeDao: StakeDao,
     private val assetsDao: AssetsDao,
-    private val saveAddressNames: SaveAddressNames,
+    private val addressesDao: AddressesDao,
 ) : GemStakeStore {
 
     override suspend fun getApr(assetId: String, providerType: String): Double? {
@@ -56,6 +56,10 @@ class GemstoneStakeStore(
         stakeDao.updateAndDeleteDelegations(wallet, delegations.map { it.decodeJson<DelegationBase>() }.toRecord(wallet), deleteIds)
     }
 
-    override suspend fun saveAddressNames(names: List<String>) =
-        saveAddressNames.saveAddressNames(names.map { it.decodeJson<AddressName>() })
+    override suspend fun saveAddressNames(names: List<String>) {
+        val records = names.map { it.decodeJson<AddressName>() }
+        if (records.isNotEmpty()) {
+            addressesDao.updateNames(records.toRecord())
+        }
+    }
 }
