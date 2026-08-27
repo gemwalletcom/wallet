@@ -276,6 +276,8 @@ struct ServicesFactory {
             toastPresenter: toastPresenter,
             paymentService: paymentService,
             transactionStore: storeManager.transactionStore,
+            transactionStateScheduler: transactionStateScheduler,
+            preferences: preferences,
             walletConnectorPresenter: presenter,
             walletSessionService: walletSessionService,
         )
