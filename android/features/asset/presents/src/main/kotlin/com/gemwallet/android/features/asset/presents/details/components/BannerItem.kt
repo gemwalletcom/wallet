@@ -18,7 +18,8 @@ import uniffi.gemstone.DocsUrl
 internal fun BannerItem(
     assetInfo: AssetInfo,
     onStake: (AssetId) -> Unit,
-    onConfirm: (ConfirmParams) -> Unit
+    onConfirm: (ConfirmParams) -> Unit,
+    onOpenPerpetuals: () -> Unit,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -42,6 +43,7 @@ internal fun BannerItem(
                 BannerEvent.AccountActivation -> assetInfo.asset.chain
                     .getReserveBalanceUrl()?.let { uri -> uriHandler.open(context, uri) }
 
+                BannerEvent.TradePerpetuals -> onOpenPerpetuals()
                 else -> {}
             }
         },

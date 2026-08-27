@@ -23,6 +23,7 @@ sealed interface AssetDetailsAction {
     data class OpenNetwork(val assetId: AssetId) : Navigation
     data class OpenNetworkAssets(val chain: Chain) : Navigation
     data class Stake(val assetId: AssetId) : Navigation
+    data object OpenPerpetuals : Navigation
     data class OpenPriceAlerts(val assetId: AssetId) : Navigation
     data class Confirm(val params: ConfirmParams) : Navigation
 }

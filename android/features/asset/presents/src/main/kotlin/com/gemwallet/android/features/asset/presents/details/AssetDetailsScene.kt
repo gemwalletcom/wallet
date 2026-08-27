@@ -119,7 +119,14 @@ internal fun AssetDetailsScene(
                         onSwap = swapAction,
                     )
                 }
-                item { BannerItem(uiState.assetInfo, { onAction(AssetDetailsAction.Stake(it)) }, { onAction(AssetDetailsAction.Confirm(it)) }) }
+                item {
+                    BannerItem(
+                        assetInfo = uiState.assetInfo,
+                        onStake = { onAction(AssetDetailsAction.Stake(it)) },
+                        onConfirm = { onAction(AssetDetailsAction.Confirm(it)) },
+                        onOpenPerpetuals = { onAction(AssetDetailsAction.OpenPerpetuals) },
+                    )
+                }
                 manageAssetItem(
                     assetInfo = uiState.assetInfo,
                     onPin = {

@@ -125,6 +125,7 @@ fun WalletNavGraph(
                         is AssetDetailsAction.OpenNetwork -> navigator.openAsset(action.assetId)
                         is AssetDetailsAction.OpenNetworkAssets -> navigator.openNetworkAssets(action.chain)
                         is AssetDetailsAction.Stake -> navigator.openStake(action.assetId)
+                        AssetDetailsAction.OpenPerpetuals -> navigator.openPerpetuals()
                         is AssetDetailsAction.OpenPriceAlerts -> navigator.openPriceAlerts(action.assetId)
                         is AssetDetailsAction.Confirm -> navigator.openConfirm(action.params)
                     }
