@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAppStartService
 import javax.inject.Inject
+import com.gemwallet.android.ext.runCatchingCancellable
 
 class SyncService @Inject constructor(
     private val appStartService: GemAppStartService,
@@ -17,7 +18,8 @@ class SyncService @Inject constructor(
             appStartService.run().forEach { failure ->
                 Log.e("SyncService", "${failure.step} failed: ${failure.message}")
             }
-            runCatching { syncDevice.syncDevice() }
+            runCatchingCancellable { syncDevice.syncDevice() }
+                .onFailure { Log.e("SyncService", "device sync failed", it) }
         }
     }
 }

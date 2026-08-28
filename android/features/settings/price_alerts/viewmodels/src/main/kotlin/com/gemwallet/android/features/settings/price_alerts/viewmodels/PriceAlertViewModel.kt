@@ -30,6 +30,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.util.Log
+import com.gemwallet.android.ext.runCatchingCancellable
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -74,13 +76,13 @@ class PriceAlertViewModel @Inject constructor(
     init {
         val initialAssetId = savedStateHandle.get<String?>(RouteArgument.AssetId.key)?.toAssetId()
         viewModelScope.launch(Dispatchers.IO) {
-            runCatching {
+            runCatchingCancellable {
                 if (initialAssetId != null) {
                     updatePriceAlerts.update(initialAssetId)
                 } else {
                     updatePriceAlerts.update()
                 }
-            }
+            }.onFailure { Log.e(TAG, "price alerts sync failed", it) }
         }
     }
 
@@ -89,13 +91,13 @@ class PriceAlertViewModel @Inject constructor(
             try {
                 refreshState.value = true
                 val assetId = assetId.value
-                runCatching {
+                runCatchingCancellable {
                     if (assetId != null) {
                         updatePriceAlerts.update(assetId)
                     } else {
                         updatePriceAlerts.update()
                     }
-                }
+                }.onFailure { Log.e(TAG, "price alerts refresh failed", it) }
             } finally {
                 refreshState.value = false
             }
@@ -135,4 +137,9 @@ class PriceAlertViewModel @Inject constructor(
         val assetInfo = assetsRepository.getTokenInfo(assetId).firstOrNull() ?: return@launch
         withContext(Dispatchers.Main) { callback(assetInfo.asset) }
     }
+
+    private companion object {
+        const val TAG = "PriceAlerts"
+    }
+
 }

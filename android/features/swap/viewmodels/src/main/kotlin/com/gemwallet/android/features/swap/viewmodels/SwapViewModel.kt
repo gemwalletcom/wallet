@@ -81,6 +81,7 @@ import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperProvider
 import java.math.BigDecimal
 import javax.inject.Inject
+import com.gemwallet.android.ext.runCatchingCancellable
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -238,7 +239,7 @@ class SwapViewModel @Inject constructor(
         }
         val walletId = sessionRepository.session().firstOrNull()?.wallet?.id ?: return
         val payAssetId = savedStateHandle.get<String?>(RouteArgument.FromAssetId.key)
-        val suggestion = runCatching { swapService.suggestPair(walletId.id, payAssetId) }.getOrNull() ?: return
+        val suggestion = runCatchingCancellable { swapService.suggestPair(walletId.id, payAssetId) }.getOrNull() ?: return
         savedStateHandle[RouteArgument.FromAssetId.key] = suggestion.payAssetId
         savedStateHandle[RouteArgument.ToAssetId.key] = suggestion.receiveAssetId
     }

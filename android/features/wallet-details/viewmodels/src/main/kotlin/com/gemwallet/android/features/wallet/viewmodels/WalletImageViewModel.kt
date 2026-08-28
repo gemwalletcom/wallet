@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.util.Log
+import com.gemwallet.android.ext.runCatchingCancellable
 
 @HiltViewModel
 class WalletImageViewModel @Inject constructor(
@@ -38,14 +40,22 @@ class WalletImageViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun setEmoji(emoji: String, backgroundColor: Int) = viewModelScope.launch(Dispatchers.IO) {
-        runCatching { avatarService.setEmoji(walletId, emoji, backgroundColor) }
+        runCatchingCancellable { avatarService.setEmoji(walletId, emoji, backgroundColor) }
+            .onFailure { Log.e(TAG, "wallet emoji update failed", it) }
     }
 
     fun setNftImage(url: String) = viewModelScope.launch(Dispatchers.IO) {
-        runCatching { avatarService.setNftImage(walletId, url) }
+        runCatchingCancellable { avatarService.setNftImage(walletId, url) }
+            .onFailure { Log.e(TAG, "wallet image update failed", it) }
     }
 
     fun resetToDefault() = viewModelScope.launch(Dispatchers.IO) {
-        runCatching { avatarService.reset(walletId) }
+        runCatchingCancellable { avatarService.reset(walletId) }
+            .onFailure { Log.e(TAG, "wallet image reset failed", it) }
     }
+
+    private companion object {
+        const val TAG = "WalletImage"
+    }
+
 }
