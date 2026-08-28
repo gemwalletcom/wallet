@@ -3,7 +3,6 @@
 import Foundation
 import struct Gemstone.GemWalletConnectRequest
 import protocol Gemstone.GemWalletConnectServiceProtocol
-import class Gemstone.WalletConnect
 import GemstonePrimitives
 import protocol GemstoneServices.WalletSessionManageable
 import Primitives
@@ -16,7 +15,6 @@ public final class WalletConnectorService {
     private let walletConnectorInteractor: any WalletConnectorInteractable
     private let service: any GemWalletConnectServiceProtocol
     private let messageTracker = MessageTracker()
-    private let walletConnect = WalletConnect()
 
     public init(
         walletSessionService: any WalletSessionManageable,
@@ -147,7 +145,7 @@ extension WalletConnectorService {
             }
 
             do {
-                let status = walletConnect.validateOrigin(metadataUrl: session.peer.url, origin: verifyContext.origin, validation: verifyContext.validation.map()).map()
+                let status = service.validateOrigin(metadataUrl: session.peer.url, origin: verifyContext.origin, validation: verifyContext.validation.map()).map()
 
                 debugLog("Verification status for request: \(status)")
 
@@ -272,7 +270,7 @@ extension WalletConnectorService {
             accounts: approval.accounts.compactMap(\.blockchain),
         )
         let caip2Chains = sessionNamespaces.values.flatMap { $0.chains ?? [] }.map(\.absoluteString)
-        let sessionProperties = walletConnect.configSessionProperties(
+        let sessionProperties = service.configSessionProperties(
             properties: proposal.sessionProperties ?? [:],
             caip2Chains: caip2Chains,
             accounts: approval.accounts.map { $0.mapToGem() },

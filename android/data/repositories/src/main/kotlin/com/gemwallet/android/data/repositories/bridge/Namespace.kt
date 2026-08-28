@@ -4,7 +4,7 @@ import com.gemwallet.android.ext.toChain
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnectionEvents
 import com.wallet.core.primitives.WalletConnectionMethods
-import uniffi.gemstone.WalletConnect
+import uniffi.gemstone.walletConnectChain
 
 enum class ChainNamespace(val string: String, val methods: List<WalletConnectionMethods>) {
     Eip155(
@@ -76,5 +76,5 @@ enum class ChainNamespace(val string: String, val methods: List<WalletConnection
 
 fun Chain.Companion.fromWalletConnectChainId(walletConnectChainId: String?): Chain? {
     val chainId = walletConnectChainId ?: return null
-    return WalletConnect().parseChainId(chainId)?.toChain()
+    return walletConnectChain(chainId)?.toChain()
 }

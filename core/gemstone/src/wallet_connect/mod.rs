@@ -9,7 +9,6 @@ use primitives::{
     WalletConnectionVerificationStatus,
 };
 use std::collections::HashMap;
-use std::str::FromStr;
 
 use crate::{
     GemstoneError,
@@ -343,34 +342,27 @@ impl From<WcWalletConnectResponseType> for WalletConnectResponseType {
 
 // WalletConnect UniFFI object
 
-#[derive(uniffi::Object)]
-pub struct WalletConnect {}
-
-impl Default for WalletConnect {
-    fn default() -> Self {
-        Self::new()
-    }
+#[uniffi::export]
+pub fn wallet_connect_namespace(chain: Chain) -> Option<String> {
+    WalletConnectCAIP2::get_namespace(chain)
 }
 
 #[uniffi::export]
+pub fn wallet_connect_reference(chain: Chain) -> Option<String> {
+    WalletConnectCAIP2::get_reference(chain)
+}
+
+#[uniffi::export]
+pub fn wallet_connect_chain(chain_id: String) -> Option<Chain> {
+    WalletConnectCAIP2::parse_chain_id(chain_id)
+}
+
+#[derive(Default)]
+pub struct WalletConnect {}
+
 impl WalletConnect {
-    #[uniffi::constructor]
     pub fn new() -> Self {
         Self {}
-    }
-
-    pub fn get_namespace(&self, chain: String) -> Option<String> {
-        let chain = Chain::from_str(&chain).ok()?;
-        WalletConnectCAIP2::get_namespace(chain)
-    }
-
-    pub fn get_reference(&self, chain: String) -> Option<String> {
-        let chain = Chain::from_str(&chain).ok()?;
-        WalletConnectCAIP2::get_reference(chain)
-    }
-
-    pub fn parse_chain_id(&self, chain_id: String) -> Option<String> {
-        Some(WalletConnectCAIP2::parse_chain_id(chain_id)?.to_string())
     }
 
     pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
@@ -384,9 +376,7 @@ impl WalletConnect {
             .collect();
         config_session_properties(properties, &chains, &accounts)
     }
-}
 
-impl WalletConnect {
     pub fn parse_account(&self, account: String) -> Option<ChainAddress> {
         WalletConnectCAIP2::parse_account(account)
     }
@@ -440,18 +430,20 @@ mod tests {
 
     #[test]
     fn parse_chain_id_uses_shared_caip2_parser() {
-        let wallet_connect = super::WalletConnect::new();
+        assert_eq!(super::wallet_connect_chain("eip155:8453".to_string()), Some(Chain::Base));
+        assert_eq!(super::wallet_connect_chain("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string()), Some(Chain::Solana));
+        assert_eq!(super::wallet_connect_chain("ton:-239".to_string()), Some(Chain::Ton));
+        assert_eq!(super::wallet_connect_chain("tron:0x2b6653dc".to_string()), Some(Chain::Tron));
+        assert_eq!(super::wallet_connect_chain("eip155:8453:extra".to_string()), None);
+        assert_eq!(super::wallet_connect_chain("eip155:99999".to_string()), None);
+        assert_eq!(super::wallet_connect_chain("bip122:000000000019d6689c085ae165831e93".to_string()), None);
+    }
 
-        assert_eq!(wallet_connect.parse_chain_id("eip155:8453".to_string()), Some(Chain::Base.to_string()));
-        assert_eq!(
-            wallet_connect.parse_chain_id("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string()),
-            Some(Chain::Solana.to_string())
-        );
-        assert_eq!(wallet_connect.parse_chain_id("ton:-239".to_string()), Some(Chain::Ton.to_string()));
-        assert_eq!(wallet_connect.parse_chain_id("tron:0x2b6653dc".to_string()), Some(Chain::Tron.to_string()));
-        assert_eq!(wallet_connect.parse_chain_id("eip155:8453:extra".to_string()), None);
-        assert_eq!(wallet_connect.parse_chain_id("eip155:99999".to_string()), None);
-        assert_eq!(wallet_connect.parse_chain_id("bip122:000000000019d6689c085ae165831e93".to_string()), None);
+    #[test]
+    fn namespace_and_reference_come_from_the_chain_table() {
+        assert_eq!(super::wallet_connect_namespace(Chain::Base), Some("eip155".to_string()));
+        assert_eq!(super::wallet_connect_reference(Chain::Base), Some("8453".to_string()));
+        assert_eq!(super::wallet_connect_namespace(Chain::Solana), Some("solana".to_string()));
     }
 
     #[test]

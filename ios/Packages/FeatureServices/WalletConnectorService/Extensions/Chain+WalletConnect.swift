@@ -1,19 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.WalletConnect
+import func Gemstone.walletConnectNamespace
+import func Gemstone.walletConnectReference
 import Primitives
 import struct WalletConnectUtils.Blockchain
 
-extension Chain {
+extension Primitives.Chain {
     /// CAIP-2 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
     var namespace: String? {
-        WalletConnect.shared.getNamespace(chain: id)
+        walletConnectNamespace(chain: rawValue)
     }
 
     /// CAIP-20 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-20.md
     var reference: String? {
-        WalletConnect.shared.getReference(chain: id)
+        walletConnectReference(chain: rawValue)
     }
 
     var blockchain: Blockchain? {
@@ -22,8 +23,4 @@ extension Chain {
         }
         return .none
     }
-}
-
-extension WalletConnect {
-    static let shared = WalletConnect()
 }

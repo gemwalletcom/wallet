@@ -15,7 +15,7 @@ use crate::models::transaction::{GemTransactionInputType, GemTransferDataExtra};
 use crate::services::error::GemServiceError;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_connect::model::GemWalletConnectTransactionAction;
-use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction};
+use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction, wallet_connect_chain, wallet_connect_namespace};
 use num_bigint::BigInt;
 use primitives::{Asset, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
@@ -63,10 +63,9 @@ fn session_changed(existing: &WalletConnectionSession, session: &WalletConnectio
 }
 
 pub fn session_wallets(wallets: Vec<Wallet>, required: &[Chain], optional: &[Chain]) -> Vec<Wallet> {
-    let wallet_connect = WalletConnect::new();
     let mut supported: Vec<Wallet> = wallets
         .into_iter()
-        .filter(|wallet| wallet.wallet_type != WalletType::View && supports(wallet, required, optional, &wallet_connect))
+        .filter(|wallet| wallet.wallet_type != WalletType::View && supports(wallet, required, optional))
         .collect();
     supported.sort_by_key(|wallet| wallet.wallet_type.rank());
     supported
@@ -93,25 +92,26 @@ pub fn session_chains(wallet: &Wallet, supported: &[Chain]) -> Vec<Chain> {
     supported.iter().copied().filter(|chain| wallet_chains.contains(chain)).collect()
 }
 
-pub fn parse_chains(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Option<Vec<Chain>> {
-    let chains: Vec<Chain> = chain_ids.iter().filter_map(|chain_id| parse_chain(wallet_connect, chain_id)).collect();
+pub fn parse_chains(chain_ids: &[String]) -> Option<Vec<Chain>> {
+    let chains: Vec<Chain> = chain_ids.iter().filter_map(|chain_id| parse_chain(chain_id)).collect();
     (chains.len() == chain_ids.len()).then_some(chains)
 }
 
-pub fn parse_known_chains(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Vec<Chain> {
-    chain_ids.iter().filter_map(|chain_id| parse_chain(wallet_connect, chain_id)).collect()
+pub fn parse_known_chains(chain_ids: &[String]) -> Vec<Chain> {
+    chain_ids.iter().filter_map(|chain_id| parse_chain(chain_id)).collect()
 }
 
-pub fn authentication_chain_ids(wallet_connect: &WalletConnect, chain_ids: &[String]) -> Vec<String> {
+pub fn authentication_chain_ids(chain_ids: &[String]) -> Vec<String> {
     unique(
         chain_ids
             .iter()
-            .filter(|chain_id| parse_chain(wallet_connect, chain_id).is_some_and(|chain| chain.chain_type() == ChainType::Ethereum))
+            .filter(|chain_id| parse_chain(chain_id).is_some_and(|chain| chain.chain_type() == ChainType::Ethereum))
             .cloned(),
     )
 }
 
-pub fn account_chains(wallet_connect: &WalletConnect, accounts: &[String]) -> Vec<Chain> {
+pub fn account_chains(accounts: &[String]) -> Vec<Chain> {
+    let wallet_connect = WalletConnect::new();
     unique(
         accounts
             .iter()
@@ -168,16 +168,16 @@ fn short_url(url: &str) -> String {
         .unwrap_or_else(|| url.trim().to_string())
 }
 
-fn parse_chain(wallet_connect: &WalletConnect, chain_id: &str) -> Option<Chain> {
-    wallet_connect.parse_chain_id(chain_id.to_string()).and_then(|chain| chain.parse().ok())
+fn parse_chain(chain_id: &str) -> Option<Chain> {
+    wallet_connect_chain(chain_id.to_string())
 }
 
-fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain], wallet_connect: &WalletConnect) -> bool {
+fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain]) -> bool {
     let chains: HashSet<Chain> = wallet
         .accounts
         .iter()
         .map(|account| account.chain)
-        .filter(|chain| wallet_connect.get_namespace(chain.as_ref().to_string()).is_some())
+        .filter(|chain| wallet_connect_namespace(*chain).is_some())
         .collect();
     if chains.is_empty() {
         return false;
@@ -403,30 +403,20 @@ mod tests {
 
     #[test]
     fn test_parse_chains_and_metadata() {
-        let wallet_connect = WalletConnect::new();
-        assert_eq!(parse_chains(&wallet_connect, &["eip155:1".to_string()]), Some(vec![Chain::Ethereum]));
-        assert_eq!(parse_chains(&wallet_connect, &["eip155:1".to_string(), "cosmos:unknown-9".to_string()]), None);
+        assert_eq!(parse_chains(&["eip155:1".to_string()]), Some(vec![Chain::Ethereum]));
+        assert_eq!(parse_chains(&["eip155:1".to_string(), "cosmos:unknown-9".to_string()]), None);
+        assert_eq!(parse_known_chains(&["eip155:1".to_string(), "cosmos:unknown-9".to_string()]), vec![Chain::Ethereum]);
         assert_eq!(
-            parse_known_chains(&wallet_connect, &["eip155:1".to_string(), "cosmos:unknown-9".to_string()]),
-            vec![Chain::Ethereum]
-        );
-        assert_eq!(
-            account_chains(
-                &wallet_connect,
-                &["eip155:1:0xabc".to_string(), "eip155:137:0xabc".to_string(), "eip155:1:0xdef".to_string()]
-            ),
+            account_chains(&["eip155:1:0xabc".to_string(), "eip155:137:0xabc".to_string(), "eip155:1:0xdef".to_string()]),
             vec![Chain::Ethereum, Chain::Polygon]
         );
         assert_eq!(
-            authentication_chain_ids(
-                &wallet_connect,
-                &[
-                    "eip155:1".to_string(),
-                    "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string(),
-                    "eip155:1".to_string(),
-                    "eip155:137".to_string()
-                ]
-            ),
+            authentication_chain_ids(&[
+                "eip155:1".to_string(),
+                "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string(),
+                "eip155:1".to_string(),
+                "eip155:137".to_string()
+            ]),
             vec!["eip155:1".to_string(), "eip155:137".to_string()]
         );
 

@@ -4,6 +4,7 @@ mod rules;
 pub mod signer;
 pub mod store;
 
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
@@ -67,8 +68,16 @@ impl GemWalletConnectService {
         Ok(())
     }
 
+    pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
+        self.wallet_connect.validate_origin(metadata_url, origin, validation)
+    }
+
+    pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
+        self.wallet_connect.config_session_properties(properties, caip2_chains, accounts)
+    }
+
     pub fn authentication_chain_ids(&self, chain_ids: Vec<String>) -> Vec<String> {
-        rules::authentication_chain_ids(&self.wallet_connect, &chain_ids)
+        rules::authentication_chain_ids(&chain_ids)
     }
 
     pub async fn has_sessions(&self) -> Result<bool, GemServiceError> {
@@ -89,8 +98,8 @@ impl GemWalletConnectService {
     ) -> Result<GemSessionProposal, GemWalletConnectError> {
         let wallets = self.session.get_wallets()?;
         let current_wallet_id = self.session.get_current_wallet_id()?;
-        let required = rules::parse_chains(&self.wallet_connect, &required_chain_ids).ok_or(GemWalletConnectError::UnsupportedChains)?;
-        let optional = rules::parse_known_chains(&self.wallet_connect, &optional_chain_ids);
+        let required = rules::parse_chains(&required_chain_ids).ok_or(GemWalletConnectError::UnsupportedChains)?;
+        let optional = rules::parse_known_chains(&optional_chain_ids);
         let verification_status = self.wallet_connect.validate_origin(metadata.url.clone(), origin, validation);
         if matches!(
             verification_status,
@@ -127,7 +136,7 @@ impl GemWalletConnectService {
     }
 
     pub fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> Result<WalletConnectionSession, GemServiceError> {
-        let chains = rules::account_chains(&self.wallet_connect, &accounts);
+        let chains = rules::account_chains(&accounts);
         let expire_at = DateTime::<Utc>::from_timestamp(expire_at, 0).ok_or_else(|| GemServiceError::InvalidInput {
             msg: format!("invalid session expiry {expire_at}"),
         })?;

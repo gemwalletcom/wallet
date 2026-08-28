@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemWalletConnectServiceInterface
-import uniffi.gemstone.WalletConnect
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BridgesRepository(
@@ -148,7 +147,7 @@ class BridgesRepository(
             proposal = proposal,
             supportedNamespaces = approval.toSupportedNamespaces(),
         )
-        val sessionProperties = WalletConnect().configSessionProperties(
+        val sessionProperties = walletConnectService.configSessionProperties(
             properties = proposal.properties ?: emptyMap(),
             caip2Chains = sessionNamespaces.values.flatMap { it.chains.orEmpty() },
             accounts = approval.accounts,

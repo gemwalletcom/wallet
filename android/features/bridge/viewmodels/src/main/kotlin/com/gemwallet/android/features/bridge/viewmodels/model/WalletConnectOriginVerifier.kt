@@ -1,19 +1,19 @@
 package com.gemwallet.android.features.bridge.viewmodels.model
 
 import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
-import uniffi.gemstone.WalletConnect
+import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import javax.inject.Inject
 
-class WalletConnectOriginVerifier @Inject constructor() {
-
-    private val walletConnect = WalletConnect()
+class WalletConnectOriginVerifier @Inject constructor(
+    private val walletConnectService: GemWalletConnectService,
+) {
 
     fun verify(
         metadataUrl: String?,
         verifyContext: WalletConnectVerifyContext,
     ): OriginVerification {
-        val status = walletConnect.validateOrigin(
+        val status = walletConnectService.validateOrigin(
             metadataUrl = metadataUrl ?: "",
             origin = verifyContext.origin,
             validation = verifyContext.map(),

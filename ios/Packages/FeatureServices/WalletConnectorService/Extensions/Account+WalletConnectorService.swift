@@ -2,7 +2,6 @@
 
 import Foundation
 import struct Gemstone.Account
-import class Gemstone.WalletConnect
 import Primitives
 import ReownWalletKit
 
