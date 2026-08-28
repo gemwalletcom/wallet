@@ -12,29 +12,15 @@ class GemstoneSearchStore(
     private val searchDao: SearchDao,
     private val assetListDao: AssetListDao,
 ) : GemSearchStore {
-    override suspend fun setAssets(key: String, assetIds: List<String>) {
-        if (assetIds.isEmpty()) {
-            searchDao.deleteAssets(key)
-        } else {
-            searchDao.put(assetIds.mapIndexed { index, id -> DbSearch(query = key, assetId = id, priority = index) })
-        }
-    }
+    override suspend fun setAssets(key: String, assetIds: List<String>) =
+        searchDao.putAssets(key, assetIds.mapIndexed { index, id -> DbSearch(query = key, assetId = id, priority = index) })
 
-    override suspend fun setPerpetuals(key: String, perpetualIds: List<String>) {
-        if (perpetualIds.isEmpty()) {
-            searchDao.deletePerpetuals(key)
-        } else {
-            searchDao.put(perpetualIds.mapIndexed { index, id -> DbSearch(query = key, perpetualId = id, priority = index) })
-        }
-    }
+    override suspend fun setPerpetuals(key: String, perpetualIds: List<String>) =
+        searchDao.putPerpetuals(key, perpetualIds.mapIndexed { index, id -> DbSearch(query = key, perpetualId = id, priority = index) })
 
     override suspend fun setLists(key: String, lists: List<String>) {
         val items = lists.map { it.decodeJson<AssetList>() }
-        if (items.isEmpty()) {
-            searchDao.deleteLists(key)
-        } else {
-            assetListDao.upsert(items.toRecord())
-            searchDao.put(items.mapIndexed { index, list -> DbSearch(query = key, listId = list.id, priority = index) })
-        }
+        assetListDao.upsert(items.toRecord())
+        searchDao.putLists(key, items.mapIndexed { index, list -> DbSearch(query = key, listId = list.id, priority = index) })
     }
 }

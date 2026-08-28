@@ -52,6 +52,11 @@ interface AddressesDao {
     @Query("DELETE FROM addresses WHERE chain = :chain AND address = :address AND type = :type")
     suspend fun delete(chain: Chain, address: String, type: AddressType)
 
+    @Transaction
+    suspend fun deleteNames(addresses: List<DbAddress>) {
+        addresses.forEach { delete(it.chain, it.address, it.type) }
+    }
+
     @Query("UPDATE addresses SET name = :name WHERE walletId = :walletId")
     suspend fun updateName(walletId: String, name: String)
 }

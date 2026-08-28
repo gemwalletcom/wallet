@@ -22,6 +22,7 @@ class GemstoneAddressStore(
     }
 
     override suspend fun deleteAddressNames(names: List<String>) {
-        names.map { it.decodeJson<AddressName>() }.forEach { addressesDao.delete(it.chain, it.address, it.type) }
+        if (names.isEmpty()) return
+        addressesDao.deleteNames(names.map { it.decodeJson<AddressName>() }.toRecord())
     }
 }
