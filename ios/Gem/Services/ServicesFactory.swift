@@ -153,7 +153,7 @@ struct ServicesFactory {
             stake: gemStakeService,
             nft: gemNftService,
         )
-        let transactionStateScheduler = TransactionStateScheduler(service: TransactionStateService(service: gemTransactionStateService))
+        let transactionStateTracker = TransactionStateTracker(service: gemTransactionStateService)
 
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService)
         let bannerService = Gemstone.GemBannerService(
@@ -274,7 +274,7 @@ struct ServicesFactory {
             toastPresenter: toastPresenter,
             paymentService: paymentService,
             transactionStore: storeManager.transactionStore,
-            transactionStateScheduler: transactionStateScheduler,
+            transactionStateTracker: transactionStateTracker,
             walletConnectorPresenter: presenter,
             walletSessionService: walletSessionService,
         )
@@ -330,7 +330,7 @@ struct ServicesFactory {
             addressStore: storeManager.addressStore,
             priceService: priceService,
             priceStore: storeManager.priceStore,
-            transactionStateScheduler: transactionStateScheduler,
+            transactionStateTracker: transactionStateTracker,
             gemNameService: gemNameService,
             recentActivityStore: storeManager.recentActivityStore,
             toastPresenter: toastPresenter,
@@ -361,7 +361,7 @@ struct ServicesFactory {
             marketService: marketService,
             stakeService: stakeService,
             transactionsService: transactionsService,
-            transactionStateScheduler: transactionStateScheduler,
+            transactionStateTracker: transactionStateTracker,
             walletService: walletService,
             walletPreferencesService: walletPreferencesService,
             preferencesService: preferencesService,

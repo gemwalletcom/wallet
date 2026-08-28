@@ -25,7 +25,7 @@ final class RootSceneViewModel {
     private let onstartService: OnstartService
     private let appStartService: any GemAppStartServiceProtocol
     private let pushNotificationEnablerService: PushNotificationEnablerService
-    private let transactionStateScheduler: TransactionStateScheduler
+    private let transactionStateTracker: TransactionStateTracker
     private let appLifecycleService: AppLifecycleService
     private let navigationHandler: NavigationHandler
     private let appUpdateService: any GemAppUpdateServiceProtocol
@@ -79,7 +79,7 @@ final class RootSceneViewModel {
         onstartService: OnstartService,
         appStartService: any GemAppStartServiceProtocol,
         pushNotificationEnablerService: PushNotificationEnablerService,
-        transactionStateScheduler: TransactionStateScheduler,
+        transactionStateTracker: TransactionStateTracker,
         appLifecycleService: AppLifecycleService,
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
@@ -97,7 +97,7 @@ final class RootSceneViewModel {
         self.onstartService = onstartService
         self.appStartService = appStartService
         self.pushNotificationEnablerService = pushNotificationEnablerService
-        self.transactionStateScheduler = transactionStateScheduler
+        self.transactionStateTracker = transactionStateTracker
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
         lockManager = lockWindowManager
@@ -119,7 +119,7 @@ extension RootSceneViewModel {
         rateService.perform()
         Task { await checkForUpdate() }
         Task { _ = try await deviceService.synchronize() }
-        transactionStateScheduler.setup()
+        transactionStateTracker.trackPending()
         Task { await appLifecycleService.setup() }
         Task { await setupWallets() }
     }

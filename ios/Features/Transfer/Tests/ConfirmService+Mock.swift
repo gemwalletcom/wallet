@@ -14,7 +14,7 @@ extension ConfirmService {
     static func mock(
         transaction: Result<TransferTransactionData, Error> = .success(TransferTransactionData(allRates: [], transactionData: .mock())),
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
-        transactionStateScheduler: TransactionStateScheduler = .mock(),
+        transactionStateTracker: TransactionStateTracker = .mock(),
     ) -> ConfirmService {
         ConfirmService(
             metadataProvider: TransferMetadataProviderMock(metadataResult: .success(.mock())),
@@ -26,7 +26,7 @@ extension ConfirmService {
             gemConfirmService: gemConfirmService,
             signer: GemTransactionSignerMock(),
             preferencesService: GemPreferencesServiceMock(),
-            transactionStateScheduler: transactionStateScheduler,
+            transactionStateTracker: transactionStateTracker,
             recentActivityStore: .mock(),
             toastPresenter: ToastPresenter(),
             keystore: KeystoreMock(),

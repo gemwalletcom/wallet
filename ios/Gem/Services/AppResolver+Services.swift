@@ -61,7 +61,7 @@ extension AppResolver {
         let marketService: any GemPriceServiceProtocol
         let stakeService: any GemStakeServiceProtocol
         let transactionsService: any GemTransactionsServiceProtocol
-        let transactionStateScheduler: TransactionStateScheduler
+        let transactionStateTracker: TransactionStateTracker
         let walletService: WalletService
         let walletPreferencesService: any GemWalletPreferencesServiceProtocol
         let preferencesService: any GemPreferencesServiceProtocol

@@ -327,32 +327,25 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
 public final class GemTransactionStateServiceMock: GemTransactionStateServiceProtocol, @unchecked Sendable {
     private let store: (any GemTransactionStateStore)?
-    private let update: @Sendable (String, Gemstone.Transaction) async throws -> GemTransactionStateResult?
+    private let notificationAsset: Gemstone.Asset?
 
-    public init(store: (any GemTransactionStateStore)? = nil, update: @escaping @Sendable (String, Gemstone.Transaction) async throws -> GemTransactionStateResult?) {
+    public init(store: (any GemTransactionStateStore)? = nil, notificationAsset: Gemstone.Asset? = nil) {
         self.store = store
-        self.update = update
+        self.notificationAsset = notificationAsset
     }
 
-    public func update(walletId: String, transaction: Gemstone.Transaction) async throws -> GemTransactionStateResult? {
-        try await update(walletId, transaction)
+    public func trackPending() async throws {}
+
+    public func track(walletId _: Gemstone.WalletId, transactions _: [Gemstone.Transaction]) async throws {}
+
+    public func stopTracking() {}
+
+    public func addNotificationTransaction(wallet _: Gemstone.Wallet, assetId _: Gemstone.AssetId, transaction: Gemstone.Transaction) async throws -> Gemstone.Asset? {
+        if let store {
+            try await store.addTransactions(walletId: "", transactions: [transaction])
+        }
+        return notificationAsset
     }
-
-    public func pendingTransactions() async throws -> [GemPendingTransaction] {
-        try await store?.getPendingTransactions() ?? []
-    }
-
-    public func getTransaction(walletId: Gemstone.WalletId, transactionId: Gemstone.TransactionId) async throws -> GemPendingTransaction? {
-        try await store?.getTransaction(walletId: walletId, transactionId: transactionId)
-    }
-
-    public func addNotificationTransaction(wallet _: Gemstone.Wallet, assetId _: Gemstone.AssetId, transaction _: Gemstone.Transaction) async throws -> Gemstone.Asset? { nil }
-
-    public func addTransactions(walletId: Gemstone.WalletId, transactions: [Gemstone.Transaction]) async throws {
-        try await store?.addTransactions(walletId: walletId, transactions: transactions)
-    }
-
-    public func enableTransactionAssets(walletId _: Gemstone.WalletId, transactions _: [Gemstone.Transaction]) async throws {}
 }
 
 public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked Sendable {

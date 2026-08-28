@@ -1,16 +1,19 @@
 pub mod model;
 pub mod rules;
 pub mod store;
+pub mod tracker;
 
 use crate::services::error::GemServiceError;
 use crate::services::failures::record;
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use primitives::{Asset, AssetId, Transaction, TransactionId, TransactionState, TransactionUpdate, Wallet, WalletId};
+use primitives::{Asset, AssetId, JobConfiguration, Transaction, TransactionId, TransactionState, TransactionUpdate, Wallet, WalletId};
 
 pub use model::{GemPendingTransaction, GemPostProcessingFailure, GemPostProcessingStep, GemTransactionStateResult, GemTransactionStateUpdate};
 pub use store::GemTransactionStateStore;
+use tracker::{GemTransactionUpdater, Tracking, poll};
 
 use crate::gateway::GemGateway;
 use crate::services::assets::GemAssetsService;
@@ -26,6 +29,7 @@ pub struct GemTransactionStateService {
     balance: Arc<GemBalanceService>,
     stake: Arc<GemStakeService>,
     nft: Arc<GemNftService>,
+    tracking: Tracking,
 }
 
 #[uniffi::export]
@@ -46,19 +50,26 @@ impl GemTransactionStateService {
             balance,
             stake,
             nft,
+            tracking: Tracking::default(),
         }
     }
 
-    pub async fn pending_transactions(&self) -> Result<Vec<GemPendingTransaction>, GemServiceError> {
-        self.store.get_pending_transactions().await
+    pub async fn track_pending(&self) -> Result<(), GemServiceError> {
+        let pending = self.store.get_pending_transactions().await?;
+        let tracked = pending.into_iter().map(|pending| self.track_transaction(pending.wallet.id, pending.transaction));
+        futures::future::join_all(tracked).await;
+        Ok(())
     }
 
-    pub async fn get_transaction(&self, wallet_id: WalletId, transaction_id: TransactionId) -> Result<Option<GemPendingTransaction>, GemServiceError> {
-        self.store.get_transaction(wallet_id, transaction_id).await
+    pub async fn track(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
+        self.enable_transaction_assets(wallet_id.clone(), transactions.clone()).await?;
+        let tracked = transactions.into_iter().map(|transaction| self.track_transaction(wallet_id.clone(), transaction));
+        futures::future::join_all(tracked).await;
+        Ok(())
     }
 
-    pub async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
-        self.store.add_transactions(wallet_id, transactions).await
+    pub fn stop_tracking(&self) {
+        self.tracking.cancel();
     }
 
     pub async fn add_notification_transaction(&self, wallet: Wallet, asset_id: AssetId, transaction: Transaction) -> Result<Option<Asset>, GemServiceError> {
@@ -67,6 +78,12 @@ impl GemTransactionStateService {
         };
         self.add_transactions(wallet.id, vec![transaction]).await?;
         Ok(Some(asset))
+    }
+}
+
+impl GemTransactionStateService {
+    pub async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
+        self.store.add_transactions(wallet_id, transactions).await
     }
 
     pub async fn enable_transaction_assets(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
@@ -87,9 +104,12 @@ impl GemTransactionStateService {
         result.failures = self.post_process(wallet_id, &transaction, previous_state, result.state).await;
         Ok(Some(result))
     }
-}
 
-impl GemTransactionStateService {
+    async fn track_transaction(&self, wallet_id: WalletId, transaction: Transaction) {
+        let configuration = JobConfiguration::transaction_state(transaction.asset_id.chain);
+        poll(self, self.store.as_ref(), &self.tracking, configuration, wallet_id, transaction).await;
+    }
+
     async fn post_process(&self, wallet_id: WalletId, transaction: &Transaction, previous_state: TransactionState, state: TransactionState) -> Vec<GemPostProcessingFailure> {
         let Some(processing) = rules::post_processing(transaction, previous_state, state) else {
             return Vec::new();
@@ -175,6 +195,13 @@ async fn rename(store: &dyn GemTransactionStateStore, wallet_id: &WalletId, tran
             store.rename_transaction(wallet_id.clone(), transaction.id.clone(), new_transaction_id.clone()).await?;
             Ok((new_transaction_id, transaction.state))
         }
+    }
+}
+
+#[async_trait]
+impl GemTransactionUpdater for GemTransactionStateService {
+    async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
+        GemTransactionStateService::update(self, wallet_id, transaction).await
     }
 }
 

@@ -6,7 +6,7 @@ import com.gemwallet.android.data.repositories.connection.ConnectionStatusObserv
 import com.gemwallet.android.data.repositories.device.DeviceObserverService
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidObserverService
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
-import com.gemwallet.android.data.repositories.transactions.TransactionStateScheduler
+import com.gemwallet.android.data.repositories.transactions.TransactionStateTracker
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,7 +16,7 @@ class AppLifecycleCoordinator @Inject constructor(
     private val streamObserver: StreamObserverService,
     private val hyperliquidObserver: HyperliquidObserverService,
     private val connectionStatusObserver: ConnectionStatusObserver,
-    private val transactionStateScheduler: TransactionStateScheduler,
+    private val transactionStateTracker: TransactionStateTracker,
 ) : DefaultLifecycleObserver {
 
     override fun onStart(owner: LifecycleOwner) {
@@ -24,7 +24,7 @@ class AppLifecycleCoordinator @Inject constructor(
         streamObserver.start()
         hyperliquidObserver.start()
         connectionStatusObserver.start()
-        transactionStateScheduler.start()
+        transactionStateTracker.start()
     }
 
     override fun onStop(owner: LifecycleOwner) {
@@ -32,6 +32,6 @@ class AppLifecycleCoordinator @Inject constructor(
         streamObserver.stop()
         hyperliquidObserver.stop()
         connectionStatusObserver.stop()
-        transactionStateScheduler.stop()
+        transactionStateTracker.stop()
     }
 }

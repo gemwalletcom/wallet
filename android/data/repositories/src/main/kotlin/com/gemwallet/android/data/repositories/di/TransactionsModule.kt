@@ -5,7 +5,7 @@ import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
-import com.gemwallet.android.data.repositories.transactions.TransactionStateScheduler
+import com.gemwallet.android.data.repositories.transactions.TransactionStateTracker
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAddressStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStateStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
@@ -80,9 +80,9 @@ object TransactionsModule {
 
     @Singleton
     @Provides
-    fun provideTransactionStateScheduler(
+    fun provideTransactionStateTracker(
         stateService: GemTransactionStateService,
-    ): TransactionStateScheduler = TransactionStateScheduler(stateService = stateService)
+    ): TransactionStateTracker = TransactionStateTracker(stateService = stateService)
 
     @Singleton
     @Provides
@@ -98,7 +98,7 @@ object TransactionsModule {
 
     @Singleton
     @Provides
-    fun provideCreateTransactionsCase(scheduler: TransactionStateScheduler): CreateTransaction = scheduler
+    fun provideCreateTransactionsCase(tracker: TransactionStateTracker): CreateTransaction = tracker
 
     @Singleton
     @Provides

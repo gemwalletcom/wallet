@@ -26,7 +26,7 @@ final class NavigationHandler: Sendable {
     private let toastPresenter: ToastPresenter
     private let paymentService: PaymentService
     private let transactionStore: TransactionStore
-    private let transactionStateScheduler: TransactionStateScheduler
+    private let transactionStateTracker: TransactionStateTracker
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
 
@@ -39,7 +39,7 @@ final class NavigationHandler: Sendable {
         toastPresenter: ToastPresenter,
         paymentService: PaymentService,
         transactionStore: TransactionStore,
-        transactionStateScheduler: TransactionStateScheduler,
+        transactionStateTracker: TransactionStateTracker,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
     ) {
@@ -51,7 +51,7 @@ final class NavigationHandler: Sendable {
         self.toastPresenter = toastPresenter
         self.paymentService = paymentService
         self.transactionStore = transactionStore
-        self.transactionStateScheduler = transactionStateScheduler
+        self.transactionStateTracker = transactionStateTracker
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
     }
@@ -250,7 +250,7 @@ extension NavigationHandler {
 
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
         guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
-              let asset = try await transactionStateScheduler.addNotificationTransaction(
+              let asset = try await transactionStateTracker.addNotificationTransaction(
                   wallet: wallet,
                   assetId: assetId,
                   transaction: transaction,

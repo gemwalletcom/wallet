@@ -16,6 +16,7 @@ use crate::gateway::GemGateway;
 use crate::models::gateway::GemTransactionPreloadInput;
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadInput};
 use crate::services::GemScanService;
+use crate::services::clock::sleep;
 use crate::services::transaction_state::GemTransactionStateService;
 use crate::signer::GemSignerError;
 use crate::transaction_simulation::TransactionSimulationService;
@@ -193,13 +194,4 @@ impl GemConfirmService {
             .map(Some)
             .map_err(|error| GemConfirmError::Load { msg: error.to_string() })
     }
-}
-
-async fn sleep(duration: Duration) {
-    let (sender, receiver) = futures::channel::oneshot::channel();
-    std::thread::spawn(move || {
-        std::thread::sleep(duration);
-        let _ = sender.send(());
-    });
-    let _ = receiver.await;
 }

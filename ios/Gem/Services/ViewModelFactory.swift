@@ -46,7 +46,7 @@ public struct ViewModelFactory: Sendable {
     let addressStore: AddressStore
     let priceService: any GemPriceServiceProtocol
     let priceStore: PriceStore
-    let transactionStateScheduler: TransactionStateScheduler
+    let transactionStateTracker: TransactionStateTracker
     let gemNameService: any GemNameServiceProtocol
     let recentActivityStore: RecentActivityStore
     let toastPresenter: ToastPresenter
@@ -121,7 +121,7 @@ public struct ViewModelFactory: Sendable {
                 assetStore: assetStore,
                 assetsService: assetsService,
                 priceStore: priceStore,
-                transactionStateScheduler: transactionStateScheduler,
+                transactionStateTracker: transactionStateTracker,
                 nameService: gemNameService,
                 addressStore: addressStore,
                 recentActivityStore: recentActivityStore,
