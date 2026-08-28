@@ -65,7 +65,7 @@ impl GemBalanceService {
             self.assets.sync_missing_assets(asset_ids.clone()).await?;
         }
         let enabled_ids = self.store.get_enabled_asset_ids(wallet_id.clone(), asset_ids.clone()).await?;
-        self.asset_store.add_missing_balances(wallet_id.clone(), asset_ids.clone()).await?;
+        self.assets.add_missing_balances(wallet_id.clone(), asset_ids.clone()).await?;
         self.store.set_assets_enabled(wallet_id.clone(), asset_ids.clone(), enabled).await?;
         if !enabled {
             return Ok(());
@@ -121,7 +121,7 @@ impl GemBalanceService {
 impl GemBalanceService {
     pub async fn update_balances(&self, wallet_id: WalletId, updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
         let asset_ids = updates.iter().map(|update| update.asset_id.clone()).collect();
-        self.asset_store.add_missing_balances(wallet_id.clone(), asset_ids).await?;
+        self.assets.add_missing_balances(wallet_id.clone(), asset_ids).await?;
         self.store.update_balances(wallet_id, updates).await
     }
 

@@ -8,7 +8,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockWalletId
-import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
@@ -22,21 +21,18 @@ class GemstoneAssetStoreTest {
     private val subject = GemstoneAssetStore(assetsDao, AssetsAvailabilityService(assetsDao))
 
     @Test
-    fun addMissingBalances_insertsHiddenBalanceOnlyForExistingAssets() = runBlocking {
-        val present = mockAssetSolana()
-        val absent = mockAssetEthereum()
+    fun addMissingBalances_insertsHiddenBalancesInOneStatement() = runBlocking {
+        val solana = mockAssetSolana()
+        val ethereum = mockAssetEthereum()
         val walletId = mockWalletId()
-        coEvery {
-            assetsDao.getAssetIds(listOf(present.id.toIdentifier(), absent.id.toIdentifier()))
-        } returns listOf(present.id.toIdentifier())
 
-        subject.addMissingBalances(walletId.id, listOf(present.id.toIdentifier(), absent.id.toIdentifier()))
+        subject.addMissingBalances(walletId.id, listOf(solana.id.toIdentifier(), ethereum.id.toIdentifier()))
 
-        val balanceSlot = slot<DbBalance>()
-        coVerify(exactly = 1) { assetsDao.insertBalance(capture(balanceSlot)) }
-        assertEquals(present.id.toIdentifier(), balanceSlot.captured.assetId)
-        assertEquals(walletId.id, balanceSlot.captured.walletId)
-        assertEquals(false, balanceSlot.captured.isVisible)
+        val balances = slot<List<DbBalance>>()
+        coVerify(exactly = 1) { assetsDao.insertBalances(capture(balances)) }
+        assertEquals(listOf(solana.id.toIdentifier(), ethereum.id.toIdentifier()), balances.captured.map { it.assetId })
+        assertEquals(listOf(walletId.id, walletId.id), balances.captured.map { it.walletId })
+        assertEquals(listOf(false, false), balances.captured.map { it.isVisible })
     }
 
     @Test
@@ -46,7 +42,7 @@ class GemstoneAssetStoreTest {
         subject.addBalances(walletId.id, listOf("bitcoin"), true)
 
         coVerify(exactly = 0) { assetsDao.insert(any<DbAsset>()) }
-        coVerify { assetsDao.insertBalance(match { it.assetId == "bitcoin" && it.walletId == walletId.id && it.isVisible }) }
+        coVerify { assetsDao.insertBalances(match { it.single().assetId == "bitcoin" && it.single().walletId == walletId.id && it.single().isVisible }) }
         coVerify(exactly = 0) { assetsDao.setWalletAssetVisibility(any(), any(), any()) }
     }
 }

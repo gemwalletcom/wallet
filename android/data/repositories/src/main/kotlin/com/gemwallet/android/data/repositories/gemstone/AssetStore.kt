@@ -46,16 +46,7 @@ class GemstoneAssetStore(
     }
 
     override suspend fun addBalances(walletId: String, assetIds: List<String>, enabled: Boolean) = withContext(Dispatchers.IO) {
-        for (identifier in assetIds) {
-            assetsDao.insertBalance(
-                DbBalance(
-                    assetId = AssetId(identifier).toIdentifier(),
-                    walletId = walletId,
-                    isVisible = enabled,
-                    updatedAt = null,
-                )
-            )
-        }
+        assetsDao.insertBalances(assetIds.map { balanceRecord(walletId, it, enabled) })
     }
 
     override suspend fun setBuyableAssets(assetIds: List<String>) = availabilityService.updateBuyAvailable(assetIds)
@@ -69,15 +60,13 @@ class GemstoneAssetStore(
     }
 
     override suspend fun addMissingBalances(walletId: String, assetIds: List<String>) = withContext(Dispatchers.IO) {
-        for (assetId in assetsDao.getAssetIds(assetIds)) {
-            assetsDao.insertBalance(
-                DbBalance(
-                    assetId = assetId,
-                    walletId = walletId,
-                    isVisible = false,
-                    updatedAt = null,
-                )
-            )
-        }
+        assetsDao.insertBalances(assetIds.map { balanceRecord(walletId, it, false) })
     }
+
+    private fun balanceRecord(walletId: String, assetId: String, isVisible: Boolean) = DbBalance(
+        assetId = AssetId(assetId).toIdentifier(),
+        walletId = walletId,
+        isVisible = isVisible,
+        updatedAt = null,
+    )
 }

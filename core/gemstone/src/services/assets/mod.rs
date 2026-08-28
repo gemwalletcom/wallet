@@ -86,7 +86,11 @@ impl GemAssetsService {
     }
 
     pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        self.store.add_missing_balances(wallet_id, asset_ids).await
+        let stored = self.store.get_asset_ids(asset_ids).await?;
+        if stored.is_empty() {
+            return Ok(());
+        }
+        self.store.add_missing_balances(wallet_id, stored).await
     }
 
     pub async fn open_wallet_asset(&self, wallet: Wallet, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {

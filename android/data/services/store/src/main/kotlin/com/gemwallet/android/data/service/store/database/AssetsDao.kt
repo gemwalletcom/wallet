@@ -105,6 +105,9 @@ interface AssetsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertBalance(balance: DbBalance)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertBalances(balances: List<DbBalance>)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addLinks(links: List<DbAssetLink>)
 
