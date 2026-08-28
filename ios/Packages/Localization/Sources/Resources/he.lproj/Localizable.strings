@@ -178,6 +178,7 @@
 "errors.import.invalid_secret_phrase_word" = "מילת ביטוי סודי לא חוקי: %@";
 "errors.import.invalid_private_key" = "מפתח פרטי לא תקין";
 "errors.keystore_access" = "לא ניתן לגשת למפתחות הארנק הזה במכשיר הזה. אם יש לך את ביטוי השחזור, הסר את הארנק וייבא אותו מחדש כדי לשחזר את הגישה.";
+"errors.wallet_account_missing" = "לארנק הזה אין חשבון עבור הרשת הזו";
 "errors.invalid_url" = "כתובת אתר לא חוקית";
 "errors.error_occurred" = "אירעה שגיאה!";
 "errors.invalid_network_id" = "מזהה רשת לא חוקי";

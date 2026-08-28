@@ -178,6 +178,7 @@
 "errors.import.invalid_secret_phrase_word" = "Cuvânt expresie secretă nevalid: %@";
 "errors.import.invalid_private_key" = "Cheie privată invalidă";
 "errors.keystore_access" = "Nu s-a putut accesa cheile acestui portofel pe acest dispozitiv. Dacă aveți fraza de recuperare, eliminați acest portofel și importați-l din nou pentru a restabili accesul.";
+"errors.wallet_account_missing" = "Acest portofel nu are un cont pentru această rețea";
 "errors.invalid_url" = "Adresă URL nevalidă";
 "errors.error_occurred" = "A apărut o eroare!";
 "errors.invalid_network_id" = "ID de rețea nevalid";

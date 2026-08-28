@@ -396,7 +396,7 @@ fun ConfirmState.buttonLabel(): String {
     return when (this) {
         is ConfirmState.BroadcastError,
         is ConfirmState.Error -> stringResource(R.string.common_try_again)
-        is ConfirmState.FatalError -> message
+        is ConfirmState.FatalError -> stringResource(messageRes)
         ConfirmState.Prepare,
         ConfirmState.Ready,
         is ConfirmState.Result,

@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Ongeldige geheime zin
 errors_import_invalid_secret_phrase_word = Ongeldig woord in geheime zin: %@
 errors_import_invalid_private_key = Ongeldige privésleutel
 errors_keystore_access = Kan de sleutels van deze portemonnee op dit apparaat niet openen. Als je je herstelzin hebt, verwijder deze portemonnee dan en importeer hem opnieuw om weer toegang te krijgen.
+errors_wallet_account_missing = Deze portemonnee heeft geen account voor dit netwerk
 errors_invalid_url = Ongeldige URL
 errors_error_occurred = Er is een fout opgetreden!
 errors_invalid_network_id = Ongeldige netwerk-ID

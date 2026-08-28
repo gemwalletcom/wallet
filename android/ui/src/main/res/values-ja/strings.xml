@@ -185,6 +185,7 @@
   <string name="errors_import_invalid_secret_phrase_word">無効なシークレットフレーズの単語: %1$s</string>
   <string name="errors_import_invalid_private_key">無効な秘密鍵</string>
   <string name="errors_keystore_access">このデバイスでこのウォレットの鍵にアクセスできませんでした。リカバリーフレーズをお持ちの場合は、このウォレットを削除して再度インポートするとアクセスを復元できます。</string>
+  <string name="errors_wallet_account_missing">このウォレットにはこのネットワークのアカウントがありません</string>
   <string name="errors_invalid_url">無効なURL</string>
   <string name="errors_error_occurred">エラーが発生しました！</string>
   <string name="errors_invalid_network_id">無効なネットワークID</string>

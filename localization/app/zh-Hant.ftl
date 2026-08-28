@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = 助記詞無效
 errors_import_invalid_secret_phrase_word = 助記詞無效： %@
 errors_import_invalid_private_key = 無效的私鑰
 errors_keystore_access = 無法在此裝置上存取該錢包的金鑰。如果你有助記詞，請移除該錢包並重新匯入以恢復存取。
+errors_wallet_account_missing = 此錢包沒有此網路的帳戶
 errors_invalid_url = 無效的網址
 errors_error_occurred = 出錯了！
 errors_invalid_network_id = 無效的網路ID

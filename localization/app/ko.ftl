@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = 잘못된 비밀번호 문구
 errors_import_invalid_secret_phrase_word = 잘못된 비밀 문구 단어: %@
 errors_import_invalid_private_key = 잘못된 개인 키
 errors_keystore_access = 이 기기에서 이 지갑의 키에 접근할 수 없습니다. 복구 문구가 있다면 이 지갑을 삭제한 후 다시 가져와 접근 권한을 복구하세요.
+errors_wallet_account_missing = 이 지갑에는 이 네트워크의 계정이 없습니다
 errors_invalid_url = 잘못된 URL
 errors_error_occurred = 오류가 발생했습니다!
 errors_invalid_network_id = 잘못된 네트워크 ID

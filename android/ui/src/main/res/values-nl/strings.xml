@@ -185,6 +185,7 @@
   <string name="errors_import_invalid_secret_phrase_word">Ongeldig woord in geheime zin: %1$s</string>
   <string name="errors_import_invalid_private_key">Ongeldige privésleutel</string>
   <string name="errors_keystore_access">Kan de sleutels van deze portemonnee op dit apparaat niet openen. Als je je herstelzin hebt, verwijder deze portemonnee dan en importeer hem opnieuw om weer toegang te krijgen.</string>
+  <string name="errors_wallet_account_missing">Deze portemonnee heeft geen account voor dit netwerk</string>
   <string name="errors_invalid_url">Ongeldige URL</string>
   <string name="errors_error_occurred">Er is een fout opgetreden!</string>
   <string name="errors_invalid_network_id">Ongeldige netwerk-ID</string>

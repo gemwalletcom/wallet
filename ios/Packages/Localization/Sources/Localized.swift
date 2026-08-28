@@ -459,6 +459,8 @@ public enum Localized {
     public static func validation(_ p1: Any) -> String {
       return Localized.tr("Localizable", "errors.validation", String(describing: p1), fallback: "Validation Error: %@")
     }
+    /// This wallet has no account for this network
+    public static let walletAccountMissing = Localized.tr("Localizable", "errors.wallet_account_missing", fallback: "This wallet has no account for this network")
     public enum Connections {
       /// Invalid parameters provided for sending a transaction.
       public static let invalidSendParameters = Localized.tr("Localizable", "errors.connections.invalid_send_parameters", fallback: "Invalid parameters provided for sending a transaction.")

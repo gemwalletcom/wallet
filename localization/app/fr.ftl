@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Phrase secrète invalide
 errors_import_invalid_secret_phrase_word = Mot de phrase secrète non valide : %@
 errors_import_invalid_private_key = Clé privée invalide
 errors_keystore_access = Impossible d'accéder aux clés de ce portefeuille sur cet appareil. Si vous avez votre phrase de récupération, supprimez ce portefeuille et importez-le à nouveau pour restaurer l'accès.
+errors_wallet_account_missing = Ce portefeuille n'a pas de compte pour ce réseau
 errors_invalid_url = URL invalide
 errors_error_occurred = Une erreur s'est produite !
 errors_invalid_network_id = ID de réseau invalide

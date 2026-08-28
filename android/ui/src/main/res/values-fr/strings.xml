@@ -185,6 +185,7 @@
   <string name="errors_import_invalid_secret_phrase_word">Mot de phrase secrète non valide : %1$s</string>
   <string name="errors_import_invalid_private_key">Clé privée invalide</string>
   <string name="errors_keystore_access">Impossible d\'accéder aux clés de ce portefeuille sur cet appareil. Si vous avez votre phrase de récupération, supprimez ce portefeuille et importez-le à nouveau pour restaurer l\'accès.</string>
+  <string name="errors_wallet_account_missing">Ce portefeuille n\'a pas de compte pour ce réseau</string>
   <string name="errors_invalid_url">URL invalide</string>
   <string name="errors_error_occurred">Une erreur s\'est produite !</string>
   <string name="errors_invalid_network_id">ID de réseau invalide</string>

@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Expresie secretă nevalidă
 errors_import_invalid_secret_phrase_word = Cuvânt expresie secretă nevalid: %@
 errors_import_invalid_private_key = Cheie privată invalidă
 errors_keystore_access = Nu s-a putut accesa cheile acestui portofel pe acest dispozitiv. Dacă aveți fraza de recuperare, eliminați acest portofel și importați-l din nou pentru a restabili accesul.
+errors_wallet_account_missing = Acest portofel nu are un cont pentru această rețea
 errors_invalid_url = Adresă URL nevalidă
 errors_error_occurred = A apărut o eroare!
 errors_invalid_network_id = ID de rețea nevalid

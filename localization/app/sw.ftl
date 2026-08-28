@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Maneno ya Siri Batili
 errors_import_invalid_secret_phrase_word = Neno batili la Neno la Siri: %@
 errors_import_invalid_private_key = Ufunguo wa faragha si sahihi
 errors_keystore_access = Imeshindwa kufikia funguo za pochi hii kwenye kifaa hiki. Ikiwa una fungu lako la kurejesha, ondoa pochi hii kisha uiingize tena ili kurejesha ufikiaji.
+errors_wallet_account_missing = Pochi hii haina akaunti ya mtandao huu
 errors_invalid_url = URL batili
 errors_error_occurred = Hitilafu imetokea!
 errors_invalid_network_id = Kitambulisho batili cha Mtandao

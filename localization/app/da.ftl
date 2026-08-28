@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Ugyldig hemmelig sætning
 errors_import_invalid_secret_phrase_word = Ugyldigt ord i hemmelig sætning: %@
 errors_import_invalid_private_key = Ugyldig privat nøgle
 errors_keystore_access = Kunne ikke få adgang til denne tegnebogs nøgler på denne enhed. Hvis du har din gendannelsesfrase, skal du fjerne denne tegnebog og importere den igen for at gendanne adgangen.
+errors_wallet_account_missing = Denne tegnebog har ingen konto til dette netværk
 errors_invalid_url = Ugyldig URL
 errors_error_occurred = Der opstod en fejl!
 errors_invalid_network_id = Ugyldigt netværks-id

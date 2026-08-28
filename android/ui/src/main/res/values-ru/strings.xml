@@ -185,6 +185,7 @@
   <string name="errors_import_invalid_secret_phrase_word">Неверное слово секретной фразы: %1$s</string>
   <string name="errors_import_invalid_private_key">Недействительный приватный ключ</string>
   <string name="errors_keystore_access">Не удалось получить доступ к ключам этого кошелька на этом устройстве. Если у вас есть секретная фраза, удалите кошелёк и импортируйте его заново, чтобы восстановить доступ.</string>
+  <string name="errors_wallet_account_missing">В этом кошельке нет счёта для этой сети</string>
   <string name="errors_invalid_url">Неверная ссылка</string>
   <string name="errors_error_occurred">Произошла ошибка!</string>
   <string name="errors_invalid_network_id">Неверный идентификатор сети</string>

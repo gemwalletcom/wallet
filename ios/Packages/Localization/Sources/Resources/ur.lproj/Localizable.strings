@@ -178,6 +178,7 @@
 "errors.import.invalid_secret_phrase_word" = "غلط خفیہ جملہ کا لفظ: %@";
 "errors.import.invalid_private_key" = "غلط پرائیویٹ کلید";
 "errors.keystore_access" = "اس ڈیوائس پر اس والیٹ کی کلیدوں تک رسائی نہیں ہو سکی۔ اگر آپ کے پاس ریکوری فقرہ ہے تو اس والیٹ کو ہٹا کر دوبارہ درآمد کریں تاکہ رسائی بحال ہو جائے۔";
+"errors.wallet_account_missing" = "اس والیٹ میں اس نیٹ ورک کے لیے کوئی اکاؤنٹ نہیں ہے";
 "errors.invalid_url" = "غلط URL";
 "errors.error_occurred" = "ایک خرابی پیش آگئی!";
 "errors.invalid_network_id" = "غلط نیٹ ورک ID";

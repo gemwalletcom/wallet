@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = ביטוי סודי לא חוקי
 errors_import_invalid_secret_phrase_word = מילת ביטוי סודי לא חוקי: %@
 errors_import_invalid_private_key = מפתח פרטי לא תקין
 errors_keystore_access = לא ניתן לגשת למפתחות הארנק הזה במכשיר הזה. אם יש לך את ביטוי השחזור, הסר את הארנק וייבא אותו מחדש כדי לשחזר את הגישה.
+errors_wallet_account_missing = לארנק הזה אין חשבון עבור הרשת הזו
 errors_invalid_url = כתובת אתר לא חוקית
 errors_error_occurred = אירעה שגיאה!
 errors_invalid_network_id = מזהה רשת לא חוקי

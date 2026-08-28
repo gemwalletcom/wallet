@@ -178,6 +178,7 @@
 "errors.import.invalid_secret_phrase_word" = "অবৈধ গোপন বাক্যাংশ শব্দ: %@";
 "errors.import.invalid_private_key" = "অবৈধ প্রাইভেট কী";
 "errors.keystore_access" = "এই ডিভাইসে এই ওয়ালেটের কী অ্যাক্সেস করা যায়নি। আপনার রিকভারি ফ্রেজ থাকলে, এই ওয়ালেটটি সরিয়ে আবার ইম্পোর্ট করে অ্যাক্সেস ফিরে পান।";
+"errors.wallet_account_missing" = "এই ওয়ালেটে এই নেটওয়ার্কের জন্য কোনো অ্যাকাউন্ট নেই";
 "errors.invalid_url" = "অবৈধ URL";
 "errors.error_occurred" = "একটি ত্রুটি ঘটেছে!";
 "errors.invalid_network_id" = "অবৈধ নেটওয়ার্ক আইডি";

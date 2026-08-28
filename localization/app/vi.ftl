@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Cụm từ bí mật không hợp lệ
 errors_import_invalid_secret_phrase_word = Từ cụm từ bí mật không hợp lệ: %@
 errors_import_invalid_private_key = Khóa riêng không hợp lệ
 errors_keystore_access = Không thể truy cập khóa của ví này trên thiết bị này. Nếu bạn có cụm từ khôi phục, hãy xóa ví này và nhập lại để khôi phục quyền truy cập.
+errors_wallet_account_missing = Ví này không có tài khoản cho mạng này
 errors_invalid_url = URL không hợp lệ
 errors_error_occurred = Đã xảy ra lỗi!
 errors_invalid_network_id = ID mạng không hợp lệ

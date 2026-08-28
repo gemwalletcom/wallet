@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = 助记词无效
 errors_import_invalid_secret_phrase_word = 助记词无效：%@
 errors_import_invalid_private_key = 无效的私钥
 errors_keystore_access = 无法在此设备上访问该钱包的密钥。如果你有助记词，请删除该钱包并重新导入以恢复访问。
+errors_wallet_account_missing = 该钱包没有此网络的账户
 errors_invalid_url = 无效的网址
 errors_error_occurred = 出错了！
 errors_invalid_network_id = 网络 ID 无效

@@ -178,6 +178,7 @@
 "errors.import.invalid_secret_phrase_word" = "Di-wastong Lihim na Parirala na salita: %@";
 "errors.import.invalid_private_key" = "Hindi wastong private key";
 "errors.keystore_access" = "Hindi ma-access ang mga key ng wallet na ito sa device na ito. Kung mayroon kang recovery phrase, alisin ang wallet na ito at i-import itong muli upang maibalik ang access.";
+"errors.wallet_account_missing" = "Walang account ang wallet na ito para sa network na ito";
 "errors.invalid_url" = "Di-wastong URL";
 "errors.error_occurred" = "May naganap na error!";
 "errors.invalid_network_id" = "Di-wastong Network ID";

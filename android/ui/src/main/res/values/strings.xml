@@ -185,6 +185,7 @@
   <string name="errors_import_invalid_secret_phrase_word">Invalid Secret Phrase word: %1$s</string>
   <string name="errors_import_invalid_private_key">Invalid private key</string>
   <string name="errors_keystore_access">Couldn\'t access this wallet\'s keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.</string>
+  <string name="errors_wallet_account_missing">This wallet has no account for this network</string>
   <string name="errors_invalid_url">Invalid URL</string>
   <string name="errors_error_occurred">An error occurred!</string>
   <string name="errors_invalid_network_id">Invalid Network ID</string>

@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = غلط خفیہ جملہ
 errors_import_invalid_secret_phrase_word = غلط خفیہ جملہ کا لفظ: %@
 errors_import_invalid_private_key = غلط پرائیویٹ کلید
 errors_keystore_access = اس ڈیوائس پر اس والیٹ کی کلیدوں تک رسائی نہیں ہو سکی۔ اگر آپ کے پاس ریکوری فقرہ ہے تو اس والیٹ کو ہٹا کر دوبارہ درآمد کریں تاکہ رسائی بحال ہو جائے۔
+errors_wallet_account_missing = اس والیٹ میں اس نیٹ ورک کے لیے کوئی اکاؤنٹ نہیں ہے
 errors_invalid_url = غلط URL
 errors_error_occurred = ایک خرابی پیش آگئی!
 errors_invalid_network_id = غلط نیٹ ورک ID

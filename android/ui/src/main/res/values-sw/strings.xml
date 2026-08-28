@@ -185,6 +185,7 @@
   <string name="errors_import_invalid_secret_phrase_word">Neno batili la Neno la Siri: %1$s</string>
   <string name="errors_import_invalid_private_key">Ufunguo wa faragha si sahihi</string>
   <string name="errors_keystore_access">Imeshindwa kufikia funguo za pochi hii kwenye kifaa hiki. Ikiwa una fungu lako la kurejesha, ondoa pochi hii kisha uiingize tena ili kurejesha ufikiaji.</string>
+  <string name="errors_wallet_account_missing">Pochi hii haina akaunti ya mtandao huu</string>
   <string name="errors_invalid_url">URL batili</string>
   <string name="errors_error_occurred">Hitilafu imetokea!</string>
   <string name="errors_invalid_network_id">Kitambulisho batili cha Mtandao</string>

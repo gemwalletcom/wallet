@@ -178,6 +178,7 @@
 "errors.import.invalid_secret_phrase_word" = "Parola frase segreta non valida: %@";
 "errors.import.invalid_private_key" = "Chiave privata non valida";
 "errors.keystore_access" = "Impossibile accedere alle chiavi di questo portafoglio su questo dispositivo. Se hai la tua frase di recupero, rimuovi questo portafoglio e importalo di nuovo per ripristinare l'accesso.";
+"errors.wallet_account_missing" = "Questo portafoglio non ha un account per questa rete";
 "errors.invalid_url" = "URL non valido";
 "errors.error_occurred" = "Si è verificato un errore!";
 "errors.invalid_network_id" = "ID di rete non valido";

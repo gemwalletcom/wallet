@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Frasa Rahasia Tidak Valid
 errors_import_invalid_secret_phrase_word = Kata Frasa Rahasia Tidak Valid: %@
 errors_import_invalid_private_key = Kunci privat tidak valid
 errors_keystore_access = Tidak dapat mengakses kunci dompet ini di perangkat ini. Jika Anda memiliki frasa pemulihan, hapus dompet ini dan impor kembali untuk memulihkan akses.
+errors_wallet_account_missing = Dompet ini tidak memiliki akun untuk jaringan ini
 errors_invalid_url = URL Tidak Valid
 errors_error_occurred = Terjadi kesalahan!
 errors_invalid_network_id = ID Jaringan Tidak Valid

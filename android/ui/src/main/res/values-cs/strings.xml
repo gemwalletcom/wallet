@@ -185,6 +185,7 @@
   <string name="errors_import_invalid_secret_phrase_word">Neplatné slovo tajné fráze: %1$s</string>
   <string name="errors_import_invalid_private_key">Neplatný soukromý klíč</string>
   <string name="errors_keystore_access">Na tomto zařízení se nepodařilo získat přístup ke klíčům této peněženky. Pokud máte obnovovací frázi, odeberte tuto peněženku a znovu ji importujte, abyste obnovili přístup.</string>
+  <string name="errors_wallet_account_missing">Tato peněženka nemá účet pro tuto síť</string>
   <string name="errors_invalid_url">Neplatná adresa URL</string>
   <string name="errors_error_occurred">Došlo k chybě!</string>
   <string name="errors_invalid_network_id">Neplatné ID sítě</string>

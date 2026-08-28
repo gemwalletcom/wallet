@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Di-wastong Lihim na Parirala
 errors_import_invalid_secret_phrase_word = Di-wastong Lihim na Parirala na salita: %@
 errors_import_invalid_private_key = Hindi wastong private key
 errors_keystore_access = Hindi ma-access ang mga key ng wallet na ito sa device na ito. Kung mayroon kang recovery phrase, alisin ang wallet na ito at i-import itong muli upang maibalik ang access.
+errors_wallet_account_missing = Walang account ang wallet na ito para sa network na ito
 errors_invalid_url = Di-wastong URL
 errors_error_occurred = May naganap na error!
 errors_invalid_network_id = Di-wastong Network ID

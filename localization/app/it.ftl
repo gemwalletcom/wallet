@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Frase segreta non valida
 errors_import_invalid_secret_phrase_word = Parola frase segreta non valida: %@
 errors_import_invalid_private_key = Chiave privata non valida
 errors_keystore_access = Impossibile accedere alle chiavi di questo portafoglio su questo dispositivo. Se hai la tua frase di recupero, rimuovi questo portafoglio e importalo di nuovo per ripristinare l'accesso.
+errors_wallet_account_missing = Questo portafoglio non ha un account per questa rete
 errors_invalid_url = URL non valido
 errors_error_occurred = Si è verificato un errore!
 errors_invalid_network_id = ID di rete non valido

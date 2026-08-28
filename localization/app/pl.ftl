@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Nieprawidłowe tajne zdanie
 errors_import_invalid_secret_phrase_word = Nieprawidłowe tajne słowo: %@
 errors_import_invalid_private_key = Nieprawidłowy klucz prywatny
 errors_keystore_access = Nie udało się uzyskać dostępu do kluczy tego portfela na tym urządzeniu. Jeśli masz frazę odzyskiwania, usuń ten portfel i zaimportuj go ponownie, aby przywrócić dostęp.
+errors_wallet_account_missing = Ten portfel nie ma konta w tej sieci
 errors_invalid_url = nieprawidłowy URL
 errors_error_occurred = Wystąpił błąd!
 errors_invalid_network_id = Nieprawidłowy identyfikator sieci

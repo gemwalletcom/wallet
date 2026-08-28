@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Kalmomin sirri mara inganci
 errors_import_invalid_secret_phrase_word = Kalmar Sirri mara inganci: %@
 errors_import_invalid_private_key = Maɓallin sirri mara inganci
 errors_keystore_access = An kasa samun damar shiga makullan wannan walat a wannan na'urar. Idan kana da jimlar dawo da walat, cire wannan walat sannan ka sake shigo da ita don dawo da damar shiga.
+errors_wallet_account_missing = Wannan walat ba ta da asusu don wannan hanyar sadarwa
 errors_invalid_url = URL mara inganci
 errors_error_occurred = An sami kuskure!
 errors_invalid_network_id = ID na hanyar sadarwa mara inganci

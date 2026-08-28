@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Frase secreta inválida
 errors_import_invalid_secret_phrase_word = Palavra de frase secreta inválida: %@
 errors_import_invalid_private_key = Chave privada inválida
 errors_keystore_access = Não foi possível acessar as chaves desta carteira neste dispositivo. Se você tiver sua frase de recuperação, remova esta carteira e importe-a novamente para restaurar o acesso.
+errors_wallet_account_missing = Esta carteira não tem uma conta para esta rede
 errors_invalid_url = URL inválida
 errors_error_occurred = Ocorreu um erro!
 errors_invalid_network_id = ID de rede inválida

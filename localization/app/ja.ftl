@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = 無効な秘密フレーズ
 errors_import_invalid_secret_phrase_word = 無効なシークレットフレーズの単語: %@
 errors_import_invalid_private_key = 無効な秘密鍵
 errors_keystore_access = このデバイスでこのウォレットの鍵にアクセスできませんでした。リカバリーフレーズをお持ちの場合は、このウォレットを削除して再度インポートするとアクセスを復元できます。
+errors_wallet_account_missing = このウォレットにはこのネットワークのアカウントがありません
 errors_invalid_url = 無効なURL
 errors_error_occurred = エラーが発生しました！
 errors_invalid_network_id = 無効なネットワークID

@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = วลีลับไม่ถูกต้
 errors_import_invalid_secret_phrase_word = คำวลีลับไม่ถูกต้อง: %@
 errors_import_invalid_private_key = คีย์ส่วนตัวไม่ถูกต้อง
 errors_keystore_access = ไม่สามารถเข้าถึงคีย์ของกระเป๋าเงินนี้บนอุปกรณ์นี้ได้ หากคุณมีวลีกู้คืน ให้ลบกระเป๋าเงินนี้แล้วนำเข้าใหม่เพื่อกู้คืนการเข้าถึง
+errors_wallet_account_missing = กระเป๋าเงินนี้ไม่มีบัญชีสำหรับเครือข่ายนี้
 errors_invalid_url = URL ไม่ถูกต้อง
 errors_error_occurred = เกิดข้อผิดพลาด!
 errors_invalid_network_id = รหัสเครือข่ายไม่ถูกต้อง

@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Ungültige geheime Phrase
 errors_import_invalid_secret_phrase_word = Ungültiges geheimes Phrasenwort: %@
 errors_import_invalid_private_key = Ungültiger privater Schlüssel
 errors_keystore_access = Auf die Schlüssel dieser Wallet konnte auf diesem Gerät nicht zugegriffen werden. Wenn Sie Ihre Wiederherstellungsphrase haben, entfernen Sie diese Wallet und importieren Sie sie erneut, um den Zugriff wiederherzustellen.
+errors_wallet_account_missing = Diese Wallet hat kein Konto für dieses Netzwerk
 errors_invalid_url = Ungültige URL
 errors_error_occurred = Es ist ein Fehler aufgetreten!
 errors_invalid_network_id = Ungültige Netzwerk-ID

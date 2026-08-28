@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
 import android.util.Log
+import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemTransferService
@@ -193,7 +194,7 @@ class ConfirmViewModel @Inject constructor(
     ) { session, request, feeSelection, feeAssetSelection ->
         val owner = session?.wallet?.getAccount(request.assetId.chain)
         if (owner == null) {
-            state.update { ConfirmState.FatalError("Session not found") }
+            state.update { ConfirmState.FatalError(R.string.errors_wallet_account_missing) }
             return@combine null
         }
 

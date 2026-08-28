@@ -178,6 +178,7 @@
 "errors.import.invalid_secret_phrase_word" = "अमान्य गुप्त वाक्यांश शब्द: %@";
 "errors.import.invalid_private_key" = "अमान्य प्राइवेट की";
 "errors.keystore_access" = "इस डिवाइस पर इस वॉलेट की कुंजियों तक पहुँच नहीं हो सकी। यदि आपके पास रिकवरी फ़्रेज़ है, तो इस वॉलेट को हटाकर दोबारा इम्पोर्ट करें और एक्सेस बहाल करें।";
+"errors.wallet_account_missing" = "इस वॉलेट में इस नेटवर्क के लिए कोई खाता नहीं है";
 "errors.invalid_url" = "अमान्य यूआरएल";
 "errors.error_occurred" = "एक त्रुटि पाई गई!";
 "errors.invalid_network_id" = "अमान्य नेटवर्क आईडी";

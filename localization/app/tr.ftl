@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Geçersiz Gizli İfade
 errors_import_invalid_secret_phrase_word = Geçersiz Gizli İfade kelimesi: %@
 errors_import_invalid_private_key = Geçersiz özel anahtar
 errors_keystore_access = Bu cihazda bu cüzdanın anahtarlarına erişilemedi. Kurtarma ifadeniz varsa bu cüzdanı kaldırıp yeniden içe aktararak erişimi geri kazanabilirsiniz.
+errors_wallet_account_missing = Bu cüzdanın bu ağ için hesabı yok
 errors_invalid_url = Geçersiz URL
 errors_error_occurred = Bir hata oluştu!
 errors_invalid_network_id = Geçersiz Ağ Kimliği

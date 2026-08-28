@@ -215,6 +215,7 @@ errors_import_invalid_secret_phrase = Frase secreta no válida
 errors_import_invalid_secret_phrase_word = Palabra de frase secreta no válida: %@
 errors_import_invalid_private_key = Clave privada no válida
 errors_keystore_access = No se pudo acceder a las claves de esta billetera en este dispositivo. Si tienes tu frase de recuperación, elimina esta billetera e impórtala de nuevo para restaurar el acceso.
+errors_wallet_account_missing = Esta billetera no tiene una cuenta para esta red
 errors_invalid_url = URL invalida
 errors_error_occurred = ¡Ocurrió un error!
 errors_invalid_network_id = ID de red no válida
