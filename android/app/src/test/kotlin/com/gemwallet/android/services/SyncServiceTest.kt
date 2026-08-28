@@ -1,6 +1,5 @@
 package com.gemwallet.android.services
 
-import com.gemwallet.android.cases.device.SyncDevice
 import android.util.Log
 import io.mockk.coEvery
 import io.mockk.every
@@ -12,13 +11,14 @@ import org.junit.Test
 import uniffi.gemstone.GemAppStartFailure
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemAppStartStep
+import uniffi.gemstone.GemDeviceService
 
 class SyncServiceTest {
     private val appStartService = mockk<GemAppStartService>()
-    private val syncDevice = mockk<SyncDevice>(relaxed = true)
+    private val deviceService = mockk<GemDeviceService>(relaxed = true)
     private val subject = SyncService(
         appStartService = appStartService,
-        syncDevice = syncDevice,
+        deviceService = deviceService,
     )
 
     @Test
@@ -28,7 +28,7 @@ class SyncServiceTest {
         subject.sync()
 
         coVerify(exactly = 1) { appStartService.run() }
-        coVerify(exactly = 1) { syncDevice.syncDevice() }
+        coVerify(exactly = 1) { deviceService.synchronizeIfNeeded() }
     }
 
     @Test
@@ -39,6 +39,6 @@ class SyncServiceTest {
 
         subject.sync()
 
-        coVerify(exactly = 1) { syncDevice.syncDevice() }
+        coVerify(exactly = 1) { deviceService.synchronizeIfNeeded() }
     }
 }

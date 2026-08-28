@@ -17,7 +17,6 @@ import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOper
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.blockchain.services.KeystoreTransactionSigner
 import uniffi.gemstone.GemTransactionSigner
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.data.password.TinkPasswordStore
 import com.gemwallet.android.data.password.TinkSecurityStore
@@ -31,6 +30,7 @@ import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemWalletService
 import javax.inject.Singleton
+import uniffi.gemstone.GemDeviceService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -94,13 +94,13 @@ object InteractsModule {
         walletService: GemWalletService,
         sessionRepository: SessionRepository,
         appStartService: GemAppStartService,
-        syncDevice: SyncDevice,
+        deviceService: GemDeviceService,
         walletImportSync: SyncWalletImport,
     ): ImportWalletService = PhraseAddressImportWalletService(
         walletService = walletService,
         sessionRepository = sessionRepository,
         appStartService = appStartService,
-        syncDevice = syncDevice,
+        deviceService = deviceService,
         walletImportSync = walletImportSync,
     )
 }

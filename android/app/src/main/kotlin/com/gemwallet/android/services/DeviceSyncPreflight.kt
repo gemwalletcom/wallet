@@ -1,11 +1,11 @@
 package com.gemwallet.android.services
 
-import com.gemwallet.android.cases.device.SyncDevice
 import dagger.Lazy
 import uniffi.gemstone.GemWalletRequestPreflight
+import uniffi.gemstone.GemDeviceService
 
 class DeviceSyncPreflight(
-    private val syncDevice: Lazy<SyncDevice>,
+    private val deviceService: Lazy<GemDeviceService>,
 ) : GemWalletRequestPreflight {
-    override suspend fun prepare() = syncDevice.get().syncDevice()
+    override suspend fun prepare() = deviceService.get().synchronizeIfNeeded()
 }

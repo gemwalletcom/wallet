@@ -8,7 +8,6 @@ import com.gemwallet.android.cases.device.GetPushToken
 import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.device.DeviceObserverService
 import com.gemwallet.android.data.repositories.device.DeviceRepository
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
@@ -90,15 +89,12 @@ object DeviceModule {
     fun provideIsDeviceRegisteredCase(repository: DeviceRepository): IsDeviceRegistered = repository
 
     @Provides
-    fun provideSyncDeviceCase(repository: DeviceRepository): SyncDevice = repository
-
-    @Provides
     @Singleton
     fun provideDeviceObserverService(
         walletsRepository: WalletsRepository,
-        syncDevice: SyncDevice,
+        deviceService: GemDeviceService,
     ): DeviceObserverService = DeviceObserverService(
         walletsRepository = walletsRepository,
-        syncDevice = syncDevice,
+        deviceService = deviceService,
     )
 }

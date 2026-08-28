@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.stream
 
 import android.util.Log
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +12,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemStreamService
 import uniffi.gemstone.GemStreamSubscriptionService
 import com.gemwallet.android.ext.runCatchingCancellable
+import uniffi.gemstone.GemDeviceService
 
 class StreamObserverService(
     private val sessionRepository: SessionRepository,
@@ -20,7 +20,7 @@ class StreamObserverService(
     private val subscriptionService: GemStreamSubscriptionService,
     private val streamService: GemStreamService,
     private val connection: WebSocketConnectable,
-    private val syncDevice: SyncDevice,
+    private val deviceService: GemDeviceService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
     private var connectionJob: Job? = null
@@ -45,7 +45,7 @@ class StreamObserverService(
         if (connectionJob != null) return
         if (sessionRepository.session().value?.wallet == null) return
         connectionJob = scope.launch {
-            runCatchingCancellable { syncDevice.syncDevice() }
+            runCatchingCancellable { deviceService.synchronizeIfNeeded() }
                 .onFailure { Log.e(TAG, "Device synchronization error", it) }
             connection.connect().collect { event ->
                 when (event) {

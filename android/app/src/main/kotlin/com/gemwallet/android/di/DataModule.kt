@@ -2,7 +2,6 @@ package com.gemwallet.android.di
 
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.services.SyncService
 import dagger.Module
 import dagger.Provides
@@ -16,6 +15,7 @@ import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.TransactionSimulationService
 import javax.inject.Singleton
+import uniffi.gemstone.GemDeviceService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -50,11 +50,11 @@ object DataModule {
     @Provides
     fun provideSyncService(
         appStartService: GemAppStartService,
-        syncDevice: SyncDevice,
+        deviceService: GemDeviceService,
     ): SyncService {
         return SyncService(
             appStartService = appStartService,
-            syncDevice = syncDevice,
+            deviceService = deviceService,
         )
     }
 }

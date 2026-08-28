@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.wallets
 
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.cases.wallet.WalletImportResult
@@ -21,12 +20,13 @@ import uniffi.gemstone.GemWalletImportResult
 import uniffi.gemstone.GemWalletImportType
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletSource
+import uniffi.gemstone.GemDeviceService
 
 class PhraseAddressImportWalletService(
     private val walletService: GemWalletService,
     private val sessionRepository: SessionRepository,
     private val appStartService: GemAppStartService,
-    private val syncDevice: SyncDevice,
+    private val deviceService: GemDeviceService,
     private val walletImportSync: SyncWalletImport,
 ) : ImportWalletService {
 
@@ -65,7 +65,7 @@ class PhraseAddressImportWalletService(
             is GemWalletImportResult.New -> result.wallet.decodeJson<Wallet>()
         }
         setupWallet(wallet)
-        syncDevice.syncDevice()
+        deviceService.synchronizeIfNeeded()
         return wallet
     }
 

@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.cases.device.SyncDevice
 import io.mockk.coEvery
 import io.mockk.coVerifyOrder
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -9,6 +8,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import uniffi.gemstone.GemAssetDiscoveryService
+import uniffi.gemstone.GemDeviceService
 
 class DeviceAssetsSyncServiceTest {
 
@@ -16,10 +16,10 @@ class DeviceAssetsSyncServiceTest {
     private val sessionRepository = mockk<SessionRepository> {
         coEvery { getCurrentCurrency() } returns Currency.USD
     }
-    private val syncDevice = mockk<SyncDevice>(relaxed = true)
+    private val deviceService = mockk<GemDeviceService>(relaxed = true)
 
     private val subject = DeviceAssetsSyncService(
-        syncDevice = syncDevice,
+        deviceService = deviceService,
         discoveryService = discoveryService,
         sessionRepository = sessionRepository,
     )
@@ -31,7 +31,7 @@ class DeviceAssetsSyncServiceTest {
         subject.sync("wallet-1")
 
         coVerifyOrder {
-            syncDevice.syncDevice()
+            deviceService.synchronizeIfNeeded()
             discoveryService.discover("wallet-1")
         }
     }

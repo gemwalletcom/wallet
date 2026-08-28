@@ -3,7 +3,6 @@ package com.gemwallet.android.data.repositories.di
 import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -52,6 +51,7 @@ import javax.inject.Singleton
 import com.gemwallet.android.data.repositories.gemstone.GemstoneStreamConnection
 import com.gemwallet.android.data.repositories.stream.WebSocketConnectable
 import uniffi.gemstone.GemStreamSubscriptionService
+import uniffi.gemstone.GemDeviceService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -167,14 +167,14 @@ object AssetsModule {
         streamSubscriptionService: GemStreamSubscriptionService,
         streamService: GemStreamService,
         connection: WebSocketConnectable,
-        syncDevice: SyncDevice,
+        deviceService: GemDeviceService,
     ): StreamObserverService = StreamObserverService(
         sessionRepository = sessionRepository,
         syncAssets = syncAssets,
         subscriptionService = streamSubscriptionService,
         streamService = streamService,
         connection = connection,
-        syncDevice = syncDevice,
+        deviceService = deviceService,
     )
 
     @Provides

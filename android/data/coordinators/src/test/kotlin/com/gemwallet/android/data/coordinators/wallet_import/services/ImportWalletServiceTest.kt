@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.testkit.mockWallet
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -14,6 +13,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import uniffi.gemstone.GemAssetDiscoveryService
+import uniffi.gemstone.GemDeviceService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ImportWalletServiceTest {
@@ -24,7 +24,7 @@ class ImportWalletServiceTest {
     private val sessionRepository = mockk<SessionRepository> {
         coEvery { getCurrentCurrency() } returns Currency.USD
     }
-    private val syncDevice = mockk<SyncDevice>(relaxed = true)
+    private val deviceService = mockk<GemDeviceService>(relaxed = true)
 
     @Test
     fun sync_discoversAssets() = runTest {
@@ -46,7 +46,7 @@ class ImportWalletServiceTest {
         advanceUntilIdle()
 
         coVerifyOrder {
-            syncDevice.syncDevice()
+            deviceService.synchronizeIfNeeded()
             discoveryService.discover("wallet-1")
         }
     }
@@ -54,7 +54,7 @@ class ImportWalletServiceTest {
     private fun TestScope.service() = ImportWalletService(
         discoveryService = discoveryService,
         sessionRepository = sessionRepository,
-        syncDevice = syncDevice,
+        deviceService = deviceService,
         scope = this,
     )
 }

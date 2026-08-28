@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.device
 
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockWallet
@@ -14,6 +13,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import uniffi.gemstone.GemDeviceService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeviceObserverServiceTest {
@@ -23,7 +23,7 @@ class DeviceObserverServiceTest {
     private val walletsRepository = mockk<WalletsRepository> {
         every { getAll() } returns wallets
     }
-    private val syncDevice = mockk<SyncDevice>(relaxed = true)
+    private val deviceService = mockk<GemDeviceService>(relaxed = true)
 
     @Test
     fun synchronizesOnEveryWalletsChange() = runTest {
@@ -35,12 +35,12 @@ class DeviceObserverServiceTest {
         advanceUntilIdle()
         subject.stop()
 
-        coVerify(exactly = 2) { syncDevice.syncDevice() }
+        coVerify(exactly = 2) { deviceService.synchronizeIfNeeded() }
     }
 
     private fun TestScope.service() = DeviceObserverService(
         walletsRepository = walletsRepository,
-        syncDevice = syncDevice,
+        deviceService = deviceService,
         scope = this,
     )
 }

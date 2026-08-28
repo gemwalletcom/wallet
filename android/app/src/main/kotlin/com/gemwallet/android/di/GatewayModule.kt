@@ -5,7 +5,6 @@ import com.gemwallet.android.Constants
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.repositories.gemstone.GemstonePreferencesStore
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.services.DeviceSyncPreflight
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.math.fromHex
@@ -63,6 +62,7 @@ import javax.inject.Singleton
 import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemDeviceService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -124,12 +124,12 @@ object GatewayModule {
     fun provideGemstoneDeviceApiClient(
         alienProvider: AlienProvider,
         getDeviceId: GetDeviceId,
-        syncDevice: Lazy<SyncDevice>,
+        deviceService: Lazy<GemDeviceService>,
     ): GemstoneDeviceApiClient = GemstoneDeviceApiClient.withPreflight(
         alienProvider,
         Constants.API_URL,
         runBlocking { getDeviceId.getDeviceKey().fromHex() },
-        DeviceSyncPreflight(syncDevice),
+        DeviceSyncPreflight(deviceService),
     )
 
 

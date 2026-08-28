@@ -13,7 +13,6 @@ import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.device.RequestPushToken
 import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
-import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
@@ -50,22 +49,17 @@ class DeviceRepository(
     GetPushEnabled,
     GetPushToken,
     SetPushToken,
-    SyncDevice,
     IsDeviceRegistered,
     GemDevicePlatform
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
-
-    override suspend fun syncDevice() {
-        deviceService.get().synchronizeIfNeeded()
-    }
 
     override suspend fun switchPushEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Key.PushEnabled] = enabled && notificationsAvailable
         }
         try {
-            syncDevice()
+            deviceService.get().synchronizeIfNeeded()
         } catch (_: Throwable) {}
     }
 
@@ -103,7 +97,7 @@ class DeviceRepository(
         if (enabled && token.isEmpty()) {
             requestPushToken.requestToken { requested ->
                 setPushToken(requested)
-                scope.launch { runCatching { syncDevice() } }
+                scope.launch { runCatching { deviceService.get().synchronizeIfNeeded() } }
             }
         }
         return token
