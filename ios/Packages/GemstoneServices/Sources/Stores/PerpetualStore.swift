@@ -12,19 +12,15 @@ import Store
 
 public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendable {
     private let store: PerpetualStore
-    private let assetStore: AssetStore
     private let balanceStore: BalanceStore
 
-    public init(store: PerpetualStore, assetStore: AssetStore, balanceStore: BalanceStore) {
+    public init(store: PerpetualStore, balanceStore: BalanceStore) {
         self.store = store
-        self.assetStore = assetStore
         self.balanceStore = balanceStore
     }
 
     public func savePerpetuals(data: [Gemstone.PerpetualData]) async throws {
-        let perpetualsData = try data.map { try Primitives.PerpetualData($0) }
-        try assetStore.add(assets: perpetualsData.map { perpetualAssetBasic(from: $0.asset) })
-        try store.upsertPerpetuals(perpetualsData.map(\.perpetual))
+        try store.upsertPerpetuals(data.map { try Primitives.PerpetualData($0).perpetual })
     }
 
     public func setPinned(perpetualIds: [String], pinned: Bool) async throws {
@@ -65,25 +61,6 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
             deleteIds: deleteIds,
             positions: positions.map { try Primitives.PerpetualPosition($0) },
             walletId: WalletId.from(id: walletId),
-        )
-    }
-
-    private func perpetualAssetBasic(from asset: Asset) -> AssetBasic {
-        AssetBasic(
-            asset: asset,
-            properties: AssetProperties(
-                isEnabled: false,
-                isBuyable: false,
-                isSellable: false,
-                isSwapable: false,
-                isStakeable: false,
-                stakingApr: nil,
-                isEarnable: false,
-                earnApr: nil,
-                hasImage: false,
-            ),
-            score: AssetScore(rank: 0),
-            price: nil,
         )
     }
 }

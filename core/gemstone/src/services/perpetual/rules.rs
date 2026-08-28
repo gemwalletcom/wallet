@@ -1,8 +1,11 @@
 use chrono::Utc;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
-use primitives::perpetual::PerpetualBalance;
-use primitives::{AssetId, AssetPrice, AssetType, Chain, PerpetualAccountMode, PerpetualDirection, PerpetualPosition, PerpetualProvider, Wallet, WalletType};
+use primitives::perpetual::{PerpetualBalance, PerpetualData};
+use primitives::{
+    AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, PerpetualAccountMode, PerpetualDirection, PerpetualPosition, PerpetualProvider, Wallet,
+    WalletType,
+};
 
 use super::model::GemPerpetualOrderAction;
 
@@ -14,6 +17,29 @@ const MARKETS_REFRESH_INTERVAL_SECONDS: i64 = 60 * 60;
 
 const DEFAULT_SLIPPAGE_PERCENT: f64 = 2.0;
 const HOURS_PER_YEAR: f64 = 24.0 * 365.0;
+
+pub fn perpetual_asset_basics(data: &[PerpetualData]) -> Vec<AssetBasic> {
+    data.iter()
+        .map(|item| {
+            AssetBasic::new(
+                item.asset.clone(),
+                AssetProperties {
+                    is_enabled: false,
+                    is_buyable: false,
+                    is_sellable: false,
+                    is_swapable: false,
+                    is_stakeable: false,
+                    staking_apr: None,
+                    is_earnable: false,
+                    earn_apr: None,
+                    has_image: false,
+                    has_price: false,
+                },
+                AssetScore::new(0),
+            )
+        })
+        .collect()
+}
 
 pub fn funding_apr(funding: f64) -> f64 {
     funding * HOURS_PER_YEAR

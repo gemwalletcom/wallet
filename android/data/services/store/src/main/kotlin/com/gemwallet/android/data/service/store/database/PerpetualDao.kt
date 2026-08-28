@@ -54,8 +54,8 @@ interface PerpetualDao {
     @Query("DELETE FROM perpetuals")
     suspend fun deleteAll()
 
-    @Query("UPDATE perpetuals SET isPinned = :isPinned WHERE id = :perpetualId")
-    suspend fun setPinned(perpetualId: String, isPinned: Boolean)
+    @Query("UPDATE perpetuals SET isPinned = :isPinned WHERE id IN (:perpetualIds)")
+    suspend fun setPinned(perpetualIds: List<String>, isPinned: Boolean)
 
     @Query(
         "UPDATE perpetuals SET price = :price, pricePercentChange24h = :pricePercentChange24h, " +

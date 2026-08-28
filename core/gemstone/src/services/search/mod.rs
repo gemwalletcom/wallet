@@ -13,7 +13,7 @@ pub use store::GemSearchStore;
 
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::error::GemServiceError;
-use crate::services::perpetual::GemPerpetualStore;
+use crate::services::perpetual::{GemPerpetualStore, rules as perpetual_rules};
 use crate::services::price::GemPriceService;
 
 #[derive(uniffi::Object)]
@@ -82,7 +82,9 @@ impl GemSearchService {
     }
 
     async fn save_perpetuals(&self, perpetuals: &[PerpetualSearchData], key: &str) -> Result<(), GemServiceError> {
-        self.perpetual_store.save_perpetuals(rules::perpetual_data(perpetuals)).await?;
+        let data = rules::perpetual_data(perpetuals);
+        self.asset_store.save_assets(perpetual_rules::perpetual_asset_basics(&data)).await?;
+        self.perpetual_store.save_perpetuals(data).await?;
         self.store.set_perpetuals(key.to_string(), rules::perpetual_ids(perpetuals)).await
     }
 }

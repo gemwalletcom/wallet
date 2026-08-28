@@ -18,12 +18,14 @@ import com.gemwallet.android.data.repositories.stream.WebSocketRequest
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.SearchDao
 import com.wallet.core.primitives.Chain
 import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
@@ -45,9 +47,9 @@ object PerpetualModule {
     fun provideGemstonePerpetualStore(
         perpetualDao: PerpetualDao,
         perpetualPositionDao: PerpetualPositionDao,
-        assetsDao: AssetsDao,
         balancesDao: BalancesDao,
-    ): GemstonePerpetualStore = GemstonePerpetualStore(perpetualDao, perpetualPositionDao, assetsDao, balancesDao)
+        transactionRunner: StoreTransactionRunner,
+    ): GemstonePerpetualStore = GemstonePerpetualStore(perpetualDao, perpetualPositionDao, balancesDao, transactionRunner)
 
     @Provides
     @Singleton
@@ -55,10 +57,12 @@ object PerpetualModule {
         gateway: GemGateway,
         priceService: GemPriceService,
         perpetualStore: GemstonePerpetualStore,
+        assetStore: GemAssetStore,
         preferencesService: GemPreferencesService,
         balanceService: GemBalanceService,
         walletPreferencesService: GemWalletPreferencesService,
-    ): GemPerpetualService = GemPerpetualService(gateway, priceService, perpetualStore, preferencesService, balanceService, walletPreferencesService)
+    ): GemPerpetualService =
+        GemPerpetualService(gateway, priceService, perpetualStore, assetStore, preferencesService, balanceService, walletPreferencesService)
 
     @Provides
     @Singleton

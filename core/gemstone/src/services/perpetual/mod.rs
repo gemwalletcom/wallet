@@ -26,6 +26,7 @@ pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;
 use crate::models::perpetual::GemChartCandleStick;
+use crate::services::assets::GemAssetStore;
 use crate::services::balance::GemBalanceService;
 use crate::services::price::GemPriceService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
@@ -35,6 +36,7 @@ pub struct GemPerpetualService {
     gateway: Arc<GemGateway>,
     price: Arc<GemPriceService>,
     store: Arc<dyn GemPerpetualStore>,
+    asset_store: Arc<dyn GemAssetStore>,
     preferences: Arc<GemPreferencesService>,
     balance: Arc<GemBalanceService>,
     wallet_preferences: Arc<GemWalletPreferencesService>,
@@ -47,6 +49,7 @@ impl GemPerpetualService {
         gateway: Arc<GemGateway>,
         price: Arc<GemPriceService>,
         store: Arc<dyn GemPerpetualStore>,
+        asset_store: Arc<dyn GemAssetStore>,
         preferences: Arc<GemPreferencesService>,
         balance: Arc<GemBalanceService>,
         wallet_preferences: Arc<GemWalletPreferencesService>,
@@ -55,6 +58,7 @@ impl GemPerpetualService {
             gateway,
             price,
             store,
+            asset_store,
             preferences,
             balance,
             wallet_preferences,
@@ -78,6 +82,7 @@ impl GemPerpetualService {
     pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
         let currency = self.preferences.get_currency();
         let data = self.gateway.get_perpetuals_data(chain).await?;
+        self.asset_store.save_assets(rules::perpetual_asset_basics(&data)).await?;
         self.store.save_perpetuals(data).await?;
         if let Some(price) = rules::collateral_price(chain) {
             self.price.update_prices(vec![price], currency).await?;

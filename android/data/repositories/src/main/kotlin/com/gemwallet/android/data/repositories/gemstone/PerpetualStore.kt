@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.repositories.gemstone
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.toDB
@@ -26,23 +26,16 @@ import uniffi.gemstone.PerpetualProvider as GemPerpetualProvider
 class GemstonePerpetualStore(
     private val perpetualDao: PerpetualDao,
     private val perpetualPositionDao: PerpetualPositionDao,
-    private val assetsDao: AssetsDao,
     private val balancesDao: BalancesDao,
+    private val transactionRunner: StoreTransactionRunner,
 ) : GemPerpetualStore {
 
     override suspend fun savePerpetuals(data: List<String>) =
-        putPerpetuals(data.map { it.decodeJson<PerpetualData>() })
+        perpetualDao.upsert(data.map { it.decodeJson<PerpetualData>().perpetual.toDB() })
 
-    private suspend fun putPerpetuals(items: List<PerpetualData>) {
-        assetsDao.insert(items.map { it.asset.toRecord() })
-        perpetualDao.upsert(items.map { it.perpetual.toDB() })
-    }
+    override suspend fun setPinned(perpetualIds: List<String>, pinned: Boolean) = perpetualDao.setPinned(perpetualIds, pinned)
 
-    override suspend fun setPinned(perpetualIds: List<String>, pinned: Boolean) {
-        perpetualIds.forEach { perpetualDao.setPinned(it, pinned) }
-    }
-
-    override suspend fun deletePerpetuals() {
+    override suspend fun deletePerpetuals() = transactionRunner.run {
         perpetualPositionDao.deleteAll()
         perpetualDao.deleteAll()
         balancesDao.deleteByAssetId(HypercoreUSDC.id.toIdentifier())
