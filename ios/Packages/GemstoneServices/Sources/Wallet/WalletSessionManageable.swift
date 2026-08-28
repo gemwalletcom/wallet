@@ -49,6 +49,11 @@ public extension WalletSessionManageable {
     }
 
     func hasMulticoinWallet() -> Bool {
-        (try? getWallets().contains { $0.type == .multicoin }) ?? false
+        do {
+            return try getWallets().contains { $0.type == .multicoin }
+        } catch {
+            debugLog("wallets unavailable: \(error)")
+            return false
+        }
     }
 }

@@ -42,8 +42,12 @@ public final class SettingsViewModel {
     }
 
     var walletsValue: String {
-        let count = (try? walletSessionService.walletsCount()) ?? .zero
-        return "\(count)"
+        do {
+            return try "\(walletSessionService.walletsCount())"
+        } catch {
+            debugLog("wallets count unavailable: \(error)")
+            return .empty
+        }
     }
 
     var walletsImage: AssetImage {
