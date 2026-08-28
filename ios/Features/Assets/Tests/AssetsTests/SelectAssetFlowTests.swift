@@ -49,7 +49,7 @@ struct SelectAssetFlowTests {
         #expect(SelectAssetType.send(.none).flow.defaultFilters == [.enabled, .hasBalance])
         #expect(SelectAssetType.receive(.asset).flow.defaultFilters == [.enabled])
         #expect(SelectAssetType.buy.flow.defaultFilters == [.enabled, .buyable])
-        #expect(SelectAssetType.swap(.pay).flow.defaultFilters == [.enabled, .swappable, .hasBalance])
+        #expect(SelectAssetType.swap(.pay).flow.defaultFilters == [.enabled, .swappable, .hasAvailableBalance])
         #expect(SelectAssetType.manage.flow.defaultFilters == [.enabled])
         #expect(SelectAssetType.priceAlert.flow.defaultFilters == [.enabled, .priceAlerts])
     }
@@ -76,8 +76,8 @@ struct SelectAssetFlowTests {
 
         #expect(filters == [
             .enabled,
-            .chainsOrAssets(["ethereum"], ["smartchain_0x123"]),
             .swappable,
+            .chainsOrAssets(["ethereum"], ["smartchain_0x123"]),
         ])
     }
 }

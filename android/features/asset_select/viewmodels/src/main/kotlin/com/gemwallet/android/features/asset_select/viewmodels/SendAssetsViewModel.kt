@@ -6,6 +6,8 @@ import com.gemwallet.android.application.asset_select.coordinators.SearchSelectA
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
+import uniffi.gemstone.GemAssetAction
+import com.gemwallet.android.domains.asset.eligible
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
@@ -62,5 +64,5 @@ class SendSelectSearch(
             }
     }
 
-    override fun filter(items: List<AssetInfo>): List<AssetInfo> = items.filter { it.balance.totalAmount != 0.0 }
+    override fun filter(items: List<AssetInfo>): List<AssetInfo> = GemAssetAction.SEND.eligible(items)
 }

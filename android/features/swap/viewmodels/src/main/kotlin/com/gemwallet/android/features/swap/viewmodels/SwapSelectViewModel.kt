@@ -15,6 +15,8 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
+import uniffi.gemstone.GemAssetAction
+import com.gemwallet.android.domains.asset.recentFilters
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.RecentType
@@ -76,7 +78,7 @@ class SwapSelectViewModel @Inject constructor(
         }
     }
 
-    override fun assetFilters() = setOf(AssetFilter.Swappable)
+    override fun assetFilters() = GemAssetAction.SWAP_PAY.recentFilters()
 
     override val recentTypes: List<RecentType> get() = listOf(RecentType.SwapSelect, RecentType.Swap)
 }

@@ -8,7 +8,7 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, Wallet, WalletId};
 
-pub use model::AssetList;
+pub use model::{AssetList, GemAssetAction, GemAssetFilter};
 pub use store::GemAssetStore;
 
 use crate::api::{GemApiClient, GemApiError};
@@ -191,6 +191,11 @@ impl GemAssetsService {
     async fn stored_asset(&self, asset_id: &AssetId) -> Result<Option<Asset>, GemServiceError> {
         Ok(self.store.get_assets(vec![asset_id.clone()]).await?.into_iter().next())
     }
+}
+
+#[uniffi::export]
+pub fn asset_action_filters(action: GemAssetAction) -> Vec<GemAssetFilter> {
+    rules::asset_action_filters(action)
 }
 
 #[uniffi::export]
