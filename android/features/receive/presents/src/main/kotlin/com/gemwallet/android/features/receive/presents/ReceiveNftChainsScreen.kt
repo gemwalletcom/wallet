@@ -6,7 +6,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -18,6 +17,7 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.SelectChain
 import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun ReceiveNftChainsScreen(
@@ -26,7 +26,7 @@ fun ReceiveNftChainsScreen(
     viewModel: ReceiveNftChainsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     val chains by viewModel.chains.collectAsStateWithLifecycle()
     SelectChain(
         chains = chains,

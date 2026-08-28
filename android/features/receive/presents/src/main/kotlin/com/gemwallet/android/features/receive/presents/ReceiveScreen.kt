@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -65,6 +64,7 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 private val qrSize = 300.dp
 private val qrSizeCompact = 220.dp
@@ -109,7 +109,7 @@ private fun ReceiveScene(
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     val shareTitle = stringResource(R.string.common_share)
     val isCompactHeight = isCompactDimension(WindowDimension.Height)
     val imageSize = if (isCompactHeight) qrSizeCompact else qrSize

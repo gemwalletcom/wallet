@@ -32,7 +32,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -63,6 +62,7 @@ import java.text.DateFormat
 import java.util.Date
 import uniffi.gemstone.SupportMessageLink
 import uniffi.gemstone.parseSupportMessageDisplayContent
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 private val messageBubbleCornerRadius = 18.dp
 private val messageBubbleMaxWidth = 300.dp
@@ -99,7 +99,7 @@ internal fun SupportMessageBubble(
         }
         if (message.content.isNotBlank()) {
             val context = LocalContext.current
-            val clipboard = LocalClipboard.current.nativeClipboard
+            val clipboard = LocalContext.current.clipboardManager()
             val uriHandler = LocalUriHandler.current
             var menuExpanded by remember { mutableStateOf(false) }
             val displayContent = remember(message.content) {

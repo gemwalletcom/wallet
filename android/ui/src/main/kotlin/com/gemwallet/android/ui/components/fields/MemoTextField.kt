@@ -8,11 +8,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun MemoTextField(
@@ -23,7 +24,7 @@ fun MemoTextField(
     onQrScanner: (() -> Unit)? = null,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     Column(
         modifier = Modifier,
         verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),

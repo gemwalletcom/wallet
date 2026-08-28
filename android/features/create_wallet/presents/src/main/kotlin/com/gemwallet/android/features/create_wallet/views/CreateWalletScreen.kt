@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +45,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.wallet.core.primitives.WalletId
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun CreateWalletScreen(
@@ -114,7 +114,7 @@ private fun UI(
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     val name = stringResource(id = R.string.wallet_default_name, generatedNameIndex)
     Scene(
         title = stringResource(id = R.string.wallet_new_title),

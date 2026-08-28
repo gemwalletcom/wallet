@@ -16,7 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +41,7 @@ import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.launch
 import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun ConnectionsScene(
@@ -48,7 +49,7 @@ fun ConnectionsScene(
     onCancel: () -> Unit,
     viewModel: ConnectionsViewModel = hiltViewModel()
 ) {
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     var scannerShowed by remember { mutableStateOf(false) }
 
     val connections by viewModel.connections.collectAsStateWithLifecycle()

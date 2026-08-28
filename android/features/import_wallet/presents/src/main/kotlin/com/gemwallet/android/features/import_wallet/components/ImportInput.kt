@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -46,6 +46,7 @@ import com.gemwallet.android.ui.components.fields.NameResolveIndicator
 import com.gemwallet.android.ui.models.name.NameRecordState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.WalletType
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 internal fun supportsPhraseSuggestions(walletType: WalletType): Boolean {
     return when (walletType) {
@@ -73,7 +74,7 @@ internal fun ImportInput(
     onValueChange: (TextFieldValue) -> Unit,
 ) {
     val errorColor = MaterialTheme.colorScheme.error
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     val interactionSource = remember { MutableInteractionSource() }
 
     Column(
