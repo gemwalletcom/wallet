@@ -223,7 +223,7 @@ public final class StakeSceneViewModel {
     }
 
     var showFreeze: Bool {
-        chain == .tron
+        StakeChain(rawValue: chain.rawValue)?.usesFreeze ?? false
     }
 
     var showUnfreeze: Bool {

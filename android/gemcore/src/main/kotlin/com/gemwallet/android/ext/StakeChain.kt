@@ -24,18 +24,4 @@ val Chain.redelegated: Boolean
 val Chain.changeAmountOnUnstake: Boolean
     get() = Config().getStakeConfig(string).changeAmountOnUnstake
 
-fun StakeChain.freezed(): Boolean = when (this) {
-    StakeChain.Tron -> true
-    StakeChain.Cosmos,
-    StakeChain.Injective,
-    StakeChain.Sei,
-    StakeChain.Celestia,
-    StakeChain.Osmosis,
-    StakeChain.Solana,
-    StakeChain.Sui,
-    StakeChain.SmartChain,
-    StakeChain.Ethereum,
-    StakeChain.Aptos,
-    StakeChain.Monad,
-    StakeChain.HyperCore -> false
-}
+fun StakeChain.freezed(): Boolean = Config().getStakeConfig(string).usesFreeze

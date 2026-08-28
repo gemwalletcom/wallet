@@ -5,6 +5,7 @@ pub struct StakeChainConfig {
     pub time_lock: u64,
     pub min_amount: u64,
     pub change_amount_on_unstake: bool,
+    pub uses_freeze: bool,
     pub can_redelegate: bool,
     pub can_withdraw: bool,
     pub can_claim_rewards: bool,
@@ -17,6 +18,7 @@ pub fn get_stake_config(chain: StakeChain) -> StakeChainConfig {
         time_lock: chain.get_lock_time(),
         min_amount: chain.get_min_stake_amount(),
         change_amount_on_unstake: chain.get_change_amount_on_unstake(),
+        uses_freeze: chain.get_uses_freeze(),
         can_redelegate: chain.get_can_redelegate(),
         can_withdraw: chain.get_can_withdraw(),
         can_claim_rewards: chain.get_can_claim_rewards(),
@@ -37,6 +39,7 @@ mod tests {
                 time_lock: 86400,
                 min_amount: 1000000000,
                 change_amount_on_unstake: false,
+                uses_freeze: false,
                 can_redelegate: false,
                 can_withdraw: false,
                 can_claim_rewards: false,
@@ -44,5 +47,12 @@ mod tests {
                 reserved_for_fees: 100000000,
             }
         );
+    }
+
+    #[test]
+    fn test_only_tron_stakes_by_freezing() {
+        assert!(get_stake_config(StakeChain::Tron).uses_freeze);
+        assert!(!get_stake_config(StakeChain::Cosmos).uses_freeze);
+        assert!(!get_stake_config(StakeChain::Solana).uses_freeze);
     }
 }

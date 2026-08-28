@@ -25,70 +25,8 @@ private fun Chain.chainAsset(): ChainAsset {
 }
 
 fun Chain.assetType(): AssetType? {
-    return when (this) {
-        Chain.OpBNB,
-        Chain.SmartChain -> AssetType.BEP20
-
-        Chain.Tron -> AssetType.TRC20
-
-        Chain.Solana -> AssetType.SPL
-
-        Chain.Ton -> AssetType.JETTON
-
-        Chain.Aptos,
-        Chain.Sui -> AssetType.TOKEN
-
-        Chain.Tempo -> AssetType.TIP20
-
-        Chain.Ethereum,
-        Chain.Polygon,
-        Chain.Arbitrum,
-        Chain.Optimism,
-        Chain.Base,
-        Chain.AvalancheC,
-        Chain.Fantom,
-        Chain.Gnosis,
-        Chain.Manta,
-        Chain.Blast,
-        Chain.ZkSync,
-        Chain.Linea,
-        Chain.Mantle,
-        Chain.Sonic,
-        Chain.SeiEvm,
-        Chain.Abstract,
-        Chain.Ink,
-        Chain.Berachain,
-        Chain.Unichain,
-        Chain.Hyperliquid,
-        Chain.Monad,
-        Chain.Plasma,
-        Chain.XLayer,
-        Chain.Stable,
-        Chain.Robinhood,
-        Chain.World -> AssetType.ERC20
-
-        Chain.HyperCore,
-        Chain.Cosmos,
-        Chain.Osmosis,
-        Chain.Celestia,
-        Chain.Injective,
-        Chain.Sei,
-        Chain.Noble,
-        Chain.Celo,
-        Chain.Bitcoin,
-        Chain.BitcoinCash,
-        Chain.Litecoin,
-        Chain.Doge,
-        Chain.Thorchain,
-        Chain.Xrp,
-        Chain.Algorand,
-        Chain.Stellar,
-        Chain.Polkadot,
-        Chain.Cardano,
-        Chain.Zcash,
-        Chain.Near,
-        Chain.Mayachain -> null
-    }
+    val defaultAssetType = Config().getChainConfig(string).defaultAssetType ?: return null
+    return AssetType.entries.firstOrNull { it.string == defaultAssetType }
 }
 
 fun Chain.toEVM(): EVMChain? {
@@ -126,63 +64,8 @@ fun List<Chain>.filter(query: String): List<Chain> {
 }
 
 fun Chain.toChainType(): ChainType {
-    return when (this) {
-        Chain.HyperCore -> ChainType.HyperCore
-        Chain.Solana -> ChainType.Solana
-        Chain.Ton -> ChainType.Ton
-        Chain.Tron -> ChainType.Tron
-        Chain.Aptos -> ChainType.Aptos
-        Chain.Sui -> ChainType.Sui
-        Chain.Xrp -> ChainType.Xrp
-        Chain.Near -> ChainType.Near
-        Chain.Stellar -> ChainType.Stellar
-        Chain.Algorand -> ChainType.Algorand
-        Chain.Polkadot -> ChainType.Polkadot
-        Chain.Cardano -> ChainType.Cardano
-        Chain.Bitcoin,
-        Chain.Doge,
-        Chain.BitcoinCash,
-        Chain.Zcash,
-        Chain.Litecoin -> ChainType.Bitcoin
-        Chain.Thorchain,
-        Chain.Mayachain,
-        Chain.Osmosis,
-        Chain.Celestia,
-        Chain.Injective,
-        Chain.Sei,
-        Chain.Noble,
-        Chain.Cosmos -> ChainType.Cosmos
-        Chain.AvalancheC,
-        Chain.Base,
-        Chain.SmartChain,
-        Chain.Arbitrum,
-        Chain.Polygon,
-        Chain.OpBNB,
-        Chain.Fantom,
-        Chain.Gnosis,
-        Chain.Optimism,
-        Chain.Manta,
-        Chain.Blast,
-        Chain.ZkSync,
-        Chain.Linea,
-        Chain.Mantle,
-        Chain.Celo,
-        Chain.World,
-        Chain.Sonic,
-        Chain.SeiEvm,
-        Chain.Abstract,
-        Chain.Berachain,
-        Chain.Unichain,
-        Chain.Ink,
-        Chain.Hyperliquid,
-        Chain.Monad,
-        Chain.Plasma,
-        Chain.XLayer,
-        Chain.Stable,
-        Chain.Robinhood,
-        Chain.Ethereum -> ChainType.Ethereum
-        Chain.Tempo -> ChainType.Ethereum
-    }
+    val chainType = Config().getChainConfig(string).chainType
+    return requireNotNull(ChainType.entries.firstOrNull { it.string == chainType }) { "Unknown chain type: $chainType" }
 }
 
 
