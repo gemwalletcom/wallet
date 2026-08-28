@@ -26,12 +26,13 @@ class GetNftAssetDetailsImpl(
             .flatMapLatest { session ->
                 getAssetNft.getAssetNft(assetId)
                     .map { nftData ->
-                        val nftAsset = nftData.assets.first()
+                        val nftAsset = nftData.assets.firstOrNull() ?: return@map null
                         val chain = nftAsset.chain
+                        val account = session.wallet.getAccount(chain) ?: return@map null
                         NftAssetDetailsData(
                             collection = nftData.collection,
                             asset = nftAsset,
-                            account = session.wallet.getAccount(chain)!!,
+                            account = account,
                             contractExplorerLink = nftAsset.contractAddress?.let { address ->
                                 explorerService.getTokenUrl(chain.string, address)?.let { BlockExplorerLink(it.name, it.link) }
                             },

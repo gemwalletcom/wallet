@@ -71,10 +71,7 @@ fun NFTDetailsScene(
     val refresh = stringResource(R.string.common_refresh)
     val refreshFailed = stringResource(R.string.errors_error_occurred)
 
-    if (assetData == null) {
-        return
-    }
-    val model = assetData!!
+    val model = assetData ?: return
     var isMenuExpanded by remember { mutableStateOf(false) }
     Scene(
         titleContent = {

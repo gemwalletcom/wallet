@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemStreamService
 import uniffi.gemstone.GemStreamSubscriptionService
+import com.gemwallet.android.ext.runCatchingCancellable
 
 class StreamObserverService(
     private val sessionRepository: SessionRepository,
@@ -31,10 +32,11 @@ class StreamObserverService(
                 val wallet = session?.wallet ?: return@collectLatest
                 if (wallet.id.id == currentWalletId) return@collectLatest
                 currentWalletId = wallet.id.id
-                runCatching { subscriptionService.setupAssets(wallet.id.id) }
+                runCatchingCancellable { subscriptionService.setupAssets(wallet.id.id) }
                     .onFailure { Log.e(TAG, "Setup assets error", it) }
                 if (connectionJob == null) start()
-                runCatching { syncAssets() }
+                runCatchingCancellable { syncAssets() }
+                    .onFailure { Log.e(TAG, "Assets synchronization error", it) }
             }
         }
     }
@@ -43,11 +45,11 @@ class StreamObserverService(
         if (connectionJob != null) return
         if (sessionRepository.session().value?.wallet == null) return
         connectionJob = scope.launch {
-            runCatching { syncDevice.syncDevice() }
+            runCatchingCancellable { syncDevice.syncDevice() }
                 .onFailure { Log.e(TAG, "Device synchronization error", it) }
             connection.connect().collect { event ->
                 when (event) {
-                    WebSocketEvent.Connected -> runCatching { subscriptionService.resubscribe() }
+                    WebSocketEvent.Connected -> runCatchingCancellable { subscriptionService.resubscribe() }
                         .onFailure { Log.e(TAG, "Resubscribe error", it) }
                     is WebSocketEvent.Message -> handleMessage(event.text)
                     WebSocketEvent.Disconnected -> subscriptionService.reset()
@@ -63,7 +65,7 @@ class StreamObserverService(
 
     private fun handleMessage(text: String) {
         scope.launch {
-            runCatching { streamService.handle(text, sessionRepository.getCurrentCurrency().toJson()) }
+            runCatchingCancellable { streamService.handle(text, sessionRepository.getCurrentCurrency().toJson()) }
                 .onFailure { Log.e(TAG, "Event handler error", it) }
         }
     }

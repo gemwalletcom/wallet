@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.wallet
 
+import android.util.Log
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.wallet.coordinators.GetWalletSecretData
@@ -32,10 +33,15 @@ class GetWalletSecretDataImpl(
                 }
             } catch (e: CancellationException) {
                 throw e
-            } catch (_: Throwable) {
+            } catch (error: Throwable) {
+                Log.e(TAG, "secret data unavailable for ${walletId.id}", error)
                 WalletSecretDataValueImpl(emptyList(), isError = true)
             }
         }
+    }
+
+    private companion object {
+        const val TAG = "GetWalletSecretData"
     }
 }
 
