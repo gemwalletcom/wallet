@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.Config
 import struct Gemstone.GemWalletConnectRequest
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import class Gemstone.WalletConnect
@@ -264,7 +263,7 @@ extension WalletConnectorService {
     }
 
     private func acceptProposal(proposal: Session.Proposal, wallet: Primitives.Wallet) async throws -> Session {
-        let approval = try service.sessionApproval(wallet: wallet, supportedChains: supportedChains)
+        let approval = try service.sessionApproval(wallet: wallet)
         let sessionNamespaces = try AutoNamespaces.build(
             sessionProposal: proposal,
             chains: approval.chains.compactMap(\.blockchain),
@@ -283,11 +282,5 @@ extension WalletConnectorService {
             namespaces: sessionNamespaces,
             sessionProperties: sessionProperties,
         )
-    }
-}
-
-private extension WalletConnectorService {
-    var supportedChains: [Primitives.Chain] {
-        Config.shared.getWalletConnectConfig().chains.compactMap { Primitives.Chain(rawValue: $0) }
     }
 }

@@ -2,7 +2,8 @@
 
 import enum Gemstone.GemServiceError
 import protocol Gemstone.GemWalletConnectSigner
-import struct Gemstone.GemWalletConnectSignRequest
+import struct Gemstone.GemWalletConnectMessageRequest
+import struct Gemstone.GemWalletConnectTransactionRequest
 import GemstonePrimitives
 import Primitives
 import SwiftUI
@@ -35,44 +36,32 @@ extension WalletConnectorManager: WalletConnectorInteractable {
         return try WalletId.from(id: value)
     }
 
-    private func signMessage(payload: SignMessagePayload) async throws -> String {
-        try await presentSheet(payload: payload, sheetType: { .signMessage($0) })
-    }
-
-    private func sendTransaction(transferData: WCTransferData) async throws -> String {
-        try await presentSheet(payload: transferData, sheetType: { .transferData($0) })
-    }
-
-    private func signTransaction(transferData: WCTransferData) async throws -> String {
-        try await presentSheet(payload: transferData, sheetType: { .transferData($0) })
-    }
 }
 
 // MARK: - GemWalletConnectSigner
 
 extension WalletConnectorManager: GemWalletConnectSigner {
-    public func sign(request: GemWalletConnectSignRequest) async throws -> String {
-        let chain = try request.chain.map()
-        let session = try WalletConnectionSession(request.session)
-        let wallet = try Wallet(request.wallet)
-        let simulation = try SimulationResult(request.simulation)
-
-        switch request.payload {
-        case let .message(message):
-            let payload = SignMessagePayload(chain: chain, session: session, wallet: wallet, message: message, simulation: simulation)
-            return try await interact { try await signMessage(payload: payload) }
-        case let .transaction(transfer, action):
-            let data = try WCTransferData(transferData: TransferData(transfer), wallet: wallet, simulation: simulation)
-            return try await interact {
-                switch action {
-                case .sign: try await signTransaction(transferData: data)
-                case .send: try await sendTransaction(transferData: data)
-                }
-            }
-        }
+    public func signMessage(request: GemWalletConnectMessageRequest) async throws -> String {
+        let payload = try SignMessagePayload(
+            chain: request.chain.map(),
+            session: WalletConnectionSession(request.session),
+            wallet: Wallet(request.wallet),
+            message: request.message,
+            simulation: SimulationResult(request.simulation),
+        )
+        return try await present { try await presentSheet(payload: payload, sheetType: { .signMessage($0) }) }
     }
 
-    private func interact(_ action: () async throws -> String) async throws -> String {
+    public func signTransaction(request: GemWalletConnectTransactionRequest) async throws -> String {
+        let data = try WCTransferData(
+            transferData: TransferData(request.transfer),
+            wallet: Wallet(request.wallet),
+            simulation: SimulationResult(request.simulation),
+        )
+        return try await present { try await presentSheet(payload: data, sheetType: { .transferData($0) }) }
+    }
+
+    private func present(_ action: () async throws -> String) async throws -> String {
         do {
             return try await action()
         } catch ConnectionsError.userCancelled {

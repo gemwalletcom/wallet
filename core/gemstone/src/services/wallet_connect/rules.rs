@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::str::FromStr;
 
 use crate::services::collections::{stale, unique};
 
@@ -77,6 +78,14 @@ pub fn default_wallet(wallets: &[Wallet], current_wallet_id: Option<WalletId>) -
         .find(|wallet| Some(&wallet.id) == current_wallet_id.as_ref())
         .or_else(|| wallets.first())
         .cloned()
+}
+
+pub fn supported_chains() -> Vec<Chain> {
+    crate::config::wallet_connect::get_wallet_connect_config()
+        .chains
+        .iter()
+        .filter_map(|chain| Chain::from_str(chain).ok())
+        .collect()
 }
 
 pub fn session_chains(wallet: &Wallet, supported: &[Chain]) -> Vec<Chain> {

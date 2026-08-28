@@ -8,8 +8,7 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
 use primitives::{
-    Account, ApplicationMetadata, Chain, SimulationResult, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus,
-    WalletId,
+    Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId,
 };
 
 use crate::services::error::GemServiceError;
@@ -19,8 +18,8 @@ use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectCha
 
 pub use error::GemWalletConnectError;
 pub use model::{
-    GemSessionApproval, GemSessionProposal, GemSessionWallets, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectSignPayload, GemWalletConnectSignRequest,
-    GemWalletConnectTransactionAction,
+    GemSessionApproval, GemSessionProposal, GemSessionWallets, GemWalletConnectMessageRequest, GemWalletConnectRequest, GemWalletConnectResponse,
+    GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
 };
 pub use signer::GemWalletConnectSigner;
 pub use store::GemConnectionStore;
@@ -116,8 +115,8 @@ impl GemWalletConnectService {
         rules::application_metadata(name, description, url, icons)
     }
 
-    pub fn session_approval(&self, wallet: Wallet, supported_chains: Vec<Chain>) -> GemSessionApproval {
-        let chains = rules::session_chains(&wallet, &supported_chains);
+    pub fn session_approval(&self, wallet: Wallet) -> GemSessionApproval {
+        let chains = rules::session_chains(&wallet, &rules::supported_chains());
         let accounts = wallet.accounts.into_iter().filter(|account| chains.contains(&account.chain)).collect();
         GemSessionApproval {
             chains,
@@ -145,8 +144,18 @@ impl GemWalletConnectService {
                 let (connection, account) = self.connection_account(&session_id, chain).await?;
                 let simulation = self.simulation.simulate_sign_message(chain, sign_type.clone(), data.clone(), request.domain).await?;
                 let message = self.wallet_connect.decode_sign_message(chain, sign_type, data);
-                let payload = GemWalletConnectSignPayload::Message { message };
-                let signature = self.signer.sign(sign_request(session_id, chain, connection, account, simulation, payload)).await?;
+                let signature = self
+                    .signer
+                    .sign_message(GemWalletConnectMessageRequest {
+                        session_id,
+                        chain,
+                        wallet: connection.wallet,
+                        account,
+                        session: connection.session,
+                        simulation,
+                        message,
+                    })
+                    .await?;
                 self.wallet_connect.encode_sign_message(chain, signature)
             }
             WalletConnectAction::SignTransaction { chain, transaction_type, data } => {
@@ -217,8 +226,18 @@ impl GemWalletConnectService {
         let simulation = self.simulation.simulate_send_transaction(chain, transaction_type.clone(), data.clone()).await?;
         let transaction = self.wallet_connect.decode_send_transaction(transaction_type, data)?;
         let transfer = rules::transfer_data(chain, connection.session.metadata.clone(), transaction, action)?;
-        let payload = GemWalletConnectSignPayload::Transaction { transfer, action };
-        self.signer.sign(sign_request(session_id, chain, connection, account, simulation, payload)).await
+        self.signer
+            .sign_transaction(GemWalletConnectTransactionRequest {
+                session_id,
+                chain,
+                wallet: connection.wallet,
+                account,
+                session: connection.session,
+                simulation,
+                transfer,
+                action,
+            })
+            .await
     }
 
     async fn get_accounts(&self, session_id: &str, chain: Chain) -> Result<Vec<Account>, GemServiceError> {
@@ -237,24 +256,5 @@ impl GemWalletConnectService {
         self.store.get_connection(session_id.to_string()).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("WalletConnect session {session_id} not found"),
         })
-    }
-}
-
-fn sign_request(
-    session_id: String,
-    chain: Chain,
-    connection: WalletConnection,
-    account: Account,
-    simulation: SimulationResult,
-    payload: GemWalletConnectSignPayload,
-) -> GemWalletConnectSignRequest {
-    GemWalletConnectSignRequest {
-        session_id,
-        chain,
-        wallet: connection.wallet,
-        account,
-        session: connection.session,
-        simulation,
-        payload,
     }
 }

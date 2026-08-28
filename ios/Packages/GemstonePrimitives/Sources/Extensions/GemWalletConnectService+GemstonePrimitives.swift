@@ -35,8 +35,8 @@ public extension GemWalletConnectServiceProtocol {
         return (try WalletConnectionSessionProposal(result.proposal), result.verificationStatus)
     }
 
-    func sessionApproval(wallet: Wallet, supportedChains: [Chain]) throws -> WalletConnectSessionApproval {
-        let approval = sessionApproval(wallet: try wallet.json(), supportedChains: supportedChains.map(\.rawValue))
+    func sessionApproval(wallet: Wallet) throws -> WalletConnectSessionApproval {
+        let approval = sessionApproval(wallet: try wallet.json())
         return try WalletConnectSessionApproval(
             chains: approval.chains.map { try $0.map() },
             accounts: approval.accounts.map { try $0.map() },

@@ -20,8 +20,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemWalletConnectSignPayload
-import uniffi.gemstone.GemWalletConnectSignRequest
+import uniffi.gemstone.GemWalletConnectMessageRequest
+import uniffi.gemstone.GemWalletConnectTransactionRequest
 import uniffi.gemstone.GemWalletConnectTransactionAction
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
@@ -44,23 +44,33 @@ class WalletConnectSignerTest {
         metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp", icon = "", source = ApplicationMetadataSource.WalletConnect),
     )
     private val pendingRequests = WalletConnectPendingRequests()
-    private val signer = GemstoneWalletConnectSigner(pendingRequests)
     private val simulation = SimulationResult(warnings = emptyList(), balanceChanges = emptyList(), payload = emptyList()).toJson()
 
-    private fun request(payload: GemWalletConnectSignPayload) = GemWalletConnectSignRequest(
+    private fun messageRequest(message: SignMessage) = GemWalletConnectMessageRequest(
         sessionId = "topic",
         chain = Chain.Ethereum.string,
         wallet = wallet.toJson(),
         account = account.toGem(),
         session = session.toJson(),
         simulation = simulation,
-        payload = payload,
+        message = message,
+    )
+
+    private fun transactionRequest(transfer: GemTransferData, action: GemWalletConnectTransactionAction) = GemWalletConnectTransactionRequest(
+        sessionId = "topic",
+        chain = Chain.Ethereum.string,
+        wallet = wallet.toJson(),
+        account = account.toGem(),
+        session = session.toJson(),
+        simulation = simulation,
+        transfer = transfer,
+        action = action,
     )
 
     @Test
     fun `sign message waits for the approved pending request`() = runTest {
         val message = SignMessage(chain = Chain.Ethereum.string, signType = SignDigestType.EIP191, data = "hello".toByteArray())
-        val result = async { signer.sign(request(GemWalletConnectSignPayload.Message(message))) }
+        val result = async { pendingRequests.signMessage(messageRequest(message)) }
         val pending = pendingRequests.current.filterNotNull().first()
         assertEquals(wallet.id, pending.wallet.id)
         assertEquals("dapp", pending.appMetadata.name)
@@ -91,7 +101,7 @@ class WalletConnectSignerTest {
             useMaxAmount = false,
             minimumValue = null,
         )
-        val result = async { signer.sign(request(GemWalletConnectSignPayload.Transaction(transfer, GemWalletConnectTransactionAction.SEND))) }
+        val result = async { pendingRequests.signTransaction(transactionRequest(transfer, GemWalletConnectTransactionAction.SEND)) }
         val pending = pendingRequests.current.filterNotNull().first() as WalletConnectPendingRequest.Transaction
         assertTrue(pending.isSendable)
         pending.approve("hash")

@@ -6,7 +6,6 @@ import com.gemwallet.android.data.repositories.bridge.WalletConnectClient
 import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequests
 import com.gemwallet.android.data.repositories.bridge.WalletConnectRequestHandler
 import com.gemwallet.android.data.repositories.gemstone.GemstoneConnectionStore
-import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletConnectSigner
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import dagger.Module
@@ -65,7 +64,7 @@ object BridgesModule {
     ): GemWalletConnectService = GemWalletConnectService(
         simulation = simulationService,
         store = connectionStore,
-        signer = GemstoneWalletConnectSigner(pendingRequests),
+        signer = pendingRequests,
         session = walletSessionService,
     )
 

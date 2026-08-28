@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.Config
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnect
 
@@ -144,10 +143,7 @@ class BridgesRepository(
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        val approval = walletConnectService.sessionApproval(
-            wallet = wallet.toJson(),
-            supportedChains = Config().getWalletConnectConfig().chains,
-        )
+        val approval = walletConnectService.sessionApproval(wallet = wallet.toJson())
         val sessionNamespaces = walletConnectClient.generateApprovedNamespaces(
             proposal = proposal,
             supportedNamespaces = approval.toSupportedNamespaces(),
