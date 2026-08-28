@@ -244,3 +244,8 @@ pub fn stake_requires_frozen_balance(chain: Chain, frozen_amount: String) -> boo
 pub fn stake_can_claim_rewards(chain: Chain, rewards_amount: String) -> bool {
     rules::can_claim_stake_rewards(chain, &rewards_amount)
 }
+
+#[uniffi::export]
+pub fn stake_selectable_validators(validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
+    rules::selectable_validators(validators)
+}

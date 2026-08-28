@@ -4,12 +4,12 @@ import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toModel
-import com.gemwallet.android.domains.asset.SYSTEM_VALIDATOR_ID
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.stakeSelectableValidators
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -69,8 +69,5 @@ class StakeRepository(
 
 }
 
-internal fun selectableValidators(validators: List<DelegationValidator>): List<DelegationValidator> {
-    return validators
-        .filter { it.isActive && it.name.isNotEmpty() && it.id != SYSTEM_VALIDATOR_ID }
-        .sortedByDescending { it.apr }
-}
+internal fun selectableValidators(validators: List<DelegationValidator>): List<DelegationValidator> =
+    stakeSelectableValidators(validators.map { it.toJson() }).map { it.decodeJson() }

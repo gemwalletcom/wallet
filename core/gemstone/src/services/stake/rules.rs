@@ -10,6 +10,8 @@ use primitives::{AddressType, Chain, DelegationBase, DelegationState, Delegation
 use rand::seq::IndexedRandom;
 
 use super::model::GemDelegationAction;
+
+const SYSTEM_VALIDATOR_IDS: [&str; 2] = [DelegationValidator::SYSTEM_ID, "unstaking"];
 use crate::config::stake::get_stake_config;
 use crate::config::validators::get_validators;
 
@@ -62,6 +64,15 @@ pub fn can_claim_stake_rewards(chain: Chain, rewards_amount: &str) -> bool {
 
 fn is_positive(amount: &str) -> bool {
     BigUint::from_str(amount).is_ok_and(|amount| amount > BigUint::ZERO)
+}
+
+pub fn selectable_validators(validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
+    let mut selectable: Vec<DelegationValidator> = validators
+        .into_iter()
+        .filter(|validator| validator.is_active && !validator.name.trim().is_empty() && !SYSTEM_VALIDATOR_IDS.contains(&validator.id.as_str()))
+        .collect();
+    selectable.sort_by(|left, right| right.apr.total_cmp(&left.apr));
+    selectable
 }
 
 pub fn recommended_validator_ids(chain: Chain) -> Vec<String> {
@@ -320,5 +331,23 @@ mod tests {
         assert!(can_claim_stake_rewards(Chain::Cosmos, "10"));
         assert!(!can_claim_stake_rewards(Chain::Cosmos, "0"));
         assert!(!can_claim_stake_rewards(Chain::Bitcoin, "10"));
+    }
+
+    #[test]
+    fn test_selectable_validators_drop_inactive_unnamed_and_system_entries_and_sort_by_apr() {
+        let mut active = validator("active");
+        active.apr = 5.0;
+        let mut best = validator("best");
+        best.apr = 9.0;
+        let mut inactive = validator("inactive");
+        inactive.is_active = false;
+        let mut unnamed = validator("unnamed");
+        unnamed.name = String::new();
+        let system = validator(DelegationValidator::SYSTEM_ID);
+        let legacy_system = validator("unstaking");
+
+        let selectable = selectable_validators(vec![active, inactive, unnamed, system, legacy_system, best]);
+
+        assert_eq!(selectable.iter().map(|validator| validator.id.as_str()).collect::<Vec<_>>(), vec!["best", "active"]);
     }
 }
