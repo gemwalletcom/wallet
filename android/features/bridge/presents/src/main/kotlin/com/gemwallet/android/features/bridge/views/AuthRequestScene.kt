@@ -53,7 +53,9 @@ fun AuthRequestScene(
     when (val currentState = state) {
         is AuthSceneState.Error -> FatalStateScene(
             title = stringResource(id = R.string.wallet_connect_connect_title),
-            message = currentState.cause?.walletConnectMessage() ?: currentState.message,
+            message = currentState.cause?.walletConnectMessage()
+                ?: currentState.message
+                ?: stringResource(id = R.string.errors_unknown_try_again),
             onCancel = viewModel::onReject,
         )
         AuthSceneState.Loading -> LoadingScene(

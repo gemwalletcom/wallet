@@ -31,6 +31,8 @@ fun RequestScene(
 ) {
     val viewModel: WCRequestViewModel = hiltViewModel()
     val context = LocalContext.current
+    val unknownErrorMessage = stringResource(id = R.string.errors_unknown_try_again)
+    val reportError: (String) -> Unit = { message -> onError(message.ifBlank { unknownErrorMessage }) }
 
     DisposableEffect(request.topic, request.request.id) {
         viewModel.onRequest(
@@ -45,7 +47,7 @@ fun RequestScene(
                     ).show()
                 }
             },
-            onError = onError,
+            onError = reportError,
         )
 
         onDispose { viewModel.reset() }
@@ -67,7 +69,7 @@ fun RequestScene(
                     model = request,
                     buttonState = buttonState,
                     walletRow = { PropertyItem(R.string.common_wallet, sceneState.walletName, listPosition = ListPosition.First) },
-                    onApprove = { viewModel.onSign(onError) },
+                    onApprove = { viewModel.onSign(reportError) },
                     onReject = viewModel::onReject,
                 )
                 is WCRequest.Transaction -> ConfirmScreen(

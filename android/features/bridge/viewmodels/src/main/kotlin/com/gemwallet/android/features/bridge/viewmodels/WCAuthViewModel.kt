@@ -111,7 +111,7 @@ class WCAuthViewModel @Inject constructor(
                 }
             } catch (err: Throwable) {
                 if (isActiveRequest(request)) {
-                    rejectRequest(request, AuthSceneState.Error(err.message ?: "Authentication failed", err))
+                    rejectRequest(request, AuthSceneState.Error(err.message, err))
                 }
             }
         }
@@ -124,7 +124,7 @@ class WCAuthViewModel @Inject constructor(
         val approval = runCatching {
             buildApproval(request, wallet)
         }.getOrElse { err ->
-            _state.update { AuthSceneState.Error(err.message ?: "Authentication failed") }
+            _state.update { AuthSceneState.Error(err.message) }
             return
         }
 
@@ -181,7 +181,7 @@ class WCAuthViewModel @Inject constructor(
                 )
             } catch (err: Throwable) {
                 if (authRequest?.id == request.id) {
-                    _state.update { AuthSceneState.Error(err.message ?: "Authentication failed") }
+                    _state.update { AuthSceneState.Error(err.message) }
                 }
             }
         }
@@ -326,7 +326,7 @@ sealed interface AuthSceneState {
 
     data object Loading : AuthSceneState
 
-    class Error(val message: String, val cause: Throwable? = null) : AuthSceneState
+    class Error(val message: String?, val cause: Throwable? = null) : AuthSceneState
 
     sealed interface Content : AuthSceneState, WalletConnectReviewModel {
         val peer: SessionUI

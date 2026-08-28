@@ -113,7 +113,7 @@ class ProposalSceneViewModel @Inject constructor(
                     onError = { message -> fail(proposal, message, onError) }
                 )
             }
-            result.onFailure { err -> fail(proposal, err.message ?: "Connection failed", onError) }
+            result.onFailure { err -> fail(proposal, err.message.orEmpty(), onError) }
         }
     }
 

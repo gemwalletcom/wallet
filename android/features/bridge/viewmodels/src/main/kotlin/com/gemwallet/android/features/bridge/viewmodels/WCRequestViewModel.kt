@@ -90,7 +90,7 @@ class WCRequestViewModel @Inject constructor(
                 throw err
             } catch (err: Throwable) {
                 Log.e(TAG, "Request failed method=${sessionRequest.request.method} id=${sessionRequest.request.id}", err)
-                onError(err.message ?: "Request failed")
+                onError(err.message.orEmpty())
                 rejectRequest(sessionRequest)
                 return@launch
             }
@@ -118,7 +118,7 @@ class WCRequestViewModel @Inject constructor(
             } catch (err: Throwable) {
                 Log.e(TAG, "Sign message failed topic=${request.pending.sessionId}", err)
                 state.update { it.copy(responseState = RequestResponseState.Idle, approved = null) }
-                onError(err.message ?: "Sign failed")
+                onError(err.message.orEmpty())
                 request.reject()
                 return@launch
             }
@@ -168,7 +168,7 @@ class WCRequestViewModel @Inject constructor(
             onSuccess = { activeRequest.finish(sessionRequest) },
             onError = { error ->
                 state.update { it.copy(responseState = RequestResponseState.Idle, approved = null) }
-                onError(error.ifBlank { "Request failed" })
+                onError(error)
             },
         )
     }
