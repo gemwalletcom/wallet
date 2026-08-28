@@ -43,6 +43,10 @@ impl GemBannerService {
         self.store.set_state(key, BannerState::Cancelled).await
     }
 
+    pub fn shows_onboarding(&self, state: BannerState, is_wallet_empty: bool) -> bool {
+        rules::shows_onboarding(state, is_wallet_empty)
+    }
+
     pub fn visible_banners(&self, stored: Vec<GemBannerItem>, context: GemBannerContext) -> Vec<GemBannerItem> {
         rules::visible_banners(stored, &context)
     }

@@ -517,6 +517,10 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
         stored
     }
 
+    public func showsOnboarding(state _: Gemstone.BannerState, isWalletEmpty: Bool) -> Bool {
+        isWalletEmpty
+    }
+
     public func close(key: GemBannerKey) async throws {
         closedKeys.append(key)
     }

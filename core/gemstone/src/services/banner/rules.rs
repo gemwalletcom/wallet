@@ -66,6 +66,10 @@ pub fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool 
     }
 }
 
+pub fn shows_onboarding(state: BannerState, is_wallet_empty: bool) -> bool {
+    is_visible(state) && is_wallet_empty
+}
+
 pub fn visible_banners(stored: Vec<GemBannerItem>, context: &GemBannerContext) -> Vec<GemBannerItem> {
     let mut banners: Vec<GemBannerItem> = Vec::new();
     for item in stored.into_iter().chain(extra_banners()) {
@@ -254,5 +258,12 @@ mod tests {
         assert!(!is_visible(BannerState::Cancelled));
         assert_eq!(default_state(BannerEvent::ActivateAsset), BannerState::AlwaysActive);
         assert_eq!(default_state(BannerEvent::Stake), BannerState::Active);
+    }
+
+    #[test]
+    fn test_onboarding_shows_while_the_wallet_is_empty_and_the_banner_stands() {
+        assert!(shows_onboarding(BannerState::Active, true));
+        assert!(!shows_onboarding(BannerState::Active, false));
+        assert!(!shows_onboarding(BannerState::Cancelled, true));
     }
 }
