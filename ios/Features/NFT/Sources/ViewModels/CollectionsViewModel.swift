@@ -69,7 +69,7 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
 
     // MARK: - Actions
 
-    public func fetch() async {
+    public func load() async {
         do {
             let count = try await nftService.sync(walletId: wallet.id.id)
             debugLog("update nfts: \(count)")

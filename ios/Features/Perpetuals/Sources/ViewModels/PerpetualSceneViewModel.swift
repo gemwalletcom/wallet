@@ -181,7 +181,7 @@ public final class PerpetualSceneViewModel {
 // MARK: - Actions
 
 public extension PerpetualSceneViewModel {
-    func fetch() async {
+    func load() async {
         async let updateObserver: PerpetualAccountMode? = observerService.update(for: wallet)
         async let refreshTransactions: () = updateTransactions()
         async let refreshCandlesticks: () = chart.refresh(symbol: perpetual.coin)
@@ -189,7 +189,7 @@ public extension PerpetualSceneViewModel {
     }
 
     func onAppear() async {
-        async let refresh: () = fetch()
+        async let refresh: () = load()
         await chart.onAppear(symbol: perpetual.coin)
         await subscribeMarket(perpetual.coin)
         _ = await refresh

@@ -38,10 +38,10 @@ public struct PriceAlertsScene: View {
         }
         .onChange(of: model.isPriceAlertsEnabled, onAlertsEnable)
         .refreshable {
-            await model.fetch()
+            await model.load()
         }
         .task {
-            await model.fetch()
+            await model.load()
         }
         .navigationTitle(model.title)
     }

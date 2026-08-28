@@ -41,7 +41,7 @@ struct PerpetualsScene: View {
         }
         .taskOnce {
             Task {
-                await model.fetch()
+                await model.load()
             }
         }
         .onAppear {
@@ -51,7 +51,7 @@ struct PerpetualsScene: View {
             Task { await model.onDisappear() }
         }
         .refreshableTimer(every: .minutes(1)) {
-            await model.fetch()
+            await model.load()
         }
         .listSectionSpacing(.compact)
         .recentAssetsSheet(model: model.recentModel, onSelect: model.onSelectRecent)

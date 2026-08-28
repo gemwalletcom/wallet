@@ -198,7 +198,7 @@ public struct AssetScene: View {
             }
         }
         .refreshableTimer(every: .minutes(5)) {
-            await model.fetch()
+            await model.load()
         }
         .taskOnce(model.fetchOnce)
         .listSectionSpacing(.compact)

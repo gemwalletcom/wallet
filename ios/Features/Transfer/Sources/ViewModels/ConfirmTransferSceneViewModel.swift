@@ -275,13 +275,13 @@ extension ConfirmTransferSceneViewModel {
 
     func onSelectConfirm() {
         guard case let .data(input) = state.transaction, case let .success(amount) = input.transferAmount else {
-            Task { await fetch() }
+            Task { await load() }
             return
         }
         confirm(confirmData: input.confirmData, amount: amount)
     }
 
-    func fetch() async {
+    func load() async {
         state.transaction = .loading
         do {
             if state.feeRates.isEmpty {

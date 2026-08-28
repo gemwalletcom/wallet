@@ -87,7 +87,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
 // MARK: - Business Logic
 
 extension PortfolioSceneViewModel {
-    public func fetch() async {
+    public func load() async {
         selectedState = .loading
         do {
             let data = try await service.getPortfoliData(input: getDataInput())
@@ -102,7 +102,7 @@ extension PortfolioSceneViewModel {
 
     func onTypeChanged(_: PortfolioType, _: PortfolioType) {
         guard selectedState.value == nil else { return }
-        Task { await fetch() }
+        Task { await load() }
     }
 
     func typeTitle(for type: PortfolioType) -> String {

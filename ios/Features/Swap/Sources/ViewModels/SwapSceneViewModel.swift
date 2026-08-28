@@ -215,7 +215,7 @@ extension SwapSceneViewModel {
         pairSelectorModel = pair
     }
 
-    func fetch() async {
+    func load() async {
         guard !isTransferDataLoading, let currentInput else { return }
         await performFetch(input: currentInput)
     }

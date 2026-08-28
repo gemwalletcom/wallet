@@ -28,7 +28,7 @@ public struct ConfirmTransferScene: View {
         }
         .frame(maxWidth: .infinity)
         .task(id: model.preloadSelection) {
-            await model.fetch()
+            await model.load()
         }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)

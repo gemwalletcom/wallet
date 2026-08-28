@@ -219,8 +219,8 @@ public final class FiatSceneViewModel {
 // MARK: - Actions
 
 extension FiatSceneViewModel {
-    func fetch() {
-        currentViewModel.fetch()
+    func load() {
+        currentViewModel.load()
     }
 
     func onAssetDataChange(_: AssetData, _ newValue: AssetData) {

@@ -154,7 +154,7 @@ extension AmountSceneViewModel {
 
     public func onSelectNextButton() {
         Task {
-            await fetch()
+            await load()
         }
     }
 
@@ -241,7 +241,7 @@ private extension AmountSceneViewModel {
         amountInputModel.update(validators: inputValidators)
     }
 
-    func fetch() async {
+    func load() async {
         do {
             transferState = .loading
             let value = try amountTransferValue

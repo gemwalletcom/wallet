@@ -233,7 +233,7 @@ extension WalletSearchSceneViewModel {
         await search(query: query)
     }
 
-    func fetch() {
+    func load() {
         updateRequest()
         Task {
             await search(query: .empty)

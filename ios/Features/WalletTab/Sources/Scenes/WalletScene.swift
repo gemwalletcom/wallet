@@ -109,7 +109,7 @@ public struct WalletScene: View {
         .listSectionSpacing(.compact)
         .id(model.wallet.id)
         .refreshable {
-            await model.fetch()
+            await model.load()
         }
         .taskOnce {
             Task { await model.fetchOnce() }

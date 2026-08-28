@@ -133,7 +133,7 @@ final class PerpetualsSceneViewModel {
 // MARK: - Business Logic
 
 extension PerpetualsSceneViewModel {
-    func fetch() async {
+    func load() async {
         async let updateObserver: PerpetualAccountMode? = observerService.update(for: wallet)
         async let refreshMarkets: () = updateMarkets()
         _ = await (updateObserver, refreshMarkets)

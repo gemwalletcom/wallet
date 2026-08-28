@@ -126,7 +126,7 @@ public final class EarnSceneViewModel {
 // MARK: - Actions
 
 extension EarnSceneViewModel {
-    func fetch() async {
+    func load() async {
         viewState = .loading
         do {
             let address = try wallet.account(for: asset.id.chain).address

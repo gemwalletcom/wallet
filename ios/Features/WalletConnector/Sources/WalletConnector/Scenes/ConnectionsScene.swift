@@ -75,7 +75,7 @@ public struct ConnectionsScene: View {
             tapToDismiss: false,
         )
         .navigationTitle(model.title)
-        .taskOnce { model.fetch() }
+        .taskOnce { model.load() }
         .onChange(of: model.walletConnectorPresenter?.isPresentingSheet?.id, model.hideConnectionBar)
     }
 }

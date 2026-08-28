@@ -63,8 +63,8 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(model.title)
-        .refreshable { await model.fetch() }
-        .task { await model.fetch() }
+        .refreshable { await model.load() }
+        .task { await model.load() }
     }
 }
 

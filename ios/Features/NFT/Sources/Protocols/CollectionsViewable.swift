@@ -18,7 +18,7 @@ public protocol CollectionsViewable: AnyObject, Observable {
 
     var isPresentingReceiveSelectAssetType: SelectAssetType? { get set }
 
-    func fetch() async
+    func load() async
     func onSelectReceive()
 }
 
@@ -31,7 +31,7 @@ public extension CollectionsViewable {
         EmptyContentTypeViewModel(type: .nfts(action: onSelectReceive))
     }
 
-    func fetch() async {}
+    func load() async {}
 
     func onSelectReceive() {
         isPresentingReceiveSelectAssetType = .receive(.collection)

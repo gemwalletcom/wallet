@@ -82,7 +82,7 @@ public final class ChainSettingsSceneViewModel {
 // MARK: - Actions
 
 extension ChainSettingsSceneViewModel {
-    func fetch() async {
+    func load() async {
         do {
             clear()
             try await fetchNodes()
@@ -122,7 +122,7 @@ extension ChainSettingsSceneViewModel {
     func onDismissImportNode() {
         isPresentingImportNode = false
         Task {
-            await fetch()
+            await load()
         }
     }
 

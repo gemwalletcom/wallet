@@ -54,7 +54,7 @@ public final class InAppNotificationsViewModel {
 // MARK: - Actions
 
 public extension InAppNotificationsViewModel {
-    func fetch() async {
+    func load() async {
         do {
             try await notificationService.sync(walletId: wallet.id.id)
             if hasUnreadNotifications {

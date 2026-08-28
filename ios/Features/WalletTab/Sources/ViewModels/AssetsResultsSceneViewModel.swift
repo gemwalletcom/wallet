@@ -118,7 +118,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
 // MARK: - Actions
 
 extension AssetsResultsSceneViewModel {
-    func fetch() {
+    func load() {
         Task { await refresh() }
     }
 

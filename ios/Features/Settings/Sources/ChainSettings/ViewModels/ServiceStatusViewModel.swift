@@ -33,7 +33,7 @@ public final class ServiceStatusViewModel {
 // MARK: - Actions
 
 extension ServiceStatusViewModel {
-    func fetch() async {
+    func load() async {
         statusStates = Array(repeating: .loading, count: endpoints.count)
 
         let service = serviceStatusService

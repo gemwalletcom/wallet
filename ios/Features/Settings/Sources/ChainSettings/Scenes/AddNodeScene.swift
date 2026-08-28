@@ -33,7 +33,7 @@ struct AddNodeScene: View {
             model.onChangeInput()
         }
         .debouncedTask(id: model.fetchTrigger) {
-            await model.fetch()
+            await model.load()
         }
         .safeAreaButton {
             StateButton(
@@ -122,7 +122,7 @@ extension AddNodeScene {
     private func onSubmitUrl() {
         focusedField = nil
         Task {
-            await model.fetch()
+            await model.load()
         }
     }
 

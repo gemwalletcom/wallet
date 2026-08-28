@@ -62,7 +62,7 @@ public struct ChainSettingsScene: View {
             }
         }
         .refreshable {
-            await model.fetch()
+            await model.load()
         }
         .alert(
             model.deleteConfirmationTitle(for: model.nodeDelete?.host ?? ""),
@@ -99,7 +99,7 @@ public struct ChainSettingsScene: View {
         .navigationTitle(model.title)
         .listSectionSpacing(.compact)
         .taskOnce {
-            Task { await model.fetch() }
+            Task { await model.load() }
         }
     }
 }

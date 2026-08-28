@@ -102,7 +102,7 @@ extension AddNodeSceneViewModel {
           */
     }
 
-    func fetch() async {
+    func load() async {
         guard let url = try? URLDecoder().decode(urlInputModel.text) else {
             // safety check for onSubmitUrl
             state = .error(AnyError(AddNodeError.invalidURL.errorDescription ?? ""))

@@ -221,7 +221,7 @@ public final class RewardsViewModel: Sendable {
         ) { [weak self] _ in
             guard let self else { return }
             showActivatedToast()
-            Task { await self.fetch() }
+            Task { await self.load() }
         }
     }
 
@@ -229,15 +229,15 @@ public final class RewardsViewModel: Sendable {
 
     func selectWallet(_ wallet: Wallet) {
         selectedWallet = wallet
-        Task { await fetch(wallet: wallet) }
+        Task { await load(wallet: wallet) }
     }
 
-    func fetch() async {
-        await fetch(wallet: selectedWallet)
+    func load() async {
+        await load(wallet: selectedWallet)
     }
 
     func onTaskOnce() async {
-        await fetch()
+        await load()
 
         if wallets.count == 1, activateCode != nil {
             await useReferralCode()
@@ -251,7 +251,7 @@ public final class RewardsViewModel: Sendable {
         do {
             try await rewardsService.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
-            await fetch()
+            await load()
         } catch {
             showError(error.localizedDescription)
         }
@@ -262,7 +262,7 @@ public final class RewardsViewModel: Sendable {
         do {
             try await rewardsService.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
-            await fetch()
+            await load()
         } catch {
             showError(error.localizedDescription)
         }
@@ -282,7 +282,7 @@ public final class RewardsViewModel: Sendable {
                 AlertAction(title: Localized.Transfer.confirm, isDefaultAction: true) { [weak self] in
                     Task {
                         await self?.redeem(option: option)
-                        await self?.fetch()
+                        await self?.load()
                     }
                 },
                 .cancel(title: Localized.Common.cancel),
@@ -311,7 +311,7 @@ public final class RewardsViewModel: Sendable {
         )
     }
 
-    private func fetch(wallet: Wallet) async {
+    private func load(wallet: Wallet) async {
         state = .loading
         do {
             let rewards = try await rewardsService.getRewards(wallet: wallet)

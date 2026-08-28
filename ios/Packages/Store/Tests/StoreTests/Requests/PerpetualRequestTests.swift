@@ -8,7 +8,7 @@ import Testing
 
 struct PerpetualRequestTests {
     @Test
-    func fetch() throws {
+    func load() throws {
         let db = DB.mockAssets()
         let store = PerpetualStore(db: db)
         let eth = AssetId(chain: .ethereum)

@@ -37,7 +37,7 @@ public struct RewardsScene: View {
                 inviteFriendsSection(code: nil)
             }
         }
-        .refreshable { await model.fetch() }
+        .refreshable { await model.load() }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
         .listStyle(.insetGrouped)
@@ -105,7 +105,7 @@ public struct RewardsScene: View {
                 image: nil,
             ) {
                 Button(Localized.Common.tryAgain) {
-                    Task { await model.fetch() }
+                    Task { await model.load() }
                 }
                 .buttonStyle(.blue())
             }

@@ -111,7 +111,7 @@ extension AddAssetSceneViewModel {
         setFetchTrigger(isImmediate: true)
     }
 
-    func fetch() async {
+    func load() async {
         guard let trigger = fetchTrigger else { return }
 
         state = .loading

@@ -249,7 +249,7 @@ public final class StakeSceneViewModel {
 // MARK: - Business Logic
 
 extension StakeSceneViewModel {
-    func fetch() async {
+    func load() async {
         delegationsState = .loading
         do {
             let account = try wallet.account(for: chain.chain)

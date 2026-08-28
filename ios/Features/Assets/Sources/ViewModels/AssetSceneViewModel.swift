@@ -343,14 +343,14 @@ public final class AssetSceneViewModel: Sendable {
 public extension AssetSceneViewModel {
     internal func fetchOnce() {
         Task {
-            await fetch()
+            await load()
         }
         Task {
             await updateAsset()
         }
     }
 
-    internal func fetch() async {
+    internal func load() async {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.updateWallet() }
             if assetData.priceAlerts.isNotEmpty {

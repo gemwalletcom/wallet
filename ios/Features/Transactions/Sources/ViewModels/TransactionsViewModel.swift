@@ -74,7 +74,7 @@ public extension TransactionsViewModel {
         isPresentingSheet = .filter
     }
 
-    func fetch() async {
+    func load() async {
         do {
             try await transactionsService.sync(walletId: walletId.id, assetId: nil)
         } catch {

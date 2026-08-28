@@ -123,7 +123,7 @@ struct SwapSceneViewModelTests {
         let previousQuote = model.selectedSwapQuote
 
         model.swapState.swapTransferData = .loading
-        await model.fetch()
+        await model.load()
 
         #expect(model.swapState.quotes.isLoading == false)
         #expect(model.toValue == previousToValue)
@@ -153,7 +153,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(swapService: swapService)
 
         let task = Task {
-            await model.fetch()
+            await model.load()
         }
 
         try await Task.sleep(for: .milliseconds(50))
@@ -174,7 +174,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(swapService: swapService)
 
         let task = Task {
-            await model.fetch()
+            await model.load()
         }
 
         try await Task.sleep(for: .milliseconds(50))
@@ -212,7 +212,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(swapService: swapService)
 
         let task = Task {
-            await model.fetch()
+            await model.load()
         }
 
         try await Task.sleep(for: .milliseconds(50))
@@ -299,7 +299,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(swapService: swapService)
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .thorchain)
         #expect(model.selectedSwapQuote?.toValue == "250000000000")
@@ -314,7 +314,7 @@ struct SwapSceneViewModelTests {
             ],
         )
         let model = SwapSceneViewModel.mock(swapService: swapService)
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
 
@@ -337,12 +337,12 @@ struct SwapSceneViewModelTests {
     func increasedAmountSelectsBestProviderWithoutManualSelection() async {
         let model = SwapSceneViewModel.mock(swapService: GemSwapServiceMock(quotes: quotesByAmount))
 
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .thorchain)
 
         model.amountInputModel.text = "4"
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
         #expect(model.selectedSwapQuote?.toValue == "260000000000")
@@ -354,7 +354,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(swapService: swapService)
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
     }
@@ -371,7 +371,7 @@ struct SwapSceneViewModelTests {
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
         model.onChangeToAsset(old: .mock(asset: .mockEthereum()), new: .mock(asset: .mockEthereumUSDT()))
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
     }
@@ -395,7 +395,7 @@ struct SwapSceneViewModelTests {
     ) async -> SwapSceneViewModel {
         let swapService = GemSwapServiceMock(quotes: [.mock(toValue: toValueMock)])
         let model = SwapSceneViewModel.mock(swapService: swapService)
-        await model.fetch()
+        await model.load()
         return model
     }
 }

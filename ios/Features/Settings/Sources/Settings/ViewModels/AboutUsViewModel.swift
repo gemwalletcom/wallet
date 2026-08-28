@@ -120,7 +120,7 @@ extension AboutUsViewModel {
         preferences.isDeveloperEnabled.toggle()
     }
 
-    func fetch() async {
+    func load() async {
         release = await appUpdateService.newestRelease()
     }
 

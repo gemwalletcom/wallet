@@ -28,7 +28,7 @@ public struct TransactionsScene: View {
             .listSectionSpacing(.compact)
             .scrollContentBackground(.hidden)
             .refreshableTimer(every: .minutes(5)) {
-                await model.fetch()
+                await model.load()
             }
         }
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
@@ -38,6 +38,6 @@ public struct TransactionsScene: View {
                     .padding(.horizontal, .medium)
             }
         }
-        .task { await model.fetch() }
+        .task { await model.load() }
     }
 }

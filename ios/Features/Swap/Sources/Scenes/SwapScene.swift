@@ -70,7 +70,7 @@ public struct SwapScene: View {
         .onChangeBindQuery(model.fromAssetQuery, action: model.onChangeFromAsset)
         .onChangeBindQuery(model.toAssetQuery, action: model.onChangeToAsset)
         .debouncedTask(id: model.fetchTrigger) {
-            await model.fetch()
+            await model.load()
         }
         .debounce(
             value: model.assetIds,
@@ -87,7 +87,7 @@ public struct SwapScene: View {
         }
         .onChange(of: model.selectedSwapQuote, model.onChangeSwapQuote)
         .onTimer(every: 30, id: model.fetchTrigger) {
-            await model.fetch()
+            await model.load()
         }
         .onAppear {
             focusedField = true

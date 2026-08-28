@@ -43,7 +43,7 @@ public struct AddAssetScene: View {
                 model.onChangeAddress()
             }
             .debouncedTask(id: model.fetchTrigger) {
-                await model.fetch()
+                await model.load()
             }
             .listSectionSpacing(.compact)
             .navigationTitle(model.title)

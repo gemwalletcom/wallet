@@ -157,7 +157,7 @@ public final class SignMessageSceneViewModel {
 // MARK: - Actions
 
 public extension SignMessageSceneViewModel {
-    func fetch() {
+    func load() {
         Task {
             await loadPayloadAddressNamesIfNeeded()
         }

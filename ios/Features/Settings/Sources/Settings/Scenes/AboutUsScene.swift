@@ -54,6 +54,6 @@ public struct AboutUsScene: View {
         .listStyle(.insetGrouped)
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
-        .taskOnce { Task { await model.fetch() }}
+        .taskOnce { Task { await model.load() }}
     }
 }

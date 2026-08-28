@@ -92,7 +92,7 @@ public final class ChartSceneViewModel: ChartListViewable {
 // MARK: - Business Logic
 
 public extension ChartSceneViewModel {
-    func fetch() async {
+    func load() async {
         chartState = .loading
         do {
             var charts = try await service.syncCharts(

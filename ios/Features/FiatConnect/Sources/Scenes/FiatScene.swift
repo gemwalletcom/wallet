@@ -35,10 +35,10 @@ public struct FiatScene: View {
         .onChange(of: model.type, model.onChangeType)
         .onChange(of: model.inputValidationModel.text, model.onChangeAmountText)
         .debouncedTask(id: model.fetchTrigger) {
-            await model.fetch()
+            await model.load()
         }
         .onTimer(every: .minutes(5)) {
-            await model.fetch()
+            await model.load()
         }
         .alertSheet($model.isPresentingAlertMessage)
     }

@@ -79,7 +79,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
 // MARK: - Business Logic
 
 extension AssetPriceAlertsViewModel {
-    func fetch() async {
+    func load() async {
         do {
             try await priceAlertService.sync(assetId: asset.id.identifier)
         } catch {

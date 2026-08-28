@@ -56,7 +56,7 @@ final class FiatOperationViewModel {
         inputValidationModel.text.isEmptyOrZero ? operation.emptyAmountTitle : Localized.Buy.noResults
     }
 
-    func fetch() {
+    func load() {
         guard let amount = Double(inputValidationModel.text), amount > 0 else {
             quotesState = .noData
             return
@@ -82,7 +82,7 @@ final class FiatOperationViewModel {
             selectedQuote = nil
 
             do {
-                let quotes = try await operation.fetch(amount: amount)
+                let quotes = try await operation.load(amount: amount)
                 try Task.checkCancellation()
 
                 if quotes.isNotEmpty {

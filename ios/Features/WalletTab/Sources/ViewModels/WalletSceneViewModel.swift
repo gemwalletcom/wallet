@@ -193,7 +193,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 // MARK: - Business Logic
 
 public extension WalletSceneViewModel {
-    internal func fetch() async {
+    internal func load() async {
         await updateWallet(for: wallet)
     }
 

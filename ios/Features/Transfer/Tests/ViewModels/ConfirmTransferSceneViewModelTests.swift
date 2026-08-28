@@ -266,13 +266,13 @@ struct ConfirmTransferSceneViewModelTests {
             ]))),
         )
 
-        await model.fetch()
+        await model.load()
         #expect(model.state.feeRates == rates)
 
         let sentinel = ConfirmSimulationState.mock(warnings: [SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil)])
         model.state.simulation = sentinel
         model.feeSelection = .preset(.fast)
-        await model.fetch()
+        await model.load()
 
         #expect(model.state.simulation.warnings == sentinel.warnings)
         #expect(model.state.transaction.value != nil)
@@ -285,7 +285,7 @@ struct ConfirmTransferSceneViewModelTests {
             confirmService: .mock(transaction: .failure(AnyError("network"))),
         )
 
-        let task = Task { await model.fetch() }
+        let task = Task { await model.load() }
         task.cancel()
         await task.value
 

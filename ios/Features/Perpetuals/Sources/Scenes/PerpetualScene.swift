@@ -158,7 +158,7 @@ public struct PerpetualScene: View {
             },
         )
         .refreshable {
-            await model.fetch()
+            await model.load()
         }
         .onAppear {
             Task { await model.onAppear() }
