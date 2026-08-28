@@ -19,7 +19,7 @@ use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectCha
 
 pub use error::GemWalletConnectError;
 pub use model::{
-    GemSessionApproval, GemSessionProposal, GemSessionWallets, GemWalletConnectMessageRequest, GemWalletConnectRequest, GemWalletConnectResponse,
+    GemSessionApproval, GemSessionProposal, GemSessionWallets, GemWalletConnectMessageRequest, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectRpcError,
     GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
 };
 pub use signer::GemWalletConnectSigner;
@@ -118,6 +118,10 @@ impl GemWalletConnectService {
             },
             verification_status,
         })
+    }
+
+    pub fn user_rejected_error(&self) -> GemWalletConnectRpcError {
+        rules::user_rejected_error()
     }
 
     pub fn application_metadata(&self, name: String, description: String, url: String, icons: Vec<String>) -> ApplicationMetadata {

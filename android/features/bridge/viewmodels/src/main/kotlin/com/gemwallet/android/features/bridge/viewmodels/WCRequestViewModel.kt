@@ -177,10 +177,7 @@ class WCRequestViewModel @Inject constructor(
         bridgeRepository.respondSessionRequest(
             topic = sessionRequest.topic,
             id = sessionRequest.request.id,
-            response = WalletConnectJsonRpcResponse.Error(
-                code = 4001,
-                message = "User rejected the request",
-            ),
+            response = requestHandler.rejected(),
             onSuccess = { activeRequest.finish(sessionRequest) },
             onError = { error -> Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $error") },
         )

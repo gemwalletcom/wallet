@@ -229,7 +229,12 @@ extension WalletConnectorService {
     }
 
     private func rejectRequest(_ request: WalletConnectSign.Request) async throws {
-        try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: .error(JSONRPCError(code: 4001, message: "User rejected the request")))
+        let rejection = service.userRejectedError()
+        try await WalletKit.instance.respond(
+            topic: request.topic,
+            requestId: request.id,
+            response: .error(JSONRPCError(code: Int(rejection.code), message: rejection.message)),
+        )
     }
 
     private func processSession(proposal: Session.Proposal, verifyContext: VerifyContext) async throws {

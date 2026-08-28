@@ -26,7 +26,8 @@ class WalletConnectRequestHandler(
         }
     }
 
-    private fun rejected() = WalletConnectJsonRpcResponse.Error(code = 4001, message = "User rejected the request")
+    fun rejected(): WalletConnectJsonRpcResponse.Error = service.userRejectedError()
+        .let { WalletConnectJsonRpcResponse.Error(code = it.code, message = it.message) }
 
 }
 

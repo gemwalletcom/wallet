@@ -14,10 +14,12 @@ use crate::models::gateway::GemGasPriceType;
 use crate::models::transaction::{GemTransactionInputType, GemTransferDataExtra};
 use crate::services::error::GemServiceError;
 use crate::services::transfer::{GemRecipient, GemTransferData};
-use crate::services::wallet_connect::model::GemWalletConnectTransactionAction;
+use crate::services::wallet_connect::model::{GemWalletConnectRpcError, GemWalletConnectTransactionAction};
 use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction, wallet_connect_chain, wallet_connect_namespace};
 use num_bigint::BigInt;
 use primitives::{Asset, TransactionType, TransferDataOutputAction, TransferDataOutputType};
+
+pub const USER_REJECTED_ERROR_CODE: i32 = 4001;
 
 pub fn session_account(connection: &WalletConnection, chain: Chain) -> Result<Account, GemServiceError> {
     validate_session_chain(&connection.session, chain)?;
@@ -146,6 +148,13 @@ pub fn session(topic: String, chains: Vec<Chain>, expire_at: DateTime<Utc>, meta
         created_at: Utc::now(),
         expire_at,
         metadata,
+    }
+}
+
+pub fn user_rejected_error() -> GemWalletConnectRpcError {
+    GemWalletConnectRpcError {
+        code: USER_REJECTED_ERROR_CODE,
+        message: "User rejected the request".to_string(),
     }
 }
 

@@ -13,6 +13,12 @@ pub struct GemWalletConnectRequest {
     pub domain: String,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletConnectRpcError {
+    pub code: i32,
+    pub message: String,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemWalletConnectResponse {
     Response { value: WalletConnectResponseType },

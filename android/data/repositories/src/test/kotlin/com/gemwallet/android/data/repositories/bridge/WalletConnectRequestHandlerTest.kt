@@ -13,6 +13,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemWalletConnectResponse
+import uniffi.gemstone.GemWalletConnectRpcError
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectResponseType
 
@@ -48,6 +49,7 @@ class WalletConnectRequestHandlerTest {
         }
         val failing = mockk<GemWalletConnectServiceInterface> {
             coEvery { handleRequest(any()) } throws IllegalStateException("rejected")
+            every { userRejectedError() } returns GemWalletConnectRpcError(code = 4001, message = "User rejected the request")
         }
 
         assertEquals(WalletConnectJsonRpcResponse.Error(-32601, "Method not found"), WalletConnectRequestHandler(notFound).handle(request, "https://dapp"))
