@@ -1,8 +1,136 @@
 # Gemstone Services
 
-Core-owned services live in [`core/gemstone/src/services/`](../gemstone/src/services/) as `<name>/{mod,model,rules,store}.rs` (only the files a service needs); every service and store returns the shared [`GemServiceError`](../gemstone/src/services/error.rs). A service owns the flow (API + rules); each app implements the `Gem*Store` trait over its database or preferences and constructs the service in DI ([`ServicesFactory.swift`](../../ios/Gem/Services/ServicesFactory.swift), Hilt modules under [`android/data/repositories/.../di`](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/di/) and [`android/data/coordinators/.../di`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/di/)).
+Core-owned services live in [`core/gemstone/src/services/`](../gemstone/src/services/) as `<name>/{mod,model,rules,store}.rs` (only the files a service needs); every service and store returns the shared [`GemServiceError`](../gemstone/src/services/error.rs). A service owns the flow (API + rules); each app implements the `Gem*Store` trait over its database or preferences and constructs the service in DI ([`ServicesFactory.swift`](../../ios/Gem/Services/ServicesFactory.swift), Hilt modules under [`android/data/repositories/.../di`](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/di/) and [`android/data/coordinators/.../di`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/di/)). Read [How a service is built](#how-a-service-is-built) before adding or changing one.
 
 Status: **Done** = flow in Core, both apps use it · **In progress** = being migrated · **Review** = app service not yet reviewed for Core-movable logic · **App-only** = platform concern, stays in the app · **Planned** = queued.
+
+## How a service is built
+
+[`GemPriceAlertService`](../gemstone/src/services/price_alert/mod.rs) is the reference: it calls the device API, reads a preference, writes a database table and asks the platform for a permission, so it exercises every seam a service can have. New services copy its shape; existing ones move toward it.
+
+### 1. Core owns the flow
+
+`core/gemstone/src/services/<name>/` holds only the files that service needs:
+
+| File | Holds |
+| --- | --- |
+| `mod.rs` | the `#[derive(uniffi::Object)]` service, its `#[uniffi::constructor]`, and the exported methods — each one a short *API call → rule → store write* sequence |
+| `rules.rs` | the decisions, as pure functions with unit tests |
+| `store.rs` | the `#[uniffi::export(rust, foreign)]` trait the apps implement |
+| `model.rs` | the `uniffi::Record`/`uniffi::Enum` types the service returns |
+| `error.rs` | only when [`GemServiceError`](../gemstone/src/services/error.rs) cannot express a case |
+
+The service holds `Arc`s of other Core services and of store traits — never an app type:
+
+```rust
+#[derive(uniffi::Object)]
+pub struct GemPriceAlertService {
+    api: Arc<GemDeviceApiClient>,
+    preferences: Arc<GemPreferencesService>,
+    store: Arc<dyn GemPriceAlertStore>,
+    device: Arc<GemDeviceService>,
+    permissions: Arc<dyn GemNotificationPermissions>,
+}
+```
+
+A method reads remote and local state, asks a rule what changed, and writes only that:
+
+```rust
+pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
+    let remote = self.api.client.get_price_alerts(...).await.map_err(GemApiError::from)?;
+    let local = self.store.get_price_alerts(asset_id).await?;
+    let changes = rules::reconcile(local, remote);
+    if changes.delete_ids.is_empty() && changes.alerts.is_empty() {
+        return Ok(());
+    }
+    self.store.update_price_alerts(changes.alerts, changes.delete_ids).await
+}
+```
+
+Everything that decides belongs in `rules.rs` with a test that fails if the rule flips. A rule that needs no service state is exported as a free function (`price_alerts_sorted`, `price_alert_id`) so a screen can call it without holding the service. A failure is either impossible (a rule with a built-in default), surfaced (returned as `GemServiceError`), or recorded through `services::failures::record` — never swallowed.
+
+### 2. Pick the store the value belongs in
+
+| What the service needs | Trait | Shape | iOS | Android |
+| --- | --- | --- | --- | --- |
+| rows in the database | one `Gem<Name>Store` per service ([example](../gemstone/src/services/price_alert/store.rs)) | `async`, every method returns `Result<_, GemServiceError>` | GRDB store under [`GemstoneServices/Sources/Stores/`](../../ios/Packages/GemstoneServices/Sources/Stores/) | Room DAO under [`data/repositories/.../gemstone/`](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/) |
+| a value the user set | [`GemPreferencesStore`](../gemstone/src/services/preferences/store.rs) through `GemPreferencesService` | sync; `get` returns `Option<String>` and **cannot fail** | `GemstonePreferencesStore` over `UserDefaults` | `GemstonePreferencesStore` over `SharedPreferences` |
+| the same, per wallet | `GemWalletPreferencesStore` through `GemWalletPreferencesService` | sync, keyed by `WalletId` | same file layout | same file layout |
+| a secret | [`GemSecureStore`](../gemstone/src/services/preferences/store.rs) | sync; **every read can fail** | `GemstoneSecurePreferencesStore` over the Keychain | `TinkGemPreferences` over Tink |
+| something only the OS can do | a foreign trait of its own (`GemNotificationPermissions`, `GemStreamConnection`) | whatever the platform needs | app class | app class |
+
+- One trait per table. A second trait over the same rows is how the two apps drift apart.
+- A new preference is a `const` key plus typed accessors on `GemPreferencesService` — single-word keys (`_` separates the settings hierarchy in environment variables), never a raw key string in an app.
+- The preference read is infallible on purpose: getters return plain values, so neither app writes `try?`/`runCatching` around them. Secure reads are fallible and their failure must propagate — a swallowed secure read regenerates identity or loses a key.
+- Store methods follow the vocabulary in [Conventions](#conventions): `get_*`, `is_*`, `set_*`, `save_*`, `add_*`, `update_<items>(items, delete_ids)`, `delete_*`, `clear*`.
+
+### 3. Each app implements the store — and nothing else
+
+iOS, `ios/Packages/GemstoneServices/Sources/Stores/<Name>Store.swift`, class `Gemstone<Name>Store`, converting with `.json()` and `Primitives.<T>(_:)`:
+
+```swift
+public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Sendable {
+    private let store: PriceAlertStore
+
+    public func updatePriceAlerts(alerts: [Gemstone.PriceAlert], deleteIds: [String]) async throws {
+        try store.diffPriceAlerts(deleteIds: deleteIds, alerts: alerts.map { try Primitives.PriceAlert($0) })
+    }
+}
+```
+
+Android, `android/data/repositories/.../gemstone/<Name>Store.kt`, class `Gemstone<Name>Store`, converting with `toJson()` and `decodeJson()`:
+
+```kotlin
+class GemstonePriceAlertStore(
+    private val priceAlertsDao: PriceAlertsDao,
+) : GemPriceAlertStore {
+
+    override suspend fun updatePriceAlerts(alerts: List<String>, deleteIds: List<String>) {
+        priceAlertsDao.update(alerts.map { it.decodeJson<PriceAlert>().toRecord() }, deleteIds)
+    }
+}
+```
+
+The two adapters are mirrors: same methods, same conflict behaviour (upsert where the other upserts), same "write only rows whose values differ" rule, same treatment of a missing row. A difference between them is a bug in one of them, not a platform choice. Types that cross as JSON (`Asset`, `Account`, `Wallet`, `SimulationResult`, …) arrive as `String` typealiases and are decoded at the adapter boundary, never deeper in the app.
+
+### 4. Construct it once
+
+iOS builds the store and the service in [`ServicesFactory.swift`](../../ios/Gem/Services/ServicesFactory.swift) and publishes the service through `AppResolver` and an `@Entry` on the environment:
+
+```swift
+let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
+let priceAlertService = Gemstone.GemPriceAlertService(
+    api: gemDeviceApiClient,
+    preferences: preferencesService,
+    store: gemPriceAlertStore,
+    device: deviceService,
+    permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
+)
+```
+
+Android provides the store and the service from one Hilt module ([`PriceAlertsModule`](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/di/PriceAlertsModule.kt)):
+
+```kotlin
+@Singleton @Provides
+fun provideGemPriceAlertStore(priceAlertsDao: PriceAlertsDao): GemPriceAlertStore = GemstonePriceAlertStore(priceAlertsDao)
+
+@Singleton @Provides
+fun provideGemPriceAlertService(...): GemPriceAlertService = GemPriceAlertService(api, preferences, store, device, permissions)
+```
+
+### 5. Call it from the app
+
+- **iOS**: the view model holds the generated protocol (`any GemPriceAlertServiceProtocol`) and calls it directly; the screen takes it from `@Environment(\.priceAlertService)`. Wrap a Core service in an app class only when the app adds state or types of its own.
+- **Android**: the view model holds a coordinator interface from `gemcore` (`application/<area>/coordinators/`), whose `*Impl` in `data/coordinators` holds the Core service; a coordinator depends on one Core service *or* on repositories plus the session, not both. Where there is nothing to coordinate, the view model injects the `Gem*Service` itself.
+- Neither app re-implements a rule the service already owns, and neither adds a repository or use case that only forwards one Core call.
+- Mocks: iOS in [`GemstoneServices/TestKit`](../../ios/Packages/GemstoneServices/TestKit/), Android in `gemcore` `testFixtures` — shared, never inline per test.
+
+### Done means
+
+- Core has the flow, the rules and their tests; the app code it replaced is deleted in the same commit.
+- Both apps implement the same store trait the same way, and both build and pass their suites.
+- No app-side copy of a Core decision, no raw preference keys, no swallowed store failure.
+- The service's row in the table above says **Done**, and its line in the plan below is removed.
 
 ## Core services
 
