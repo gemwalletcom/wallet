@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import android.util.Log
 import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemTransferService
@@ -23,6 +24,7 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -326,7 +328,13 @@ class ConfirmViewModel @Inject constructor(
 
     fun init(params: ConfirmParams, simulationResult: SimulationResult? = null) {
         this.simulationResult.value = simulationResult
-        feeSelection.value = FeeSelection.Preset(defaultFeePriority(params.toTransferData().inputType).toFeePriority())
+        val priority = defaultFeePriority(params.toTransferData().inputType)
+        feeSelection.value = FeeSelection.Preset(
+            priority.toFeePriority() ?: run {
+                Log.e(TAG, "unsupported default fee priority \"$priority\"")
+                FeePriority.Normal
+            }
+        )
         viewModelScope.launch(Dispatchers.IO) {
             val assetIds = simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(params.approvalAssetId())
             syncMissingAssets.syncMissingAssets(assetIds.distinct())
@@ -457,6 +465,11 @@ class ConfirmViewModel @Inject constructor(
 
         return ConfirmDetailElement.SwapDetails(model)
     }
+
+    private companion object {
+        const val TAG = "Confirm"
+    }
+
 }
 
 private fun SimulationResult.simulationAssetIds(): List<AssetId> =
@@ -472,4 +485,3 @@ private fun ConfirmParams?.approvalAssetId(): AssetId? =
                 ?.let { approval -> AssetId(generic.assetId.chain, tokenId = approval.token) }
         }
 
-private fun String.toFeePriority(): FeePriority = FeePriority.entries.firstOrNull { it.string == this } ?: FeePriority.Normal

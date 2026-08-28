@@ -150,7 +150,7 @@ App types in the seam, with their Core home:
 | `SignerParams` (+ `.Data`) | Android | 17 | `GemConfirmData` (plus the two fields below) |
 | `Fee` (sealed), `FeeSelection`, `DestinationAddress` | Android | — | `GemTransactionLoadFee`, `GemConfirmFeeSelection`, `GemRecipient` |
 | `ConfirmTransferPreload` | iOS | 2 | `GemConfirmData` |
-| `TransferAmount` | iOS | 9 | value + network fee of `GemSendInput` |
+| `TransferAmount` | iOS | 9 | `GemTransferAmount` — the typed view of Core's calculator output |
 | `Fee`, `FeeRate`, `GasPriceType`, `TransferData`, `TransferDataExtra` (Primitives) | iOS | — | `GemTransactionLoadFee`, `GemFeeRate`, `GemGasPriceType`, `GemTransferData`, `GemTransferDataExtra` |
 
 Android converts the same payload seven times per confirm screen: `pack` → `unpack` → view model re-pack → `SignerPreloaderProxy.toConfirmInput` → `CalculateTransferAmount` → `availableValue` → `toSendInput`.
@@ -168,7 +168,7 @@ Blockers, in the order they have to be solved:
 7. **Presentation code switches on app subclasses.** `ConfirmProperty.Destination.map`, `BuildConfirmPropertiesImpl.getValidator` and the swap/perpetual detail builders do exhaustive `when` over `ConfirmParams`; they have to be rewritten against `GemTransactionInputType`.
 8. **`GemConfirmData.scan` is never read** by either app — only the fatal verdicts surface, as errors from Core.
 
-Defects found in this path (fixed ones are removed from this list): the WalletConnect `extra.gas_price` from a dapp is dropped by Android's `toGenericParams`/`Generic.toDto` round trip (latent — Core has no consumer yet); `GemTransferData.minimum_value` is never read by `toConfirmParams` and survives only because swaps re-derive it from the quote; the Generic recipient is written to both `extra.to` and `recipient.address` and read back from different ones; `ConfirmViewModel` shows the requested amount in the header while `calculateTransferAmount` is still running; a custom fee reports back as `selected_priority: normal`, so the fee sheet highlights the Normal preset; `FeePriority` decode falls back to `Normal` and unknown Core priorities are silently filtered out of the fee list; `SignerPreloaderProxy` throws `requireNotNull` on Core's priority string; `ConfirmParams` overrides `hashCode` without `equals`, so every re-emission looks like a change; `ConfirmParams.getTransactionType` and `ConfirmViewModel` construct a fresh `GemTransferService()` per call inside a `combine`.
+Defects found in this path (fixed ones are removed from this list): the WalletConnect `extra.gas_price` from a dapp is dropped by Android's `toGenericParams`/`Generic.toDto` round trip (latent — Core has no consumer yet); `GemTransferData.minimum_value` is never read by `toConfirmParams` and survives only because swaps re-derive it from the quote; the Generic recipient is written to both `extra.to` and `recipient.address` and read back from different ones; `ConfirmViewModel` shows the requested amount in the header while `calculateTransferAmount` is still running; a custom fee reports back as `selected_priority: normal`, so the fee sheet highlights the Normal preset; `ConfirmParams` overrides `hashCode` without `equals`, so every re-emission looks like a change; `ConfirmParams.getTransactionType` and `ConfirmViewModel` construct a fresh `GemTransferService()` per call inside a `combine`.
 
 ### Rust (core/gemstone)
 
