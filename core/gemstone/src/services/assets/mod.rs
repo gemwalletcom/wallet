@@ -74,6 +74,19 @@ impl GemAssetsService {
         Ok(asset)
     }
 
+    pub async fn sync_assets(&self, asset_ids: Vec<AssetId>, currency: Currency) -> Result<(), GemServiceError> {
+        let asset_ids = crate::services::collections::unique(asset_ids);
+        if asset_ids.is_empty() {
+            return Ok(());
+        }
+        let assets = self.get_assets(asset_ids, Some(currency.to_string())).await?;
+        if assets.is_empty() {
+            return Ok(());
+        }
+        self.store.save_assets(assets.clone()).await?;
+        self.price.update_prices(rules::asset_prices(&assets), currency).await
+    }
+
     pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
         let missing = rules::missing_asset_ids(asset_ids, existing);
