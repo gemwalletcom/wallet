@@ -2,7 +2,6 @@
 
 import Foundation
 import Observation
-import Primitives
 import protocol Gemstone.GemPreferencesStore
 import protocol Gemstone.GemWalletSessionStore
 import typealias Gemstone.WalletId
@@ -19,22 +18,8 @@ public final class GemstoneWalletSessionStore: GemWalletSessionStore, @unchecked
 
     @ObservationIgnored
     public var currentWalletId: Gemstone.WalletId? {
-        get {
-            access(keyPath: \.currentWalletId)
-            return store.get(key: Self.key)
-        }
-        set {
-            withMutation(keyPath: \.currentWalletId) {
-                do {
-                    switch newValue {
-                    case let .some(walletId): try store.set(key: Self.key, value: walletId)
-                    case .none: try store.remove(key: Self.key)
-                    }
-                } catch {
-                    debugLog("wallet session store write error: \(error)")
-                }
-            }
-        }
+        access(keyPath: \.currentWalletId)
+        return store.get(key: Self.key)
     }
 
     public func getCurrentWalletId() throws -> Gemstone.WalletId? {
@@ -42,12 +27,10 @@ public final class GemstoneWalletSessionStore: GemWalletSessionStore, @unchecked
     }
 
     public func setCurrentWalletId(walletId: Gemstone.WalletId?) throws {
-        if Thread.isMainThread {
-            currentWalletId = walletId
-        } else {
-            DispatchQueue.main.sync {
-                currentWalletId = walletId
-            }
+        switch walletId {
+        case let .some(walletId): try store.set(key: Self.key, value: walletId)
+        case .none: try store.remove(key: Self.key)
         }
+        withMutation(keyPath: \.currentWalletId) {}
     }
 }

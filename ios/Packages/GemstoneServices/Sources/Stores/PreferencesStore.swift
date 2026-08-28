@@ -32,11 +32,7 @@ public final class GemstonePreferencesStore: GemPreferencesStore, @unchecked Sen
     }
 
     public func get(key: String) -> String? {
-        switch userDefaults.object(forKey: storageKey(key)) {
-        case let value as String: value
-        case let number as NSNumber: value(from: number)
-        default: .none
-        }
+        userDefaults.preferenceValue(forKey: storageKey(key))
     }
 
     public func set(key: String, value: String) throws {
@@ -60,10 +56,6 @@ public final class GemstonePreferencesStore: GemPreferencesStore, @unchecked Sen
         for key in appGroupKeys {
             appGroupDefaults?.removeObject(forKey: storageKey(key))
         }
-    }
-
-    private func value(from number: NSNumber) -> String {
-        CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() ? String(number.boolValue) : number.stringValue
     }
 
     private func storageKey(_ key: String) -> String {

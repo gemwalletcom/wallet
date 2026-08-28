@@ -8,11 +8,7 @@ public final class GemstoneWalletPreferencesStore: GemWalletPreferencesStore, Se
     public init() {}
 
     public func get(walletId: Gemstone.WalletId, key: String) -> String? {
-        switch defaults(walletId: walletId).object(forKey: key) {
-        case let value as String: value
-        case let value as NSNumber: CFGetTypeID(value) == CFBooleanGetTypeID() ? (value.boolValue ? "true" : "false") : value.stringValue
-        default: nil
-        }
+        defaults(walletId: walletId).preferenceValue(forKey: key)
     }
 
     public func set(walletId: Gemstone.WalletId, key: String, value: String) throws {
