@@ -5,10 +5,10 @@ import Components
 import protocol Gemstone.GemSearchServiceProtocol
 import GemstoneServices
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import func Gemstone.popularAssetIds
 import GemstonePrimitives
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Recents
@@ -19,7 +19,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class SelectAssetViewModel {
-    let preferences: Preferences
+    let preferencesService: any GemPreferencesServiceProtocol
     let selectType: SelectAssetType
     let flow: SelectAssetFlow
     let searchService: any GemSearchServiceProtocol
@@ -48,17 +48,17 @@ public final class SelectAssetViewModel {
     public var onSelectAssetAction: AssetAction
 
     public init(
-        preferences: Preferences = Preferences.standard,
         wallet: Wallet,
         selectType: SelectAssetType,
         searchService: any GemSearchServiceProtocol,
         assetsEnabler: any AssetsEnabler,
         priceAlertService: any GemPriceAlertServiceProtocol,
         recentActivityStore: RecentActivityStore,
+        preferencesService: any GemPreferencesServiceProtocol,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
     ) {
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         self.wallet = wallet
         self.selectType = selectType
         self.searchService = searchService
@@ -153,7 +153,7 @@ public final class SelectAssetViewModel {
     }
 
     var currencyCode: String {
-        preferences.currency
+        preferencesService.currencyCode
     }
 }
 
@@ -291,7 +291,7 @@ extension SelectAssetViewModel {
 
     private func searchAssets(query: String) async {
         do {
-            let assets = try await searchService.searchAssets(wallet: wallet, query: query, currency: preferences.currency)
+            let assets = try await searchService.searchAssets(wallet: wallet, query: query, currency: preferencesService.currencyCode)
             state = .data(assets)
         } catch {
             handle(error: error)
@@ -300,7 +300,7 @@ extension SelectAssetViewModel {
 
     private func setPriceAlert(assetId: AssetId, enabled: Bool) async {
         do {
-            let currency = try Currency(id: Preferences.standard.currency)
+            let currency = preferencesService.currencyValue
             if enabled {
                 try await priceAlertService.enable(priceAlert: .default(for: assetId, currency: currency))
             } else {

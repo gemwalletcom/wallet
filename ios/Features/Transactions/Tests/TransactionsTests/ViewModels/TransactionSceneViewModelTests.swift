@@ -50,7 +50,7 @@ struct TransactionSceneViewModelTests {
                 ),
             ),
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferencesService: GemPreferencesServiceMock(),
             explorerService: GemExplorerService.mock(),
             onHeaderAction: { selectedAction = $0 },
         )
@@ -72,7 +72,7 @@ struct TransactionSceneViewModelTests {
                 ),
             ),
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferencesService: GemPreferencesServiceMock(),
             explorerService: GemExplorerService.mock(),
         )
 
@@ -316,7 +316,7 @@ struct TransactionSceneViewModelTests {
         let modelWithAddresses = TransactionSceneViewModel(
             transaction: transaction,
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferencesService: GemPreferencesServiceMock(),
             explorerService: GemExplorerService.mock(),
         )
 
@@ -513,7 +513,7 @@ extension TransactionSceneViewModel {
                 confirmationEtaSeconds: confirmationEtaSeconds,
             ),
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferencesService: GemPreferencesServiceMock(),
             explorerService: GemExplorerService.mock(),
         )
     }

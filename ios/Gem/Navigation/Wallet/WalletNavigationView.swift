@@ -132,6 +132,7 @@ struct WalletNavigationView: View {
                 model: TransactionSceneViewModel(
                     transaction: $0.transaction,
                     walletId: model.wallet.id,
+                    preferencesService: preferencesService,
                     explorerService: explorerService,
                     onHeaderAction: onSelectTransactionHeaderAction,
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
@@ -228,6 +229,7 @@ struct WalletNavigationView: View {
             AssetPriceAlertsScene(
                 model: AssetPriceAlertsViewModel(
                     priceAlertService: priceAlertService,
+                    preferencesService: preferencesService,
                     walletId: model.wallet.id,
                     asset: $0.asset,
                 ),
@@ -265,6 +267,7 @@ struct WalletNavigationView: View {
                             walletId: model.wallet.id,
                             asset: asset,
                             priceAlertService: priceAlertService,
+                            preferencesService: preferencesService,
                         ) { model.onSetPriceAlertComplete(message: $0) },
                     )
                 case .addAsset:

@@ -160,6 +160,7 @@ extension AmountSceneViewModel {
             input: AmountInput(type: type, asset: assetData.asset),
             wallet: .mock(),
             service: AmountService(stakeService: GemStakeServiceMock()),
+            preferencesService: GemPreferencesServiceMock(),
             onTransferAction: { _ in },
         )
         model.assetQuery.value = assetData

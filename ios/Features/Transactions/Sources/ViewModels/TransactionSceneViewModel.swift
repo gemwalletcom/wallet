@@ -5,8 +5,8 @@ import Components
 import protocol Gemstone.GemExplorerServiceProtocol
 import Formatters
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import InfoSheet
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -15,7 +15,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class TransactionSceneViewModel {
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let explorerService: any GemExplorerServiceProtocol
     private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
@@ -31,12 +31,12 @@ public final class TransactionSceneViewModel {
     public init(
         transaction: TransactionExtended,
         walletId: WalletId,
-        preferences: Preferences = Preferences.standard,
+        preferencesService: any GemPreferencesServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         self.explorerService = explorerService
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
@@ -156,7 +156,7 @@ extension TransactionSceneViewModel {
         TransactionViewModel(
             explorerService: explorerService,
             transaction: transactionExtended,
-            currency: preferences.currency,
+            currency: preferencesService.currencyCode,
         )
     }
 
@@ -213,7 +213,7 @@ extension TransactionSceneViewModel {
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
             feeAsset: model.transaction.feeAsset,
-            currency: Currency(rawValue: preferences.currency) ?? .usd,
+            currency: preferencesService.currencyValue,
             selection: .preset(.normal),
             feeAssetPrice: model.transaction.feePrice,
             feeAmount: BigInt(model.transaction.transaction.fee),

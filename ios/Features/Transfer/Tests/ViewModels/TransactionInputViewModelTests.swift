@@ -18,6 +18,7 @@ struct TransactionInputViewModelTests {
             metaData: nil,
             transferAmount: .success(TransferAmount(value: 200, networkFee: 1, useMaxAmount: false)),
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.value == BigInt(200))
@@ -34,6 +35,7 @@ struct TransactionInputViewModelTests {
                 requirement: BalanceRequirement(required: 1, available: 0),
             )),
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.value == 100)
@@ -47,6 +49,7 @@ struct TransactionInputViewModelTests {
             metaData: nil,
             transferAmount: nil,
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.value == .zero)
@@ -60,6 +63,7 @@ struct TransactionInputViewModelTests {
             metaData: nil,
             transferAmount: nil,
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.networkFeeText == "0.00000001 BTC")
@@ -74,6 +78,7 @@ struct TransactionInputViewModelTests {
             metaData: nil,
             transferAmount: nil,
             feeAsset: feeAsset,
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.networkFeeText == "1 USDT")
@@ -94,6 +99,7 @@ struct TransactionInputViewModelTests {
             metaData: metaData,
             transferAmount: nil,
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.networkFeeFiatText == "$0.000000015")
@@ -107,6 +113,7 @@ struct TransactionInputViewModelTests {
             metaData: nil,
             transferAmount: nil,
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.networkFeeText == "-")

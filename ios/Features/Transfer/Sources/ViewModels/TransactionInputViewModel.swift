@@ -4,7 +4,6 @@ import GemstoneServices
 import BigInt
 import Foundation
 import GemstonePrimitives
-import Preferences
 import Primitives
 import PrimitivesComponents
 
@@ -15,7 +14,7 @@ public struct TransactionInputViewModel: Sendable {
     let transferAmount: TransferAmountValidation?
     let feeAsset: Asset
 
-    private let preferences: Preferences
+    private let currency: String
 
     public init(
         data: TransferData,
@@ -23,14 +22,14 @@ public struct TransactionInputViewModel: Sendable {
         metaData: TransferDataMetadata?,
         transferAmount: TransferAmountValidation?,
         feeAsset: Asset,
-        preferences: Preferences = Preferences.standard,
+        currency: String,
     ) {
         self.transactionData = transactionData
         self.data = data
         self.metaData = metaData
         self.transferAmount = transferAmount
         self.feeAsset = feeAsset
-        self.preferences = preferences
+        self.currency = currency
     }
 
     var value: BigInt {
@@ -49,7 +48,7 @@ public struct TransactionInputViewModel: Sendable {
 
     var infoModel: TransactionInfoViewModel {
         TransactionInfoViewModel(
-            currency: preferences.currency,
+            currency: currency,
             asset: displayAsset,
             assetPrice: metaData?.assetPrice,
             feeAsset: feeAsset,

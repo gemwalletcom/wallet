@@ -71,6 +71,7 @@ public struct ViewModelFactory: Sendable {
             assetsEnabler: assetsEnabler,
             priceAlertService: priceAlertService,
             recentActivityStore: recentActivityStore,
+            preferencesService: preferencesService,
             selectAssetAction: selectAssetAction,
             chains: chains,
         )
@@ -161,6 +162,7 @@ public struct ViewModelFactory: Sendable {
             input: input,
             wallet: wallet,
             service: amountService,
+            preferencesService: preferencesService,
             onTransferAction: onTransferAction,
         )
     }

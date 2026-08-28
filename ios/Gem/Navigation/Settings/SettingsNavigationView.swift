@@ -107,6 +107,7 @@ struct SettingsNavigationView: View {
             AssetPriceAlertsScene(
                 model: AssetPriceAlertsViewModel(
                     priceAlertService: priceAlertService,
+                    preferencesService: preferencesService,
                     walletId: walletId,
                     asset: $0.asset,
                 ),

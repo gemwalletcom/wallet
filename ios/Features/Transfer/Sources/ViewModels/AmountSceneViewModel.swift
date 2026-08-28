@@ -5,11 +5,11 @@ import Components
 import GemstoneServices
 import Formatters
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstoneFormatters
 import InfoSheet
 import Localization
 import Perpetuals
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -46,12 +46,12 @@ public final class AmountSceneViewModel {
         input: AmountInput,
         wallet: Wallet,
         service: AmountService,
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
         onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
         self.onTransferAction = onTransferAction
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferencesService.currencyCode)
         provider = .make(from: input, wallet: wallet, service: service)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])

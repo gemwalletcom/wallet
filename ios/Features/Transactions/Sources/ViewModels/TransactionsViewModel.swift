@@ -4,8 +4,8 @@ import protocol Gemstone.GemTransactionsServiceProtocol
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -16,7 +16,7 @@ import GemstoneServices
 public final class TransactionsViewModel {
     public let explorerService: any GemExplorerServiceProtocol
     public let transactionsService: any GemTransactionsServiceProtocol
-    public let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
 
     private let type: TransactionsRequestType
 
@@ -36,14 +36,14 @@ public final class TransactionsViewModel {
         explorerService: any GemExplorerServiceProtocol,
         wallet: Wallet,
         type: TransactionsRequestType,
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) {
         self.transactionsService = transactionsService
         self.explorerService = explorerService
         self.type = type
         self.wallet = wallet
         filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
-        self.preferences = preferences
+        self.preferencesService = preferencesService
     }
 
     public var title: String {
@@ -55,7 +55,7 @@ public final class TransactionsViewModel {
     }
 
     public var currency: String {
-        preferences.currency
+        preferencesService.currencyCode
     }
 
     public var emptyContentModel: EmptyContentTypeViewModel {

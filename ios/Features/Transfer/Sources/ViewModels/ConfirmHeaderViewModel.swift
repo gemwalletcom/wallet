@@ -7,13 +7,16 @@ import PrimitivesComponents
 struct ConfirmHeaderViewModel {
     private let request: ConfirmTransferRequest
     private let state: ConfirmTransferState
+    private let currency: Currency
 
     init(
         request: ConfirmTransferRequest,
         state: ConfirmTransferState,
+        currency: Currency,
     ) {
         self.request = request
         self.state = state
+        self.currency = currency
     }
 }
 
@@ -63,6 +66,7 @@ private extension ConfirmHeaderViewModel {
             metaData: state.metadata,
             transferAmount: state.transaction.value?.transferAmount,
             feeAsset: state.feeAsset,
+            currency: currency.rawValue,
         ).headerType
     }
 }

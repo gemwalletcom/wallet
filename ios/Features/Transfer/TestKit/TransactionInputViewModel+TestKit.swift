@@ -15,6 +15,7 @@ public extension TransactionInputViewModel {
         metaData: TransferDataMetadata? = nil,
         transferAmount: TransferAmountValidation? = nil,
         feeAsset: Asset = .mock(),
+        currency: String = Currency.usd.rawValue,
     ) -> TransactionInputViewModel {
         TransactionInputViewModel(
             data: data,
@@ -22,6 +23,7 @@ public extension TransactionInputViewModel {
             metaData: metaData,
             transferAmount: transferAmount,
             feeAsset: feeAsset,
+            currency: currency,
         )
     }
 }

@@ -23,6 +23,7 @@ struct MainTabView: View {
     @Environment(\.nftService) private var nftService
     @Environment(\.priceService) private var priceService
     @Environment(\.observablePreferences) private var observablePreferences
+    @Environment(\.preferencesService) private var preferencesService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.walletPreferencesService) private var walletPreferencesService
@@ -76,6 +77,7 @@ struct MainTabView: View {
                         explorerService: explorerService,
                         wallet: wallet,
                         type: .all,
+                        preferencesService: preferencesService,
                     ),
                 )
                 .id(wallet.id)
@@ -125,6 +127,7 @@ struct MainTabView: View {
                     walletId: wallet.id,
                     asset: input.asset,
                     priceAlertService: priceAlertService,
+                    preferencesService: preferencesService,
                     price: input.price,
                     onComplete: onSetPriceAlertComplete,
                 ),
