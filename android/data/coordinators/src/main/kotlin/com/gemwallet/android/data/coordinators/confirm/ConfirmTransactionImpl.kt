@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
-import com.gemwallet.android.blockchain.gemstone.toGemSignerFee
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.domains.confirm.ConfirmError
@@ -62,9 +61,9 @@ class ConfirmTransactionImpl(
         wallet = wallet.toJson(),
         transfer = input.toTransferData(),
         value = finalAmount.toString(),
-        fee = fee().toGemSignerFee(),
-        networkFee = fee().amount.toString(),
-        metadata = data().metadata,
+        fee = confirmData.fee,
+        networkFee = fee.amount.toString(),
+        metadata = confirmData.metadata,
         simulation = simulation?.toJson(),
     )
 

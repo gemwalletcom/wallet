@@ -18,6 +18,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import com.gemwallet.android.serializer.decodeJson
+import com.wallet.core.primitives.WalletConnectionSession
 
 class GemstoneConnectionStoreTest {
 
@@ -39,7 +41,18 @@ class GemstoneConnectionStoreTest {
 
         assertEquals(listOf("connection-1"), connections.map { it.session.id })
         assertEquals("wallet-1", connections.single().wallet.id.id)
-        assertEquals(listOf(connections.single().session.toJson()), store.getSessions())
+    }
+
+    @Test
+    fun getSessions_returnsEverySessionCoreStored() = runTest {
+        coEvery { connectionsDao.getConnections() } returns listOf(
+            connection(id = "connection-1", walletId = "wallet-1"),
+            connection(id = "connection-2", walletId = "missing-wallet"),
+        )
+
+        val sessions = store.getSessions().map { it.decodeJson<WalletConnectionSession>() }
+
+        assertEquals(listOf("connection-1", "connection-2"), sessions.map { it.id })
     }
 
     @Test

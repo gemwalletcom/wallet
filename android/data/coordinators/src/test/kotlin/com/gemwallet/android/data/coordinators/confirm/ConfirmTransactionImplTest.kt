@@ -33,6 +33,11 @@ import uniffi.gemstone.GemExecuteResult
 import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.GemTransactionSigner
+import uniffi.gemstone.GemConfirmData
+import uniffi.gemstone.GemTransactionLoadFee
+import uniffi.gemstone.GemGasPriceType
+import uniffi.gemstone.GemFeeOptions
+import com.gemwallet.android.ext.toIdentifier
 
 class ConfirmTransactionImplTest {
 
@@ -140,10 +145,21 @@ class ConfirmTransactionImplTest {
 
     private fun signerParams(asset: com.wallet.core.primitives.Asset, account: com.wallet.core.primitives.Account) = SignerParams(
         input = ConfirmParams.Builder(asset, account, BigInteger.TEN).transfer(DestinationAddress("0x0000000000000000000000000000000000000001")),
-        selectedData = SignerParams.Data(
-            fee = Fee.Plain(asset.id, FeePriority.Normal, BigInteger.ZERO, emptyMap()),
+        confirmData = GemConfirmData(
+            fee = GemTransactionLoadFee(
+                fee = "0",
+                gasPriceType = GemGasPriceType.Regular("0"),
+                gasLimit = "0",
+                options = GemFeeOptions(emptyMap()),
+                feeAsset = asset.id.toIdentifier(),
+            ),
+            selectedPriority = FeePriority.Normal.string,
+            feeRates = emptyList(),
             metadata = GemTransactionLoadMetadata.None,
+            scan = null,
+            simulation = null,
         ),
+        fee = Fee.Plain(asset.id, FeePriority.Normal, BigInteger.ZERO, emptyMap()),
         feeRates = emptyList(),
         finalAmount = BigInteger.TEN,
     )

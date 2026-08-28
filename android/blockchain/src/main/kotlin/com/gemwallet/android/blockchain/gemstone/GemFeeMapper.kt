@@ -30,25 +30,6 @@ internal fun Fee.toGemGasPriceType(): GemGasPriceType = when (this) {
     )
 }
 
-fun Fee.toGemSignerFee(): GemTransactionLoadFee = GemTransactionLoadFee(
-    fee = amount.toString(),
-    gasPriceType = toGemGasPriceType(),
-    gasLimit = when (this) {
-        is Fee.Eip1559 -> limit.toString()
-        is Fee.Regular -> limit.toString()
-        is Fee.Solana -> limit.toString()
-        is Fee.Plain -> "0"
-    },
-    options = GemFeeOptions(
-        options.mapNotNull { (key, value) ->
-            runCatching { GemFeeOption.valueOf(key) }.getOrNull()?.let { option ->
-                option to value.toString()
-            }
-        }.toMap()
-    ),
-    feeAsset = feeAssetId.toIdentifier(),
-)
-
 internal fun GemTransactionLoadFee.toFee(
     priority: FeePriority,
     feeAssetId: AssetId,

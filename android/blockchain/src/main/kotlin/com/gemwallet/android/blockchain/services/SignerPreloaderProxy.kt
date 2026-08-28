@@ -63,7 +63,8 @@ class SignerPreloaderProxy(
         Preload(
             signerParams = SignerParams(
                 input = params,
-                selectedData = SignerParams.Data(metadata = result.metadata, fee = fee),
+                confirmData = result,
+                fee = fee,
                 feeRates = rates,
             ),
             simulation = result.simulation?.decodeJson(),

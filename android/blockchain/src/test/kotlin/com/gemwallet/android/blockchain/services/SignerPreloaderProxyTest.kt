@@ -25,11 +25,27 @@ import uniffi.gemstone.GemGasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
 import java.math.BigInteger
+import android.util.Log
+import io.mockk.every
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import org.junit.After
+import org.junit.Before
 
 class SignerPreloaderProxyTest {
 
     private val confirmService = mockk<GemConfirmServiceInterface>()
     private val subject = SignerPreloaderProxy(confirmService)
+
+    @Before
+    fun setUp() {
+        mockkStatic(Log::class)
+        every { Log.e(any(), any(), any()) } returns 0
+        every { Log.e(any(), any()) } returns 0
+    }
+
+    @After
+    fun tearDown() = unmockkStatic(Log::class)
 
     @Test
     fun preload_mapsSelectionAndAssemblesSignerParams() = runBlocking {
@@ -67,10 +83,10 @@ class SignerPreloaderProxyTest {
 
         assertEquals(GemConfirmFeeSelection.Custom("42"), options.captured.feeSelection)
         assertEquals("tempo_0x20C000000000000000000000b9537d11c60E8b50", options.captured.feeAssetId)
-        assertEquals(FeePriority.Normal, result.signerParams.fee().priority)
-        assertEquals(BigInteger("21000"), result.signerParams.fee().amount)
+        assertEquals(FeePriority.Normal, result.signerParams.fee.priority)
+        assertEquals(BigInteger("21000"), result.signerParams.fee.amount)
         assertEquals(listOf(feeRates[0]), result.signerParams.feeRates)
-        assertEquals(GemTransactionLoadMetadata.None, result.signerParams.selectedData.metadata)
+        assertEquals(GemTransactionLoadMetadata.None, result.signerParams.confirmData.metadata)
         assertEquals(null, result.simulation)
     }
 }

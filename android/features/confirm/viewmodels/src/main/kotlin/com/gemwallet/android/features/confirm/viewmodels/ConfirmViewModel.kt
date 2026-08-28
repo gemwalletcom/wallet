@@ -229,7 +229,7 @@ class ConfirmViewModel @Inject constructor(
         if (signerParams == null) {
             flowOf(null)
         } else {
-            assetsRepository.getAssetInfo(signerParams.fee().feeAssetId)
+            assetsRepository.getAssetInfo(signerParams.fee.feeAssetId)
         }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -242,7 +242,7 @@ class ConfirmViewModel @Inject constructor(
                 params = signerParams.input,
                 availableValue = getBalance(assetInfo, signerParams.input),
                 feeAssetInfo = feeAssetInfo,
-                fee = signerParams.fee().amount,
+                fee = signerParams.fee.amount,
             )
         } catch (err: ConfirmError) {
             state.update { ConfirmState.Error(err) }
@@ -307,7 +307,7 @@ class ConfirmViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val feeUIModel = combine(preloadData, feeAssetInfo, state) { signerParams, feeAssetInfo, state ->
-        val amount = signerParams?.fee()?.amount
+        val amount = signerParams?.fee?.amount
         val result = if (state is ConfirmState.Prepare) {
             FeeUIModel.Calculating
         } else if (amount == null || feeAssetInfo == null) {
@@ -318,7 +318,7 @@ class ConfirmViewModel @Inject constructor(
                 feeAsset = feeAssetInfo.asset,
                 price = feeAssetInfo.price?.price?.price,
                 currency = feeAssetInfo.price?.currency ?: Currency.USD,
-                priority = signerParams.fee().priority,
+                priority = signerParams.fee.priority,
             )
         }
         result
@@ -388,7 +388,7 @@ class ConfirmViewModel @Inject constructor(
                 params = signerParams.input,
                 availableValue = getBalance(assetInfo, signerParams.input),
                 feeAssetInfo = feeAssetInfo,
-                fee = signerParams.fee().amount,
+                fee = signerParams.fee.amount,
             )
             val transactionHash = confirmTransaction(
                 signerParams.copy(finalAmount = amount),
