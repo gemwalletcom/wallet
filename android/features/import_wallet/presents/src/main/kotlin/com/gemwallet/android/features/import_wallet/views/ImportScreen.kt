@@ -326,7 +326,10 @@ private fun TypeSelection(
 @Composable
 private fun ErrorMessage(error: ImportError?) {
     val text = when (error) {
-        is ImportError.CreateError -> stringResource(R.string.errors_create_wallet, error.message ?: "")
+        is ImportError.CreateError -> stringResource(
+            R.string.errors_create_wallet,
+            error.message?.takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
+        )
         is ImportError.InvalidWords -> stringResource(
             R.string.errors_import_invalid_secret_phrase_word,
             error.words.joinToString()

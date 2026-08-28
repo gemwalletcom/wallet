@@ -76,7 +76,7 @@ class PhraseAddressImportWalletService(
         return try {
             walletService.importWallet(walletName, import, source)
         } catch (error: Exception) {
-            throw ImportError.CreateError(error.message ?: "Unknown error")
+            throw ImportError.CreateError(error.message.orEmpty())
         }
     }
 

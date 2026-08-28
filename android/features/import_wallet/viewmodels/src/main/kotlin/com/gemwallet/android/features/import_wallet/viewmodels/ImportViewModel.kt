@@ -101,7 +101,7 @@ class ImportViewModel @Inject constructor(
                     }
                 }
             } catch (err: Throwable) {
-                state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError("Unknown error"), loading = false) }
+                state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError(err.message.orEmpty()), loading = false) }
             }
         }
     }

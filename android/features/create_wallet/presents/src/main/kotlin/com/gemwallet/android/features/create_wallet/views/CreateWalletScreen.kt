@@ -109,7 +109,7 @@ fun CreateWalletScreen(
 private fun UI(
     generatedNameIndex: Int,
     data: List<String>,
-    dataError: String,
+    dataError: String?,
     onCreate: (String) -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -133,8 +133,8 @@ private fun UI(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (dataError.isNotEmpty()) {
-                Text(text = dataError)
+            if (dataError != null) {
+                Text(text = dataError.ifBlank { stringResource(id = R.string.errors_unknown_try_again) })
             } else {
                 Text(
                     text = stringResource(id = R.string.secret_phrase_save_phrase_safely),
@@ -170,7 +170,7 @@ fun PreviewCreateUI() {
                     "cinnamon", "two", "three", "cinnamon", "five", "six",
                     "seven", "eight", "cinnamon", "ten", "eleven", "twelve"
                 ),
-                dataError = "",
+                dataError = null,
                 onCreate = {},
                 onCancel = {},
             )

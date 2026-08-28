@@ -34,7 +34,7 @@ class CreateWalletViewModel @Inject constructor(
                     state.update { it.copy(data = data.split(" ")) }
                 }
                 .onFailure {  err ->
-                    state.update { it.copy(dataError = err.message ?: "Phrase doesn't create" ) }
+                    state.update { it.copy(dataError = err.message.orEmpty()) }
                 }
         }
     }
@@ -68,7 +68,7 @@ class CreateWalletViewModel @Inject constructor(
                 }
                 state.value.copy(loading = false)
             } catch (err: Throwable) {
-                state.value.copy(loading = false, dataError = err.message ?: "Unknown error")
+                state.value.copy(loading = false, dataError = err.message.orEmpty())
             }
             state.update { newState }
         }
@@ -80,7 +80,7 @@ data class CreateWalletViewModelState(
     val generatedNameIndex: Int = 0,
     val name: String = "",
     val data: List<String> = emptyList(),
-    val dataError: String = "",
+    val dataError: String? = null,
     val isShowSafeMessage: Boolean = false,
 ) {
     fun isExistingWallets() = generatedNameIndex > 1

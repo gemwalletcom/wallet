@@ -146,7 +146,7 @@ class AmountViewModel @Inject constructor(
             } catch (err: AmountError) {
                 amountError.value = err
             } catch (err: Throwable) {
-                amountError.value = AmountError.Unknown(err.message ?: "Unknown error")
+                amountError.value = AmountError.Unknown(err.message.orEmpty())
             }
         }
     }
