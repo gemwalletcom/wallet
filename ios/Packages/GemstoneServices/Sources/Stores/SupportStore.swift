@@ -26,11 +26,10 @@ public final class GemstoneSupportStore: GemSupportStore, @unchecked Sendable {
     }
 
     public func updateTyping(typing: Gemstone.SupportTyping) throws {
-        let typing = try Primitives.SupportTyping(typing)
-        Task { @MainActor in self.typing.update(typing) }
+        self.typing.update(try Primitives.SupportTyping(typing))
     }
 
     public func clearTyping() throws {
-        Task { @MainActor in typing.clear() }
+        typing.clear()
     }
 }
