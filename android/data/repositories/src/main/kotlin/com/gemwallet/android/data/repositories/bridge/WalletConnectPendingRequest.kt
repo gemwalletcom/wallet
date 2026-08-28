@@ -13,14 +13,13 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemWalletConnectMessageRequest
 import uniffi.gemstone.GemWalletConnectSigner
 import uniffi.gemstone.GemWalletConnectTransactionAction
 import uniffi.gemstone.GemWalletConnectTransactionRequest
 import uniffi.gemstone.SignMessage as GemSignMessage
-
-class WalletConnectRequestRejected : Exception("User rejected the request")
 
 sealed class WalletConnectPendingRequest(
     val sessionId: String,
@@ -42,7 +41,7 @@ sealed class WalletConnectPendingRequest(
     }
 
     fun reject() {
-        result.completeExceptionally(WalletConnectRequestRejected())
+        result.completeExceptionally(GemServiceException.Cancelled())
     }
 
     class SignMessage(
