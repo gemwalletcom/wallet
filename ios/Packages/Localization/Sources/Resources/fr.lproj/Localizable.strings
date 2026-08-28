@@ -18,6 +18,7 @@
 "common.wallet" = "Portefeuille";
 "common.show" = "Afficher %@";
 "common.copied" = "Copié : %@";
+"common.copied_to_clipboard" = "Copié dans le presse-papiers";
 "common.recommended" = "Recommandé";
 "common.all" = "Tous";
 "common.not_available" = "Pas disponible";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Phrase secrète invalide";
 "errors.import.invalid_secret_phrase_word" = "Mot de phrase secrète non valide : %@";
 "errors.import.invalid_private_key" = "Clé privée invalide";
+"errors.keystore_access" = "Impossible d'accéder aux clés de ce portefeuille sur cet appareil. Si vous avez votre phrase de récupération, supprimez ce portefeuille et importez-le à nouveau pour restaurer l'accès.";
 "errors.invalid_url" = "URL invalide";
 "errors.error_occurred" = "Une erreur s'est produite !";
 "errors.invalid_network_id" = "ID de réseau invalide";

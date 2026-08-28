@@ -161,8 +161,7 @@ private fun WalletSecretDataErrorScene(title: String, onCancel: () -> Unit) {
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Couldn't access this wallet's keys on this device. " +
-                    "If you have your recovery phrase, remove this wallet and import it again to restore access.",
+                text = stringResource(R.string.errors_keystore_access),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,

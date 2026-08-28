@@ -18,6 +18,7 @@
 "common.wallet" = "Cüzdan";
 "common.show" = "%@ göster";
 "common.copied" = "Kopyalandı: %@";
+"common.copied_to_clipboard" = "Panoya kopyalandı";
 "common.recommended" = "Tavsiye edilen";
 "common.all" = "Tümü";
 "common.not_available" = "Müsait değil";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Geçersiz Gizli İfade";
 "errors.import.invalid_secret_phrase_word" = "Geçersiz Gizli İfade kelimesi: %@";
 "errors.import.invalid_private_key" = "Geçersiz özel anahtar";
+"errors.keystore_access" = "Bu cihazda bu cüzdanın anahtarlarına erişilemedi. Kurtarma ifadeniz varsa bu cüzdanı kaldırıp yeniden içe aktararak erişimi geri kazanabilirsiniz.";
 "errors.invalid_url" = "Geçersiz URL";
 "errors.error_occurred" = "Bir hata oluştu!";
 "errors.invalid_network_id" = "Geçersiz Ağ Kimliği";

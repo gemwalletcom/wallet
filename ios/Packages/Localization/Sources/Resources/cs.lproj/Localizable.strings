@@ -18,6 +18,7 @@
 "common.wallet" = "Peněženka";
 "common.show" = "Zobrazit %@";
 "common.copied" = "Zkopírováno: %@";
+"common.copied_to_clipboard" = "Zkopírováno do schránky";
 "common.recommended" = "Doporučeno";
 "common.all" = "Vše";
 "common.not_available" = "Není k dispozici";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Neplatná tajná fráze";
 "errors.import.invalid_secret_phrase_word" = "Neplatné slovo tajné fráze: %@";
 "errors.import.invalid_private_key" = "Neplatný soukromý klíč";
+"errors.keystore_access" = "Na tomto zařízení se nepodařilo získat přístup ke klíčům této peněženky. Pokud máte obnovovací frázi, odeberte tuto peněženku a znovu ji importujte, abyste obnovili přístup.";
 "errors.invalid_url" = "Neplatná adresa URL";
 "errors.error_occurred" = "Došlo k chybě!";
 "errors.invalid_network_id" = "Neplatné ID sítě";

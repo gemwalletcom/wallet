@@ -18,6 +18,7 @@
 "common.wallet" = "Tegnebog";
 "common.show" = "Vis %@";
 "common.copied" = "Kopieret: %@";
+"common.copied_to_clipboard" = "Kopieret til udklipsholder";
 "common.recommended" = "Anbefales";
 "common.all" = "Alle";
 "common.not_available" = "Ikke tilgængelig";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Ugyldig hemmelig sætning";
 "errors.import.invalid_secret_phrase_word" = "Ugyldigt ord i hemmelig sætning: %@";
 "errors.import.invalid_private_key" = "Ugyldig privat nøgle";
+"errors.keystore_access" = "Kunne ikke få adgang til denne tegnebogs nøgler på denne enhed. Hvis du har din gendannelsesfrase, skal du fjerne denne tegnebog og importere den igen for at gendanne adgangen.";
 "errors.invalid_url" = "Ugyldig URL";
 "errors.error_occurred" = "Der opstod en fejl!";
 "errors.invalid_network_id" = "Ugyldigt netværks-id";

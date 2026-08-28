@@ -18,6 +18,7 @@
 "common.wallet" = "Portafoglio";
 "common.show" = "Mostra %@";
 "common.copied" = "Copiato: %@";
+"common.copied_to_clipboard" = "Copiato negli appunti";
 "common.recommended" = "Consigliato";
 "common.all" = "Tutto";
 "common.not_available" = "Non disponibile";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Frase segreta non valida";
 "errors.import.invalid_secret_phrase_word" = "Parola frase segreta non valida: %@";
 "errors.import.invalid_private_key" = "Chiave privata non valida";
+"errors.keystore_access" = "Impossibile accedere alle chiavi di questo portafoglio su questo dispositivo. Se hai la tua frase di recupero, rimuovi questo portafoglio e importalo di nuovo per ripristinare l'accesso.";
 "errors.invalid_url" = "URL non valido";
 "errors.error_occurred" = "Si è verificato un errore!";
 "errors.invalid_network_id" = "ID di rete non valido";

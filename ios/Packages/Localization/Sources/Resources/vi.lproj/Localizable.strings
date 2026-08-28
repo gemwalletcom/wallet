@@ -18,6 +18,7 @@
 "common.wallet" = "Ví";
 "common.show" = "Hiện %@";
 "common.copied" = "Đã sao chép: %@";
+"common.copied_to_clipboard" = "Đã sao chép vào bộ nhớ tạm";
 "common.recommended" = "Được đề xuất";
 "common.all" = "Tất cả";
 "common.not_available" = "Không có sẵn";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Cụm từ bí mật không hợp lệ";
 "errors.import.invalid_secret_phrase_word" = "Từ cụm từ bí mật không hợp lệ: %@";
 "errors.import.invalid_private_key" = "Khóa riêng không hợp lệ";
+"errors.keystore_access" = "Không thể truy cập khóa của ví này trên thiết bị này. Nếu bạn có cụm từ khôi phục, hãy xóa ví này và nhập lại để khôi phục quyền truy cập.";
 "errors.invalid_url" = "URL không hợp lệ";
 "errors.error_occurred" = "Đã xảy ra lỗi!";
 "errors.invalid_network_id" = "ID mạng không hợp lệ";

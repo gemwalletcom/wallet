@@ -18,6 +18,7 @@
 "common.wallet" = "Carteira";
 "common.show" = "Mostrar %@";
 "common.copied" = "Copiado: %@";
+"common.copied_to_clipboard" = "Copiado para a área de transferência";
 "common.recommended" = "Recomendado";
 "common.all" = "Todos";
 "common.not_available" = "Não disponível";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Frase secreta inválida";
 "errors.import.invalid_secret_phrase_word" = "Palavra de frase secreta inválida: %@";
 "errors.import.invalid_private_key" = "Chave privada inválida";
+"errors.keystore_access" = "Não foi possível acessar as chaves desta carteira neste dispositivo. Se você tiver sua frase de recuperação, remova esta carteira e importe-a novamente para restaurar o acesso.";
 "errors.invalid_url" = "URL inválida";
 "errors.error_occurred" = "Ocorreu um erro!";
 "errors.invalid_network_id" = "ID de rede inválida";

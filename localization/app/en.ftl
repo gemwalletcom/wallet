@@ -43,6 +43,8 @@ common_wallet = Wallet
 common_show = Show %@
 # Used in shared app UI for the copied label. Contains 1 string placeholder.
 common_copied = Copied: %@
+# Toast shown after copying a value on Android 12 and older.
+common_copied_to_clipboard = Copied to clipboard
 # Used in shared app UI for the recommended label.
 common_recommended = Recommended
 # Used in shared app UI for the all label.
@@ -403,6 +405,8 @@ errors_import_invalid_secret_phrase = Invalid Secret Phrase
 errors_import_invalid_secret_phrase_word = Invalid Secret Phrase word: %@
 # Shown when an imported private key cannot be decoded for the selected chain.
 errors_import_invalid_private_key = Invalid private key
+# Shown when the wallet keys cannot be read from this device keystore.
+errors_keystore_access = Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.
 # Used in error cards and validation UI for the invalid url label.
 errors_invalid_url = Invalid URL
 # Used in error cards and validation UI for the error occurred label.

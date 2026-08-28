@@ -18,6 +18,7 @@
 "common.wallet" = "والیٹ";
 "common.show" = "دکھائیں۔ %@";
 "common.copied" = "کاپی کیا گیا: %@";
+"common.copied_to_clipboard" = "کلپ بورڈ پر کاپی ہو گیا";
 "common.recommended" = "تجویز کردہ";
 "common.all" = "تمام";
 "common.not_available" = "دستیاب نہیں";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "غلط خفیہ جملہ";
 "errors.import.invalid_secret_phrase_word" = "غلط خفیہ جملہ کا لفظ: %@";
 "errors.import.invalid_private_key" = "غلط پرائیویٹ کلید";
+"errors.keystore_access" = "اس ڈیوائس پر اس والیٹ کی کلیدوں تک رسائی نہیں ہو سکی۔ اگر آپ کے پاس ریکوری فقرہ ہے تو اس والیٹ کو ہٹا کر دوبارہ درآمد کریں تاکہ رسائی بحال ہو جائے۔";
 "errors.invalid_url" = "غلط URL";
 "errors.error_occurred" = "ایک خرابی پیش آگئی!";
 "errors.invalid_network_id" = "غلط نیٹ ورک ID";

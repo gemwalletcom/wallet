@@ -18,6 +18,7 @@
 "common.wallet" = "Mkoba";
 "common.show" = "Onyesha %@";
 "common.copied" = "Imenakiliwa: %@";
+"common.copied_to_clipboard" = "Imenakiliwa kwenye ubao wa kunakili";
 "common.recommended" = "Imependekezwa";
 "common.all" = "Wote";
 "common.not_available" = "Haipatikani";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Maneno ya Siri Batili";
 "errors.import.invalid_secret_phrase_word" = "Neno batili la Neno la Siri: %@";
 "errors.import.invalid_private_key" = "Ufunguo wa faragha si sahihi";
+"errors.keystore_access" = "Imeshindwa kufikia funguo za pochi hii kwenye kifaa hiki. Ikiwa una fungu lako la kurejesha, ondoa pochi hii kisha uiingize tena ili kurejesha ufikiaji.";
 "errors.invalid_url" = "URL batili";
 "errors.error_occurred" = "Hitilafu imetokea!";
 "errors.invalid_network_id" = "Kitambulisho batili cha Mtandao";

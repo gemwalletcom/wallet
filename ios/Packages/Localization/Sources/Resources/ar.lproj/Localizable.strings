@@ -18,6 +18,7 @@
 "common.wallet" = "محفظة";
 "common.show" = "إظهار %@";
 "common.copied" = "تم النسخ: %@";
+"common.copied_to_clipboard" = "تم النسخ إلى الحافظة";
 "common.recommended" = "مُستَحسَن";
 "common.all" = "الجميع";
 "common.not_available" = "غير متاح";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "العبارة السرية غير صالحة";
 "errors.import.invalid_secret_phrase_word" = "كلمة عبارة سرية غير صالحة: %@";
 "errors.import.invalid_private_key" = "مفتاح خاص غير صالح";
+"errors.keystore_access" = "تعذر الوصول إلى مفاتيح هذه المحفظة على هذا الجهاز. إذا كانت لديك عبارة الاسترداد، فاحذف هذه المحفظة واستوردها مرة أخرى لاستعادة الوصول.";
 "errors.invalid_url" = "URL غير صالح";
 "errors.error_occurred" = "حدث خطأ!";
 "errors.invalid_network_id" = "معرف الشبكة غير صالح";

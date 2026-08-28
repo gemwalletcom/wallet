@@ -18,6 +18,7 @@
 "common.wallet" = "钱包";
 "common.show" = "显示%@";
 "common.copied" = "已复制：%@";
+"common.copied_to_clipboard" = "已复制到剪贴板";
 "common.recommended" = "推荐";
 "common.all" = "全部";
 "common.not_available" = "无法使用";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "助记词无效";
 "errors.import.invalid_secret_phrase_word" = "助记词无效：%@";
 "errors.import.invalid_private_key" = "无效的私钥";
+"errors.keystore_access" = "无法在此设备上访问该钱包的密钥。如果你有助记词，请删除该钱包并重新导入以恢复访问。";
 "errors.invalid_url" = "无效的网址";
 "errors.error_occurred" = "出错了！";
 "errors.invalid_network_id" = "网络 ID 无效";

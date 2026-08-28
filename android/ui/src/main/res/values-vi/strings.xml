@@ -20,6 +20,7 @@
   <string name="common_wallet">Ví</string>
   <string name="common_show">Hiện %1$s</string>
   <string name="common_copied">Đã sao chép: %1$s</string>
+  <string name="common_copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
   <string name="common_recommended">Được đề xuất</string>
   <string name="common_all">Tất cả</string>
   <string name="common_not_available">Không có sẵn</string>
@@ -183,6 +184,7 @@
   <string name="errors_import_invalid_secret_phrase">Cụm từ bí mật không hợp lệ</string>
   <string name="errors_import_invalid_secret_phrase_word">Từ cụm từ bí mật không hợp lệ: %1$s</string>
   <string name="errors_import_invalid_private_key">Khóa riêng không hợp lệ</string>
+  <string name="errors_keystore_access">Không thể truy cập khóa của ví này trên thiết bị này. Nếu bạn có cụm từ khôi phục, hãy xóa ví này và nhập lại để khôi phục quyền truy cập.</string>
   <string name="errors_invalid_url">URL không hợp lệ</string>
   <string name="errors_error_occurred">Đã xảy ra lỗi!</string>
   <string name="errors_invalid_network_id">ID mạng không hợp lệ</string>

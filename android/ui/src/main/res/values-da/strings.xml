@@ -20,6 +20,7 @@
   <string name="common_wallet">Tegnebog</string>
   <string name="common_show">Vis %1$s</string>
   <string name="common_copied">Kopieret: %1$s</string>
+  <string name="common_copied_to_clipboard">Kopieret til udklipsholder</string>
   <string name="common_recommended">Anbefales</string>
   <string name="common_all">Alle</string>
   <string name="common_not_available">Ikke tilgængelig</string>
@@ -183,6 +184,7 @@
   <string name="errors_import_invalid_secret_phrase">Ugyldig hemmelig sætning</string>
   <string name="errors_import_invalid_secret_phrase_word">Ugyldigt ord i hemmelig sætning: %1$s</string>
   <string name="errors_import_invalid_private_key">Ugyldig privat nøgle</string>
+  <string name="errors_keystore_access">Kunne ikke få adgang til denne tegnebogs nøgler på denne enhed. Hvis du har din gendannelsesfrase, skal du fjerne denne tegnebog og importere den igen for at gendanne adgangen.</string>
   <string name="errors_invalid_url">Ugyldig URL</string>
   <string name="errors_error_occurred">Der opstod en fejl!</string>
   <string name="errors_invalid_network_id">Ugyldigt netværks-id</string>

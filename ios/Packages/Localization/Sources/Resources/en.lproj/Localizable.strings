@@ -18,6 +18,7 @@
 "common.wallet" = "Wallet";
 "common.show" = "Show %@";
 "common.copied" = "Copied: %@";
+"common.copied_to_clipboard" = "Copied to clipboard";
 "common.recommended" = "Recommended";
 "common.all" = "All";
 "common.not_available" = "Not Available";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Invalid Secret Phrase";
 "errors.import.invalid_secret_phrase_word" = "Invalid Secret Phrase word: %@";
 "errors.import.invalid_private_key" = "Invalid private key";
+"errors.keystore_access" = "Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.";
 "errors.invalid_url" = "Invalid URL";
 "errors.error_occurred" = "An error occurred!";
 "errors.invalid_network_id" = "Invalid Network ID";

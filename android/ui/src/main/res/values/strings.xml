@@ -20,6 +20,7 @@
   <string name="common_wallet">Wallet</string>
   <string name="common_show">Show %1$s</string>
   <string name="common_copied">Copied: %1$s</string>
+  <string name="common_copied_to_clipboard">Copied to clipboard</string>
   <string name="common_recommended">Recommended</string>
   <string name="common_all">All</string>
   <string name="common_not_available">Not Available</string>
@@ -183,6 +184,7 @@
   <string name="errors_import_invalid_secret_phrase">Invalid Secret Phrase</string>
   <string name="errors_import_invalid_secret_phrase_word">Invalid Secret Phrase word: %1$s</string>
   <string name="errors_import_invalid_private_key">Invalid private key</string>
+  <string name="errors_keystore_access">Couldn\'t access this wallet\'s keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.</string>
   <string name="errors_invalid_url">Invalid URL</string>
   <string name="errors_error_occurred">An error occurred!</string>
   <string name="errors_invalid_network_id">Invalid Network ID</string>

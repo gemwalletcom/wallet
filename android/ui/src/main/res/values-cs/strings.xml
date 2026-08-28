@@ -20,6 +20,7 @@
   <string name="common_wallet">Peněženka</string>
   <string name="common_show">Zobrazit %1$s</string>
   <string name="common_copied">Zkopírováno: %1$s</string>
+  <string name="common_copied_to_clipboard">Zkopírováno do schránky</string>
   <string name="common_recommended">Doporučeno</string>
   <string name="common_all">Vše</string>
   <string name="common_not_available">Není k dispozici</string>
@@ -183,6 +184,7 @@
   <string name="errors_import_invalid_secret_phrase">Neplatná tajná fráze</string>
   <string name="errors_import_invalid_secret_phrase_word">Neplatné slovo tajné fráze: %1$s</string>
   <string name="errors_import_invalid_private_key">Neplatný soukromý klíč</string>
+  <string name="errors_keystore_access">Na tomto zařízení se nepodařilo získat přístup ke klíčům této peněženky. Pokud máte obnovovací frázi, odeberte tuto peněženku a znovu ji importujte, abyste obnovili přístup.</string>
   <string name="errors_invalid_url">Neplatná adresa URL</string>
   <string name="errors_error_occurred">Došlo k chybě!</string>
   <string name="errors_invalid_network_id">Neplatné ID sítě</string>

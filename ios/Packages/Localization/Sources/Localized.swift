@@ -237,6 +237,8 @@ public enum Localized {
     public static func copied(_ p1: Any) -> String {
       return Localized.tr("Localizable", "common.copied", String(describing: p1), fallback: "Copied: %@")
     }
+    /// Copied to clipboard
+    public static let copiedToClipboard = Localized.tr("Localizable", "common.copied_to_clipboard", fallback: "Copied to clipboard")
     /// Copy
     public static let copy = Localized.tr("Localizable", "common.copy", fallback: "Copy")
     /// Delete
@@ -423,6 +425,8 @@ public enum Localized {
     public static let invalidNetworkId = Localized.tr("Localizable", "errors.invalid_network_id", fallback: "Invalid Network ID")
     /// Invalid URL
     public static let invalidUrl = Localized.tr("Localizable", "errors.invalid_url", fallback: "Invalid URL")
+    /// Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.
+    public static let keystoreAccess = Localized.tr("Localizable", "errors.keystore_access", fallback: "Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.")
     /// The Internet connection appears to be offline.
     public static let networkOffline = Localized.tr("Localizable", "errors.network_offline", fallback: "The Internet connection appears to be offline.")
     /// No data available

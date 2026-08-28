@@ -18,6 +18,7 @@
 "common.wallet" = "کیف پول";
 "common.show" = "نمایش %@";
 "common.copied" = "%@ کپی شد.";
+"common.copied_to_clipboard" = "در کلیپ‌بورد کپی شد";
 "common.recommended" = "پیشنهاد شده";
 "common.all" = "همه";
 "common.not_available" = "در دسترس نیست";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "عبارات خصوصی نامعتبر.";
 "errors.import.invalid_secret_phrase_word" = "عبارت خصوصی نامعتبر: %@";
 "errors.import.invalid_private_key" = "کلید خصوصی نامعتبر";
+"errors.keystore_access" = "دسترسی به کلیدهای این کیف پول در این دستگاه ممکن نشد. اگر عبارت بازیابی خود را دارید، این کیف پول را حذف کنید و دوباره وارد کنید تا دسترسی بازیابی شود.";
 "errors.invalid_url" = "URL نامعتبر";
 "errors.error_occurred" = "خطایی رخ داد!";
 "errors.invalid_network_id" = "شناسه شبکه نامعتبر است.";

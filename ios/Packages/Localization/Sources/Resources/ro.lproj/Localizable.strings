@@ -18,6 +18,7 @@
 "common.wallet" = "Portofel";
 "common.show" = "Afișează %@";
 "common.copied" = "Copiat: %@";
+"common.copied_to_clipboard" = "Copiat în clipboard";
 "common.recommended" = "Recomandat";
 "common.all" = "Toate";
 "common.not_available" = "Nu este disponibil";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Expresie secretă nevalidă";
 "errors.import.invalid_secret_phrase_word" = "Cuvânt expresie secretă nevalid: %@";
 "errors.import.invalid_private_key" = "Cheie privată invalidă";
+"errors.keystore_access" = "Nu s-a putut accesa cheile acestui portofel pe acest dispozitiv. Dacă aveți fraza de recuperare, eliminați acest portofel și importați-l din nou pentru a restabili accesul.";
 "errors.invalid_url" = "Adresă URL nevalidă";
 "errors.error_occurred" = "A apărut o eroare!";
 "errors.invalid_network_id" = "ID de rețea nevalid";

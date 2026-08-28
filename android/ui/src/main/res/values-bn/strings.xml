@@ -20,6 +20,7 @@
   <string name="common_wallet">ওয়ালেট</string>
   <string name="common_show">দেখান %1$s</string>
   <string name="common_copied">অনুলিপি করা হয়েছে: %1$s</string>
+  <string name="common_copied_to_clipboard">ক্লিপবোর্ডে কপি করা হয়েছে</string>
   <string name="common_recommended">প্রস্তাবিত</string>
   <string name="common_all">সব</string>
   <string name="common_not_available">উপলব্ধ নয়</string>
@@ -183,6 +184,7 @@
   <string name="errors_import_invalid_secret_phrase">অবৈধ গোপন বাক্যাংশ</string>
   <string name="errors_import_invalid_secret_phrase_word">অবৈধ গোপন বাক্যাংশ শব্দ: %1$s</string>
   <string name="errors_import_invalid_private_key">অবৈধ প্রাইভেট কী</string>
+  <string name="errors_keystore_access">এই ডিভাইসে এই ওয়ালেটের কী অ্যাক্সেস করা যায়নি। আপনার রিকভারি ফ্রেজ থাকলে, এই ওয়ালেটটি সরিয়ে আবার ইম্পোর্ট করে অ্যাক্সেস ফিরে পান।</string>
   <string name="errors_invalid_url">অবৈধ URL</string>
   <string name="errors_error_occurred">একটি ত্রুটি ঘটেছে!</string>
   <string name="errors_invalid_network_id">অবৈধ নেটওয়ার্ক আইডি</string>

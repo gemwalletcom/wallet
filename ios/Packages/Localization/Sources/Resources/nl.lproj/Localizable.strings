@@ -18,6 +18,7 @@
 "common.wallet" = "Portemonnee";
 "common.show" = "Toon %@";
 "common.copied" = "Gekopieerd: %@";
+"common.copied_to_clipboard" = "Gekopieerd naar klembord";
 "common.recommended" = "Aanbevolen";
 "common.all" = "Allemaal";
 "common.not_available" = "Niet beschikbaar";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "Ongeldige geheime zin";
 "errors.import.invalid_secret_phrase_word" = "Ongeldig woord in geheime zin: %@";
 "errors.import.invalid_private_key" = "Ongeldige privésleutel";
+"errors.keystore_access" = "Kan de sleutels van deze portemonnee op dit apparaat niet openen. Als je je herstelzin hebt, verwijder deze portemonnee dan en importeer hem opnieuw om weer toegang te krijgen.";
 "errors.invalid_url" = "Ongeldige URL";
 "errors.error_occurred" = "Er is een fout opgetreden!";
 "errors.invalid_network_id" = "Ongeldige netwerk-ID";

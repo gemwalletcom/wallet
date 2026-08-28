@@ -18,6 +18,7 @@
 "common.wallet" = "錢包";
 "common.show" = "顯示%@";
 "common.copied" = "已復制： %@";
+"common.copied_to_clipboard" = "已複製到剪貼簿";
 "common.recommended" = "推薦";
 "common.all" = "全部";
 "common.not_available" = "無法使用";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "助記詞無效";
 "errors.import.invalid_secret_phrase_word" = "助記詞無效： %@";
 "errors.import.invalid_private_key" = "無效的私鑰";
+"errors.keystore_access" = "無法在此裝置上存取該錢包的金鑰。如果你有助記詞，請移除該錢包並重新匯入以恢復存取。";
 "errors.invalid_url" = "無效的網址";
 "errors.error_occurred" = "出錯了！";
 "errors.invalid_network_id" = "無效的網路ID";

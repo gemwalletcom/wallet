@@ -20,6 +20,7 @@
   <string name="common_wallet">Dompet</string>
   <string name="common_show">Tunjukkan %1$s</string>
   <string name="common_copied">Disalin: %1$s</string>
+  <string name="common_copied_to_clipboard">Disalin ke papan keratan</string>
   <string name="common_recommended">Disyorkan</string>
   <string name="common_all">Semua</string>
   <string name="common_not_available">Tidak Tersedia</string>
@@ -183,6 +184,7 @@
   <string name="errors_import_invalid_secret_phrase">Frasa Rahsia Tidak Sah</string>
   <string name="errors_import_invalid_secret_phrase_word">Perkataan Frasa Rahsia tidak sah: %1$s</string>
   <string name="errors_import_invalid_private_key">Kunci peribadi tidak sah</string>
+  <string name="errors_keystore_access">Tidak dapat mengakses kunci dompet ini pada peranti ini. Jika anda mempunyai frasa pemulihan, keluarkan dompet ini dan import semula untuk memulihkan akses.</string>
   <string name="errors_invalid_url">URL tidak sah</string>
   <string name="errors_error_occurred">Ralat berlaku!</string>
   <string name="errors_invalid_network_id">ID Rangkaian tidak sah</string>

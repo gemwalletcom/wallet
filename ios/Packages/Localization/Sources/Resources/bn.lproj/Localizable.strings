@@ -18,6 +18,7 @@
 "common.wallet" = "ওয়ালেট";
 "common.show" = "দেখান %@";
 "common.copied" = "অনুলিপি করা হয়েছে: %@";
+"common.copied_to_clipboard" = "ক্লিপবোর্ডে কপি করা হয়েছে";
 "common.recommended" = "প্রস্তাবিত";
 "common.all" = "সব";
 "common.not_available" = "উপলব্ধ নয়";
@@ -176,6 +177,7 @@
 "errors.import.invalid_secret_phrase" = "অবৈধ গোপন বাক্যাংশ";
 "errors.import.invalid_secret_phrase_word" = "অবৈধ গোপন বাক্যাংশ শব্দ: %@";
 "errors.import.invalid_private_key" = "অবৈধ প্রাইভেট কী";
+"errors.keystore_access" = "এই ডিভাইসে এই ওয়ালেটের কী অ্যাক্সেস করা যায়নি। আপনার রিকভারি ফ্রেজ থাকলে, এই ওয়ালেটটি সরিয়ে আবার ইম্পোর্ট করে অ্যাক্সেস ফিরে পান।";
 "errors.invalid_url" = "অবৈধ URL";
 "errors.error_occurred" = "একটি ত্রুটি ঘটেছে!";
 "errors.invalid_network_id" = "অবৈধ নেটওয়ার্ক আইডি";

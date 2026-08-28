@@ -20,6 +20,7 @@
   <string name="common_wallet">Dompet</string>
   <string name="common_show">Tampilkan %1$s</string>
   <string name="common_copied">Disalin: %1$s</string>
+  <string name="common_copied_to_clipboard">Disalin ke papan klip</string>
   <string name="common_recommended">Direkomendasikan</string>
   <string name="common_all">Semua</string>
   <string name="common_not_available">Tidak Tersedia</string>
@@ -183,6 +184,7 @@
   <string name="errors_import_invalid_secret_phrase">Frasa Rahasia Tidak Valid</string>
   <string name="errors_import_invalid_secret_phrase_word">Kata Frasa Rahasia Tidak Valid: %1$s</string>
   <string name="errors_import_invalid_private_key">Kunci privat tidak valid</string>
+  <string name="errors_keystore_access">Tidak dapat mengakses kunci dompet ini di perangkat ini. Jika Anda memiliki frasa pemulihan, hapus dompet ini dan impor kembali untuk memulihkan akses.</string>
   <string name="errors_invalid_url">URL Tidak Valid</string>
   <string name="errors_error_occurred">Terjadi kesalahan!</string>
   <string name="errors_invalid_network_id">ID Jaringan Tidak Valid</string>
