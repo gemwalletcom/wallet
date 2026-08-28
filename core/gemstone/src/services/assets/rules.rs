@@ -1,9 +1,19 @@
 use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, Chain, ConfigVersions, Wallet};
 
-use super::model::AssetList;
+use super::model::{AssetList, GemAssetAction, GemAssetFilter};
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 use crate::services::collections::{missing, missing_by, unique};
+
+pub fn asset_action_filters(action: GemAssetAction) -> Vec<GemAssetFilter> {
+    match action {
+        GemAssetAction::Send => vec![GemAssetFilter::Enabled, GemAssetFilter::HasBalance],
+        GemAssetAction::Buy => vec![GemAssetFilter::Enabled, GemAssetFilter::Buyable],
+        GemAssetAction::Sell => vec![GemAssetFilter::Enabled, GemAssetFilter::Sellable],
+        GemAssetAction::SwapPay => vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable, GemAssetFilter::HasAvailableBalance],
+        GemAssetAction::SwapReceive => vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable],
+    }
+}
 
 pub fn asset_list_versions(versions: &ConfigVersions) -> [(AssetList, i32); 3] {
     [
@@ -219,5 +229,17 @@ mod tests {
     fn test_token_search_chains_defaults_to_every_chain() {
         assert_eq!(token_search_chains(&[Chain::Ethereum]), vec![Chain::Ethereum]);
         assert_eq!(token_search_chains(&[]), Chain::all());
+    }
+
+    #[test]
+    fn test_action_filters_gate_on_the_balance_each_action_can_spend() {
+        assert_eq!(asset_action_filters(GemAssetAction::Send), vec![GemAssetFilter::Enabled, GemAssetFilter::HasBalance]);
+        assert_eq!(
+            asset_action_filters(GemAssetAction::SwapPay),
+            vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable, GemAssetFilter::HasAvailableBalance]
+        );
+        assert_eq!(asset_action_filters(GemAssetAction::SwapReceive), vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable]);
+        assert_eq!(asset_action_filters(GemAssetAction::Buy), vec![GemAssetFilter::Enabled, GemAssetFilter::Buyable]);
+        assert_eq!(asset_action_filters(GemAssetAction::Sell), vec![GemAssetFilter::Enabled, GemAssetFilter::Sellable]);
     }
 }

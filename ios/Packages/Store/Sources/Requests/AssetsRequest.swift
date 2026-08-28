@@ -47,6 +47,7 @@ public struct AssetsRequest: DatabaseQueryable {
             switch filter {
             case .enabled,
                  .buyable,
+                 .sellable,
                  .swappable,
                  .stakeable,
                  .chains,
@@ -55,6 +56,7 @@ public struct AssetsRequest: DatabaseQueryable {
                  .enabledBalance,
                  .disabledBalance,
                  .hasBalance,
+                 .hasAvailableBalance,
                  .priceAlerts:
                 request = Self.applyFilter(request: request, filter)
             }
@@ -102,10 +104,20 @@ extension AssetsRequest {
                 .filter(
                     TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isEnabled] == true,
                 )
+        case .hasAvailableBalance:
+            return request
+                .filter(
+                    TableAlias(name: BalanceRecord.databaseTableName)[BalanceRecord.Columns.availableAmount] > 0,
+                )
         case .buyable:
             return request
                 .filter(
                     TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isBuyable] == true,
+                )
+        case .sellable:
+            return request
+                .filter(
+                    TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isSellable] == true,
                 )
         case .swappable:
             return request

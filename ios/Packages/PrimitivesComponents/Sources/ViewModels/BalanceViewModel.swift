@@ -78,21 +78,19 @@ public struct BalanceViewModel: Sendable {
     }
 
     public var hasStakingResources: Bool {
-        switch StakeChain(rawValue: asset.chain.rawValue) {
-        case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .sei, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
-            false
-        case .tron:
-            true
-        }
+        usesFreeze
     }
 
     public var hasFrozenResources: Bool {
-        switch StakeChain(rawValue: asset.chain.rawValue) {
-        case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .sei, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
-            false
-        case .tron:
-            !(balance.frozen + balance.locked).isZero
-        }
+        usesFreeze && !frozenResources.isZero
+    }
+
+    public var frozenResources: BigInt {
+        balance.frozen + balance.locked
+    }
+
+    private var usesFreeze: Bool {
+        StakeChain(rawValue: asset.chain.rawValue)?.usesFreeze ?? false
     }
 
     public var hasReservedBalance: Bool {

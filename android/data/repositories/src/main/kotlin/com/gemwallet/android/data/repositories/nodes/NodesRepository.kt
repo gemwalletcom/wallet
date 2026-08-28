@@ -26,7 +26,9 @@ class NodesRepository(
 {
 
     override suspend fun getNodes(chain: Chain): Flow<List<Node>> =
-        flowOf(nodeService.getNodes(chain.string).map { it.decodeJson<Node>() })
+        flowOf(nodeService.sortedNodes(chain.string, nodeService.getNodes(chain.string)).map { it.decodeJson<Node>() })
+
+    override fun canDeleteNode(chain: Chain, url: String): Boolean = nodeService.canDeleteNode(chain.string, url)
 
     override fun getDefaultNodes(chain: Chain): List<Node> =
         nodeService.getDefaultNodes(chain.string).map { it.decodeJson<Node>() }

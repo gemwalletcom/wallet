@@ -35,23 +35,19 @@ object BannersModule {
 
     @Provides
     @Singleton
-    fun provideGemBannerService(store: GemBannerStore, permissions: GemNotificationPermissions): GemBannerService =
-        GemBannerService(store, permissions)
+    fun provideGemBannerService(store: GemBannerStore): GemBannerService =
+        GemBannerService(store)
 
     @Provides
     @Singleton
     fun provideBannersRepository(
         assetsRepository: AssetsRepository,
         bannersDao: BannersDao,
-        configRepository: UserConfig,
-        notificationsAvailable: NotificationsAvailable,
         bannerService: GemBannerService,
     ): BannersRepository {
         return BannersRepository(
             assetsRepository,
             bannersDao,
-            configRepository,
-            notificationsAvailable,
             bannerService,
         )
     }

@@ -7,6 +7,7 @@ import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.domains.wallet.values.WalletSecretDataValue
 import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -24,8 +25,11 @@ class GetWalletSecretDataImpl(
             wallet ?: return@mapLatest WalletSecretDataValueImpl(emptyList())
             try {
                 val password = passwordStore.getPassword(wallet.id.id)
-                val phrase = loadPrivateDataOperator(wallet, password)
-                WalletSecretDataValueImpl(phrase.split(" "))
+                val secret = loadPrivateDataOperator(wallet, password)
+                when (wallet.type) {
+                    WalletType.PrivateKey -> WalletSecretDataValueImpl(listOf(secret), isPrivateKey = true)
+                    else -> WalletSecretDataValueImpl(secret.split(" "))
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Throwable) {
@@ -39,15 +43,11 @@ class GetWalletSecretDataImpl(
 class WalletSecretDataValueImpl(
     override val data: List<String>,
     override val isError: Boolean = false,
+    private val isPrivateKey: Boolean = false,
 ) : WalletSecretDataValue {
-    override fun phrase(): List<String> {
-        return data.takeIf { data.size >= 12 } ?: emptyList()
-    }
+    override fun phrase(): List<String> = if (isPrivateKey) emptyList() else data
 
-    override fun privateKey(): String? {
-        return data.takeIf { data.size == 1 }?.firstOrNull()
-    }
+    override fun privateKey(): String? = data.firstOrNull().takeIf { isPrivateKey }
 
     override fun toString(): String = data.joinToString(" ")
-
 }

@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import uniffi.gemstone.GemBannerContext
-import uniffi.gemstone.GemBannerItem
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.bannerIdentifier
@@ -35,29 +33,12 @@ class GetShowWelcomeBannerImpl(
                     .getAssetsInfo(hideBalance = false)
                     .map { items -> items.all { it.isZeroBalance } }
                 combine(isWalletEmpty, bannersDao.observeBanner(onboardingBannerId(session.wallet))) { isEmpty, banner ->
-                    banner != null && bannerService.visibleBanners(
-                        stored = listOf(GemBannerItem(event = banner.event.toJson(), state = banner.state.toJson())),
-                        context = walletContext(isEmpty),
-                    ).isNotEmpty()
+                    banner != null && bannerService.showsOnboarding(banner.state.toJson(), isEmpty)
                 }
             }
     }
-
-    private fun walletContext(isWalletEmpty: Boolean) = GemBannerContext(
-        hasWallet = true,
-        hasAsset = false,
-        isStakeable = false,
-        hasStakeBalance = false,
-        hasAvailableBalance = false,
-        isAssetActivated = true,
-        assetRankScore = null,
-        hasPerpetualsSupport = false,
-        isWalletEmpty = isWalletEmpty,
-        notificationsAvailable = false,
-        launchCount = 0u,
-    )
 }
 
 internal fun onboardingBannerId(wallet: Wallet): String = bannerIdentifier(
-    GemBannerKey(walletId = wallet.id.id, assetId = null, chain = null, event = BannerEvent.Onboarding.toJson())
+    GemBannerKey(walletId = wallet.id.id, assetId = null, event = BannerEvent.Onboarding.toJson())
 )

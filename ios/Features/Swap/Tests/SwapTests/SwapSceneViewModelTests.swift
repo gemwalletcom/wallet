@@ -5,6 +5,7 @@ import GemstoneServicesTestKit
 import BigInt
 import protocol Gemstone.GemSwapServiceProtocol
 import enum Gemstone.SwapperError
+import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.SwapperQuote
 import GemstoneServices
 import Primitives
@@ -29,6 +30,30 @@ struct SwapSceneViewModelTests {
 
         #expect(model.assetIds == assetIds)
         #expect(model.assetIds == [AssetId.mockEthereum(), AssetId.mockEthereumUSDT()])
+    }
+
+    @Test
+    func suggestPairAppliesTheCoreSuggestion() async {
+        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mockEthereum().identifier, receiveAssetId: AssetId.mockEthereumUSDT().identifier)
+        let model = SwapSceneViewModel.mock(swapService: GemSwapServiceMock(pairSuggestion: suggestion))
+
+        await model.suggestPair()
+
+        #expect(model.pairSelectorModel.fromAssetId == .mockEthereum())
+        #expect(model.pairSelectorModel.toAssetId == .mockEthereumUSDT())
+    }
+
+    @Test
+    func suggestPairKeepsAnAlreadySelectedReceiveAsset() async {
+        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mockEthereum().identifier, receiveAssetId: AssetId.mockSolana().identifier)
+        let model = SwapSceneViewModel.mock(
+            swapService: GemSwapServiceMock(pairSuggestion: suggestion),
+            pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: .mockEthereumUSDT()),
+        )
+
+        await model.suggestPair()
+
+        #expect(model.pairSelectorModel.toAssetId == .mockEthereumUSDT())
     }
 
     @Test
@@ -379,12 +404,13 @@ extension SwapSceneViewModel {
     static func mock(
         swapService: any GemSwapServiceProtocol = GemSwapServiceMock(),
         preferencesService: any GemPreferencesServiceProtocol = GemPreferencesService(store: GemPreferencesStoreMock()),
+        pairSelector: SwapPairSelectorViewModel = SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil),
     ) -> SwapSceneViewModel {
         let model = SwapSceneViewModel(
             preferencesService: preferencesService,
             input: .init(
                 wallet: .mock(accounts: [.mock(chain: .ethereum)]),
-                pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil),
+                pairSelector: pairSelector,
             ),
             balanceService: GemBalanceServiceMock(),
             priceUpdater: .mock(),

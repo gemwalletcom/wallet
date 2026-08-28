@@ -116,6 +116,7 @@ extension Primitives.PortfolioAsset: JsonCodable {}
 extension Primitives.PortfolioAssetsRequest: JsonCodable {}
 extension Primitives.Price: JsonCodable {}
 extension Primitives.PriceAlert: JsonCodable {}
+extension Primitives.PriceAlertNotificationType: JsonCodable {}
 extension Primitives.RedemptionRequest: JsonCodable {}
 extension Primitives.RedemptionResult: JsonCodable {}
 extension Primitives.ReferralCode: JsonCodable {}
@@ -128,6 +129,7 @@ extension Primitives.ScanTransactionPayload: JsonCodable {}
 extension Primitives.SearchResponse: JsonCodable {}
 extension Primitives.SimulationPayloadField: JsonCodable {}
 extension Primitives.SimulationResult: JsonCodable {}
+extension Primitives.SimulationHeader: JsonCodable {}
 extension Primitives.SolanaNftStandard: JsonCodable {}
 extension Primitives.SolanaTokenProgramId: JsonCodable {}
 extension Primitives.StakeProviderType: JsonCodable {}

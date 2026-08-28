@@ -2,6 +2,8 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.ext.toAssetId
 import uniffi.gemstone.perpetualCollateralAssetId
+import uniffi.gemstone.walletShowsPnl
+import uniffi.gemstone.walletTotalFiatValue
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.cases.banners.HasMultiSign
@@ -74,8 +76,8 @@ class GetWalletSummaryImpl(
         ) { assets, perpetualBalance, hasMultiSign, hideBalances ->
             val balances = assets.map { asset ->
                 GemAssetFiatValue(
-                    amount = asset.balance.fiatTotalAmount,
-                    price = 1.0,
+                    amount = asset.balance.totalAmount,
+                    price = asset.price?.price?.price ?: 0.0,
                     priceChangePercentage24h = asset.price?.price?.priceChangePercentage24h ?: 0.0,
                 )
             } + listOfNotNull(
@@ -88,7 +90,7 @@ class GetWalletSummaryImpl(
                 wallet = wallet,
                 displayState = buildWalletSummaryDisplayState(
                     currency = session.currency,
-                    total = balanceCalculator.totalFiatValue(balances),
+                    total = walletTotalFiatValue(balances),
                 ),
                 isBalanceHidden = hideBalances,
                 isOperationsAvailable = !hasMultiSign,
@@ -107,9 +109,9 @@ internal fun buildWalletSummaryDisplayState(
 ): WalletSummaryDisplayState {
     val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
     val totalValue = total.value.toBigDecimal()
-    if (totalValue.compareTo(BigDecimal.ZERO) <= 0) {
+    if (!walletShowsPnl(total)) {
         return WalletSummaryDisplayState(
-            totalValue = formatter.string(BigDecimal.ZERO),
+            totalValue = formatter.string(totalValue.coerceAtLeast(BigDecimal.ZERO)),
             changedValue = null,
         )
     }

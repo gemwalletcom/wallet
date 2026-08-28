@@ -13,3 +13,9 @@ public extension Gemstone.TotalFiatValue {
         )
     }
 }
+
+public extension Primitives.TotalFiatValue {
+    var showsPnl: Bool {
+        Gemstone.walletShowsPnl(total: Gemstone.TotalFiatValue(value: value, pnlAmount: pnlAmount, pnlPercentage: pnlPercentage))
+    }
+}

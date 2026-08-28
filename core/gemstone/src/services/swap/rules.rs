@@ -5,7 +5,8 @@ use swapper::permit2_data::{Permit2Detail, PermitSingle};
 use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
-use crate::services::swap::model::GemSwapTransfer;
+use crate::services::swap::model::{GemSwapPair, GemSwapTransfer};
+use std::collections::HashMap;
 
 pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, value: String, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<QuoteRequest, SwapperError> {
     let wallet_address = account_address(wallet, from_asset.chain())?;
@@ -102,6 +103,31 @@ fn account_address(wallet: &Wallet, chain: Chain) -> Result<String, SwapperError
 
 fn to_value(quote: &Quote) -> BigInt {
     quote.to_value.parse().unwrap_or_default()
+}
+
+pub fn most_swapped_receive_asset(pairs: &[GemSwapPair], pay_asset_id: &AssetId) -> Option<AssetId> {
+    let received: Vec<&GemSwapPair> = pairs.iter().filter(|pair| &pair.to_asset_id != pay_asset_id).collect();
+    let received_for_pay_asset: Vec<AssetId> = received
+        .iter()
+        .filter(|pair| &pair.from_asset_id == pay_asset_id)
+        .map(|pair| pair.to_asset_id.clone())
+        .collect();
+    most_frequent_asset(&received_for_pay_asset).or_else(|| {
+        let received: Vec<AssetId> = received.iter().map(|pair| pair.to_asset_id.clone()).collect();
+        most_frequent_asset(&received)
+    })
+}
+
+fn most_frequent_asset(asset_ids: &[AssetId]) -> Option<AssetId> {
+    let mut counts: HashMap<&AssetId, usize> = HashMap::new();
+    for asset_id in asset_ids {
+        *counts.entry(asset_id).or_default() += 1;
+    }
+    asset_ids.iter().min_by_key(|asset_id| std::cmp::Reverse(counts[*asset_id])).cloned()
+}
+
+pub fn first_other_asset(asset_ids: Vec<AssetId>, pay_asset_id: &AssetId) -> Option<AssetId> {
+    asset_ids.into_iter().find(|asset_id| asset_id != pay_asset_id)
 }
 
 #[cfg(test)]
@@ -244,5 +270,89 @@ mod tests {
         let sorted = sort_quotes(vec![quote("5"), quote("50"), quote("abc"), quote("7")]);
 
         assert_eq!(sorted.iter().map(|quote| quote.to_value.as_str()).collect::<Vec<_>>(), vec!["50", "7", "5", "abc"]);
+    }
+
+    fn pair(from: Chain, to: Chain) -> GemSwapPair {
+        GemSwapPair {
+            from_asset_id: AssetId::from_chain(from),
+            to_asset_id: AssetId::from_chain(to),
+        }
+    }
+
+    #[test]
+    fn test_most_swapped_receive_asset_prefers_the_pay_asset_history() {
+        let pairs = [
+            pair(Chain::Ethereum, Chain::Solana),
+            pair(Chain::Ethereum, Chain::Solana),
+            pair(Chain::Ethereum, Chain::Bitcoin),
+            pair(Chain::Bitcoin, Chain::Ethereum),
+            pair(Chain::Bitcoin, Chain::Ethereum),
+            pair(Chain::Bitcoin, Chain::Ethereum),
+        ];
+
+        assert_eq!(
+            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum)),
+            Some(AssetId::from_chain(Chain::Solana))
+        );
+    }
+
+    #[test]
+    fn test_most_swapped_receive_asset_falls_back_to_the_overall_history() {
+        let pairs = [
+            pair(Chain::Bitcoin, Chain::Solana),
+            pair(Chain::Bitcoin, Chain::Solana),
+            pair(Chain::Bitcoin, Chain::Ethereum),
+        ];
+
+        assert_eq!(
+            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum)),
+            Some(AssetId::from_chain(Chain::Solana))
+        );
+    }
+
+    #[test]
+    fn test_most_swapped_receive_asset_keeps_the_first_seen_on_a_tie() {
+        let pairs = [pair(Chain::Ethereum, Chain::Bitcoin), pair(Chain::Ethereum, Chain::Solana)];
+
+        assert_eq!(
+            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum)),
+            Some(AssetId::from_chain(Chain::Bitcoin))
+        );
+    }
+
+    #[test]
+    fn test_most_swapped_receive_asset_never_suggests_the_pay_asset() {
+        let pairs = [
+            pair(Chain::Bitcoin, Chain::Ethereum),
+            pair(Chain::Bitcoin, Chain::Ethereum),
+            pair(Chain::Bitcoin, Chain::Solana),
+        ];
+
+        assert_eq!(
+            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum)),
+            Some(AssetId::from_chain(Chain::Solana))
+        );
+    }
+
+    #[test]
+    fn test_most_swapped_receive_asset_is_none_without_history() {
+        assert_eq!(most_swapped_receive_asset(&[], &AssetId::from_chain(Chain::Ethereum)), None);
+    }
+
+    #[test]
+    fn test_first_other_asset_skips_the_pay_asset() {
+        let asset_ids = vec![AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Solana)];
+
+        assert_eq!(
+            first_other_asset(asset_ids, &AssetId::from_chain(Chain::Ethereum)),
+            Some(AssetId::from_chain(Chain::Solana))
+        );
+    }
+
+    #[test]
+    fn test_first_other_asset_is_none_when_only_the_pay_asset_is_available() {
+        let asset_ids = vec![AssetId::from_chain(Chain::Ethereum)];
+
+        assert_eq!(first_other_asset(asset_ids, &AssetId::from_chain(Chain::Ethereum)), None);
     }
 }

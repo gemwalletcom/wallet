@@ -62,6 +62,16 @@ public struct TransactionStore: Sendable {
         }
     }
 
+    public func getSwapHistory(walletId: WalletId) throws -> [TransactionSwapMetadata] {
+        try db.read { db in
+            try TransactionRecord
+                .filter(TransactionRecord.Columns.walletId == walletId.id)
+                .filter(TransactionRecord.Columns.type == TransactionType.swap.rawValue)
+                .fetchAll(db)
+                .compactMap { $0.metadata?.decode(TransactionSwapMetadata.self) }
+        }
+    }
+
     public func addTransactions(walletId: WalletId, transactions: [Transaction]) throws {
         if transactions.isEmpty {
             return

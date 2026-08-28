@@ -1,10 +1,11 @@
+pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
-use primitives::{NFTAssetData, NFTAssetId, ReportNft, WalletId};
+use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, VerificationStatus, WalletId};
 
 pub use store::GemNftStore;
 
@@ -58,6 +59,26 @@ where
     let data = load.await?;
     store.save_asset(data.clone()).await?;
     Ok(data)
+}
+
+#[uniffi::export]
+pub fn nft_sorted_collections(data: Vec<NFTData>) -> Vec<NFTData> {
+    rules::sorted_collections(data)
+}
+
+#[uniffi::export]
+pub fn nft_collection_status(status: Option<VerificationStatus>) -> VerificationStatus {
+    rules::collection_status(status)
+}
+
+#[uniffi::export]
+pub fn nft_verified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
+    rules::verified_collections(data)
+}
+
+#[uniffi::export]
+pub fn nft_unverified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
+    rules::unverified_collections(data)
 }
 
 #[cfg(test)]

@@ -42,14 +42,6 @@ pub struct NewPerpetualRow {
     pub is_isolated_only: bool,
 }
 
-#[derive(Debug, Insertable, Clone)]
-#[diesel(table_name = crate::schema::perpetuals_assets)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewPerpetualAssetRow {
-    pub perpetual_id: String,
-    pub asset_id: AssetId,
-}
-
 impl NewPerpetualRow {
     pub fn from_primitive(perpetual: PrimitivePerpetual) -> Self {
         Self {

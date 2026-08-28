@@ -10,6 +10,7 @@ import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
 import com.gemwallet.android.Constants
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.Config
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatProviderName
@@ -19,51 +20,27 @@ import uniffi.gemstone.SwapperProvider
 
 //fun Int.getDrawableUri() = "android.resource://com.gemwallet.android/drawable/$this"
 
-fun Chain.getIconUrl(): String {
-    val icon = when (this) {
-        Chain.SeiEvm -> Chain.Sei.string
-        else -> string
-    }
-    return "file:///android_asset/chains/icons/${icon}.svg"
+fun Chain.getIconUrl(): String = chainIconUrl(iconChain())
+
+fun Chain.iconChain(): Chain {
+    val icon = Config().getChainConfig(string).iconChain
+    return Chain.entries.firstOrNull { it.string == icon } ?: this
 }
 
+fun Chain.badgeChain(): Chain? {
+    val badge = Config().getChainConfig(string).badgeChain ?: return null
+    return Chain.entries.firstOrNull { it.string == badge }
+}
+
+private fun chainIconUrl(chain: Chain): String = "file:///android_asset/chains/icons/${chain.string}.svg"
+
 fun AssetId.getIconUrl(): String = when {
-    tokenId.isNullOrEmpty() -> when (chain) {
-        Chain.Optimism,
-        Chain.Base,
-        Chain.ZkSync,
-        Chain.Arbitrum,
-        Chain.Abstract,
-        Chain.Unichain,
-        Chain.Ink,
-        Chain.Linea,
-        Chain.OpBNB,
-        Chain.Blast,
-        Chain.World,
-        Chain.Robinhood,
-        Chain.Manta -> "file:///android_asset/chains/icons/${Chain.Ethereum.string}.svg"
-        else -> chain.getIconUrl()
-    }
+    tokenId.isNullOrEmpty() -> chain.getIconUrl()
     else -> "${Constants.ASSETS_URL}/blockchains/${chain.string}/assets/${tokenId}/logo.png"
 }
 
 fun AssetId.getSupportIconUrl(): String? = when (type()) {
-    AssetSubtype.NATIVE -> when (chain) {
-        Chain.Optimism,
-        Chain.Base,
-        Chain.ZkSync,
-        Chain.Arbitrum,
-        Chain.Abstract,
-        Chain.Unichain,
-        Chain.Ink,
-        Chain.Linea,
-        Chain.OpBNB,
-        Chain.Blast,
-        Chain.World,
-        Chain.Robinhood,
-        Chain.Manta -> "file:///android_asset/chains/icons/${chain.string}.svg"
-        else -> null
-    }
+    AssetSubtype.NATIVE -> chain.badgeChain()?.let { chainIconUrl(it) }
     AssetSubtype.TOKEN -> chain.getIconUrl()
 }
 

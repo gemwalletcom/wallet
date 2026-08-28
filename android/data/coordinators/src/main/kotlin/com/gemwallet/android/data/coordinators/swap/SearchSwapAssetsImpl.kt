@@ -7,8 +7,9 @@ import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.domains.asset.eligible
+import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.hasAvailable
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,13 +58,9 @@ class SearchSwapAssetsImpl(
         }
         .catch { emit(emptyList()) }
         .map { items ->
-            items.filter { assetInfo ->
-                assetInfo.metadata?.isSwapEnabled == true &&
-                    if (swapItemType == SwapItemType.Pay) {
-                        assetInfo.balance.balance.hasAvailable()
-                    } else {
-                        true
-                    }
+            when (swapItemType) {
+                SwapItemType.Pay -> GemAssetAction.SWAP_PAY.eligible(items)
+                SwapItemType.Receive -> GemAssetAction.SWAP_RECEIVE.eligible(items)
             }
         }
     }

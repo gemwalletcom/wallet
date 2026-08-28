@@ -1,4 +1,4 @@
-use crate::{Chain, SwapProvider, TransactionState, UInt64};
+use crate::UInt64;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -9,13 +9,4 @@ pub struct TransactionStateRequest {
     pub sender_address: String,
     pub created_at: DateTime<Utc>,
     pub block_number: UInt64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct TransactionSwapStateRequest {
-    pub transaction: TransactionStateRequest,
-    pub state: TransactionState,
-    pub swap_provider: SwapProvider,
-    pub destination_chain: Chain,
 }

@@ -11,9 +11,13 @@ import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.id
 import com.gemwallet.android.ext.shouldDisplay
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.CurrencyFormatter
+import uniffi.gemstone.priceAlertsSorted
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -32,8 +36,11 @@ class GetPriceAlertsImpl(
     override fun invoke(assetId: AssetId?): Flow<List<PriceAlertDataAggregate>> {
         return priceAlertRepository.getPriceAlerts(assetId)
             .flatMapLatest { items ->
-                val index = items
-                    .filter { it.priceAlert.shouldDisplay }
+                val displayed = items.filter { it.priceAlert.shouldDisplay }
+                val order = priceAlertsSorted(displayed.map { it.priceAlert.toJson() })
+                    .map { it.decodeJson<PriceAlert>().id }
+                val index = displayed
+                    .sortedBy { alert -> order.indexOf(alert.priceAlert.id).takeIf { it >= 0 } ?: order.size }
                     .groupBy { it.priceAlert.assetId.toIdentifier() }
                 assetsRepository.getTokensInfo(index.keys.toList()).mapLatest { assetInfos ->
                     assetInfos.flatMap { assetInfo ->

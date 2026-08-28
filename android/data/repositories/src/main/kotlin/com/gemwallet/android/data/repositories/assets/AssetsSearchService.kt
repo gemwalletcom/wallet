@@ -8,6 +8,7 @@ import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.wallet.core.primitives.AssetId
@@ -32,15 +33,38 @@ class AssetsSearchService @Inject constructor(
     private val sessionRepository: SessionRepository,
 ) {
 
-    fun search(query: String, byAllWallets: Boolean, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> {
+    fun search(
+        query: String,
+        byAllWallets: Boolean,
+        limit: Int = NO_QUERY_LIMIT,
+        filters: Set<AssetFilter> = emptySet(),
+    ): Flow<List<AssetInfo>> {
         val query = query.trim()
         return sessionRepository.currentWalletId().flatMapLatest { walletId ->
             searchDao.hasAssetPriorities(query).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 when {
                     byAllWallets && hasPriority -> assetsDao.searchByAllWalletsWithPriority(walletId, query, limit)
                     byAllWallets -> assetsDao.searchByAllWallets(walletId, query, limit)
-                    hasPriority -> assetsDao.searchWithPriority(walletId, query, limit)
-                    else -> assetsDao.search(walletId, query, limit)
+                    hasPriority -> assetsDao.searchWithPriority(
+                        walletId = walletId,
+                        query = query,
+                        limit = limit,
+                        buyable = AssetFilter.Buyable in filters,
+                        sellable = AssetFilter.Sellable in filters,
+                        swappable = AssetFilter.Swappable in filters,
+                        hasBalance = AssetFilter.HasBalance in filters,
+                        hasAvailableBalance = AssetFilter.HasAvailableBalance in filters,
+                    )
+                    else -> assetsDao.search(
+                        walletId = walletId,
+                        query = query,
+                        limit = limit,
+                        buyable = AssetFilter.Buyable in filters,
+                        sellable = AssetFilter.Sellable in filters,
+                        swappable = AssetFilter.Swappable in filters,
+                        hasBalance = AssetFilter.HasBalance in filters,
+                        hasAvailableBalance = AssetFilter.HasAvailableBalance in filters,
+                    )
                 }
             }
         }

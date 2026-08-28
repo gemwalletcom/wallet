@@ -30,6 +30,14 @@ impl GemNodeService {
         Ok(rules::merge_nodes(rules::default_nodes(chain), stored))
     }
 
+    pub fn can_delete_node(&self, chain: Chain, url: String) -> bool {
+        rules::can_delete_node(chain, &url)
+    }
+
+    pub fn sorted_nodes(&self, chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
+        rules::sorted_nodes(chain, nodes)
+    }
+
     pub fn node_url(&self, chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> String {
         rules::chain_node(chain, selected_url, stored_nodes).url
     }

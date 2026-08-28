@@ -72,7 +72,7 @@ public extension SelectAssetType {
             SelectAssetFlow(
                 title: Localized.Wallet.send,
                 listType: .view,
-                defaultFilters: [.enabled, .hasBalance],
+                defaultFilters: .filters(for: .send),
                 rowSelection: .navigate,
                 capabilities: [.chainFilter, .recents],
             )
@@ -105,7 +105,7 @@ public extension SelectAssetType {
             SelectAssetFlow(
                 title: Localized.Wallet.buy,
                 listType: .view,
-                defaultFilters: [.enabled, .buyable],
+                defaultFilters: .filters(for: .buy),
                 rowSelection: .navigate,
                 selectionEffect: .recordRecent,
                 capabilities: [.networkSearch, .chainFilter, .recents, .popularSection],
@@ -116,7 +116,7 @@ public extension SelectAssetType {
                 SelectAssetFlow(
                     title: Localized.Swap.youPay,
                     listType: .view,
-                    defaultFilters: [.enabled, .swappable, .hasBalance],
+                    defaultFilters: .filters(for: .swapPay),
                     rowSelection: .select,
                     selectionEffect: .recordRecent,
                     capabilities: [.chainFilter, .recents],
@@ -125,11 +125,7 @@ public extension SelectAssetType {
                 SelectAssetFlow(
                     title: Localized.Swap.youReceive,
                     listType: .view,
-                    defaultFilters: [
-                        .enabled,
-                        .chainsOrAssets(chains.map(\.rawValue), assetIds.map(\.identifier)),
-                        .swappable,
-                    ],
+                    defaultFilters: .filters(for: .swapReceive) + [.chainsOrAssets(chains.map(\.rawValue), assetIds.map(\.identifier))],
                     rowSelection: .select,
                     selectionEffect: .recordRecent,
                     capabilities: [.networkSearch, .chainFilter, .recents],

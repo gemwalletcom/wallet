@@ -525,6 +525,11 @@ struct Migrations {
             }
         }
 
+        migrator.registerMigration("Recreate \(BannerRecord.databaseTableName) without chain") { db in
+            try? db.drop(table: BannerRecord.databaseTableName)
+            try? BannerRecord.create(db: db)
+        }
+
         try migrator.migrate(dbQueue)
     }
 }

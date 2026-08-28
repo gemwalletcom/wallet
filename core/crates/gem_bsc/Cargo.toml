@@ -19,7 +19,6 @@ chrono = { workspace = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true }
 num-bigint = { workspace = true }
-num-traits = { workspace = true }
 
 [dev-dependencies]
 gem_evm = { path = "../gem_evm", features = ["rpc", "testkit"] }

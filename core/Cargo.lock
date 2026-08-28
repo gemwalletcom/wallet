@@ -3557,7 +3557,6 @@ dependencies = [
  "gem_client",
  "gem_evm",
  "num-bigint 0.5.1",
- "num-traits",
  "primitives",
  "settings",
  "tokio",

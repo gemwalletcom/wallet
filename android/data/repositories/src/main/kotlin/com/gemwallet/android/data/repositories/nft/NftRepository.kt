@@ -10,6 +10,8 @@ import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.nftCollectionStatus
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTAssetData
@@ -91,7 +93,7 @@ internal fun DbNFTCollection.toCollectionModel() = NFTCollection(
     chain = chain,
     contractAddress = contractAddress,
     images = NFTImages(NFTResource(imageUrl, "")),
-    status = status ?: VerificationStatus.Verified,
+    status = nftCollectionStatus(status?.toJson()).decodeJson(),
     links = links ?: emptyList(),
 )
 

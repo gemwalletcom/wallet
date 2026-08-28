@@ -30,8 +30,6 @@ struct BannerViewModel {
                 return .none
             }
             return AssetImage.image(ChainImage(chain: asset.chain).placeholder)
-        case .enableNotifications:
-            return AssetImage.image(Images.System.bell)
         case .accountBlockedMultiSignature:
             return AssetImage.image(Images.System.exclamationmarkTriangle)
         case .suspiciousAsset:
@@ -52,8 +50,6 @@ struct BannerViewModel {
             return Localized.Banner.Stake.title(asset.name)
         case .accountActivation:
             return Localized.Banner.AccountActivation.title
-        case .enableNotifications:
-            return Localized.Banner.EnableNotifications.title
         case .accountBlockedMultiSignature:
             return Localized.Common.warning
         case .activateAsset:
@@ -79,8 +75,6 @@ struct BannerViewModel {
             let amount = ValueFormatter(style: .auto)
                 .string(fee.asInt.asBigInt, decimals: asset.decimals.asInt, currency: asset.symbol)
             return Localized.Banner.AccountActivation.description(asset.name, amount)
-        case .enableNotifications:
-            return Localized.Banner.EnableNotifications.description
         case .accountBlockedMultiSignature:
             return Localized.Warnings.multiSignatureBlocked(asset?.name ?? "")
         case .activateAsset:
@@ -103,7 +97,6 @@ struct BannerViewModel {
         switch banner.event {
         case .stake,
              .accountActivation,
-             .enableNotifications,
              .accountBlockedMultiSignature,
              .activateAsset,
              .suspiciousAsset,
@@ -119,8 +112,7 @@ struct BannerViewModel {
              .activateAsset,
              .suspiciousAsset,
              .tradePerpetuals: 14
-        case .enableNotifications,
-             .accountBlockedMultiSignature,
+        case .accountBlockedMultiSignature,
              .onboarding: 0
         }
     }
@@ -136,7 +128,6 @@ struct BannerViewModel {
     var url: URL? {
         switch banner.event {
         case .stake,
-             .enableNotifications,
              .activateAsset,
              .onboarding,
              .tradePerpetuals:
@@ -162,7 +153,6 @@ struct BannerViewModel {
         switch banner.event {
         case .stake,
              .accountActivation,
-             .enableNotifications,
              .accountBlockedMultiSignature,
              .activateAsset,
              .suspiciousAsset,
@@ -175,7 +165,6 @@ struct BannerViewModel {
         switch banner.event {
         case .stake,
              .accountActivation,
-             .enableNotifications,
              .accountBlockedMultiSignature,
              .activateAsset,
              .suspiciousAsset,
@@ -188,10 +177,7 @@ struct BannerViewModel {
     }
 
     private var asset: Asset? {
-        if let asset = banner.asset {
-            return asset
-        }
-        return banner.chain?.asset
+        banner.asset
     }
 }
 

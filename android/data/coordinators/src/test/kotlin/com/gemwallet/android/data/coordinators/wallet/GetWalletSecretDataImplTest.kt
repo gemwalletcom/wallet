@@ -5,6 +5,7 @@ import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.testkit.TEST_PHRASE
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.WalletType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -41,6 +42,19 @@ class GetWalletSecretDataImplTest {
 
         assertFalse(value.isError)
         assertEquals(12, value.phrase().size)
+    }
+
+    @Test
+    fun privateKeyWallet_returnsKey_notPhrase() = runTest {
+        val wallet = mockWallet(type = WalletType.PrivateKey)
+        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        every { passwordStore.getPassword(wallet.id.id) } returns "0xdeadbeef"
+        coEvery { loadPrivateDataOperator(wallet, "0xdeadbeef") } returns "0xprivatekey"
+
+        val value = subject.getSecretData(wallet.id).first()
+
+        assertEquals("0xprivatekey", value.privateKey())
+        assertTrue(value.phrase().isEmpty())
     }
 
     @Test

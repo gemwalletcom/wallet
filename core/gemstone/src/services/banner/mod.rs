@@ -6,7 +6,7 @@ pub mod store;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::{AssetId, BannerEvent, BannerState, Wallet, WalletId};
+use primitives::{BannerState, Wallet};
 
 pub use model::{GemBannerAction, GemBannerContext, GemBannerItem, GemBannerKey};
 pub use permissions::GemNotificationPermissions;
@@ -15,14 +15,13 @@ pub use store::GemBannerStore;
 #[derive(uniffi::Object)]
 pub struct GemBannerService {
     store: Arc<dyn GemBannerStore>,
-    permissions: Arc<dyn GemNotificationPermissions>,
 }
 
 #[uniffi::export]
 impl GemBannerService {
     #[uniffi::constructor]
-    pub fn new(store: Arc<dyn GemBannerStore>, permissions: Arc<dyn GemNotificationPermissions>) -> Self {
-        Self { store, permissions }
+    pub fn new(store: Arc<dyn GemBannerStore>) -> Self {
+        Self { store }
     }
 
     pub async fn setup(&self) -> Result<(), GemServiceError> {
@@ -34,31 +33,18 @@ impl GemBannerService {
     }
 
     pub async fn apply_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
-        let closes = match rules::close_decision(&action) {
-            rules::BannerClose::Close => true,
-            rules::BannerClose::Keep => false,
-            rules::BannerClose::AfterPermission => self.permissions.request_permissions_or_open_settings().await?,
-        };
-        if closes {
-            self.close(key).await?;
+        match action {
+            GemBannerAction::Close => self.close(key).await,
+            GemBannerAction::Event { .. } | GemBannerAction::Button => Ok(()),
         }
-        Ok(())
-    }
-
-    pub async fn active_events(&self, wallet_id: Option<WalletId>, asset_id: Option<AssetId>, context: GemBannerContext) -> Result<Vec<BannerEvent>, GemServiceError> {
-        let mut active = Vec::new();
-        for event in rules::suggested_events(&context) {
-            let key = rules::event_key(wallet_id.clone(), asset_id.clone(), event);
-            let state = self.store.get_state(key).await?.unwrap_or_else(|| rules::default_state(event));
-            if rules::is_visible(state) {
-                active.push(event);
-            }
-        }
-        Ok(active)
     }
 
     pub async fn close(&self, key: GemBannerKey) -> Result<(), GemServiceError> {
         self.store.set_state(key, BannerState::Cancelled).await
+    }
+
+    pub fn shows_onboarding(&self, state: BannerState, is_wallet_empty: bool) -> bool {
+        rules::shows_onboarding(state, is_wallet_empty)
     }
 
     pub fn visible_banners(&self, stored: Vec<GemBannerItem>, context: GemBannerContext) -> Vec<GemBannerItem> {

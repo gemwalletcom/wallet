@@ -65,13 +65,8 @@ public final class RecentsSceneViewModel {
     }
 
     private var filteredAssets: [RecentAsset] {
-        guard !searchQuery.isEmpty else { return recentAssets }
-        let chains = Set(recentAssets.map(\.asset.chain).filter(query: searchQuery))
-        return recentAssets.filter {
-            $0.asset.name.localizedCaseInsensitiveContains(searchQuery) ||
-                $0.asset.symbol.localizedCaseInsensitiveContains(searchQuery) ||
-                chains.contains($0.asset.chain)
-        }
+        let matching = Set(recentAssets.map(\.asset).matching(query: searchQuery).map(\.id))
+        return recentAssets.filter { matching.contains($0.asset.id) }
     }
 }
 

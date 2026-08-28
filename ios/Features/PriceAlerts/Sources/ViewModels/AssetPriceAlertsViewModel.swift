@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemPreferencesServiceProtocol
+import func Gemstone.priceAlertsSorted
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
 import Localization
@@ -67,13 +68,10 @@ public final class AssetPriceAlertsViewModel: Sendable {
     }
 
     var alertsModel: [PriceAlertItemViewModel] {
-        priceAlerts
-            .filter { $0.priceAlert.shouldDisplay && $0.priceAlert.type != .auto }
-            .sorted(using: [
-                KeyPathComparator(\.priceAlert.price, order: .reverse),
-                KeyPathComparator(\.priceAlert.priceDirection, order: .reverse),
-                KeyPathComparator(\.priceAlert.pricePercentChange, order: .reverse),
-            ])
+        let manual = priceAlerts.filter { $0.priceAlert.shouldDisplay && $0.priceAlert.type != .auto }
+        let order = (try? priceAlertsSorted(alerts: manual.map { try $0.priceAlert.json() }).map { try PriceAlert($0).id }) ?? []
+        return order
+            .compactMap { id in manual.first { $0.priceAlert.id == id } }
             .map { PriceAlertItemViewModel(data: $0, currency: preferencesService.currencyCode) }
     }
 }

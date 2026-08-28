@@ -5,6 +5,9 @@ import com.gemwallet.android.application.asset_select.coordinators.SearchSelectA
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
+import uniffi.gemstone.GemAssetAction
+import com.gemwallet.android.domains.asset.eligible
+import com.gemwallet.android.domains.asset.recentFilters
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
@@ -34,17 +37,16 @@ class BuySelectViewModel @Inject constructor(
     searchTokensCase,
     BuySelectSearch(searchSelectAssets),
 ) {
-    override fun assetFilters() = setOf(AssetFilter.Buyable)
+    override fun assetFilters() = GemAssetAction.BUY.recentFilters()
 }
 
 class BuySelectSearch(
     searchSelectAssets: SearchSelectAssets,
-) : BaseSelectSearch(searchSelectAssets) {
+) : BaseSelectSearch(searchSelectAssets, GemAssetAction.BUY) {
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return super.items(filters).map { items -> filter(items) }
     }
 
-    override fun filter(items: List<AssetInfo>): List<AssetInfo>
-        = items.filter { it.metadata?.isBuyEnabled == true }
+    override fun filter(items: List<AssetInfo>): List<AssetInfo> = GemAssetAction.BUY.eligible(items)
 }

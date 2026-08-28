@@ -156,10 +156,7 @@ struct ServicesFactory {
         let transactionStateTracker = TransactionStateTracker(service: gemTransactionStateService)
 
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService)
-        let bannerService = Gemstone.GemBannerService(
-            store: gemBannerStore,
-            permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
-        )
+        let bannerService = Gemstone.GemBannerService(store: gemBannerStore)
         let navigationPresenter = NavigationPresenter()
         let portfolioService = Gemstone.GemPortfolioService(api: gemDeviceApiClient, store: GemstonePortfolioStore(assetStore: storeManager.assetStore), price: gemPriceService)
         let gemPerpetualStore = GemstonePerpetualStore(store: storeManager.perpetualStore, assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
@@ -205,6 +202,11 @@ struct ServicesFactory {
             swapper: gemSwapper,
             keystore: storages.keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: storages.keystore),
+            store: GemstoneSwapStore(
+                assetStore: storeManager.assetStore,
+                transactionStore: storeManager.transactionStore,
+                recentActivityStore: storeManager.recentActivityStore,
+            ),
         )
 
         let presenter = WalletConnectorPresenter()

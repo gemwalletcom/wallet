@@ -18,15 +18,15 @@ use primitives::{
     AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, AssetType, ChainAsset, ConnectionComponent, ConnectionStatus, ContractCallData, DelegationBase,
     DelegationState, DelegationValidator, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink,
     PaymentRequest, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget,
-    ScanTransaction, ScanTransactionPayload, SimulationPayloadField, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeValidator,
-    TransactionPerpetualMetadata, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationPayloadField, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType,
+    StakeValidator, TransactionPerpetualMetadata, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
     AddressName, AuthNonce, AuthPayload, ChainAddress, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
-    PortfolioAsset, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse,
-    WalletConfigurationResult, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
+    PortfolioAsset, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, PriceAlertNotificationType, ReferralCode, Rewards, SupportMessage, SupportMessageInput,
+    TransactionsResponse, WalletConfigurationResult, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
 };
-use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
+use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, VerificationStatus};
 use primitives::{
     AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, Contact, FiatAssets, FiatQuoteType, Markets, PlatformStore, Release,
     SearchResponse, StreamEvent, StreamMessage, SupportTyping,
@@ -148,6 +148,8 @@ json_bridge!(
     PortfolioAssetsRequest,
     Price,
     PriceAlert,
+    VerificationStatus,
+    PriceAlertNotificationType,
     RedemptionRequest,
     RedemptionResult,
     ReferralCode,
@@ -160,6 +162,7 @@ json_bridge!(
     SearchResponse,
     StreamEvent,
     StreamMessage,
+    SimulationHeader,
     SimulationPayloadField,
     SimulationResult,
     SolanaNftStandard,

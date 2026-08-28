@@ -5,16 +5,14 @@ import Primitives
 
 public extension Banner {
     static func mock(
-        wallet: Wallet? = .mock(),
+        walletId: WalletId? = .mock(),
         asset: Asset? = .mock(),
-        chain: Chain? = .bitcoin,
         event: BannerEvent = .stake,
         state: BannerState = .active,
     ) -> Banner {
         Banner(
-            wallet: wallet,
+            walletId: walletId,
             asset: asset,
-            chain: chain,
             event: event,
             state: state,
         )
