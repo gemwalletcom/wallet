@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.Config
 import BigInt
 import Components
 import Formatters
@@ -22,7 +23,7 @@ import Validators
 @MainActor
 @Observable
 public final class SwapSceneViewModel {
-    static let inputPercentSuggestions = GemstoneConfig.shared.swapConfig().amountPercentPresets.map { PercentageSuggestion(value: Int($0)) }
+    static let inputPercentSuggestions = Config.shared.swapConfig().amountPercentPresets.map { PercentageSuggestion(value: Int($0)) }
 
     public let wallet: Wallet
     private let balanceService: any GemBalanceServiceProtocol

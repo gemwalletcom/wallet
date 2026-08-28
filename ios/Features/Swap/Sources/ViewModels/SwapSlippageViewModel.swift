@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.Config
 import Formatters
 import Foundation
 import GemstonePrimitives
@@ -27,7 +28,7 @@ public final class SwapSlippageViewModel {
 
     public init(slippage: SwapSlippage, onSelect: @escaping (SwapSlippage) -> Void) {
         self.onSelect = onSelect
-        let config = GemstoneConfig.shared.swapConfig()
+        let config = Config.shared.swapConfig()
         highWarningBps = config.highSlippageWarningBps
         suggestionsBps = config.slippageSuggestionsBps
         minPercent = Double(config.minSlippageBps) / 100

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.Config
 import func Gemstone.assetIsSwapable
 import Primitives
 
@@ -9,7 +10,7 @@ public extension AssetBasic {
         let chain = asset.chain
         let score = AssetScore.defaultScore(chain: chain)
         let isEnabled = score.rank >= 0
-        let config = GemstoneConfig.shared.getChainConfig(chain: chain.rawValue)
+        let config = Config.shared.getChainConfig(chain: chain.rawValue)
         return AssetBasic(
             asset: asset,
             properties: AssetProperties(

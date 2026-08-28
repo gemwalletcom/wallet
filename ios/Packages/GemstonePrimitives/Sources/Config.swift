@@ -22,10 +22,6 @@ public extension Config {
     }
 }
 
-public enum GemstoneConfig {
-    public static let shared = Config()
-}
-
 public enum NodeURL {
     public static let regions = Config.shared.getNodeRegions()
 
