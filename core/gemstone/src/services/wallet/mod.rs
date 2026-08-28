@@ -7,7 +7,7 @@ pub mod store;
 use std::sync::Arc;
 
 use gem_keystore::Mnemonic;
-use primitives::{Chain, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Account, Chain, Wallet, WalletId, WalletSource, WalletType};
 
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, GemWalletType, keystore_id_for_wallet};
 use crate::services::error::GemServiceError;
@@ -195,4 +195,14 @@ fn keystore_import(import: GemWalletImportType) -> GemImportType {
         GemWalletImportType::PrivateKey { value, chain } => GemImportType::PrivateKey { value, chain },
         GemWalletImportType::Address { address, chain } => GemImportType::PrivateKey { value: address, chain },
     }
+}
+
+#[uniffi::export]
+pub fn sorted_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
+    rules::sorted_wallets(wallets)
+}
+
+#[uniffi::export]
+pub fn wallet_display_account(wallet: Wallet) -> Option<Account> {
+    rules::display_account(&wallet)
 }

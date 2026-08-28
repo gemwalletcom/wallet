@@ -92,6 +92,19 @@ pub fn wallets_missing_chains(wallets: Vec<Wallet>, chains: &[Chain]) -> Vec<(Wa
         .collect()
 }
 
+pub fn sorted_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
+    let mut sorted = wallets;
+    sorted.sort_by_key(|wallet| (wallet.wallet_type.rank(), wallet.index));
+    sorted
+}
+
+pub fn display_account(wallet: &Wallet) -> Option<Account> {
+    match wallet.wallet_type {
+        WalletType::Multicoin => wallet.account(Chain::Ethereum).cloned().or_else(|| wallet.accounts.first().cloned()),
+        _ => wallet.accounts.first().cloned(),
+    }
+}
+
 pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
     wallets
         .iter()
@@ -259,5 +272,28 @@ mod tests {
         assert!(can_create_password(&[]));
         assert!(can_create_password(std::slice::from_ref(&view)));
         assert!(!can_create_password(&[view, multicoin]));
+    }
+
+    #[test]
+    fn test_wallets_sort_by_type_then_index() {
+        let mut watch = wallet(WalletId::View(Chain::Ethereum, "0xv".to_string()), WalletType::View, &[Chain::Ethereum]);
+        watch.index = 0;
+        let mut second = wallet(WalletId::Multicoin("0x2".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
+        second.index = 2;
+        let mut first = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
+        first.index = 1;
+
+        let sorted = sorted_wallets(vec![watch.clone(), second.clone(), first.clone()]);
+
+        assert_eq!(sorted.iter().map(|wallet| wallet.id.clone()).collect::<Vec<_>>(), vec![first.id, second.id, watch.id]);
+    }
+
+    #[test]
+    fn test_multicoin_wallets_display_their_ethereum_account() {
+        let multicoin = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Bitcoin, Chain::Ethereum]);
+        let single = wallet(WalletId::Multicoin("0x2".to_string()), WalletType::Single, &[Chain::Bitcoin]);
+
+        assert_eq!(display_account(&multicoin).map(|account| account.chain), Some(Chain::Ethereum));
+        assert_eq!(display_account(&single).map(|account| account.chain), Some(Chain::Bitcoin));
     }
 }

@@ -26,7 +26,7 @@ use primitives::{
     PortfolioAsset, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, PriceAlertNotificationType, ReferralCode, Rewards, SupportMessage, SupportMessageInput,
     TransactionsResponse, WalletConfigurationResult, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
 };
-use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction};
+use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, VerificationStatus};
 use primitives::{
     AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, Contact, FiatAssets, FiatQuoteType, Markets, PlatformStore, Release,
     SearchResponse, StreamEvent, StreamMessage, SupportTyping,
@@ -148,6 +148,7 @@ json_bridge!(
     PortfolioAssetsRequest,
     Price,
     PriceAlert,
+    VerificationStatus,
     PriceAlertNotificationType,
     RedemptionRequest,
     RedemptionResult,
