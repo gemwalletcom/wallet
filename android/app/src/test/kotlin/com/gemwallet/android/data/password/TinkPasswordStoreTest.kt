@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.password
 
+import com.gemwallet.android.application.PasswordNotFoundException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -57,13 +58,28 @@ class TinkPasswordStoreTest {
     }
 
     @Test
-    fun createPassword_writesGeneratedPasswordAndRemovesLegacyValue() {
-        legacyStore.putString(TEST_WALLET_KEY, LEGACY_PASSWORD)
-
-        val password = passwordStore.createPassword(TEST_WALLET_KEY)
+    fun getOrCreatePassword_writesGeneratedPasswordWhenMissing() {
+        val password = passwordStore.getOrCreatePassword(TEST_WALLET_KEY)
 
         assertEquals(GENERATED_PASSWORD, password)
         assertEquals(password, encryptedStore.getString(TEST_WALLET_KEY))
+        assertEquals(null, legacyStore.getString(TEST_WALLET_KEY))
+    }
+
+    @Test
+    fun getOrCreatePassword_reusesExistingPassword() {
+        encryptedStore.putString(TEST_WALLET_KEY, ENCRYPTED_PASSWORD)
+
+        assertEquals(ENCRYPTED_PASSWORD, passwordStore.getOrCreatePassword(TEST_WALLET_KEY))
+        assertEquals(ENCRYPTED_PASSWORD, encryptedStore.getString(TEST_WALLET_KEY))
+    }
+
+    @Test
+    fun getOrCreatePassword_migratesAndReusesLegacyPassword() {
+        legacyStore.putString(TEST_WALLET_KEY, LEGACY_PASSWORD)
+
+        assertEquals(LEGACY_PASSWORD, passwordStore.getOrCreatePassword(TEST_WALLET_KEY))
+        assertEquals(LEGACY_PASSWORD, encryptedStore.getString(TEST_WALLET_KEY))
         assertEquals(null, legacyStore.getString(TEST_WALLET_KEY))
     }
 
@@ -79,7 +95,7 @@ class TinkPasswordStoreTest {
 
     @Test
     fun getPassword_missingValueFailsClosed() {
-        assertThrows(IllegalStateException::class.java) {
+        assertThrows(PasswordNotFoundException::class.java) {
             passwordStore.getPassword(TEST_WALLET_KEY)
         }
     }
