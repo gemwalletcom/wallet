@@ -1,9 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemNftServiceProtocol
+import func Gemstone.nftUnverifiedCollections
+import func Gemstone.nftVerifiedCollections
 import Components
 import Foundation
 import Localization
+import GemstonePrimitives
 import GemstoneServices
 import Primitives
 import PrimitivesComponents
@@ -48,15 +51,19 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     }
 
     private var verifiedItems: [GridPosterViewItem] {
-        nftDataList
-            .filter { $0.collection.status == .verified }
-            .map { buildGridItem(from: $0) }
+        collections(verified: true).map { buildGridItem(from: $0) }
     }
 
     private var unverifiedCount: String? {
-        let unverified = nftDataList.filter { $0.collection.status != .verified }
+        let unverified = collections(verified: false)
         guard unverified.isNotEmpty else { return nil }
         return unverified.count.asString
+    }
+
+    private func collections(verified: Bool) -> [NFTData] {
+        guard let data = try? nftDataList.map({ try $0.json() }) else { return [] }
+        let collections = verified ? nftVerifiedCollections(data: data) : nftUnverifiedCollections(data: data)
+        return collections.compactMap { try? NFTData($0) }
     }
 
     // MARK: - Actions
