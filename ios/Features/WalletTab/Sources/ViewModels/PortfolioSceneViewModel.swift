@@ -44,7 +44,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         self.service = service
         self.preferences = preferences
         self.perpetualFormatter = perpetualFormatter
-        let currencyCode = preferences.preferences.currency
+        let currencyCode = preferences.currency
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
         priceFormatter = CurrencyFormatter(currencyCode: currencyCode)
         state = PortfolioState(selectedType: defaultType)
@@ -186,7 +186,7 @@ extension PortfolioSceneViewModel {
     }
 
     private var currencyCode: String {
-        preferences.preferences.currency
+        preferences.currency
     }
 
     private var chartFormatter: CurrencyFormatter {

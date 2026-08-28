@@ -63,7 +63,7 @@ private extension PriceAlertsScene {
     }
 
     func alertView(alert: PriceAlertData) -> some View {
-        ListAssetItemView(model: PriceAlertItemViewModel(data: alert))
+        ListAssetItemView(model: PriceAlertItemViewModel(data: alert, currency: model.currencyCode))
             .swipeActions(edge: .trailing) {
                 Button(Localized.Common.delete, role: .destructive) {
                     onDelete(alert: alert.priceAlert)

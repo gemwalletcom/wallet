@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -14,10 +13,10 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
     let data: PriceAlertData
     private let priceModel: PriceViewModel
 
-    init(data: PriceAlertData) {
+    init(data: PriceAlertData, currency: String) {
         self.data = data
         let currencyCode = switch data.priceAlert.type {
-        case .auto: Preferences.standard.currency
+        case .auto: currency
         case .price, .pricePercentChange: data.priceAlert.currency.rawValue
         }
         priceModel = PriceViewModel(price: data.price, currencyCode: currencyCode)

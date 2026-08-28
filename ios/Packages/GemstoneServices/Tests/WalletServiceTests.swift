@@ -2,8 +2,6 @@
 
 import GemstoneServicesTestKit
 import Observation
-import Preferences
-import PreferencesTestKit
 import Primitives
 import Store
 import StoreTestKit
@@ -14,10 +12,10 @@ import Testing
 struct WalletServiceTests {
     @Test
     func deleteLastWalletNotifiesObservers() async throws {
-        let preferences = ObservablePreferences.mock()
+        let sessionStore = GemstoneWalletSessionStore.mock()
         let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
-        let walletSessionService = WalletSessionService.mock(store: walletStore, preferences: preferences)
-        let service = WalletService.mock(walletStore: walletStore, preferences: preferences)
+        let walletSessionService = WalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
+        let service = WalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
 
         let wallet = try await service.importWallet(
             name: "Wallet",
@@ -28,7 +26,7 @@ struct WalletServiceTests {
 
         try await confirmation { confirm in
             withObservationTracking {
-                _ = preferences.currentWalletId
+                _ = sessionStore.currentWalletId
             } onChange: {
                 confirm()
             }
@@ -82,7 +80,7 @@ struct WalletServiceTests {
     }
 
     @Test
-    func deleteLastWalletMarksSubscriptionsDirty() async throws {
+    func deleteLastWalletClearsPreferences() async throws {
         let preferencesStore = GemPreferencesStoreMock()
         let service = WalletService.mock(
             walletStore: .mock(db: .mockWithChains([.ethereum])),
@@ -96,10 +94,12 @@ struct WalletServiceTests {
         ).wallet
 
         try preferencesStore.set(key: "subscriptions_version", value: "7")
+        try preferencesStore.set(key: "is_developer_enabled", value: "true")
 
         try await service.delete(wallet)
 
-        #expect(preferencesStore.get(key: "subscriptions_version") == "8")
+        #expect(preferencesStore.get(key: "is_developer_enabled") == nil)
+        #expect(preferencesStore.get(key: "subscriptions_version") == "1")
     }
 
     @Test

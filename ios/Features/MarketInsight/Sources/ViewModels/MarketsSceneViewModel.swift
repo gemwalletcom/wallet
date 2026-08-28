@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
 import GemstonePrimitives
 import Primitives
@@ -15,13 +16,16 @@ public final class MarketsSceneViewModel: Sendable {
 
     let service: any GemPriceServiceProtocol
     let assetsService: any GemAssetsServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
 
     public init(
         service: any GemPriceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) {
         self.service = service
         self.assetsService = assetsService
+        self.preferencesService = preferencesService
     }
 
     func fetch() async {
@@ -34,7 +38,7 @@ public final class MarketsSceneViewModel: Sendable {
 
             try await assetsService.prefetchAssets(for: assets)
 
-            state = .data(MarketsViewModel(markets: markets))
+            state = .data(MarketsViewModel(markets: markets, currencyCode: preferencesService.currencyCode))
         } catch {
             state = .error(error)
             debugLog("get markets error: \(error)")

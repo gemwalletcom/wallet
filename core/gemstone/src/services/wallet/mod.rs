@@ -125,6 +125,9 @@ impl GemWalletService {
         if self.session.get_current_wallet_id()? == Some(wallet.id) {
             self.session.set_current_wallet_id(rules::next_current_wallet(&remaining))?;
         }
+        if remaining.is_empty() {
+            self.app_preferences.clear()?;
+        }
         self.invalidate_subscriptions().await?;
         Ok(!remaining.is_empty())
     }

@@ -13,6 +13,10 @@ public extension GemPreferencesServiceProtocol {
         currencyValue.rawValue
     }
 
+    func setCurrencyValue(_ currency: Primitives.Currency) throws {
+        try setCurrency(currency: currency.json())
+    }
+
     var chartPeriodValue: ChartPeriod {
         (try? ChartPeriod(getChartPeriod())) ?? .day
     }

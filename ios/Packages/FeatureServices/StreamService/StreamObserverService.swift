@@ -1,29 +1,29 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemStreamServiceProtocol
 import protocol Gemstone.GemStreamSubscriptionServiceProtocol
 import GemstonePrimitives
-import Preferences
 import Primitives
 import WebSocketClient
 
 public actor StreamObserverService: Sendable {
     private let subscriptionService: any GemStreamSubscriptionServiceProtocol
     private let service: any GemStreamServiceProtocol
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let webSocket: any WebSocketConnectable
     private var observeTask: Task<Void, Never>?
 
     public init(
         subscriptionService: any GemStreamSubscriptionServiceProtocol,
         service: any GemStreamServiceProtocol,
-        preferences: Preferences,
+        preferencesService: any GemPreferencesServiceProtocol,
         webSocket: any WebSocketConnectable,
     ) {
         self.subscriptionService = subscriptionService
         self.service = service
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         self.webSocket = webSocket
     }
 
@@ -72,7 +72,7 @@ public actor StreamObserverService: Sendable {
 
     private func handleMessage(_ data: Data) async {
         do {
-            try await service.handle(event: String(decoding: data, as: UTF8.self), currency: Currency(id: preferences.currency).json())
+            try await service.handle(event: String(decoding: data, as: UTF8.self), currency: preferencesService.getCurrency())
         } catch {
             debugLog("stream event handler error: \(error)")
         }

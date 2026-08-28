@@ -1,10 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Style
@@ -12,14 +10,14 @@ import Style
 struct MarketsViewModel {
     let markets: Markets
 
-    private let currencyFormatter: CurrencyFormatter
+    private let currencyCode: String
 
     init(
         markets: Markets,
-        currencyFormatter: CurrencyFormatter = CurrencyFormatter(currencyCode: Preferences.standard.currency),
+        currencyCode: String,
     ) {
         self.markets = markets
-        self.currencyFormatter = currencyFormatter
+        self.currencyCode = currencyCode
     }
 
     var marketCapViewModel: PriceListItemViewModel {
@@ -31,7 +29,7 @@ struct MarketsViewModel {
                     priceChangePercentage24h: Double(markets.marketCapChangePercentage24h),
                     updatedAt: .now,
                 ),
-                currencyCode: currencyFormatter.currencyCode,
+                currencyCode: currencyCode,
             ),
         )
     }

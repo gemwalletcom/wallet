@@ -7,8 +7,6 @@ import AppServiceTestKit
 import Foundation
 import GemstoneServices
 import GemstoneServicesTestKit
-import Preferences
-import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
 import Store
@@ -18,7 +16,7 @@ import Testing
 struct AppLifecycleServiceTests {
     @Test
     func updateWalletConnectionsConnectsHyperliquidForMultiCoinWallet() async throws {
-        let (service, observer, _, _, _) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
+        let (service, observer, _, _) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
 
         await service.updateWalletConnections()
 
@@ -27,7 +25,7 @@ struct AppLifecycleServiceTests {
 
     @Test
     func updateWalletConnectionsSkipsHyperliquidForSingleChainWallet() async throws {
-        let (service, observer, _, _, _) = try makeService(perpetualEnabled: true, wallets: [.single], current: .single)
+        let (service, observer, _, _) = try makeService(perpetualEnabled: true, wallets: [.single], current: .single)
 
         await service.updateWalletConnections()
 
@@ -36,7 +34,7 @@ struct AppLifecycleServiceTests {
 
     @Test
     func updateWalletConnectionsDisconnectsWhenSwitchingToSingleChainWallet() async throws {
-        let (service, observer, _, session, _) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid, .single], current: .hyperliquid)
+        let (service, observer, session, _) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid, .single], current: .hyperliquid)
         await service.updateWalletConnections()
 
         try session.setCurrent(walletId: Wallet.single.id)
@@ -47,7 +45,7 @@ struct AppLifecycleServiceTests {
 
     @Test
     func updateWalletConnectionsDisconnectsWhenNoCurrentWallet() async throws {
-        let (service, observer, _, session, _) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
+        let (service, observer, session, _) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
         await service.updateWalletConnections()
 
         try session.setCurrent(walletId: nil)
@@ -58,7 +56,7 @@ struct AppLifecycleServiceTests {
 
     @Test
     func updateWalletConnectionsSkipsHyperliquidWhenDisabled() async throws {
-        let (service, observer, _, _, _) = try makeService(perpetualEnabled: false, wallets: [.hyperliquid], current: .hyperliquid)
+        let (service, observer, _, _) = try makeService(perpetualEnabled: false, wallets: [.hyperliquid], current: .hyperliquid)
 
         await service.updateWalletConnections()
 
@@ -67,7 +65,7 @@ struct AppLifecycleServiceTests {
 
     @Test
     func updatePerpetualConnectionDisconnectsWhenDisabled() async throws {
-        let (service, observer, _, _, perpetuals) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
+        let (service, observer, _, perpetuals) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
         await service.updateWalletConnections()
 
         perpetuals.isPerpetualEnabled = false
@@ -78,7 +76,7 @@ struct AppLifecycleServiceTests {
 
     @Test
     func updatePerpetualConnectionSkipsForSingleChainWallet() async throws {
-        let (service, observer, _, _, _) = try makeService(perpetualEnabled: true, wallets: [.single], current: .single)
+        let (service, observer, _, _) = try makeService(perpetualEnabled: true, wallets: [.single], current: .single)
         await service.updateWalletConnections()
 
         await service.updatePerpetualConnection()
@@ -88,7 +86,7 @@ struct AppLifecycleServiceTests {
 
     @Test
     func updatePerpetualConnectionUpdatesMarketsWhenEnabled() async throws {
-        let (service, _, _, _, perpetuals) = try makeService(perpetualEnabled: true)
+        let (service, _, _, perpetuals) = try makeService(perpetualEnabled: true)
 
         await service.updatePerpetualConnection()
 
@@ -98,7 +96,7 @@ struct AppLifecycleServiceTests {
 
     @Test
     func updatePerpetualConnectionClearsMarketsWhenDisabled() async throws {
-        let (service, _, _, _, perpetuals) = try makeService(perpetualEnabled: false)
+        let (service, _, _, perpetuals) = try makeService(perpetualEnabled: false)
 
         await service.updatePerpetualConnection()
 
@@ -108,7 +106,7 @@ struct AppLifecycleServiceTests {
 
     @Test
     func updateWalletConnectionsKeepsMarketsUntouched() async throws {
-        let (service, _, _, _, perpetuals) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
+        let (service, _, _, perpetuals) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
 
         await service.updateWalletConnections()
 
@@ -122,8 +120,7 @@ extension AppLifecycleServiceTests {
         perpetualEnabled: Bool,
         wallets: [Wallet] = [],
         current: Wallet? = nil,
-    ) throws -> (AppLifecycleService, PerpetualObserverMock, Preferences, any WalletSessionManageable, GemPerpetualServiceMock) {
-        let preferences = Preferences.mock()
+    ) throws -> (AppLifecycleService, PerpetualObserverMock, any WalletSessionManageable, GemPerpetualServiceMock) {
         let perpetuals = GemPerpetualServiceMock()
         perpetuals.isPerpetualEnabled = perpetualEnabled
         let observer = PerpetualObserverMock()
@@ -131,10 +128,7 @@ extension AppLifecycleServiceTests {
         for wallet in wallets {
             try store.addWallet(wallet)
         }
-        let walletSessionService = WalletSessionService.mock(
-            store: store,
-            preferences: .mock(preferences: preferences),
-        )
+        let walletSessionService = WalletSessionService.mock(store: store)
         if let current {
             try walletSessionService.setCurrent(walletId: current.id)
         }
@@ -143,7 +137,7 @@ extension AppLifecycleServiceTests {
             perpetualService: perpetuals,
             walletSessionService: walletSessionService,
         )
-        return (service, observer, preferences, walletSessionService, perpetuals)
+        return (service, observer, walletSessionService, perpetuals)
     }
 }
 

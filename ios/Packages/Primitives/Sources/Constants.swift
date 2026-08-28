@@ -13,6 +13,8 @@ public enum Constants {
         public static let projectId = "3bc07cd7179d11ea65335fb9377702b6"
     }
 
+    public static let appGroupIdentifier = "group.com.gemwallet.ios"
+
     public static let apiURL = URL(string: "https://api.gemwallet.com")!
     public static let assetsURL = URL(string: "https://assets.gemwallet.com")!
 

@@ -4,7 +4,6 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import GemstonePrimitives
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 
@@ -16,7 +15,7 @@ struct AssetDetailsInfoViewModel {
     init(
         explorerService: any GemExplorerServiceProtocol,
         priceData: PriceData,
-        currency: String = Preferences.standard.currency,
+        currency: String,
     ) {
         self.priceData = priceData
         self.explorerService = explorerService

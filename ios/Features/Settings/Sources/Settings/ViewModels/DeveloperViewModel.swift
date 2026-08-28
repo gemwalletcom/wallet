@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import GemstoneServices
 import BigInt
@@ -25,6 +26,7 @@ public final class DeveloperViewModel {
     private let bannerStore: BannerStore
     private let priceStore: PriceStore
     private let perpetualService: any GemPerpetualServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
 
     public var isPresentingToastMessage: ToastMessage?
 
@@ -37,6 +39,7 @@ public final class DeveloperViewModel {
         priceStore: PriceStore,
         perpetualService: any GemPerpetualServiceProtocol,
         walletPreferencesService: any GemWalletPreferencesServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) {
         self.walletId = walletId
         self.walletPreferencesService = walletPreferencesService
@@ -46,6 +49,7 @@ public final class DeveloperViewModel {
         self.bannerStore = bannerStore
         self.priceStore = priceStore
         self.perpetualService = perpetualService
+        self.preferencesService = preferencesService
     }
 
     var title: String {
@@ -63,7 +67,7 @@ public final class DeveloperViewModel {
     func reset() {
         do {
             try clearDocuments()
-            Preferences.standard.clear()
+            try preferencesService.clear()
             try SecurePreferences.standard.clear()
             fatalError()
         } catch {

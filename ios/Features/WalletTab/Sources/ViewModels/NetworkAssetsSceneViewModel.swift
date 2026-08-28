@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstoneServices
 import Components
 import Foundation
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -16,7 +16,7 @@ import SwiftUI
 @MainActor
 public final class NetworkAssetsSceneViewModel: AssetActions {
     let balanceService: any GemBalanceServiceProtocol
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
     let wallet: Wallet
     private let onManageAssetsAction: () -> Void
 
@@ -29,12 +29,12 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         wallet: Wallet,
         chain: Chain,
         balanceService: any GemBalanceServiceProtocol,
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
         onManageAssets: @escaping () -> Void,
     ) {
         self.wallet = wallet
         self.balanceService = balanceService
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         onManageAssetsAction = onManageAssets
         activeQuery = ObservableQuery(
             AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .enabledBalance]),
@@ -59,7 +59,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var currencyCode: String {
-        preferences.currency
+        preferencesService.currencyCode
     }
 
     var active: [AssetData] {

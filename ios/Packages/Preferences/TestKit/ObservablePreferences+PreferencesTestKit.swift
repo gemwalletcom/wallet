@@ -7,11 +7,10 @@ import Preferences
 
 public extension ObservablePreferences {
     static func mock(
-        preferences: Preferences = .mock(),
         preferencesService: any GemPreferencesServiceProtocol = GemPreferencesService(store: GemPreferencesStoreMock()),
         isPerpetualEnabled: Bool = true,
     ) -> ObservablePreferences {
-        let observable = ObservablePreferences(preferences: preferences, preferencesService: preferencesService)
+        let observable = ObservablePreferences(preferencesService: preferencesService)
         observable.isPerpetualEnabled = isPerpetualEnabled
         return observable
     }

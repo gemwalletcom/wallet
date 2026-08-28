@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.wallet
 
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockWalletId
@@ -29,10 +30,13 @@ class DeleteWalletImplTest {
 
     private val walletService = mockk<GemWalletService>()
 
+    private val userConfig = mockk<UserConfig>(relaxed = true)
+
     private val delete = DeleteWalletImpl(
         sessionRepository,
         deleteKeyStoreOperator,
         walletService,
+        userConfig,
     )
 
     @Before
@@ -67,5 +71,6 @@ class DeleteWalletImplTest {
 
         coVerify { walletService.deleteWallet(walletId.id) }
         coVerify { sessionRepository.reset() }
+        verify { userConfig.reload() }
     }
 }

@@ -7,12 +7,24 @@ import SwiftUI
 
 @Observable
 public final class ObservablePreferences: Sendable {
-    public let preferences: Preferences
     private let preferencesService: any GemPreferencesServiceProtocol
 
-    public init(preferences: Preferences, preferencesService: any GemPreferencesServiceProtocol) {
-        self.preferences = preferences
+    public init(preferencesService: any GemPreferencesServiceProtocol) {
         self.preferencesService = preferencesService
+    }
+
+    @ObservationIgnored
+    public var currency: String {
+        get {
+            access(keyPath: \.currency)
+            return preferencesService.currencyCode
+        }
+        set {
+            withMutation(keyPath: \.currency) {
+                guard let currency = Currency(rawValue: newValue) else { return }
+                write { try preferencesService.setCurrencyValue(currency) }
+            }
+        }
     }
 
     @ObservationIgnored
@@ -37,19 +49,6 @@ public final class ObservablePreferences: Sendable {
         set {
             withMutation(keyPath: \.isDeveloperEnabled) {
                 write { try preferencesService.setDeveloperEnabled(enabled: newValue) }
-            }
-        }
-    }
-
-    @ObservationIgnored
-    public var currentWalletId: String? {
-        get {
-            access(keyPath: \.currentWalletId)
-            return preferences.currentWalletId
-        }
-        set {
-            withMutation(keyPath: \.currentWalletId) {
-                preferences.currentWalletId = newValue
             }
         }
     }

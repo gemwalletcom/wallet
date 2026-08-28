@@ -111,6 +111,11 @@ mod tests {
             self.values.lock().unwrap().remove(&key);
             Ok(())
         }
+
+        fn clear(&self) -> Result<(), GemServiceError> {
+            self.values.lock().unwrap().clear();
+            Ok(())
+        }
     }
 
     #[derive(Debug, Default)]

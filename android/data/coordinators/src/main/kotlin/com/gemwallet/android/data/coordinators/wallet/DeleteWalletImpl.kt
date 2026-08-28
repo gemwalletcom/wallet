@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.wallet
 import android.util.Log
 import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +17,7 @@ class DeleteWalletImpl @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val deleteKeyStoreOperator: DeleteKeyStoreOperator,
     private val walletService: GemWalletService,
+    private val userConfig: UserConfig,
 ) : DeleteWallet {
 
     override suspend fun deleteWallet(
@@ -38,6 +40,7 @@ class DeleteWalletImpl @Inject constructor(
             onComplete
         } else {
             sessionRepository.reset()
+            userConfig.reload()
             onBoard
         }
 

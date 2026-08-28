@@ -17,11 +17,12 @@ public extension WalletService {
     static func mock(
         keystore: LocalKeystore = LocalKeystore.mock(),
         walletStore: WalletStore = .mock(),
+        sessionStore: GemstoneWalletSessionStore = .mock(),
         preferences: ObservablePreferences = .mock(),
         preferencesStore: GemPreferencesStoreMock = GemPreferencesStoreMock(),
     ) -> WalletService {
         let gemWalletStore = GemstoneWalletStore(store: walletStore)
-        let session = GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: preferences), wallets: gemWalletStore)
+        let session = GemWalletSessionService(store: sessionStore, wallets: gemWalletStore)
         let gemWalletService = GemWalletService(
             keystore: keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: keystore),
@@ -40,12 +41,10 @@ public extension WalletService {
     }
 
     static func mock(isAcceptedTerms: Bool) -> Self {
-        .mock(
-            preferences: .mock(
-                preferences: .mock(
-                    defaults: .mockWithValues(values: ["is_accepted_terms": isAcceptedTerms]),
-                ),
-            ),
-        )
+        let preferencesStore = GemPreferencesStoreMock()
+        if isAcceptedTerms {
+            try? preferencesStore.set(key: "is_accept_terms_completed", value: "true")
+        }
+        return .mock(preferences: .mock(preferencesService: GemPreferencesService(store: preferencesStore)))
     }
 }

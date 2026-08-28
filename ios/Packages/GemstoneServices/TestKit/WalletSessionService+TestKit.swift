@@ -3,8 +3,6 @@
 import Foundation
 import class Gemstone.GemWalletSessionService
 import GemstoneServices
-import Preferences
-import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
 import Store
@@ -13,11 +11,11 @@ import StoreTestKit
 public extension WalletSessionService {
     static func mock(
         store: WalletStore = .mock(),
-        preferences: ObservablePreferences = .mock(),
+        sessionStore: GemstoneWalletSessionStore = .mock(),
     ) -> any WalletSessionManageable {
         WalletSessionService(
             service: GemWalletSessionService(
-                store: GemstoneWalletSessionStore(preferences: preferences),
+                store: sessionStore,
                 wallets: GemstoneWalletStore(store: store),
             ),
         )
@@ -29,7 +27,7 @@ public extension WalletSessionService {
         try store.addWallet(wallet)
         return WalletSessionService(
             service: GemWalletSessionService(
-                store: GemstoneWalletSessionStore(preferences: .mock()),
+                store: GemstoneWalletSessionStore.mock(),
                 wallets: GemstoneWalletStore(store: store),
             ),
         )

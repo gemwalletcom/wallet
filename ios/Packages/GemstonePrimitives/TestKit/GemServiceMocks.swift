@@ -62,6 +62,10 @@ public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Send
     public func remove(key: String) throws {
         lock.withLock { values[key] = nil }
     }
+
+    public func clear() throws {
+        lock.withLock { values.removeAll() }
+    }
 }
 
 public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @unchecked Sendable {
@@ -156,6 +160,8 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     public func defaultCurrency(localeCurrency _: String?) -> Gemstone.Currency {
         "\"USD\""
     }
+
+    public func clear() throws {}
 }
 
 public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unchecked Sendable {

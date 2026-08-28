@@ -227,7 +227,7 @@ public final class AssetSceneViewModel: Sendable {
         AssetDataViewModel(
             assetData: assetData,
             formatter: .auto,
-            currencyCode: preferences.preferences.currency,
+            currencyCode: preferences.currency,
         )
     }
 
@@ -532,7 +532,7 @@ extension AssetSceneViewModel {
         AssetDataViewModel(
             assetData: chainAssetData.feeAssetData,
             formatter: .auto,
-            currencyCode: preferences.preferences.currency,
+            currencyCode: preferences.currency,
         )
     }
 
@@ -551,7 +551,7 @@ extension AssetSceneViewModel {
     }
 
     private func setPriceAlert(enabled: Bool) async throws {
-        let currency = try Currency(id: preferences.preferences.currency)
+        let currency = try Currency(id: preferences.currency)
         let priceAlert = PriceAlert.default(for: assetModel.asset.id, currency: currency)
         if enabled {
             try await priceAlertService.enable(priceAlert: priceAlert)
@@ -571,7 +571,7 @@ extension AssetSceneViewModel {
         do {
             let asset = try await assetsService.syncAsset(
                 for: assetModel.asset.id,
-                currency: preferences.preferences.currency,
+                currency: preferences.currency,
             )
             associations = asset.associations
         } catch {

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import Localization
 import GemstoneServices
@@ -12,6 +13,7 @@ import SwiftUI
 @MainActor
 public final class PriceAlertsSceneViewModel: Sendable {
     private let priceAlertService: any GemPriceAlertServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
 
     public let query: ObservableQuery<PriceAlertsRequest>
     var priceAlerts: [PriceAlertData] {
@@ -20,14 +22,22 @@ public final class PriceAlertsSceneViewModel: Sendable {
 
     var isPriceAlertsEnabled: Bool
 
-    public init(priceAlertService: any GemPriceAlertServiceProtocol) {
+    public init(
+        priceAlertService: any GemPriceAlertServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
+    ) {
         self.priceAlertService = priceAlertService
+        self.preferencesService = preferencesService
         isPriceAlertsEnabled = priceAlertService.isEnabled()
         query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
     }
 
     var title: String {
         Localized.Settings.PriceAlerts.title
+    }
+
+    var currencyCode: String {
+        preferencesService.currencyCode
     }
 
     var enableTitle: String {

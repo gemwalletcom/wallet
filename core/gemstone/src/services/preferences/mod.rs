@@ -97,6 +97,10 @@ impl GemPreferencesService {
         self.store.set(PUSH_NOTIFICATIONS_ENABLED.to_string(), enabled.to_string())
     }
 
+    pub fn clear(&self) -> Result<(), GemServiceError> {
+        self.store.clear()
+    }
+
     pub fn is_perpetual_enabled(&self) -> bool {
         rules::flag(self.store.get(IS_PERPETUAL_ENABLED.to_string()))
     }
@@ -353,6 +357,11 @@ mod tests {
             self.values.lock().unwrap().remove(&key);
             Ok(())
         }
+
+        fn clear(&self) -> Result<(), GemServiceError> {
+            self.values.lock().unwrap().clear();
+            Ok(())
+        }
     }
 
     #[test]
@@ -366,5 +375,17 @@ mod tests {
 
         service.set_price_alerts_enabled(false).unwrap();
         assert!(!service.is_price_alerts_enabled());
+    }
+
+    #[test]
+    fn test_clear_removes_stored_preferences() {
+        let service = GemPreferencesService::new(Arc::new(MemoryStore::default()));
+        service.set_developer_enabled(true).unwrap();
+        service.set_accept_terms_completed().unwrap();
+
+        service.clear().unwrap();
+
+        assert!(!service.is_developer_enabled());
+        assert!(!service.is_accept_terms_completed());
     }
 }

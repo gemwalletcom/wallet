@@ -107,6 +107,17 @@ class UserConfig(
         swapSlippageBpsState.value = preferencesService.getSwapSlippageBps()
     }
 
+    fun reload() {
+        hideBalancesState.value = preferencesService.isHideBalanceEnabled()
+        perpetualEnabledState.value = preferencesService.isPerpetualEnabled()
+        appearanceState.value = preferencesService.getAppearance().decodeJson()
+        termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
+        perpetualLeverageState.value = preferencesService.getPerpetualLeverage().toInt()
+        perpetualTakeProfitState.value = preferencesService.getPerpetualTakeProfitPercent().toInt()
+        perpetualStopLossState.value = preferencesService.getPerpetualStopLossPercent().toInt()
+        swapSlippageBpsState.value = preferencesService.getSwapSlippageBps()
+    }
+
     fun getLockInterval(): Flow<Int> = read(Key.LockInterval, 1)
 
     suspend fun setLockInterval(minutes: Int) = write(Key.LockInterval, minutes)

@@ -3,23 +3,24 @@
 import Foundation
 import struct Gemstone.GemDeviceInfo
 import protocol Gemstone.GemDevicePlatform
+import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstonePrimitives
 import Preferences
 import Primitives
 import UIKit
 
 public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendable {
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let securePreferences: SecurePreferences
     private let os: String
     private let model: String
 
     @MainActor
     public init(
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
         securePreferences: SecurePreferences = SecurePreferences(),
     ) {
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         self.securePreferences = securePreferences
         os = UIDevice.current.osName
         model = UIDevice.current.modelName
@@ -45,10 +46,10 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
     }
 
     public func isPushEnabled() async throws -> Bool {
-        preferences.isPushNotificationsEnabled
+        preferencesService.isPushNotificationsEnabled()
     }
 
     public func currency() async throws -> String {
-        try Currency(id: preferences.currency).json()
+        preferencesService.getCurrency()
     }
 }

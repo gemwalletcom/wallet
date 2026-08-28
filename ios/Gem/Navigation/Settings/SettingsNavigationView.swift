@@ -58,7 +58,7 @@ struct SettingsNavigationView: View {
 
     init(
         walletId: WalletId,
-        preferences: Preferences = .standard,
+        preferences: ObservablePreferences = AppResolver.main.services.observablePreferences,
         priceService: any GemPriceServiceProtocol,
         deviceService: any GemDeviceServiceProtocol,
         isPresentingSupport: Binding<Bool>,
@@ -100,7 +100,7 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.PriceAlerts.self) { _ in
             PriceAlertsNavigationView(
-                model: PriceAlertsSceneViewModel(priceAlertService: priceAlertService),
+                model: PriceAlertsSceneViewModel(priceAlertService: priceAlertService, preferencesService: preferencesService),
             )
         }
         .navigationDestination(for: Scenes.AssetPriceAlert.self) {
@@ -159,6 +159,7 @@ struct SettingsNavigationView: View {
                 priceStore: priceStore,
                 perpetualService: perpetualService,
                 walletPreferencesService: walletPreferencesService,
+                preferencesService: preferencesService,
             ))
         }
         .navigationDestination(for: Scenes.DeveloperPayments.self) { _ in
@@ -228,4 +229,4 @@ struct SettingsNavigationView: View {
     }
 }
 
-extension Preferences: @retroactive CurrencyStorable {}
+extension ObservablePreferences: @retroactive CurrencyStorable {}

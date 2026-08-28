@@ -10,7 +10,6 @@ import protocol Gemstone.GemChartServiceProtocol
 import GemstonePrimitives
 import InfoSheet
 import Localization
-import Preferences
 import GemstoneServices
 import Primitives
 import PrimitivesComponents
@@ -86,7 +85,7 @@ public final class ChartSceneViewModel: ChartListViewable {
 
     var priceDataModel: AssetDetailsInfoViewModel? {
         guard let priceData else { return nil }
-        return AssetDetailsInfoViewModel(explorerService: explorerService, priceData: priceData)
+        return AssetDetailsInfoViewModel(explorerService: explorerService, priceData: priceData, currency: preferencesService.currencyCode)
     }
 }
 

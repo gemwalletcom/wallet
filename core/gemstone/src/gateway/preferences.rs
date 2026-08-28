@@ -73,4 +73,8 @@ impl GemPreferencesStore for EmptyPreferences {
     fn remove(&self, _key: String) -> Result<(), GemServiceError> {
         Ok(())
     }
+
+    fn clear(&self) -> Result<(), GemServiceError> {
+        Ok(())
+    }
 }

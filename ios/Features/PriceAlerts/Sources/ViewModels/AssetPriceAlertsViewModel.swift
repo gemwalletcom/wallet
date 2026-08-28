@@ -47,11 +47,14 @@ public final class AssetPriceAlertsViewModel: Sendable {
     }
 
     var autoAlertItemModel: PriceAlertItemViewModel {
-        PriceAlertItemViewModel(data: PriceAlertData(
-            asset: asset,
-            price: priceQuery.value?.price,
-            priceAlert: .default(for: asset.id, currency: .default),
-        ))
+        PriceAlertItemViewModel(
+            data: PriceAlertData(
+                asset: asset,
+                price: priceQuery.value?.price,
+                priceAlert: .default(for: asset.id, currency: .default),
+            ),
+            currency: preferencesService.currencyCode,
+        )
     }
 
     var isAutoAlertEnabledBinding: Binding<Bool> {
@@ -71,7 +74,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
                 KeyPathComparator(\.priceAlert.priceDirection, order: .reverse),
                 KeyPathComparator(\.priceAlert.pricePercentChange, order: .reverse),
             ])
-            .map { PriceAlertItemViewModel(data: $0) }
+            .map { PriceAlertItemViewModel(data: $0, currency: preferencesService.currencyCode) }
     }
 }
 

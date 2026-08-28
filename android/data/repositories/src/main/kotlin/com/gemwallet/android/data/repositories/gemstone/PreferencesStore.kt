@@ -19,4 +19,8 @@ class GemstonePreferencesStore(
     override fun remove(key: String) {
         sharedPreferences.edit(commit = true) { remove(key) }
     }
+
+    override fun clear() {
+        sharedPreferences.edit(commit = true) { clear() }
+    }
 }

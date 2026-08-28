@@ -115,7 +115,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var currencyCode: String {
-        preferences.preferences.currency
+        preferences.currency
     }
 
     var showRecents: Bool {
@@ -289,7 +289,7 @@ extension WalletSearchSceneViewModel {
     private func search(query: String) async {
         state = .loading
         do {
-            try await searchService.search(wallet: wallet, query: query, scope: .all, currency: preferences.preferences.currency)
+            try await searchService.search(wallet: wallet, query: query, scope: .all, currency: preferences.currency)
             state = .data(true)
         } catch {
             state.setError(error)

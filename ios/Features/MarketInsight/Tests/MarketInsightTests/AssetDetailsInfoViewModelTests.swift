@@ -19,6 +19,7 @@ struct AssetDetailsInfoViewModelTests {
                 market: .mock(),
                 links: [],
             ),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(model.marketValues.map(\.title) == [

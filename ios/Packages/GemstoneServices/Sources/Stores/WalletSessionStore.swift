@@ -1,27 +1,52 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Observation
+import Primitives
+import protocol Gemstone.GemPreferencesStore
 import protocol Gemstone.GemWalletSessionStore
 import typealias Gemstone.WalletId
-import Preferences
 
+@Observable
 public final class GemstoneWalletSessionStore: GemWalletSessionStore, @unchecked Sendable {
-    private let preferences: ObservablePreferences
+    private static let key = "current_wallet_id"
 
-    public init(preferences: ObservablePreferences) {
-        self.preferences = preferences
+    private let store: any GemPreferencesStore
+
+    public init(store: any GemPreferencesStore) {
+        self.store = store
+    }
+
+    @ObservationIgnored
+    public var currentWalletId: Gemstone.WalletId? {
+        get {
+            access(keyPath: \.currentWalletId)
+            return store.get(key: Self.key)
+        }
+        set {
+            withMutation(keyPath: \.currentWalletId) {
+                do {
+                    switch newValue {
+                    case let .some(walletId): try store.set(key: Self.key, value: walletId)
+                    case .none: try store.remove(key: Self.key)
+                    }
+                } catch {
+                    debugLog("wallet session store write error: \(error)")
+                }
+            }
+        }
     }
 
     public func getCurrentWalletId() throws -> Gemstone.WalletId? {
-        preferences.currentWalletId
+        currentWalletId
     }
 
     public func setCurrentWalletId(walletId: Gemstone.WalletId?) throws {
         if Thread.isMainThread {
-            preferences.currentWalletId = walletId
+            currentWalletId = walletId
         } else {
             DispatchQueue.main.sync {
-                preferences.currentWalletId = walletId
+                currentWalletId = walletId
             }
         }
     }
