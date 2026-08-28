@@ -35,15 +35,14 @@ class PhraseAddressImportWalletService(
         walletName: String,
         data: String
     ): WalletImportResult {
-        val chain = importType.chain
         val import = when (importType.walletType) {
             WalletType.Multicoin -> GemWalletImportType.MulticoinPhrase(
                 words = data.words(),
                 chains = Chain.entries.filter(Chain.available()::contains).map { it.string },
             )
-            WalletType.Single -> GemWalletImportType.SinglePhrase(words = data.words(), chain = chain!!.string)
-            WalletType.View -> GemWalletImportType.Address(address = data, chain = chain!!.string)
-            WalletType.PrivateKey -> GemWalletImportType.PrivateKey(value = data, chain = chain!!.string)
+            WalletType.Single -> GemWalletImportType.SinglePhrase(words = data.words(), chain = importedChain(importType).string)
+            WalletType.View -> GemWalletImportType.Address(address = data, chain = importedChain(importType).string)
+            WalletType.PrivateKey -> GemWalletImportType.PrivateKey(value = data, chain = importedChain(importType).string)
         }
         return when (val result = import(walletName, validated(import), GemWalletSource.IMPORT)) {
             is GemWalletImportResult.Existing -> WalletImportResult.Existing(result.wallet.decodeJson())
@@ -69,6 +68,9 @@ class PhraseAddressImportWalletService(
         syncDevice.syncDevice()
         return wallet
     }
+
+    private fun importedChain(importType: ImportType): Chain =
+        requireNotNull(importType.chain) { "${importType.walletType} import requires a chain" }
 
     private suspend fun import(walletName: String, import: GemWalletImportType, source: GemWalletSource): GemWalletImportResult {
         return try {

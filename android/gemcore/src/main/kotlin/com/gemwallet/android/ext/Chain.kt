@@ -69,13 +69,7 @@ fun Chain.getNetworkId(): String {
     return Config().getChainConfig(string).networkId
 }
 
-fun Chain.isSwapSupport(): Boolean {
-    return try {
-        Config().getChainConfig(string).isSwapSupported
-    } catch (_: Throwable) {
-        false
-    }
-}
+fun Chain.isSwapSupport(): Boolean = Config().getChainConfig(string).isSwapSupported
 
 fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
     it.string == Config().getChainConfig(string).feeUnitType

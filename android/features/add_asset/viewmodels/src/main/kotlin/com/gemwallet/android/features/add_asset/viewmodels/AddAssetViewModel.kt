@@ -1,6 +1,9 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
+import android.util.Log
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.toIdentifier
 import uniffi.gemstone.defaultTokenChain
 import uniffi.gemstone.GemExplorerService
 import androidx.compose.foundation.text.input.TextFieldState
@@ -151,12 +154,19 @@ class AddAssetViewModel @Inject constructor(
     fun addAsset(onFinish: () -> Unit) = viewModelScope.launch {
         val assetId = token.value?.id ?: return@launch
         state.update { it.copy(isImporting = true) }
-        runCatching {
+        val added = runCatchingCancellable {
             withContext(Dispatchers.IO) {
                 addCustomToken(selectedChain.value, assetId)
             }
+        }.onFailure { Log.e(TAG, "add custom token failed for ${assetId.toIdentifier()}", it) }
+        state.update { it.copy(isImporting = false) }
+        if (added.isSuccess) {
+            onFinish()
         }
-        onFinish()
+    }
+
+    private companion object {
+        const val TAG = "AddAsset"
     }
 
     private data class State(

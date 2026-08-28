@@ -8,6 +8,7 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
+import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
@@ -40,10 +41,10 @@ class TokensRepository(
             .isNotEmpty()
     }
 
-    override suspend fun search(assetIds: List<AssetId>, currency: Currency): Boolean {
-        updateAssets(assets(assetIds), currency)
-        return true
-    }
+    override suspend fun search(assetIds: List<AssetId>, currency: Currency): Boolean =
+        runCatchingCancellable { updateAssets(assets(assetIds), currency) }
+            .onFailure { Log.e(TAG, "assets search failed", it) }
+            .isSuccess
 
     override suspend fun search(assetId: AssetId, currency: Currency): Boolean {
         val tokenId = assetId.tokenId ?: return false
@@ -60,9 +61,8 @@ class TokensRepository(
             .toSet()
         val missing = unique.filter { it.toIdentifier() !in priced }
         if (missing.isEmpty()) return@withContext
-        runCatching {
-            updateAssets(assets(missing), currency)
-        }
+        runCatchingCancellable { updateAssets(assets(missing), currency) }
+            .onFailure { Log.e(TAG, "asset prices sync failed", it) }
         Unit
     }
 
@@ -73,13 +73,13 @@ class TokensRepository(
         if (assets.isEmpty()) {
             return
         }
-        runCatching {
-            assetsDao.insert(assets.map { it.toRecord() })
-            assetsDao.updateBasicAssets(assets.map { it.toUpdateRecord() })
-        }
-        runCatching {
-            pricesRepository.updatePrices(assets, currency)
-        }
+        assetsDao.insert(assets.map { it.toRecord() })
+        assetsDao.updateBasicAssets(assets.map { it.toUpdateRecord() })
+        pricesRepository.updatePrices(assets, currency)
+    }
+
+    private companion object {
+        const val TAG = "TokensRepository"
     }
 }
 

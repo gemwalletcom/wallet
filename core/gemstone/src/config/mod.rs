@@ -99,8 +99,7 @@ impl Config {
         get_public_url(item)
     }
 
-    fn get_chain_config(&self, chain: String) -> ChainConfig {
-        let chain = Chain::from_str(&chain).unwrap();
+    fn get_chain_config(&self, chain: Chain) -> ChainConfig {
         crate::config::chain::get_chain_config(chain)
     }
 

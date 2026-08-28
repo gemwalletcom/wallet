@@ -39,11 +39,10 @@ class SupportChatRepository(
         )
     }
 
-    suspend fun sendText(content: String) = runCatching { supportService.sendText(content) }.getOrDefault(Unit)
+    suspend fun sendText(content: String) = supportService.sendText(content)
 
-    suspend fun sendImage(attachment: ImageAttachment) = runCatching {
+    suspend fun sendImage(attachment: ImageAttachment) =
         supportService.sendImage(attachment.data, attachment.fileName, attachment.mimeType)
-    }.getOrDefault(Unit)
 
-    suspend fun retryMessage(message: SupportMessage) = runCatching { supportService.retryMessage(message.toJson()) }.getOrDefault(Unit)
+    suspend fun retryMessage(message: SupportMessage) = supportService.retryMessage(message.toJson())
 }

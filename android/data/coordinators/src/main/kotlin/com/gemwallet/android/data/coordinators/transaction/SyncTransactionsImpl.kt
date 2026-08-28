@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.transaction
 
+import android.util.Log
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -18,10 +19,17 @@ class SyncTransactionsImpl @Inject constructor(
 ) : SyncTransactions, SyncAssetTransactions {
 
     override suspend fun syncTransactions(wallet: Wallet): Boolean =
-        runCatchingCancellable { transactionsService.sync(wallet.id.id, null) }.isSuccess
+        runCatchingCancellable { transactionsService.sync(wallet.id.id, null) }
+            .onFailure { Log.e(TAG, "transactions sync failed for ${wallet.id.id}", it) }
+            .isSuccess
 
     override suspend fun syncAssetTransactions(assetId: AssetId) {
         val wallet = sessionRepository.getCurrentWallet() ?: return
-        runCatching { transactionsService.sync(wallet.id.id, assetId.toIdentifier()) }
+        runCatchingCancellable { transactionsService.sync(wallet.id.id, assetId.toIdentifier()) }
+            .onFailure { Log.e(TAG, "asset transactions sync failed for ${assetId.toIdentifier()}", it) }
+    }
+
+    private companion object {
+        const val TAG = "SyncTransactions"
     }
 }
