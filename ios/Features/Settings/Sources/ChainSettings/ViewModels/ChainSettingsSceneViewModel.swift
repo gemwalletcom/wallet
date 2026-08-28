@@ -89,7 +89,7 @@ extension ChainSettingsSceneViewModel {
         do {
             clear()
             try await fetchNodes()
-            selectedNode = try await nodeService.getNodeSelected(chain: chain)
+            selectedNode = try nodeService.getNodeSelected(chain: chain)
             await fetchNodesStates()
         } catch {
             // TODO: - handle error
@@ -169,7 +169,7 @@ extension ChainSettingsSceneViewModel {
     private func delete() async throws {
         guard let nodeDelete else { return }
         try await nodeService.delete(chain: chain, node: nodeDelete.node)
-        selectedNode = try await nodeService.getNodeSelected(chain: chain)
+        selectedNode = try nodeService.getNodeSelected(chain: chain)
         try await fetchNodes()
     }
 

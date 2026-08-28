@@ -22,8 +22,12 @@ public final class NodeService: Sendable {
         try service.getDefaultNodes(chain: chain.rawValue).map { try ChainNode(chain: chain.rawValue, node: Primitives.Node($0)) }
     }
 
-    public func getNodeSelected(chain: Chain) async throws -> ChainNode {
-        let node = try await service.getSelectedNode(chain: chain.rawValue)
+    public func getNodeSelected(chain: Chain) throws -> ChainNode {
+        let node = try service.selectedNode(
+            chain: chain.rawValue,
+            selectedUrl: nodeStore.selectedNodeUrl(chain: chain),
+            storedNodes: nodeStore.nodes(chain: chain).map { try $0.node.json() },
+        )
         return try ChainNode(chain: chain.rawValue, node: Primitives.Node(node))
     }
 

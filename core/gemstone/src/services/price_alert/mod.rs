@@ -24,11 +24,6 @@ pub struct GemPriceAlertService {
 
 #[uniffi::export]
 impl GemPriceAlertService {
-    pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
-        self.api.client.add_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
-        self.store.update_price_alerts(alerts, Vec::new()).await
-    }
-
     #[uniffi::constructor]
     pub fn new(
         api: Arc<GemDeviceApiClient>,
@@ -88,6 +83,13 @@ impl GemPriceAlertService {
     pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
         self.api.client.delete_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
         self.store.update_price_alerts(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await
+    }
+}
+
+impl GemPriceAlertService {
+    pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
+        self.api.client.add_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
+        self.store.update_price_alerts(alerts, Vec::new()).await
     }
 }
 

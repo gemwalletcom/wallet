@@ -27,28 +27,6 @@ pub struct GemAssetsService {
 
 #[uniffi::export]
 impl GemAssetsService {
-    pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
-        for (list, remote_version) in rules::asset_list_versions(&versions) {
-            if !rules::is_asset_list_outdated(self.preferences.get_assets_version(list).as_deref(), remote_version) {
-                continue;
-            }
-            let assets = match list {
-                AssetList::Buy => self.get_fiat_assets(FiatQuoteType::Buy).await?,
-                AssetList::Sell => self.get_fiat_assets(FiatQuoteType::Sell).await?,
-                AssetList::Swap => self.get_swap_assets().await?,
-            };
-            let asset_ids = rules::asset_ids(&assets.asset_ids);
-            self.sync_missing_assets(asset_ids.clone()).await?;
-            match list {
-                AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
-                AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
-                AssetList::Swap => self.store.set_swappable_assets(asset_ids).await?,
-            }
-            self.preferences.set_assets_version(list, assets.version.to_string())?;
-        }
-        Ok(())
-    }
-
     #[uniffi::constructor]
     pub fn new(api: Arc<GemApiClient>, gateway: Arc<GemGateway>, store: Arc<dyn GemAssetStore>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>) -> Self {
         Self {
@@ -144,6 +122,28 @@ impl GemAssetsService {
 }
 
 impl GemAssetsService {
+    pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
+        for (list, remote_version) in rules::asset_list_versions(&versions) {
+            if !rules::is_asset_list_outdated(self.preferences.get_assets_version(list).as_deref(), remote_version) {
+                continue;
+            }
+            let assets = match list {
+                AssetList::Buy => self.get_fiat_assets(FiatQuoteType::Buy).await?,
+                AssetList::Sell => self.get_fiat_assets(FiatQuoteType::Sell).await?,
+                AssetList::Swap => self.get_swap_assets().await?,
+            };
+            let asset_ids = rules::asset_ids(&assets.asset_ids);
+            self.sync_missing_assets(asset_ids.clone()).await?;
+            match list {
+                AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
+                AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
+                AssetList::Swap => self.store.set_swappable_assets(asset_ids).await?,
+            }
+            self.preferences.set_assets_version(list, assets.version.to_string())?;
+        }
+        Ok(())
+    }
+
     pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Vec<AssetBasic> {
         let lookups = chains.into_iter().map(|chain| {
             let token_id = token_id.clone();

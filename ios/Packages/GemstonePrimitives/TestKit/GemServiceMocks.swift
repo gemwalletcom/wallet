@@ -186,8 +186,6 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         lock.withLock { enabled = true }
     }
 
-    public func addPriceAlerts(alerts _: [Gemstone.PriceAlert]) async throws {}
-
     public func deletePriceAlerts(alerts _: [Gemstone.PriceAlert]) async throws {}
 
     public func priceAlertId(alert: Gemstone.PriceAlert) -> String {

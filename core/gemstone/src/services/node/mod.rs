@@ -30,16 +30,6 @@ impl GemNodeService {
         Ok(rules::merge_nodes(rules::default_nodes(chain), stored))
     }
 
-    pub async fn get_selected_node(&self, chain: Chain) -> Result<Node, GemServiceError> {
-        let selected_url = self.store.get_selected_url(chain).await?;
-        let stored_nodes = self.store.get_nodes(chain).await?;
-        Ok(rules::chain_node(chain, selected_url, stored_nodes))
-    }
-
-    pub async fn get_node_url(&self, chain: Chain) -> Result<String, GemServiceError> {
-        Ok(self.get_selected_node(chain).await?.url)
-    }
-
     pub fn node_url(&self, chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> String {
         rules::chain_node(chain, selected_url, stored_nodes).url
     }
@@ -138,10 +128,12 @@ mod tests {
             let store = Arc::new(MemoryStore::default());
             let service = GemNodeService::new(store.clone());
 
-            assert_eq!(service.get_node_url(Chain::Ethereum).await.unwrap(), NodeRegion::Us.url(Chain::Ethereum));
+            let node_url = |service: &GemNodeService| service.node_url(Chain::Ethereum, None, Vec::new());
+            assert_eq!(node_url(&service), NodeRegion::Us.url(Chain::Ethereum));
 
             service.set_selected_node(Chain::Ethereum, "https://unknown.example".into()).await.unwrap();
-            assert_eq!(service.get_node_url(Chain::Ethereum).await.unwrap(), NodeRegion::Us.url(Chain::Ethereum));
+            let selected_url = store.get_selected_url(Chain::Ethereum).await.unwrap();
+            assert_eq!(service.node_url(Chain::Ethereum, selected_url, Vec::new()), NodeRegion::Us.url(Chain::Ethereum));
         });
     }
 
