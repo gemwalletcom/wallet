@@ -260,7 +260,11 @@ class ConfirmViewModel @Inject constructor(
             null
         }
 
-        val amount = Crypto(transferAmount ?: request.amount)
+        val amount = when {
+            transferAmount != null -> Crypto(transferAmount)
+            request.useMaxAmount -> return@combine null
+            else -> Crypto(request.amount)
+        }
 
         AmountUIModel(
             transactionType = request.getTransactionType(),

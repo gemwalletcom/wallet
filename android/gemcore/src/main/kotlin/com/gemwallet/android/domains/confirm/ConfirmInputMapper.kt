@@ -132,7 +132,7 @@ fun GemTransferData.toGenericParams(account: Account): ConfirmParams.TransferPar
         asset = asset,
         from = account,
         amount = value.toBigInteger(),
-        destination = DestinationAddress(input.extra.to),
+        destination = DestinationAddress(recipient.address, recipient.name),
         outputType = input.extra.outputType.decodeJson(),
         outputAction = input.extra.outputAction.decodeJson(),
         metadata = input.metadata.decodeJson(),
