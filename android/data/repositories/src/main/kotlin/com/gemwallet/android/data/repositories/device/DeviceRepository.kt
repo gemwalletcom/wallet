@@ -5,7 +5,6 @@ import android.icu.util.ULocale
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
-import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.GetPushToken
 import com.gemwallet.android.cases.device.IsDeviceRegistered
@@ -30,6 +29,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemDeviceInfo
 import uniffi.gemstone.GemDevicePlatform
+import uniffi.gemstone.GemDeviceKeyService
 import uniffi.gemstone.GemDeviceService
 import java.util.Locale
 import uniffi.gemstone.GemPreferencesService
@@ -42,7 +42,7 @@ class DeviceRepository(
     private val platformStore: PlatformStore,
     private val notificationsAvailable: NotificationsAvailable,
     private val versionName: String,
-    private val getDeviceId: GetDeviceId,
+    private val deviceKeyService: GemDeviceKeyService,
     private val preferencesService: GemPreferencesService,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : SwitchPushEnabled,
@@ -80,7 +80,7 @@ class DeviceRepository(
 
     override suspend fun isDeviceRegistered(): Boolean = deviceService.get().isRegistered()
 
-    override suspend fun deviceId(): String = getDeviceId.getDeviceId()
+    override suspend fun deviceId(): String = deviceKeyService.deviceId()
 
     override suspend fun deviceInfo(): GemDeviceInfo = GemDeviceInfo(
         platform = Platform.Android.toJson(),

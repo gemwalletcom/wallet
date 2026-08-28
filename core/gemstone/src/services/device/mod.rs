@@ -1,3 +1,4 @@
+pub mod keys;
 pub mod platform;
 pub mod rules;
 pub mod signer;
@@ -7,6 +8,7 @@ use std::sync::Arc;
 
 use primitives::Device;
 
+pub use keys::GemDeviceKeyService;
 pub use platform::{GemDeviceInfo, GemDevicePlatform};
 pub use signer::GemDeviceRequestSigner;
 

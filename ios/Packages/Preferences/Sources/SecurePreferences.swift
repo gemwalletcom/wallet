@@ -49,29 +49,6 @@ public final class SecurePreferences: Sendable {
         try keychain.remove(key: key.rawValue)
     }
 
-    @discardableResult
-    public func getOrCreateDeviceKeyPair() throws -> (privateKey: Data, publicKey: Data) {
-        if let privateKey = try getData(key: .devicePrivateKey),
-           let publicKey = try getData(key: .devicePublicKey)
-        {
-            return try (set(value: privateKey, key: .devicePrivateKey), publicKey)
-        }
-
-        let keyPair = generateDeviceKeyPair()
-        let publicKey = try set(value: keyPair.publicKey, key: .devicePublicKey)
-        let privateKeyData = try set(value: keyPair.privateKey, key: .devicePrivateKey)
-        return (privateKeyData, publicKey)
-    }
-
-    public func getDeviceId() throws -> String {
-        let keyPair = try getOrCreateDeviceKeyPair()
-        let deviceId = keyPair.publicKey.hex
-        if try get(key: .deviceId) != deviceId {
-            try set(value: deviceId, key: .deviceId)
-        }
-        return deviceId
-    }
-
     public func clear() throws {
         for key in Keys.allCases {
             try delete(key: key)

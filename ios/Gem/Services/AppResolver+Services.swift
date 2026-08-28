@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemDeviceKeyService
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
@@ -65,6 +66,7 @@ extension AppResolver {
         let walletService: WalletService
         let walletPreferencesService: any GemWalletPreferencesServiceProtocol
         let preferencesService: any GemPreferencesServiceProtocol
+        let deviceKeyService: GemDeviceKeyService
         let observablePreferences: ObservablePreferences
         let walletSessionService: any WalletSessionManageable
         let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol

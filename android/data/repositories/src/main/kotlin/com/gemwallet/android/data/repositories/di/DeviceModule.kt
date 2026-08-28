@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
-import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.GetPushToken
 import com.gemwallet.android.cases.device.IsDeviceRegistered
@@ -26,6 +25,7 @@ import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSubscriptionService
 import javax.inject.Named
 import javax.inject.Singleton
+import uniffi.gemstone.GemDeviceKeyService
 
 
 @InstallIn(SingletonComponent::class)
@@ -55,14 +55,14 @@ object DeviceModule {
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
         deviceService: Lazy<GemDeviceService>,
-        getDeviceId: GetDeviceId,
+        deviceKeyService: GemDeviceKeyService,
         preferencesService: GemPreferencesService,
         notificationsAvailable: NotificationsAvailable,
     ): DeviceRepository {
         return DeviceRepository(
             context = context,
             deviceService = deviceService,
-            getDeviceId = getDeviceId,
+            deviceKeyService = deviceKeyService,
             configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
             requestPushToken = buildInfo.requestPushToken,
             platformStore = buildInfo.platformStore,

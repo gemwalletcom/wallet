@@ -32,6 +32,7 @@ struct SettingsNavigationView: View {
     @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.preferencesService) private var preferencesService
+    @Environment(\.deviceKeyService) private var deviceKeyService
     @Environment(\.priceService) private var priceService
     @Environment(\.chartService) private var chartService
     @Environment(\.nodeService) private var nodeService
@@ -160,6 +161,7 @@ struct SettingsNavigationView: View {
                 perpetualService: perpetualService,
                 walletPreferencesService: walletPreferencesService,
                 preferencesService: preferencesService,
+                deviceKeyService: deviceKeyService,
             ))
         }
         .navigationDestination(for: Scenes.DeveloperPayments.self) { _ in

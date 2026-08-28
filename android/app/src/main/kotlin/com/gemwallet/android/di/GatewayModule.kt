@@ -6,7 +6,6 @@ import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.repositories.gemstone.GemstonePreferencesStore
 import com.gemwallet.android.services.DeviceSyncPreflight
-import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.runBlocking
 import com.gemwallet.android.data.services.gemapi.NativeProvider
@@ -63,6 +62,7 @@ import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemDeviceKeyService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -112,23 +112,23 @@ object GatewayModule {
     @Named("registration")
     fun provideDeviceRegistrationApiClient(
         alienProvider: AlienProvider,
-        getDeviceId: GetDeviceId,
+        deviceKeyService: GemDeviceKeyService,
     ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
         alienProvider,
         Constants.API_URL,
-        runBlocking { getDeviceId.getDeviceKey().fromHex() },
+        deviceKeyService.keyPair().privateKey,
     )
 
     @Provides
     @Singleton
     fun provideGemstoneDeviceApiClient(
         alienProvider: AlienProvider,
-        getDeviceId: GetDeviceId,
+        deviceKeyService: GemDeviceKeyService,
         deviceService: Lazy<GemDeviceService>,
     ): GemstoneDeviceApiClient = GemstoneDeviceApiClient.withPreflight(
         alienProvider,
         Constants.API_URL,
-        runBlocking { getDeviceId.getDeviceKey().fromHex() },
+        deviceKeyService.keyPair().privateKey,
         DeviceSyncPreflight(deviceService),
     )
 
@@ -140,12 +140,12 @@ object GatewayModule {
         apiClient: GemstoneDeviceApiClient,
         keystore: GemKeystore,
         passwordStore: PasswordStore,
-        getDeviceId: GetDeviceId,
+        deviceKeyService: GemDeviceKeyService,
     ): GemAuthService = GemAuthService(
         apiClient,
         keystore,
         GemstoneKeystorePassword(passwordStore),
-        runBlocking { getDeviceId.getDeviceKey().fromHex() },
+        deviceKeyService.keyPair().privateKey,
     )
 
 

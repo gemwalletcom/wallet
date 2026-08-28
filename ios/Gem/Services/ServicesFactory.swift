@@ -38,7 +38,13 @@ struct ServicesFactory {
             service: GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore)),
         )
         let nativeProvider = NativeProvider(nodeProvider: nodeService)
-        let devicePrivateKey = (try? securePreferences.getOrCreateDeviceKeyPair())?.privateKey ?? Data()
+        let deviceKeyService = Gemstone.GemDeviceKeyService(store: GemstoneSecurePreferencesStore(namespace: "gateway"))
+        let devicePrivateKey: Data
+        do {
+            devicePrivateKey = try deviceKeyService.keyPair().privateKey
+        } catch {
+            fatalError("device key initialization error: \(error)")
+        }
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
 
         let gemWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
@@ -47,7 +53,7 @@ struct ServicesFactory {
             api: deviceRegistrationClient,
             subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, store: gemWalletStore),
             walletStore: gemWalletStore,
-            platform: MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, securePreferences: securePreferences) },
+            platform: MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, deviceKeyService: deviceKeyService, securePreferences: securePreferences) },
             preferences: preferencesService,
         )
         let gemDeviceApiClient = Self.makeDeviceApiClient(
@@ -120,7 +126,7 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
             preferences: observablePreferences,
         )
-        let webSocket = Self.makeWebSocket(securePreferences: securePreferences)
+        let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService)
         let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
         let streamSubscriptionService = Gemstone.GemStreamSubscriptionService(
             price: gemPriceService,
@@ -374,6 +380,7 @@ struct ServicesFactory {
             walletService: walletService,
             walletPreferencesService: walletPreferencesService,
             preferencesService: preferencesService,
+            deviceKeyService: deviceKeyService,
             observablePreferences: observablePreferences,
             walletSessionService: walletSessionService,
             assetDiscoveryService: assetDiscoveryService,
@@ -462,8 +469,8 @@ extension ServicesFactory {
         )
     }
 
-    private static func makeWebSocket(securePreferences: SecurePreferences) -> any WebSocketConnectable {
-        let requestProvider = AuthenticatedRequestProvider(securePreferences: securePreferences)
+    private static func makeWebSocket(deviceKeyService: GemDeviceKeyService) -> any WebSocketConnectable {
+        let requestProvider = AuthenticatedRequestProvider(deviceKeyService: deviceKeyService)
         let configuration = WebSocketConfiguration(requestProvider: requestProvider)
         return WebSocketConnection(configuration: configuration)
     }

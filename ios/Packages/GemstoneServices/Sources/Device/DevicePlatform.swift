@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemDeviceKeyService
 import struct Gemstone.GemDeviceInfo
 import protocol Gemstone.GemDevicePlatform
 import protocol Gemstone.GemPreferencesServiceProtocol
@@ -11,6 +12,7 @@ import UIKit
 
 public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendable {
     private let preferencesService: any GemPreferencesServiceProtocol
+    private let deviceKeyService: GemDeviceKeyService
     private let securePreferences: SecurePreferences
     private let os: String
     private let model: String
@@ -18,16 +20,18 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
     @MainActor
     public init(
         preferencesService: any GemPreferencesServiceProtocol,
+        deviceKeyService: GemDeviceKeyService,
         securePreferences: SecurePreferences = SecurePreferences(),
     ) {
         self.preferencesService = preferencesService
+        self.deviceKeyService = deviceKeyService
         self.securePreferences = securePreferences
         os = UIDevice.current.osName
         model = UIDevice.current.modelName
     }
 
     public func deviceId() async throws -> String {
-        try securePreferences.getDeviceId()
+        try deviceKeyService.deviceId()
     }
 
     public func deviceInfo() async throws -> GemDeviceInfo {

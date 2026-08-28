@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
-import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -52,6 +51,7 @@ import com.gemwallet.android.data.repositories.gemstone.GemstoneStreamConnection
 import com.gemwallet.android.data.repositories.stream.WebSocketConnectable
 import uniffi.gemstone.GemStreamSubscriptionService
 import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemDeviceKeyService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -154,9 +154,9 @@ object AssetsModule {
     @Provides
     @Singleton
     fun provideDeviceRequestSigner(
-        getDeviceId: GetDeviceId,
+        deviceKeyService: GemDeviceKeyService,
     ): GemDeviceRequestSigner = runBlocking {
-        GemDeviceRequestSigner(getDeviceId.getDeviceKey().fromHex())
+        GemDeviceRequestSigner(deviceKeyService.keyPair().privateKey)
     }
 
     @Provides

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemDeviceKeyService
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemDeviceServiceProtocol
@@ -53,6 +54,7 @@ extension EnvironmentValues {
     @Entry var walletPreferencesService: any GemWalletPreferencesServiceProtocol = AppResolver.main.services.walletPreferencesService
     @Entry var observablePreferences: ObservablePreferences = AppResolver.main.services.observablePreferences
     @Entry var preferencesService: any GemPreferencesServiceProtocol = AppResolver.main.services.preferencesService
+    @Entry var deviceKeyService: GemDeviceKeyService = AppResolver.main.services.deviceKeyService
     @Entry var walletSessionService: any WalletSessionManageable = AppResolver.main.services.walletSessionService
     @Entry var priceAlertService: any GemPriceAlertServiceProtocol = AppResolver.main.services.priceAlertService
     @Entry var deviceService: any GemDeviceServiceProtocol = AppResolver.main.services.deviceService
