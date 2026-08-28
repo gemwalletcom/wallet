@@ -4,6 +4,7 @@ import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.service.store.database.entities.toSession
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -38,13 +39,13 @@ class GemstoneConnectionStore(
 
     override suspend fun getConnection(sessionId: String): String? = getConnectionBySessionId(sessionId)?.toJson()
 
-    override suspend fun getSessions(): List<String> = observeConnections().firstOrNull().orEmpty().map { it.session.toJson() }
+    override suspend fun getSessions(): List<String> = connectionsDao.getConnections().map { it.toSession().toJson() }
 
     override suspend fun addConnection(connection: String) = connectionsDao.insert(connection.decodeJson<WalletConnection>().toRecord())
 
     override suspend fun updateSession(session: String) {
         val updated = session.decodeJson<WalletConnectionSession>()
-        val record = connectionsDao.getBySessionId(updated.sessionId) ?: return
+        val record = connectionsDao.getBySessionId(updated.id) ?: return
         connectionsDao.insert(
             record.copy(
                 state = updated.state,
@@ -58,7 +59,7 @@ class GemstoneConnectionStore(
         )
     }
 
-    override suspend fun deleteSessions(sessionIds: List<String>) = sessionIds.forEach { connectionsDao.delete(it) }
+    override suspend fun deleteSessions(sessionIds: List<String>) = connectionsDao.delete(sessionIds)
 
     private fun DbConnection.toConnection(wallets: List<Wallet>): WalletConnection? {
         val wallet = wallets.firstOrNull { it.id.id == walletId } ?: return null

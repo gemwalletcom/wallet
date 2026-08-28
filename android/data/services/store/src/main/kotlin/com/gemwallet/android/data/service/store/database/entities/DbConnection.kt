@@ -36,31 +36,28 @@ data class DbConnection(
     @ColumnInfo("redirect_universal") val redirectUniversal: String?,
 )
 
-fun DbConnection.toDTO(wallet: Wallet): WalletConnection {
-    return WalletConnection(
-        wallet = wallet,
-        session = WalletConnectionSession(
-            id = id,
-            sessionId = sessionId,
-            state = state,
-            createdAt = createdAt,
-            expireAt = expireAt,
-            chains = chains,
-            metadata = ApplicationMetadata(
-                name = appName,
-                description = appDescription,
-                icon = appIcon,
-                url = appUrl,
-                source = ApplicationMetadataSource.WalletConnect,
-            ),
-        )
-    )
-}
+fun DbConnection.toSession(): WalletConnectionSession = WalletConnectionSession(
+    id = id,
+    sessionId = sessionId,
+    state = state,
+    createdAt = createdAt,
+    expireAt = expireAt,
+    chains = chains,
+    metadata = ApplicationMetadata(
+        name = appName,
+        description = appDescription,
+        icon = appIcon,
+        url = appUrl,
+        source = ApplicationMetadataSource.WalletConnect,
+    ),
+)
+
+fun DbConnection.toDTO(wallet: Wallet): WalletConnection = WalletConnection(wallet = wallet, session = toSession())
 
 fun WalletConnection.toRecord(): DbConnection {
     return DbConnection(
         id = session.id,
-        sessionId = session.id,
+        sessionId = session.sessionId,
         state = session.state,
         chains = session.chains,
         createdAt = session.createdAt,

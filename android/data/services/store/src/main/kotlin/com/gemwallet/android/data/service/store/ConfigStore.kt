@@ -30,5 +30,9 @@ class ConfigStore(
         store.edit { putBoolean(buildKey(key), value) }
     }
 
+    fun remove(key: String, postfix: String = "") {
+        store.edit { remove(buildKey(key, postfix)) }
+    }
+
     private fun buildKey(key: String, postfix: String = "") = "$key-$postfix"
 }

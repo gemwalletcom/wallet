@@ -7,7 +7,6 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
-import com.wallet.core.primitives.NodeState
 import uniffi.gemstone.GemNodeStore
 import com.gemwallet.android.ext.requireChain
 
@@ -30,13 +29,13 @@ class GemstoneNodeStore(
 
     override suspend fun getSelectedUrl(chain: String): String? = selectedUrl(chain.requireChain())
 
-    fun selectedUrl(chain: Chain): String? =
-        configStore.getString(SELECTED_NODE_KEY, chain.string).takeIf { it.isNotEmpty() }?.decodeJson<Node>()?.url
+    fun selectedUrl(chain: Chain): String? = configStore.getString(SELECTED_NODE_KEY, chain.string)
+        .takeIf { it.isNotEmpty() }
+        ?.let { stored -> if (stored.startsWith("{")) stored.decodeJson<Node>().url else stored }
 
-    override suspend fun setSelectedUrl(chain: String, url: String) =
-        configStore.putString(SELECTED_NODE_KEY, Node(url, NodeState.Active, 0).toJson(), chain)
+    override suspend fun setSelectedUrl(chain: String, url: String) = configStore.putString(SELECTED_NODE_KEY, url, chain)
 
-    override suspend fun deleteSelectedUrl(chain: String) = configStore.putString(SELECTED_NODE_KEY, "", chain)
+    override suspend fun deleteSelectedUrl(chain: String) = configStore.remove(SELECTED_NODE_KEY, chain)
 
     private companion object {
         const val SELECTED_NODE_KEY = "usage_node"
