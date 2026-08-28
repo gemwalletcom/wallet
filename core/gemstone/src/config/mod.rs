@@ -21,7 +21,7 @@ use {
     docs::{DocsUrl, get_docs_url},
     fee_config::{FeeConfig, get_fee_config},
     fiat_config::{FiatConfig, get_fiat_config},
-    perpetual_config::{PerpetualConfig, get_autoclose_suggestions, get_perpetual_config, select_leverage},
+    perpetual_config::{PerpetualConfig, get_autoclose_suggestions, get_perpetual_config, leverage_options, select_leverage},
     public::{ASSETS_URL, PublicUrl, get_public_url},
     rewards::{RewardsUrl, get_rewards_url},
     search_config::{WalletSearchConfig, get_wallet_search_config},
@@ -65,6 +65,10 @@ impl Config {
 
     fn get_wallet_search_config(&self) -> WalletSearchConfig {
         get_wallet_search_config()
+    }
+
+    fn leverage_options(&self, max_leverage: u8) -> Vec<u8> {
+        leverage_options(max_leverage)
     }
 
     fn select_leverage(&self, desired: u8, options: Vec<u8>) -> u8 {

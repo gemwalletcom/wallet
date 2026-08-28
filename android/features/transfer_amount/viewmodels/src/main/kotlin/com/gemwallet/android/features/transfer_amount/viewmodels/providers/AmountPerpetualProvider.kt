@@ -85,8 +85,7 @@ class AmountPerpetualProvider(
             userConfig.perpetualLeverage(),
             userSelectedLeverage,
         ) { current, preferred, override ->
-            val options = PerpetualConfig.leverageOptions
-                .filter { it <= current.maxLeverage }
+            val options = PerpetualConfig.leverageOptions(current.maxLeverage)
             LeverageState(
                 current = PerpetualConfig.selectLeverage(override ?: preferred, options),
                 options = options,

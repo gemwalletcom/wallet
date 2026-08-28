@@ -48,6 +48,10 @@ public struct PerpetualConfig {
         Array(Config.shared.getPerpetualConfig().stopLossPercentOptions)
     }
 
+    public static func leverageOptions(maxLeverage: UInt8) -> [UInt8] {
+        Array(Config.shared.leverageOptions(maxLeverage: maxLeverage))
+    }
+
     public static func selectLeverage(desired: UInt8, options: [UInt8]) -> UInt8 {
         Config.shared.selectLeverage(desired: desired, options: Data(options))
     }

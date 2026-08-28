@@ -1,4 +1,5 @@
 use primitives::chart::ChartCandleUpdate;
+use primitives::{Asset, PerpetualDirection, PerpetualMarginType, PerpetualProvider};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemPerpetualSocketUpdate {
@@ -7,4 +8,46 @@ pub enum GemPerpetualSocketUpdate {
     SubscriptionResponse { subscription_type: String },
     Error { message: String },
     Unknown,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemPerpetualOrderAction {
+    Open,
+    Increase,
+    Reduce { position_direction: PerpetualDirection },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualOrderInput {
+    pub action: GemPerpetualOrderAction,
+    pub direction: PerpetualDirection,
+    pub margin_type: PerpetualMarginType,
+    pub base_asset: Asset,
+    pub asset: Asset,
+    pub asset_index: i32,
+    pub provider: PerpetualProvider,
+    pub price: f64,
+    pub usdc_amount: String,
+    pub usdc_decimals: i32,
+    pub leverage: u8,
+    pub slippage: Option<f64>,
+    pub take_profit: Option<String>,
+    pub stop_loss: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualCloseInput {
+    pub asset_index: i32,
+    pub direction: PerpetualDirection,
+    pub margin_type: PerpetualMarginType,
+    pub base_asset: Asset,
+    pub asset: Asset,
+    pub provider: PerpetualProvider,
+    pub market_price: f64,
+    pub size: f64,
+    pub leverage: u8,
+    pub pnl: f64,
+    pub entry_price: f64,
+    pub margin_amount: f64,
+    pub slippage: Option<f64>,
 }

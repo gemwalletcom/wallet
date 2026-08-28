@@ -2,13 +2,49 @@ use chrono::Utc;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::PerpetualBalance;
-use primitives::{AssetId, AssetPrice, AssetType, Chain, PerpetualAccountMode, PerpetualPosition, PerpetualProvider, Wallet, WalletType};
+use primitives::{AssetId, AssetPrice, AssetType, Chain, PerpetualAccountMode, PerpetualDirection, PerpetualPosition, PerpetualProvider, Wallet, WalletType};
+
+use super::model::GemPerpetualOrderAction;
 
 use crate::models::asset::wallet_default_assets;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 use crate::services::collections::stale;
 
 const MARKETS_REFRESH_INTERVAL_SECONDS: i64 = 60 * 60;
+
+const DEFAULT_SLIPPAGE_PERCENT: f64 = 2.0;
+const HOURS_PER_YEAR: f64 = 24.0 * 365.0;
+
+pub fn funding_apr(funding: f64) -> f64 {
+    funding * HOURS_PER_YEAR
+}
+
+pub fn slippage_percent(slippage: Option<f64>) -> f64 {
+    slippage.unwrap_or(DEFAULT_SLIPPAGE_PERCENT)
+}
+
+pub fn opens_position(action: &GemPerpetualOrderAction) -> bool {
+    match action {
+        GemPerpetualOrderAction::Open | GemPerpetualOrderAction::Increase => true,
+        GemPerpetualOrderAction::Reduce { .. } => false,
+    }
+}
+
+pub fn slippage_price(market_price: f64, direction: PerpetualDirection, opens: bool, slippage: f64) -> f64 {
+    let fraction = slippage / 100.0;
+    let multiplier = match (direction, opens) {
+        (PerpetualDirection::Long, true) | (PerpetualDirection::Short, false) => 1.0 + fraction,
+        (PerpetualDirection::Long, false) | (PerpetualDirection::Short, true) => 1.0 - fraction,
+    };
+    market_price * multiplier
+}
+
+pub fn order_amounts(usd_amount: f64, leverage: u8, price: f64) -> (f64, f64, f64) {
+    let size = (usd_amount * f64::from(leverage)) / price;
+    let fiat_value = price * size;
+    let margin_amount = fiat_value / f64::from(leverage);
+    (size, fiat_value, margin_amount)
+}
 
 pub fn includes_perpetual_collateral(mode: PerpetualAccountMode) -> bool {
     match mode {
@@ -182,5 +218,43 @@ mod tests {
         assert!(!show_perpetuals(false, &wallet(WalletType::Multicoin, &[Chain::Arbitrum])));
         assert!(!show_perpetuals(true, &wallet(WalletType::Single, &[Chain::Arbitrum])));
         assert!(!show_perpetuals(true, &wallet(WalletType::Multicoin, &[Chain::Bitcoin])));
+    }
+
+    #[test]
+    fn test_funding_apr_annualizes_the_hourly_rate() {
+        assert_eq!(funding_apr(0.0001), 0.0001 * 8760.0);
+        assert_eq!(funding_apr(0.0), 0.0);
+    }
+
+    #[test]
+    fn test_slippage_price_moves_against_the_trader() {
+        assert_eq!(slippage_price(100.0, PerpetualDirection::Long, true, 2.0), 102.0);
+        assert_eq!(slippage_price(100.0, PerpetualDirection::Short, true, 2.0), 98.0);
+        assert_eq!(slippage_price(100.0, PerpetualDirection::Long, false, 2.0), 98.0);
+        assert_eq!(slippage_price(100.0, PerpetualDirection::Short, false, 2.0), 102.0);
+    }
+
+    #[test]
+    fn test_order_amounts_scale_the_margin_by_leverage() {
+        let (size, fiat_value, margin) = order_amounts(50.0, 4, 200.0);
+
+        assert_eq!(size, 1.0);
+        assert_eq!(fiat_value, 200.0);
+        assert_eq!(margin, 50.0);
+    }
+
+    #[test]
+    fn test_only_reduce_closes_a_position() {
+        assert!(opens_position(&GemPerpetualOrderAction::Open));
+        assert!(opens_position(&GemPerpetualOrderAction::Increase));
+        assert!(!opens_position(&GemPerpetualOrderAction::Reduce {
+            position_direction: PerpetualDirection::Long
+        }));
+    }
+
+    #[test]
+    fn test_slippage_percent_defaults_to_two() {
+        assert_eq!(slippage_percent(None), 2.0);
+        assert_eq!(slippage_percent(Some(0.5)), 0.5);
     }
 }

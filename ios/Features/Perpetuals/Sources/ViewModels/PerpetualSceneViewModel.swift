@@ -24,7 +24,6 @@ public final class PerpetualSceneViewModel {
     private let transactionsService: any GemTransactionsServiceProtocol
     private let onTransferData: TransferDataAction
     private let onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?
-    private let perpetualOrderFactory = PerpetualOrderFactory()
     private let balanceCalculator = BalanceCalculator()
 
     public let wallet: Wallet
@@ -251,21 +250,21 @@ public extension PerpetualSceneViewModel {
             let assetIndex = UInt32(perpetual.identifier)
         else { return }
 
-        let data = perpetualOrderFactory.makeCloseOrder(
-            assetIndex: Int32(assetIndex),
-            perpetual: perpetual,
-            position: position,
-            asset: asset,
-            baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
-        )
-
-        let transferData = TransferData(
-            type: .perpetual(asset, .close(data)),
-            recipient: .hyperliquidProvider,
-            value: .zero,
-        )
-
-        onTransferData?(transferData)
+        do {
+            let data = try position.closeOrder(
+                assetIndex: Int32(assetIndex),
+                perpetual: perpetual,
+                asset: asset,
+                baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
+            )
+            onTransferData?(TransferData(
+                type: .perpetual(asset, .close(data)),
+                recipient: .hyperliquidProvider,
+                value: .zero,
+            ))
+        } catch {
+            debugLog("perpetual scene: close position error \(error)")
+        }
     }
 
     func onOpenLongPosition() {

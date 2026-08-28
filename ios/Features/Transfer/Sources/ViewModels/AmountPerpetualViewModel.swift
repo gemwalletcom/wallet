@@ -109,8 +109,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> TransferData {
         let formatter = PerpetualFormatter(provider: .hypercore)
 
-        let perpetualType = PerpetualOrderFactory().makePerpetualOrder(
-            positionAction: data.positionAction,
+        let perpetualType = try data.positionAction.order(
             usdcAmount: value,
             usdcDecimals: asset.decimals.asInt,
             leverage: leverage,
@@ -169,7 +168,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         }
 
         let transferData = data.positionAction.transferData
-        let options = LeverageOption.allOptions.filter { $0.value <= transferData.leverage }
+        let options = LeverageOption.options(maxLeverage: transferData.leverage)
         let selected = LeverageOption.option(desiredValue: leverage, from: options)
         let textStyle = TextStyle(
             font: .callout,

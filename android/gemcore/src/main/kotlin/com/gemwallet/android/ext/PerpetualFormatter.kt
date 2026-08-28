@@ -9,7 +9,7 @@ import uniffi.gemstone.PerpetualProvider as GemPerpetualProvider
 object PerpetualFormatter {
 
     fun formatPrice(provider: PerpetualProvider, price: Double, decimals: Int): String =
-        Perpetual(provider.toGem()).use { it.formatPrice(price, decimals) }
+        Perpetual(provider.toGemProvider()).use { it.formatPrice(price, decimals) }
 
     fun formatInputPrice(
         provider: PerpetualProvider,
@@ -23,14 +23,14 @@ object PerpetualFormatter {
     }
 
     fun formatSize(provider: PerpetualProvider, size: Double, decimals: Int): String =
-        Perpetual(provider.toGem()).use { it.formatSize(size, decimals) }
+        Perpetual(provider.toGemProvider()).use { it.formatSize(size, decimals) }
 
     fun minimumOrderUsdAmount(provider: PerpetualProvider, price: Double, decimals: Int, leverage: Int): ULong =
-        Perpetual(provider.toGem()).use {
+        Perpetual(provider.toGemProvider()).use {
             it.minimumOrderUsdAmount(price, decimals, leverage.toUByte())
         }
 
-    private fun PerpetualProvider.toGem(): GemPerpetualProvider = when (this) {
+    fun PerpetualProvider.toGemProvider(): GemPerpetualProvider = when (this) {
         PerpetualProvider.Hypercore -> GemPerpetualProvider.HYPERCORE
     }
 }
