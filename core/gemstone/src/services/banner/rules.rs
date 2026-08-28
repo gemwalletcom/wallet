@@ -17,11 +17,7 @@ pub fn is_visible(state: BannerState) -> bool {
 pub fn default_state(event: BannerEvent) -> BannerState {
     match event {
         BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature => BannerState::AlwaysActive,
-        BannerEvent::Stake
-        | BannerEvent::AccountActivation
-        | BannerEvent::SuspiciousAsset
-        | BannerEvent::Onboarding
-        | BannerEvent::TradePerpetuals => BannerState::Active,
+        BannerEvent::Stake | BannerEvent::AccountActivation | BannerEvent::SuspiciousAsset | BannerEvent::Onboarding | BannerEvent::TradePerpetuals => BannerState::Active,
     }
 }
 
@@ -117,7 +113,6 @@ fn event_priority(event: BannerEvent) -> u8 {
         BannerEvent::TradePerpetuals => 6,
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -260,5 +255,4 @@ mod tests {
         assert_eq!(default_state(BannerEvent::ActivateAsset), BannerState::AlwaysActive);
         assert_eq!(default_state(BannerEvent::Stake), BannerState::Active);
     }
-
 }

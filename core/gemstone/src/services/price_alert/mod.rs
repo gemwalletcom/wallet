@@ -99,6 +99,11 @@ pub fn price_alert_id(alert: PriceAlert) -> String {
 }
 
 #[uniffi::export]
+pub fn price_alerts_sorted(alerts: Vec<PriceAlert>) -> Vec<PriceAlert> {
+    rules::sorted_price_alerts(alerts)
+}
+
+#[uniffi::export]
 pub fn price_alert_notification_type(alert: PriceAlert) -> PriceAlertNotificationType {
     alert.notification_type()
 }

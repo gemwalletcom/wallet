@@ -1,3 +1,32 @@
+use primitives::PriceAlertDirection;
+
+pub fn sorted_price_alerts(alerts: Vec<PriceAlert>) -> Vec<PriceAlert> {
+    let mut sorted = alerts;
+    sorted.sort_by(|left, right| {
+        price(right)
+            .total_cmp(&price(left))
+            .then(direction(right).cmp(&direction(left)))
+            .then(percent(right).total_cmp(&percent(left)))
+    });
+    sorted
+}
+
+fn price(alert: &PriceAlert) -> f64 {
+    alert.price.unwrap_or_default()
+}
+
+fn percent(alert: &PriceAlert) -> f64 {
+    alert.price_percent_change.unwrap_or_default()
+}
+
+fn direction(alert: &PriceAlert) -> u8 {
+    match alert.price_direction {
+        Some(PriceAlertDirection::Up) => 1,
+        Some(PriceAlertDirection::Down) => 0,
+        None => 0,
+    }
+}
+
 use std::collections::HashMap;
 
 use crate::services::collections::stale;
@@ -46,5 +75,21 @@ mod tests {
 
         assert_eq!(sync.delete_ids, vec![alert(3.0, None).id()]);
         assert_eq!(sync.alerts.iter().map(|alert| alert.price).collect::<Vec<_>>(), vec![Some(2.0), Some(4.0)]);
+    }
+
+    #[test]
+    fn test_alerts_sort_by_price_then_direction_then_percent() {
+        let asset_id = AssetId::from_chain(Chain::Ethereum);
+        let high = PriceAlert::new_price(asset_id.clone(), Currency::USD, 3000.0, PriceAlertDirection::Down);
+        let low_up = PriceAlert::new_price(asset_id.clone(), Currency::USD, 100.0, PriceAlertDirection::Up);
+        let low_down = PriceAlert::new_price(asset_id.clone(), Currency::USD, 100.0, PriceAlertDirection::Down);
+        let percent = PriceAlert::new_price_percent(asset_id, Currency::USD, 5.0, PriceAlertDirection::Up);
+
+        let sorted = sorted_price_alerts(vec![percent.clone(), low_down.clone(), high.clone(), low_up.clone()]);
+
+        assert_eq!(
+            sorted.iter().map(|alert| alert.id()).collect::<Vec<_>>(),
+            vec![high.id(), low_up.id(), low_down.id(), percent.id()]
+        );
     }
 }
