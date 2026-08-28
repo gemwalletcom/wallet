@@ -28,13 +28,8 @@ pub struct GemAssetsService {
 #[uniffi::export]
 impl GemAssetsService {
     pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
-        let lists = [
-            (AssetList::Buy, versions.fiat_on_ramp_assets),
-            (AssetList::Sell, versions.fiat_off_ramp_assets),
-            (AssetList::Swap, versions.swap_assets),
-        ];
-        for (list, remote_version) in lists {
-            if self.preferences.get_assets_version(list) == Some(remote_version.to_string()) {
+        for (list, remote_version) in rules::asset_list_versions(&versions) {
+            if !rules::is_asset_list_outdated(self.preferences.get_assets_version(list).as_deref(), remote_version) {
                 continue;
             }
             let assets = match list {
@@ -42,7 +37,7 @@ impl GemAssetsService {
                 AssetList::Sell => self.get_fiat_assets(FiatQuoteType::Sell).await?,
                 AssetList::Swap => self.get_swap_assets().await?,
             };
-            let asset_ids: Vec<AssetId> = assets.asset_ids.iter().filter_map(|id| AssetId::new(id)).collect();
+            let asset_ids = rules::asset_ids(&assets.asset_ids);
             self.prefetch_assets(asset_ids.clone()).await?;
             match list {
                 AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
@@ -174,7 +169,7 @@ impl GemAssetsService {
     }
 
     pub async fn search_assets_and_tokens(&self, query: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {
-        let token_chains = if chains.is_empty() { Chain::all() } else { chains.clone() };
+        let token_chains = rules::token_search_chains(&chains);
         let (assets, tokens) = futures::join!(self.search_assets(query.clone(), chains), self.search_tokens(query, token_chains));
         let mut assets = assets?;
         assets.extend(tokens);
@@ -182,8 +177,7 @@ impl GemAssetsService {
     }
 
     pub async fn sync_swappable_chains(&self) -> Result<(), GemServiceError> {
-        let asset_ids = Chain::all().into_iter().filter(Chain::is_swap_supported).map(AssetId::from_chain).collect();
-        self.store.set_swappable_assets(asset_ids).await
+        self.store.set_swappable_assets(rules::swappable_chain_asset_ids()).await
     }
 
     pub async fn get_fiat_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, GemApiError> {

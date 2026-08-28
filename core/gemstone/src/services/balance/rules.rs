@@ -24,6 +24,22 @@ pub enum BalanceKind {
     Earn,
 }
 
+pub fn request_token_ids(token_ids: &[AssetId]) -> Vec<String> {
+    token_ids.iter().filter_map(|asset_id| asset_id.token_id.clone()).collect()
+}
+
+pub fn chain_balances(coin: Vec<AssetBalance>, stake: Vec<AssetBalance>, tokens: Vec<AssetBalance>, earn: Vec<AssetBalance>) -> Vec<(BalanceKind, AssetBalance)> {
+    [
+        (BalanceKind::Coin, coin),
+        (BalanceKind::Stake, stake),
+        (BalanceKind::Token, tokens),
+        (BalanceKind::Earn, earn),
+    ]
+    .into_iter()
+    .flat_map(|(kind, balances)| balances.into_iter().map(move |balance| (kind, balance)))
+    .collect()
+}
+
 pub fn balance_requests(accounts: &[Account], asset_ids: &[AssetId]) -> Vec<BalanceRequest> {
     accounts
         .iter()
@@ -173,5 +189,23 @@ mod tests {
             vec![bitcoin.clone(), ethereum.clone()]
         );
         assert_eq!(newly_enabled_asset_ids(&[bitcoin.clone(), ethereum.clone()], &[bitcoin]), vec![ethereum]);
+    }
+
+    #[test]
+    fn test_request_token_ids_keeps_only_token_identifiers() {
+        let token_ids = request_token_ids(&[AssetId::from_chain(Chain::Ethereum), AssetId::from_token(Chain::Ethereum, "0x1234")]);
+
+        assert_eq!(token_ids, vec!["0x1234".to_string()]);
+    }
+
+    #[test]
+    fn test_chain_balances_tags_every_balance_with_its_kind() {
+        let balance = |asset_id: AssetId| AssetBalance::new(asset_id, BigUint::from(1u32));
+        let coin = balance(AssetId::from_chain(Chain::Ethereum));
+        let token = balance(AssetId::from_token(Chain::Ethereum, "0x1234"));
+
+        let balances = chain_balances(vec![coin.clone()], Vec::new(), vec![token.clone()], Vec::new());
+
+        assert_eq!(balances, vec![(BalanceKind::Coin, coin), (BalanceKind::Token, token)]);
     }
 }

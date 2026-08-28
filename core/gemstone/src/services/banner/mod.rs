@@ -34,10 +34,10 @@ impl GemBannerService {
     }
 
     pub async fn apply_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
-        let closes = match action {
-            GemBannerAction::Event { event } => rules::closes_on_action(event) && self.permissions.request_permissions_or_open_settings().await?,
-            GemBannerAction::Close => true,
-            GemBannerAction::Button => false,
+        let closes = match rules::close_decision(&action) {
+            rules::BannerClose::Close => true,
+            rules::BannerClose::Keep => false,
+            rules::BannerClose::AfterPermission => self.permissions.request_permissions_or_open_settings().await?,
         };
         if closes {
             self.close(key).await?;
@@ -48,12 +48,7 @@ impl GemBannerService {
     pub async fn active_events(&self, wallet_id: Option<WalletId>, asset_id: Option<AssetId>, context: GemBannerContext) -> Result<Vec<BannerEvent>, GemServiceError> {
         let mut active = Vec::new();
         for event in rules::suggested_events(&context) {
-            let key = GemBannerKey {
-                wallet_id: wallet_id.clone(),
-                asset_id: asset_id.clone(),
-                chain: None,
-                event,
-            };
+            let key = rules::event_key(wallet_id.clone(), asset_id.clone(), event);
             let state = self.store.get_state(key).await?.unwrap_or_else(|| rules::default_state(event));
             if rules::is_visible(state) {
                 active.push(event);

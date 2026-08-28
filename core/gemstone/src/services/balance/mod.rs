@@ -126,7 +126,7 @@ impl GemBalanceService {
     }
 
     async fn chain_balances(&self, request: &BalanceRequest) -> Result<Vec<(BalanceKind, AssetBalance)>, GemServiceError> {
-        let token_ids: Vec<String> = request.token_ids.iter().filter_map(|asset_id| asset_id.token_id.clone()).collect();
+        let token_ids = rules::request_token_ids(&request.token_ids);
         let (coin, stake, tokens, earn) = futures::join!(
             async {
                 if request.coin {
@@ -160,14 +160,6 @@ impl GemBalanceService {
                 }
             },
         );
-        Ok([
-            (BalanceKind::Coin, coin?),
-            (BalanceKind::Stake, stake?),
-            (BalanceKind::Token, tokens?),
-            (BalanceKind::Earn, earn?),
-        ]
-        .into_iter()
-        .flat_map(|(kind, balances)| balances.into_iter().map(move |balance| (kind, balance)))
-        .collect())
+        Ok(rules::chain_balances(coin?, stake?, tokens?, earn?))
     }
 }

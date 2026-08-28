@@ -1,7 +1,33 @@
-use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, Chain, Wallet};
+use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, Chain, ConfigVersions, Wallet};
+
+use super::model::AssetList;
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 use crate::services::collections::{missing, missing_by, unique};
+
+pub fn asset_list_versions(versions: &ConfigVersions) -> [(AssetList, i32); 3] {
+    [
+        (AssetList::Buy, versions.fiat_on_ramp_assets),
+        (AssetList::Sell, versions.fiat_off_ramp_assets),
+        (AssetList::Swap, versions.swap_assets),
+    ]
+}
+
+pub fn is_asset_list_outdated(stored_version: Option<&str>, remote_version: i32) -> bool {
+    stored_version != Some(remote_version.to_string().as_str())
+}
+
+pub fn asset_ids(ids: &[String]) -> Vec<AssetId> {
+    ids.iter().filter_map(|id| AssetId::new(id)).collect()
+}
+
+pub fn swappable_chain_asset_ids() -> Vec<AssetId> {
+    Chain::all().into_iter().filter(Chain::is_swap_supported).map(AssetId::from_chain).collect()
+}
+
+pub fn token_search_chains(chains: &[Chain]) -> Vec<Chain> {
+    if chains.is_empty() { Chain::all() } else { chains.to_vec() }
+}
 
 pub fn missing_asset_ids(requested: Vec<AssetId>, existing: Vec<AssetId>) -> Vec<AssetId> {
     missing(requested, existing)
@@ -165,5 +191,33 @@ mod tests {
         let missing = missing_asset_ids(vec![bitcoin.clone(), ethereum.clone(), ethereum.clone()], vec![bitcoin]);
 
         assert_eq!(missing, vec![ethereum]);
+    }
+
+    #[test]
+    fn test_asset_list_is_outdated_only_when_the_stored_version_differs() {
+        assert!(is_asset_list_outdated(None, 7));
+        assert!(is_asset_list_outdated(Some("6"), 7));
+        assert!(!is_asset_list_outdated(Some("7"), 7));
+    }
+
+    #[test]
+    fn test_asset_ids_skips_unparsable_identifiers() {
+        let ids = asset_ids(&["bitcoin".to_string(), String::new(), "ethereum_0x1234".to_string()]);
+
+        assert_eq!(ids, vec![AssetId::from_chain(Chain::Bitcoin), AssetId::from_token(Chain::Ethereum, "0x1234")]);
+    }
+
+    #[test]
+    fn test_swappable_chain_asset_ids_only_lists_swap_supported_chains() {
+        let asset_ids = swappable_chain_asset_ids();
+
+        assert!(asset_ids.contains(&AssetId::from_chain(Chain::Ethereum)));
+        assert!(asset_ids.iter().all(|asset_id| asset_id.chain.is_swap_supported()));
+    }
+
+    #[test]
+    fn test_token_search_chains_defaults_to_every_chain() {
+        assert_eq!(token_search_chains(&[Chain::Ethereum]), vec![Chain::Ethereum]);
+        assert_eq!(token_search_chains(&[]), Chain::all());
     }
 }

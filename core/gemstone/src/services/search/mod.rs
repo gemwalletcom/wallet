@@ -5,7 +5,7 @@ pub mod store;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::perpetual::{PerpetualData, PerpetualMetadata, PerpetualSearchData};
+use primitives::perpetual::PerpetualSearchData;
 use primitives::{AssetBasic, Wallet};
 
 pub use model::GemSearchScope;
@@ -46,7 +46,7 @@ impl GemSearchService {
 
     pub async fn search(&self, wallet: Wallet, query: String, scope: GemSearchScope, currency: Currency) -> Result<bool, GemServiceError> {
         let query = query.trim().to_string();
-        if scope == GemSearchScope::All && query.is_empty() {
+        if rules::skips_search(&scope, &query) {
             return Ok(false);
         }
         let wallet_chains = rules::wallet_chains(&wallet);
@@ -59,7 +59,7 @@ impl GemSearchService {
         let key = rules::search_key(&scope, &query);
         self.save_assets(&wallet, &assets, currency, &key).await?;
         self.save_perpetuals(&response.perpetuals, &key).await?;
-        if scope == GemSearchScope::All {
+        if rules::stores_lists(&scope) {
             self.store.set_lists(key, response.lists).await?;
         }
         Ok(!assets.is_empty() || !response.perpetuals.is_empty())
@@ -74,7 +74,7 @@ impl GemSearchService {
 
 impl GemSearchService {
     async fn save_assets(&self, wallet: &Wallet, assets: &[AssetBasic], currency: Currency, key: &str) -> Result<(), GemServiceError> {
-        let asset_ids: Vec<_> = assets.iter().map(|asset| asset.asset.id.clone()).collect();
+        let asset_ids = rules::asset_ids(assets);
         self.asset_store.save_assets(assets.to_vec()).await?;
         self.price.update_prices(rules::prices(assets), currency).await?;
         self.assets.add_missing_balances(wallet.id.clone(), asset_ids.clone()).await?;
@@ -82,17 +82,7 @@ impl GemSearchService {
     }
 
     async fn save_perpetuals(&self, perpetuals: &[PerpetualSearchData], key: &str) -> Result<(), GemServiceError> {
-        let data = perpetuals
-            .iter()
-            .map(|item| PerpetualData {
-                perpetual: item.perpetual.clone(),
-                asset: item.asset.clone(),
-                metadata: PerpetualMetadata { is_pinned: false },
-            })
-            .collect();
-        self.perpetual_store.save_perpetuals(data).await?;
-        self.store
-            .set_perpetuals(key.to_string(), perpetuals.iter().map(|item| item.perpetual.id.to_string()).collect())
-            .await
+        self.perpetual_store.save_perpetuals(rules::perpetual_data(perpetuals)).await?;
+        self.store.set_perpetuals(key.to_string(), rules::perpetual_ids(perpetuals)).await
     }
 }

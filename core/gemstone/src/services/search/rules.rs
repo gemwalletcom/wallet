@@ -1,8 +1,36 @@
 use crate::services::collections::unique_by;
 
-use primitives::{AssetBasic, AssetPrice, Chain, Wallet, WalletType};
+use primitives::perpetual::{PerpetualData, PerpetualMetadata, PerpetualSearchData};
+use primitives::{AssetBasic, AssetId, AssetPrice, Chain, Wallet, WalletType};
 
 use super::model::GemSearchScope;
+
+pub fn skips_search(scope: &GemSearchScope, query: &str) -> bool {
+    *scope == GemSearchScope::All && query.is_empty()
+}
+
+pub fn stores_lists(scope: &GemSearchScope) -> bool {
+    *scope == GemSearchScope::All
+}
+
+pub fn asset_ids(assets: &[AssetBasic]) -> Vec<AssetId> {
+    assets.iter().map(|asset| asset.asset.id.clone()).collect()
+}
+
+pub fn perpetual_data(perpetuals: &[PerpetualSearchData]) -> Vec<PerpetualData> {
+    perpetuals
+        .iter()
+        .map(|item| PerpetualData {
+            perpetual: item.perpetual.clone(),
+            asset: item.asset.clone(),
+            metadata: PerpetualMetadata { is_pinned: false },
+        })
+        .collect()
+}
+
+pub fn perpetual_ids(perpetuals: &[PerpetualSearchData]) -> Vec<String> {
+    perpetuals.iter().map(|item| item.perpetual.id.to_string()).collect()
+}
 
 pub fn wallet_chains(wallet: &Wallet) -> Vec<Chain> {
     match wallet.wallet_type {
@@ -135,5 +163,18 @@ mod tests {
             (prices[0].asset_id.chain, prices[0].price, prices[0].price_change_percentage_24h),
             (Chain::Ethereum, 2.0, 1.5)
         );
+    }
+
+    #[test]
+    fn test_skips_search_only_for_an_empty_query_in_the_all_scope() {
+        assert!(skips_search(&GemSearchScope::All, ""));
+        assert!(!skips_search(&GemSearchScope::All, "gem"));
+        assert!(!skips_search(&GemSearchScope::List { id: "trending".to_string() }, ""));
+    }
+
+    #[test]
+    fn test_only_the_all_scope_stores_lists() {
+        assert!(stores_lists(&GemSearchScope::All));
+        assert!(!stores_lists(&GemSearchScope::List { id: "trending".to_string() }));
     }
 }
