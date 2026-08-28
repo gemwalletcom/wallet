@@ -128,6 +128,10 @@ public struct ConfirmService: Sendable {
         try addressStore.getAddressName(chain: chain, address: address)
     }
 
+    public var currency: Currency {
+        preferencesService.currencyValue
+    }
+
     public func passwordAuthentication() throws -> KeystoreAuthentication {
         try keystore.getPasswordAuthentication()
     }

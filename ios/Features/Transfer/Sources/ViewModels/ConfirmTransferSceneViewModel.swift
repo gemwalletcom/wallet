@@ -8,7 +8,6 @@ import Foundation
 import GemstonePrimitives
 import InfoSheet
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -58,7 +57,7 @@ public final class ConfirmTransferSceneViewModel {
         self.confirmService = confirmService
         self.onComplete = onComplete
 
-        let currency = Currency(rawValue: Preferences.standard.currency) ?? .usd
+        let currency = confirmService.currency
         self.currency = currency
         feeSelection = .preset(confirmService.defaultPriority(for: request.data.type))
         feeAssetSelection = .automatic

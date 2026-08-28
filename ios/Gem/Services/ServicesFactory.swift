@@ -280,7 +280,7 @@ struct ServicesFactory {
             paymentService: paymentService,
             transactionStore: storeManager.transactionStore,
             transactionStateScheduler: transactionStateScheduler,
-            preferences: preferences,
+            preferencesService: preferencesService,
             walletConnectorPresenter: presenter,
             walletSessionService: walletSessionService,
         )
