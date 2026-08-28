@@ -80,6 +80,23 @@ struct LocalKeystoreTests {
     }
 
     @Test
+    func keystorePasswordCreatedOnlyWhileKeystoreIsEmpty() throws {
+        let directory = UUID().uuidString
+        let baseDir = try FileManager.default
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appending(path: directory, directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: baseDir) }
+
+        let keystore = LocalKeystore(directory: directory, keystorePassword: MockKeystorePassword(memoryPassword: ""))
+        #expect(throws: Never.self) { try keystore.keystorePassword(createIfMissing: true) }
+
+        _ = try keystore.importWallet(name: "test", type: .phrase(words: LocalKeystore.words, chains: [.ethereum]))
+
+        let lostPassword = LocalKeystore(directory: directory, keystorePassword: MockKeystorePassword(memoryPassword: ""))
+        #expect(throws: Error.self) { try lostPassword.keystorePassword(createIfMissing: true) }
+    }
+
+    @Test
     func exportEthereumPrivateKey() async {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()

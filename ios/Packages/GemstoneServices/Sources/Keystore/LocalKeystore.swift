@@ -37,7 +37,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         if password.isNotEmpty {
             return try password.v4KeystorePasswordBytes()
         }
-        guard createIfMissing else {
+        guard createIfMissing, try !gemKeystore.hasStoredWallets() else {
             throw AnyError("Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.")
         }
         let newPassword = try SecureRandom.generateKey(length: 32).hex

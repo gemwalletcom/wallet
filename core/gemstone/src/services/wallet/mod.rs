@@ -86,7 +86,7 @@ impl GemWalletService {
                 ..rules::view_wallet(name, chain, address)
             },
             import => {
-                let password = self.password.get_password(wallet_id.clone(), rules::can_create_password(&wallets))?;
+                let password = self.password.get_password(wallet_id.clone(), true)?;
                 let stored = self.keystore.create_store(keystore_import(import), password)?;
                 Wallet {
                     id: wallet_id,
