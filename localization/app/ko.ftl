@@ -220,6 +220,7 @@ errors_invalid_url = 잘못된 URL
 errors_error_occurred = 오류가 발생했습니다!
 errors_invalid_network_id = 잘못된 네트워크 ID
 errors_error = 오류
+errors_cancelled = 취소됨
 errors_connections_user_cancelled = 사용자가 취소했습니다.
 errors_not_supported = 지원되지 않음
 errors_permissions_not_granted = 권한이 부여되지 않음

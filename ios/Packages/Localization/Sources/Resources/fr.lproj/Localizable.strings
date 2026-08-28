@@ -183,6 +183,7 @@
 "errors.error_occurred" = "Une erreur s'est produite !";
 "errors.invalid_network_id" = "ID de réseau invalide";
 "errors.error" = "Erreur";
+"errors.cancelled" = "Annulé";
 "errors.connections.user_cancelled" = "Utilisateur annulé";
 "errors.not_supported" = "Non pris en charge";
 "errors.permissions_not_granted" = "Autorisations non accordées";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "Le montant minimum de transaction est %@. Veuillez saisir un montant plus élevé.";
 "errors.perpetual.trigger_price_lower" = "Le prix de déclenchement doit être inférieur au prix du marché";
 "errors.perpetual.trigger_price_higher" = "Le prix de déclenchement doit être supérieur au prix du marché";
+"errors.network_error" = "Erreur réseau : %@";
 "errors.network_offline" = "La connexion Internet semble être hors ligne.";
 "errors.no_internet_connection" = "Pas de connexion Internet";
 "errors.no_service_connection" = "Pas de connexion au service";

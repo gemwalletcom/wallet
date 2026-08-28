@@ -220,6 +220,7 @@ errors_invalid_url = Adresă URL nevalidă
 errors_error_occurred = A apărut o eroare!
 errors_invalid_network_id = ID de rețea nevalid
 errors_error = Eroare
+errors_cancelled = Anulat
 errors_connections_user_cancelled = Anulat de utilizator
 errors_not_supported = Nu este acceptat
 errors_permissions_not_granted = Permisiunile nu sunt acordate

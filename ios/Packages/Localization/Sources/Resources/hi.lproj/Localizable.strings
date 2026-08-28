@@ -183,6 +183,7 @@
 "errors.error_occurred" = "एक त्रुटि पाई गई!";
 "errors.invalid_network_id" = "अमान्य नेटवर्क आईडी";
 "errors.error" = "त्रुटि";
+"errors.cancelled" = "रद्द किया गया";
 "errors.connections.user_cancelled" = "उपयोगकर्ता ने रद्द किया";
 "errors.not_supported" = "समर्थित नहीं";
 "errors.permissions_not_granted" = "अनुमतियाँ नहीं दी गईं";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "न्यूनतम व्यापार राशि है %@। कृपया अधिक राशि दर्ज करें।";
 "errors.perpetual.trigger_price_lower" = "ट्रिगर मूल्य बाजार मूल्य से कम होना चाहिए";
 "errors.perpetual.trigger_price_higher" = "ट्रिगर मूल्य बाजार मूल्य से अधिक होना चाहिए";
+"errors.network_error" = "नेटवर्क त्रुटि: %@";
 "errors.network_offline" = "इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।";
 "errors.no_internet_connection" = "इंटरनेट कनेक्शन नहीं है";
 "errors.no_service_connection" = "सेवा कनेक्शन नहीं है";

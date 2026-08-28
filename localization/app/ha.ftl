@@ -220,6 +220,7 @@ errors_invalid_url = URL mara inganci
 errors_error_occurred = An sami kuskure!
 errors_invalid_network_id = ID na hanyar sadarwa mara inganci
 errors_error = Kuskure
+errors_cancelled = An soke
 errors_connections_user_cancelled = Mai amfani ya soke
 errors_not_supported = Ba a Tallafawa
 errors_permissions_not_granted = Ba a Ba da izini ba

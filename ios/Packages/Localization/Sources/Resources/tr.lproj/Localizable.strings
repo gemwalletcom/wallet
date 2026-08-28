@@ -183,6 +183,7 @@
 "errors.error_occurred" = "Bir hata oluştu!";
 "errors.invalid_network_id" = "Geçersiz Ağ Kimliği";
 "errors.error" = "Hata";
+"errors.cancelled" = "İptal edildi";
 "errors.connections.user_cancelled" = "Kullanıcı iptal etti";
 "errors.not_supported" = "Desteklenmiyor";
 "errors.permissions_not_granted" = "İzinler Verilmedi";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "Minimum işlem tutarı %@. Lütfen daha yüksek bir tutar girin.";
 "errors.perpetual.trigger_price_lower" = "Tetikleme fiyatı piyasa fiyatından düşük olmalıdır";
 "errors.perpetual.trigger_price_higher" = "Tetikleme fiyatı piyasa fiyatından yüksek olmalıdır";
+"errors.network_error" = "Ağ hatası: %@";
 "errors.network_offline" = "İnternet bağlantısı kesilmiş gibi görünüyor.";
 "errors.no_internet_connection" = "İnternet bağlantısı yok";
 "errors.no_service_connection" = "Servis bağlantısı yok";

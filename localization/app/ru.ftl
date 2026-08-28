@@ -220,6 +220,7 @@ errors_invalid_url = Неверная ссылка
 errors_error_occurred = Произошла ошибка!
 errors_invalid_network_id = Неверный идентификатор сети
 errors_error = Ошибка
+errors_cancelled = Отменено
 errors_connections_user_cancelled = Отменено пользователем
 errors_not_supported = Не поддерживается
 errors_permissions_not_granted = Разрешения не предоставлены

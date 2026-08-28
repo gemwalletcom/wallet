@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Произошла ошибка!</string>
   <string name="errors_invalid_network_id">Неверный идентификатор сети</string>
   <string name="errors_error">Ошибка</string>
+  <string name="errors_cancelled">Отменено</string>
   <string name="errors_connections_user_cancelled">Отменено пользователем</string>
   <string name="errors_not_supported">Не поддерживается</string>
   <string name="errors_permissions_not_granted">Разрешения не предоставлены</string>

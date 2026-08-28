@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">একটি ত্রুটি ঘটেছে!</string>
   <string name="errors_invalid_network_id">অবৈধ নেটওয়ার্ক আইডি</string>
   <string name="errors_error">ত্রুটি</string>
+  <string name="errors_cancelled">বাতিল করা হয়েছে</string>
   <string name="errors_connections_user_cancelled">ব্যবহারকারী বাতিল করা হয়েছে</string>
   <string name="errors_not_supported">সমর্থিত নয়</string>
   <string name="errors_permissions_not_granted">অনুমতি দেওয়া হয়নি</string>

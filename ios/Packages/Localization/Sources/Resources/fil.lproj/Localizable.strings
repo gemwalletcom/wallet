@@ -183,6 +183,7 @@
 "errors.error_occurred" = "May naganap na error!";
 "errors.invalid_network_id" = "Di-wastong Network ID";
 "errors.error" = "Error";
+"errors.cancelled" = "Nakansela";
 "errors.connections.user_cancelled" = "Kinansela ang user";
 "errors.not_supported" = "Hindi Sinusuportahan";
 "errors.permissions_not_granted" = "Hindi Ipinagkaloob ang Mga Pahintulot";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "Ang minimum na halaga ng kalakalan ay %@. Mangyaring maglagay ng mas mataas na halaga.";
 "errors.perpetual.trigger_price_lower" = "Dapat mas mababa sa presyo sa merkado ang trigger price";
 "errors.perpetual.trigger_price_higher" = "Dapat mas mataas sa presyo sa merkado ang trigger price";
+"errors.network_error" = "Error sa network: %@";
 "errors.network_offline" = "Mukhang offline ang koneksyon sa internet.";
 "errors.no_internet_connection" = "Walang koneksyon sa internet";
 "errors.no_service_connection" = "Walang koneksyon sa serbisyo";

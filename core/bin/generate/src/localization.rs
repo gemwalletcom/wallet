@@ -18,7 +18,6 @@ const ANDROID_ONLY_KEYS: &[&str] = &[
     "common_no_thanks",
     "common_required_field",
     "confirm_fee_error",
-    "errors_network_error",
     "errors_token_unable_fetch_token_information",
     "errors_unknown_try_again",
     "notifications_permission_request_notification",

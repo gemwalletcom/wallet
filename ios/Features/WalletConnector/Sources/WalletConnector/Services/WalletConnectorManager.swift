@@ -4,6 +4,7 @@ import enum Gemstone.GemServiceError
 import protocol Gemstone.GemWalletConnectSigner
 import struct Gemstone.GemWalletConnectMessageRequest
 import struct Gemstone.GemWalletConnectTransactionRequest
+import GemstonePrimitives
 import Primitives
 import SwiftUI
 import WalletConnectorService
@@ -20,8 +21,9 @@ public final class WalletConnectorManager {
 
 extension WalletConnectorManager: WalletConnectorInteractable {
     public func sessionReject(error: any Error) async {
+        guard !error.isCancelled else { return }
         switch error {
-        case ConnectionsError.userCancelled, GemServiceError.Cancelled: return
+        case ConnectionsError.userCancelled: return
         default: break
         }
         await MainActor.run { [weak self] in

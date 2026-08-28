@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">เกิดข้อผิดพลาด!</string>
   <string name="errors_invalid_network_id">รหัสเครือข่ายไม่ถูกต้อง</string>
   <string name="errors_error">เกิดข้อผิดพลาด</string>
+  <string name="errors_cancelled">ยกเลิกแล้ว</string>
   <string name="errors_connections_user_cancelled">ผู้ใช้ยกเลิก</string>
   <string name="errors_not_supported">ไม่รองรับ</string>
   <string name="errors_permissions_not_granted">ไม่ได้รับสิทธิ์</string>

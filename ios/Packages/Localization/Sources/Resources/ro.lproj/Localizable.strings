@@ -183,6 +183,7 @@
 "errors.error_occurred" = "A apărut o eroare!";
 "errors.invalid_network_id" = "ID de rețea nevalid";
 "errors.error" = "Eroare";
+"errors.cancelled" = "Anulat";
 "errors.connections.user_cancelled" = "Anulat de utilizator";
 "errors.not_supported" = "Nu este acceptat";
 "errors.permissions_not_granted" = "Permisiunile nu sunt acordate";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "Suma minimă a tranzacției este %@. Vă rugăm să introduceți o sumă mai mare.";
 "errors.perpetual.trigger_price_lower" = "Prețul de declanșare trebuie să fie mai mic decât prețul pieței";
 "errors.perpetual.trigger_price_higher" = "Prețul de declanșare trebuie să fie mai mare decât prețul pieței";
+"errors.network_error" = "Eroare de rețea: %@";
 "errors.network_offline" = "Conexiunea la internet pare să fie offline.";
 "errors.no_internet_connection" = "Nicio conexiune la internet";
 "errors.no_service_connection" = "Nicio conexiune la serviciu";

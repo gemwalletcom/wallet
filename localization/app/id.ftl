@@ -220,6 +220,7 @@ errors_invalid_url = URL Tidak Valid
 errors_error_occurred = Terjadi kesalahan!
 errors_invalid_network_id = ID Jaringan Tidak Valid
 errors_error = Kesalahan
+errors_cancelled = Dibatalkan
 errors_connections_user_cancelled = Pengguna dibatalkan
 errors_not_supported = Tidak didukung
 errors_permissions_not_granted = Izin tidak diberikan

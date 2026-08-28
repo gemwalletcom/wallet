@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Hitilafu imetokea!</string>
   <string name="errors_invalid_network_id">Kitambulisho batili cha Mtandao</string>
   <string name="errors_error">Hitilafu</string>
+  <string name="errors_cancelled">Imeghairiwa</string>
   <string name="errors_connections_user_cancelled">Mtumiaji ameghairi</string>
   <string name="errors_not_supported">Haitumiki</string>
   <string name="errors_permissions_not_granted">Ruhusa Hazijatolewa</string>

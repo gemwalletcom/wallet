@@ -183,6 +183,7 @@
 "errors.error_occurred" = "오류가 발생했습니다!";
 "errors.invalid_network_id" = "잘못된 네트워크 ID";
 "errors.error" = "오류";
+"errors.cancelled" = "취소됨";
 "errors.connections.user_cancelled" = "사용자가 취소했습니다.";
 "errors.not_supported" = "지원되지 않음";
 "errors.permissions_not_granted" = "권한이 부여되지 않음";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "최소 거래 금액은 %@. 더 높은 금액을 입력해 주세요.";
 "errors.perpetual.trigger_price_lower" = "트리거 가격은 시장 가격보다 낮아야 합니다";
 "errors.perpetual.trigger_price_higher" = "트리거 가격은 시장 가격보다 높아야 합니다";
+"errors.network_error" = "네트워크 오류: %@";
 "errors.network_offline" = "인터넷 연결이 끊긴 것 같습니다.";
 "errors.no_internet_connection" = "인터넷 연결 없음";
 "errors.no_service_connection" = "서비스 연결 없음";

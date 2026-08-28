@@ -220,6 +220,7 @@ errors_invalid_url = Недійсний URL
 errors_error_occurred = Виникла помилка!
 errors_invalid_network_id = Неправильний ідентифікатор мережі
 errors_error = Помилка
+errors_cancelled = Скасовано
 errors_connections_user_cancelled = Скасовано користувачем
 errors_not_supported = Не підтримується
 errors_permissions_not_granted = Дозволу не надано

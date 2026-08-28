@@ -220,6 +220,7 @@ errors_invalid_url = URL tidak sah
 errors_error_occurred = Ralat berlaku!
 errors_invalid_network_id = ID Rangkaian tidak sah
 errors_error = Ralat
+errors_cancelled = Dibatalkan
 errors_connections_user_cancelled = Dibatalkan oleh pengguna
 errors_not_supported = Tidak Disokong
 errors_permissions_not_granted = Kebenaran Tidak Diberikan

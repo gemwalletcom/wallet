@@ -220,6 +220,7 @@ errors_invalid_url = nieprawidłowy URL
 errors_error_occurred = Wystąpił błąd!
 errors_invalid_network_id = Nieprawidłowy identyfikator sieci
 errors_error = Błąd
+errors_cancelled = Anulowano
 errors_connections_user_cancelled = Anulowane przez użytkownika
 errors_not_supported = Nieobsługiwane
 errors_permissions_not_granted = Uprawnienia nie zostały przyznane

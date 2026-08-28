@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Es ist ein Fehler aufgetreten!</string>
   <string name="errors_invalid_network_id">Ungültige Netzwerk-ID</string>
   <string name="errors_error">Fehler</string>
+  <string name="errors_cancelled">Abgebrochen</string>
   <string name="errors_connections_user_cancelled">Benutzer hat abgebrochen</string>
   <string name="errors_not_supported">Nicht unterstützt</string>
   <string name="errors_permissions_not_granted">Berechtigungen nicht erteilt</string>

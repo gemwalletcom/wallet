@@ -220,6 +220,7 @@ errors_invalid_url = अमान्य यूआरएल
 errors_error_occurred = एक त्रुटि पाई गई!
 errors_invalid_network_id = अमान्य नेटवर्क आईडी
 errors_error = त्रुटि
+errors_cancelled = रद्द किया गया
 errors_connections_user_cancelled = उपयोगकर्ता ने रद्द किया
 errors_not_supported = समर्थित नहीं
 errors_permissions_not_granted = अनुमतियाँ नहीं दी गईं

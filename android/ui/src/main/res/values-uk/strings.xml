@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Виникла помилка!</string>
   <string name="errors_invalid_network_id">Неправильний ідентифікатор мережі</string>
   <string name="errors_error">Помилка</string>
+  <string name="errors_cancelled">Скасовано</string>
   <string name="errors_connections_user_cancelled">Скасовано користувачем</string>
   <string name="errors_not_supported">Не підтримується</string>
   <string name="errors_permissions_not_granted">Дозволу не надано</string>

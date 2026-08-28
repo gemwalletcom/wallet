@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Der opstod en fejl!</string>
   <string name="errors_invalid_network_id">Ugyldigt netværks-id</string>
   <string name="errors_error">Fejl</string>
+  <string name="errors_cancelled">Annulleret</string>
   <string name="errors_connections_user_cancelled">Bruger annulleret</string>
   <string name="errors_not_supported">Ikke understøttet</string>
   <string name="errors_permissions_not_granted">Tilladelser ikke givet</string>

@@ -220,6 +220,7 @@ errors_invalid_url = URL invalida
 errors_error_occurred = ¡Ocurrió un error!
 errors_invalid_network_id = ID de red no válida
 errors_error = Error
+errors_cancelled = Cancelado
 errors_connections_user_cancelled = Usuario cancelado
 errors_not_supported = No compatible
 errors_permissions_not_granted = Permisos no concedidos

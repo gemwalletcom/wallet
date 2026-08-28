@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">An error occurred!</string>
   <string name="errors_invalid_network_id">Invalid Network ID</string>
   <string name="errors_error">Error</string>
+  <string name="errors_cancelled">Cancelled</string>
   <string name="errors_connections_user_cancelled">User cancelled</string>
   <string name="errors_not_supported">Not Supported</string>
   <string name="errors_permissions_not_granted">Permissions Not Granted</string>

@@ -220,6 +220,7 @@ errors_invalid_url = Neplatná adresa URL
 errors_error_occurred = Došlo k chybě!
 errors_invalid_network_id = Neplatné ID sítě
 errors_error = Chyba
+errors_cancelled = Zrušeno
 errors_connections_user_cancelled = Uživatel zrušen
 errors_not_supported = Není podporováno
 errors_permissions_not_granted = Oprávnění nebyla udělena

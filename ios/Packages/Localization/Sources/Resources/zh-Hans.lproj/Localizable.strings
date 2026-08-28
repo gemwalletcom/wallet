@@ -183,6 +183,7 @@
 "errors.error_occurred" = "出错了！";
 "errors.invalid_network_id" = "网络 ID 无效";
 "errors.error" = "错误";
+"errors.cancelled" = "已取消";
 "errors.connections.user_cancelled" = "用户已取消";
 "errors.not_supported" = "不支持";
 "errors.permissions_not_granted" = "未授予权限";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "最低交易金额为 %@。请输入更高的金额。";
 "errors.perpetual.trigger_price_lower" = "触发价格应低于市场价格";
 "errors.perpetual.trigger_price_higher" = "触发价格应高于市场价格";
+"errors.network_error" = "网络错误： %@";
 "errors.network_offline" = "网络连接似乎已断开。";
 "errors.no_internet_connection" = "无互联网连接";
 "errors.no_service_connection" = "无服务连接";

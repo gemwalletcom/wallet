@@ -183,6 +183,7 @@
 "errors.error_occurred" = "Es ist ein Fehler aufgetreten!";
 "errors.invalid_network_id" = "Ungültige Netzwerk-ID";
 "errors.error" = "Fehler";
+"errors.cancelled" = "Abgebrochen";
 "errors.connections.user_cancelled" = "Benutzer hat abgebrochen";
 "errors.not_supported" = "Nicht unterstützt";
 "errors.permissions_not_granted" = "Berechtigungen nicht erteilt";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "Der Mindesthandelsbetrag beträgt %@. Bitte geben Sie einen höheren Betrag ein.";
 "errors.perpetual.trigger_price_lower" = "Der Triggerpreis muss unter dem Marktpreis liegen";
 "errors.perpetual.trigger_price_higher" = "Der Triggerpreis muss über dem Marktpreis liegen";
+"errors.network_error" = "Netzwerkfehler: %@";
 "errors.network_offline" = "Die Internetverbindung scheint unterbrochen zu sein.";
 "errors.no_internet_connection" = "Keine Internetverbindung";
 "errors.no_service_connection" = "Keine Serviceverbindung";

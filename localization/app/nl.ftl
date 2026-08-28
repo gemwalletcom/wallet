@@ -220,6 +220,7 @@ errors_invalid_url = Ongeldige URL
 errors_error_occurred = Er is een fout opgetreden!
 errors_invalid_network_id = Ongeldige netwerk-ID
 errors_error = Fout
+errors_cancelled = Geannuleerd
 errors_connections_user_cancelled = Gebruiker geannuleerd
 errors_not_supported = Niet ondersteund
 errors_permissions_not_granted = Machtigingen niet verleend

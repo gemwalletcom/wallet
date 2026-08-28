@@ -220,6 +220,7 @@ errors_invalid_url = غلط URL
 errors_error_occurred = ایک خرابی پیش آگئی!
 errors_invalid_network_id = غلط نیٹ ورک ID
 errors_error = خرابی
+errors_cancelled = منسوخ کر دیا گیا
 errors_connections_user_cancelled = صارف نے منسوخ کر دیا۔
 errors_not_supported = تعاون یافتہ نہیں۔
 errors_permissions_not_granted = اجازت نہیں دی گئی۔

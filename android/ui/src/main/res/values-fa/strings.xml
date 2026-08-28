@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">خطایی رخ داد!</string>
   <string name="errors_invalid_network_id">شناسه شبکه نامعتبر است.</string>
   <string name="errors_error">خطا</string>
+  <string name="errors_cancelled">لغو شد</string>
   <string name="errors_connections_user_cancelled">توسط کاربر لغو شد.</string>
   <string name="errors_not_supported">پشتیبانی نمی شود.</string>
   <string name="errors_permissions_not_granted">دسترسی داده نشده.</string>

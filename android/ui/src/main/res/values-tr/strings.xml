@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Bir hata oluştu!</string>
   <string name="errors_invalid_network_id">Geçersiz Ağ Kimliği</string>
   <string name="errors_error">Hata</string>
+  <string name="errors_cancelled">İptal edildi</string>
   <string name="errors_connections_user_cancelled">Kullanıcı iptal etti</string>
   <string name="errors_not_supported">Desteklenmiyor</string>
   <string name="errors_permissions_not_granted">İzinler Verilmedi</string>

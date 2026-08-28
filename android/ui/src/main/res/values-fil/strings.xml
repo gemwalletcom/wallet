@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">May naganap na error!</string>
   <string name="errors_invalid_network_id">Di-wastong Network ID</string>
   <string name="errors_error">Error</string>
+  <string name="errors_cancelled">Nakansela</string>
   <string name="errors_connections_user_cancelled">Kinansela ang user</string>
   <string name="errors_not_supported">Hindi Sinusuportahan</string>
   <string name="errors_permissions_not_granted">Hindi Ipinagkaloob ang Mga Pahintulot</string>

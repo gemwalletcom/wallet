@@ -220,6 +220,7 @@ errors_invalid_url = URL không hợp lệ
 errors_error_occurred = Đã xảy ra lỗi!
 errors_invalid_network_id = ID mạng không hợp lệ
 errors_error = Lỗi
+errors_cancelled = Đã hủy
 errors_connections_user_cancelled = Người dùng đã hủy
 errors_not_supported = Không được hỗ trợ
 errors_permissions_not_granted = Quyền không được cấp

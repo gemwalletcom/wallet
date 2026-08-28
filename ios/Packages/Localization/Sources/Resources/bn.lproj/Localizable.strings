@@ -183,6 +183,7 @@
 "errors.error_occurred" = "একটি ত্রুটি ঘটেছে!";
 "errors.invalid_network_id" = "অবৈধ নেটওয়ার্ক আইডি";
 "errors.error" = "ত্রুটি";
+"errors.cancelled" = "বাতিল করা হয়েছে";
 "errors.connections.user_cancelled" = "ব্যবহারকারী বাতিল করা হয়েছে";
 "errors.not_supported" = "সমর্থিত নয়";
 "errors.permissions_not_granted" = "অনুমতি দেওয়া হয়নি";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "সর্বনিম্ন ট্রেডের পরিমাণ হল %@. অনুগ্রহ করে আরও বেশি পরিমাণ লিখুন।";
 "errors.perpetual.trigger_price_lower" = "ট্রিগার মূল্য বাজার মূল্যের চেয়ে কম হওয়া উচিত";
 "errors.perpetual.trigger_price_higher" = "ট্রিগার মূল্য বাজার মূল্যের চেয়ে বেশি হওয়া উচিত";
+"errors.network_error" = "নেটওয়ার্ক ত্রুটি: %@";
 "errors.network_offline" = "ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।";
 "errors.no_internet_connection" = "ইন্টারনেট সংযোগ নেই";
 "errors.no_service_connection" = "পরিষেবা সংযোগ নেই";

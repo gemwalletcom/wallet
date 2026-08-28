@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Wystąpił błąd!</string>
   <string name="errors_invalid_network_id">Nieprawidłowy identyfikator sieci</string>
   <string name="errors_error">Błąd</string>
+  <string name="errors_cancelled">Anulowano</string>
   <string name="errors_connections_user_cancelled">Anulowane przez użytkownika</string>
   <string name="errors_not_supported">Nieobsługiwane</string>
   <string name="errors_permissions_not_granted">Uprawnienia nie zostały przyznane</string>

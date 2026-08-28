@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Ralat berlaku!</string>
   <string name="errors_invalid_network_id">ID Rangkaian tidak sah</string>
   <string name="errors_error">Ralat</string>
+  <string name="errors_cancelled">Dibatalkan</string>
   <string name="errors_connections_user_cancelled">Dibatalkan oleh pengguna</string>
   <string name="errors_not_supported">Tidak Disokong</string>
   <string name="errors_permissions_not_granted">Kebenaran Tidak Diberikan</string>

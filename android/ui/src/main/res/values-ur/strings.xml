@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">ایک خرابی پیش آگئی!</string>
   <string name="errors_invalid_network_id">غلط نیٹ ورک ID</string>
   <string name="errors_error">خرابی</string>
+  <string name="errors_cancelled">منسوخ کر دیا گیا</string>
   <string name="errors_connections_user_cancelled">صارف نے منسوخ کر دیا۔</string>
   <string name="errors_not_supported">تعاون یافتہ نہیں۔</string>
   <string name="errors_permissions_not_granted">اجازت نہیں دی گئی۔</string>

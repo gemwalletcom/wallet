@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">오류가 발생했습니다!</string>
   <string name="errors_invalid_network_id">잘못된 네트워크 ID</string>
   <string name="errors_error">오류</string>
+  <string name="errors_cancelled">취소됨</string>
   <string name="errors_connections_user_cancelled">사용자가 취소했습니다.</string>
   <string name="errors_not_supported">지원되지 않음</string>
   <string name="errors_permissions_not_granted">권한이 부여되지 않음</string>

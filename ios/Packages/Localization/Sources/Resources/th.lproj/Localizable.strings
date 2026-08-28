@@ -183,6 +183,7 @@
 "errors.error_occurred" = "เกิดข้อผิดพลาด!";
 "errors.invalid_network_id" = "รหัสเครือข่ายไม่ถูกต้อง";
 "errors.error" = "เกิดข้อผิดพลาด";
+"errors.cancelled" = "ยกเลิกแล้ว";
 "errors.connections.user_cancelled" = "ผู้ใช้ยกเลิก";
 "errors.not_supported" = "ไม่รองรับ";
 "errors.permissions_not_granted" = "ไม่ได้รับสิทธิ์";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "จำนวนเงินขั้นต่ำในการซื้อขายคือ %@ กรุณาป้อนจำนวนเงินที่สูงกว่านี้";
 "errors.perpetual.trigger_price_lower" = "ราคา Trigger ควรต่ำกว่าราคาตลาด";
 "errors.perpetual.trigger_price_higher" = "ราคา Trigger ควรสูงกว่าราคาตลาด";
+"errors.network_error" = "เกิดข้อผิดพลาดเครือข่าย: %@";
 "errors.network_offline" = "ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์";
 "errors.no_internet_connection" = "ไม่มีการเชื่อมต่ออินเทอร์เน็ต";
 "errors.no_service_connection" = "ไม่มีการเชื่อมต่อบริการ";

@@ -183,6 +183,7 @@
 "errors.error_occurred" = "Произошла ошибка!";
 "errors.invalid_network_id" = "Неверный идентификатор сети";
 "errors.error" = "Ошибка";
+"errors.cancelled" = "Отменено";
 "errors.connections.user_cancelled" = "Отменено пользователем";
 "errors.not_supported" = "Не поддерживается";
 "errors.permissions_not_granted" = "Разрешения не предоставлены";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "Минимальная сумма сделки — %@. Введите, пожалуйста, сумму побольше.";
 "errors.perpetual.trigger_price_lower" = "Цена триггера должна быть ниже рыночной цены";
 "errors.perpetual.trigger_price_higher" = "Цена триггера должна быть выше рыночной цены";
+"errors.network_error" = "Сетевая ошибка: %@";
 "errors.network_offline" = "По всей видимости, интернет-соединение отсутствует.";
 "errors.no_internet_connection" = "Нет подключения к интернету";
 "errors.no_service_connection" = "Нет подключения к сервису";

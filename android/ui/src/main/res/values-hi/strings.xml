@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">एक त्रुटि पाई गई!</string>
   <string name="errors_invalid_network_id">अमान्य नेटवर्क आईडी</string>
   <string name="errors_error">त्रुटि</string>
+  <string name="errors_cancelled">रद्द किया गया</string>
   <string name="errors_connections_user_cancelled">उपयोगकर्ता ने रद्द किया</string>
   <string name="errors_not_supported">समर्थित नहीं</string>
   <string name="errors_permissions_not_granted">अनुमतियाँ नहीं दी गईं</string>

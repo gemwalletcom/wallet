@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">A apărut o eroare!</string>
   <string name="errors_invalid_network_id">ID de rețea nevalid</string>
   <string name="errors_error">Eroare</string>
+  <string name="errors_cancelled">Anulat</string>
   <string name="errors_connections_user_cancelled">Anulat de utilizator</string>
   <string name="errors_not_supported">Nu este acceptat</string>
   <string name="errors_permissions_not_granted">Permisiunile nu sunt acordate</string>

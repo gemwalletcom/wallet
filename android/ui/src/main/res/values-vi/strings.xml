@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Đã xảy ra lỗi!</string>
   <string name="errors_invalid_network_id">ID mạng không hợp lệ</string>
   <string name="errors_error">Lỗi</string>
+  <string name="errors_cancelled">Đã hủy</string>
   <string name="errors_connections_user_cancelled">Người dùng đã hủy</string>
   <string name="errors_not_supported">Không được hỗ trợ</string>
   <string name="errors_permissions_not_granted">Quyền không được cấp</string>

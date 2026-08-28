@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">An sami kuskure!</string>
   <string name="errors_invalid_network_id">ID na hanyar sadarwa mara inganci</string>
   <string name="errors_error">Kuskure</string>
+  <string name="errors_cancelled">An soke</string>
   <string name="errors_connections_user_cancelled">Mai amfani ya soke</string>
   <string name="errors_not_supported">Ba a Tallafawa</string>
   <string name="errors_permissions_not_granted">Ba a Ba da izini ba</string>

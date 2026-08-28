@@ -220,6 +220,7 @@ errors_invalid_url = Geçersiz URL
 errors_error_occurred = Bir hata oluştu!
 errors_invalid_network_id = Geçersiz Ağ Kimliği
 errors_error = Hata
+errors_cancelled = İptal edildi
 errors_connections_user_cancelled = Kullanıcı iptal etti
 errors_not_supported = Desteklenmiyor
 errors_permissions_not_granted = İzinler Verilmedi

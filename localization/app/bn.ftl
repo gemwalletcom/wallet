@@ -220,6 +220,7 @@ errors_invalid_url = অবৈধ URL
 errors_error_occurred = একটি ত্রুটি ঘটেছে!
 errors_invalid_network_id = অবৈধ নেটওয়ার্ক আইডি
 errors_error = ত্রুটি
+errors_cancelled = বাতিল করা হয়েছে
 errors_connections_user_cancelled = ব্যবহারকারী বাতিল করা হয়েছে
 errors_not_supported = সমর্থিত নয়
 errors_permissions_not_granted = অনুমতি দেওয়া হয়নি

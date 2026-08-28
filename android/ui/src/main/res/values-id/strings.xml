@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Terjadi kesalahan!</string>
   <string name="errors_invalid_network_id">ID Jaringan Tidak Valid</string>
   <string name="errors_error">Kesalahan</string>
+  <string name="errors_cancelled">Dibatalkan</string>
   <string name="errors_connections_user_cancelled">Pengguna dibatalkan</string>
   <string name="errors_not_supported">Tidak didukung</string>
   <string name="errors_permissions_not_granted">Izin tidak diberikan</string>

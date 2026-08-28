@@ -183,6 +183,7 @@
 "errors.error_occurred" = "Došlo k chybě!";
 "errors.invalid_network_id" = "Neplatné ID sítě";
 "errors.error" = "Chyba";
+"errors.cancelled" = "Zrušeno";
 "errors.connections.user_cancelled" = "Uživatel zrušen";
 "errors.not_supported" = "Není podporováno";
 "errors.permissions_not_granted" = "Oprávnění nebyla udělena";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "Minimální částka obchodu je %@. Zadejte prosím vyšší částku.";
 "errors.perpetual.trigger_price_lower" = "Spouštěcí cena musí být nižší než tržní cena";
 "errors.perpetual.trigger_price_higher" = "Spouštěcí cena musí být vyšší než tržní cena";
+"errors.network_error" = "Chyba sítě: %@";
 "errors.network_offline" = "Zdá se, že je internetové připojení offline.";
 "errors.no_internet_connection" = "Žádné připojení k internetu";
 "errors.no_service_connection" = "Žádné připojení ke službě";

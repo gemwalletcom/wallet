@@ -220,6 +220,7 @@ errors_invalid_url = כתובת אתר לא חוקית
 errors_error_occurred = אירעה שגיאה!
 errors_invalid_network_id = מזהה רשת לא חוקי
 errors_error = שגיאה
+errors_cancelled = בוטל
 errors_connections_user_cancelled = המשתמש ביטל
 errors_not_supported = לא נתמך
 errors_permissions_not_granted = הרשאות לא ניתנו

@@ -417,6 +417,8 @@ errors_error_occurred = An error occurred!
 errors_invalid_network_id = Invalid Network ID
 # Used in error cards and validation UI for the error label.
 errors_error = Error
+# Used in error cards and validation UI for the cancelled label.
+errors_cancelled = Cancelled
 # Used in error cards and validation UI for the connections user cancelled label.
 errors_connections_user_cancelled = User cancelled
 # Used in error cards and validation UI for the not supported label.

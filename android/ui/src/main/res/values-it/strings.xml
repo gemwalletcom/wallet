@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Si è verificato un errore!</string>
   <string name="errors_invalid_network_id">ID di rete non valido</string>
   <string name="errors_error">Errore</string>
+  <string name="errors_cancelled">Annullato</string>
   <string name="errors_connections_user_cancelled">Utente cancellato</string>
   <string name="errors_not_supported">Non supportato</string>
   <string name="errors_permissions_not_granted">Autorizzazioni non concesse</string>

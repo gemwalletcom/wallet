@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">حدث خطأ!</string>
   <string name="errors_invalid_network_id">معرف الشبكة غير صالح</string>
   <string name="errors_error">خطأ</string>
+  <string name="errors_cancelled">ملغى</string>
   <string name="errors_connections_user_cancelled">تم إلغاء المستخدم</string>
   <string name="errors_not_supported">غير مدعوم</string>
   <string name="errors_permissions_not_granted">لم يتم منح الأذونات</string>

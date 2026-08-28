@@ -220,6 +220,7 @@ errors_invalid_url = URL ไม่ถูกต้อง
 errors_error_occurred = เกิดข้อผิดพลาด!
 errors_invalid_network_id = รหัสเครือข่ายไม่ถูกต้อง
 errors_error = เกิดข้อผิดพลาด
+errors_cancelled = ยกเลิกแล้ว
 errors_connections_user_cancelled = ผู้ใช้ยกเลิก
 errors_not_supported = ไม่รองรับ
 errors_permissions_not_granted = ไม่ได้รับสิทธิ์

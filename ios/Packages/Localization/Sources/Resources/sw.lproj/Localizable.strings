@@ -183,6 +183,7 @@
 "errors.error_occurred" = "Hitilafu imetokea!";
 "errors.invalid_network_id" = "Kitambulisho batili cha Mtandao";
 "errors.error" = "Hitilafu";
+"errors.cancelled" = "Imeghairiwa";
 "errors.connections.user_cancelled" = "Mtumiaji ameghairi";
 "errors.not_supported" = "Haitumiki";
 "errors.permissions_not_granted" = "Ruhusa Hazijatolewa";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "Kiwango cha chini cha biashara ni %@. Tafadhali weka kiasi cha juu zaidi.";
 "errors.perpetual.trigger_price_lower" = "Bei ya kichochezi inapaswa kuwa chini ya bei ya soko";
 "errors.perpetual.trigger_price_higher" = "Bei ya kichochezi inapaswa kuwa juu ya bei ya soko";
+"errors.network_error" = "Hitilafu ya mtandao: %@";
 "errors.network_offline" = "Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.";
 "errors.no_internet_connection" = "Hakuna muunganisho wa intaneti";
 "errors.no_service_connection" = "Hakuna muunganisho wa huduma";

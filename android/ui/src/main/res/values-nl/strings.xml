@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">Er is een fout opgetreden!</string>
   <string name="errors_invalid_network_id">Ongeldige netwerk-ID</string>
   <string name="errors_error">Fout</string>
+  <string name="errors_cancelled">Geannuleerd</string>
   <string name="errors_connections_user_cancelled">Gebruiker geannuleerd</string>
   <string name="errors_not_supported">Niet ondersteund</string>
   <string name="errors_permissions_not_granted">Machtigingen niet verleend</string>

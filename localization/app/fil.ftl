@@ -220,6 +220,7 @@ errors_invalid_url = Di-wastong URL
 errors_error_occurred = May naganap na error!
 errors_invalid_network_id = Di-wastong Network ID
 errors_error = Error
+errors_cancelled = Nakansela
 errors_connections_user_cancelled = Kinansela ang user
 errors_not_supported = Hindi Sinusuportahan
 errors_permissions_not_granted = Hindi Ipinagkaloob ang Mga Pahintulot

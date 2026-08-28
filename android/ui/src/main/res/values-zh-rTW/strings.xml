@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">出錯了！</string>
   <string name="errors_invalid_network_id">無效的網路ID</string>
   <string name="errors_error">錯誤</string>
+  <string name="errors_cancelled">已取消</string>
   <string name="errors_connections_user_cancelled">用戶已取消</string>
   <string name="errors_not_supported">不支援</string>
   <string name="errors_permissions_not_granted">未授予權限</string>

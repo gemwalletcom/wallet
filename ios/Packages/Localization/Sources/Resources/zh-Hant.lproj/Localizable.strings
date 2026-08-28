@@ -183,6 +183,7 @@
 "errors.error_occurred" = "出錯了！";
 "errors.invalid_network_id" = "無效的網路ID";
 "errors.error" = "錯誤";
+"errors.cancelled" = "已取消";
 "errors.connections.user_cancelled" = "用戶已取消";
 "errors.not_supported" = "不支援";
 "errors.permissions_not_granted" = "未授予權限";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "最低交易金額為 %@。請輸入更高的金額。";
 "errors.perpetual.trigger_price_lower" = "觸發價格應低於市場價格";
 "errors.perpetual.trigger_price_higher" = "觸發價格應高於市場價格";
+"errors.network_error" = "網路錯誤： %@";
 "errors.network_offline" = "網路連線似乎已斷開。";
 "errors.no_internet_connection" = "無網際網路連線";
 "errors.no_service_connection" = "無服務連線";

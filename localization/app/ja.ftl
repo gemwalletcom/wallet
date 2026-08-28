@@ -220,6 +220,7 @@ errors_invalid_url = 無効なURL
 errors_error_occurred = エラーが発生しました！
 errors_invalid_network_id = 無効なネットワークID
 errors_error = エラー
+errors_cancelled = キャンセルされました
 errors_connections_user_cancelled = ユーザーがキャンセルしました
 errors_not_supported = サポートされていません
 errors_permissions_not_granted = 許可が得られていません

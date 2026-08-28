@@ -220,6 +220,7 @@ errors_invalid_url = Ugyldig URL
 errors_error_occurred = Der opstod en fejl!
 errors_invalid_network_id = Ugyldigt netværks-id
 errors_error = Fejl
+errors_cancelled = Annulleret
 errors_connections_user_cancelled = Bruger annulleret
 errors_not_supported = Ikke understøttet
 errors_permissions_not_granted = Tilladelser ikke givet

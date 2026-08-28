@@ -220,6 +220,7 @@ errors_invalid_url = URL نامعتبر
 errors_error_occurred = خطایی رخ داد!
 errors_invalid_network_id = شناسه شبکه نامعتبر است.
 errors_error = خطا
+errors_cancelled = لغو شد
 errors_connections_user_cancelled = توسط کاربر لغو شد.
 errors_not_supported = پشتیبانی نمی شود.
 errors_permissions_not_granted = دسترسی داده نشده.

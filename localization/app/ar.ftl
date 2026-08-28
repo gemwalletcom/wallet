@@ -220,6 +220,7 @@ errors_invalid_url = URL غير صالح
 errors_error_occurred = حدث خطأ!
 errors_invalid_network_id = معرف الشبكة غير صالح
 errors_error = خطأ
+errors_cancelled = ملغى
 errors_connections_user_cancelled = تم إلغاء المستخدم
 errors_not_supported = غير مدعوم
 errors_permissions_not_granted = لم يتم منح الأذونات

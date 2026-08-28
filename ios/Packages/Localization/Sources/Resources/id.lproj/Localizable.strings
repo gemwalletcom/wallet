@@ -183,6 +183,7 @@
 "errors.error_occurred" = "Terjadi kesalahan!";
 "errors.invalid_network_id" = "ID Jaringan Tidak Valid";
 "errors.error" = "Kesalahan";
+"errors.cancelled" = "Dibatalkan";
 "errors.connections.user_cancelled" = "Pengguna dibatalkan";
 "errors.not_supported" = "Tidak didukung";
 "errors.permissions_not_granted" = "Izin tidak diberikan";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "Jumlah transaksi minimum adalah %@. Silakan masukkan jumlah yang lebih tinggi.";
 "errors.perpetual.trigger_price_lower" = "Harga pemicu harus lebih rendah dari harga pasar";
 "errors.perpetual.trigger_price_higher" = "Harga pemicu harus lebih tinggi dari harga pasar";
+"errors.network_error" = "Kesalahan jaringan: %@";
 "errors.network_offline" = "Koneksi internet tampaknya sedang offline.";
 "errors.no_internet_connection" = "Tidak ada koneksi internet";
 "errors.no_service_connection" = "Tidak ada koneksi layanan";

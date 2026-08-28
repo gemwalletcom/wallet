@@ -220,6 +220,7 @@ errors_invalid_url = URL batili
 errors_error_occurred = Hitilafu imetokea!
 errors_invalid_network_id = Kitambulisho batili cha Mtandao
 errors_error = Hitilafu
+errors_cancelled = Imeghairiwa
 errors_connections_user_cancelled = Mtumiaji ameghairi
 errors_not_supported = Haitumiki
 errors_permissions_not_granted = Ruhusa Hazijatolewa

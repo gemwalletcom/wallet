@@ -183,6 +183,7 @@
 "errors.error_occurred" = "Đã xảy ra lỗi!";
 "errors.invalid_network_id" = "ID mạng không hợp lệ";
 "errors.error" = "Lỗi";
+"errors.cancelled" = "Đã hủy";
 "errors.connections.user_cancelled" = "Người dùng đã hủy";
 "errors.not_supported" = "Không được hỗ trợ";
 "errors.permissions_not_granted" = "Quyền không được cấp";
@@ -215,6 +216,7 @@
 "errors.swap.minimum_amount" = "Số tiền giao dịch tối thiểu là %@. Vui lòng nhập số tiền lớn hơn.";
 "errors.perpetual.trigger_price_lower" = "Giá kích hoạt phải thấp hơn giá thị trường";
 "errors.perpetual.trigger_price_higher" = "Giá kích hoạt phải cao hơn giá thị trường";
+"errors.network_error" = "Lỗi mạng: %@";
 "errors.network_offline" = "Kết nối Internet dường như đang bị ngắt.";
 "errors.no_internet_connection" = "Không có kết nối internet";
 "errors.no_service_connection" = "Không có kết nối dịch vụ";

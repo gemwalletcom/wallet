@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">אירעה שגיאה!</string>
   <string name="errors_invalid_network_id">מזהה רשת לא חוקי</string>
   <string name="errors_error">שגיאה</string>
+  <string name="errors_cancelled">בוטל</string>
   <string name="errors_connections_user_cancelled">המשתמש ביטל</string>
   <string name="errors_not_supported">לא נתמך</string>
   <string name="errors_permissions_not_granted">הרשאות לא ניתנו</string>

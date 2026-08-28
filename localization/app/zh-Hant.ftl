@@ -220,6 +220,7 @@ errors_invalid_url = 無效的網址
 errors_error_occurred = 出錯了！
 errors_invalid_network_id = 無效的網路ID
 errors_error = 錯誤
+errors_cancelled = 已取消
 errors_connections_user_cancelled = 用戶已取消
 errors_not_supported = 不支援
 errors_permissions_not_granted = 未授予權限

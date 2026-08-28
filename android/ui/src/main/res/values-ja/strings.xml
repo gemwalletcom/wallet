@@ -190,6 +190,7 @@
   <string name="errors_error_occurred">エラーが発生しました！</string>
   <string name="errors_invalid_network_id">無効なネットワークID</string>
   <string name="errors_error">エラー</string>
+  <string name="errors_cancelled">キャンセルされました</string>
   <string name="errors_connections_user_cancelled">ユーザーがキャンセルしました</string>
   <string name="errors_not_supported">サポートされていません</string>
   <string name="errors_permissions_not_granted">許可が得られていません</string>
