@@ -22,6 +22,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemPreferencesService
+import com.gemwallet.android.serializer.toJson
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionRepositoryImpl(
@@ -32,6 +35,8 @@ class SessionRepositoryImpl(
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : SessionRepository {
 
+    private val currencyState = MutableStateFlow(preferencesService.getCurrency().decodeJson<Currency>())
+
     val session = sessionDao.session().flatMapLatest { record ->
         val walletId = record?.walletId ?: return@flatMapLatest flow { emit(null) }
         walletsRepository.getWallet(WalletId(walletId)).mapLatest { wallet ->
@@ -39,6 +44,12 @@ class SessionRepositoryImpl(
         }
     }
     .stateIn(scope, SharingStarted.Eagerly, null)
+
+    init {
+        scope.launch(Dispatchers.IO) {
+            setCurrency(preferencesService.setupCurrency(sessionDao.getCurrency()?.string ?: localeCurrencyCode()).decodeJson())
+        }
+    }
 
     override fun session(): StateFlow<Session?> = session
 
@@ -51,19 +62,19 @@ class SessionRepositoryImpl(
     }
 
     override suspend fun setCurrency(currency: Currency) = withContext(Dispatchers.IO) {
+        preferencesService.setCurrency(currency.toJson())
         sessionDao.setCurrency(currency)
+        currencyState.value = currency
     }
 
     override suspend fun reset() = withContext(Dispatchers.IO) {
         sessionDao.clear()
     }
 
-    override suspend fun getCurrentCurrency(): Currency = withContext(Dispatchers.IO) {
-        sessionDao.getCurrency() ?: defaultCurrency()
-    }
+    override suspend fun getCurrentCurrency(): Currency = currencyState.value
 
-    override fun getCurrency(): Flow<Currency> = session().map { it?.currency ?: defaultCurrency() }
+    override fun getCurrency(): Flow<Currency> = currencyState
 
-    private fun defaultCurrency(): Currency =
-        preferencesService.defaultCurrency(runCatching { java.util.Currency.getInstance(java.util.Locale.getDefault()).currencyCode }.getOrNull()).decodeJson()
+    private fun localeCurrencyCode(): String? =
+        runCatching { java.util.Currency.getInstance(java.util.Locale.getDefault()).currencyCode }.getOrNull()
 }

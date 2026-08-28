@@ -6,7 +6,6 @@ import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletSessionStore
-import java.util.Locale
 
 class GemstoneWalletSessionStore(
     private val sessionDao: SessionDao,
@@ -18,10 +17,7 @@ class GemstoneWalletSessionStore(
     override fun setCurrentWalletId(walletId: String?) {
         val walletId = walletId ?: return sessionDao.clearNow()
         val session = sessionDao.getSession()?.copy(walletId = walletId)
-            ?: DbSession(walletId = walletId, currency = defaultCurrency())
+            ?: DbSession(walletId = walletId, currency = preferencesService.getCurrency().decodeJson<Currency>())
         sessionDao.updateNow(session)
     }
-
-    private fun defaultCurrency(): Currency =
-        preferencesService.defaultCurrency(runCatching { java.util.Currency.getInstance(Locale.getDefault()).currencyCode }.getOrNull()).decodeJson()
 }
