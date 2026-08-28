@@ -6,11 +6,13 @@ import Primitives
 public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
     public var walletId: WalletId
     public var type: TotalValueType
+    public var perpetualAssetId: AssetId
     public var includesPerpetualCollateral: Bool
 
-    public init(walletId: WalletId, type: TotalValueType, includesPerpetualCollateral: Bool = true) {
+    public init(walletId: WalletId, type: TotalValueType, perpetualAssetId: AssetId, includesPerpetualCollateral: Bool = true) {
         self.walletId = walletId
         self.type = type
+        self.perpetualAssetId = perpetualAssetId
         self.includesPerpetualCollateral = includesPerpetualCollateral
     }
 
@@ -43,7 +45,7 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
     }
 
     private func perpetualFiatValue(_ db: Database) throws -> AssetFiatValue {
-        let balance = try PerpetualWalletBalanceRequest(walletId: walletId).fetch(db)
+        let balance = try PerpetualWalletBalanceRequest(walletId: walletId, assetId: perpetualAssetId).fetch(db)
         return AssetFiatValue(amount: balance.total, price: 1, priceChangePercentage24h: 0)
     }
 }

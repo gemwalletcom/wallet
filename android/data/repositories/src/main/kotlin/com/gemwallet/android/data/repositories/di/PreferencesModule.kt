@@ -19,9 +19,12 @@ object PreferencesModule {
 
     @Singleton
     @Provides
-    fun provideGemPreferencesService(@ApplicationContext context: Context): GemPreferencesService = GemPreferencesService(
+    fun provideGemstonePreferencesStore(@ApplicationContext context: Context): GemstonePreferencesStore =
         GemstonePreferencesStore(context.getSharedPreferences("gemstone_preferences", Context.MODE_PRIVATE))
-    )
+
+    @Singleton
+    @Provides
+    fun provideGemPreferencesService(store: GemstonePreferencesStore): GemPreferencesService = GemPreferencesService(store)
 
     @Singleton
     @Provides

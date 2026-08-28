@@ -1,5 +1,7 @@
 import Components
 import Foundation
+import func Gemstone.sortedWallets
+import GemstonePrimitives
 import Localization
 import Preferences
 import Primitives
@@ -28,8 +30,8 @@ public final class WalletsSceneViewModel {
     let pinnedWalletsQuery: ObservableQuery<WalletsRequest>
     let walletsQuery: ObservableQuery<WalletsRequest>
 
-    var pinnedWallets: [Wallet] { pinnedWalletsQuery.value }
-    var wallets: [Wallet] { walletsQuery.value }
+    var pinnedWallets: [Wallet] { Self.sorted(pinnedWalletsQuery.value) }
+    var wallets: [Wallet] { Self.sorted(walletsQuery.value) }
     var hasWallets: Bool { wallets.isNotEmpty || pinnedWallets.isNotEmpty }
 
     public init(
@@ -52,6 +54,10 @@ public final class WalletsSceneViewModel {
 
     var title: String {
         Localized.Wallets.title
+    }
+
+    private static func sorted(_ wallets: [Wallet]) -> [Wallet] {
+        (try? sortedWallets(wallets: wallets.map { try $0.json() }).map { try Wallet($0) }) ?? wallets
     }
 }
 

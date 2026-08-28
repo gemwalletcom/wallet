@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import typealias Gemstone.PriceAlert
 import protocol Gemstone.GemPriceAlertStore
+import typealias Gemstone.PriceAlert
+import func Gemstone.priceAlertId
 import GemstonePrimitives
 import Primitives
 import Store
@@ -20,6 +21,9 @@ public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Senda
     }
 
     public func updatePriceAlerts(alerts: [Gemstone.PriceAlert], deleteIds: [String]) async throws {
-        try store.diffPriceAlerts(deleteIds: deleteIds, alerts: alerts.map { try Primitives.PriceAlert($0) })
+        try store.diffPriceAlerts(
+            deleteIds: deleteIds,
+            alerts: alerts.map { try (id: priceAlertId(alert: $0), alert: Primitives.PriceAlert($0)) },
+        )
     }
 }

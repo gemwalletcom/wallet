@@ -6,6 +6,7 @@ import GemstoneServices
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
+import func Gemstone.stakeSelectableValidators
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -36,7 +37,7 @@ public final class EarnSceneViewModel {
     }
 
     public var providers: [DelegationValidator] {
-        providersQuery.value
+        Self.selectable(providersQuery.value)
     }
 
     public init(
@@ -64,6 +65,10 @@ public final class EarnSceneViewModel {
 
     var title: String {
         Localized.Common.earn
+    }
+
+    private static func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
+        (try? stakeSelectableValidators(validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var assetModel: AssetViewModel {

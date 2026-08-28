@@ -18,6 +18,7 @@ struct MigrationsTests {
             #expect(try! db.tableExists(BalanceRecord.databaseTableName))
             #expect(try! db.tableExists(TransactionRecord.databaseTableName))
             #expect(try! db.tableExists(NodeRecord.databaseTableName))
+            #expect(!(try! db.tableExists("nodes_selected")))
             #expect(try! db.tableExists(BannerRecord.databaseTableName))
             #expect(try! db.tableExists(NFTCollectionRecord.databaseTableName))
         }
@@ -25,13 +26,21 @@ struct MigrationsTests {
 
     @Test
     func runChanges() throws {
-        let db = DB.mock()
+        let dbQueue = try DatabaseQueue()
         var migrations = Migrations()
 
-        try migrations.run(dbQueue: db.dbQueue)
-        try migrations.runChanges(dbQueue: db.dbQueue)
+        try migrations.run(dbQueue: dbQueue)
+        try dbQueue.write { db in
+            try db.create(table: "nodes_selected") {
+                $0.column("chain", .text)
+            }
+            try db.create(table: "nodes_selected_v1") {
+                $0.column("chain", .text)
+            }
+        }
+        try migrations.runChanges(dbQueue: dbQueue)
 
-        try db.dbQueue.read { db in
+        try dbQueue.read { db in
             let walletColumns = try db.columns(in: WalletRecord.databaseTableName)
             #expect(walletColumns.contains(where: { $0.name == WalletRecord.Columns.isPinned.name }))
 
@@ -59,6 +68,8 @@ struct MigrationsTests {
             #expect(try! db.tableExists(SearchRecord.databaseTableName))
             #expect(try! db.tableExists(FiatRateRecord.databaseTableName))
             #expect(try! db.tableExists(AddressRecord.databaseTableName))
+            #expect(!(try! db.tableExists("nodes_selected")))
+            #expect(!(try! db.tableExists("nodes_selected_v1")))
         }
     }
 }

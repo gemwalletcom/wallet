@@ -8,6 +8,7 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import func Gemstone.stakeCanClaimRewards
 import func Gemstone.stakeRequiresFrozenBalance
+import func Gemstone.stakeSelectableValidators
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -40,7 +41,7 @@ public final class StakeSceneViewModel {
     }
 
     public var validators: [DelegationValidator] {
-        validatorsQuery.value
+        Self.selectable(validatorsQuery.value)
     }
 
     public var assetData: AssetData {
@@ -72,6 +73,10 @@ public final class StakeSceneViewModel {
 
     var title: String {
         Localized.Transfer.Stake.title
+    }
+
+    private static func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
+        (try? stakeSelectableValidators(validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var stakeTitle: String {

@@ -29,6 +29,18 @@ pub fn chain_node(chain: Chain, selected_url: Option<String>, stored_nodes: Vec<
     selected_node(selected_url, merge_nodes(default_nodes(chain), stored_nodes), region_node(chain, NodeRegion::Us))
 }
 
+pub fn preferred_chain_node(chain: Chain, selected_url: Option<String>) -> Node {
+    let nodes = default_nodes(chain);
+    match selected_url {
+        Some(url) => nodes.into_iter().find(|node| node.url == url).unwrap_or(Node {
+            url,
+            status: NodeState::Active,
+            priority: 0,
+        }),
+        None => region_node(chain, NodeRegion::Us),
+    }
+}
+
 pub fn region_node(chain: Chain, region: NodeRegion) -> Node {
     Node {
         url: region.url(chain),
@@ -93,6 +105,15 @@ mod tests {
         assert_eq!(chain_node(chain, None, vec![]).url, NodeRegion::Us.url(chain));
         assert_eq!(chain_node(chain, Some("https://custom".to_string()), vec![node("https://custom", 1)]).url, "https://custom");
         assert!(default_nodes(chain).iter().any(|node| node.url == NodeRegion::Eu.url(chain)));
+    }
+
+    #[test]
+    fn test_preferred_chain_node_uses_persisted_custom_url_without_stored_nodes() {
+        let chain = Chain::Ethereum;
+        let selected = preferred_chain_node(chain, Some("https://custom".to_string()));
+
+        assert_eq!(selected.url, "https://custom");
+        assert_eq!(preferred_chain_node(chain, None).url, NodeRegion::Us.url(chain));
     }
 
     #[test]

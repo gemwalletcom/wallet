@@ -80,6 +80,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             AssetFiatValuesRequest(
                 walletId: wallet.id,
                 type: .wallet,
+                perpetualAssetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
                 includesPerpetualCollateral: walletPreferencesService.includesPerpetualCollateral(walletId: wallet.id.id),
             ),
             initialValue: [],

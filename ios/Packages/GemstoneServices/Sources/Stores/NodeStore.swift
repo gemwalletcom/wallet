@@ -8,7 +8,7 @@ import GemstonePrimitives
 import Primitives
 import Store
 
-public final class GemstoneNodeStore: GemNodeStore, @unchecked Sendable {
+public final class GemstoneNodeStore: GemNodeStore, Sendable {
     private let store: NodeStore
 
     public init(store: NodeStore) {
@@ -25,17 +25,5 @@ public final class GemstoneNodeStore: GemNodeStore, @unchecked Sendable {
 
     public func deleteNode(chain: Gemstone.Chain, url: String) async throws {
         try store.deleteNode(chain: Primitives.Chain(id: chain), url: url)
-    }
-
-    public func getSelectedUrl(chain: Gemstone.Chain) async throws -> String? {
-        try store.selectedNodeUrl(chain: Primitives.Chain(id: chain))
-    }
-
-    public func setSelectedUrl(chain: Gemstone.Chain, url: String) async throws {
-        try store.setNodeSelected(chain: Primitives.Chain(id: chain), url: url)
-    }
-
-    public func deleteSelectedUrl(chain: Gemstone.Chain) async throws {
-        try store.deleteNodeSelected(chain: Primitives.Chain(id: chain))
     }
 }

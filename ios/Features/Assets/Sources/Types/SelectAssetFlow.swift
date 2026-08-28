@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.assetActionFilters
+import enum Gemstone.GemAssetAction
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -60,6 +62,21 @@ public struct SelectAssetFlow: Sendable {
         self.rowSelection = rowSelection
         self.selectionEffect = selectionEffect
         self.capabilities = capabilities
+    }
+}
+
+private extension [AssetsRequestFilter] {
+    static func filters(for action: GemAssetAction) -> [AssetsRequestFilter] {
+        assetActionFilters(action: action).map { filter in
+            switch filter {
+            case .enabled: .enabled
+            case .buyable: .buyable
+            case .sellable: .sellable
+            case .swappable: .swappable
+            case .hasBalance: .hasBalance
+            case .hasAvailableBalance: .hasAvailableBalance
+            }
+        }
     }
 }
 

@@ -87,7 +87,14 @@ public final class PerpetualSceneViewModel {
 
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
         perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
-        perpetualFiatValuesQuery = ObservableQuery(AssetFiatValuesRequest(walletId: wallet.id, type: .perpetual), initialValue: [])
+        perpetualFiatValuesQuery = ObservableQuery(
+            AssetFiatValuesRequest(
+                walletId: wallet.id,
+                type: .perpetual,
+                perpetualAssetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
+            ),
+            initialValue: [],
+        )
         transactionsQuery = ObservableQuery(
             TransactionsRequest.perpetualScene(
                 walletId: wallet.id,

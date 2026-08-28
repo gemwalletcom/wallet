@@ -33,10 +33,7 @@ struct ServicesFactory {
         let preferencesStore = GemstonePreferencesStore.application()
         let preferencesService = Gemstone.GemPreferencesService(store: preferencesStore)
         let observablePreferences = ObservablePreferences(preferencesService: preferencesService)
-        let nodeService = NodeService(
-            nodeStore: storeManager.nodeStore,
-            service: GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore)),
-        )
+        let nodeService = GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore), preferences: preferencesStore)
         let nativeProvider = NativeProvider(nodeProvider: nodeService)
         let deviceKeyService = Gemstone.GemDeviceKeyService(store: GemstoneSecurePreferencesStore(namespace: "gateway"))
         let devicePrivateKey: Data

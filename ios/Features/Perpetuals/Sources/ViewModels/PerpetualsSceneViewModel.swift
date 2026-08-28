@@ -66,7 +66,10 @@ final class PerpetualsSceneViewModel {
         self.onSelectPortfolio = onSelectPortfolio
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, searchQuery: ""), initialValue: [])
         perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
-        walletBalanceQuery = ObservableQuery(PerpetualWalletBalanceRequest(walletId: wallet.id), initialValue: .zero)
+        walletBalanceQuery = ObservableQuery(
+            PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
+            initialValue: .zero,
+        )
         recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], recentActivityStore: recentActivityStore)
     }
 

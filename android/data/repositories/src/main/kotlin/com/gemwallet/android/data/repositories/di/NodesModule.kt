@@ -1,22 +1,21 @@
 package com.gemwallet.android.data.repositories.di
 
-import android.content.Context
 import com.gemwallet.android.cases.nodes.AddNodeCase
 import com.gemwallet.android.cases.nodes.DeleteNodeCase
 import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
-import com.gemwallet.android.data.repositories.gemstone.GemstoneNodeStore
-import com.gemwallet.android.data.repositories.nodes.NodesRepository
-import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.data.repositories.gemstone.GemstonePreferencesStore
 import com.gemwallet.android.data.service.store.database.NodesDao
+import com.gemwallet.android.serializer.decodeJson
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Node
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Named
+import kotlinx.coroutines.flow.flowOf
 import javax.inject.Singleton
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemNodeService
@@ -31,44 +30,62 @@ object NodesModule {
 
     @Provides
     @Singleton
-    @Named("node")
-    fun provideNodeConfigStore(@ApplicationContext context: Context): ConfigStore = ConfigStore(
-        context.getSharedPreferences("node-config", Context.MODE_PRIVATE)
-    )
-
-    @Provides
-    @Singleton
-    fun provideNodeStore(
+    fun provideNodeService(
         nodesDao: NodesDao,
-        @Named("node") configStore: ConfigStore,
-    ): GemstoneNodeStore = GemstoneNodeStore(nodesDao, configStore)
+        preferences: GemstonePreferencesStore,
+    ): GemNodeService = GemNodeService(nodesDao, preferences)
 
     @Provides
-    @Singleton
-    fun provideNodeService(nodeStore: GemstoneNodeStore): GemNodeService = GemNodeService(nodeStore)
-
-    @Provides
-    @Singleton
-    fun provideNodesRepository(
+    fun provideSetCurrentNodeCase(
         nodeService: GemNodeService,
-        nodeStore: GemstoneNodeStore,
-    ): NodesRepository = NodesRepository(nodeService = nodeService, nodeStore = nodeStore)
+    ): SetCurrentNodeCase = object : SetCurrentNodeCase {
+        override suspend fun setCurrentNode(chain: Chain, node: Node) =
+            nodeService.selectNode(chain.string, node.url)
+    }
 
     @Provides
-    fun provideSetCurrentNodeCase(repository: NodesRepository): SetCurrentNodeCase = repository
+    fun provideGetCurrentNodeCase(
+        nodeService: GemNodeService,
+    ): GetCurrentNodeCase = object : GetCurrentNodeCase {
+        override fun getCurrentNode(chain: Chain) =
+            nodeService.selectedNode(chain.string).decodeJson<Node>()
+    }
 
     @Provides
-    fun provideGetCurrentNodeCase(repository: NodesRepository): GetCurrentNodeCase = repository
+    fun provideGetNodeUrlCase(
+        nodeService: GemNodeService,
+    ): GetNodeUrlCase = object : GetNodeUrlCase {
+        override fun getNodeUrl(chain: Chain) = nodeService.nodeUrl(chain.string)
+    }
 
     @Provides
-    fun provideGetNodeUrlCase(repository: NodesRepository): GetNodeUrlCase = repository
+    fun provideGetNodesCase(
+        nodeService: GemNodeService,
+    ): GetNodesCase = object : GetNodesCase {
+        override suspend fun getNodes(chain: Chain) = flowOf(
+            nodeService.sortedNodes(chain.string, nodeService.getNodes(chain.string)).map { it.decodeJson<Node>() },
+        )
+
+        override fun canDeleteNode(chain: Chain, url: String) =
+            nodeService.canDeleteNode(chain.string, url)
+
+        override fun getDefaultNodes(chain: Chain) =
+            nodeService.getDefaultNodes(chain.string).map { it.decodeJson<Node>() }
+    }
 
     @Provides
-    fun provideGetNodesCase(repository: NodesRepository): GetNodesCase = repository
+    fun provideAddNodeCase(
+        nodeService: GemNodeService,
+    ): AddNodeCase = object : AddNodeCase {
+        override suspend fun addNode(chain: Chain, url: String) =
+            nodeService.addNode(chain.string, url)
+    }
 
     @Provides
-    fun provideAddNodeCase(repository: NodesRepository): AddNodeCase = repository
-
-    @Provides
-    fun provideDeleteNodeCase(repository: NodesRepository): DeleteNodeCase = repository
+    fun provideDeleteNodeCase(
+        nodeService: GemNodeService,
+    ): DeleteNodeCase = object : DeleteNodeCase {
+        override suspend fun deleteNode(chain: Chain, node: Node) =
+            nodeService.deleteNode(chain.string, node.url)
+    }
 }

@@ -1,20 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GRDB
-import GemstonePrimitives
 import Primitives
 
 public struct PerpetualWalletBalanceRequest: DatabaseQueryable, Equatable {
     private let walletId: WalletId
+    private let assetId: AssetId
 
-    public init(walletId: WalletId) {
+    public init(walletId: WalletId, assetId: AssetId) {
         self.walletId = walletId
+        self.assetId = assetId
     }
 
     public func fetch(_ db: Database) throws -> WalletBalance {
         let balance = try BalanceRecord
             .filter(BalanceRecord.Columns.walletId == walletId.id)
-            .filter(BalanceRecord.Columns.assetId == Self.collateralAssetId)
+            .filter(BalanceRecord.Columns.assetId == assetId.identifier)
             .fetchOne(db)
         guard let balance else { return .zero }
         return WalletBalance.perpetual(
@@ -22,6 +23,4 @@ public struct PerpetualWalletBalanceRequest: DatabaseQueryable, Equatable {
             reserved: balance.reservedAmount,
         )
     }
-
-    private static let collateralAssetId = Chain.hyperCore.defaultAsset(type: .perpetual).id.identifier
 }

@@ -57,7 +57,7 @@ extension PriceAlertRecord {
 }
 
 extension PriceAlert {
-    func mapToRecord() -> PriceAlertRecord {
+    func mapToRecord(id: String) -> PriceAlertRecord {
         PriceAlertRecord(
             id: id,
             assetId: assetId,

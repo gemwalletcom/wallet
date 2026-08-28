@@ -1,8 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
+import class Gemstone.GemNodeService
+import GemstonePrimitives
 import GemstoneServices
+import Localization
 import Primitives
 import PrimitivesComponents
 import Style
@@ -12,7 +14,7 @@ import Validators
 @MainActor
 @Observable
 final class AddNodeSceneViewModel {
-    private let nodeService: NodeService
+    private let nodeService: GemNodeService
     private let chainServiceFactory: ChainServiceFactory
 
     let chain: Chain
@@ -23,7 +25,7 @@ final class AddNodeSceneViewModel {
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
 
-    init(chain: Chain, nodeService: NodeService, chainServiceFactory: ChainServiceFactory) {
+    init(chain: Chain, nodeService: GemNodeService, chainServiceFactory: ChainServiceFactory) {
         self.chain = chain
         self.nodeService = nodeService
         self.chainServiceFactory = chainServiceFactory
@@ -94,7 +96,7 @@ extension AddNodeSceneViewModel {
         }
 
         // TODO: - implement disable after user selects "import node button", we can't use state: StateViewType<ImportNodeResult> progress
-        try await nodeService.addNode(chain: chain, url: model.url.absoluteString)
+        try await nodeService.addNode(chain: chain.rawValue, url: model.url.absoluteString)
 
         // TODO: - implement correct way of selection node
         /*
@@ -114,7 +116,7 @@ extension AddNodeSceneViewModel {
 
         do {
             let nodeStatus = try await service.getNodeStatus(url: urlInputModel.text)
-            guard NodeService.isValid(networkId: nodeStatus.chainId, for: chain) else {
+            guard ChainConfig.config(chain: chain).networkId == nodeStatus.chainId else {
                 throw AddNodeError.invalidNetworkId
             }
 

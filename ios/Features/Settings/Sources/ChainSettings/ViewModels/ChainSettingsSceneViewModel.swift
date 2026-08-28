@@ -1,10 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemExplorerServiceProtocol
 import Formatters
 import Foundation
-import Localization
+import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemNodeService
+import GemstonePrimitives
 import GemstoneServices
+import Localization
 import Primitives
 
 @Observable
@@ -12,7 +14,7 @@ import Primitives
 public final class ChainSettingsSceneViewModel {
     private let explorerService: any GemExplorerServiceProtocol
 
-    let nodeService: NodeService
+    let nodeService: GemNodeService
     let chainServiceFactory: ChainServiceFactory
     let chain: Chain
 
@@ -28,7 +30,7 @@ public final class ChainSettingsSceneViewModel {
     private var statusStateByNodeId: [String: NodeStatusState] = [:]
 
     public init(
-        nodeService: NodeService,
+        nodeService: GemNodeService,
         chainServiceFactory: ChainServiceFactory,
         explorerService: any GemExplorerServiceProtocol,
         chain: Chain,
@@ -75,7 +77,7 @@ public final class ChainSettingsSceneViewModel {
     }
 
     func canDelete(node: ChainNode) -> Bool {
-        nodeService.canDelete(chain: chain, url: node.node.url)
+        nodeService.canDeleteNode(chain: chain.rawValue, url: node.node.url)
     }
 }
 
@@ -86,7 +88,7 @@ extension ChainSettingsSceneViewModel {
         do {
             clear()
             try await loadNodes()
-            selectedNode = try nodeService.getNodeSelected(chain: chain)
+            selectedNode = try currentNode()
             await loadNodesStates()
         } catch {
             // TODO: - handle error
@@ -107,7 +109,7 @@ extension ChainSettingsSceneViewModel {
         selectedNode = node
         Task {
             do {
-                try await nodeService.setNodeSelected(chain: chain, node: node.node)
+                try await nodeService.selectNode(chain: chain.rawValue, url: node.node.url)
             } catch {
                 // TODO: - handle error
                 debugLog("chain settings scene: on chain select error \(error)")
@@ -146,7 +148,8 @@ extension ChainSettingsSceneViewModel {
 
 extension ChainSettingsSceneViewModel {
     private func loadNodes() async throws {
-        nodes = try await nodeService.nodes(for: chain)
+        nodes = try await nodeService.sortedNodes(chain: chain.rawValue, nodes: nodeService.getNodes(chain: chain.rawValue))
+            .map { try ChainNode(chain: chain.rawValue, node: Primitives.Node($0)) }
     }
 
     private func clear() {
@@ -169,9 +172,13 @@ extension ChainSettingsSceneViewModel {
 
     private func delete() async throws {
         guard let nodeDelete else { return }
-        try await nodeService.delete(chain: chain, node: nodeDelete.node)
-        selectedNode = try nodeService.getNodeSelected(chain: chain)
+        try await nodeService.deleteNode(chain: chain.rawValue, url: nodeDelete.node.url)
+        selectedNode = try currentNode()
         try await loadNodes()
+    }
+
+    private func currentNode() throws -> ChainNode {
+        try ChainNode(chain: chain.rawValue, node: Primitives.Node(nodeService.selectedNode(chain: chain.rawValue)))
     }
 
     private func loadNodeStatusState(for node: ChainNode) async -> NodeStatusState {
