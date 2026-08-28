@@ -18,6 +18,7 @@ import com.gemwallet.android.data.repositories.stream.WebSocketConnection
 import com.gemwallet.android.data.repositories.stream.WebSocketRequest
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.runBlocking
 import uniffi.gemstone.GemDeviceRequestSigner
@@ -95,11 +96,12 @@ object AssetsModule {
         priceService: GemPriceService,
         streamSubscriptionService: GemStreamSubscriptionService,
         preferencesService: GemPreferencesService,
+        transactionRunner: StoreTransactionRunner,
     ): GemBalanceService = GemBalanceService(
         gateway,
         walletStore,
         assetStore,
-        GemstoneBalanceStore(balancesDao, assetsDao),
+        GemstoneBalanceStore(balancesDao, assetsDao, transactionRunner),
         assetsService,
         priceService,
         streamSubscriptionService,

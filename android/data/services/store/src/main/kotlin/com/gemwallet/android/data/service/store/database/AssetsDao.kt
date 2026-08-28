@@ -141,6 +141,11 @@ interface AssetsDao {
     )
 
     @Transaction
+    suspend fun setWalletAssetsVisibility(walletId: String, assetIds: List<String>, isVisible: Boolean) {
+        assetIds.forEach { setWalletAssetVisibility(walletId, it, isVisible) }
+    }
+
+    @Transaction
     suspend fun setWalletAssetVisibility(
         walletId: String,
         assetId: String,

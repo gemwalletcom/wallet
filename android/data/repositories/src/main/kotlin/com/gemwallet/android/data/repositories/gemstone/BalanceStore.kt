@@ -1,12 +1,10 @@
 package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.service.store.database.BalancesDao
-import kotlinx.coroutines.flow.first
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.BalanceMetadata
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemBalanceStore
 import uniffi.gemstone.GemBalanceUpdate
 import uniffi.gemstone.GemBalanceUpdateType
@@ -14,21 +12,21 @@ import uniffi.gemstone.GemBalanceUpdateType
 class GemstoneBalanceStore(
     private val balancesDao: BalancesDao,
     private val assetsDao: AssetsDao,
+    private val transactionRunner: StoreTransactionRunner,
 ) : GemBalanceStore {
 
     override suspend fun getEnabledAssetIds(walletId: String, assetIds: List<String>): List<String> =
-        assetsDao.getAssetsInfo(walletId, assetIds).first().filter { it.visible == true }.map { it.id }
+        balancesDao.getVisibleAssetIds(walletId, assetIds)
 
-    override suspend fun setAssetsEnabled(walletId: String, assetIds: List<String>, enabled: Boolean) {
-        assetIds.forEach { assetsDao.setWalletAssetVisibility(walletId, it, enabled) }
-    }
+    override suspend fun setAssetsEnabled(walletId: String, assetIds: List<String>, enabled: Boolean) =
+        assetsDao.setWalletAssetsVisibility(walletId, assetIds, enabled)
 
     override suspend fun setAssetPinned(walletId: String, assetId: String, pinned: Boolean) {
         val balance = assetsDao.getBalance(walletId, assetId) ?: return
         assetsDao.setBalanceConfig(walletId, assetId, isPinned = pinned, isVisible = balance.isVisible, listPosition = balance.listPosition)
     }
 
-    override suspend fun updateBalances(walletId: String, updates: List<GemBalanceUpdate>) = withContext(Dispatchers.IO) {
+    override suspend fun updateBalances(walletId: String, updates: List<GemBalanceUpdate>) = transactionRunner.run {
         val updatedAt = System.currentTimeMillis()
         for (update in updates) {
             when (val type = update.updateType) {

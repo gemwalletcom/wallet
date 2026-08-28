@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.gemstone
 
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
+import com.gemwallet.android.data.service.store.database.mockStoreTransactionRunner
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
@@ -13,7 +14,7 @@ import uniffi.gemstone.GemBalanceValue
 class GemstoneBalanceStoreTest {
 
     private val balancesDao = mockk<BalancesDao>(relaxed = true)
-    private val subject = GemstoneBalanceStore(balancesDao, mockk<AssetsDao>(relaxed = true))
+    private val subject = GemstoneBalanceStore(balancesDao, mockk<AssetsDao>(relaxed = true), mockStoreTransactionRunner())
 
     @Test
     fun tokenUpdateWritesBalanceWithoutCreatingRows() = runTest {
