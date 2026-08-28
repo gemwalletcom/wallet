@@ -120,7 +120,7 @@ impl GemWalletService {
         if let Some(image_url) = wallet.image_url.clone() {
             self.files.remove(image_url)?;
         }
-        self.preferences.clear(wallet.id.clone())?;
+        self.preferences.delete_preferences(wallet.id.clone())?;
         let remaining = self.store.get_wallets()?;
         if self.session.get_current_wallet_id()? == Some(wallet.id) {
             self.session.set_current_wallet_id(rules::next_current_wallet(&remaining))?;
@@ -160,7 +160,7 @@ impl GemWalletService {
     }
 
     pub async fn rename(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError> {
-        self.store.rename(wallet_id, name).await
+        self.store.set_name(wallet_id, name).await
     }
 }
 

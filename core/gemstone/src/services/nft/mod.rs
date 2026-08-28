@@ -26,12 +26,12 @@ impl GemNftService {
     pub async fn sync(&self, wallet_id: WalletId) -> Result<u32, GemServiceError> {
         let data = self.api.client.get_nft_assets(wallet_id.id()).await.map_err(GemApiError::from)?;
         let count = data.len() as u32;
-        self.store.save(wallet_id, data).await?;
+        self.store.save_nfts(wallet_id, data).await?;
         Ok(count)
     }
 
     pub async fn ensure_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, GemServiceError> {
-        cached_or_fetched(self.store.as_ref(), asset_id.clone(), async move {
+        cached_or_loaded(self.store.as_ref(), asset_id.clone(), async move {
             Ok(self.api.client.get_nft_asset(asset_id).await.map_err(GemApiError::from)?)
         })
         .await
@@ -48,14 +48,14 @@ impl GemNftService {
     }
 }
 
-async fn cached_or_fetched<F>(store: &dyn GemNftStore, asset_id: NFTAssetId, fetch: F) -> Result<NFTAssetData, GemServiceError>
+async fn cached_or_loaded<F>(store: &dyn GemNftStore, asset_id: NFTAssetId, load: F) -> Result<NFTAssetData, GemServiceError>
 where
     F: Future<Output = Result<NFTAssetData, GemServiceError>>,
 {
     if let Some(data) = store.get_asset_data(asset_id).await? {
         return Ok(data);
     }
-    let data = fetch.await?;
+    let data = load.await?;
     store.save_asset(data.clone()).await?;
     Ok(data)
 }
@@ -74,7 +74,7 @@ mod tests {
 
     #[async_trait::async_trait]
     impl GemNftStore for MemoryStore {
-        async fn save(&self, _wallet_id: WalletId, _data: Vec<primitives::NFTData>) -> Result<(), GemServiceError> {
+        async fn save_nfts(&self, _wallet_id: WalletId, _data: Vec<primitives::NFTData>) -> Result<(), GemServiceError> {
             Ok(())
         }
         async fn get_asset_data(&self, _asset_id: NFTAssetId) -> Result<Option<NFTAssetData>, GemServiceError> {
@@ -135,7 +135,7 @@ mod tests {
         };
         let fetched = Mutex::new(false);
 
-        let data = futures::executor::block_on(cached_or_fetched(&store, asset_data("cached").asset.id, async {
+        let data = futures::executor::block_on(cached_or_loaded(&store, asset_data("cached").asset.id, async {
             *fetched.lock().unwrap() = true;
             Ok(asset_data("remote"))
         }))
@@ -150,7 +150,7 @@ mod tests {
     fn test_missing_asset_is_fetched_and_added() {
         let store = MemoryStore::default();
 
-        let data = futures::executor::block_on(cached_or_fetched(&store, asset_data("remote").asset.id, async { Ok(asset_data("remote")) })).unwrap();
+        let data = futures::executor::block_on(cached_or_loaded(&store, asset_data("remote").asset.id, async { Ok(asset_data("remote")) })).unwrap();
 
         assert_eq!(data.collection.name, "remote");
         assert_eq!(store.added.lock().unwrap().len(), 1);

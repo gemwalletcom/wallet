@@ -21,7 +21,7 @@ public final class GemstoneSupportStore: GemSupportStore, @unchecked Sendable {
         try store.addMessages(messages.map { try Primitives.SupportMessage($0) })
     }
 
-    public func replaceMessage(id: String, message: Gemstone.SupportMessage) async throws {
+    public func saveMessage(id: String, message: Gemstone.SupportMessage) async throws {
         try store.replace(id: id, with: Primitives.SupportMessage(message))
     }
 

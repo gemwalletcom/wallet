@@ -11,5 +11,5 @@ pub trait GemNodeStore: Send + Sync {
     async fn delete_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError>;
     async fn get_selected_url(&self, chain: Chain) -> Result<Option<String>, GemServiceError>;
     async fn set_selected_url(&self, chain: Chain, url: String) -> Result<(), GemServiceError>;
-    async fn clear_selected_url(&self, chain: Chain) -> Result<(), GemServiceError>;
+    async fn delete_selected_url(&self, chain: Chain) -> Result<(), GemServiceError>;
 }

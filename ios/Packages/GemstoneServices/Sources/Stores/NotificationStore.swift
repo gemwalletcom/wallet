@@ -14,7 +14,7 @@ public final class GemstoneNotificationStore: GemNotificationStore, @unchecked S
         self.store = store
     }
 
-    public func save(notifications: [Gemstone.InAppNotification]) async throws {
+    public func saveNotifications(notifications: [Gemstone.InAppNotification]) async throws {
         try store.addNotifications(notifications.map { try Primitives.InAppNotification($0) })
     }
 }

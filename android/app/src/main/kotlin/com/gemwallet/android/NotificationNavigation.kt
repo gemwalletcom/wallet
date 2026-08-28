@@ -2,7 +2,7 @@ package com.gemwallet.android
 
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
+import com.gemwallet.android.application.assets.coordinators.SyncMissingAssets
 import com.gemwallet.android.cases.parseNotificationData
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -33,7 +33,7 @@ class NotificationNavigation @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val walletsRepository: WalletsRepository,
     private val createTransaction: CreateTransaction,
-    private val prefetchAssets: PrefetchAssets,
+    private val syncMissingAssets: SyncMissingAssets,
     private val assetsService: GemAssetsService,
 ) {
     suspend fun prepareNavigation(intent: Intent): List<NavKey> {
@@ -68,7 +68,7 @@ class NotificationNavigation @Inject constructor(
     }
 
     private suspend fun prepareAssets(vararg assetIds: AssetId) {
-        prefetchAssets.prefetchAssets(assetIds.toList())
+        syncMissingAssets.syncMissingAssets(assetIds.toList())
     }
 
     private suspend fun prepareAssetRoutes(walletId: WalletId, assetId: AssetId): List<NavKey> {

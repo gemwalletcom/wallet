@@ -138,7 +138,6 @@ State on 2026-08-28: every app service forwards to a Core service or is platform
 
 ### Rust (core/gemstone)
 
-- Store naming vs the conventions below: `price_alert::update` → `update_price_alerts`; bare `save` in `nft`/`notification`/`file`; `wallet::rename` → `set_name`; `support::replace_message` → `save_message`; `clear` → `delete_*` (`perpetual`, `wallet_preferences`, `node::clear_selected_url`); `set_*` misused for bulk cache writes (`assets::set_*_assets`, `search::set_*`, `balance::set_enabled`) — decide `save_*` vs `set_*` and rename; `add_*` is undocumented (`assets`, `banner`, `node`, `wallet`); `device::is_registered` → `get_is_registered` or document boolean reads; `nft::cached_or_fetched`, `assets::prefetch_assets` use the banned `fetch` vocabulary; `preferences::is_price_alerts_enabled` vs `price_alert::is_enabled`.
 - `WalletConnect` object is still constructed by the apps for CAIP-2 parsing, origin validation and session properties (iOS `WalletConnectorService`, `Chain+WalletConnect`; Android `Namespace.kt`, `Session.kt`, `WalletConnectOriginVerifier`) — expose those through `GemWalletConnectService` and drop the object export.
 - One-sided exports to reconcile (either both apps use them or they stop being exports): `assets::sync_availability`, `wallet_connect::authentication_chain_ids`, `node::selected_node` (Android-only); `price::get_markets`, `price_alert::add_price_alerts`, `nft::report`, `wallet_preferences::reset_transactions_timestamp`/`is_initial_load_completed` (iOS-only).
 - Perpetual math into Core: iOS `PerpetualOrderFactory` (order size/margin/slippage direction, `slippage = 2.0` default) and the funding-APR formula duplicated in iOS `PerpetualViewModel` and Android `GetPerpetualImpl` (`24 * 365`); leverage option filtering (`AmountPerpetualViewModel`/`AmountPerpetualProvider`).
@@ -184,5 +183,5 @@ State on 2026-08-28: every app service forwards to a Core service or is platform
 ## Conventions
 
 - Identifiers cross the FFI typed: `WalletId`, `AssetId`, `Chain`, `NFTAssetId`, `Currency`; store row ids stay `String`.
-- Store methods: `get_*` reads, `set_*` preferences, `save_*` upserts, `update_<items>(…, items, delete_ids)` for reconcile writes, `delete_*` removals.
+- Store methods: `get_*` reads, `is_*` boolean reads, `set_*` preferences and stored flags or sets (`set_buyable_assets`, `set_assets_enabled`, `search::set_assets`), `save_*` upserts, `add_*` inserts that must not overwrite existing rows, `update_<items>(…, items, delete_ids)` for reconcile writes, `delete_*` removals, and `clear*` for wiping a whole scope (`preferences::clear`, `support::clear_typing`).
 - Rules live in `rules.rs` with unit tests; `primitives` types stay policy-free.

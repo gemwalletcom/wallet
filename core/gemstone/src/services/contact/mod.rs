@@ -54,7 +54,7 @@ impl GemContactService {
     }
 
     pub fn save_avatar(&self, image: Vec<u8>) -> Result<String, GemServiceError> {
-        self.files.save(image, AVATAR_EXTENSION.to_string())
+        self.files.save_file(image, AVATAR_EXTENSION.to_string())
     }
 
     pub fn remove_avatar(&self, file_name: String) -> Result<(), GemServiceError> {

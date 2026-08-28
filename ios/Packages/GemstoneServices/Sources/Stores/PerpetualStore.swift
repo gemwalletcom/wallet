@@ -31,7 +31,7 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         try store.setPinned(for: perpetualIds, value: pinned)
     }
 
-    public func clear() async throws {
+    public func deletePerpetuals() async throws {
         try store.clear()
         try balanceStore.deleteBalance(assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id)
     }

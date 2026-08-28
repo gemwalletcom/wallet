@@ -26,7 +26,7 @@ pub struct GemPriceAlertService {
 impl GemPriceAlertService {
     pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
         self.api.client.add_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
-        self.store.update(alerts, Vec::new()).await
+        self.store.update_price_alerts(alerts, Vec::new()).await
     }
 
     #[uniffi::constructor]
@@ -82,12 +82,12 @@ impl GemPriceAlertService {
         if changes.delete_ids.is_empty() && changes.alerts.is_empty() {
             return Ok(());
         }
-        self.store.update(changes.alerts, changes.delete_ids).await
+        self.store.update_price_alerts(changes.alerts, changes.delete_ids).await
     }
 
     pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
         self.api.client.delete_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
-        self.store.update(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await
+        self.store.update_price_alerts(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await
     }
 }
 

@@ -21,7 +21,7 @@ import com.gemwallet.android.application.banner.coordinators.ApplyBannerAction
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
+import com.gemwallet.android.application.assets.coordinators.SyncMissingAssets
 import com.gemwallet.android.application.assets.coordinators.SetChartPeriod
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
@@ -49,7 +49,7 @@ import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
 import com.gemwallet.android.data.coordinators.asset.DeviceAssetsSyncService
 import com.gemwallet.android.data.coordinators.asset.HideAssetImpl
 import com.gemwallet.android.data.coordinators.asset.HideWelcomeBannerImpl
-import com.gemwallet.android.data.coordinators.asset.PrefetchAssetsImpl
+import com.gemwallet.android.data.coordinators.asset.SyncMissingAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.SetChartPeriodImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
@@ -165,9 +165,9 @@ object AssetModule {
 
     @Provides
     @Singleton
-    fun providePrefetchAssets(
+    fun provideSyncMissingAssets(
         assetsService: GemAssetsService,
-    ): PrefetchAssets = PrefetchAssetsImpl(
+    ): SyncMissingAssets = SyncMissingAssetsImpl(
         assetsService = assetsService,
     )
 
@@ -183,13 +183,13 @@ object AssetModule {
         assetsService: GemAssetsService,
         balanceService: GemBalanceService,
         streamSubscriptionService: GemStreamSubscriptionService,
-        prefetchAssets: PrefetchAssets,
+        syncMissingAssets: SyncMissingAssets,
         sessionRepository: SessionRepository,
     ): SyncAssetInfo = SyncAssetInfoImpl(
         assetsService = assetsService,
         balanceService = balanceService,
         streamSubscriptionService = streamSubscriptionService,
-        prefetchAssets = prefetchAssets,
+        syncMissingAssets = syncMissingAssets,
         sessionRepository = sessionRepository,
     )
 

@@ -52,7 +52,7 @@ impl GemTransactionsService {
             .await
             .map_err(GemApiError::from)?;
 
-        let new_asset_ids = self.assets.prefetch_assets(rules::transaction_asset_ids(&response.transactions)).await?;
+        let new_asset_ids = self.assets.sync_missing_assets(rules::transaction_asset_ids(&response.transactions)).await?;
         if !new_asset_ids.is_empty() {
             self.assets.add_missing_balances(wallet_id.clone(), new_asset_ids).await?;
         }

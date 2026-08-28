@@ -112,7 +112,7 @@ impl GemPerpetualService {
     }
 
     pub async fn clear_markets(&self) -> Result<(), GemServiceError> {
-        self.store.clear().await?;
+        self.store.delete_perpetuals().await?;
         self.preferences.set_perpetual_markets_updated_at(None)
     }
 

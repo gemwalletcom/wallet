@@ -22,7 +22,7 @@ public extension GemWalletPreferencesServiceProtocol {
         try resetTransactionsTimestamp(walletId: walletId.id)
     }
 
-    func clear(walletId: WalletId) throws {
-        try clear(walletId: walletId.id)
+    func deletePreferences(walletId: WalletId) throws {
+        try deletePreferences(walletId: walletId.id)
     }
 }

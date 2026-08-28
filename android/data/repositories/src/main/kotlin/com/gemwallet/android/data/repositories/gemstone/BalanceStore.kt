@@ -19,11 +19,11 @@ class GemstoneBalanceStore(
     override suspend fun getEnabledAssetIds(walletId: String, assetIds: List<String>): List<String> =
         assetsDao.getAssetsInfo(walletId, assetIds).first().filter { it.visible == true }.map { it.id }
 
-    override suspend fun setEnabled(walletId: String, assetIds: List<String>, enabled: Boolean) {
+    override suspend fun setAssetsEnabled(walletId: String, assetIds: List<String>, enabled: Boolean) {
         assetIds.forEach { assetsDao.setWalletAssetVisibility(walletId, it, enabled) }
     }
 
-    override suspend fun setPinned(walletId: String, assetId: String, pinned: Boolean) {
+    override suspend fun setAssetPinned(walletId: String, assetId: String, pinned: Boolean) {
         val balance = assetsDao.getBalance(walletId, assetId) ?: return
         assetsDao.setBalanceConfig(walletId, assetId, isPinned = pinned, isVisible = balance.isVisible, listPosition = balance.listPosition)
     }

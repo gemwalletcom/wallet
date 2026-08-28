@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import android.util.Log
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
+import com.gemwallet.android.application.assets.coordinators.SyncMissingAssets
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.getAccount
@@ -25,7 +25,7 @@ class SyncAssetInfoImpl(
     private val assetsService: GemAssetsService,
     private val balanceService: GemBalanceService,
     private val streamSubscriptionService: GemStreamSubscriptionService,
-    private val prefetchAssets: PrefetchAssets,
+    private val syncMissingAssets: SyncMissingAssets,
     private val sessionRepository: SessionRepository,
 ) : SyncAssetInfo {
 
@@ -37,7 +37,7 @@ class SyncAssetInfoImpl(
         val assetFull = syncAssetMetadata(assetId)
         coroutineScope {
             launch { syncBalance(wallet, assetId) }
-            assetFull?.let { launch { prefetchAssets.prefetchAssets(it.associations.map { association -> association.assetId }) } }
+            assetFull?.let { launch { syncMissingAssets.syncMissingAssets(it.associations.map { association -> association.assetId }) } }
         }
     }
 

@@ -5,5 +5,5 @@ use primitives::InAppNotification;
 #[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemNotificationStore: Send + Sync {
-    async fn save(&self, notifications: Vec<InAppNotification>) -> Result<(), GemServiceError>;
+    async fn save_notifications(&self, notifications: Vec<InAppNotification>) -> Result<(), GemServiceError>;
 }

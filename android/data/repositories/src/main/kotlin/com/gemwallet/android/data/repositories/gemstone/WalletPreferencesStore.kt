@@ -12,7 +12,7 @@ class GemstoneWalletPreferencesStore(
 
     override fun set(walletId: String, key: String, value: String) = preferences(walletId).edit { putString(key, value) }
 
-    override fun clear(walletId: String) = preferences(walletId).edit { clear() }
+    override fun deletePreferences(walletId: String) = preferences(walletId).edit { clear() }
 
     private fun preferences(walletId: String): SharedPreferences =
         context.getSharedPreferences("wallet_preferences_${walletId}_v2", Context.MODE_PRIVATE)

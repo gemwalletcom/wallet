@@ -1,6 +1,6 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
+import com.gemwallet.android.application.assets.coordinators.SyncMissingAssets
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -43,14 +43,14 @@ class NotificationNavigationTest {
     private val sessionRepository = mockk<SessionRepository>()
     private val walletsRepository = mockk<WalletsRepository>()
     private val createTransaction = mockk<CreateTransaction>()
-    private val prefetchAssets = mockk<PrefetchAssets>()
+    private val syncMissingAssets = mockk<SyncMissingAssets>()
     private val assetsService = mockk<GemAssetsService>()
 
     private val subject = NotificationNavigation(
         sessionRepository = sessionRepository,
         walletsRepository = walletsRepository,
         createTransaction = createTransaction,
-        prefetchAssets = prefetchAssets,
+        syncMissingAssets = syncMissingAssets,
         assetsService = assetsService,
     )
 
@@ -61,7 +61,7 @@ class NotificationNavigationTest {
         coEvery { sessionRepository.setWallet(any()) } coAnswers {
             session.value = mockSession(wallet = invocation.args.first() as Wallet)
         }
-        coEvery { prefetchAssets.prefetchAssets(any()) } returns emptyList()
+        coEvery { syncMissingAssets.syncMissingAssets(any()) } returns emptyList()
     }
 
     @Test
@@ -196,7 +196,7 @@ class NotificationNavigationTest {
         val route = subject.prepareNavigation(type = null, data = PushNotificationData.Support)
 
         assertEquals(listOf(SupportRoute), route)
-        coVerify(exactly = 0) { prefetchAssets.prefetchAssets(any()) }
+        coVerify(exactly = 0) { syncMissingAssets.syncMissingAssets(any()) }
         coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
     }
 
@@ -210,7 +210,7 @@ class NotificationNavigationTest {
         )
 
         assertEquals(listOf(AssetRoute(assetId)), route)
-        coVerify { prefetchAssets.prefetchAssets(listOf(assetId)) }
+        coVerify { syncMissingAssets.syncMissingAssets(listOf(assetId)) }
         coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
     }
 }

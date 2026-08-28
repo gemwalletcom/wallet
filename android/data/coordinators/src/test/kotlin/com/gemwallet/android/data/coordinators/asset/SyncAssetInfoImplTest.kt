@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
+import com.gemwallet.android.application.assets.coordinators.SyncMissingAssets
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
@@ -29,7 +29,7 @@ class SyncAssetInfoImplTest {
     private val assetsService = mockk<GemAssetsService>()
     private val balanceService = mockk<GemBalanceService>(relaxed = true)
     private val streamSubscriptionService = mockk<GemStreamSubscriptionService>(relaxed = true)
-    private val prefetchAssets = mockk<PrefetchAssets>(relaxed = true)
+    private val syncMissingAssets = mockk<SyncMissingAssets>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
         coEvery { getCurrentCurrency() } returns Currency.USD
     }
@@ -38,7 +38,7 @@ class SyncAssetInfoImplTest {
         assetsService = assetsService,
         balanceService = balanceService,
         streamSubscriptionService = streamSubscriptionService,
-        prefetchAssets = prefetchAssets,
+        syncMissingAssets = syncMissingAssets,
         sessionRepository = sessionRepository,
     )
 
@@ -86,6 +86,6 @@ class SyncAssetInfoImplTest {
 
         subject.syncAssetInfo(asset.id, wallet)
 
-        coVerify { prefetchAssets.prefetchAssets(listOf(associatedAssetId)) }
+        coVerify { syncMissingAssets.syncMissingAssets(listOf(associatedAssetId)) }
     }
 }

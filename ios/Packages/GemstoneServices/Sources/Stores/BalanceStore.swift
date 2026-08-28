@@ -38,11 +38,11 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         ).map(\Primitives.AssetId.identifier)
     }
 
-    public func setEnabled(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
+    public func setAssetsEnabled(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
         try store.setIsEnabled(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId(id: $0) }, value: enabled)
     }
 
-    public func setPinned(walletId: String, assetId: Gemstone.AssetId, pinned: Bool) async throws {
+    public func setAssetPinned(walletId: String, assetId: Gemstone.AssetId, pinned: Bool) async throws {
         try store.pinAsset(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), value: pinned)
     }
 

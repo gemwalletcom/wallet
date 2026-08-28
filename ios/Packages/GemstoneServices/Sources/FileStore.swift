@@ -9,11 +9,11 @@ public final class GemstoneFileStore: GemFileStore, Sendable {
 
     public init() {}
 
-    public func save(data: Data, extension: String) throws -> String {
+    public func saveFile(data: Data, extension: String) throws -> String {
         try store.store(data, id: UUID().uuidString, documentType: `extension`)
     }
 
-    public func saveNamed(data: Data, fileName: String) throws -> String {
+    public func saveNamedFile(data: Data, fileName: String) throws -> String {
         try store.store(data, fileName: fileName).path()
     }
 

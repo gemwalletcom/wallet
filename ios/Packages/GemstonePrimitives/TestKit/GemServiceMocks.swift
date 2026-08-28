@@ -592,7 +592,7 @@ public final class GemWalletPreferencesStoreMock: GemWalletPreferencesStore, @un
         lock.withLock { values["\(walletId):\(key)"] = value }
     }
 
-    public func clear(walletId: Gemstone.WalletId) throws {
+    public func deletePreferences(walletId: Gemstone.WalletId) throws {
         lock.withLock { values = values.filter { !$0.key.hasPrefix("\(walletId):") } }
     }
 }

@@ -42,7 +42,7 @@ class GemstonePerpetualStore(
         perpetualIds.forEach { perpetualDao.setPinned(it, pinned) }
     }
 
-    override suspend fun clear() {
+    override suspend fun deletePerpetuals() {
         perpetualPositionDao.deleteAll()
         perpetualDao.deleteAll()
         balancesDao.deleteByAssetId(HypercoreUSDC.id.toIdentifier())

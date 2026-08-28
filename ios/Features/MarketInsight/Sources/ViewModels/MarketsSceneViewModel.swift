@@ -36,7 +36,7 @@ public final class MarketsSceneViewModel: Sendable {
                 .compactMap(\.self)
                 .flatMap(\.self)
 
-            try await assetsService.prefetchAssets(for: assets)
+            try await assetsService.syncMissingAssets(for: assets)
 
             state = .data(MarketsViewModel(markets: markets, currencyCode: preferencesService.currencyCode))
         } catch {

@@ -19,7 +19,7 @@ public final class GemstoneWalletPreferencesStore: GemWalletPreferencesStore, Se
         defaults(walletId: walletId).set(value, forKey: key)
     }
 
-    public func clear(walletId: Gemstone.WalletId) throws {
+    public func deletePreferences(walletId: Gemstone.WalletId) throws {
         UserDefaults.standard.removePersistentDomain(forName: suiteName(walletId: walletId))
     }
 

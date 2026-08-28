@@ -581,7 +581,7 @@ extension AssetSceneViewModel {
         }
 
         do {
-            try await assetsService.prefetchAssets(for: associations.map(\.assetId))
+            try await assetsService.syncMissingAssets(for: associations.map(\.assetId))
         } catch {
             debugLog("asset scene: prefetch associations error \(error)")
         }

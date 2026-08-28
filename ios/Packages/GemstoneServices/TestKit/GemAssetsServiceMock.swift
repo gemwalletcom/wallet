@@ -49,7 +49,7 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         try searchAssetsResult.map { try $0.json() }
     }
 
-    public func prefetchAssets(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
+    public func syncMissingAssets(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
         guard let store else { return [] }
         let existing = try await store.getAssetIds(assetIds: assetIds).asSet()
         let missing = assetsResult.filter { assetIds.contains($0.asset.id.identifier) && !existing.contains($0.asset.id.identifier) }

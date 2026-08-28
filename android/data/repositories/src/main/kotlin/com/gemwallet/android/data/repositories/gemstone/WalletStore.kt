@@ -24,7 +24,7 @@ class GemstoneWalletStore(
 
     override suspend fun setPinned(walletId: String, pinned: Boolean) = walletsRepository.get().setPinned(WalletId(walletId), pinned)
 
-    override suspend fun rename(walletId: String, name: String) = walletsRepository.get().rename(WalletId(walletId), name)
+    override suspend fun setName(walletId: String, name: String) = walletsRepository.get().rename(WalletId(walletId), name)
 
     override suspend fun setImageUrl(walletId: String, imageUrl: String?) = walletsRepository.get().setImageUrl(WalletId(walletId), imageUrl)
 }

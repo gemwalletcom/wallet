@@ -38,7 +38,7 @@ impl GemAssetsService {
                 AssetList::Swap => self.get_swap_assets().await?,
             };
             let asset_ids = rules::asset_ids(&assets.asset_ids);
-            self.prefetch_assets(asset_ids.clone()).await?;
+            self.sync_missing_assets(asset_ids.clone()).await?;
             match list {
                 AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
                 AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
@@ -64,7 +64,7 @@ impl GemAssetsService {
         if let Some(asset) = self.stored_asset(&asset_id).await? {
             return Ok(asset);
         }
-        self.prefetch_assets(vec![asset_id.clone()]).await?;
+        self.sync_missing_assets(vec![asset_id.clone()]).await?;
         self.stored_asset(&asset_id).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("asset not found: {asset_id}"),
         })
@@ -96,7 +96,7 @@ impl GemAssetsService {
         Ok(asset)
     }
 
-    pub async fn prefetch_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
+    pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
         let missing = rules::missing_asset_ids(asset_ids, existing);
         if missing.is_empty() {

@@ -103,7 +103,7 @@ public final class DeveloperViewModel {
 
     func clearWalletPreferences() {
         performAction {
-            try walletPreferencesService.clear(walletId: walletId)
+            try walletPreferencesService.deletePreferences(walletId: walletId)
         }
     }
 

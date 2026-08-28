@@ -66,8 +66,8 @@ impl GemWalletPreferencesService {
         })
     }
 
-    pub fn clear(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.store.clear(wallet_id)
+    pub fn delete_preferences(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        self.store.delete_preferences(wallet_id)
     }
 }
 
@@ -182,7 +182,7 @@ mod tests {
             self.values.lock().unwrap().insert((wallet_id.id(), key), value);
             Ok(())
         }
-        fn clear(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        fn delete_preferences(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
             self.values.lock().unwrap().retain(|(id, _), _| *id != wallet_id.id());
             Ok(())
         }
@@ -215,7 +215,7 @@ mod tests {
         assert_eq!(service.get_perpetual_account_mode(wallet.clone()).unwrap(), PerpetualAccountMode::Unified);
         assert_eq!(service.get_perpetual_account_mode(other).unwrap(), PerpetualAccountMode::Standard);
 
-        service.clear(wallet.clone()).unwrap();
+        service.delete_preferences(wallet.clone()).unwrap();
         assert_eq!(service.get_transactions_timestamp(wallet.clone(), None), 0);
         assert!(!service.is_wallet_configuration_completed(wallet).unwrap());
     }

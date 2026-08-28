@@ -10,6 +10,6 @@ class GemstoneNotificationStore(
     private val notificationsDao: InAppNotificationsDao,
 ) : GemNotificationStore {
 
-    override suspend fun save(notifications: List<uniffi.gemstone.InAppNotification>) =
+    override suspend fun saveNotifications(notifications: List<uniffi.gemstone.InAppNotification>) =
         notificationsDao.put(notifications.map { it.decodeJson<InAppNotification>().toRecord() })
 }

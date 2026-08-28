@@ -16,7 +16,7 @@ public final class GemstoneNftStore: GemNftStore, @unchecked Sendable {
         self.store = store
     }
 
-    public func save(walletId: String, data: [Gemstone.NftData]) async throws {
+    public func saveNfts(walletId: String, data: [Gemstone.NftData]) async throws {
         try store.save(data.map { try NFTData($0) }, for: WalletId.from(id: walletId))
     }
 

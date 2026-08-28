@@ -71,7 +71,7 @@ impl GemNodeService {
         }
         self.store.delete_node(chain, url.clone()).await?;
         if self.store.get_selected_url(chain).await? == Some(url) {
-            self.store.clear_selected_url(chain).await?;
+            self.store.delete_selected_url(chain).await?;
         }
         Ok(())
     }
@@ -110,7 +110,7 @@ mod tests {
             *self.selected.lock().unwrap() = Some(url);
             Ok(())
         }
-        async fn clear_selected_url(&self, _chain: Chain) -> Result<(), GemServiceError> {
+        async fn delete_selected_url(&self, _chain: Chain) -> Result<(), GemServiceError> {
             *self.selected.lock().unwrap() = None;
             Ok(())
         }

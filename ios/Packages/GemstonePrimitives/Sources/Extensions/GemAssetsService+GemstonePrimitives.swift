@@ -18,8 +18,8 @@ public extension GemAssetsServiceProtocol {
     }
 
     @discardableResult
-    func prefetchAssets(for assetIds: [Primitives.AssetId]) async throws -> [Primitives.AssetId] {
-        try await prefetchAssets(assetIds: assetIds.ids).map { try Primitives.AssetId(id: $0) }
+    func syncMissingAssets(for assetIds: [Primitives.AssetId]) async throws -> [Primitives.AssetId] {
+        try await syncMissingAssets(assetIds: assetIds.ids).map { try Primitives.AssetId(id: $0) }
     }
 
     @discardableResult

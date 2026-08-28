@@ -29,7 +29,7 @@ impl GemNotificationService {
         let started_at = unix_seconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
         let from_timestamp = self.preferences.get_notifications_timestamp(wallet_id.clone());
         let notifications = self.api.client.get_notifications(from_timestamp).await.map_err(crate::api::GemApiError::from)?;
-        self.store.save(notifications).await?;
+        self.store.save_notifications(notifications).await?;
         self.preferences.set_notifications_timestamp(wallet_id, started_at)
     }
 

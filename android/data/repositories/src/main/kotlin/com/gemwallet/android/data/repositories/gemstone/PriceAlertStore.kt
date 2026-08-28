@@ -17,7 +17,7 @@ class GemstonePriceAlertStore(
         return records.map { it.toDTO().priceAlert.toJson() }
     }
 
-    override suspend fun update(alerts: List<String>, deleteIds: List<String>) {
+    override suspend fun updatePriceAlerts(alerts: List<String>, deleteIds: List<String>) {
         priceAlertsDao.update(alerts.map { it.decodeJson<PriceAlert>().toRecord() }, deleteIds)
     }
 }

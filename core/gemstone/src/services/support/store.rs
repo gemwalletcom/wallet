@@ -6,7 +6,7 @@ use primitives::{SupportMessage, SupportTyping};
 #[async_trait]
 pub trait GemSupportStore: Send + Sync {
     async fn save_messages(&self, messages: Vec<SupportMessage>) -> Result<(), GemServiceError>;
-    async fn replace_message(&self, id: String, message: SupportMessage) -> Result<(), GemServiceError>;
+    async fn save_message(&self, id: String, message: SupportMessage) -> Result<(), GemServiceError>;
     fn update_typing(&self, typing: SupportTyping) -> Result<(), GemServiceError>;
     fn clear_typing(&self) -> Result<(), GemServiceError>;
 }

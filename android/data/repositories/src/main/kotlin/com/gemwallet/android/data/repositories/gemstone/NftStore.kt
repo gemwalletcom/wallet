@@ -20,7 +20,7 @@ class GemstoneNftStore(
     private val nftDao: NftDao,
 ) : GemNftStore {
 
-    override suspend fun save(walletId: String, data: List<String>) {
+    override suspend fun saveNfts(walletId: String, data: List<String>) {
         val nftData = data.map { it.decodeJson<NFTData>() }
         val assets = nftData.flatMap { it.assets }.map { it.toDb() }
         nftDao.updateNft(

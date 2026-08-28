@@ -36,7 +36,7 @@ class GemstoneNodeStore(
     override suspend fun setSelectedUrl(chain: String, url: String) =
         configStore.putString(SELECTED_NODE_KEY, Node(url, NodeState.Active, 0).toJson(), chain)
 
-    override suspend fun clearSelectedUrl(chain: String) = configStore.putString(SELECTED_NODE_KEY, "", chain)
+    override suspend fun deleteSelectedUrl(chain: String) = configStore.putString(SELECTED_NODE_KEY, "", chain)
 
     private companion object {
         const val SELECTED_NODE_KEY = "usage_node"

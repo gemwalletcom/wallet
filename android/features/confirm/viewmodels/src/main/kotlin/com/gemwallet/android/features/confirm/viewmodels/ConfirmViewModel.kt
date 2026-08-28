@@ -11,7 +11,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import uniffi.gemstone.defaultFeePriority
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
+import com.gemwallet.android.application.assets.coordinators.SyncMissingAssets
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
@@ -79,7 +79,7 @@ import javax.inject.Inject
 class ConfirmViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val assetsRepository: AssetsRepository,
-    private val prefetchAssets: PrefetchAssets,
+    private val syncMissingAssets: SyncMissingAssets,
     private val confirmLoader: ConfirmLoader,
     private val transactionBalanceService: TransactionBalanceService,
     private val calculateTransferAmount: CalculateTransferAmount,
@@ -203,7 +203,7 @@ class ConfirmViewModel @Inject constructor(
             )
             result.simulation?.let {
                 simulationResult.value = it
-                prefetchAssets.prefetchAssets(it.simulationAssetIds())
+                syncMissingAssets.syncMissingAssets(it.simulationAssetIds())
             }
             result.signerParams
         } catch (error: CancellationException) {
@@ -329,7 +329,7 @@ class ConfirmViewModel @Inject constructor(
         feeSelection.value = FeeSelection.Preset(defaultFeePriority(params.toTransferData().inputType).toFeePriority())
         viewModelScope.launch(Dispatchers.IO) {
             val assetIds = simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(params.approvalAssetId())
-            prefetchAssets.prefetchAssets(assetIds.distinct())
+            syncMissingAssets.syncMissingAssets(assetIds.distinct())
         }
         viewModelScope.launch(Dispatchers.IO) {
             val pack = params.pack()

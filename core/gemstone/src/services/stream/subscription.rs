@@ -149,7 +149,7 @@ mod tests {
                 })
                 .collect())
         }
-        async fn update(&self, _alerts: Vec<PriceAlert>, _delete_ids: Vec<String>) -> Result<(), GemServiceError> {
+        async fn update_price_alerts(&self, _alerts: Vec<PriceAlert>, _delete_ids: Vec<String>) -> Result<(), GemServiceError> {
             Ok(())
         }
     }

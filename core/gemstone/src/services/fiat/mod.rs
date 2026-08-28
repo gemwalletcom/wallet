@@ -28,7 +28,7 @@ impl GemFiatService {
     pub async fn sync_transactions(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         let transactions = self.api.client.get_fiat_transactions(wallet_id.id()).await.map_err(GemApiError::from)?;
         let asset_ids = transactions.iter().map(|data| data.transaction.asset_id.clone()).collect();
-        self.assets.prefetch_assets(asset_ids).await?;
+        self.assets.sync_missing_assets(asset_ids).await?;
         self.store.save_transactions(wallet_id, transactions).await
     }
 

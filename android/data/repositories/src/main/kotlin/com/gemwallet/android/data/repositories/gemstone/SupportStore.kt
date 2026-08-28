@@ -21,7 +21,7 @@ class GemstoneSupportStore(
         supportMessagesDao.addMessages(messages.map { it.decodeJson<SupportMessage>().toRecord() })
     }
 
-    override suspend fun replaceMessage(id: String, message: String) {
+    override suspend fun saveMessage(id: String, message: String) {
         supportMessagesDao.replace(id, message.decodeJson<SupportMessage>().toRecord())
     }
 }

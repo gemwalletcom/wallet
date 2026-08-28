@@ -35,7 +35,7 @@ public final class GemstoneNodeStore: GemNodeStore, @unchecked Sendable {
         try store.setNodeSelected(chain: Primitives.Chain(id: chain), url: url)
     }
 
-    public func clearSelectedUrl(chain: Gemstone.Chain) async throws {
+    public func deleteSelectedUrl(chain: Gemstone.Chain) async throws {
         try store.deleteNodeSelected(chain: Primitives.Chain(id: chain))
     }
 }

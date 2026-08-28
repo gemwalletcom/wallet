@@ -39,7 +39,7 @@ public struct ConfirmSimulationService: Sendable {
         let addressRequests = payload.addressRequests
         async let names = nameService.addressNames(requests: addressRequests)
         do {
-            try await assetsService.prefetchAssets(for: simulation?.simulationAssetIds ?? [])
+            try await assetsService.syncMissingAssets(for: simulation?.simulationAssetIds ?? [])
         } catch {
             debugLog("simulation asset prefetch error: \(error)")
         }

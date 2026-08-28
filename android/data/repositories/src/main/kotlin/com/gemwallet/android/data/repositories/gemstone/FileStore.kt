@@ -6,9 +6,9 @@ import uniffi.gemstone.GemFileStore
 class GemstoneFileStore(
     private val localStore: LocalStore,
 ) : GemFileStore {
-    override fun save(data: ByteArray, extension: String): String = localStore.save(data, extension)
+    override fun saveFile(data: ByteArray, extension: String): String = localStore.save(data, extension)
 
-    override fun saveNamed(data: ByteArray, fileName: String): String = localStore.saveNamed(data, fileName)
+    override fun saveNamedFile(data: ByteArray, fileName: String): String = localStore.saveNamed(data, fileName)
 
     override fun exists(fileName: String): Boolean = localStore.exists(fileName)
 
