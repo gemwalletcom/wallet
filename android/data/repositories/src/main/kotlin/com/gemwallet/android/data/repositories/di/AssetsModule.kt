@@ -92,6 +92,7 @@ object AssetsModule {
         assetsService: GemAssetsService,
         priceService: GemPriceService,
         streamSubscriptionService: GemStreamSubscriptionService,
+        preferencesService: GemPreferencesService,
     ): GemBalanceService = GemBalanceService(
         gateway,
         walletStore,
@@ -100,6 +101,7 @@ object AssetsModule {
         assetsService,
         priceService,
         streamSubscriptionService,
+        preferencesService,
     )
 
     @Provides

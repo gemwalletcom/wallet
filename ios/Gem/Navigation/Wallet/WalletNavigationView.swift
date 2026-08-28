@@ -19,7 +19,6 @@ import Transfer
 import WalletTab
 
 struct WalletNavigationView: View {
-    @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.explorerService) private var explorerService
     @Environment(\.balanceService) private var balanceService
     @Environment(\.navigationHandler) private var navigationHandler
@@ -61,7 +60,7 @@ struct WalletNavigationView: View {
                         wallet: model.wallet,
                         searchService: searchService,
                         recentActivityStore: recentActivityStore,
-                        assetsEnabler: assetsEnabler,
+                        balanceService: balanceService,
                         perpetualService: perpetualService,
                         onDismissSearch: model.onToggleSearch,
                         onSelectAssetAction: navigationState.openAsset,
@@ -99,7 +98,6 @@ struct WalletNavigationView: View {
         .navigationDestination(for: Scenes.Asset.self) {
             AssetNavigationView(
                 model: AssetSceneViewModel(
-                    assetsEnabler: assetsEnabler,
                     balanceService: balanceService,
                     assetsService: assetsService,
                     transactionsService: transactionsService,
@@ -121,7 +119,6 @@ struct WalletNavigationView: View {
                     wallet: model.wallet,
                     chain: destination.chain,
                     balanceService: balanceService,
-                    assetsEnabler: assetsEnabler,
                     preferences: preferences.preferences,
                     onManageAssets: { model.onSelectManage(chains: [destination.chain]) },
                 ),

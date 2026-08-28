@@ -43,12 +43,9 @@ object ReferralModule {
     @Provides
     @Singleton
     fun provideRedeem(
-        sessionRepository: SessionRepository,
         rewardsService: GemRewardsService,
     ): Redeem {
-        return RedeemImpl(
-            sessionRepository = sessionRepository,
-            rewardsService = rewardsService,
+        return RedeemImpl(rewardsService = rewardsService,
         )
     }
 

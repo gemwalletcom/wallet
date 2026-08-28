@@ -52,8 +52,9 @@ public actor GatewayService: Sendable {
         assets: GemAssetsService,
         price: GemPriceService,
         stream: GemStreamSubscriptionService,
+        preferences: GemPreferencesService,
     ) -> GemBalanceService {
-        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, price: price, stream: stream)
+        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, price: price, stream: stream, preferences: preferences)
     }
 
     public nonisolated func assetsService(

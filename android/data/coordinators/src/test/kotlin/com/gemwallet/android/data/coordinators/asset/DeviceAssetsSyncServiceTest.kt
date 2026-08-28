@@ -26,13 +26,13 @@ class DeviceAssetsSyncServiceTest {
 
     @Test
     fun sync_synchronizesDeviceBeforeDiscoveringAssets() = runTest {
-        coEvery { discoveryService.discover("wallet-1", any()) } returns emptyList()
+        coEvery { discoveryService.discover("wallet-1") } returns emptyList()
 
         subject.sync("wallet-1")
 
         coVerifyOrder {
             syncDevice.syncDevice()
-            discoveryService.discover("wallet-1", any())
+            discoveryService.discover("wallet-1")
         }
     }
 }

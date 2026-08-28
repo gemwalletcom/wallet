@@ -22,7 +22,6 @@ import UIKit
 @Observable
 @MainActor
 public final class AssetSceneViewModel: Sendable {
-    private let assetsEnabler: any AssetsEnabler
     private let balanceService: any GemBalanceServiceProtocol
     private let assetsService: any GemAssetsServiceProtocol
     private let transactionsService: any GemTransactionsServiceProtocol
@@ -45,7 +44,6 @@ public final class AssetSceneViewModel: Sendable {
     public let transactionsQuery: ObservableQuery<TransactionsRequest>
 
     public init(
-        assetsEnabler: any AssetsEnabler,
         balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
         transactionsService: any GemTransactionsServiceProtocol,
@@ -56,7 +54,6 @@ public final class AssetSceneViewModel: Sendable {
         input: AssetSceneInput,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
-        self.assetsEnabler = assetsEnabler
         self.balanceService = balanceService
         self.assetsService = assetsService
         self.transactionsService = transactionsService
@@ -473,7 +470,7 @@ public extension AssetSceneViewModel {
         let pinned = !assetData.metadata.isPinned
         Task {
             do {
-                try await assetsEnabler.pinAsset(wallet: wallet, assetId: asset.id, pinned: pinned)
+                try await balanceService.pinAsset(wallet: wallet, assetId: asset.id, pinned: pinned)
                 isPresentingToastMessage = .pin(asset.name, pinned: pinned)
             } catch {
                 debugLog("onSelectPin error: \(error)")
@@ -485,7 +482,7 @@ public extension AssetSceneViewModel {
         Task {
             let enabled = !assetData.metadata.isBalanceEnabled
             do {
-                try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: enabled)
+                try await balanceService.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: enabled)
                 isPresentingToastMessage = .showAsset(visible: enabled)
             } catch {
                 debugLog("onSelectEnable error: \(error)")

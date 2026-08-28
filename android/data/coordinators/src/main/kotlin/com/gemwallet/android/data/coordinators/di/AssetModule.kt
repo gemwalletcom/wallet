@@ -174,9 +174,8 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideEnableAsset(
-        sessionRepository: SessionRepository,
         balanceService: GemBalanceService,
-    ): EnableAsset = EnableAssetImpl(sessionRepository, balanceService)
+    ): EnableAsset = EnableAssetImpl(balanceService)
 
     @Provides
     @Singleton

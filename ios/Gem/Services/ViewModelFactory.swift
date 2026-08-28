@@ -34,7 +34,6 @@ public struct ViewModelFactory: Sendable {
     let chainServiceFactory: ChainServiceFactory
     let gemConfirmService: GemConfirmService
     let swapService: any GemSwapServiceProtocol
-    let assetsEnabler: any AssetsEnabler
     let priceUpdater: any PriceUpdater
     let walletSessionService: any WalletSessionManageable
     let stakeService: any GemStakeServiceProtocol
@@ -69,7 +68,7 @@ public struct ViewModelFactory: Sendable {
             wallet: wallet,
             selectType: selectType,
             searchService: searchService,
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             priceAlertService: priceAlertService,
             recentActivityStore: recentActivityStore,
             preferencesService: preferencesService,
@@ -87,7 +86,7 @@ public struct ViewModelFactory: Sendable {
     ) -> AssetsResultsSceneViewModel {
         AssetsResultsSceneViewModel(
             wallet: wallet,
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             preferences: Preferences.standard,
             searchService: searchService,
             perpetualService: perpetualService,
@@ -179,7 +178,7 @@ public struct ViewModelFactory: Sendable {
             fiatService: fiatService,
             assetAddress: assetAddress,
             wallet: wallet,
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             type: type,
             amount: amount,
         )

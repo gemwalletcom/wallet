@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import Components
 import protocol Gemstone.GemSearchServiceProtocol
@@ -21,7 +22,7 @@ import SwiftUI
 public final class WalletSearchSceneViewModel: Sendable, AssetActions, PerpetualPinActions {
     private let searchService: any GemSearchServiceProtocol
     private let recentActivityStore: RecentActivityStore
-    let assetsEnabler: any AssetsEnabler
+    let balanceService: any GemBalanceServiceProtocol
     let perpetualService: any GemPerpetualServiceProtocol
     private let preferences: ObservablePreferences
 
@@ -51,7 +52,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         wallet: Wallet,
         searchService: any GemSearchServiceProtocol,
         recentActivityStore: RecentActivityStore,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
         preferences: ObservablePreferences = .default,
         onDismissSearch: VoidAction,
@@ -61,7 +62,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         self.wallet = wallet
         self.searchService = searchService
         self.recentActivityStore = recentActivityStore
-        self.assetsEnabler = assetsEnabler
+        self.balanceService = balanceService
         self.perpetualService = perpetualService
         self.preferences = preferences
         self.onDismissSearch = onDismissSearch

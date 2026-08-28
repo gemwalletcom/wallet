@@ -30,7 +30,7 @@ struct ReceiveViewModelTests {
                 ],
             ),
             wallet: wallet,
-            assetsEnabler: .mock(),
+            balanceService: .mock(),
             assetsService: GemAssetsServiceMock(),
         )
 

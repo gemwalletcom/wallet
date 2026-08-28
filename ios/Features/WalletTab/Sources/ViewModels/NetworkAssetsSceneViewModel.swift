@@ -16,7 +16,6 @@ import SwiftUI
 @MainActor
 public final class NetworkAssetsSceneViewModel: AssetActions {
     let balanceService: any GemBalanceServiceProtocol
-    let assetsEnabler: any AssetsEnabler
     private let preferences: Preferences
     let wallet: Wallet
     private let onManageAssetsAction: () -> Void
@@ -30,13 +29,11 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         wallet: Wallet,
         chain: Chain,
         balanceService: any GemBalanceServiceProtocol,
-        assetsEnabler: any AssetsEnabler,
         preferences: Preferences = .standard,
         onManageAssets: @escaping () -> Void,
     ) {
         self.wallet = wallet
         self.balanceService = balanceService
-        self.assetsEnabler = assetsEnabler
         self.preferences = preferences
         onManageAssetsAction = onManageAssets
         activeQuery = ObservableQuery(

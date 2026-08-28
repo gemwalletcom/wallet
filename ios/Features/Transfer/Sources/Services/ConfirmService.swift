@@ -108,11 +108,7 @@ public struct ConfirmService: Sendable {
             data.forEach { request.delegate?(.success($0)) }
         case let .sent(hashes, transactions):
             hashes.forEach { request.delegate?(.success($0)) }
-            transactionStateScheduler.track(
-                wallet: request.wallet,
-                transactions: try transactions.map { try Transaction($0) },
-                currency: preferencesService.currencyCode,
-            )
+            transactionStateScheduler.track(wallet: request.wallet, transactions: try transactions.map { try Transaction($0) })
         }
         await toastPresenter.present(.transfer(for: request.data.type))
         if let recent = request.data.type.recentActivityData {

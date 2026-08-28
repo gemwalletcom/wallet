@@ -13,7 +13,7 @@ import Transfer
 
 struct SelectAssetSceneNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.balanceService) private var balanceService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.dismiss) private var dismiss
 
@@ -78,7 +78,7 @@ struct SelectAssetSceneNavigationStack: View {
                             model: ReceiveViewModel(
                                 assetData: input.assetData,
                                 wallet: model.wallet,
-                                assetsEnabler: assetsEnabler,
+                                balanceService: balanceService,
                                 assetsService: assetsService,
                             ),
                         )

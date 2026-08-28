@@ -26,7 +26,6 @@ import SwiftUI
 public final class WalletSceneViewModel: Sendable, AssetActions {
     private let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
     let balanceService: any GemBalanceServiceProtocol
-    let assetsEnabler: any AssetsEnabler
     private let bannerService: any GemBannerServiceProtocol
     private let walletPreferencesService: any GemWalletPreferencesServiceProtocol
     private let balanceCalculator = BalanceCalculator()
@@ -58,7 +57,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     public init(
         assetDiscoveryService: any GemAssetDiscoveryServiceProtocol,
         balanceService: any GemBalanceServiceProtocol,
-        assetsEnabler: any AssetsEnabler,
         bannerService: any GemBannerServiceProtocol,
         nftService: any GemNftServiceProtocol,
         walletPreferencesService: any GemWalletPreferencesServiceProtocol,
@@ -69,7 +67,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     ) {
         self.assetDiscoveryService = assetDiscoveryService
         self.balanceService = balanceService
-        self.assetsEnabler = assetsEnabler
         self.bannerService = bannerService
         self.walletPreferencesService = walletPreferencesService
         self.observablePreferences = observablePreferences
@@ -318,7 +315,7 @@ extension WalletSceneViewModel {
 
     private func discoverAssets(wallet: Wallet) async {
         do {
-            _ = try await assetDiscoveryService.discover(walletId: wallet.id.id, currency: Currency(id: observablePreferences.preferences.currency).json())
+            _ = try await assetDiscoveryService.discover(walletId: wallet.id.id)
         } catch {
             debugLog("WalletSceneViewModel discoverAssets error: \(error)")
         }

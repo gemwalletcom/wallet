@@ -19,7 +19,7 @@ import uniffi.gemstone.GemAssetDiscoveryService
 class ImportWalletServiceTest {
 
     private val discoveryService = mockk<GemAssetDiscoveryService> {
-        coEvery { discover(any(), any()) } returns emptyList()
+        coEvery { discover(any()) } returns emptyList()
     }
     private val sessionRepository = mockk<SessionRepository> {
         coEvery { getCurrentCurrency() } returns Currency.USD
@@ -34,7 +34,7 @@ class ImportWalletServiceTest {
         subject.sync(wallet)
         advanceUntilIdle()
 
-        coVerify { discoveryService.discover("wallet-1", any()) }
+        coVerify { discoveryService.discover("wallet-1") }
     }
 
     @Test
@@ -47,7 +47,7 @@ class ImportWalletServiceTest {
 
         coVerifyOrder {
             syncDevice.syncDevice()
-            discoveryService.discover("wallet-1", any())
+            discoveryService.discover("wallet-1")
         }
     }
 

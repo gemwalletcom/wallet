@@ -103,7 +103,6 @@ struct AssetSceneViewModelTests {
 extension AssetSceneViewModel {
     static func mock(_ assetData: AssetData = AssetData.mock()) -> AssetSceneViewModel {
         let model = AssetSceneViewModel(
-            assetsEnabler: .mock(),
             balanceService: GemBalanceServiceMock(),
             assetsService: GemAssetsServiceMock(),
             transactionsService: GemTransactionsServiceMock(),

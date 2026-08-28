@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import GemstoneServices
 import BigInt
@@ -20,7 +21,7 @@ import Validators
 public final class FiatSceneViewModel {
     let fiatService: any GemFiatServiceProtocol
     private let wallet: Wallet
-    private let assetsEnabler: any AssetsEnabler
+    private let balanceService: any GemBalanceServiceProtocol
     private let assetAddress: AssetAddress
     private let currencyFormatter: CurrencyFormatter
     private let valueFormatter = ValueFormatter(locale: .US, style: .auto)
@@ -45,7 +46,7 @@ public final class FiatSceneViewModel {
         currencyFormatter: CurrencyFormatter = CurrencyFormatter(currencyCode: Currency.usd.rawValue),
         assetAddress: AssetAddress,
         wallet: Wallet,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         type: FiatQuoteType = .buy,
         amount: Int? = nil,
     ) {
@@ -53,7 +54,7 @@ public final class FiatSceneViewModel {
         self.currencyFormatter = currencyFormatter
         self.assetAddress = assetAddress
         self.wallet = wallet
-        self.assetsEnabler = assetsEnabler
+        self.balanceService = balanceService
         self.type = type
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
         priceUsdQuery = ObservableQuery(PriceUsdRequest(assetId: assetAddress.asset.id), initialValue: nil)
@@ -291,7 +292,7 @@ extension FiatSceneViewModel {
 extension FiatSceneViewModel {
     private func enableAsset() async {
         do {
-            try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
+            try await balanceService.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
         } catch {
             debugLog("FiatSceneViewModel enableAsset error: \(error)")
         }

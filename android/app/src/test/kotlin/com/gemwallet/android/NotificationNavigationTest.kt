@@ -75,7 +75,7 @@ class NotificationNavigationTest {
             accounts = listOf(mockAccount(chain = assetId.chain)),
         )
         every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
-        coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction, Currency.USD) } returns asset
+        coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction) } returns asset
 
         val route = subject.prepareNavigation(
             type = PushNotificationTypes.Transaction.string,
@@ -97,7 +97,7 @@ class NotificationNavigationTest {
         val transaction = mockTransaction(assetId = assetId)
         val wallet = mockWallet(id = walletId.id)
         every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
-        coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction, Currency.USD) } returns null
+        coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction) } returns null
 
         val route = subject.prepareNavigation(
             type = PushNotificationTypes.Transaction.string,
@@ -132,7 +132,7 @@ class NotificationNavigationTest {
             accounts = listOf(mockAccount(chain = assetId.chain)),
         )
         every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
-        coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction, Currency.USD) } returns asset
+        coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction) } returns asset
 
         val route = subject.prepareNavigation(
             type = PushNotificationTypes.Transaction.string,
@@ -188,7 +188,7 @@ class NotificationNavigationTest {
         assertEquals(emptyList<Any>(), route)
         coVerify(exactly = 0) { assetsService.openWalletAsset(any(), any()) }
         coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
-        coVerify(exactly = 0) { createTransaction.createNotificationTransaction(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { createTransaction.createNotificationTransaction(any(), any(), any()) }
     }
 
     @Test

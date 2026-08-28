@@ -67,7 +67,7 @@ class ConfirmTransactionImplTest {
             coEvery { execute(any(), any()) } returns GemExecuteResult.Sent(listOf("hash-1", "hash-2"), listOf(tracked.toJson()))
         }
         val createTransaction = mockk<CreateTransaction>()
-        coEvery { createTransaction.trackTransactions(wallet.id, capture(trackedTransactions), any()) } returns Unit
+        coEvery { createTransaction.trackTransactions(wallet.id, capture(trackedTransactions)) } returns Unit
 
         val result = ConfirmTransactionImpl(
             signer = mockk<GemTransactionSigner>(),
@@ -108,7 +108,7 @@ class ConfirmTransactionImplTest {
         )
 
         assertEquals("signed", result)
-        coVerify(exactly = 0) { createTransaction.trackTransactions(any(), any(), any()) }
+        coVerify(exactly = 0) { createTransaction.trackTransactions(any(), any()) }
     }
 
     @Test

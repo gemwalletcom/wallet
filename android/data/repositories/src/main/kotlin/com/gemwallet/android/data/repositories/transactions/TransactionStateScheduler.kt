@@ -9,7 +9,6 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.Wallet
@@ -56,21 +55,21 @@ class TransactionStateScheduler(
         pollingTransactionJobs.clear()
     }
 
-    override suspend fun trackTransactions(walletId: WalletId, transactions: List<Transaction>, currency: Currency) {
-        track(walletId, transactions, currency)
+    override suspend fun trackTransactions(walletId: WalletId, transactions: List<Transaction>) {
+        track(walletId, transactions)
     }
 
-    override suspend fun createNotificationTransaction(wallet: Wallet, assetId: AssetId, transaction: Transaction, currency: Currency): Asset? {
+    override suspend fun createNotificationTransaction(wallet: Wallet, assetId: AssetId, transaction: Transaction): Asset? {
         val asset = stateService.addNotificationTransaction(wallet.toJson(), assetId.toIdentifier(), transaction.toJson())
             ?.decodeJson<Asset>() ?: return null
-        track(wallet.id, listOf(transaction), currency)
+        track(wallet.id, listOf(transaction))
         return asset
     }
 
-    private fun track(walletId: WalletId, transactions: List<Transaction>, currency: Currency) {
+    private fun track(walletId: WalletId, transactions: List<Transaction>) {
         transactions.forEach { schedule(walletId, it) }
         scope.launch {
-            runCatchingCancellable { stateService.enableTransactionAssets(walletId.id, transactions.map { it.toJson() }, currency.toJson()) }
+            runCatchingCancellable { stateService.enableTransactionAssets(walletId.id, transactions.map { it.toJson() }) }
                 .onFailure { Log.e(TAG, "asset enabling failed after adding ${transactions.map { it.id.hash }}", it) }
         }
     }

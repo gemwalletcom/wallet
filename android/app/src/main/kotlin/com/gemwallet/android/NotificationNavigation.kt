@@ -84,7 +84,6 @@ class NotificationNavigation @Inject constructor(
             wallet = wallet,
             assetId = data.assetId,
             transaction = data.transaction,
-            currency = sessionRepository.getCurrentCurrency(),
         ) ?: return emptyList()
         selectWallet(wallet)
         val transactionRoute = TransactionDetailsRoute(data.transaction.id)

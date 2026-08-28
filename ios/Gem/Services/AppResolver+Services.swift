@@ -65,7 +65,6 @@ extension AppResolver {
         let walletPreferencesService: any GemWalletPreferencesServiceProtocol
         let preferencesService: any GemPreferencesServiceProtocol
         let walletSessionService: any WalletSessionManageable
-        let assetsEnabler: any AssetsEnabler
         let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
         let gemAssetsService: any GemAssetsServiceProtocol
         let explorerService: any GemExplorerServiceProtocol

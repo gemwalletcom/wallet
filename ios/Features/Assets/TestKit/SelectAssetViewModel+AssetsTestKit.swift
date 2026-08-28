@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import GemstoneServicesTestKit
 @testable import Assets
 import GemstoneServices
@@ -17,13 +18,13 @@ public extension SelectAssetViewModel {
         selectType: SelectAssetType = .manage,
         assets: [AssetData] = [],
         state: StateViewType<[AssetBasic]> = .noData,
-        assetsEnabler: any AssetsEnabler = .mock(),
+        balanceService: any GemBalanceServiceProtocol = .mock(),
     ) -> SelectAssetViewModel {
         let model = SelectAssetViewModel(
             wallet: wallet,
             selectType: selectType,
             searchService: GemSearchServiceMock(),
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             priceAlertService: GemPriceAlertServiceMock(),
             recentActivityStore: .mock(),
             preferencesService: GemPreferencesServiceMock(),

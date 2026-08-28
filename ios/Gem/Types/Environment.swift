@@ -47,7 +47,6 @@ extension EnvironmentValues {
     @Entry var chartService: any GemChartServiceProtocol = AppResolver.main.services.chartService
     @Entry var marketService: any GemPriceServiceProtocol = AppResolver.main.services.marketService
     @Entry var streamSubscriptionService: GemStreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
-    @Entry var assetsEnabler: any AssetsEnabler = AppResolver.main.services.assetsEnabler
     @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
     @Entry var walletService: WalletService = AppResolver.main.services.walletService
     @Entry var walletPreferencesService: any GemWalletPreferencesServiceProtocol = AppResolver.main.services.walletPreferencesService

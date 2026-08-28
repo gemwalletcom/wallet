@@ -9,7 +9,7 @@ import Transfer
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.balanceService) private var balanceService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.recentActivityStore) private var recentActivityStore
 
@@ -53,7 +53,7 @@ struct SelectedAssetNavigationStack: View {
                         model: ReceiveViewModel(
                             assetData: input.assetData,
                             wallet: wallet,
-                            assetsEnabler: assetsEnabler,
+                            balanceService: balanceService,
                             assetsService: assetsService,
                         ),
                     )

@@ -1,3 +1,4 @@
+import protocol Gemstone.GemBalanceServiceProtocol
 import Components
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
@@ -22,7 +23,7 @@ public final class ReceiveViewModel: Sendable {
     var renderedImage: UIImage?
 
     private let wallet: Wallet
-    private let assetsEnabler: any AssetsEnabler
+    private let balanceService: any GemBalanceServiceProtocol
     private let assetsService: any GemAssetsServiceProtocol
     private let generator = QRCodeGenerator()
     let networkAssetIds: [AssetId]
@@ -32,13 +33,13 @@ public final class ReceiveViewModel: Sendable {
         associations: [AssetAssociation],
         wallet: Wallet,
         address: String,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
     ) {
         assetModel = AssetViewModel(asset: asset)
         self.wallet = wallet
         self.address = address
-        self.assetsEnabler = assetsEnabler
+        self.balanceService = balanceService
         self.assetsService = assetsService
 
         networkAssetIds = ([asset.id] + associations.map(\.assetId))
@@ -49,7 +50,7 @@ public final class ReceiveViewModel: Sendable {
     public convenience init(
         assetData: AssetData,
         wallet: Wallet,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
     ) {
         self.init(
@@ -57,7 +58,7 @@ public final class ReceiveViewModel: Sendable {
             associations: assetData.associations,
             wallet: wallet,
             address: assetData.account.address,
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             assetsService: assetsService,
         )
     }
@@ -65,7 +66,7 @@ public final class ReceiveViewModel: Sendable {
     public convenience init(
         assetAddress: AssetAddress,
         wallet: Wallet,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
     ) {
         self.init(
@@ -73,7 +74,7 @@ public final class ReceiveViewModel: Sendable {
             associations: [],
             wallet: wallet,
             address: assetAddress.address,
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             assetsService: assetsService,
         )
     }
@@ -158,7 +159,7 @@ public final class ReceiveViewModel: Sendable {
 
     private func enableAsset() async {
         do {
-            try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [assetModel.asset.id], enabled: true)
+            try await balanceService.enableAssets(wallet: wallet, assetIds: [assetModel.asset.id], enabled: true)
         } catch {
             debugLog("ReceiveViewModel enableAsset error: \(error)")
         }

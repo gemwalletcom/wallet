@@ -15,6 +15,6 @@ class DeviceAssetsSyncService @Inject constructor(
 ) {
     suspend fun sync(walletId: String) {
         syncDevice.syncDevice()
-        discoveryService.discover(walletId, sessionRepository.getCurrentCurrency().toJson())
+        discoveryService.discover(walletId)
     }
 }

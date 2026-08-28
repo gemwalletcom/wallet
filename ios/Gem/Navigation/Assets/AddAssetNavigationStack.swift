@@ -13,7 +13,7 @@ struct AddAssetNavigationStack: View {
     @Environment(\.gatewayService) private var gatewayService
     @Environment(\.explorerService) private var explorerService
     @Environment(\.assetsService) private var assetsService
-    @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.balanceService) private var balanceService
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -44,7 +44,7 @@ extension AddAssetNavigationStack {
         Task {
             do {
                 let asset = try await assetsService.ensureTokenAsset(for: asset.id)
-                try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
+                try await balanceService.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
             } catch {
                 debugLog("AddAssetNavigationStack add asset error: \(error)")
             }

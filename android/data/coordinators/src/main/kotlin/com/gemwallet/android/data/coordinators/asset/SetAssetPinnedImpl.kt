@@ -3,7 +3,6 @@ package com.gemwallet.android.data.coordinators.asset
 import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemBalanceService
 
@@ -18,7 +17,6 @@ class SetAssetPinnedImpl(
             walletId = session.wallet.id.id,
             assetId = assetId.toIdentifier(),
             pinned = pinned,
-            currency = sessionRepository.getCurrentCurrency().toJson(),
         )
     }
 }

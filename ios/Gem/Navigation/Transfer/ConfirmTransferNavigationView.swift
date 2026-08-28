@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
 import GemstoneServices
 import Components
@@ -16,7 +17,7 @@ import Transfer
 
 struct ConfirmTransferNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.balanceService) private var balanceService
     @Environment(\.assetsService) private var assetsService
 
     @State var model: ConfirmTransferSceneViewModel
@@ -56,7 +57,7 @@ struct ConfirmTransferNavigationView: View {
                         buyAmount: buyAmount,
                         model: model,
                         viewModelFactory: viewModelFactory,
-                        assetsEnabler: assetsEnabler,
+                        balanceService: balanceService,
                         assetsService: assetsService,
                     )
                 case let .selectedAsset(input, wallet):
@@ -93,7 +94,7 @@ private struct GetAssetNavigationStack: View {
     let buyAmount: Int?
     let model: ConfirmTransferSceneViewModel
     let viewModelFactory: ViewModelFactory
-    let assetsEnabler: any AssetsEnabler
+    let balanceService: any GemBalanceServiceProtocol
     let assetsService: any GemAssetsServiceProtocol
 
     @State private var selectedAction: GetAssetAction?
@@ -161,7 +162,7 @@ private struct GetAssetNavigationStack: View {
                 model: ReceiveViewModel(
                     assetAddress: model.assetAddress(asset),
                     wallet: model.assetAcquisitionWallet,
-                    assetsEnabler: assetsEnabler,
+                    balanceService: balanceService,
                     assetsService: assetsService,
                 ),
             )

@@ -45,7 +45,7 @@ class ImportWalletService(
     }
 
     private suspend fun discoverAssets(wallet: Wallet) {
-        discoveryService.discover(wallet.id.id, sessionRepository.getCurrentCurrency().toJson())
+        discoveryService.discover(wallet.id.id)
     }
 
     override fun getImportState(walletId: WalletId): Flow<ImportWalletState> = importingWalletIds.map { walletIds ->

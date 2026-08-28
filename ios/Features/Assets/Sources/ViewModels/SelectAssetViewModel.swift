@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
 import protocol Gemstone.GemSearchServiceProtocol
@@ -23,7 +24,7 @@ public final class SelectAssetViewModel {
     let selectType: SelectAssetType
     let flow: SelectAssetFlow
     let searchService: any GemSearchServiceProtocol
-    let assetsEnabler: any AssetsEnabler
+    let balanceService: any GemBalanceServiceProtocol
     let priceAlertService: any GemPriceAlertServiceProtocol
     let recentActivityStore: RecentActivityStore
 
@@ -51,7 +52,7 @@ public final class SelectAssetViewModel {
         wallet: Wallet,
         selectType: SelectAssetType,
         searchService: any GemSearchServiceProtocol,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         priceAlertService: any GemPriceAlertServiceProtocol,
         recentActivityStore: RecentActivityStore,
         preferencesService: any GemPreferencesServiceProtocol,
@@ -62,7 +63,7 @@ public final class SelectAssetViewModel {
         self.wallet = wallet
         self.selectType = selectType
         self.searchService = searchService
-        self.assetsEnabler = assetsEnabler
+        self.balanceService = balanceService
         self.priceAlertService = priceAlertService
         self.recentActivityStore = recentActivityStore
         flow = selectType.flow
@@ -177,7 +178,7 @@ extension SelectAssetViewModel {
         switch flow.rowSelection {
         case .toggle:
             do {
-                try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [assetId], enabled: enabled)
+                try await balanceService.enableAssets(wallet: wallet, assetIds: [assetId], enabled: enabled)
             } catch {
                 debugLog("SelectAssetViewModel handleAction error: \(error)")
             }

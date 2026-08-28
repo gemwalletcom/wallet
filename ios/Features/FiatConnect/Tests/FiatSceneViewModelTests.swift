@@ -28,7 +28,7 @@ final class FiatSceneViewModelTests {
             currencyFormatter: currencyFormatter,
             assetAddress: assetAddress,
             wallet: wallet,
-            assetsEnabler: .mock(),
+            balanceService: .mock(),
             type: type,
             amount: amount,
         )

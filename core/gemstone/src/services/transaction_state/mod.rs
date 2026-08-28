@@ -7,7 +7,6 @@ use crate::services::failures::record;
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
-use primitives::currency::Currency;
 use primitives::{Asset, AssetId, Transaction, TransactionId, TransactionState, TransactionUpdate, Wallet, WalletId};
 
 pub use model::{GemPendingTransaction, GemPostProcessingFailure, GemPostProcessingStep, GemTransactionStateResult, GemTransactionStateUpdate};
@@ -70,12 +69,12 @@ impl GemTransactionStateService {
         Ok(Some(asset))
     }
 
-    pub async fn enable_transaction_assets(&self, wallet_id: WalletId, transactions: Vec<Transaction>, currency: Currency) -> Result<(), GemServiceError> {
+    pub async fn enable_transaction_assets(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
         let asset_ids = rules::assets_to_enable(&transactions);
         if asset_ids.is_empty() {
             return Ok(());
         }
-        self.balance.set_assets_enabled(wallet_id, asset_ids, true, currency).await
+        self.balance.set_assets_enabled(wallet_id, asset_ids, true).await
     }
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {

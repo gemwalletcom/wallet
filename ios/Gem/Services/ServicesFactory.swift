@@ -132,6 +132,7 @@ struct ServicesFactory {
             assets: gemAssetsService,
             price: gemPriceService,
             stream: streamSubscriptionService,
+            preferences: preferencesService,
         )
         let balanceService = gemBalanceService
         let gemStakeService = gatewayService.stakeService(
@@ -215,10 +216,6 @@ struct ServicesFactory {
             gemWalletSessionService: gemWalletSessionService,
         )
 
-        let assetsEnabler = AssetsEnablerService(
-            service: gemBalanceService,
-            preferences: preferences,
-        )
         let assetDiscoveryService = Gemstone.GemAssetDiscoveryService(
             api: gemDeviceApiClient,
             balance: gemBalanceService,
@@ -277,7 +274,6 @@ struct ServicesFactory {
             paymentService: paymentService,
             transactionStore: storeManager.transactionStore,
             transactionStateScheduler: transactionStateScheduler,
-            preferencesService: preferencesService,
             walletConnectorPresenter: presenter,
             walletSessionService: walletSessionService,
         )
@@ -325,7 +321,6 @@ struct ServicesFactory {
             chainServiceFactory: chainServiceFactory,
             gemConfirmService: gemConfirmService,
             swapService: swapService,
-            assetsEnabler: assetsEnabler,
             priceUpdater: streamSubscriptionService,
             walletSessionService: walletSessionService,
             stakeService: stakeService,
@@ -374,7 +369,6 @@ struct ServicesFactory {
             walletPreferencesService: walletPreferencesService,
             preferencesService: preferencesService,
             walletSessionService: walletSessionService,
-            assetsEnabler: assetsEnabler,
             assetDiscoveryService: assetDiscoveryService,
             gemAssetsService: gemAssetsService,
             explorerService: explorerService,

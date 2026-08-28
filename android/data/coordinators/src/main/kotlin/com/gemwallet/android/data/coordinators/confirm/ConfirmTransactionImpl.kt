@@ -51,7 +51,7 @@ class ConfirmTransactionImpl(
         return when (result) {
             is GemExecuteResult.Signed -> result.data.first()
             is GemExecuteResult.Sent -> {
-                createTransactionsCase.trackTransactions(session.wallet.id, result.transactions.map { it.decodeJson<Transaction>() }, session.currency)
+                createTransactionsCase.trackTransactions(session.wallet.id, result.transactions.map { it.decodeJson<Transaction>() })
                 scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
                 result.hashes.last()
             }

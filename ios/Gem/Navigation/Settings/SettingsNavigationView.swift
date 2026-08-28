@@ -28,7 +28,7 @@ struct SettingsNavigationView: View {
     @Environment(\.bannerService) private var bannerService
     @Environment(\.bannerStore) private var bannerStore
     @Environment(\.connectionsService) private var connectionsService
-    @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.balanceService) private var balanceService
     @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.preferencesService) private var preferencesService

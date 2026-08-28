@@ -5,7 +5,6 @@ import GemstoneServices
 import Components
 import ConnectionsService
 import Foundation
-import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
 import class Gemstone.PaymentService
 import GemstonePrimitives
@@ -28,7 +27,6 @@ final class NavigationHandler: Sendable {
     private let paymentService: PaymentService
     private let transactionStore: TransactionStore
     private let transactionStateScheduler: TransactionStateScheduler
-    private let preferencesService: any GemPreferencesServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
 
@@ -42,7 +40,6 @@ final class NavigationHandler: Sendable {
         paymentService: PaymentService,
         transactionStore: TransactionStore,
         transactionStateScheduler: TransactionStateScheduler,
-        preferencesService: any GemPreferencesServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
     ) {
@@ -55,7 +52,6 @@ final class NavigationHandler: Sendable {
         self.paymentService = paymentService
         self.transactionStore = transactionStore
         self.transactionStateScheduler = transactionStateScheduler
-        self.preferencesService = preferencesService
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
     }
@@ -258,7 +254,6 @@ extension NavigationHandler {
                   wallet: wallet,
                   assetId: assetId,
                   transaction: transaction,
-                  currency: preferencesService.currencyCode,
               )
         else {
             return

@@ -316,23 +316,44 @@ public final class GemTransactionStateServiceMock: GemTransactionStateServicePro
         try await store?.addTransactions(walletId: walletId, transactions: transactions)
     }
 
-    public func enableTransactionAssets(walletId _: Gemstone.WalletId, transactions _: [Gemstone.Transaction], currency _: Gemstone.Currency) async throws {}
+    public func enableTransactionAssets(walletId _: Gemstone.WalletId, transactions _: [Gemstone.Transaction]) async throws {}
 }
 
 public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked Sendable {
     private let onUpdate: @Sendable (String, [Gemstone.AssetId]) async -> Void
+    private let onEnableAssets: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)?
+    private let onPinAsset: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)?
 
-    public init(onUpdate: @escaping @Sendable (String, [Gemstone.AssetId]) async -> Void = { _, _ in }) {
+    public init(
+        onUpdate: @escaping @Sendable (String, [Gemstone.AssetId]) async -> Void = { _, _ in },
+        onEnableAssets: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)? = nil,
+        onPinAsset: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)? = nil,
+    ) {
         self.onUpdate = onUpdate
+        self.onEnableAssets = onEnableAssets
+        self.onPinAsset = onPinAsset
     }
 
     public func update(walletId: String, assetIds: [Gemstone.AssetId]) async throws {
         await onUpdate(walletId, assetIds)
     }
 
-    public func setAssetsEnabled(walletId _: String, assetIds _: [Gemstone.AssetId], enabled _: Bool, currency _: Gemstone.Currency) async throws {}
+    public func setAssetsEnabled(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
+        try await onEnableAssets?(walletId, assetIds, enabled)
+    }
 
-    public func setAssetPinned(walletId _: String, assetId _: Gemstone.AssetId, pinned _: Bool, currency _: Gemstone.Currency) async throws {}
+    public func setAssetPinned(walletId: String, assetId: Gemstone.AssetId, pinned: Bool) async throws {
+        try await onPinAsset?(walletId, assetId, pinned)
+    }
+}
+
+public extension GemBalanceServiceProtocol where Self == GemBalanceServiceMock {
+    static func mock(
+        onEnableAssets: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)? = nil,
+        onPinAsset: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)? = nil,
+    ) -> GemBalanceServiceMock {
+        GemBalanceServiceMock(onEnableAssets: onEnableAssets, onPinAsset: onPinAsset)
+    }
 }
 
 public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchecked Sendable {
@@ -387,7 +408,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtocol, @unchecked Sendable {
     public init() {}
 
-    public func discover(walletId _: String, currency _: Gemstone.Currency) async throws -> [Gemstone.AssetId] {
+    public func discover(walletId _: String) async throws -> [Gemstone.AssetId] {
         []
     }
 }

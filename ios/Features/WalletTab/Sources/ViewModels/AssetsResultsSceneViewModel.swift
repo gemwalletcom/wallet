@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import Components
 import protocol Gemstone.GemSearchServiceProtocol
@@ -19,7 +20,7 @@ import SwiftUI
 public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinActions {
     public static let defaultLimit = 100
 
-    let assetsEnabler: any AssetsEnabler
+    let balanceService: any GemBalanceServiceProtocol
     private let preferences: Preferences
     private let searchService: any GemSearchServiceProtocol
     let perpetualService: any GemPerpetualServiceProtocol
@@ -39,7 +40,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
 
     public init(
         wallet: Wallet,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         preferences: Preferences,
         searchService: any GemSearchServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
@@ -49,7 +50,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         onSelectAsset: @escaping (Asset) -> Void,
     ) {
         self.wallet = wallet
-        self.assetsEnabler = assetsEnabler
+        self.balanceService = balanceService
         self.preferences = preferences
         self.searchService = searchService
         self.perpetualService = perpetualService

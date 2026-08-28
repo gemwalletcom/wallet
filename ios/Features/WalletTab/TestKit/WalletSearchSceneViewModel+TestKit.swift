@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import Store
 import StoreTestKit
@@ -19,7 +20,7 @@ public extension WalletSearchSceneViewModel {
         wallet: Wallet = .mock(),
         searchService: any GemSearchServiceProtocol = GemSearchServiceMock(),
         recentActivityStore: RecentActivityStore = .mock(),
-        assetsEnabler: any AssetsEnabler = .mock(),
+        balanceService: any GemBalanceServiceProtocol = .mock(),
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         preferences: ObservablePreferences = .mock(),
     ) -> WalletSearchSceneViewModel {
@@ -27,7 +28,7 @@ public extension WalletSearchSceneViewModel {
             wallet: wallet,
             searchService: searchService,
             recentActivityStore: recentActivityStore,
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             perpetualService: perpetualService,
             preferences: preferences,
             onDismissSearch: {},
