@@ -423,6 +423,10 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 ### Android
 
+- Case naming, one mechanical commit each, before the repository work so converted code lands in the right package:
+  1. `gemcore/.../application/<area>/coordinators/` → `application/<area>/cases/` — 120 interfaces, 706 references. The interfaces are cases; "coordinator" only ever described the implementation side, and it still does (`*Impl` by default, `*Coordinator` for the stateful shape above). Pure package rename, no logic.
+  2. Fold the legacy `com.gemwallet.android.cases.<area>/` (39 interfaces, 133 importers) into the same `application/<area>/cases/` home and drop the `Case` suffix the package already implies (`SearchTokensCase` → `SearchTokens`, `GetListNftCase` → `GetListNft`, `AddNodeCase` → `AddNode`). Needs a judgement call per area where the two trees disagree (`cases/banners` vs `application/banner`, `cases/nodes` and `cases/wallet` have no `application` counterpart), so it follows the rename rather than riding along with it.
+
 - Repositories to retire, in this order — each becomes cases (interface in `gemcore` `application/<area>/coordinators/`, one implementation in `data/coordinators/<area>/` holding the Core service, or the DAO when the screen needs an observed read). Callers move to the case; the repository is deleted in the same commit:
 
 | Repository | Callers | What it holds today | Target |
