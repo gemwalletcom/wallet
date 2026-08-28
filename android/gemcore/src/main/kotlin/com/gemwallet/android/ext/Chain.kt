@@ -89,4 +89,3 @@ fun uniffi.gemstone.Chain.toChain(): Chain? {
 
 fun uniffi.gemstone.Chain.requireChain(): Chain = requireNotNull(toChain()) { "unknown chain: $this" }
 
-val Chain.Companion.referralChain: Chain get() = Chain.Ethereum

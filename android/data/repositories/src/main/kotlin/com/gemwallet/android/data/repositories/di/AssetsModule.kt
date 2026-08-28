@@ -7,7 +7,6 @@ import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -67,20 +66,14 @@ object AssetsModule {
         sessionRepository: SessionRepository,
         searchTokensCase: SearchTokensCase,
         streamSubscriptionService: GemStreamSubscriptionService,
-        availabilityService: AssetsAvailabilityService,
-        currencyRatesService: CurrencyRatesService,
         updateBalances: UpdateBalances,
-        assetsService: Lazy<GemAssetsService>,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
         pricesRepository = pricesRepository,
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
-        availabilityService = availabilityService,
-        currencyRatesService = currencyRatesService,
         updateBalances = updateBalances,
-        assetsService = assetsService,
     )
 
 

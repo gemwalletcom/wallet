@@ -76,10 +76,7 @@ class AssetsRepositoryTest {
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
-        availabilityService = AssetsAvailabilityService(assetsDao),
-        currencyRatesService = CurrencyRatesService(pricesDao),
         updateBalances = updateBalances,
-        assetsService = Lazy { assetsService },
         scope = scope,
     )
 

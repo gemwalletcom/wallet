@@ -18,7 +18,6 @@ fun Wallet.getAccount(chain: Chain): Account? {
 fun Wallet.getAccount(assetId: AssetId): Account? = getAccount(assetId.chain)
 
 val WalletType.isViewOnly: Boolean get() = this == WalletType.View
-val WalletType.canSign: Boolean get() = !isViewOnly
 
 fun WalletType.toGem(): GemWalletType = when (this) {
     WalletType.Multicoin -> GemWalletType.MULTICOIN

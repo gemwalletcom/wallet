@@ -45,8 +45,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import dagger.Lazy
-import uniffi.gemstone.GemAssetsService
 import com.gemwallet.android.serializer.toJson
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -63,10 +61,7 @@ class AssetsRepository @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val searchTokensCase: SearchTokensCase,
     private val streamSubscriptionService: GemStreamSubscriptionService,
-    private val availabilityService: AssetsAvailabilityService,
-    private val currencyRatesService: CurrencyRatesService,
     private val updateBalances: UpdateBalances,
-    private val assetsService: Lazy<GemAssetsService>,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
 

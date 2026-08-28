@@ -18,9 +18,6 @@ val Chain.claimAllAvailable: Boolean
 val Chain.withdraw: Boolean
     get() = Config().getStakeConfig(string).canWithdraw
 
-val Chain.redelegated: Boolean
-    get() = Config().getStakeConfig(string).canRedelegate
-
 val Chain.changeAmountOnUnstake: Boolean
     get() = Config().getStakeConfig(string).changeAmountOnUnstake
 
