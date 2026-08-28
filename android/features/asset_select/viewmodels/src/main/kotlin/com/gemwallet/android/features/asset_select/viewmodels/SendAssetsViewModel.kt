@@ -8,6 +8,7 @@ import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.eligible
+import com.gemwallet.android.domains.asset.queryFilters
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
@@ -57,7 +58,7 @@ class SendSelectSearch(
                 val source = if (query.isEmpty()) {
                     getSelectAssetsInfo()
                 } else {
-                    searchSelectAssets(query)
+                    searchSelectAssets(query, filters = GemAssetAction.SEND.queryFilters())
                 }
 
                 source.map(::filter)

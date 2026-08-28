@@ -241,10 +241,25 @@ interface AssetsDao {
             AND (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
             OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
+            AND (NOT :buyable OR isBuyEnabled = 1)
+            AND (NOT :sellable OR isSellEnabled = 1)
+            AND (NOT :swappable OR isSwapEnabled = 1)
+            AND (NOT :hasBalance OR balanceTotalAmount > 0)
+            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
             ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
             LIMIT :limit
         """)
-    fun search(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT, exclude: List<String> = emptyList()): Flow<List<DbAssetInfo>>
+    fun search(
+        walletId: String,
+        query: String,
+        limit: Int = NO_QUERY_LIMIT,
+        exclude: List<String> = emptyList(),
+        buyable: Boolean = false,
+        sellable: Boolean = false,
+        swappable: Boolean = false,
+        hasBalance: Boolean = false,
+        hasAvailableBalance: Boolean = false,
+    ): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*
@@ -256,10 +271,25 @@ interface AssetsDao {
             AND (walletId = :walletId OR walletId IS NULL)
             AND assetRank >= 0
             AND search.`query` = :query
+            AND (NOT :buyable OR isBuyEnabled = 1)
+            AND (NOT :sellable OR isSellEnabled = 1)
+            AND (NOT :swappable OR isSwapEnabled = 1)
+            AND (NOT :hasBalance OR balanceTotalAmount > 0)
+            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
             ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
             LIMIT :limit
         """)
-    fun searchWithPriority(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT, exclude: List<String> = emptyList()): Flow<List<DbAssetInfo>>
+    fun searchWithPriority(
+        walletId: String,
+        query: String,
+        limit: Int = NO_QUERY_LIMIT,
+        exclude: List<String> = emptyList(),
+        buyable: Boolean = false,
+        sellable: Boolean = false,
+        swappable: Boolean = false,
+        hasBalance: Boolean = false,
+        hasAvailableBalance: Boolean = false,
+    ): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*
@@ -351,7 +381,7 @@ interface AssetsDao {
         type = type,
         buyable = AssetFilter.Buyable in filters,
         swappable = AssetFilter.Swappable in filters,
-        hasBalance = AssetFilter.HasBalance in filters,
+        hasBalance = AssetFilter.HasBalance in filters || AssetFilter.HasAvailableBalance in filters,
         limit = limit,
     )
 

@@ -42,7 +42,7 @@ class BuySelectViewModel @Inject constructor(
 
 class BuySelectSearch(
     searchSelectAssets: SearchSelectAssets,
-) : BaseSelectSearch(searchSelectAssets) {
+) : BaseSelectSearch(searchSelectAssets, GemAssetAction.BUY) {
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return super.items(filters).map { items -> filter(items) }
