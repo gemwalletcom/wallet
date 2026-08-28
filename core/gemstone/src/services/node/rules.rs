@@ -11,6 +11,16 @@ pub fn is_default_node(url: &str, default_nodes: &[Node]) -> bool {
     default_nodes.iter().any(|node| node.url == url)
 }
 
+pub fn can_delete_node(chain: Chain, url: &str) -> bool {
+    !is_default_node(url, &default_nodes(chain))
+}
+
+pub fn sorted_nodes(chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
+    let defaults = default_nodes(chain);
+    let (default_nodes, added): (Vec<Node>, Vec<Node>) = nodes.into_iter().partition(|node| is_default_node(&node.url, &defaults));
+    default_nodes.into_iter().chain(added).collect()
+}
+
 pub fn selected_node(selected_url: Option<String>, nodes: Vec<Node>, fallback: Node) -> Node {
     selected_url.and_then(|url| nodes.into_iter().find(|node| node.url == url)).unwrap_or(fallback)
 }
@@ -97,5 +107,20 @@ mod tests {
         assert_eq!((config(NodePriority::High).status, config(NodePriority::High).priority), (NodeState::Active, 3));
         assert_eq!((config(NodePriority::Low).status, config(NodePriority::Low).priority), (NodeState::Active, 1));
         assert_eq!((config(NodePriority::Inactive).status, config(NodePriority::Inactive).priority), (NodeState::Inactive, 0));
+    }
+
+    #[test]
+    fn test_only_added_nodes_can_be_deleted_and_defaults_sort_first() {
+        let default_url = NodeRegion::Us.url(Chain::Ethereum);
+        let added = node("https://added.example", 1);
+
+        assert!(!can_delete_node(Chain::Ethereum, &default_url));
+        assert!(can_delete_node(Chain::Ethereum, &added.url));
+
+        let sorted = sorted_nodes(Chain::Ethereum, vec![added.clone(), node(&default_url, 3)]);
+        assert_eq!(
+            sorted.iter().map(|node| node.url.as_str()).collect::<Vec<_>>(),
+            vec![default_url.as_str(), added.url.as_str()]
+        );
     }
 }

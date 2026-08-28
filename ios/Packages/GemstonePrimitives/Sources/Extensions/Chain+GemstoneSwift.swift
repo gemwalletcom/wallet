@@ -157,10 +157,7 @@ public extension Primitives.Chain {
     }
 
     func matches(query: String) -> Bool {
-        networkName.localizedCaseInsensitiveContains(query) ||
-            rawValue.localizedCaseInsensitiveContains(query) ||
-            asset.name.localizedCaseInsensitiveContains(query) ||
-            asset.symbol.localizedCaseInsensitiveContains(query)
+        Gemstone.searchMatchingChains(chains: [rawValue], query: query).isNotEmpty
     }
 }
 
@@ -179,7 +176,14 @@ public extension [Primitives.Chain] {
     }
 
     func filter(query: String) -> [Primitives.Chain] {
-        guard !query.isEmpty else { return self }
-        return filter { $0.matches(query: query) }
+        let matching = Set(Gemstone.searchMatchingChains(chains: map(\.rawValue), query: query))
+        return filter { matching.contains($0.rawValue) }
+    }
+}
+
+public extension [Primitives.Asset] {
+    func matching(query: String) -> [Primitives.Asset] {
+        guard let assets = try? map({ try $0.json() }) else { return self }
+        return Gemstone.searchMatchingAssets(assets: assets, query: query).compactMap { try? Primitives.Asset($0) }
     }
 }

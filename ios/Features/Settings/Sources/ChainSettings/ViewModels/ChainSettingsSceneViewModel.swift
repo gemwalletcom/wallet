@@ -22,7 +22,6 @@ public final class ChainSettingsSceneViewModel {
     var explorers: [String]
     var isPresentingImportNode: Bool = false
 
-    private let defaultNodes: [ChainNode]
     private let formatter = ValueFormatter.full_US
 
     private var nodes: [ChainNode] = []
@@ -40,7 +39,6 @@ public final class ChainSettingsSceneViewModel {
 
         self.chain = chain
 
-        defaultNodes = (try? nodeService.defaultNodes(chain: chain)) ?? []
         selectedNode = chain.defaultChainNode
         explorers = explorerService.getExplorers(chain: chain.rawValue)
         selectedExplorer = explorerService.getExplorerName(chain: chain.rawValue)
@@ -62,7 +60,6 @@ public final class ChainSettingsSceneViewModel {
                 formatter: formatter,
             )
         }
-        .sorted(by: { !canDelete(node: $0.chainNode) && canDelete(node: $1.chainNode) })
     }
 
     var explorerTitle: String {
@@ -78,7 +75,7 @@ public final class ChainSettingsSceneViewModel {
     }
 
     func canDelete(node: ChainNode) -> Bool {
-        !node.isGemNode && !defaultNodes.contains(where: { $0 == node })
+        nodeService.canDelete(chain: chain, url: node.node.url)
     }
 }
 

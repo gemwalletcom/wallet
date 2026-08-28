@@ -51,8 +51,8 @@ class NetworksViewModel @Inject constructor(
 
     private val state = MutableStateFlow(State())
     val uiState = state
-        .map { it.toUIState() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, state.value.toUIState())
+        .map { it.toUIState(getNodesCase::canDeleteNode) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, state.value.toUIState(getNodesCase::canDeleteNode))
     val chainFilter = TextFieldState()
 
     private var observeNodesJob: Job? = null
@@ -68,7 +68,6 @@ class NetworksViewModel @Inject constructor(
     }
 
     fun onSelectedChain(chain: Chain) {
-        val defaultNodeUrls = getNodesCase.getDefaultNodes(chain).mapTo(linkedSetOf()) { it.url }
         val gemNodeFlags = config.getNodeRegions().associate { region ->
             config.getNodeUrl(chain.string, region) to config.getNodeRegionFlag(region)
         }
@@ -81,7 +80,6 @@ class NetworksViewModel @Inject constructor(
                 currentNode = getCurrentNodeCase.getCurrentNode(chain),
                 currentExplorer = explorerService.getExplorerName(chain.string),
                 availableAddNode = true,
-                defaultNodeUrls = defaultNodeUrls,
                 gemNodeFlags = gemNodeFlags,
                 nodes = emptyList(),
                 nodeStates = emptyMap(),
@@ -238,11 +236,10 @@ class NetworksViewModel @Inject constructor(
         val availableChains: List<Chain> = emptyList(),
         val selectChain: Boolean = true,
         val availableAddNode: Boolean = true,
-        val defaultNodeUrls: Set<String> = emptySet(),
         val gemNodeFlags: Map<String, String> = emptyMap(),
         val refreshNonce: Long = 0,
     ) {
-        fun toUIState(): NetworksUIState {
+        fun toUIState(canDeleteNode: (Chain, String) -> Boolean): NetworksUIState {
             return NetworksUIState(
                 chain = chain,
                 chains = availableChains,
@@ -257,8 +254,8 @@ class NetworksViewModel @Inject constructor(
                         nodes = nodes,
                         currentNode = currentNode,
                         nodeStates = nodeStates,
-                        defaultNodeUrls = defaultNodeUrls,
                         gemNodeFlags = gemNodeFlags,
+                        canDelete = { url -> canDeleteNode(chain, url) },
                     )
                 },
             )
@@ -278,8 +275,8 @@ internal fun buildNodeRows(
     nodes: List<Node>,
     currentNode: Node,
     nodeStates: Map<String, NodeStatusState>,
-    defaultNodeUrls: Set<String>,
     gemNodeFlags: Map<String, String>,
+    canDelete: (String) -> Boolean,
 ): List<NodeRowUiModel> {
     return nodes.map { node ->
         NodeRowUiModel(
@@ -287,7 +284,7 @@ internal fun buildNodeRows(
             host = displayHost(node.url),
             gemNodeFlag = gemNodeFlags[node.url],
             selected = node.url == currentNode.url,
-            canDelete = node.url !in gemNodeFlags && node.url !in defaultNodeUrls,
+            canDelete = canDelete(node.url),
             statusState = nodeStates[node.url] ?: NodeStatusState.Loading,
         )
     }

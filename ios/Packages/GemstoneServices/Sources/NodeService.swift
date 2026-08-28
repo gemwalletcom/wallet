@@ -43,8 +43,13 @@ public final class NodeService: Sendable {
         try await service.deleteNode(chain: chain.rawValue, url: node.url)
     }
 
+    public func canDelete(chain: Chain, url: String) -> Bool {
+        service.canDeleteNode(chain: chain.rawValue, url: url)
+    }
+
     public func nodes(for chain: Chain) async throws -> [ChainNode] {
-        try await service.getNodes(chain: chain.rawValue).map { try ChainNode(chain: chain.rawValue, node: Primitives.Node($0)) }
+        try service.sortedNodes(chain: chain.rawValue, nodes: await service.getNodes(chain: chain.rawValue))
+            .map { try ChainNode(chain: chain.rawValue, node: Primitives.Node($0)) }
     }
 }
 

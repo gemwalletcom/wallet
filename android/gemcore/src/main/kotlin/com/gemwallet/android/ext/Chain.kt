@@ -9,6 +9,7 @@ import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.EVMChain
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
+import uniffi.gemstone.searchMatchingChains
 import uniffi.gemstone.supportsPrivateKeyImport
 import uniffi.gemstone.validateAddress
 import uniffi.gemstone.checksumAddress as gemstoneChecksumAddress
@@ -55,15 +56,8 @@ fun Chain.networkName(): String {
 
 fun Chain.Companion.available() = Chain.entries.toSet()
 
-fun List<Chain>.filter(query: String): List<Chain> {
-    return if (query.isBlank()) this else filter { chain ->
-        val chainAsset = chain.chainAsset()
-        chainAsset.networkName.contains(query, ignoreCase = true) ||
-            chain.string.contains(query, ignoreCase = true) ||
-            chainAsset.asset.name.contains(query, ignoreCase = true) ||
-            chainAsset.asset.symbol.contains(query, ignoreCase = true)
-    }
-}
+fun List<Chain>.filter(query: String): List<Chain> =
+    searchMatchingChains(map { it.string }, query).mapNotNull { chainString -> Chain.entries.firstOrNull { it.string == chainString } }
 
 fun Chain.toChainType(): ChainType {
     val chainType = Config().getChainConfig(string).chainType

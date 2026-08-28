@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use primitives::currency::Currency;
 use primitives::perpetual::PerpetualSearchData;
-use primitives::{AssetBasic, Wallet};
+use primitives::{Asset, AssetBasic, Chain, Wallet};
 
 pub use model::GemSearchScope;
 pub use store::GemSearchStore;
@@ -85,4 +85,14 @@ impl GemSearchService {
         self.perpetual_store.save_perpetuals(rules::perpetual_data(perpetuals)).await?;
         self.store.set_perpetuals(key.to_string(), rules::perpetual_ids(perpetuals)).await
     }
+}
+
+#[uniffi::export]
+pub fn search_matching_chains(chains: Vec<Chain>, query: String) -> Vec<Chain> {
+    rules::matching_chains(chains, &query)
+}
+
+#[uniffi::export]
+pub fn search_matching_assets(assets: Vec<Asset>, query: String) -> Vec<Asset> {
+    rules::matching_assets(assets, &query)
 }
