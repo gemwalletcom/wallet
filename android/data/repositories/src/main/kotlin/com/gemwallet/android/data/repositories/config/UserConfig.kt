@@ -12,6 +12,7 @@ import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemSecureStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -22,11 +23,16 @@ class UserConfig(
     private val context: Context,
     private val configStore: ConfigStore,
     private val preferencesService: GemPreferencesService,
+    private val secureStore: GemSecureStore,
 ) {
 
-    fun authRequired(): Boolean = configStore.getBoolean(ConfigKey.Auth.string)
+    fun authRequired(): Boolean =
+        secureStore.get(SecureKey.Auth.string)?.toBooleanStrictOrNull() ?: configStore.getBoolean(ConfigKey.Auth.string)
 
-    fun setAuthRequired(enabled: Boolean) = configStore.putBoolean(ConfigKey.Auth.string, enabled)
+    fun setAuthRequired(enabled: Boolean) {
+        secureStore.set(SecureKey.Auth.string, enabled.toString())
+        configStore.putBoolean(ConfigKey.Auth.string, enabled)
+    }
 
     fun developEnabled(): Boolean = preferencesService.isDeveloperEnabled()
 
@@ -147,6 +153,11 @@ class UserConfig(
 
     private enum class ConfigKey(val string: String) {
         Auth("auth"),
+        ;
+    }
+
+    private enum class SecureKey(val string: String) {
+        Auth("auth_required"),
         ;
     }
 
