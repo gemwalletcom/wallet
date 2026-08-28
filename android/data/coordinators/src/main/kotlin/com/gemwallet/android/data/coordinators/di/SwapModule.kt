@@ -17,6 +17,9 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemKeystore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneSwapStore
+import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.TransactionsDao
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.GemSwapper
@@ -38,10 +41,13 @@ object SwapModule {
         gemSwapper: GemSwapper,
         gemKeystore: GemKeystore,
         passwordStore: PasswordStore,
+        assetsDao: AssetsDao,
+        transactionsDao: TransactionsDao,
     ): GemSwapServiceInterface = GemSwapService(
         swapper = gemSwapper,
         keystore = gemKeystore,
         password = GemstoneKeystorePassword(passwordStore),
+        store = GemstoneSwapStore(assetsDao, transactionsDao),
     )
 
     @Singleton

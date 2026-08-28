@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemBalanceServiceProtocol
-import protocol Gemstone.GemSwapServiceProtocol
-import GemstoneServices
 import BigInt
 import Components
 import Formatters
 import Foundation
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemSwapServiceProtocol
 import enum Gemstone.SwapperError
 import enum Gemstone.SwapperProvider
 import struct Gemstone.SwapperQuote
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -207,6 +207,14 @@ public final class SwapSceneViewModel {
 // MARK: - Business Logic
 
 extension SwapSceneViewModel {
+    func suggestPair() async {
+        guard
+            pairSelectorModel.toAssetId == nil,
+            let pair = try? await swapService.suggestPair(walletId: wallet.id.id, payAssetId: pairSelectorModel.fromAssetId?.identifier)?.map()
+        else { return }
+        pairSelectorModel = pair
+    }
+
     func fetch() async {
         guard !isTransferDataLoading, let currentInput else { return }
         await performFetch(input: currentInput)

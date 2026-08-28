@@ -38,6 +38,8 @@ import com.wallet.core.primitives.swap.SwapPriceImpactType
 import com.wallet.core.primitives.swap.SwapQuoteDataType
 import io.mockk.clearMocks
 import io.mockk.coEvery
+import uniffi.gemstone.GemSwapPairSuggestion
+import uniffi.gemstone.GemSwapServiceInterface
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -105,6 +107,9 @@ class SwapViewModelTest {
         every { swapSlippageBps() } returns flowOf(null)
     }
     private val requestSwapQuotes = mockk<RequestSwapQuotes>(relaxed = true)
+    private val swapService = mockk<GemSwapServiceInterface> {
+        coEvery { suggestPair(any(), any()) } returns null
+    }
 
     @Before
     fun setUp() {
@@ -130,6 +135,7 @@ class SwapViewModelTest {
         enableAsset = enableAsset,
         buildSwapConfirmParams = buildSwapConfirmParams,
         userConfig = userConfig,
+        swapService = swapService,
         requestSwapQuotes = requestSwapQuotes,
         savedStateHandle = savedStateHandle,
     )
@@ -143,6 +149,35 @@ class SwapViewModelTest {
             RouteArgument.ToAssetId.key to to,
         )
     )
+
+    @Test
+    fun `init keeps an already selected pair and asks for no suggestion`() = runTest(testDispatcher) {
+        val savedState = swapSavedState()
+
+        createViewModel(savedState)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { swapService.suggestPair(any(), any()) }
+        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
+        assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
+    }
+
+    @Test
+    fun `init applies the suggested pair when the screen opens empty`() = runTest(testDispatcher) {
+        val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
+        every { sessionRepository.session() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
+        coEvery { swapService.suggestPair(wallet.id.id, null) } returns GemSwapPairSuggestion(
+            payAssetId = solAsset.id.toIdentifier(),
+            receiveAssetId = usdcAsset.id.toIdentifier(),
+        )
+        val savedState = SavedStateHandle()
+
+        createViewModel(savedState)
+        advanceUntilIdle()
+
+        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
+        assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
+    }
 
     @Test
     fun `setSlippage persists user preference`() = runTest(testDispatcher) {

@@ -77,6 +77,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.Config
 import uniffi.gemstone.getDefaultSlippage
+import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperProvider
 import java.math.BigDecimal
 import javax.inject.Inject
@@ -89,6 +90,7 @@ class SwapViewModel @Inject constructor(
     private val enableAsset: EnableAsset,
     private val buildSwapConfirmParams: BuildSwapConfirmParams,
     private val userConfig: UserConfig,
+    private val swapService: GemSwapServiceInterface,
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -227,6 +229,18 @@ class SwapViewModel @Inject constructor(
         matchedQuoteResults
             .onEach(::onQuoteResults)
             .launchIn(viewModelScope)
+        viewModelScope.launch { suggestPair() }
+    }
+
+    private suspend fun suggestPair() {
+        if (savedStateHandle.get<String?>(RouteArgument.ToAssetId.key) != null) {
+            return
+        }
+        val walletId = sessionRepository.session().firstOrNull()?.wallet?.id ?: return
+        val payAssetId = savedStateHandle.get<String?>(RouteArgument.FromAssetId.key)
+        val suggestion = runCatching { swapService.suggestPair(walletId.id, payAssetId) }.getOrNull() ?: return
+        savedStateHandle[RouteArgument.FromAssetId.key] = suggestion.payAssetId
+        savedStateHandle[RouteArgument.ToAssetId.key] = suggestion.receiveAssetId
     }
 
     fun onSelect(type: SwapItemType, assetId: AssetId) {

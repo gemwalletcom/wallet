@@ -92,6 +92,9 @@ public struct SwapScene: View {
         .onAppear {
             focusedField = true
         }
+        .task {
+            await model.suggestPair()
+        }
     }
 }
 
