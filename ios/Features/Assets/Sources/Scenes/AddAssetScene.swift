@@ -39,7 +39,12 @@ public struct AddAssetScene: View {
             .onAppear {
                 focusedField = .address
             }
-            .onChange(of: model.input.address, onAddressClean)
+            .onChange(of: model.input.address) {
+                model.onChangeAddress()
+            }
+            .debouncedTask(id: model.fetchTrigger) {
+                await model.fetch()
+            }
             .listSectionSpacing(.compact)
             .navigationTitle(model.title)
             .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
@@ -82,7 +87,7 @@ extension AddAssetScene {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.search)
-                .onSubmit(fetch)
+                .onSubmit(model.onSubmitAddress)
             }
 
             switch model.state {
@@ -132,7 +137,7 @@ extension AddAssetScene {
 extension AddAssetScene {
     private func onFinishChainSelection(chains: [Chain]) {
         model.input.chain = chains.first
-        onAddressClean(nil, nil)
+        model.input.address = nil
     }
 
     private func onSelectImportToken() {
@@ -146,30 +151,12 @@ extension AddAssetScene {
 
     private func onSelectPaste() {
         guard let address = UIPasteboard.general.string else { return }
-        model.input.address = address
+        model.setInput(address)
         focusedField = nil
-        fetch()
     }
 
     private func onHandleScan(_ result: String) {
-        model.input.address = result
+        model.setInput(result)
         focusedField = nil
-        fetch()
-    }
-
-    private func onAddressClean(_: String?, _ newValue: String?) {
-        guard newValue == nil else { return }
-        model.input.address = newValue
-        fetch()
-    }
-}
-
-// MARK: - Effects
-
-extension AddAssetScene {
-    private func fetch() {
-        Task {
-            await model.fetch()
-        }
     }
 }
