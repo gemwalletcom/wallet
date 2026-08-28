@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
 import com.gemwallet.android.data.repositories.gemstone.GemstonePreferencesStore
-import com.gemwallet.android.data.repositories.nodes.MigrateExplorerPreference
 import com.gemwallet.android.data.repositories.pricealerts.MigratePriceAlertsPreference
 import dagger.Module
 import dagger.Provides
@@ -29,13 +28,6 @@ object PreferencesModule {
     @Singleton
     @Provides
     fun provideGemExplorerService(preferencesService: GemPreferencesService): GemExplorerService = GemExplorerService(preferencesService)
-
-    @Singleton
-    @Provides
-    fun provideMigrateExplorerPreference(
-        @ApplicationContext context: Context,
-        explorerService: GemExplorerService,
-    ): MigrateExplorerPreference = MigrateExplorerPreference(context, explorerService)
 
     @Singleton
     @Provides

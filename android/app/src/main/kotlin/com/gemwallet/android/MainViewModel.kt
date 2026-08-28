@@ -1,15 +1,14 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.data.repositories.nodes.MigrateExplorerPreference
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.data.repositories.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.ext.userMessage
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.CheckAccountsService
-import com.gemwallet.android.data.repositories.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.services.MigrateV3KeystoreService
 import com.gemwallet.android.services.SyncService
 import com.wallet.core.primitives.Appearance
@@ -37,7 +36,6 @@ class MainViewModel @Inject constructor(
     private val syncService: SyncService,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
     private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
-    private val migrateExplorerPreference: MigrateExplorerPreference,
     private val checkAccountsService: CheckAccountsService,
     private val lockTimer: LockTimer,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
@@ -107,7 +105,6 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) { syncService.sync() }
         viewModelScope.launch(Dispatchers.IO) {
             migratePriceAlertsPreference()
-            migrateExplorerPreference()
             migrateV3KeystoreService()
         }
         viewModelScope.launch(Dispatchers.IO) { checkAccountsService() }
