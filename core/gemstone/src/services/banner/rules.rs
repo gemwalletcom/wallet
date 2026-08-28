@@ -1,41 +1,11 @@
-use primitives::{AssetId, BannerEvent, BannerState, Chain, Wallet, WalletId, WalletSource};
+use primitives::{AssetId, BannerEvent, BannerState, Chain, Wallet, WalletSource};
 
-use super::model::{GemBannerAction, GemBannerContext, GemBannerItem, GemBannerKey};
+use super::model::{GemBannerContext, GemBannerItem, GemBannerKey};
 
 const ACCOUNT_ACTIVATION_CHAINS: [Chain; 3] = [Chain::Xrp, Chain::Stellar, Chain::Algorand];
 const TRADE_PERPETUALS_CHAINS: [Chain; 2] = [Chain::HyperCore, Chain::Hyperliquid];
 
 const SUSPICIOUS_RANK_SCORE: i32 = 5;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum BannerClose {
-    Close,
-    Keep,
-    AfterPermission,
-}
-
-pub fn close_decision(action: &GemBannerAction) -> BannerClose {
-    match action {
-        GemBannerAction::Close => BannerClose::Close,
-        GemBannerAction::Button => BannerClose::Keep,
-        GemBannerAction::Event { event } => {
-            if closes_on_action(*event) {
-                BannerClose::AfterPermission
-            } else {
-                BannerClose::Keep
-            }
-        }
-    }
-}
-
-pub fn event_key(wallet_id: Option<WalletId>, asset_id: Option<AssetId>, event: BannerEvent) -> GemBannerKey {
-    GemBannerKey {
-        wallet_id,
-        asset_id,
-        chain: None,
-        event,
-    }
-}
 
 pub fn is_visible(state: BannerState) -> bool {
     match state {
