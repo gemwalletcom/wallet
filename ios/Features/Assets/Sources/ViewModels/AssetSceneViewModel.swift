@@ -232,7 +232,12 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var visibleBanners: [Banner] {
-        (try? bannerService.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset, context: bannerContext)) ?? []
+        do {
+            return try bannerService.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset, context: bannerContext)
+        } catch {
+            debugLog("asset scene: visible banners error \(error)")
+            return []
+        }
     }
 
     private var bannerContext: GemBannerContext {
@@ -593,9 +598,17 @@ extension AssetSceneViewModel {
     }
 
     private func updateWallet() async {
-        async let balance: Void? = try? balanceService.update(walletId: walletModel.wallet.id.id, assetIds: [assetModel.asset.id.identifier])
+        async let balance: Void = updateBalance()
         async let transactions: Void = loadTransactions()
         _ = await (balance, transactions)
+    }
+
+    private func updateBalance() async {
+        do {
+            try await balanceService.update(walletId: walletModel.wallet.id.id, assetIds: [assetModel.asset.id.identifier])
+        } catch {
+            debugLog("asset scene: balance update error \(error)")
+        }
     }
 
     private func updatePriceAlerts() async {

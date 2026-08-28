@@ -452,7 +452,11 @@ extension SwapSceneViewModel {
     }
 
     private func performUpdate(for assetIds: [AssetId]) async {
-        try? await balanceService.update(walletId: wallet.id.id, assetIds: assetIds.ids)
+        do {
+            try await balanceService.update(walletId: wallet.id.id, assetIds: assetIds.ids)
+        } catch {
+            debugLog("SwapScene balance update error: \(error)")
+        }
     }
 
     private func updateValidators(for assetData: AssetData?) {

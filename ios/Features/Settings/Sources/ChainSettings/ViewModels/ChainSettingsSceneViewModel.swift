@@ -96,7 +96,11 @@ extension ChainSettingsSceneViewModel {
 
     func onSelectExplorer(name: String) {
         selectedExplorer = name
-        try? explorerService.setExplorerName(chain: chain.rawValue, name: name)
+        do {
+            try explorerService.setExplorerName(chain: chain.rawValue, name: name)
+        } catch {
+            debugLog("chain settings scene: on explorer select error \(error)")
+        }
     }
 
     func onSelectNode(_ node: ChainNode) {
