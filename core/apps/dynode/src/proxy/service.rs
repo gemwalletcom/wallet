@@ -12,11 +12,14 @@ use crate::proxy::response_builder::{CacheStatus, ProxyResponse, ResponseBuilder
 use crate::webhook::DynodeBroadcastWebhookClient;
 use gem_tracing::{DurationMs, info_with_fields};
 use reqwest::StatusCode;
-use reqwest::header::{HeaderMap, HeaderName};
+use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue};
 use settings_chain::BroadcastProviders;
 use std::collections::HashSet;
 use std::str::FromStr;
 use std::sync::Arc;
+
+const GRPC_ACCEPT_ENCODING: HeaderName = HeaderName::from_static("grpc-accept-encoding");
+const GRPC_CONTENT_TYPE: &str = "application/grpc";
 
 #[derive(Clone)]
 pub struct ProxyRequestService {
@@ -74,6 +77,14 @@ impl ProxyRequestService {
                     headers.insert(key, value.clone());
                 }
             }
+        }
+
+        if original
+            .get(CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .is_some_and(|value| value.starts_with(GRPC_CONTENT_TYPE))
+        {
+            headers.insert(GRPC_ACCEPT_ENCODING, HeaderValue::from_static("identity"));
         }
 
         headers
@@ -270,5 +281,21 @@ mod tests {
 
         assert_eq!(headers.get(header::CONTENT_TYPE).unwrap(), JSON_CONTENT_TYPE);
         assert!(headers.get(header::USER_AGENT).is_none());
+    }
+
+    #[test]
+    fn test_build_headers_forces_grpc_identity_encoding() {
+        let service = create_service(HeadersConfig {
+            forward: vec![header::CONTENT_TYPE.to_string(), GRPC_ACCEPT_ENCODING.to_string()],
+            domains: HashMap::new(),
+        });
+
+        let mut original = HeaderMap::new();
+        original.insert(header::CONTENT_TYPE, header::HeaderValue::from_static("application/grpc+proto"));
+        original.insert(GRPC_ACCEPT_ENCODING, header::HeaderValue::from_static("gzip"));
+
+        let headers = service.build_headers("example.com", &original);
+
+        assert_eq!(headers.get(GRPC_ACCEPT_ENCODING).unwrap(), "identity");
     }
 }

@@ -30,6 +30,11 @@ headers:
     - content-type
     - content-encoding
     - content-length
+    - grpc-accept-encoding
+    - grpc-encoding
+    - grpc-message
+    - grpc-status
+    - grpc-status-details-bin
     - te
   domains:
     public-eth.nownodes.io:
