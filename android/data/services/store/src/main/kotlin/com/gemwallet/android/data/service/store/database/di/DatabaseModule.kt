@@ -16,7 +16,6 @@ import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.service.store.database.NftDao
-import com.gemwallet.android.data.service.store.database.NodesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
@@ -92,6 +91,7 @@ object DatabaseModule {
         .addMigrations(Migration_85_86)
         .addMigrations(Migration_86_87)
         .addMigrations(Migration_87_88)
+        .addMigrations(Migration_88_89(context))
         .build()
 
     @Singleton
@@ -137,10 +137,6 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun provideStakeDao(db: GemDatabase): StakeDao = db.stakeDao()
-
-    @Singleton
-    @Provides
-    fun provideNodeDao(db: GemDatabase): NodesDao = db.nodeDao()
 
     @Singleton
     @Provides

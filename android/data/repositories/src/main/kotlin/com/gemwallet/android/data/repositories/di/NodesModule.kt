@@ -10,7 +10,6 @@ import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.data.repositories.gemstone.GemstoneNodeStore
 import com.gemwallet.android.data.repositories.nodes.NodesRepository
 import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.data.service.store.database.NodesDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,9 +38,8 @@ object NodesModule {
     @Provides
     @Singleton
     fun provideNodeStore(
-        nodesDao: NodesDao,
         @Named("node") configStore: ConfigStore,
-    ): GemstoneNodeStore = GemstoneNodeStore(nodesDao, configStore)
+    ): GemstoneNodeStore = GemstoneNodeStore(configStore)
 
     @Provides
     @Singleton
