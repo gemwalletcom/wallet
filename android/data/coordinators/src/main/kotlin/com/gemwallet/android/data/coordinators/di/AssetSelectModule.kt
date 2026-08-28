@@ -1,14 +1,14 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.asset_select.coordinators.ClearRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.GetChainAssets
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
-import com.gemwallet.android.application.asset_select.coordinators.SearchListAssets
-import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
-import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
-import com.gemwallet.android.application.assets.coordinators.EnableAsset
+import com.gemwallet.android.application.asset_select.cases.ClearRecentAssets
+import com.gemwallet.android.application.asset_select.cases.GetChainAssets
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
+import com.gemwallet.android.application.asset_select.cases.SearchListAssets
+import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
+import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
+import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
+import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.data.coordinators.asset_select.ClearRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetChainAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetRecentAssetsImpl

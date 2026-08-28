@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.nft
 
 import android.util.Log
-import com.gemwallet.android.application.nft.coordinators.SyncNftCollections
+import com.gemwallet.android.application.nft.cases.SyncNftCollections
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.WalletId

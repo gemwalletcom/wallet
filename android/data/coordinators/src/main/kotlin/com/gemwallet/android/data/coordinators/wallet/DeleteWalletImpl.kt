@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.wallet
 
 import android.util.Log
-import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
+import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletSessionStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore

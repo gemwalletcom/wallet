@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
-import com.gemwallet.android.application.banner.coordinators.ApplyBannerAction
+import com.gemwallet.android.application.assets.cases.HideWelcomeBanner
+import com.gemwallet.android.application.banner.cases.ApplyBannerAction
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.banner.BannerAction
 import com.wallet.core.primitives.Banner

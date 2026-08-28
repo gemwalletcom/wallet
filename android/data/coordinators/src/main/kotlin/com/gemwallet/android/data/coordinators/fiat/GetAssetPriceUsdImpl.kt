@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.fiat
 
-import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
+import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId

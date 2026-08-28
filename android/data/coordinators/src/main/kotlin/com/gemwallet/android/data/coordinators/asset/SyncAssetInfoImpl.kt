@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import android.util.Log
-import com.gemwallet.android.application.assets.coordinators.SyncMissingAssets
-import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
+import com.gemwallet.android.application.assets.cases.SyncMissingAssets
+import com.gemwallet.android.application.assets.cases.SyncAssetInfo
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toIdentifier

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.fiat
 
-import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
+import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.getAccount

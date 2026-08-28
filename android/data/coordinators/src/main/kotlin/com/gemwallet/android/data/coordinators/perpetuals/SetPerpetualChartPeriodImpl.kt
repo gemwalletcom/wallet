@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualChartPeriod
+import com.gemwallet.android.application.perpetual.cases.SetPerpetualChartPeriod
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.wallet.core.primitives.ChartPeriod
 

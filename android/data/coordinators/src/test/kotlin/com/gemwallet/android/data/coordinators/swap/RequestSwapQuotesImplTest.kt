@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
-import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
-import com.gemwallet.android.application.swap.coordinators.matches
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
+import com.gemwallet.android.application.swap.cases.SwapQuotesResult
+import com.gemwallet.android.application.swap.cases.matches
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.Account

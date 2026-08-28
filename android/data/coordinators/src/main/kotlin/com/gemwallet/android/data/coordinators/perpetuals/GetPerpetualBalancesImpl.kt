@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalances
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalances
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance as PerpetualBalanceUi

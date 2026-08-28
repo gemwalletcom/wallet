@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.banner
 
-import com.gemwallet.android.application.banner.coordinators.GetActiveBanners
+import com.gemwallet.android.application.banner.cases.GetActiveBanners
 import com.gemwallet.android.cases.banners.GetBannersCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.wallet.core.primitives.Asset

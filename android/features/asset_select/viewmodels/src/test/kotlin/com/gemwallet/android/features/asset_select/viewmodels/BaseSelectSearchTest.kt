@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
+import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.testkit.mockAsset

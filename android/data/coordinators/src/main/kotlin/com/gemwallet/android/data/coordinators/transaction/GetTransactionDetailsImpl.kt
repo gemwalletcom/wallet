@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.transaction
 import com.gemwallet.android.ext.hash
 import uniffi.gemstone.GemExplorerService
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
+import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository

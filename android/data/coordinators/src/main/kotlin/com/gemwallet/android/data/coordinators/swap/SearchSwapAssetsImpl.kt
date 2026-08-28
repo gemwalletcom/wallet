@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
+import com.gemwallet.android.application.swap.cases.SearchSwapAssets
 import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.isSwapSupport

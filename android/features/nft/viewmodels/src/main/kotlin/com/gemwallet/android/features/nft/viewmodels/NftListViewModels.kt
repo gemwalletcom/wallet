@@ -3,9 +3,9 @@ package com.gemwallet.android.features.nft.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.nft.coordinators.GetNftCollections
-import com.gemwallet.android.application.nft.coordinators.SyncNftCollections
-import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.application.nft.cases.GetNftCollections
+import com.gemwallet.android.application.nft.cases.SyncNftCollections
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.NftItemUIModel

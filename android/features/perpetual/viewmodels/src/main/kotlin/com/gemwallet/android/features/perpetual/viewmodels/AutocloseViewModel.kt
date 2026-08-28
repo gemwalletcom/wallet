@@ -3,8 +3,8 @@ package com.gemwallet.android.features.perpetual.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.perpetual.coordinators.BuildPerpetualParams
-import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField

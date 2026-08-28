@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
-import com.gemwallet.android.application.pricealerts.coordinators.HasAssetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.HasAssetPriceAlerts
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.wallet.core.primitives.AssetId
 

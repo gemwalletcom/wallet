@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlertsEnabled
-import com.gemwallet.android.application.pricealerts.coordinators.SetPriceAlertsEnabled
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlertsEnabled
+import com.gemwallet.android.application.pricealerts.cases.SetPriceAlertsEnabled
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map

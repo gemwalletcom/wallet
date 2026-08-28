@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartData
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartData
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemPerpetualService

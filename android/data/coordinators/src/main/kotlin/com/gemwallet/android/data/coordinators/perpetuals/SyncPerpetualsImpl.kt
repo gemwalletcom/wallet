@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import javax.inject.Inject

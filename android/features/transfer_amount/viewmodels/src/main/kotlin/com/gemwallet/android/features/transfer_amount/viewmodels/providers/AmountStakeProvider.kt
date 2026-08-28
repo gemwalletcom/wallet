@@ -1,10 +1,10 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.application.stake.coordinators.GetDelegation
-import com.gemwallet.android.application.stake.coordinators.GetDelegations
-import com.gemwallet.android.application.stake.coordinators.GetRecommendedValidator
-import com.gemwallet.android.application.stake.coordinators.GetStakeValidator
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.stake.cases.GetDelegation
+import com.gemwallet.android.application.stake.cases.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.transactions
 
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.model.TransactionExtended
 import com.wallet.core.primitives.TransactionId
 import kotlinx.coroutines.flow.Flow

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPositions
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.data.repositories.perpetual.FakePerpetualRepository
 import com.gemwallet.android.domains.price.ValueDirection
 import com.wallet.core.primitives.PerpetualDirection

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
+import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.session.SessionRepository

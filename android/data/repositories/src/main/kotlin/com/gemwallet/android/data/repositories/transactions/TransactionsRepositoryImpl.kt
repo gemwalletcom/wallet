@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.transactions
 
-import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
+import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.TransactionsDao

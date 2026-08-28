@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.add_asset
 
-import com.gemwallet.android.application.add_asset.coordinators.GetAvailableTokenChains
+import com.gemwallet.android.application.add_asset.cases.GetAvailableTokenChains
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.assetType
 import com.wallet.core.primitives.Chain

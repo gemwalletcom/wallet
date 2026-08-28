@@ -1,12 +1,12 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
-import com.gemwallet.android.application.stake.coordinators.GetDelegation
-import com.gemwallet.android.application.stake.coordinators.GetDelegations
-import com.gemwallet.android.application.stake.coordinators.GetRecommendedValidator
-import com.gemwallet.android.application.stake.coordinators.GetStakeValidator
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.perpetual.cases.GetPerpetual
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
+import com.gemwallet.android.application.stake.cases.GetDelegation
+import com.gemwallet.android.application.stake.cases.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.model.AmountParams
 import kotlinx.coroutines.CoroutineScope

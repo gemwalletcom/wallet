@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualAccountMode
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
+import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualAccountMode
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidEventHandler
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidObserverService

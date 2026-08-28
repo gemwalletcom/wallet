@@ -3,7 +3,7 @@ package com.gemwallet.android.features.wallet.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet.coordinators.GetWalletDetails
+import com.gemwallet.android.application.wallet.cases.GetWalletDetails
 import com.gemwallet.android.cases.nft.GetListNftCase
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.theme.AvatarEmoji

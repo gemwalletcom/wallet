@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.di
 
 import uniffi.gemstone.GemExplorerService
-import com.gemwallet.android.application.nft.coordinators.GetNftAssetDetails
-import com.gemwallet.android.application.nft.coordinators.GetNftCollections
-import com.gemwallet.android.application.nft.coordinators.RefreshNftAsset
-import com.gemwallet.android.application.nft.coordinators.SyncNftCollections
+import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
+import com.gemwallet.android.application.nft.cases.GetNftCollections
+import com.gemwallet.android.application.nft.cases.RefreshNftAsset
+import com.gemwallet.android.application.nft.cases.SyncNftCollections
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.cases.nft.GetListNftCase
 import com.gemwallet.android.cases.nft.RefreshNftAsset as RefreshNftAssetCase

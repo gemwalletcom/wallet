@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.stake.coordinators.GetDelegation
-import com.gemwallet.android.application.stake.coordinators.GetDelegations
-import com.gemwallet.android.application.stake.coordinators.GetRecommendedValidator
-import com.gemwallet.android.application.stake.coordinators.GetStakeValidator
+import com.gemwallet.android.application.stake.cases.GetDelegation
+import com.gemwallet.android.application.stake.cases.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.data.coordinators.stake.GetDelegationImpl
 import com.gemwallet.android.data.coordinators.stake.GetDelegationsImpl
 import com.gemwallet.android.data.coordinators.stake.GetRecommendedValidatorImpl

@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.Constants
-import com.gemwallet.android.application.assets.coordinators.SyncAssets
+import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository

@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.di
 
 import uniffi.gemstone.GemExplorerService
-import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
-import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
-import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
-import com.gemwallet.android.application.confirm.coordinators.GetFeeAssets
+import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
+import com.gemwallet.android.application.confirm.cases.ConfirmTransaction
+import com.gemwallet.android.application.confirm.cases.CalculateTransferAmount
+import com.gemwallet.android.application.confirm.cases.GetFeeAssets
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemTransactionSigner
 import com.gemwallet.android.cases.transactions.CreateTransaction

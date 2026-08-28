@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
-import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes.Companion.QUOTE_DEBOUNCE_MS
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
-import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
+import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
+import com.gemwallet.android.application.swap.cases.RequestSwapQuotes.Companion.QUOTE_DEBOUNCE_MS
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
+import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.serializer.toJson

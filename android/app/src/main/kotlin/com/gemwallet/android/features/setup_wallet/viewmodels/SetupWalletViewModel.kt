@@ -2,7 +2,7 @@ package com.gemwallet.android.features.setup_wallet.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet.coordinators.SetWalletName
+import com.gemwallet.android.application.wallet.cases.SetWalletName
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId

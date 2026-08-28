@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.swap.viewmodels
 
-import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
+import com.gemwallet.android.application.swap.cases.SearchSwapAssets
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.model.AssetBalance

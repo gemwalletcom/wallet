@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.wallet
 
-import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.wallet.core.primitives.WalletId

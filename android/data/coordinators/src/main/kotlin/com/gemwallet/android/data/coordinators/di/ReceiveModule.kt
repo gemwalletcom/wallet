@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.assets.coordinators.EnableAsset
-import com.gemwallet.android.application.receive.coordinators.GetReceiveAssetInfo
-import com.gemwallet.android.application.receive.coordinators.SetAssetVisible
+import com.gemwallet.android.application.assets.cases.EnableAsset
+import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
+import com.gemwallet.android.application.receive.cases.SetAssetVisible
 import com.gemwallet.android.data.coordinators.receive.GetReceiveAssetInfoImpl
 import com.gemwallet.android.data.coordinators.receive.SetAssetVisibleImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository

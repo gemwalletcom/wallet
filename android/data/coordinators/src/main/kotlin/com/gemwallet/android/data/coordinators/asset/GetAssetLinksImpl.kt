@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
+import com.gemwallet.android.application.assets.cases.GetAssetLinks
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink

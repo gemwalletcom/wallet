@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.wallet
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.application.wallet.coordinators.GetAllWallets
+import com.gemwallet.android.application.wallet.cases.GetAllWallets
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate

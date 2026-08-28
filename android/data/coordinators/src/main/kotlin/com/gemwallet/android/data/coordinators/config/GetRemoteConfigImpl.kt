@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.config
 
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
+import com.gemwallet.android.application.config.cases.GetRemoteConfig
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.ConfigResponse
 import uniffi.gemstone.GemConfigService

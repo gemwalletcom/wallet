@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.confirm
 
 import uniffi.gemstone.GemExplorerService
-import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
+import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.isMemoSupport

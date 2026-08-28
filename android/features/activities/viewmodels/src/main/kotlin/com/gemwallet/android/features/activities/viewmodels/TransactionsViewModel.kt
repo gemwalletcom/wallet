@@ -2,9 +2,9 @@ package com.gemwallet.android.features.activities.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.transactions.coordinators.GetTransactions
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.application.transactions.cases.SyncTransactions
+import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain

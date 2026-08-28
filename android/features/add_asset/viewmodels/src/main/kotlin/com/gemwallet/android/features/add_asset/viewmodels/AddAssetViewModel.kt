@@ -11,10 +11,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.add_asset.coordinators.AddCustomToken
-import com.gemwallet.android.application.add_asset.coordinators.GetAvailableTokenChains
-import com.gemwallet.android.application.add_asset.coordinators.ObserveToken
-import com.gemwallet.android.application.add_asset.coordinators.SearchCustomToken
+import com.gemwallet.android.application.add_asset.cases.AddCustomToken
+import com.gemwallet.android.application.add_asset.cases.GetAvailableTokenChains
+import com.gemwallet.android.application.add_asset.cases.ObserveToken
+import com.gemwallet.android.application.add_asset.cases.SearchCustomToken
 import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.filter
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState

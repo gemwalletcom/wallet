@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.stream
 
 import android.util.Log
-import com.gemwallet.android.application.assets.coordinators.SyncAssets
+import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CoroutineScope

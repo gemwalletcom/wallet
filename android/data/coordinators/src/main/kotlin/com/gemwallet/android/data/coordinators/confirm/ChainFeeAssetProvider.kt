@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.confirm
 
-import com.gemwallet.android.application.confirm.coordinators.FeeAssetProvider
+import com.gemwallet.android.application.confirm.cases.FeeAssetProvider
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AssetInfo

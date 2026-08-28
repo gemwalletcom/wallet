@@ -13,11 +13,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import uniffi.gemstone.defaultFeePriority
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.SyncMissingAssets
-import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
-import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
-import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
-import com.gemwallet.android.application.confirm.coordinators.GetFeeAssets
+import com.gemwallet.android.application.assets.cases.SyncMissingAssets
+import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
+import com.gemwallet.android.application.confirm.cases.ConfirmTransaction
+import com.gemwallet.android.application.confirm.cases.CalculateTransferAmount
+import com.gemwallet.android.application.confirm.cases.GetFeeAssets
 import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.cases.addresses.GetAddressNames
 import com.gemwallet.android.data.repositories.assets.AssetsRepository

@@ -2,10 +2,10 @@ package com.gemwallet.android.features.wallets.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
-import com.gemwallet.android.application.wallet.coordinators.GetAllWallets
-import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
-import com.gemwallet.android.application.wallet.coordinators.SetWalletPinned
+import com.gemwallet.android.application.wallet.cases.DeleteWallet
+import com.gemwallet.android.application.wallet.cases.GetAllWallets
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.application.wallet.cases.SetWalletPinned
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

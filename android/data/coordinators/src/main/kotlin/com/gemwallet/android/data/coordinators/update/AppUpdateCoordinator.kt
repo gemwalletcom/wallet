@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.update
 
-import com.gemwallet.android.application.update.coordinators.ObserveAppUpdateOffer
-import com.gemwallet.android.application.update.coordinators.SkipAppUpdate
-import com.gemwallet.android.application.update.coordinators.SyncAppUpdate
+import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
+import com.gemwallet.android.application.update.cases.SkipAppUpdate
+import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.model.BuildInfo

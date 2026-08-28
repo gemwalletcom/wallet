@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.fiat
 
-import com.gemwallet.android.application.fiat.coordinators.ObserveFiatTransactions
+import com.gemwallet.android.application.fiat.cases.ObserveFiatTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
-import com.gemwallet.android.application.pricealerts.coordinators.ExcludePriceAlert
+import com.gemwallet.android.application.pricealerts.cases.ExcludePriceAlert
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId

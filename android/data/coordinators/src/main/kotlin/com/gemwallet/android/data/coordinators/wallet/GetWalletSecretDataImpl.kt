@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.wallet
 import android.util.Log
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.wallet.coordinators.GetWalletSecretData
+import com.gemwallet.android.application.wallet.cases.GetWalletSecretData
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.domains.wallet.values.WalletSecretDataValue

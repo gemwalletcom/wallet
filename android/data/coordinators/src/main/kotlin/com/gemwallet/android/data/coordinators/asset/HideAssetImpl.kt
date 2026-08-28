@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.HideAsset
-import com.gemwallet.android.application.assets.coordinators.EnableAsset
+import com.gemwallet.android.application.assets.cases.HideAsset
+import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.getAccount
 import com.wallet.core.primitives.AssetId

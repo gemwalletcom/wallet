@@ -5,7 +5,7 @@ import uniffi.gemstone.perpetualCollateralAssetId
 import uniffi.gemstone.walletShowsPnl
 import uniffi.gemstone.walletTotalFiatValue
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
+import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig

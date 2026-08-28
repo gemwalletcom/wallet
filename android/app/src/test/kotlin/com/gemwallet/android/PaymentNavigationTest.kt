@@ -1,6 +1,6 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
+import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.isMemoSupport

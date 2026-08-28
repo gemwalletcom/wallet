@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams

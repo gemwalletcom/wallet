@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.application.transactions.coordinators.GetTransactions
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.AmountSign

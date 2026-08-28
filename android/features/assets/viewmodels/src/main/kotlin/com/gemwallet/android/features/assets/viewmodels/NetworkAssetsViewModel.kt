@@ -4,11 +4,11 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.coordinators.GetChainAssets
-import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.HideAsset
-import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
-import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.application.asset_select.cases.GetChainAssets
+import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
+import com.gemwallet.android.application.assets.cases.HideAsset
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming

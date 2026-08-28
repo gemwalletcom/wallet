@@ -1,13 +1,13 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
-import com.gemwallet.android.application.wallet.coordinators.GetAllWallets
-import com.gemwallet.android.application.wallet.coordinators.GetWalletDetails
-import com.gemwallet.android.application.wallet.coordinators.GetWalletSecretData
-import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
-import com.gemwallet.android.application.wallet.coordinators.SetWalletName
-import com.gemwallet.android.application.wallet.coordinators.SetWalletPinned
+import com.gemwallet.android.application.wallet.cases.DeleteWallet
+import com.gemwallet.android.application.wallet.cases.GetAllWallets
+import com.gemwallet.android.application.wallet.cases.GetWalletDetails
+import com.gemwallet.android.application.wallet.cases.GetWalletSecretData
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.application.wallet.cases.SetWalletName
+import com.gemwallet.android.application.wallet.cases.SetWalletPinned
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.cases.addresses.RenameWalletAddresses

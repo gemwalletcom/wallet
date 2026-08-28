@@ -3,11 +3,11 @@ package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.device.coordinators.EnableDevicePush
-import com.gemwallet.android.application.pricealerts.coordinators.GetAssetPriceAlertState
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.SetAssetPriceAlertEnabled
-import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.application.device.cases.EnableDevicePush
+import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.SetAssetPriceAlertEnabled
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel

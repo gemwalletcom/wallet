@@ -1,15 +1,15 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.pricealerts.coordinators.ExcludePriceAlert
-import com.gemwallet.android.application.pricealerts.coordinators.GetAssetPriceAlertState
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlertsEnabled
-import com.gemwallet.android.application.pricealerts.coordinators.HasAssetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAlert
-import com.gemwallet.android.application.pricealerts.coordinators.SetAssetPriceAlertEnabled
-import com.gemwallet.android.application.pricealerts.coordinators.SetPriceAlertsEnabled
-import com.gemwallet.android.application.pricealerts.coordinators.SyncAssetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.ExcludePriceAlert
+import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlertsEnabled
+import com.gemwallet.android.application.pricealerts.cases.HasAssetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.IncludePriceAlert
+import com.gemwallet.android.application.pricealerts.cases.SetAssetPriceAlertEnabled
+import com.gemwallet.android.application.pricealerts.cases.SetPriceAlertsEnabled
+import com.gemwallet.android.application.pricealerts.cases.SyncAssetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.UpdatePriceAlerts
 import com.gemwallet.android.data.coordinators.pricealerts.ExcludePriceAlertImpl
 import com.gemwallet.android.data.coordinators.pricealerts.GetAssetPriceAlertStateImpl
 import com.gemwallet.android.data.coordinators.pricealerts.GetPriceAlertsImpl

@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.swap.viewmodels.models
 
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
-import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
-import com.gemwallet.android.application.swap.coordinators.getQuote
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
+import com.gemwallet.android.application.swap.cases.SwapQuotesResult
+import com.gemwallet.android.application.swap.cases.getQuote
 import uniffi.gemstone.SwapperProvider
 
 internal sealed interface SwapQuotePhase {

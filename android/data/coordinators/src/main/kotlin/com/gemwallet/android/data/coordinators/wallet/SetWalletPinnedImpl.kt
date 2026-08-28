@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.wallet
 
-import com.gemwallet.android.application.wallet.coordinators.SetWalletPinned
+import com.gemwallet.android.application.wallet.cases.SetWalletPinned
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemWalletService
 

@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.application.wallet_import.coordinators.SetupWallet
-import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
+import com.gemwallet.android.application.wallet_import.cases.GetImportWalletState
+import com.gemwallet.android.application.wallet_import.cases.SetupWallet
+import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
 import com.gemwallet.android.data.coordinators.wallet_import.SetupWalletImpl
 import com.gemwallet.android.data.coordinators.wallet_import.services.ImportWalletService
 import com.gemwallet.android.data.repositories.session.SessionRepository

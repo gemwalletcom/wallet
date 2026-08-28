@@ -2,8 +2,8 @@ package com.gemwallet.android.features.banner.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.banner.coordinators.ApplyBannerAction
-import com.gemwallet.android.application.banner.coordinators.GetActiveBanners
+import com.gemwallet.android.application.banner.cases.ApplyBannerAction
+import com.gemwallet.android.application.banner.cases.GetActiveBanners
 import com.gemwallet.android.domains.banner.BannerAction
 import com.gemwallet.android.ext.getReserveBalance
 import com.gemwallet.android.model.ValueFormatter

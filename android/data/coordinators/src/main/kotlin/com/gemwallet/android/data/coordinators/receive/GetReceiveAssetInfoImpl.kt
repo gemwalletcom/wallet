@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.receive
 
-import com.gemwallet.android.application.receive.coordinators.GetReceiveAssetInfo
+import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.chain

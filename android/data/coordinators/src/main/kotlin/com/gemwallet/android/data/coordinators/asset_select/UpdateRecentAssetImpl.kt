@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset_select
 
-import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
+import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.model.RecentType

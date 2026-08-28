@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.session
 
-import com.gemwallet.android.application.session.coordinators.SetCurrentCurrency
+import com.gemwallet.android.application.session.cases.SetCurrentCurrency
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.CoroutineScope

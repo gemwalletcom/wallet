@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.fiat
 
-import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
+import com.gemwallet.android.application.fiat.cases.GetBuyQuotes
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency

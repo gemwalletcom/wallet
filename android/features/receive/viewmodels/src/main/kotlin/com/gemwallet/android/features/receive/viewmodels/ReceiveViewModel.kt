@@ -3,10 +3,10 @@ package com.gemwallet.android.features.receive.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
-import com.gemwallet.android.application.receive.coordinators.GetReceiveAssetInfo
-import com.gemwallet.android.application.receive.coordinators.SetAssetVisible
-import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.application.assets.cases.SyncAssetInfo
+import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
+import com.gemwallet.android.application.receive.cases.SetAssetVisible
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId

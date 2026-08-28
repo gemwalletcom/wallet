@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.stake
 
-import com.gemwallet.android.application.stake.coordinators.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Delegation

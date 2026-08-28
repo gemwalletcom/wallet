@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.assets.coordinators.EnableAsset
-import com.gemwallet.android.application.referral.coordinators.CreateReferral
-import com.gemwallet.android.application.referral.coordinators.GetRewards
-import com.gemwallet.android.application.referral.coordinators.Redeem
-import com.gemwallet.android.application.referral.coordinators.UseReferralCode
+import com.gemwallet.android.application.assets.cases.EnableAsset
+import com.gemwallet.android.application.referral.cases.CreateReferral
+import com.gemwallet.android.application.referral.cases.GetRewards
+import com.gemwallet.android.application.referral.cases.Redeem
+import com.gemwallet.android.application.referral.cases.UseReferralCode
 import com.gemwallet.android.data.coordinators.referral.CreateReferralImpl
 import com.gemwallet.android.data.coordinators.referral.GetRewardsImpl
 import com.gemwallet.android.data.coordinators.referral.RedeemImpl

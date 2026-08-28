@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.nft
 
 import uniffi.gemstone.GemExplorerService
-import com.gemwallet.android.application.nft.coordinators.GetNftAssetDetails
+import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.nft.NftAssetDetailsData

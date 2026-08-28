@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.device
 
-import com.gemwallet.android.application.device.coordinators.EnableDevicePush
+import com.gemwallet.android.application.device.cases.EnableDevicePush
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 
 class EnableDevicePushImpl(

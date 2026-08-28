@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.BuildSwapConfirmParams
-import com.gemwallet.android.application.swap.coordinators.SwapNoQuoteException
+import com.gemwallet.android.application.swap.cases.BuildSwapConfirmParams
+import com.gemwallet.android.application.swap.cases.SwapNoQuoteException
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams

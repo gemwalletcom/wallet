@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
+import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.model.CurrencyFormatter

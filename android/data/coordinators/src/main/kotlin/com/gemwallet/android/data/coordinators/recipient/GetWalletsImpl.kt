@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.recipient
 
-import com.gemwallet.android.application.recipient.coordinators.GetWallets
+import com.gemwallet.android.application.recipient.cases.GetWallets
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.flow.Flow

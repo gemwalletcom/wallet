@@ -1,12 +1,12 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
-import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
-import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
-import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
-import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
+import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
+import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
+import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentAssetsRequest

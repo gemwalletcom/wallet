@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
-import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
+import com.gemwallet.android.application.wallet_import.cases.GetImportWalletState
+import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId

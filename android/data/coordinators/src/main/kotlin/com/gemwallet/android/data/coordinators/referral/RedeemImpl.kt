@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.referral
 
-import com.gemwallet.android.application.referral.coordinators.Redeem
+import com.gemwallet.android.application.referral.cases.Redeem
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.wallet.core.primitives.RedemptionResult
 import com.wallet.core.primitives.RewardRedemptionOption

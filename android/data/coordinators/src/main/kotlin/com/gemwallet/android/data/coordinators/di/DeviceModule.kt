@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.device.coordinators.EnableDevicePush
+import com.gemwallet.android.application.device.cases.EnableDevicePush
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.coordinators.device.EnableDevicePushImpl
 import dagger.Module

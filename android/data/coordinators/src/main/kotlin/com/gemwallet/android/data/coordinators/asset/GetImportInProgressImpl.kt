@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
-import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
+import com.gemwallet.android.application.assets.cases.GetImportInProgress
+import com.gemwallet.android.application.wallet_import.cases.GetImportWalletState
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi

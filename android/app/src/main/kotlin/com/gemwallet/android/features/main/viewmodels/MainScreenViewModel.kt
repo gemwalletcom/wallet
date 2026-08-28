@@ -3,7 +3,7 @@ package com.gemwallet.android.features.main.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.PendingNavigationCoordinator
-import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
+import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

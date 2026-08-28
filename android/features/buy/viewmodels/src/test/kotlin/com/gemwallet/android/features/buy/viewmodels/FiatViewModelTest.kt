@@ -2,10 +2,10 @@ package com.gemwallet.android.features.buy.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
-import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
-import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
-import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
+import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
+import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
+import com.gemwallet.android.application.fiat.cases.GetBuyQuoteUrl
+import com.gemwallet.android.application.fiat.cases.GetBuyQuotes
 import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion

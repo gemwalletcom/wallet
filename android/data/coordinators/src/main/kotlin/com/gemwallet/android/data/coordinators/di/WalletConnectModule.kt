@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.wallet_connect.coordinators.PrepareSessionProposal
+import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.data.coordinators.wallet_connect.PrepareSessionProposalImpl
 import dagger.Module
 import dagger.Provides

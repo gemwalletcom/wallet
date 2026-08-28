@@ -3,9 +3,9 @@ package com.gemwallet.android.features.recipient.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.application.recipient.coordinators.GetWallets
-import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.recipient.cases.GetWallets
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.cases.contacts.ContactRecipient
 import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.name.GetNameRecord

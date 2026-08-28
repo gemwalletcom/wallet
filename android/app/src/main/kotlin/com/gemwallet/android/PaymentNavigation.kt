@@ -1,7 +1,7 @@
 package com.gemwallet.android
 
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
+import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress

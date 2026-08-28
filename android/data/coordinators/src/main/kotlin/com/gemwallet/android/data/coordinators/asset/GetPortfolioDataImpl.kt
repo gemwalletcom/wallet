@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.GetPortfolioData
-import com.gemwallet.android.application.assets.coordinators.walletChartPeriods
+import com.gemwallet.android.application.assets.cases.GetPortfolioData
+import com.gemwallet.android.application.assets.cases.walletChartPeriods
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemPerpetualService
 import com.gemwallet.android.data.repositories.session.SessionRepository

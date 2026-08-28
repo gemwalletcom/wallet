@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.swap.coordinators.BuildSwapConfirmParams
-import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
-import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
+import com.gemwallet.android.application.swap.cases.BuildSwapConfirmParams
+import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
+import com.gemwallet.android.application.swap.cases.SearchSwapAssets
 import com.gemwallet.android.data.coordinators.swap.BuildSwapConfirmParamsImpl
 import com.gemwallet.android.data.coordinators.swap.RequestSwapQuotesImpl
 import com.gemwallet.android.data.coordinators.swap.SearchSwapAssetsImpl

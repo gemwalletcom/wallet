@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import android.util.Log
-import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
+import com.gemwallet.android.application.transactions.cases.SyncAssetTransactions
+import com.gemwallet.android.application.transactions.cases.SyncTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier

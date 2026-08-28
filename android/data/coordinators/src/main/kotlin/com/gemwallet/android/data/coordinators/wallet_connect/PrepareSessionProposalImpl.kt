@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
-import com.gemwallet.android.application.wallet_connect.coordinators.PrepareSessionProposal
+import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.application.wallet_connect.values.WalletConnectPairingProposal
 import com.gemwallet.android.serializer.decodeJson
 import uniffi.gemstone.GemWalletConnectServiceInterface

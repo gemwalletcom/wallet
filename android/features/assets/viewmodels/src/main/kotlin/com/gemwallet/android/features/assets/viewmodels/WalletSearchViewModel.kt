@@ -1,16 +1,16 @@
 package com.gemwallet.android.features.assets.viewmodels
 
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
-import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
-import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
-import com.gemwallet.android.application.assets.coordinators.GetSearchLists
-import com.gemwallet.android.application.nft.coordinators.GetNftCollections
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
-import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualPinned
-import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
+import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
+import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
+import com.gemwallet.android.application.assets.cases.GetSearchLists
+import com.gemwallet.android.application.nft.cases.GetNftCollections
+import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
+import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.config.showPerpetuals

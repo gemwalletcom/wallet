@@ -2,15 +2,15 @@ package com.gemwallet.android.features.perpetual.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalances
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPositions
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
-import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualPinned
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalances
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
+import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
+import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
+import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.model.CurrencyFormatter

@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle

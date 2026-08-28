@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.application.session.coordinators.SetCurrentCurrency
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.session.cases.SetCurrentCurrency
 import com.gemwallet.android.data.coordinators.session.GetSessionImpl
 import com.gemwallet.android.data.coordinators.session.SetCurrentCurrencyImpl
 import com.gemwallet.android.data.repositories.session.SessionRepository

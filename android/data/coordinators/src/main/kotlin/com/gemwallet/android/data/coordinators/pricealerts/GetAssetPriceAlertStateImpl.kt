@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
-import com.gemwallet.android.application.pricealerts.coordinators.GetAssetPriceAlertState
+import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.Dispatchers

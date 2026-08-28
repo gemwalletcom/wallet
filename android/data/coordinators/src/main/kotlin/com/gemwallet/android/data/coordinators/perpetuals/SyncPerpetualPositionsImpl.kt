@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import android.util.Log
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.hyperliquidAccount
 import com.gemwallet.android.ext.runCatchingCancellable

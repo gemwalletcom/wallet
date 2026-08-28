@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.recipient.coordinators.GetWallets
+import com.gemwallet.android.application.recipient.cases.GetWallets
 import com.gemwallet.android.data.coordinators.recipient.GetWalletsImpl
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import dagger.Module

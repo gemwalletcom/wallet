@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.di
 
 import uniffi.gemstone.GemExplorerService
-import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
-import com.gemwallet.android.application.transactions.coordinators.GetTransactions
-import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
+import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
+import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.application.transactions.cases.SyncAssetTransactions
+import com.gemwallet.android.application.transactions.cases.SyncTransactions
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionDetailsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.SyncTransactionsImpl

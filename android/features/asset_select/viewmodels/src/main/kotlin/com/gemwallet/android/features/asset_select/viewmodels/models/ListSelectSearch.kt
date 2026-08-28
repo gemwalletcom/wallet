@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.asset_select.viewmodels.models
 
-import com.gemwallet.android.application.asset_select.coordinators.SearchListAssets
+import com.gemwallet.android.application.asset_select.cases.SearchListAssets
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import kotlinx.coroutines.ExperimentalCoroutinesApi

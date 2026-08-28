@@ -3,10 +3,10 @@ package com.gemwallet.android.features.referral.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.referral.coordinators.CreateReferral
-import com.gemwallet.android.application.referral.coordinators.GetRewards
-import com.gemwallet.android.application.referral.coordinators.Redeem
-import com.gemwallet.android.application.referral.coordinators.UseReferralCode
+import com.gemwallet.android.application.referral.cases.CreateReferral
+import com.gemwallet.android.application.referral.cases.GetRewards
+import com.gemwallet.android.application.referral.cases.Redeem
+import com.gemwallet.android.application.referral.cases.UseReferralCode
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ui.models.navigation.RouteArgument

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
+import com.gemwallet.android.application.assets.cases.GetAssetChartData
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson

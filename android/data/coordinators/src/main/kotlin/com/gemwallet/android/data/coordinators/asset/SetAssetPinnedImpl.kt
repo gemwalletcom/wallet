@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId

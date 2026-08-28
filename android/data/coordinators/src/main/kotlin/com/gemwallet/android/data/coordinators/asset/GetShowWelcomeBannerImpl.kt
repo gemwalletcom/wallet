@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
-import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
+import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
+import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.serializer.toJson

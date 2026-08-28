@@ -5,8 +5,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.device.coordinators.EnableDevicePush
-import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAlert
+import com.gemwallet.android.application.device.cases.EnableDevicePush
+import com.gemwallet.android.application.pricealerts.cases.IncludePriceAlert
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.domains.pricealerts.direction
 import com.gemwallet.android.domains.pricealerts.formatAmount

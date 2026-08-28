@@ -4,7 +4,7 @@ import uniffi.gemstone.GemWalletConnectService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.wallet_connect.coordinators.PrepareSessionProposal
+import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest

@@ -1,11 +1,11 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
-import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
-import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
-import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
-import com.gemwallet.android.application.fiat.coordinators.ObserveFiatTransactions
-import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
+import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
+import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
+import com.gemwallet.android.application.fiat.cases.GetBuyQuoteUrl
+import com.gemwallet.android.application.fiat.cases.GetBuyQuotes
+import com.gemwallet.android.application.fiat.cases.ObserveFiatTransactions
+import com.gemwallet.android.application.fiat.cases.SyncFiatTransactions
 import com.gemwallet.android.data.coordinators.fiat.GetAssetPriceUsdImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuoteUrlImpl

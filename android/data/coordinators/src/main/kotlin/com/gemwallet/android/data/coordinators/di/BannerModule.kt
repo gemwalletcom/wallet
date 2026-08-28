@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.banner.coordinators.ApplyBannerAction
-import com.gemwallet.android.application.banner.coordinators.GetActiveBanners
+import com.gemwallet.android.application.banner.cases.ApplyBannerAction
+import com.gemwallet.android.application.banner.cases.GetActiveBanners
 import com.gemwallet.android.cases.banners.BannerActionCase
 import com.gemwallet.android.cases.banners.GetBannersCase
 import com.gemwallet.android.data.coordinators.banner.ApplyBannerActionImpl

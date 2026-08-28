@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.SyncMissingAssets
+import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson

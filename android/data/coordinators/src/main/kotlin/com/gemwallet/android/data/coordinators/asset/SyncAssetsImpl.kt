@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import android.util.Log
-import com.gemwallet.android.application.assets.coordinators.SyncAssets
+import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.runCatchingCancellable
