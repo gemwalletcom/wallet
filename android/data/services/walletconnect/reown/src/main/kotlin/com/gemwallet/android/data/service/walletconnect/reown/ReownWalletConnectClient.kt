@@ -36,7 +36,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ReownWalletConnectClient @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val walletConnectService: GemWalletConnectService,
 ) : WalletConnectClient, WalletKit.WalletDelegate, CoreClient.CoreDelegate {
 

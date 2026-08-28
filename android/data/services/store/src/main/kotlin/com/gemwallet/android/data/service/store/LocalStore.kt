@@ -7,7 +7,7 @@ import java.util.UUID
 import javax.inject.Inject
 
 class LocalStore @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
     fun save(data: ByteArray, extension: String): String {
         val fileName = "${UUID.randomUUID()}.$extension"

@@ -42,7 +42,7 @@ class ManageContactViewModel @Inject constructor(
     private val getContacts: GetContacts,
     private val addContactCase: AddContact,
     private val updateContactCase: UpdateContact,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val localStore: LocalStore,
     getNameRecord: GetNameRecord,
     savedStateHandle: SavedStateHandle,

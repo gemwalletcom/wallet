@@ -75,7 +75,6 @@ fun ProposalScene(
                     R.string.errors_connections_malicious_origin,
                     Toast.LENGTH_LONG
                 ).show()
-                else -> Unit
             }
         }
     }

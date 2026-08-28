@@ -18,7 +18,7 @@ import javax.inject.Singleton
 
 @Singleton
 class MigrateV3KeystoreService @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val walletsRepository: WalletsRepository,
     private val passwordStore: PasswordStore,
     private val migrateKeystoreOperator: MigrateKeystoreOperator,

@@ -26,7 +26,7 @@ import com.gemwallet.android.ui.theme.smallIconSize
 @Immutable
 class IconSnackbarVisuals(
     override val message: String,
-    @DrawableRes val iconRes: Int,
+    @param:DrawableRes val iconRes: Int,
 ) : SnackbarVisuals {
     override val actionLabel: String? = null
     override val withDismissAction: Boolean = false
