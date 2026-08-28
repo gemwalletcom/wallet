@@ -53,11 +53,9 @@ class GetShowWelcomeBannerImpl(
         assetRankScore = null,
         hasPerpetualsSupport = false,
         isWalletEmpty = isWalletEmpty,
-        notificationsAvailable = false,
-        launchCount = 0u,
     )
 }
 
 internal fun onboardingBannerId(wallet: Wallet): String = bannerIdentifier(
-    GemBannerKey(walletId = wallet.id.id, assetId = null, chain = null, event = BannerEvent.Onboarding.toJson())
+    GemBannerKey(walletId = wallet.id.id, assetId = null, event = BannerEvent.Onboarding.toJson())
 )

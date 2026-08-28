@@ -23,13 +23,12 @@ interface BannersDao {
             banners
         WHERE
             (wallet_id IS NULL OR wallet_id = :walletId)
-            AND (asset_id = :assetId OR chain = :chain)
+            AND asset_id = :assetId
             AND state IN (:states)
     """)
     suspend fun getAssetBanners(
         walletId: String?,
         assetId: String,
-        chain: Chain,
         states: List<BannerState> = listOf(BannerState.Active, BannerState.AlwaysActive),
     ): List<DbBanner>
 

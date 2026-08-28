@@ -85,7 +85,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             initialValue: [],
         )
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
-        bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
+        bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
         self.isPresentingWallets = isPresentingWallets
     }
@@ -172,7 +172,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     var visibleBanners: [Banner] {
-        (try? bannerService.visibleBanners(banners, wallet: wallet, asset: .none, context: bannerContext)) ?? []
+        (try? bannerService.visibleBanners(banners, walletId: wallet.id, asset: .none, context: bannerContext)) ?? []
     }
 
     private var bannerContext: GemBannerContext {
@@ -186,8 +186,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             assetRankScore: .none,
             hasPerpetualsSupport: wallet.hasPerpetualsSupport,
             isWalletEmpty: totalFiatValue.value.isZero,
-            notificationsAvailable: false,
-            launchCount: 0,
         )
     }
 }

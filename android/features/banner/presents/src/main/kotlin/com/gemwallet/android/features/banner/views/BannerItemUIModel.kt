@@ -47,10 +47,6 @@ internal fun bannerItemUIModel(
                 getActivationFee(asset),
             ),
         )
-        BannerEvent.EnableNotifications -> Pair(
-            stringResource(R.string.banner_enable_notifications_title, assetName),
-            stringResource(R.string.banner_enable_notifications_description),
-        )
         BannerEvent.AccountBlockedMultiSignature -> Pair(
             stringResource(R.string.common_warning),
             stringResource(R.string.warnings_multi_signature_blocked, asset?.chain ?: ""),

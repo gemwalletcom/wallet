@@ -232,7 +232,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var visibleBanners: [Banner] {
-        (try? bannerService.visibleBanners(banners, wallet: wallet, asset: assetData.asset, context: bannerContext)) ?? []
+        (try? bannerService.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset, context: bannerContext)) ?? []
     }
 
     private var bannerContext: GemBannerContext {
@@ -246,8 +246,6 @@ public final class AssetSceneViewModel: Sendable {
             assetRankScore: assetData.metadata.rankScore,
             hasPerpetualsSupport: wallet.hasPerpetualsSupport,
             isWalletEmpty: false,
-            notificationsAvailable: false,
-            launchCount: 0,
         )
     }
 
@@ -400,8 +398,7 @@ public extension AssetSceneViewModel {
                         value: 0,
                     ),
                 )
-            case .enableNotifications,
-                 .accountActivation,
+            case .accountActivation,
                  .accountBlockedMultiSignature,
                  .onboarding:
                 Task {

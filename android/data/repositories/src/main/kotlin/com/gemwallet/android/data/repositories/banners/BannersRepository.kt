@@ -38,44 +38,27 @@ import java.math.BigInteger
 class BannersRepository(
     private val assetRepository: AssetsRepository,
     private val bannersDao: BannersDao,
-    private val userConfig: UserConfig,
-    private val notificationsAvailable: NotificationsAvailable,
     private val bannerService: GemBannerService,
 ) : GetBannersCase, BannerActionCase, HasMultiSign {
 
     override suspend fun getActiveBanners(wallet: Wallet?, asset: Asset?, isGlobal: Boolean): List<Banner> = withContext(Dispatchers.IO) {
         val assetInfo = asset?.id?.let { assetRepository.getAssetInfo(it).firstOrNull() }
         val sceneWallet = wallet.takeUnless { isGlobal }
-        val generated = bannerService.activeEvents(
-            walletId = sceneWallet?.id?.id,
-            assetId = asset?.id?.toIdentifier(),
-            context = bannerContext(sceneWallet, assetInfo),
-        ).map { event ->
-            Banner(
-                wallet = sceneWallet,
-                asset = assetInfo?.asset,
-                chain = null,
-                state = BannerState.Active,
-                event = event.decodeJson(),
-            )
-        }
         val stored = when {
             asset != null -> bannersDao.getAssetBanners(
                 walletId = wallet?.id?.id,
                 assetId = asset.id.toIdentifier(),
-                chain = asset.id.chain,
             )
             wallet != null -> bannersDao.getWalletBanners(wallet.id.id, listOf(BannerEvent.AccountBlockedMultiSignature))
             else -> emptyList()
-        }.map { it.toDTO(wallet, asset) }
-        val banners = stored + generated
+        }.map { it.toDTO(asset) }
         bannerService.visibleBanners(
-            stored = banners.map { GemBannerItem(event = it.event.toJson(), state = it.state.toJson()) },
+            stored = stored.map { GemBannerItem(event = it.event.toJson(), state = it.state.toJson()) },
             context = bannerContext(wallet, assetInfo),
         ).map { item ->
             val event = item.event.decodeJson<BannerEvent>()
-            banners.firstOrNull { it.event == event }
-                ?: Banner(wallet = sceneWallet, asset = assetInfo?.asset, chain = null, state = item.state.decodeJson(), event = event)
+            stored.firstOrNull { it.event == event }
+                ?: Banner(walletId = sceneWallet?.id, asset = assetInfo?.asset, state = item.state.decodeJson(), event = event)
         }
     }
 
@@ -97,15 +80,12 @@ class BannersRepository(
         assetRankScore = assetInfo?.metadata?.rankScore,
         hasPerpetualsSupport = wallet?.hasPerpetualsSupport == true,
         isWalletEmpty = false,
-        notificationsAvailable = notificationsAvailable,
-        launchCount = userConfig.getLaunchNumber().toUInt(),
     )
 }
 
 private fun Banner.toGemKey() = GemBannerKey(
-    walletId = wallet?.id?.id,
+    walletId = walletId?.id,
     assetId = asset?.id?.toIdentifier(),
-    chain = chain?.string,
     event = event.toJson(),
 )
 

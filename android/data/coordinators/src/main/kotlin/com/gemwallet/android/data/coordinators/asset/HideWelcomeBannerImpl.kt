@@ -16,7 +16,7 @@ class HideWelcomeBannerImpl(
     override suspend fun invoke() {
         val wallet = sessionRepository.session().value?.wallet ?: return
         applyBannerAction(
-            Banner(wallet = wallet, asset = null, chain = null, event = BannerEvent.Onboarding, state = BannerState.Active),
+            Banner(walletId = wallet.id, asset = null, event = BannerEvent.Onboarding, state = BannerState.Active),
             BannerAction.Close,
         )
     }
