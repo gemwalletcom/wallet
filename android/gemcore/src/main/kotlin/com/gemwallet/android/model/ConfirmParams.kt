@@ -15,6 +15,7 @@ import com.gemwallet.android.serializer.packRouteString
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.serializer.unpackRouteString
 import com.wallet.core.primitives.Account
+import android.util.Log
 import com.wallet.core.primitives.AccountDataType
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Asset
@@ -86,19 +87,31 @@ sealed class ConfirmParams() {
             }
         }
 
-        fun deposit(destination: DestinationAddress): TransferParams.Deposit = TransferParams.Deposit(
+        fun deposit(
+            destination: DestinationAddress,
+            memo: String? = null,
+            references: List<String> = emptyList(),
+        ): TransferParams.Deposit = TransferParams.Deposit(
             asset = asset,
             from = from,
             amount = amount,
             destination = destination,
+            memo = memo,
+            references = references,
             useMaxAmount = useMaxAmount,
         )
 
-        fun withdrawal(destination: DestinationAddress): TransferParams.Withdrawal = TransferParams.Withdrawal(
+        fun withdrawal(
+            destination: DestinationAddress,
+            memo: String? = null,
+            references: List<String> = emptyList(),
+        ): TransferParams.Withdrawal = TransferParams.Withdrawal(
             asset = asset,
             from = from,
             amount = amount,
             destination = destination,
+            memo = memo,
+            references = references,
             useMaxAmount = useMaxAmount,
         )
 
@@ -132,8 +145,8 @@ sealed class ConfirmParams() {
             )
         }
 
-        fun activate(): Activate {
-            return Activate(asset, from)
+        fun activate(accountType: AccountDataType = AccountDataType.Activate): Activate {
+            return Activate(asset, from, accountType = accountType)
         }
 
         fun freeze(resource: Resource): Stake.Freeze {
@@ -246,6 +259,7 @@ sealed class ConfirmParams() {
             override val amount: BigInteger,
             override val destination: DestinationAddress,
             override val memo: String? = null,
+            override val references: List<String> = emptyList(),
             override val useMaxAmount: Boolean = false,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType = GemTransactionInputType.Deposit(asset.toGem())
@@ -256,6 +270,7 @@ sealed class ConfirmParams() {
             override val amount: BigInteger,
             override val destination: DestinationAddress,
             override val memo: String? = null,
+            override val references: List<String> = emptyList(),
             override val useMaxAmount: Boolean = false,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType = GemTransactionInputType.Withdrawal(asset.toGem())
@@ -308,12 +323,13 @@ sealed class ConfirmParams() {
         override val asset: Asset,
         override val from: Account,
         override val amount: BigInteger = BigInteger.ZERO,
+        val accountType: AccountDataType = AccountDataType.Activate,
     ) : ConfirmParams() {
         override val useMaxAmount: Boolean
             get() = false
 
         override fun toDto(): GemTransactionInputType =
-            Account(asset.toGem(), AccountDataType.Activate.toJson())
+            Account(asset.toGem(), accountType.toJson())
 
         override fun destination(): DestinationAddress {
             return DestinationAddress(from.address)
@@ -482,7 +498,9 @@ sealed class ConfirmParams() {
         )
     }
 
-    fun pack(): String? = runCatching { confirmInputEncode(toConfirmInput()).packRouteString() }.getOrNull()
+    fun pack(): String? = runCatching { confirmInputEncode(toConfirmInput()).packRouteString() }
+        .onFailure { Log.e(TAG, "confirm params encode failed", it) }
+        .getOrNull()
 
     fun getTransactionType(): TransactionType = GemTransferService().transactionType(toDto()).decodeJson<TransactionType>()
 
@@ -500,9 +518,13 @@ sealed class ConfirmParams() {
     }
 
     companion object {
+        private const val TAG = "ConfirmParams"
+
         fun unpack(input: String): ConfirmParams? = runCatching {
             confirmInputDecode(input.unpackRouteString()).toConfirmParams()
-        }.getOrNull()
+        }
+            .onFailure { Log.e(TAG, "confirm params decode failed", it) }
+            .getOrNull()
     }
 }
 

@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
+import android.util.Log
 import com.gemwallet.android.domains.asset.toPrimitives
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -48,8 +49,8 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
     val builder = ConfirmParams.Builder(asset, from, value, transfer.useMaxAmount)
     return when (inputType) {
         is GemTransactionInputType.Transfer -> builder.transfer(destination, recipient.memo, recipient.references)
-        is GemTransactionInputType.Deposit -> builder.deposit(destination)
-        is GemTransactionInputType.Withdrawal -> builder.withdrawal(destination)
+        is GemTransactionInputType.Deposit -> builder.deposit(destination, recipient.memo, recipient.references)
+        is GemTransactionInputType.Withdrawal -> builder.withdrawal(destination, recipient.memo, recipient.references)
         is GemTransactionInputType.Generic -> {
             val extra = inputType.extra
             ConfirmParams.TransferParams.Generic(
@@ -91,9 +92,12 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
             destination = destination,
             nftAsset = inputType.nftAsset.decodeJson(),
         )
-        is GemTransactionInputType.Account -> builder.activate()
+        is GemTransactionInputType.Account -> builder.activate(inputType.accountType.decodeJson())
         is GemTransactionInputType.Perpetual -> builder.perpetual(inputType.perpetualType.decodeJson())
-        is GemTransactionInputType.TokenApprove, is GemTransactionInputType.Earn -> null
+        is GemTransactionInputType.TokenApprove, is GemTransactionInputType.Earn -> {
+            Log.e("ConfirmInput", "no confirm params for ${inputType::class.simpleName}")
+            null
+        }
     }
 }
 

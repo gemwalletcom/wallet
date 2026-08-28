@@ -121,6 +121,24 @@ class ConfirmParamsTest {
     }
 
     @Test
+    fun depositAndWithdrawalKeepMemoAndReferences() {
+        val builder = ConfirmParams.Builder(mockAsset(), mockAccount(), BigInteger.ONE)
+        val destination = DestinationAddress("destination")
+        val variants = listOf(
+            builder.deposit(destination, memo = "memo", references = listOf("reference")),
+            builder.withdrawal(destination, memo = "memo", references = listOf("reference")),
+        )
+
+        variants.forEach { original ->
+            val decoded = ConfirmParams.unpack(requireNotNull(original.pack()))
+
+            assertEquals(original::class, decoded!!::class)
+            assertEquals("memo", decoded.memo())
+            assertEquals(listOf("reference"), decoded.references)
+        }
+    }
+
+    @Test
     fun freezeMapsToGemFreezeStakeType() {
         val params = ConfirmParams.Builder(
             asset = mockAssetTron(),
