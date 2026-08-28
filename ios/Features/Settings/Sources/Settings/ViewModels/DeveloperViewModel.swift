@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import GemstoneServices
 import BigInt
@@ -23,7 +24,7 @@ public final class DeveloperViewModel {
     private let stakeStore: StakeStore
     private let bannerStore: BannerStore
     private let priceStore: PriceStore
-    private let perpetualService: PerpetualService
+    private let perpetualService: any GemPerpetualServiceProtocol
 
     public var isPresentingToastMessage: ToastMessage?
 
@@ -34,7 +35,7 @@ public final class DeveloperViewModel {
         stakeStore: StakeStore,
         bannerStore: BannerStore,
         priceStore: PriceStore,
-        perpetualService: PerpetualService,
+        perpetualService: any GemPerpetualServiceProtocol,
         walletPreferencesService: any GemWalletPreferencesServiceProtocol,
     ) {
         self.walletId = walletId

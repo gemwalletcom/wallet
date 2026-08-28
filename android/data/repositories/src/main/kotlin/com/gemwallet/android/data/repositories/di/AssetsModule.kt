@@ -3,7 +3,6 @@ package com.gemwallet.android.data.repositories.di
 import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
@@ -187,14 +186,6 @@ object AssetsModule {
         streamService = streamService,
         connection = connection,
         syncDevice = syncDevice,
-    )
-
-    @Provides
-    @Singleton
-    fun providePerpetualRemoteSource(
-        gateway: GemGateway,
-    ): PerpetualService = PerpetualService(
-        gateway = gateway,
     )
 
     @Provides

@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstoneServices
 import Components
 import Foundation
@@ -16,7 +18,7 @@ import SwiftUI
 final class PerpetualsSceneViewModel {
 
     private let observerService: any PerpetualObservable
-    let perpetualService: PerpetualServiceable
+    let perpetualService: any GemPerpetualServiceProtocol
     let recentActivityStore: RecentActivityStore
 
     let wallet: Wallet
@@ -48,7 +50,7 @@ final class PerpetualsSceneViewModel {
 
     init(
         wallet: Wallet,
-        perpetualService: PerpetualServiceable,
+        perpetualService: any GemPerpetualServiceProtocol,
         observerService: any PerpetualObservable,
         recentActivityStore: RecentActivityStore,
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,

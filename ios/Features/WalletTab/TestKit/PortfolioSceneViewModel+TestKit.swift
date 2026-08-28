@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPerpetualServiceProtocol
 import StoreTestKit
 import Store
 import GemstonePrimitivesTestKit
@@ -16,7 +17,7 @@ import WalletTab
 public extension PortfolioDataService {
     static func mock(
         portfolioService: any GemPortfolioServiceProtocol = GemPortfolioServiceMock(),
-        perpetualService: PerpetualServiceMock = PerpetualServiceMock(),
+        perpetualService: GemPerpetualServiceMock = GemPerpetualServiceMock(),
     ) -> PortfolioDataService {
         PortfolioDataService(
             portfolioService: portfolioService,

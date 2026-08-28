@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import protocol Gemstone.GemSupportServiceProtocol
@@ -79,7 +80,7 @@ extension AppResolver {
         let appStartService: any GemAppStartServiceProtocol
         let pushNotificationEnablerService: PushNotificationEnablerService
         let walletConnectorManager: WalletConnectorManager
-        let perpetualService: PerpetualService
+        let perpetualService: any GemPerpetualServiceProtocol
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: any GemNameServiceProtocol
         let toastPresenter: ToastPresenter

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
@@ -55,7 +56,7 @@ public struct ViewModelFactory: Sendable {
     let assetStore: AssetStore
     let priceAlertService: any GemPriceAlertServiceProtocol
     let searchService: any GemSearchServiceProtocol
-    let perpetualService: PerpetualService
+    let perpetualService: any GemPerpetualServiceProtocol
 
     @MainActor
     public func selectAssetScene(

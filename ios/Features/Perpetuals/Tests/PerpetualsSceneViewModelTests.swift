@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Store
 import StoreTestKit
 import GemstoneServices
@@ -25,7 +27,7 @@ extension PerpetualsSceneViewModel {
     @MainActor
     static func mock(
         wallet: Wallet = .mock(),
-        perpetualService: PerpetualServiceable = PerpetualService.mock(),
+        perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         observerService: any PerpetualObservable = PerpetualObserverMock(),
         recentActivityStore: RecentActivityStore = .mock(),
     ) -> PerpetualsSceneViewModel {

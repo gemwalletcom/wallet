@@ -1,16 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Preferences
 import Primitives
 
 public struct PerpetualEnablerService: Sendable {
     private let observer: any PerpetualObservable
-    private let service: any PerpetualServiceable
+    private let service: any GemPerpetualServiceProtocol
     private let preferences: Preferences
 
     public init(
         observer: any PerpetualObservable,
-        service: any PerpetualServiceable,
+        service: any GemPerpetualServiceProtocol,
         preferences: Preferences,
     ) {
         self.observer = observer

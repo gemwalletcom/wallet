@@ -8,9 +8,9 @@ use std::sync::Arc;
 use chrono::Utc;
 use gem_hypercore::models::websocket::HyperliquidSocketMessage;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
-use primitives::currency::Currency;
 use primitives::perpetual::PerpetualBalance;
-use primitives::{AssetId, Chain, PerpetualAccountMode, PerpetualProvider, WalletId};
+use primitives::portfolio::PerpetualPortfolio;
+use primitives::{AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualProvider, WalletId};
 use std::collections::HashMap;
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
@@ -20,6 +20,7 @@ pub use model::GemPerpetualSocketUpdate;
 pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;
+use crate::models::perpetual::GemChartCandleStick;
 use crate::services::balance::GemBalanceService;
 use crate::services::price::GemPriceService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
@@ -69,7 +70,8 @@ impl GemPerpetualService {
         self.preferences.get_perpetual_markets_updated_at()
     }
 
-    pub async fn sync_markets(&self, chain: Chain, currency: Currency) -> Result<(), GemServiceError> {
+    pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
+        let currency = self.preferences.get_currency();
         let data = self.gateway.get_perpetuals_data(chain).await?;
         self.store.save_perpetuals(data).await?;
         if let Some(price) = rules::collateral_price(chain) {
@@ -78,12 +80,20 @@ impl GemPerpetualService {
         self.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp()))
     }
 
-    pub async fn sync_markets_if_stale(&self, chain: Chain, currency: Currency) -> Result<bool, GemServiceError> {
+    pub async fn sync_markets_if_stale(&self, chain: Chain) -> Result<bool, GemServiceError> {
         if !rules::is_markets_stale(self.markets_updated_at()?, Utc::now().timestamp()) {
             return Ok(false);
         }
-        self.sync_markets(chain, currency).await?;
+        self.sync_markets(chain).await?;
         Ok(true)
+    }
+
+    pub async fn get_candlesticks(&self, chain: Chain, symbol: String, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
+        Ok(self.gateway.get_perpetual_candlesticks(chain, symbol, period.as_ref().to_string()).await?)
+    }
+
+    pub async fn get_portfolio(&self, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {
+        Ok(self.gateway.get_perpetual_portfolio(chain, address).await?)
     }
 
     pub async fn clear_markets(&self) -> Result<(), GemServiceError> {

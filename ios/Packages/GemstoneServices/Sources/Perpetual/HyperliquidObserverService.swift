@@ -1,12 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Foundation
 import enum Gemstone.GemPerpetualSubscription
 import Primitives
 import WebSocketClient
 
 public actor HyperliquidObserverService: PerpetualObservable {
-    private let perpetualService: HyperliquidPerpetualServiceable
+    private let perpetualService: any GemPerpetualServiceProtocol
     private let webSocket: any WebSocketConnectable
     private let subscriptionService: HyperliquidSubscriptionService
     private let eventHandler: HyperliquidEventHandler
@@ -18,7 +20,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     public init(
         nodeProvider: any NodeURLProvidable,
-        perpetualService: HyperliquidPerpetualServiceable,
+        perpetualService: any GemPerpetualServiceProtocol,
     ) {
         let webSocket = WebSocketConnection(url: nodeProvider.node(for: .hyperCore))
         let chartService = ChartObserverService()
@@ -63,7 +65,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
     public func update(for wallet: Wallet) async -> PerpetualAccountMode? {
         guard let address = wallet.hyperliquidAccount?.address else { return nil }
         do {
-            return try await perpetualService.getPositions(walletId: wallet.id, address: address)
+            return try await perpetualService.syncPositions(walletId: wallet.id, address: address)
         } catch {
             debugLog("HyperliquidObserver: update failed: \(error)")
             return nil
@@ -77,10 +79,16 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
         await disconnect()
         currentWallet = wallet
-        let mode = if let synced = await update(for: wallet) {
-            synced
+        let mode: PerpetualAccountMode
+        if let synced = await update(for: wallet) {
+            mode = synced
         } else {
-            await accountMode(for: wallet)
+            do {
+                mode = try await accountMode(for: wallet)
+            } catch {
+                debugLog("HyperliquidObserver: account mode failed: \(error)")
+                return
+            }
         }
 
         guard observeTask == nil else { return }
@@ -115,8 +123,8 @@ public actor HyperliquidObserverService: PerpetualObservable {
         }
     }
 
-    private func accountMode(for wallet: Wallet) async -> PerpetualAccountMode {
+    private func accountMode(for wallet: Wallet) async throws -> PerpetualAccountMode {
         guard let address = wallet.hyperliquidAccount?.address else { return .standard }
-        return await perpetualService.accountMode(walletId: wallet.id, address: address)
+        return try await perpetualService.accountMode(walletId: wallet.id, address: address)
     }
 }

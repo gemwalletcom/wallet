@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.blockchain.services.PerpetualService
+import uniffi.gemstone.GemPerpetualService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockWallet
@@ -26,7 +26,7 @@ import org.junit.Test
 class GetPortfolioDataImplTest {
 
     private val portfolioService = mockk<GemPortfolioService>()
-    private val perpetualService = mockk<PerpetualService>(relaxed = true)
+    private val perpetualService = mockk<GemPerpetualService>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>(relaxed = true)
 
     private val subject = GetPortfolioDataImpl(

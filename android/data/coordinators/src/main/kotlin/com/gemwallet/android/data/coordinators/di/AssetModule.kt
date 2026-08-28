@@ -28,7 +28,6 @@ import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
@@ -70,6 +69,7 @@ import uniffi.gemstone.GemNftService
 import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemDeviceApiClient
 import dagger.Module
+import uniffi.gemstone.GemPerpetualService
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -155,7 +155,7 @@ object AssetModule {
     @Singleton
     fun provideGetPortfolioData(
         portfolioService: GemPortfolioService,
-        perpetualService: PerpetualService,
+        perpetualService: GemPerpetualService,
         sessionRepository: SessionRepository,
     ): GetPortfolioData = GetPortfolioDataImpl(
         portfolioService = portfolioService,

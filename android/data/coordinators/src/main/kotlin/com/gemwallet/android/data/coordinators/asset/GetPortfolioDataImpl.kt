@@ -2,7 +2,8 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.coordinators.GetPortfolioData
 import com.gemwallet.android.application.assets.coordinators.walletChartPeriods
-import com.gemwallet.android.blockchain.services.PerpetualService
+import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemPerpetualService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.hyperliquidAccount
 import com.wallet.core.primitives.ChartDateValue
@@ -24,7 +25,7 @@ import com.gemwallet.android.serializer.toJson
 
 class GetPortfolioDataImpl(
     private val portfolioService: GemPortfolioService,
-    private val perpetualService: PerpetualService,
+    private val perpetualService: GemPerpetualService,
     private val sessionRepository: SessionRepository,
 ) : GetPortfolioData {
 
@@ -56,7 +57,7 @@ class GetPortfolioDataImpl(
         val address = checkNotNull(sessionRepository.session().value?.wallet?.hyperliquidAccount?.address) {
             "Perpetual account is not available"
         }
-        val portfolio = perpetualService.getPortfolio(address = address)
+        val portfolio = perpetualService.getPortfolio(Chain.HyperCore.string, address).decodeJson<PerpetualPortfolio>()
         val timeframe = portfolio.timeframeData(period)
 
         val charts = listOf(

@@ -13,9 +13,7 @@ import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualPinned
-import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.data.coordinators.perpetuals.BuildPerpetualParamsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualAccountModeImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualBalanceImpl
@@ -48,11 +46,9 @@ object PerpetualModule {
     @Singleton
     fun provideSyncPerpetuals(
         perpetualService: GemPerpetualService,
-        getCurrentCurrency: GetCurrentCurrency,
     ): SyncPerpetuals {
         return SyncPerpetualsImpl(
             perpetualService = perpetualService,
-            getCurrentCurrency = getCurrentCurrency,
             chains = listOf(Chain.HyperCore)
         )
     }
@@ -152,7 +148,7 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideGetPerpetualChartData(
-        perpetualService: PerpetualService,
+        perpetualService: GemPerpetualService,
     ): GetPerpetualChartData {
         return GetPerpetualChartDataImpl(
             perpetualService = perpetualService,

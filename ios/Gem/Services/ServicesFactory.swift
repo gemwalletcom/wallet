@@ -162,10 +162,7 @@ struct ServicesFactory {
         let portfolioService = Gemstone.GemPortfolioService(api: gemDeviceApiClient, store: GemstonePortfolioStore(assetStore: storeManager.assetStore), price: gemPriceService)
         let gemPerpetualStore = GemstonePerpetualStore(store: storeManager.perpetualStore, assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
         let gemPerpetualService = gatewayService.perpetualService(price: gemPriceService, store: gemPerpetualStore, preferences: preferencesService, balance: gemBalanceService, walletPreferences: walletPreferencesService)
-        let perpetualService = PerpetualService(
-            provider: PerpetualProviderFactory(gatewayService: gatewayService, nodeProvider: nodeProvider).createProvider(),
-            service: gemPerpetualService,
-        )
+        let perpetualService = gemPerpetualService
         let priceAlertService = Gemstone.GemPriceAlertService(
             api: gemDeviceApiClient,
             preferences: preferencesService,

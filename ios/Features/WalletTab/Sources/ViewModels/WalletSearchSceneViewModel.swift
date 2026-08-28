@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Components
 import protocol Gemstone.GemSearchServiceProtocol
 import GemstonePrimitives
@@ -21,7 +22,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     private let searchService: any GemSearchServiceProtocol
     private let recentActivityStore: RecentActivityStore
     let assetsEnabler: any AssetsEnabler
-    let perpetualService: PerpetualService
+    let perpetualService: any GemPerpetualServiceProtocol
     private let preferences: ObservablePreferences
 
     let wallet: Wallet
@@ -51,7 +52,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         searchService: any GemSearchServiceProtocol,
         recentActivityStore: RecentActivityStore,
         assetsEnabler: any AssetsEnabler,
-        perpetualService: PerpetualService,
+        perpetualService: any GemPerpetualServiceProtocol,
         preferences: ObservablePreferences = .default,
         onDismissSearch: VoidAction,
         onSelectAssetAction: AssetAction,

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import AppService
+import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstonePrimitivesTestKit
 import AppServiceTestKit
 import Foundation
@@ -140,7 +141,7 @@ extension AppLifecycleServiceTests {
         let service = try AppLifecycleService.mock(
             preferences: preferences,
             hyperliquidObserverService: observer,
-            perpetualService: PerpetualService.mock(service: perpetuals),
+            perpetualService: perpetuals,
             walletSessionService: walletSessionService,
         )
         return (service, observer, preferences, walletSessionService, perpetuals)

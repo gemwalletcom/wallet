@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import Components
 import Foundation
@@ -14,7 +16,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class PerpetualChartModel {
-    private let perpetualService: PerpetualServiceable
+    private let perpetualService: any GemPerpetualServiceProtocol
     private let observerService: any PerpetualObservable
     private let preferencesService: any GemPreferencesServiceProtocol
 
@@ -26,7 +28,7 @@ public final class PerpetualChartModel {
     }
 
     public init(
-        perpetualService: PerpetualServiceable,
+        perpetualService: any GemPerpetualServiceProtocol,
         observerService: any PerpetualObservable,
         preferencesService: any GemPreferencesServiceProtocol,
     ) {

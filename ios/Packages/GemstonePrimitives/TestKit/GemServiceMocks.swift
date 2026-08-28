@@ -348,12 +348,12 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt
     }
 
-    public func syncMarketsIfStale(chain: Gemstone.Chain, currency: Gemstone.Currency) async throws -> Bool {
-        try await syncMarkets(chain: chain, currency: currency)
+    public func syncMarketsIfStale(chain: Gemstone.Chain) async throws -> Bool {
+        try await syncMarkets(chain: chain)
         return true
     }
 
-    public func syncMarkets(chain _: Gemstone.Chain, currency _: Gemstone.Currency) async throws {
+    public func syncMarkets(chain _: Gemstone.Chain) async throws {
         syncMarketsCount += 1
         updatedAt = Int64(Date().timeIntervalSince1970)
     }
@@ -368,6 +368,12 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
+
+    public func getCandlesticks(chain _: Gemstone.Chain, symbol _: String, period _: Gemstone.ChartPeriod) async throws -> [Gemstone.ChartCandleStick] { [] }
+
+    public func getPortfolio(chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualPortfolio {
+        try Primitives.PerpetualPortfolio(day: nil, week: nil, month: nil, allTime: nil, accountSummary: nil).json()
+    }
 
     public func applySocketMessage(walletId _: String, mode _: Gemstone.PerpetualAccountMode, data _: Data) async throws -> Gemstone.GemPerpetualSocketUpdate {
         .applied

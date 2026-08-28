@@ -1,14 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Foundation
 import Primitives
 
 public actor HyperliquidEventHandler {
-    private let perpetualService: HyperliquidPerpetualServiceable
+    private let perpetualService: any GemPerpetualServiceProtocol
     private let chartService: any ChartStreamable
 
     public init(
-        perpetualService: HyperliquidPerpetualServiceable,
+        perpetualService: any GemPerpetualServiceProtocol,
         chartService: any ChartStreamable,
     ) {
         self.perpetualService = perpetualService

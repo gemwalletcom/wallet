@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstoneServices
 import Components
 import Foundation
@@ -49,7 +51,7 @@ extension AssetActions {
 
 @MainActor
 protocol PerpetualPinActions: AnyObject {
-    var perpetualService: PerpetualService { get }
+    var perpetualService: any GemPerpetualServiceProtocol { get }
     var isPresentingToastMessage: ToastMessage? { get set }
 }
 

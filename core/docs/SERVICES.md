@@ -83,7 +83,7 @@ Every app service is listed so nothing is missed; "Review" rows are the remainin
 | `FiatService` | `GemFiatService` | Done | Wrapper removed; view models and buy/sell operations call the Core service directly; Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
 | `NFTService` | `GemNftService` | Done | Wrapper removed; view models call the Core service directly |
 | `InAppNotificationService` | `GemNotificationService` | Done | Wrapper removed; view models call the Core service directly |
-| [`PerpetualService`](../../ios/Packages/GemstoneServices/Sources) | `GemPerpetualService` | Done | |
+| `PerpetualService` (iOS), `blockchain/PerpetualService` (Android) | `GemPerpetualService` | Removed | Callers use `GemPerpetualService` directly (candlesticks, portfolio, market sync with the Core currency); iOS typed shim in `GemPerpetualService+GemstonePrimitives.swift` |
 | `PortfolioService` | `GemPortfolioService` | Done | Wrapper removed; held assets come from `GemPortfolioStore` on both apps |
 | `PriceAlertService` | `GemPriceAlertService` | Done | Wrapper removed; enable/disable, permissions and device sync run in Core (typed helpers in `GemPriceAlertService+GemstonePrimitives.swift`); Android `PriceAlertsEnabledCoordinator` only republishes the flag |
 | [`PriceService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceService` | Done | |
@@ -123,7 +123,7 @@ Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, And
 
 - iOS `Primitives` hand-written mirrors of Core types (`GasPriceType`, `FeeRate`, `Fee`, `FeeSelection`, `CustomFeeEstimate`, `TransferAmount`, `BalanceRequirement`, ids such as `WalletId`/`TransactionId`/`AssetId`) stay as typed views bridged once in `GemstonePrimitives`; dead ones were removed 2026-08-27.
 
-- Periodic review of app wrappers (`NodeService.node(for:)`, `PerpetualService`, `WalletService`) and of typeshare models unused by both apps (18 exports dropped 2026-08-27; the Rust types stay where Core uses them).
+- Periodic review of app wrappers (`NodeService.node(for:)`, `WalletService`) and of typeshare models unused by both apps (18 exports dropped 2026-08-27; the Rust types stay where Core uses them).
 
 ## TODO — finish Core as the single owner of logic
 

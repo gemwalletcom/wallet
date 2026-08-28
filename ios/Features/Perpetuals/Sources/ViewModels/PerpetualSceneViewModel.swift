@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import BigInt
@@ -63,7 +64,7 @@ public final class PerpetualSceneViewModel {
     public init(
         wallet: Wallet,
         asset: Asset,
-        perpetualService: PerpetualServiceable,
+        perpetualService: any GemPerpetualServiceProtocol,
         transactionsService: any GemTransactionsServiceProtocol,
         observerService: any PerpetualObservable,
         explorerService: any GemExplorerServiceProtocol,

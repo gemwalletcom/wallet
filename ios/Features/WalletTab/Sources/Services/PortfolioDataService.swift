@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Store
 import GemstonePrimitives
 import protocol Gemstone.GemPortfolioServiceProtocol
@@ -14,11 +15,11 @@ enum PortfolioDataInput {
 
 public struct PortfolioDataService: Sendable {
     private let portfolioService: any GemPortfolioServiceProtocol
-    private let perpetualService: any PerpetualServiceable
+    private let perpetualService: any GemPerpetualServiceProtocol
 
     public init(
         portfolioService: any GemPortfolioServiceProtocol,
-        perpetualService: any PerpetualServiceable,
+        perpetualService: any GemPerpetualServiceProtocol,
     ) {
         self.portfolioService = portfolioService
         self.perpetualService = perpetualService
