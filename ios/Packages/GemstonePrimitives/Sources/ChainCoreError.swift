@@ -4,8 +4,6 @@ import enum Gemstone.GemConfirmError
 import Foundation
 import Primitives
 
-import GemstonePrimitives
-
 public enum ChainCoreError: String, Error, Equatable {
     case feeRateMissed
     case cantEstimateFee

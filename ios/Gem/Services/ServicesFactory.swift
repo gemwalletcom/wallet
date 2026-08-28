@@ -446,21 +446,18 @@ extension ServicesFactory {
     private static func makeConnectionsService(
         connectionsStore: ConnectionsStore,
         walletSessionService: WalletSessionService,
-        interactor: any WalletConnectorInteractable,
+        interactor: WalletConnectorManager,
         transactionSimulationService: TransactionSimulationService,
         gemWalletSessionService: GemWalletSessionService,
     ) -> ConnectionsService {
-        let signer = WalletConnectorSigner(
-            walletSessionService: walletSessionService,
-            walletConnectorInteractor: interactor,
-        )
         return ConnectionsService(
             connector: WalletConnectorService(
-                signer: signer,
+                walletSessionService: walletSessionService,
+                interactor: interactor,
                 service: GemWalletConnectService(
                     simulation: transactionSimulationService,
                     store: GemstoneConnectionStore(store: connectionsStore),
-                    signer: signer,
+                    signer: interactor,
                     session: gemWalletSessionService,
                 ),
             ),

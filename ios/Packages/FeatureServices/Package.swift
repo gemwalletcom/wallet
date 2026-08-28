@@ -43,7 +43,7 @@ let package = Package(
                 .product(name: "WebSocketClient", package: "SwiftHTTPClient"),
             ],
             path: "StreamService",
-            exclude: ["TestKit", "Tests"],
+            exclude: ["TestKit"],
         ),
         .target(
             name: "StreamServiceTestKit",
@@ -136,6 +136,7 @@ let package = Package(
                 "Primitives",
                 "Gemstone",
                 "GemstonePrimitives",
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "WalletConnect", package: "reown-swift"),
                 .product(name: "ReownWalletKit", package: "reown-swift"),
                 .product(name: "WalletConnectNetworking", package: "reown-swift"),

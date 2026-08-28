@@ -4,7 +4,7 @@ import Foundation
 import func Gemstone.priceAlertId
 import Primitives
 
-extension PriceAlert: Identifiable {
+extension PriceAlert: @retroactive Identifiable {
     public var id: String {
         do {
             return try priceAlertId(alert: json())
@@ -14,7 +14,7 @@ extension PriceAlert: Identifiable {
     }
 }
 
-extension PriceAlertData: Identifiable {
+extension PriceAlertData: @retroactive Identifiable {
     public var id: String {
         asset.id.identifier + priceAlert.id
     }

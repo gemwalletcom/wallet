@@ -1,26 +1,31 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.Config
 import struct Gemstone.GemWalletConnectRequest
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import class Gemstone.WalletConnect
 import GemstonePrimitives
+import protocol GemstoneServices.WalletSessionManageable
 import Primitives
 @preconcurrency import ReownWalletKit
 @preconcurrency import WalletConnectPairing
 
 public final class WalletConnectorService {
     private let interactor = WCConnectionsInteractor()
-    private let signer: WalletConnectorSignable
+    private let walletSessionService: any WalletSessionManageable
+    private let walletConnectorInteractor: any WalletConnectorInteractable
     private let service: any GemWalletConnectServiceProtocol
     private let messageTracker = MessageTracker()
     private let walletConnect = WalletConnect()
 
     public init(
-        signer: WalletConnectorSignable,
+        walletSessionService: any WalletSessionManageable,
+        interactor: any WalletConnectorInteractable,
         service: any GemWalletConnectServiceProtocol,
     ) {
-        self.signer = signer
+        self.walletSessionService = walletSessionService
+        walletConnectorInteractor = interactor
         self.service = service
     }
 }
@@ -127,7 +132,7 @@ extension WalletConnectorService {
             reason: RejectionReason(from: error),
         )
         try? await service.deleteSession(sessionId: proposal.pairingTopic)
-        await signer.sessionReject(error: error)
+        await walletConnectorInteractor.sessionReject(error: error)
     }
 
     private func handleSessionRequests() async {
@@ -222,7 +227,7 @@ extension WalletConnectorService {
             } catch {
                 debugLog("Error rejecting request: \(error)")
             }
-            await signer.sessionReject(error: requestError)
+            await walletConnectorInteractor.sessionReject(error: requestError)
         }
     }
 
@@ -251,15 +256,15 @@ extension WalletConnectorService {
             proposal: payload,
             verificationStatus: status.map(),
         )
-        let approvedWalletId = try await signer.sessionApproval(payload: payloadTopic)
-        let selectedWallet = try signer.getWallet(id: approvedWalletId)
+        let approvedWalletId = try await walletConnectorInteractor.sessionApproval(payload: payloadTopic)
+        let selectedWallet = try walletSessionService.getWallet(walletId: approvedWalletId)
 
         let session = try await acceptProposal(proposal: proposal, wallet: selectedWallet)
         try await service.addConnection(WalletConnection(session: connectionSession(session), wallet: selectedWallet))
     }
 
     private func acceptProposal(proposal: Session.Proposal, wallet: Primitives.Wallet) async throws -> Session {
-        let approval = try service.sessionApproval(wallet: wallet, supportedChains: signer.allChains)
+        let approval = try service.sessionApproval(wallet: wallet, supportedChains: supportedChains)
         let sessionNamespaces = try AutoNamespaces.build(
             sessionProposal: proposal,
             chains: approval.chains.compactMap(\.blockchain),
@@ -278,5 +283,11 @@ extension WalletConnectorService {
             namespaces: sessionNamespaces,
             sessionProperties: sessionProperties,
         )
+    }
+}
+
+private extension WalletConnectorService {
+    var supportedChains: [Primitives.Chain] {
+        Config.shared.getWalletConnectConfig().chains.compactMap { Primitives.Chain(rawValue: $0) }
     }
 }

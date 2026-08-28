@@ -22,7 +22,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
 
     public init(priceAlertService: any GemPriceAlertServiceProtocol) {
         self.priceAlertService = priceAlertService
-        isPriceAlertsEnabled = (try? priceAlertService.isEnabled()) ?? false
+        isPriceAlertsEnabled = priceAlertService.isEnabled()
         query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
     }
 
@@ -79,7 +79,7 @@ extension PriceAlertsSceneViewModel {
         do {
             try await priceAlertService.setEnabled(enabled: enabled)
         } catch {
-            isPriceAlertsEnabled = (try? priceAlertService.isEnabled()) ?? false
+            isPriceAlertsEnabled = priceAlertService.isEnabled()
             debugLog("setPriceAlertsEnabled error: \(error)")
         }
     }

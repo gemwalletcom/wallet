@@ -23,7 +23,7 @@ public struct PerpetualService: PerpetualServiceable {
     }
 
     public func updateMarkets() async throws {
-        try await service.syncMarketsIfStale(chain: Chain.hyperCore.rawValue, currency: Currency(id: appPreferences.currency).json())
+        _ = try await service.syncMarketsIfStale(chain: Chain.hyperCore.rawValue, currency: Currency(id: appPreferences.currency).json())
     }
 
     public func clearMarkets() async throws {
