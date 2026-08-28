@@ -76,15 +76,10 @@ fn quote_path(params: QuoteParams) -> Result<String, SwapperError> {
     Ok(format!("/quote?{defaults}&{query}"))
 }
 
-fn map_quote_error(err: ClientError, decimals: u32) -> SwapperError {
-    match err {
-        ClientError::Http { status, body } => {
-            if let Ok(response) = serde_json::from_slice::<ErrorResponse>(&body) {
-                return map_response_error(&response, decimals);
-            }
-            SwapperError::ComputeQuoteError(format!("HTTP error: status {}", status))
-        }
-        other => SwapperError::from(other),
+fn map_quote_error(error: ClientError, decimals: u32) -> SwapperError {
+    match error.decode_body::<ErrorResponse>() {
+        Some(response) => map_response_error(&response, decimals),
+        None => SwapperError::from(error),
     }
 }
 

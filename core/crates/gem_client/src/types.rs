@@ -16,6 +16,15 @@ pub enum ClientError {
     Serialization(String),
 }
 
+impl ClientError {
+    pub fn decode_body<T: DeserializeOwned>(&self) -> Option<T> {
+        match self {
+            Self::Http { body, .. } => serde_json::from_slice(body).ok(),
+            Self::Network(_) | Self::Timeout | Self::Serialization(_) => None,
+        }
+    }
+}
+
 impl fmt::Debug for ClientError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

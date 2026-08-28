@@ -7,7 +7,7 @@ use primitives::swap::SwapStatus;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_option_bigint_from_str, serialize_option_bigint};
 
-use crate::SwapperError;
+use crate::{SwapperError, error::ProviderErrorResponse};
 
 const STEP_SWAP: &str = "swap";
 const STEP_DEPOSIT: &str = "deposit";
@@ -215,8 +215,8 @@ pub struct RelayErrorResponse {
     pub message: Option<String>,
 }
 
-impl RelayErrorResponse {
-    pub fn into_swapper_error(self) -> Option<SwapperError> {
+impl ProviderErrorResponse for RelayErrorResponse {
+    fn into_swapper_error(self) -> Option<SwapperError> {
         match self.error_code {
             RelayErrorCode::AmountTooLow => Some(SwapperError::InputAmountError { min_amount: None }),
             RelayErrorCode::NoQuotes | RelayErrorCode::NoSwapRoutesFound => Some(SwapperError::NoQuoteAvailable),

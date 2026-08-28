@@ -9,7 +9,7 @@ use super::{
     chain::ChainName,
     constants::{THORCHAIN_INBOUND_ADDRESS, ZERO_HASH},
 };
-use crate::SwapperError;
+use crate::{SwapperError, error::ProviderErrorResponse};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuoteSwapRequest {
@@ -301,10 +301,33 @@ impl ErrorResponse {
     }
 }
 
+impl ProviderErrorResponse for ErrorResponse {
+    fn into_swapper_error(self) -> Option<SwapperError> {
+        self.is_input_amount_error().then(|| SwapperError::InputAmountError {
+            min_amount: self.parse_min_amount(),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_client::ClientError;
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, THORCHAIN_TCY_ASSET_ID, TRON_USDT_ASSET_ID, TRON_USDT_TOKEN_ID};
+
+    #[test]
+    fn test_map_client_error() {
+        let error = ErrorResponse::map_client_error(ClientError::Http {
+            status: 400,
+            body: br#"{"code":3,"message":"amount less than min swap amount, recommended_min_amount_in: 100000","details":[]}"#.to_vec(),
+        });
+        assert_eq!(
+            error,
+            SwapperError::InputAmountError {
+                min_amount: Some("100000".to_string())
+            }
+        );
+    }
 
     #[test]
     fn test_tx_status_completed_ltc_to_tron() {

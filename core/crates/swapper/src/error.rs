@@ -1,8 +1,7 @@
 use crate::alien::AlienError;
-use crate::thorchain::model::ErrorResponse as ThorchainError;
 use gem_client::ClientError;
 use gem_jsonrpc::types::JsonRpcError;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::fmt::Debug;
 
 pub const INVALID_AMOUNT: &str = "Invalid amount";
@@ -54,6 +53,14 @@ impl SwapperError {
     }
 }
 
+pub trait ProviderErrorResponse: DeserializeOwned {
+    fn into_swapper_error(self) -> Option<SwapperError>;
+
+    fn map_client_error(error: ClientError) -> SwapperError {
+        error.decode_body::<Self>().and_then(Self::into_swapper_error).unwrap_or_else(|| SwapperError::from(error))
+    }
+}
+
 impl From<AlienError> for SwapperError {
     fn from(err: AlienError) -> Self {
         match err {
@@ -76,16 +83,7 @@ impl From<ClientError> for SwapperError {
         match err {
             ClientError::Network(msg) => Self::ComputeQuoteError(msg),
             ClientError::Timeout => Self::ComputeQuoteError("Request timed out".into()),
-            ClientError::Http { status, ref body } => {
-                if let Ok(thorchain_error) = serde_json::from_slice::<ThorchainError>(body)
-                    && thorchain_error.is_input_amount_error()
-                {
-                    return Self::InputAmountError {
-                        min_amount: thorchain_error.parse_min_amount(),
-                    };
-                }
-                Self::ComputeQuoteError(format!("HTTP error: status {}", status))
-            }
+            ClientError::Http { status, .. } => Self::ComputeQuoteError(format!("HTTP error: status {}", status)),
             ClientError::Serialization(msg) => Self::ComputeQuoteError(msg),
         }
     }
@@ -172,7 +170,6 @@ impl From<number_formatter::NumberFormatterError> for SwapperError {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn test_solana_error_mapping() {
         assert_eq!(
