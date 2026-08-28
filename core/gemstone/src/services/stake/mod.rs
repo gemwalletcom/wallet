@@ -234,3 +234,13 @@ pub fn recommended_validator_ids(chain: Chain) -> Vec<String> {
 pub fn recommended_validator(chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
     rules::recommended_validator(chain, validators)
 }
+
+#[uniffi::export]
+pub fn stake_requires_frozen_balance(chain: Chain, frozen_amount: String) -> bool {
+    rules::requires_frozen_balance(chain, &frozen_amount)
+}
+
+#[uniffi::export]
+pub fn stake_can_claim_rewards(chain: Chain, rewards_amount: String) -> bool {
+    rules::can_claim_stake_rewards(chain, &rewards_amount)
+}

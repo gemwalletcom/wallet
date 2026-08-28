@@ -6,6 +6,8 @@ import Formatters
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
+import func Gemstone.stakeCanClaimRewards
+import func Gemstone.stakeRequiresFrozenBalance
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -177,7 +179,7 @@ public final class StakeSceneViewModel {
     }
 
     var showRewards: Bool {
-        chain.supportClaimRewards && rewardsValue > 0
+        stakeCanClaimRewards(chain: chain.chain.rawValue, rewardsAmount: rewardsValue.description)
     }
 
     var canClaimAllRewards: Bool {
@@ -291,7 +293,7 @@ extension StakeSceneViewModel {
     }
 
     private var stakeFrozenRequired: Bool {
-        chain == .tron && !balanceModel.hasFrozenResources
+        stakeRequiresFrozenBalance(chain: chain.chain.rawValue, frozenAmount: balanceModel.frozenResources.description)
     }
 
     private var balanceModel: BalanceViewModel {

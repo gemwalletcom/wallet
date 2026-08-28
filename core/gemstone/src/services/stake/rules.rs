@@ -46,6 +46,24 @@ pub fn can_claim_rewards(wallet_type: WalletType, chain: Chain, state: Delegatio
     wallet_type != WalletType::View && config.can_claim_rewards && state == DelegationState::Active && BigUint::from_str(rewards).is_ok_and(|rewards| rewards > BigUint::ZERO)
 }
 
+pub fn requires_frozen_balance(chain: Chain, frozen_amount: &str) -> bool {
+    let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config) else {
+        return false;
+    };
+    config.uses_freeze && !is_positive(frozen_amount)
+}
+
+pub fn can_claim_stake_rewards(chain: Chain, rewards_amount: &str) -> bool {
+    let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config) else {
+        return false;
+    };
+    config.can_claim_rewards && is_positive(rewards_amount)
+}
+
+fn is_positive(amount: &str) -> bool {
+    BigUint::from_str(amount).is_ok_and(|amount| amount > BigUint::ZERO)
+}
+
 pub fn recommended_validator_ids(chain: Chain) -> Vec<String> {
     get_validators().remove(chain.as_ref()).unwrap_or_default()
 }
@@ -287,5 +305,20 @@ mod tests {
 
         let earn = earn_validators(vec![validator("p")], 4.5);
         assert_eq!(earn[0].apr, 4.5);
+    }
+
+    #[test]
+    fn test_freeze_chains_need_a_frozen_balance_before_staking() {
+        assert!(requires_frozen_balance(Chain::Tron, "0"));
+        assert!(!requires_frozen_balance(Chain::Tron, "10"));
+        assert!(!requires_frozen_balance(Chain::Cosmos, "0"));
+        assert!(!requires_frozen_balance(Chain::Bitcoin, "0"));
+    }
+
+    #[test]
+    fn test_claiming_needs_rewards_on_a_chain_that_claims() {
+        assert!(can_claim_stake_rewards(Chain::Cosmos, "10"));
+        assert!(!can_claim_stake_rewards(Chain::Cosmos, "0"));
+        assert!(!can_claim_stake_rewards(Chain::Bitcoin, "10"));
     }
 }

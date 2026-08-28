@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
+import uniffi.gemstone.stakeCanClaimRewards
+import uniffi.gemstone.stakeRequiresFrozenBalance
 import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.stake.sumRewardsBalance
@@ -97,8 +99,10 @@ class StakeViewModel @Inject constructor(
 
     private val stakeFrozenRequired = assetInfo
         .mapLatest { assetInfo ->
-            assetInfo?.stakeChain?.freezed() == true
-                && assetInfo.balance.balance.getFrozenResourceAmount() <= BigInteger.ZERO
+            assetInfo != null && stakeRequiresFrozenBalance(
+                assetInfo.asset.chain.string,
+                assetInfo.balance.balance.getFrozenResourceAmount().toString(),
+            )
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -121,7 +125,7 @@ class StakeViewModel @Inject constructor(
             StakeAction.Freeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             StakeAction.Unfreeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             rewardsBalance
-                .takeIf { assetInfo.chain.canClaimRewards && rewardsBalance > BigInteger.ZERO }
+                .takeIf { stakeCanClaimRewards(assetInfo.asset.chain.string, rewardsBalance.toString()) }
                 ?.let {
                     StakeAction.Rewards(
                         data = ValueFormatter(style = ValueFormatter.Style.Auto)
