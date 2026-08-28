@@ -6,7 +6,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate, Markets, WalletId};
+use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate, WalletId};
 
 use crate::models::asset::asset_ids_enabled_by_default;
 
@@ -30,10 +30,6 @@ impl GemPriceService {
 
     pub async fn get_prices(&self, currency: Option<Currency>, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemApiError> {
         Ok(self.api.client.get_prices(currency, asset_ids).await?)
-    }
-
-    pub async fn get_markets(&self) -> Result<Markets, GemApiError> {
-        Ok(self.api.client.get_markets().await?)
     }
 
     pub async fn update_prices(&self, prices: Vec<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
