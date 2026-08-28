@@ -99,10 +99,6 @@ pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
         .map(|wallet| wallet.id.clone())
 }
 
-pub fn can_create_password(wallets: &[Wallet]) -> bool {
-    wallets.iter().all(|wallet| wallet.wallet_type == WalletType::View)
-}
-
 pub fn existing_wallet(wallets: &[Wallet], wallet_id: &WalletId, wallet_type: WalletType) -> Option<Wallet> {
     wallets.iter().find(|wallet| wallet.id == *wallet_id && wallet.wallet_type == wallet_type).cloned()
 }
@@ -250,14 +246,5 @@ mod tests {
         let mut second = wallet(WalletId::Multicoin("2".into()), WalletType::Single, &[]);
         second.index = 1;
         assert_eq!(next_wallet_index(&[first, second]), 4);
-    }
-
-    #[test]
-    fn test_can_create_password_only_without_keystore_wallets() {
-        let view = wallet(WalletId::View(Chain::Ethereum, "0x1".to_string()), WalletType::View, &[Chain::Ethereum]);
-        let multicoin = wallet(WalletId::Multicoin("0x2".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
-        assert!(can_create_password(&[]));
-        assert!(can_create_password(std::slice::from_ref(&view)));
-        assert!(!can_create_password(&[view, multicoin]));
     }
 }

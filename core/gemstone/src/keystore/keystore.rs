@@ -131,6 +131,10 @@ impl GemKeystore {
         matches!(self.inner.get_meta(&keystore_id), Ok(Some(_)))
     }
 
+    pub fn has_stored_wallets(&self) -> Result<bool, GemstoneError> {
+        Ok(!self.inner.list()?.is_empty())
+    }
+
     pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
         GemChainSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }
