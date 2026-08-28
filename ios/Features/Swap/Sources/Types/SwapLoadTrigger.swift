@@ -2,7 +2,7 @@
 
 import Components
 
-struct SwapFetchTrigger: DebouncableTrigger {
+struct SwapLoadTrigger: DebouncableTrigger {
     let input: SwapQuoteInput
     let isImmediate: Bool
 }

@@ -69,7 +69,7 @@ public struct SwapScene: View {
         }
         .onChangeBindQuery(model.fromAssetQuery, action: model.onChangeFromAsset)
         .onChangeBindQuery(model.toAssetQuery, action: model.onChangeToAsset)
-        .debouncedTask(id: model.fetchTrigger) {
+        .debouncedTask(id: model.loadTrigger) {
             await model.load()
         }
         .debounce(
@@ -86,7 +86,7 @@ public struct SwapScene: View {
             }
         }
         .onChange(of: model.selectedSwapQuote, model.onChangeSwapQuote)
-        .onTimer(every: 30, id: model.fetchTrigger) {
+        .onTimer(every: 30, id: model.loadTrigger) {
             await model.load()
         }
         .onAppear {

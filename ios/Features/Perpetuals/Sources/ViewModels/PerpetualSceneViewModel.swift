@@ -378,7 +378,7 @@ private extension PerpetualSceneViewModel {
         do {
             try await transactionsService.sync(walletId: wallet.id.id, assetId: asset.id.identifier)
         } catch {
-            debugLog("perpetual scene: fetchTransactions error \(error)")
+            debugLog("perpetual scene: loadTransactions error \(error)")
         }
     }
 }

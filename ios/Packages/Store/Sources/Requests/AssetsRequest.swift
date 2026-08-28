@@ -36,7 +36,7 @@ public struct AssetsRequest: DatabaseQueryable {
                 .map { $0.mapToEmptyAssetData() }
         }
 
-        return try fetchAssetsSearch(walletId: walletId, filters: filters)
+        return try loadAssetsSearch(walletId: walletId, filters: filters)
             .fetchAll(db)
             .map(\.assetData)
     }
@@ -153,7 +153,7 @@ extension AssetsRequest {
         }
     }
 
-    private func fetchAssetsSearch(
+    private func loadAssetsSearch(
         walletId: WalletId,
         filters: [AssetsRequestFilter],
     ) -> QueryInterfaceRequest<AssetRecordInfo> {

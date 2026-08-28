@@ -341,7 +341,7 @@ public final class AssetSceneViewModel: Sendable {
 // MARK: - Business Logic
 
 public extension AssetSceneViewModel {
-    internal func fetchOnce() {
+    internal func loadOnce() {
         Task {
             await load()
         }
@@ -538,12 +538,12 @@ extension AssetSceneViewModel {
         isPresentingAssetSheet = .url(url)
     }
 
-    private func fetchTransactions() async {
+    private func loadTransactions() async {
         do {
             try await transactionsService.sync(walletId: walletModel.wallet.id.id, assetId: assetModel.asset.id.identifier)
         } catch {
-            // TODO: - handle fetchTransactions error
-            debugLog("asset scene: fetchTransactions error \(error)")
+            // TODO: - handle loadTransactions error
+            debugLog("asset scene: loadTransactions error \(error)")
         }
     }
 
@@ -594,7 +594,7 @@ extension AssetSceneViewModel {
 
     private func updateWallet() async {
         async let balance: Void? = try? balanceService.update(walletId: walletModel.wallet.id.id, assetIds: [assetModel.asset.id.identifier])
-        async let transactions: Void = fetchTransactions()
+        async let transactions: Void = loadTransactions()
         _ = await (balance, transactions)
     }
 

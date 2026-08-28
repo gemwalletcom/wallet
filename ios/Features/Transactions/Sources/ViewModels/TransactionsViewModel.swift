@@ -78,7 +78,7 @@ public extension TransactionsViewModel {
         do {
             try await transactionsService.sync(walletId: walletId.id, assetId: nil)
         } catch {
-            debugLog("fetch getTransactions error \(error)")
+            debugLog("load getTransactions error \(error)")
         }
     }
 }

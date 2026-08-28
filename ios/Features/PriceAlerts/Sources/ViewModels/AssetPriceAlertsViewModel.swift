@@ -83,7 +83,7 @@ extension AssetPriceAlertsViewModel {
         do {
             try await priceAlertService.sync(assetId: asset.id.identifier)
         } catch {
-            debugLog("fetch error: \(error)")
+            debugLog("load error: \(error)")
         }
     }
 

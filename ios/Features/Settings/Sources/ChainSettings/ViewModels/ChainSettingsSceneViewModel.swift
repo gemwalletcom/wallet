@@ -85,12 +85,12 @@ extension ChainSettingsSceneViewModel {
     func load() async {
         do {
             clear()
-            try await fetchNodes()
+            try await loadNodes()
             selectedNode = try nodeService.getNodeSelected(chain: chain)
-            await fetchNodesStates()
+            await loadNodesStates()
         } catch {
             // TODO: - handle error
-            debugLog("chain settings scene: fetch error \(error)")
+            debugLog("chain settings scene: load error \(error)")
         }
     }
 
@@ -141,7 +141,7 @@ extension ChainSettingsSceneViewModel {
 // MARK: - Private
 
 extension ChainSettingsSceneViewModel {
-    private func fetchNodes() async throws {
+    private func loadNodes() async throws {
         nodes = try await nodeService.nodes(for: chain)
     }
 
@@ -149,11 +149,11 @@ extension ChainSettingsSceneViewModel {
         statusStateByNodeId = [:]
     }
 
-    private func fetchNodesStates() async {
+    private func loadNodesStates() async {
         await withTaskGroup(of: (ChainNode, NodeStatusState).self) { group in
             for node in nodes {
                 group.addTask {
-                    await (node, self.fetchNodeStatusState(for: node))
+                    await (node, self.loadNodeStatusState(for: node))
                 }
             }
 
@@ -167,10 +167,10 @@ extension ChainSettingsSceneViewModel {
         guard let nodeDelete else { return }
         try await nodeService.delete(chain: chain, node: nodeDelete.node)
         selectedNode = try nodeService.getNodeSelected(chain: chain)
-        try await fetchNodes()
+        try await loadNodes()
     }
 
-    private func fetchNodeStatusState(for node: ChainNode) async -> NodeStatusState {
+    private func loadNodeStatusState(for node: ChainNode) async -> NodeStatusState {
         guard let url = URL(string: node.node.url) else {
             return .error(error: URLError(.badURL))
         }

@@ -61,7 +61,7 @@ public extension InAppNotificationsViewModel {
                 await markAsRead()
             }
         } catch {
-            debugLog("fetch notifications error: \(error)")
+            debugLog("load notifications error: \(error)")
         }
     }
 

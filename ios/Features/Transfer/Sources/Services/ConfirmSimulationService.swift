@@ -43,7 +43,7 @@ public struct ConfirmSimulationService: Sendable {
         do {
             try await assetsService.syncMissingAssets(for: simulation?.simulationAssetIds ?? [])
         } catch {
-            debugLog("simulation asset prefetch error: \(error)")
+            debugLog("simulation asset preload error: \(error)")
         }
         payload.addressNames = await (try? names) ?? [:]
 

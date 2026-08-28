@@ -197,8 +197,8 @@ public extension WalletSceneViewModel {
         await updateWallet(for: wallet)
     }
 
-    internal func fetchOnce() async {
-        await fetchOnce(wallet: wallet)
+    internal func loadOnce() async {
+        await loadOnce(wallet: wallet)
     }
 
     func onSelectWalletBar() {
@@ -290,7 +290,7 @@ public extension WalletSceneViewModel {
 // MARK: - Private
 
 extension WalletSceneViewModel {
-    private func fetchOnce(wallet: Wallet) async {
+    private func loadOnce(wallet: Wallet) async {
         let shouldShowLoadingAssets = shouldShowInitialLoadingAssets(for: wallet)
 
         if shouldShowLoadingAssets {

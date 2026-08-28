@@ -21,7 +21,7 @@ public final class AddAssetSceneViewModel {
     var input: AddAssetInput
 
     var isPresentingScanner = false
-    var fetchTrigger: AddAssetFetchTrigger?
+    var loadTrigger: AddAssetLoadTrigger?
 
     public init(wallet: Wallet, gatewayService: GatewayService, explorerService: any GemExplorerServiceProtocol) {
         self.gatewayService = gatewayService
@@ -99,20 +99,20 @@ public final class AddAssetSceneViewModel {
 extension AddAssetSceneViewModel {
     func setInput(_ address: String) {
         input.address = address
-        setFetchTrigger(isImmediate: true)
+        setLoadTrigger(isImmediate: true)
     }
 
     func onChangeAddress() {
-        guard fetchTrigger?.address != input.address else { return }
-        setFetchTrigger(isImmediate: false)
+        guard loadTrigger?.address != input.address else { return }
+        setLoadTrigger(isImmediate: false)
     }
 
     func onSubmitAddress() {
-        setFetchTrigger(isImmediate: true)
+        setLoadTrigger(isImmediate: true)
     }
 
     func load() async {
-        guard let trigger = fetchTrigger else { return }
+        guard let trigger = loadTrigger else { return }
 
         state = .loading
 
@@ -124,12 +124,12 @@ extension AddAssetSceneViewModel {
         }
     }
 
-    private func setFetchTrigger(isImmediate: Bool) {
+    private func setLoadTrigger(isImmediate: Bool) {
         guard let chain = input.chain, let address = input.address, !address.isEmpty else {
             state = .noData
-            fetchTrigger = nil
+            loadTrigger = nil
             return
         }
-        fetchTrigger = AddAssetFetchTrigger(chain: chain, address: address, isImmediate: isImmediate)
+        loadTrigger = AddAssetLoadTrigger(chain: chain, address: address, isImmediate: isImmediate)
     }
 }

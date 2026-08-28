@@ -51,7 +51,7 @@ public final class SwapSceneViewModel {
 
     var amountInputModel: InputValidationViewModel = .init(mode: .onDemand)
     var toValue: String = ""
-    var fetchTrigger: SwapFetchTrigger?
+    var loadTrigger: SwapLoadTrigger?
     var selectedSlippage: SwapSlippage = .auto
 
     private let onSwap: TransferDataAction
@@ -231,11 +231,11 @@ extension SwapSceneViewModel {
     }
 
     func onChangeFromValue(_: String, _: String) {
-        if let input = fetchTrigger?.input, input == currentInput {
+        if let input = loadTrigger?.input, input == currentInput {
             return
         }
         resetTransferDataState()
-        setFetchTrigger(isImmediate: false)
+        setLoadTrigger(isImmediate: false)
     }
 
     func onChangeFromAsset(old: AssetData?, new: AssetData?) {
@@ -245,7 +245,7 @@ extension SwapSceneViewModel {
         resetValues()
         resetQuoteSelection()
         updateValidators(for: new)
-        setFetchTrigger(isImmediate: true)
+        setLoadTrigger(isImmediate: true)
     }
 
     func onChangeToAsset(old: AssetData?, new: AssetData?) {
@@ -254,7 +254,7 @@ extension SwapSceneViewModel {
         resetTransferDataState()
         resetToValue()
         resetQuoteSelection()
-        setFetchTrigger(isImmediate: true)
+        setLoadTrigger(isImmediate: true)
     }
 
     func onSelectFromMaxBalance() {
@@ -265,7 +265,7 @@ extension SwapSceneViewModel {
         guard let fromAsset else { return }
         resetTransferDataState()
         applyPercentToFromValue(percent: percent, assetData: fromAsset)
-        setFetchTrigger(isImmediate: true)
+        setLoadTrigger(isImmediate: true)
     }
 
     func onSelectSwapConfirmation() {
@@ -309,7 +309,7 @@ extension SwapSceneViewModel {
             debugLog("set swap slippage error: \(error)")
         }
         resetTransferDataState()
-        setFetchTrigger(isImmediate: true)
+        setLoadTrigger(isImmediate: true)
     }
 
     public func onFinishAssetSelection(asset: Asset) {
@@ -374,20 +374,20 @@ extension SwapSceneViewModel {
         guard let value = BigInt(amount) else { return }
         resetTransferDataState()
         amountInputModel.text = formatter.format(value: value, decimals: asset.decimals.asInt)
-        setFetchTrigger(isImmediate: true)
+        setLoadTrigger(isImmediate: true)
     }
 
-    private func setFetchTrigger(isImmediate: Bool) {
+    private func setLoadTrigger(isImmediate: Bool) {
         guard let input = currentInput else {
             resetToValue()
             swapState.quotes = .noData
             resetTransferDataState()
             resetQuoteSelection()
-            fetchTrigger = nil
+            loadTrigger = nil
             return
         }
         guard !isTransferDataLoading else { return }
-        fetchTrigger = SwapFetchTrigger(input: input, isImmediate: isImmediate)
+        loadTrigger = SwapLoadTrigger(input: input, isImmediate: isImmediate)
 
         Task {
             let assetIds = [fromAsset?.asset.id, toAsset?.asset.id].compactMap(\.self)
@@ -478,7 +478,7 @@ extension SwapSceneViewModel {
 
     private func onSelectActionButton() {
         switch buttonViewModel.buttonAction {
-        case .retryQuotes: setFetchTrigger(isImmediate: true)
+        case .retryQuotes: setLoadTrigger(isImmediate: true)
         case .retrySwap: swap()
         case .insufficientBalance: break
         case let .useMinAmount(amount, asset): applyMinAmount(amount, asset: asset)

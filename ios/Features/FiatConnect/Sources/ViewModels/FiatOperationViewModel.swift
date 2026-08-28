@@ -19,7 +19,7 @@ final class FiatOperationViewModel {
 
     var quotesState: StateViewType<FiatQuotes> = .loading
     var selectedQuote: FiatQuote?
-    var fetchTask: Task<Void, Never>?
+    var loadTask: Task<Void, Never>?
     var amount: String
     var loadingAmount: Double?
     var inputValidationModel: InputValidationViewModel
@@ -74,10 +74,10 @@ final class FiatOperationViewModel {
             return
         }
 
-        fetchTask?.cancel()
+        loadTask?.cancel()
         loadingAmount = amount
 
-        fetchTask = Task {
+        loadTask = Task {
             setLoadingState()
             selectedQuote = nil
 

@@ -3,7 +3,7 @@
 import Components
 import Primitives
 
-struct FiatFetchTrigger: DebouncableTrigger {
+struct FiatLoadTrigger: DebouncableTrigger {
     let type: FiatQuoteType
     let amount: String
     let isImmediate: Bool

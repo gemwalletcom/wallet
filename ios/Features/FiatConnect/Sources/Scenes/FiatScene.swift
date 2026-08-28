@@ -34,7 +34,7 @@ public struct FiatScene: View {
         .frame(maxWidth: .infinity)
         .onChange(of: model.type, model.onChangeType)
         .onChange(of: model.inputValidationModel.text, model.onChangeAmountText)
-        .debouncedTask(id: model.fetchTrigger) {
+        .debouncedTask(id: model.loadTrigger) {
             await model.load()
         }
         .onTimer(every: .minutes(5)) {

@@ -10,27 +10,27 @@ import Testing
 @MainActor
 struct AddAssetSceneViewModelTests {
     @Test
-    func fetchTrigger() {
+    func loadTrigger() {
         let model = AddAssetSceneViewModel.mock()
 
         model.input.address = "0x1"
         model.onChangeAddress()
-        #expect(model.fetchTrigger == AddAssetFetchTrigger(chain: .ethereum, address: "0x1", isImmediate: false))
+        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x1", isImmediate: false))
 
         model.onSubmitAddress()
-        #expect(model.fetchTrigger == AddAssetFetchTrigger(chain: .ethereum, address: "0x1", isImmediate: true))
+        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x1", isImmediate: true))
 
         model.setInput("0x2")
         #expect(model.input.address == "0x2")
-        #expect(model.fetchTrigger == AddAssetFetchTrigger(chain: .ethereum, address: "0x2", isImmediate: true))
+        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x2", isImmediate: true))
 
         model.onChangeAddress()
-        #expect(model.fetchTrigger == AddAssetFetchTrigger(chain: .ethereum, address: "0x2", isImmediate: true))
+        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x2", isImmediate: true))
 
         model.state = .loading
         model.input.address = nil
         model.onChangeAddress()
-        #expect(model.fetchTrigger == nil)
+        #expect(model.loadTrigger == nil)
         #expect(model.state.isNoData)
     }
 }

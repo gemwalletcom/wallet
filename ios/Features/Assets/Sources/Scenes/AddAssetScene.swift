@@ -42,7 +42,7 @@ public struct AddAssetScene: View {
             .onChange(of: model.input.address) {
                 model.onChangeAddress()
             }
-            .debouncedTask(id: model.fetchTrigger) {
+            .debouncedTask(id: model.loadTrigger) {
                 await model.load()
             }
             .listSectionSpacing(.compact)

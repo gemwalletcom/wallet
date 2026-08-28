@@ -42,7 +42,7 @@ public final class FiatTransactionsViewModel {
         do {
             try await service.syncTransactions(walletId: walletId.id)
         } catch {
-            debugLog("FiatTransactionsViewModel fetch error: \(error)")
+            debugLog("FiatTransactionsViewModel load error: \(error)")
         }
     }
 }

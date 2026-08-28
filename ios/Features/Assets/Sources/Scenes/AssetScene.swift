@@ -200,7 +200,7 @@ public struct AssetScene: View {
         .refreshableTimer(every: .minutes(5)) {
             await model.load()
         }
-        .taskOnce(model.fetchOnce)
+        .taskOnce(model.loadOnce)
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
         .contentMargins([.top], .small, for: .scrollContent)

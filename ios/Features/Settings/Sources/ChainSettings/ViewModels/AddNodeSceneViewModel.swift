@@ -21,7 +21,7 @@ final class AddNodeSceneViewModel {
     var state: StateViewType<AddNodeResultViewModel> = .noData
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?
-    var fetchTrigger: AddNodeFetchTrigger?
+    var loadTrigger: AddNodeLoadTrigger?
 
     init(chain: Chain, nodeService: NodeService, chainServiceFactory: ChainServiceFactory) {
         self.chain = chain
@@ -69,23 +69,23 @@ final class AddNodeSceneViewModel {
 
 extension AddNodeSceneViewModel {
     func onChangeInput() {
-        guard fetchTrigger?.url != urlInputModel.text else { return }
-        setFetchTrigger(isImmediate: false)
+        guard loadTrigger?.url != urlInputModel.text else { return }
+        setLoadTrigger(isImmediate: false)
     }
 
     func setInput(_ text: String) {
         urlInputModel.text = text
-        setFetchTrigger(isImmediate: true)
+        setLoadTrigger(isImmediate: true)
     }
 
-    private func setFetchTrigger(isImmediate: Bool) {
+    private func setLoadTrigger(isImmediate: Bool) {
         let text = urlInputModel.text
         guard text.isNotEmpty, urlInputModel.isValid else {
             state = .noData
-            fetchTrigger = nil
+            loadTrigger = nil
             return
         }
-        fetchTrigger = AddNodeFetchTrigger(url: text, isImmediate: isImmediate)
+        loadTrigger = AddNodeLoadTrigger(url: text, isImmediate: isImmediate)
     }
 
     func importFoundNode() async throws {

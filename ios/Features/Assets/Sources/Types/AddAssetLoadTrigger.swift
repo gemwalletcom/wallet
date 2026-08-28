@@ -3,7 +3,7 @@
 import Components
 import Primitives
 
-struct AddAssetFetchTrigger: DebouncableTrigger {
+struct AddAssetLoadTrigger: DebouncableTrigger {
     let chain: Chain
     let address: String
     let isImmediate: Bool

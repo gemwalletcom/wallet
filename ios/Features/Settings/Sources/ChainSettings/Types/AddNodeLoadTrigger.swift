@@ -2,7 +2,7 @@
 
 import Components
 
-struct AddNodeFetchTrigger: DebouncableTrigger {
+struct AddNodeLoadTrigger: DebouncableTrigger {
     let url: String
     let isImmediate: Bool
 }

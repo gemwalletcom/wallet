@@ -256,7 +256,7 @@ extension StakeSceneViewModel {
             try await stakeService.sync(walletId: wallet.id.id, chain: chain.chain.rawValue, address: account.address)
             delegationsState = .data(true)
         } catch {
-            debugLog("Stake scene fetch error: \(error)")
+            debugLog("Stake scene load error: \(error)")
             delegationsState = .error(error)
         }
     }

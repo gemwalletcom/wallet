@@ -36,7 +36,7 @@ public final class FiatSceneViewModel {
     var type: FiatQuoteType
     var isPresentingFiatProvider: Bool = false
     var isPresentingAlertMessage: AlertMessage?
-    var fetchTrigger: FiatFetchTrigger
+    var loadTrigger: FiatLoadTrigger
 
     let buyViewModel: FiatOperationViewModel
     let sellViewModel: FiatOperationViewModel
@@ -89,7 +89,7 @@ public final class FiatSceneViewModel {
         }
 
         let initialAmount = amount.map { String($0) } ?? defaultAmount
-        fetchTrigger = FiatFetchTrigger(type: type, amount: initialAmount, isImmediate: true)
+        loadTrigger = FiatLoadTrigger(type: type, amount: initialAmount, isImmediate: true)
 
         if let amount {
             currentViewModel.setAmount(String(amount))
@@ -277,13 +277,13 @@ extension FiatSceneViewModel {
     func onChangeType(oldType: FiatQuoteType, newType: FiatQuoteType) {
         resetStateIfNeeded(for: oldType)
         currentViewModel.setAmount(currentViewModel.amount)
-        fetchTrigger = FiatFetchTrigger(type: newType, amount: currentViewModel.amount, isImmediate: true)
+        loadTrigger = FiatLoadTrigger(type: newType, amount: currentViewModel.amount, isImmediate: true)
     }
 
     func onChangeAmountText(_: String, text: String) {
         guard text != currentViewModel.amount else { return }
         currentViewModel.onChangeAmountText("", text: text)
-        fetchTrigger = FiatFetchTrigger(type: type, amount: text, isImmediate: false)
+        loadTrigger = FiatLoadTrigger(type: type, amount: text, isImmediate: false)
     }
 }
 
@@ -309,7 +309,7 @@ extension FiatSceneViewModel {
     private func selectAmount(_ amount: Int) {
         let amountText = String(amount)
         currentViewModel.setAmount(amountText)
-        fetchTrigger = FiatFetchTrigger(type: type, amount: amountText, isImmediate: true)
+        loadTrigger = FiatLoadTrigger(type: type, amount: amountText, isImmediate: true)
     }
 
     private func resetStateIfNeeded(for type: FiatQuoteType) {

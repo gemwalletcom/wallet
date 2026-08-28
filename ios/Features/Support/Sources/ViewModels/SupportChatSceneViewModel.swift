@@ -46,7 +46,7 @@ public final class SupportChatSceneViewModel {
 
     func load() async {
         let fromTimestamp = query.value.last { $0.sender.isAgent }.map { Int($0.createdAt.timeIntervalSince1970) } ?? 0
-        await perform("fetch") {
+        await perform("load") {
             try await service.syncMessages(fromTimestamp: fromTimestamp)
         }
     }

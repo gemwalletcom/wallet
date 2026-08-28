@@ -112,7 +112,7 @@ public struct WalletScene: View {
             await model.load()
         }
         .taskOnce {
-            Task { await model.fetchOnce() }
+            Task { await model.loadOnce() }
         }
         .listSectionSpacing(.compact)
     }

@@ -232,7 +232,7 @@ struct SwapSceneViewModelTests {
         let oldAsset = model.toAsset
 
         model.swapState.swapTransferData = .error(TestError())
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.toAssetQuery.value = .mock(asset: .mockBNB())
         model.onChangeToAsset(old: oldAsset, new: model.toAsset)
 
@@ -240,7 +240,7 @@ struct SwapSceneViewModelTests {
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
         #expect(model.swapState.swapTransferData.isNoData)
-        #expect(model.fetchTrigger?.isImmediate == true)
+        #expect(model.loadTrigger?.isImmediate == true)
     }
 
     @Test
@@ -257,35 +257,35 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func fetchTriggerIsImmediate() {
+    func loadTriggerIsImmediate() {
         let model = SwapSceneViewModel.mock()
 
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.onChangeFromValue("1", "2")
 
-        #expect(model.fetchTrigger?.isImmediate == false)
+        #expect(model.loadTrigger?.isImmediate == false)
 
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.onSelectPercent(50)
 
-        #expect(model.fetchTrigger?.isImmediate == true)
+        #expect(model.loadTrigger?.isImmediate == true)
 
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.onChangeToAsset(old: .mock(asset: .mockEthereum()), new: .mock(asset: .mockEthereumUSDT()))
 
-        #expect(model.fetchTrigger?.isImmediate == true)
+        #expect(model.loadTrigger?.isImmediate == true)
 
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
         model.buttonViewModel.action()
 
-        #expect(model.fetchTrigger?.isImmediate == true)
+        #expect(model.loadTrigger?.isImmediate == true)
 
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "1000000000000000000"))
         model.buttonViewModel.action()
 
-        #expect(model.fetchTrigger?.isImmediate == true)
+        #expect(model.loadTrigger?.isImmediate == true)
     }
 
     @Test
