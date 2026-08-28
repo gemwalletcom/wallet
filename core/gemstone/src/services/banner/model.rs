@@ -11,8 +11,6 @@ pub struct GemBannerContext {
     pub asset_rank_score: Option<i32>,
     pub has_perpetuals_support: bool,
     pub is_wallet_empty: bool,
-    pub notifications_available: bool,
-    pub launch_count: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -65,7 +63,7 @@ mod tests {
             banner_identifier(key(Some("wallet-1"), Some(AssetId::from_chain(Chain::Bitcoin)), BannerEvent::Stake)),
             "multicoin_wallet-1_bitcoin_stake"
         );
-        assert_eq!(banner_identifier(key(None, None, BannerEvent::EnableNotifications)), "enableNotifications");
+        assert_eq!(banner_identifier(key(None, None, BannerEvent::SuspiciousAsset)), "suspiciousAsset");
         assert_eq!(banner_identifier(key(Some("wallet-1"), None, BannerEvent::Onboarding)), "multicoin_wallet-1_onboarding");
         assert_eq!(
             banner_identifier(key(None, Some(AssetId::from_chain(Chain::Ethereum)), BannerEvent::ActivateAsset)),

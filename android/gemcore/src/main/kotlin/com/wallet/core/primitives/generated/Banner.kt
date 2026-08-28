@@ -13,8 +13,6 @@ enum class BannerEvent(val string: String) {
 	Stake("stake"),
 	@SerialName("accountActivation")
 	AccountActivation("accountActivation"),
-	@SerialName("enableNotifications")
-	EnableNotifications("enableNotifications"),
 	@SerialName("accountBlockedMultiSignature")
 	AccountBlockedMultiSignature("accountBlockedMultiSignature"),
 	@SerialName("activateAsset")

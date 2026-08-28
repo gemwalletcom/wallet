@@ -519,16 +519,8 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
         stored
     }
 
-    public func activeEvents(walletId _: Gemstone.WalletId?, assetId _: Gemstone.AssetId?, context _: GemBannerContext) async throws -> [Gemstone.BannerEvent] {
-        []
-    }
-
     public func close(key: GemBannerKey) async throws {
         closedKeys.append(key)
-    }
-
-    public func closesOnAction(event _: Gemstone.BannerEvent) -> Bool {
-        false
     }
 
     public func applyAction(key _: GemBannerKey, action: GemBannerAction) async throws {

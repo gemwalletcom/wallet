@@ -53,8 +53,6 @@ class GetShowWelcomeBannerImpl(
         assetRankScore = null,
         hasPerpetualsSupport = false,
         isWalletEmpty = isWalletEmpty,
-        notificationsAvailable = false,
-        launchCount = 0u,
     )
 }
 

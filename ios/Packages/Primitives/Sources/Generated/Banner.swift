@@ -7,7 +7,6 @@ import Foundation
 public enum BannerEvent: String, Codable, CaseIterable, Equatable, Sendable {
 	case stake
 	case accountActivation
-	case enableNotifications
 	case accountBlockedMultiSignature
 	case activateAsset
 	case suspiciousAsset

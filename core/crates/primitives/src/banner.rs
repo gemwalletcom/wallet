@@ -21,7 +21,6 @@ pub struct Banner {
 pub enum BannerEvent {
     Stake,
     AccountActivation,
-    EnableNotifications,
     AccountBlockedMultiSignature,
     ActivateAsset,
     SuspiciousAsset,

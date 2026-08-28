@@ -186,8 +186,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             assetRankScore: .none,
             hasPerpetualsSupport: wallet.hasPerpetualsSupport,
             isWalletEmpty: totalFiatValue.value.isZero,
-            notificationsAvailable: false,
-            launchCount: 0,
         )
     }
 }
