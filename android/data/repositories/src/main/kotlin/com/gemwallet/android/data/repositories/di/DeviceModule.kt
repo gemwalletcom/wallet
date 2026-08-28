@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.GetPushToken
 import com.gemwallet.android.cases.device.IsDeviceRegistered
@@ -57,7 +56,7 @@ object DeviceModule {
         buildInfo: BuildInfo,
         deviceService: Lazy<GemDeviceService>,
         getDeviceId: GetDeviceId,
-        getCurrentCurrency: GetCurrentCurrency,
+        preferencesService: GemPreferencesService,
         notificationsAvailable: NotificationsAvailable,
     ): DeviceRepository {
         return DeviceRepository(
@@ -69,7 +68,7 @@ object DeviceModule {
             platformStore = buildInfo.platformStore,
             notificationsAvailable = notificationsAvailable,
             versionName = buildInfo.versionName,
-            getCurrentCurrency = getCurrentCurrency,
+            preferencesService = preferencesService,
         )
     }
 

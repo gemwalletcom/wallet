@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.GetPushToken
 import com.gemwallet.android.cases.device.IsDeviceRegistered
@@ -33,6 +32,7 @@ import uniffi.gemstone.GemDeviceInfo
 import uniffi.gemstone.GemDevicePlatform
 import uniffi.gemstone.GemDeviceService
 import java.util.Locale
+import uniffi.gemstone.GemPreferencesService
 
 class DeviceRepository(
     private val context: Context,
@@ -43,7 +43,7 @@ class DeviceRepository(
     private val notificationsAvailable: NotificationsAvailable,
     private val versionName: String,
     private val getDeviceId: GetDeviceId,
-    private val getCurrentCurrency: GetCurrentCurrency,
+    private val preferencesService: GemPreferencesService,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : SwitchPushEnabled,
     GetPushEnabled,
@@ -105,7 +105,7 @@ class DeviceRepository(
 
     override suspend fun isPushEnabled(): Boolean = getPushEnabled().firstOrNull() ?: false
 
-    override suspend fun currency(): String = getCurrentCurrency.getCurrentCurrency().toJson()
+    override suspend fun currency(): String = preferencesService.getCurrency()
 
     internal enum class ConfigKey(val string: String) {
         PushToken("push_token"),
