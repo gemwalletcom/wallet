@@ -12,7 +12,7 @@ import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImp
 import com.gemwallet.android.data.coordinators.confirm.ConfirmTransactionImpl
 import com.gemwallet.android.data.coordinators.confirm.CalculateTransferAmountImpl
 import com.gemwallet.android.data.coordinators.confirm.GetFeeAssetsImpl
-import com.gemwallet.android.data.coordinators.confirm.TempoFeeAssetProvider
+import com.gemwallet.android.data.coordinators.confirm.ChainFeeAssetProvider
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.data.repositories.stake.StakeRepository
@@ -34,7 +34,7 @@ object ConfirmModule {
     @Provides
     @Singleton
     fun provideGetFeeAssets(assetsRepository: AssetsRepository): GetFeeAssets = GetFeeAssetsImpl(
-        providers = mapOf(Chain.Tempo to TempoFeeAssetProvider(assetsRepository)),
+        providers = mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetsRepository)),
     )
 
     @Provides

@@ -18,7 +18,7 @@ import org.junit.Test
 class GetFeeAssetsImplTest {
 
     private val assetsRepository = mockk<AssetsRepository>()
-    private val subject = GetFeeAssetsImpl(mapOf(Chain.Tempo to TempoFeeAssetProvider(assetsRepository)))
+    private val subject = GetFeeAssetsImpl(mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetsRepository)))
 
     @Test
     fun returnsFundedDefaultTempoAssets() = runTest {

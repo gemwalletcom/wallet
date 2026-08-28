@@ -120,6 +120,10 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).transactionTimeout / 1000
     }
 
+    var feeAssetIds: [Primitives.AssetId] {
+        Gemstone.chainFeeAssetIds(chain: rawValue).compactMap { try? Primitives.AssetId(id: $0) }
+    }
+
     var defaultAssets: [Primitives.Asset] {
         Gemstone.walletDefaultAssets(chain: map()).map { asset in
             guard let asset = try? Primitives.Asset(asset) else {
