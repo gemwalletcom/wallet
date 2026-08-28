@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.device
 
-import com.gemwallet.android.data.repositories.gemstone.GemstoneDeviceStore
 import android.content.Context
 import android.icu.util.ULocale
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -39,7 +38,6 @@ import java.util.Locale
 class DeviceRepository(
     private val context: Context,
     private val deviceService: Lazy<GemDeviceService>,
-    private val deviceStore: GemstoneDeviceStore,
     private val configStore: ConfigStore,
     private val requestPushToken: RequestPushToken,
     private val platformStore: PlatformStore,
@@ -86,7 +84,7 @@ class DeviceRepository(
         }
     }
 
-    override suspend fun isDeviceRegistered(): Boolean = deviceStore.isRegistered()
+    override suspend fun isDeviceRegistered(): Boolean = deviceService.get().isRegistered()
 
     override suspend fun deviceId(): String = getDeviceId.getDeviceId()
 

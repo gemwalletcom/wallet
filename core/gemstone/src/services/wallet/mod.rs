@@ -10,9 +10,9 @@ use gem_keystore::Mnemonic;
 use primitives::{Chain, Wallet, WalletId, WalletSource, WalletType};
 
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, GemWalletType, keystore_id_for_wallet};
-use crate::services::device::GemDeviceStore;
 use crate::services::error::GemServiceError;
 use crate::services::file::GemFileStore;
+use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -29,7 +29,7 @@ pub struct GemWalletService {
     password: Arc<dyn GemKeystorePassword>,
     store: Arc<dyn GemWalletStore>,
     session: Arc<GemWalletSessionService>,
-    device_store: Arc<dyn GemDeviceStore>,
+    app_preferences: Arc<GemPreferencesService>,
     files: Arc<dyn GemFileStore>,
     preferences: Arc<GemWalletPreferencesService>,
 }
@@ -42,7 +42,7 @@ impl GemWalletService {
         password: Arc<dyn GemKeystorePassword>,
         store: Arc<dyn GemWalletStore>,
         session: Arc<GemWalletSessionService>,
-        device_store: Arc<dyn GemDeviceStore>,
+        app_preferences: Arc<GemPreferencesService>,
         files: Arc<dyn GemFileStore>,
         preferences: Arc<GemWalletPreferencesService>,
     ) -> Self {
@@ -51,7 +51,7 @@ impl GemWalletService {
             password,
             store,
             session,
-            device_store,
+            app_preferences,
             files,
             preferences,
         }
@@ -181,8 +181,7 @@ impl GemWalletService {
     }
 
     async fn invalidate_subscriptions(&self) -> Result<(), GemServiceError> {
-        let version = self.device_store.get_subscriptions_version().await?;
-        self.device_store.set_subscriptions_version(version + 1).await
+        self.app_preferences.set_subscriptions_version(self.app_preferences.get_subscriptions_version() + 1)
     }
 }
 

@@ -11,7 +11,6 @@ import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.repositories.device.DeviceObserverService
 import com.gemwallet.android.data.repositories.device.DeviceRepository
-import com.gemwallet.android.data.repositories.gemstone.GemstoneDeviceStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
@@ -37,19 +36,13 @@ object DeviceModule {
 
     @Provides
     @Singleton
-    fun provideGemstoneDeviceStore(@ApplicationContext context: Context): GemstoneDeviceStore =
-        GemstoneDeviceStore(ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)))
-
-    @Provides
-    @Singleton
     fun provideGemDeviceService(
         @Named("registration") apiClient: GemDeviceApiClient,
         subscriptionService: GemSubscriptionService,
         walletStore: GemstoneWalletStore,
-        deviceStore: GemstoneDeviceStore,
         platform: DeviceRepository,
         preferencesService: GemPreferencesService,
-    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, walletStore, deviceStore, platform, preferencesService)
+    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, walletStore, platform, preferencesService)
 
     @Provides
     @Singleton
@@ -64,7 +57,6 @@ object DeviceModule {
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
         deviceService: Lazy<GemDeviceService>,
-        deviceStore: GemstoneDeviceStore,
         getDeviceId: GetDeviceId,
         getCurrentCurrency: GetCurrentCurrency,
         notificationsAvailable: NotificationsAvailable,
@@ -72,7 +64,6 @@ object DeviceModule {
         return DeviceRepository(
             context = context,
             deviceService = deviceService,
-            deviceStore = deviceStore,
             getDeviceId = getDeviceId,
             configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
             requestPushToken = buildInfo.requestPushToken,

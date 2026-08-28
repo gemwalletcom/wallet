@@ -14,9 +14,6 @@ public final class Preferences: @unchecked Sendable {
         static let importFiatPurchaseAssetsVersion = "migrate_fiat_purchase_assets_version"
         static let swapSlippageBps = "swap_slippage_bps"
         static let launchesCount = "launches_count"
-        static let subscriptionsVersion = "subscriptions_version"
-        static let pushedDevice = "pushed_device"
-        static let pushedSubscriptions = "pushed_subscriptions"
         static let currentWalletId = "currentWallet"
         static let isPushNotificationsEnabled = "is_push_notifications_enabled"
         static let isSubscriptionsEnabled = "is_subscriptions_enabled"
@@ -31,7 +28,6 @@ public final class Preferences: @unchecked Sendable {
         static let perpetualLeverage = "perpetual_leverage"
         static let perpetualTakeProfit = "perpetual_take_profit"
         static let perpetualStopLoss = "perpetual_stop_loss"
-        static let isDeviceRegistered = "is_device_registered"
         static let appearance = "appearance"
     }
 
@@ -49,15 +45,6 @@ public final class Preferences: @unchecked Sendable {
 
     @ConfigurableDefaults(key: Keys.launchesCount, defaultValue: 0)
     public var launchesCount: Int
-
-    @ConfigurableDefaults(key: Keys.subscriptionsVersion, defaultValue: 0)
-    public var subscriptionsVersion: Int
-
-    @ConfigurableDefaults(key: Keys.pushedDevice, defaultValue: .none)
-    public var pushedDevice: String?
-
-    @ConfigurableDefaults(key: Keys.pushedSubscriptions, defaultValue: .none)
-    public var pushedSubscriptions: String?
 
     @ConfigurableDefaults(key: Keys.currentWalletId, defaultValue: .none)
     public var currentWalletId: String?
@@ -101,9 +88,6 @@ public final class Preferences: @unchecked Sendable {
     @ConfigurableDefaults(key: Keys.perpetualStopLoss, defaultValue: 0)
     public var perpetualStopLoss: UInt8
 
-    @ConfigurableDefaults(key: Keys.isDeviceRegistered, defaultValue: false)
-    public var isDeviceRegistered: Bool
-
     @ConfigurableDefaults(key: Keys.appearance, defaultValue: Appearance.system.rawValue)
     private var appearanceRawValue: String
 
@@ -126,9 +110,6 @@ public final class Preferences: @unchecked Sendable {
         configure(\._importFiatPurchaseAssetsVersion, key: Keys.importFiatPurchaseAssetsVersion, defaultValue: 0)
         configure(\._swapSlippageBpsRawValue, key: Keys.swapSlippageBps, defaultValue: 0)
         configure(\._launchesCount, key: Keys.launchesCount, defaultValue: 0)
-        configure(\._subscriptionsVersion, key: Keys.subscriptionsVersion, defaultValue: 0)
-        configure(\._pushedDevice, key: Keys.pushedDevice, defaultValue: nil)
-        configure(\._pushedSubscriptions, key: Keys.pushedSubscriptions, defaultValue: nil)
         configure(\._currentWalletId, key: Keys.currentWalletId, defaultValue: nil)
         configure(\._isPushNotificationsEnabled, key: Keys.isPushNotificationsEnabled, defaultValue: false)
         configure(\._isSubscriptionsEnabled, key: Keys.isSubscriptionsEnabled, defaultValue: true)
@@ -143,11 +124,10 @@ public final class Preferences: @unchecked Sendable {
         configure(\._perpetualLeverage, key: Keys.perpetualLeverage, defaultValue: 0)
         configure(\._perpetualTakeProfit, key: Keys.perpetualTakeProfit, defaultValue: 0)
         configure(\._perpetualStopLoss, key: Keys.perpetualStopLoss, defaultValue: 0)
-        configure(\._isDeviceRegistered, key: Keys.isDeviceRegistered, defaultValue: false)
         configure(\._appearanceRawValue, key: Keys.appearance, defaultValue: Appearance.system.rawValue)
     }
 
-    public static let sharedKeys: Set<String> = [Keys.currency, Keys.launchesCount, Keys.rateApplicationShown]
+    public static let sharedKeys: Set<String> = [Keys.currency, Keys.launchesCount, Keys.rateApplicationShown, "subscriptions_version", "pushed_device", "pushed_subscriptions"]
 
     public func incrementLaunchesCount() {
         launchesCount += 1
@@ -161,11 +141,6 @@ public final class Preferences: @unchecked Sendable {
         for key in defaults.dictionaryRepresentation().keys {
             defaults.removeObject(forKey: key)
         }
-    }
-
-
-    public func invalidateSubscriptions() {
-        subscriptionsVersion += 1
     }
 
     public var swapSlippage: SwapSlippage {

@@ -13,10 +13,6 @@ public final class ObservablePreferences: Sendable {
         self.preferences = preferences
     }
 
-    public func invalidateSubscriptions() {
-        preferences.invalidateSubscriptions()
-    }
-
     @ObservationIgnored
     public var isHideBalanceEnabled: Bool {
         get {

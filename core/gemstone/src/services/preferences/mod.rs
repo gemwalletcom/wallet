@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use primitives::ChartPeriod;
 use primitives::currency::Currency;
-use primitives::{Chain, ConfigResponse};
+use primitives::{Chain, ConfigResponse, Device};
 
 use crate::services::assets::AssetList;
 
@@ -28,6 +28,10 @@ const SWAP_ASSETS_VERSION: &str = "swap_assets_version";
 const EXPLORER_NAME: &str = "explorer_name";
 const PERPETUAL_MARKETS_UPDATED_AT: &str = "perpetual_markets_updated_at";
 const PERPETUAL_PRICES_UPDATED_AT: &str = "perpetual_prices_updated_at";
+const IS_DEVICE_REGISTERED: &str = "is_device_registered";
+const SUBSCRIPTIONS_VERSION: &str = "subscriptions_version";
+const PUSHED_DEVICE: &str = "pushed_device";
+const PUSHED_SUBSCRIPTIONS: &str = "pushed_subscriptions";
 
 #[derive(uniffi::Object)]
 pub struct GemPreferencesService {
@@ -197,6 +201,41 @@ fn assets_version_key(list: AssetList) -> &'static str {
 impl GemPreferencesService {
     fn stored_currency(&self) -> Option<Currency> {
         self.store.get(CURRENCY.to_string()).and_then(|code| Currency::from_str(&code).ok())
+    }
+}
+
+impl GemPreferencesService {
+    pub fn is_device_registered(&self) -> bool {
+        rules::flag(self.store.get(IS_DEVICE_REGISTERED.to_string()))
+    }
+
+    pub fn set_device_registered(&self, registered: bool) -> Result<(), GemServiceError> {
+        self.store.set(IS_DEVICE_REGISTERED.to_string(), registered.to_string())
+    }
+
+    pub fn get_subscriptions_version(&self) -> i32 {
+        self.store.get(SUBSCRIPTIONS_VERSION.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0)
+    }
+
+    pub fn set_subscriptions_version(&self, version: i32) -> Result<(), GemServiceError> {
+        self.store.set(SUBSCRIPTIONS_VERSION.to_string(), version.to_string())
+    }
+
+    pub fn get_pushed_device(&self) -> Option<Device> {
+        self.store.get(PUSHED_DEVICE.to_string()).and_then(|json| serde_json::from_str(&json).ok())
+    }
+
+    pub fn set_pushed_device(&self, device: &Device) -> Result<(), GemServiceError> {
+        let json = serde_json::to_string(device).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        self.store.set(PUSHED_DEVICE.to_string(), json)
+    }
+
+    pub fn get_pushed_subscriptions(&self) -> Option<String> {
+        self.store.get(PUSHED_SUBSCRIPTIONS.to_string()).filter(|signature| !signature.is_empty())
+    }
+
+    pub fn set_pushed_subscriptions(&self, signature: String) -> Result<(), GemServiceError> {
+        self.store.set(PUSHED_SUBSCRIPTIONS.to_string(), signature)
     }
 }
 

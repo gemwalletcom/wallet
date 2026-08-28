@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.data.repositories.gemstone.GemstoneDeviceStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneKeystorePassword
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.addresses.AddressesRepository
@@ -27,6 +26,7 @@ import com.gemwallet.android.data.service.store.LocalStore
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemAvatarService
 import uniffi.gemstone.GemFileStore
+import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletPreferencesStore
 
@@ -62,7 +62,7 @@ object WalletsModule {
         passwordStore: PasswordStore,
         walletStore: GemstoneWalletStore,
         walletSessionService: GemWalletSessionService,
-        deviceStore: GemstoneDeviceStore,
+        preferencesService: GemPreferencesService,
         fileStore: GemFileStore,
         walletPreferencesService: GemWalletPreferencesService,
     ): GemWalletService = GemWalletService(
@@ -70,7 +70,7 @@ object WalletsModule {
         GemstoneKeystorePassword(passwordStore),
         walletStore,
         walletSessionService,
-        deviceStore,
+        preferencesService,
         fileStore,
         walletPreferencesService,
     )

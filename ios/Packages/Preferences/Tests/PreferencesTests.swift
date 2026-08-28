@@ -16,7 +16,6 @@ struct PreferencesTests {
         #expect(preferences.importFiatMappingsVersion == 0)
         #expect(preferences.importFiatPurchaseAssetsVersion == 0)
         #expect(preferences.launchesCount == 0)
-        #expect(preferences.subscriptionsVersion == 0)
         #expect(preferences.authenticationLockOption == 0)
 
         #expect(preferences.currentWalletId == nil)
@@ -31,14 +30,6 @@ struct PreferencesTests {
         #expect(preferences.appearance == .system)
     }
 
-    @Test
-    func invalidateSubscriptionsBumpsVersion() {
-        preferences.subscriptionsVersion = 8
-
-        preferences.invalidateSubscriptions()
-
-        #expect(preferences.subscriptionsVersion == 9)
-    }
 
     @Test
     func testIncrementLaunchesCount() {
@@ -62,8 +53,6 @@ struct PreferencesTests {
         preferences.launchesCount = 7
         #expect(preferences.launchesCount == 7)
 
-        preferences.subscriptionsVersion = 8
-        #expect(preferences.subscriptionsVersion == 8)
 
         preferences.authenticationLockOption = 9
         #expect(preferences.authenticationLockOption == 9)
@@ -106,7 +95,6 @@ struct PreferencesTests {
         preferences.importFiatMappingsVersion = 1
         preferences.importFiatPurchaseAssetsVersion = 2
         preferences.launchesCount = 7
-        preferences.subscriptionsVersion = 8
         preferences.authenticationLockOption = 9
         preferences.currentWalletId = "wallet123"
         preferences.isSubscriptionsEnabled = false
@@ -122,7 +110,6 @@ struct PreferencesTests {
         #expect(preferences.importFiatMappingsVersion == 1)
         #expect(preferences.importFiatPurchaseAssetsVersion == 2)
         #expect(preferences.launchesCount == 7)
-        #expect(preferences.subscriptionsVersion == 8)
         #expect(preferences.authenticationLockOption == 9)
         #expect(preferences.currentWalletId == "wallet123")
         #expect(!preferences.isSubscriptionsEnabled)
@@ -139,7 +126,6 @@ struct PreferencesTests {
         #expect(preferences.importFiatMappingsVersion == 0)
         #expect(preferences.importFiatPurchaseAssetsVersion == 0)
         #expect(preferences.launchesCount == 0)
-        #expect(preferences.subscriptionsVersion == 0)
         #expect(preferences.authenticationLockOption == 0)
         #expect(preferences.currentWalletId == nil)
         #expect(preferences.isSubscriptionsEnabled)

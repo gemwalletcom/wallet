@@ -41,12 +41,10 @@ struct ServicesFactory {
 
         let gemWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
         let walletPreferencesService = Gemstone.GemWalletPreferencesService(store: GemstoneWalletPreferencesStore())
-        let gemDeviceStore = GemstoneDeviceStore()
         let deviceService = Gemstone.GemDeviceService(
             api: deviceRegistrationClient,
             subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, store: gemWalletStore),
             walletStore: gemWalletStore,
-            store: gemDeviceStore,
             platform: MainActor.assumeIsolated { GemstoneDevicePlatform(securePreferences: securePreferences) },
             preferences: preferencesService,
         )
@@ -109,7 +107,7 @@ struct ServicesFactory {
             password: GemstoneKeystorePassword(keystore: storages.keystore),
             store: gemWalletStore,
             session: gemWalletSessionService,
-            deviceStore: gemDeviceStore,
+            appPreferences: preferencesService,
             files: gemFileStore,
             preferences: walletPreferencesService,
         )

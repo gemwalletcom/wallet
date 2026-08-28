@@ -7,6 +7,7 @@ import PreferencesTestKit
 import Primitives
 import Store
 import StoreTestKit
+import GemstonePrimitivesTestKit
 import Testing
 @testable import GemstoneServices
 
@@ -37,12 +38,12 @@ struct WalletServiceTests {
 
     @Test
     func loadOrCreateWalletMarksSubscriptionsDirty() async throws {
-        let rawPreferences = Preferences.mock()
-        rawPreferences.subscriptionsVersion = 4
+        let preferencesStore = GemPreferencesStoreMock()
+        try preferencesStore.set(key: "subscriptions_version", value: "4")
 
         let service = WalletService.mock(
             walletStore: .mock(db: .mockWithChains([.ethereum])),
-            preferences: .mock(preferences: rawPreferences),
+            preferencesStore: preferencesStore,
         )
 
         _ = try await service.importWallet(
@@ -51,15 +52,15 @@ struct WalletServiceTests {
             source: .import,
         )
 
-        #expect(rawPreferences.subscriptionsVersion == 5)
+        #expect(preferencesStore.get(key: "subscriptions_version") == "5")
     }
 
     @Test
     func deleteWalletMarksSubscriptionsDirty() async throws {
-        let rawPreferences = Preferences.mock()
+        let preferencesStore = GemPreferencesStoreMock()
         let service = WalletService.mock(
             walletStore: .mock(db: .mockWithChains([.ethereum])),
-            preferences: .mock(preferences: rawPreferences),
+            preferencesStore: preferencesStore,
         )
 
         let wallet = try await service.importWallet(
@@ -73,19 +74,19 @@ struct WalletServiceTests {
             source: .import,
         )
 
-        rawPreferences.subscriptionsVersion = 7
+        try preferencesStore.set(key: "subscriptions_version", value: "7")
 
         try await service.delete(wallet)
 
-        #expect(rawPreferences.subscriptionsVersion == 8)
+        #expect(preferencesStore.get(key: "subscriptions_version") == "8")
     }
 
     @Test
     func deleteLastWalletMarksSubscriptionsDirty() async throws {
-        let rawPreferences = Preferences.mock()
+        let preferencesStore = GemPreferencesStoreMock()
         let service = WalletService.mock(
             walletStore: .mock(db: .mockWithChains([.ethereum])),
-            preferences: .mock(preferences: rawPreferences),
+            preferencesStore: preferencesStore,
         )
 
         let wallet = try await service.importWallet(
@@ -94,19 +95,19 @@ struct WalletServiceTests {
             source: .import,
         ).wallet
 
-        rawPreferences.subscriptionsVersion = 7
+        try preferencesStore.set(key: "subscriptions_version", value: "7")
 
         try await service.delete(wallet)
 
-        #expect(rawPreferences.subscriptionsVersion == 1)
+        #expect(preferencesStore.get(key: "subscriptions_version") == "8")
     }
 
     @Test
     func setupChainsMarksSubscriptionsDirty() async throws {
-        let rawPreferences = Preferences.mock()
+        let preferencesStore = GemPreferencesStoreMock()
         let service = WalletService.mock(
             walletStore: .mock(db: .mockWithChains([.ethereum, .bitcoin])),
-            preferences: .mock(preferences: rawPreferences),
+            preferencesStore: preferencesStore,
         )
 
         _ = try await service.importWallet(
@@ -115,11 +116,11 @@ struct WalletServiceTests {
             source: .import,
         )
 
-        rawPreferences.subscriptionsVersion = 10
+        try preferencesStore.set(key: "subscriptions_version", value: "10")
 
         try await service.setup(chains: [.bitcoin])
 
-        #expect(rawPreferences.subscriptionsVersion == 11)
+        #expect(preferencesStore.get(key: "subscriptions_version") == "11")
     }
 
     @Test

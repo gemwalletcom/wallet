@@ -53,7 +53,6 @@ public struct WalletService: Sendable {
         let hasWallets = try await service.deleteWallet(walletId: wallet.id.id)
         if !hasWallets {
             preferences.preferences.clear()
-            preferences.preferences.invalidateSubscriptions()
         }
     }
 
