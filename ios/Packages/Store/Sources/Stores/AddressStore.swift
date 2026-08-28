@@ -20,6 +20,9 @@ public struct AddressStore: Sendable {
     }
 
     public func updateAddressNames(_ addressNames: [AddressName]) throws {
+        if addressNames.isEmpty {
+            return
+        }
         let localTypes = AddressType.allCases.filter(\.isLocal).map(\.rawValue)
         try db.write { db in
             for addressName in addressNames {

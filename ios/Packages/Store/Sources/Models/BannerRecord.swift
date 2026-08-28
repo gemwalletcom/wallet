@@ -65,7 +65,7 @@ extension Banner {
 extension NewBanner {
     var record: BannerRecord {
         BannerRecord(
-            id: [walletId, assetId?.identifier, event.rawValue].compactMap(\.self).joined(separator: "_"),
+            id: id,
             walletId: walletId,
             assetId: assetId,
             event: event,
@@ -75,55 +75,23 @@ extension NewBanner {
 }
 
 public struct NewBanner {
+    let id: String
     let walletId: String?
     let assetId: AssetId?
     let event: BannerEvent
     let state: BannerState
 
     public init(
+        id: String,
         walletId: String? = .none,
         assetId: AssetId? = .none,
         event: BannerEvent,
         state: BannerState,
     ) {
+        self.id = id
         self.walletId = walletId
         self.assetId = assetId
         self.event = event
         self.state = state
-    }
-}
-
-public extension NewBanner {
-    static func stake(assetId: AssetId) -> NewBanner {
-        NewBanner(
-            assetId: assetId,
-            event: .stake,
-            state: .active,
-        )
-    }
-
-    static func accountActivation(assetId: AssetId) -> NewBanner {
-        NewBanner(
-            assetId: assetId,
-            event: .accountActivation,
-            state: .active,
-        )
-    }
-
-
-    static func onboarding(walletId: WalletId) -> NewBanner {
-        NewBanner(
-            walletId: walletId.id,
-            event: .onboarding,
-            state: .active,
-        )
-    }
-
-    static func tradePerpetuals(assetId: AssetId) -> NewBanner {
-        NewBanner(
-            assetId: assetId,
-            event: .tradePerpetuals,
-            state: .active,
-        )
     }
 }

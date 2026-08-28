@@ -209,6 +209,9 @@ interface AssetsDao {
     @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 ORDER BY balanceFiatTotalAmount DESC")
     fun getAssetsInfo(walletId: String): Flow<List<DbAssetInfo>>
 
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND balanceTotalAmount > 0 ORDER BY balanceFiatTotalAmount DESC")
+    suspend fun getPortfolioAssets(walletId: String): List<DbAssetInfo>
+
     @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC")
     fun getAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 

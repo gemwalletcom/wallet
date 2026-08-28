@@ -46,7 +46,7 @@ struct GemBannerServiceTests {
             try walletStore.addWallet(wallet)
         }
         let store = BannerStore.mock(db: db)
-        try store.addBanners([NewBanner(walletId: banner.walletId?.id, assetId: banner.asset?.id, event: banner.event, state: banner.state)])
+        try store.addBanners([NewBanner(id: banner.id, walletId: banner.walletId?.id, assetId: banner.asset?.id, event: banner.event, state: banner.state)])
         let service = GemBannerService(store: GemstoneBannerStore(store: store))
         return (store, banner, service)
     }

@@ -39,13 +39,12 @@ import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemPortfolioService
+import uniffi.gemstone.GemPortfolioStore
 import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemSupportService
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemWalletConfigurationService
 import uniffi.gemstone.GemBannerStore
-import com.gemwallet.android.data.repositories.gemstone.GemstonePortfolioStore
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import javax.inject.Named
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemApiClient as GemstoneApiClient
@@ -208,8 +207,8 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemPortfolioService(apiClient: GemstoneDeviceApiClient, assetsRepository: Lazy<AssetsRepository>, priceService: GemPriceService): GemPortfolioService =
-        GemPortfolioService(apiClient, GemstonePortfolioStore(assetsRepository), priceService)
+    fun provideGemPortfolioService(apiClient: GemstoneDeviceApiClient, store: GemPortfolioStore, priceService: GemPriceService): GemPortfolioService =
+        GemPortfolioService(apiClient, store, priceService)
 
     @Provides
     @Singleton

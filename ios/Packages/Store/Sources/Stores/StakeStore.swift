@@ -87,7 +87,10 @@ public struct StakeStore: Sendable {
 
     @discardableResult
     public func deactivateValidators(assetId: AssetId, validatorIds: [String]) throws -> Int {
-        try db.write { db in
+        if validatorIds.isEmpty {
+            return 0
+        }
+        return try db.write { db in
             try StakeValidatorRecord
                 .filter(StakeValidatorRecord.Columns.assetId == assetId.identifier)
                 .filter(validatorIds.contains(StakeValidatorRecord.Columns.validatorId))

@@ -11,6 +11,7 @@ import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionState
 import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
 import com.gemwallet.android.data.repositories.transactions.TransactionsRepositoryImpl
 import com.gemwallet.android.data.service.store.database.AddressesDao
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import dagger.Lazy
@@ -51,10 +52,11 @@ object TransactionsModule {
         transactionsDao: TransactionsDao,
         addressesDao: AddressesDao,
         walletPreferencesService: GemWalletPreferencesService,
+        transactionRunner: StoreTransactionRunner,
     ): GemTransactionsService = GemTransactionsService(
         apiClient,
         assetsService,
-        GemstoneTransactionStore(transactionsDao),
+        GemstoneTransactionStore(transactionsDao, transactionRunner),
         GemstoneAddressStore(addressesDao),
         walletPreferencesService,
     )
@@ -69,9 +71,10 @@ object TransactionsModule {
         balanceService: GemBalanceService,
         stakeService: GemStakeService,
         nftService: GemNftService,
+        transactionRunner: StoreTransactionRunner,
     ): GemTransactionStateService = GemTransactionStateService(
         gateway,
-        GemstoneTransactionStateStore(transactionsDao, walletsRepository),
+        GemstoneTransactionStateStore(transactionsDao, walletsRepository, transactionRunner),
         assetsService,
         balanceService,
         stakeService,

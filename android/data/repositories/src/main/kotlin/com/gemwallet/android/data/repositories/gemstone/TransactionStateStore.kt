@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.gemstone
 
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.repositories.transactions.addSwapMetadata
 import com.gemwallet.android.data.service.store.database.entities.toDTO
@@ -21,6 +22,7 @@ import uniffi.gemstone.GemTransactionStateUpdate
 class GemstoneTransactionStateStore(
     private val transactionsDao: TransactionsDao,
     private val walletsRepository: Lazy<WalletsRepository>,
+    private val transactionRunner: StoreTransactionRunner,
 ) : GemTransactionStateStore {
     override suspend fun getPendingTransactions(): List<GemPendingTransaction> =
         transactionsDao.getTransactionsByStates(listOf(TransactionState.Pending, TransactionState.InTransit))
@@ -31,8 +33,10 @@ class GemstoneTransactionStateStore(
 
     override suspend fun addTransactions(walletId: String, transactions: List<String>) {
         val records = transactions.map { it.decodeJson<Transaction>() }
-        transactionsDao.insert(records.map { it.toRecord(WalletId(walletId)) })
-        transactionsDao.addSwapMetadata(records)
+        transactionRunner.run {
+            transactionsDao.insert(records.map { it.toRecord(WalletId(walletId)) })
+            transactionsDao.addSwapMetadata(records)
+        }
     }
 
     private suspend fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
@@ -48,33 +52,38 @@ class GemstoneTransactionStateStore(
         val oldId = transactionId.decodeJson<TransactionId>()
         val newId = newTransactionId.decodeJson<TransactionId>()
         val wallet = WalletId(walletId)
-        transactionsDao.updateTransactionId(oldId, newId, wallet, newId.hash)
-        transactionsDao.getTransaction(newId, wallet)?.let { transactionsDao.addSwapMetadata(listOf(it.toDTO())) }
-        transactionsDao.deleteUnreferencedSwapMetadata(oldId.identifier)
+        transactionRunner.run {
+            transactionsDao.updateTransactionId(oldId, newId, wallet, newId.hash)
+            transactionsDao.getTransaction(newId, wallet)?.let { transactionsDao.addSwapMetadata(listOf(it.toDTO())) }
+            transactionsDao.deleteUnreferencedSwapMetadata(oldId.identifier)
+        }
     }
 
     override suspend fun deleteTransaction(walletId: String, transactionId: String) {
         val id = transactionId.decodeJson<TransactionId>()
-        transactionsDao.delete(id, WalletId(walletId))
-        transactionsDao.deleteUnreferencedSwapMetadata(id.identifier)
+        transactionRunner.run {
+            transactionsDao.delete(id, WalletId(walletId))
+            transactionsDao.deleteUnreferencedSwapMetadata(id.identifier)
+        }
     }
 
     override suspend fun updateTransaction(walletId: String, transactionId: String, update: GemTransactionStateUpdate): Boolean {
         val id = transactionId.decodeJson<TransactionId>()
         val wallet = WalletId(walletId)
-        val updatedRows = transactionsDao.updateTransactionState(
-            id = id,
-            walletId = wallet,
-            state = update.state.decodeJson<TransactionState>(),
-            fee = update.fee,
-            blockNumber = update.blockNumber,
-            metadata = update.metadata,
-            confirmationEtaSeconds = update.confirmationEtaSeconds?.toLong(),
-        )
-        if (updatedRows == 0) return false
-        if (update.metadata != null) {
-            transactionsDao.getTransaction(id, wallet)?.let { transactionsDao.addSwapMetadata(listOf(it.toDTO())) }
+        return transactionRunner.run {
+            val updatedRows = transactionsDao.updateTransactionState(
+                id = id,
+                walletId = wallet,
+                state = update.state.decodeJson<TransactionState>(),
+                fee = update.fee,
+                blockNumber = update.blockNumber,
+                metadata = update.metadata,
+                confirmationEtaSeconds = update.confirmationEtaSeconds?.toLong(),
+            )
+            if (updatedRows > 0 && update.metadata != null) {
+                transactionsDao.getTransaction(id, wallet)?.let { transactionsDao.addSwapMetadata(listOf(it.toDTO())) }
+            }
+            updatedRows > 0
         }
-        return true
     }
 }

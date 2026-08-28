@@ -22,6 +22,7 @@ import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.runBlocking
 import uniffi.gemstone.GemDeviceRequestSigner
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
+import com.gemwallet.android.data.repositories.gemstone.GemstonePortfolioStore
 import uniffi.gemstone.GemApiClient
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetsService
@@ -32,6 +33,7 @@ import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.repositories.gemstone.GemstonePriceStore
 import com.gemwallet.android.data.service.store.database.PricesDao
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPortfolioStore
 import uniffi.gemstone.GemPriceAlertStore
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemSupportStore
@@ -196,6 +198,10 @@ object AssetsModule {
         assetsDao: AssetsDao,
         availabilityService: AssetsAvailabilityService,
     ): GemAssetStore = GemstoneAssetStore(assetsDao, availabilityService)
+
+    @Provides
+    @Singleton
+    fun provideGemPortfolioStore(assetsDao: AssetsDao): GemPortfolioStore = GemstonePortfolioStore(assetsDao)
 
     @Provides
     @Singleton
