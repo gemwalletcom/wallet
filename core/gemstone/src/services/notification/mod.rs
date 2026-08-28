@@ -1,3 +1,4 @@
+pub mod rules;
 pub mod store;
 
 use crate::clock::unix_seconds;
@@ -36,4 +37,9 @@ impl GemNotificationService {
     pub async fn mark_read(&self) -> Result<(), GemServiceError> {
         Ok(self.api.client.mark_notifications_read().await.map_err(crate::api::GemApiError::from)?)
     }
+}
+
+#[uniffi::export]
+pub fn should_ask_notifications(last_asked_at: i64, now: i64) -> bool {
+    rules::should_ask_notifications(last_asked_at, now)
 }

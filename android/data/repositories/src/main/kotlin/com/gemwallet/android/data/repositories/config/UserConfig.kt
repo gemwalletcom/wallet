@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.config
 
 import android.content.Context
-import android.text.format.DateUtils
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -14,6 +13,7 @@ import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.shouldAskNotifications
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -130,7 +130,7 @@ class UserConfig(
     }
 
     fun isAskNotifications(): Flow<Boolean> = read(Key.AskNotifications, 0L)
-        .map { it < System.currentTimeMillis() - 30 * DateUtils.DAY_IN_MILLIS }
+        .map { shouldAskNotifications(it / 1000, System.currentTimeMillis() / 1000) }
 
     suspend fun stopAskNotifications() = write(Key.AskNotifications, System.currentTimeMillis())
 
