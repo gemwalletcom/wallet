@@ -37,7 +37,7 @@ class GemstoneWalletConnectSigner(
                 account = account,
                 appMetadata = session.metadata,
                 simulation = request.simulation.decodeJson(),
-                transaction = payload.transaction,
+                transfer = payload.transfer,
                 isSendable = payload.action == GemWalletConnectTransactionAction.SEND,
             )
         }

@@ -1,7 +1,8 @@
+use crate::services::transfer::GemTransferData;
 use primitives::{Account, Chain, SimulationResult, Wallet, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::message::sign_type::SignMessage;
-use crate::wallet_connect::{WalletConnectResponseType, WalletConnectTransaction};
+use crate::wallet_connect::WalletConnectResponseType;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletConnectRequest {
@@ -57,7 +58,7 @@ pub enum GemWalletConnectSignPayload {
         message: SignMessage,
     },
     Transaction {
-        transaction: WalletConnectTransaction,
+        transfer: GemTransferData,
         action: GemWalletConnectTransactionAction,
     },
 }

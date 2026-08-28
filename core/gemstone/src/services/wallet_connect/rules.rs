@@ -9,8 +9,14 @@ use primitives::{
     WalletConnectionState, WalletId, WalletType,
 };
 
+use crate::models::gateway::GemGasPriceType;
+use crate::models::transaction::{GemTransactionInputType, GemTransferDataExtra};
 use crate::services::error::GemServiceError;
-use crate::wallet_connect::WalletConnect;
+use crate::services::transfer::{GemRecipient, GemTransferData};
+use crate::services::wallet_connect::model::GemWalletConnectTransactionAction;
+use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction};
+use num_bigint::BigInt;
+use primitives::{Asset, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
 pub fn session_account(connection: &WalletConnection, chain: Chain) -> Result<Account, GemServiceError> {
     validate_session_chain(&connection.session, chain)?;
@@ -173,6 +179,107 @@ fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain], wallet_conn
     optional.is_empty() || optional.iter().any(|chain| chains.contains(chain))
 }
 
+pub fn transfer_data(
+    chain: Chain,
+    metadata: ApplicationMetadata,
+    transaction: WalletConnectTransaction,
+    action: GemWalletConnectTransactionAction,
+) -> Result<GemTransferData, GemServiceError> {
+    let output_action = match action {
+        GemWalletConnectTransactionAction::Sign => TransferDataOutputAction::Sign,
+        GemWalletConnectTransactionAction::Send => TransferDataOutputAction::Send,
+    };
+    let (extra, value) = match transaction {
+        WalletConnectTransaction::Ethereum { data, kind } => {
+            let value = data.value.as_deref().map(hex_to_decimal).transpose()?.unwrap_or_else(|| "0".to_string());
+            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_to_decimal).transpose()?;
+            let gas_price = match (data.max_fee_per_gas.as_deref(), data.max_priority_fee_per_gas.as_deref()) {
+                (Some(max_fee), Some(priority_fee)) => Some(GemGasPriceType::Eip1559 {
+                    gas_price: hex_to_decimal(max_fee)?,
+                    priority_fee: hex_to_decimal(priority_fee)?,
+                }),
+                _ => None,
+            };
+            let (transaction_type, approval) = match kind {
+                EvmTransactionKind::Transfer => (TransactionType::Transfer, None),
+                EvmTransactionKind::ContractCall => (TransactionType::SmartContractCall, None),
+                EvmTransactionKind::TokenApproval { approval } => (TransactionType::TokenApproval, Some(approval)),
+            };
+            let extra = GemTransferDataExtra {
+                to: data.to,
+                gas_limit,
+                gas_price,
+                data: data.data.as_deref().map(hex_to_bytes).transpose()?,
+                output_type: TransferDataOutputType::EncodedTransaction,
+                output_action,
+                transaction_type,
+                approval,
+            };
+            (extra, value)
+        }
+        WalletConnectTransaction::Solana {
+            data,
+            output_type,
+            transaction_type,
+        } => (encoded_extra(data.transaction, output_type, output_action, transaction_type), "0".to_string()),
+        WalletConnectTransaction::Sui { data, output_type } => (
+            encoded_extra(data.transaction, output_type, output_action, TransactionType::SmartContractCall),
+            "0".to_string(),
+        ),
+        WalletConnectTransaction::Ton { data, output_type } | WalletConnectTransaction::Tron { data, output_type } => {
+            (encoded_extra(data, output_type, output_action, TransactionType::SmartContractCall), "0".to_string())
+        }
+    };
+    Ok(GemTransferData {
+        recipient: GemRecipient {
+            address: extra.to.clone(),
+            name: None,
+            memo: None,
+            references: vec![],
+        },
+        input_type: GemTransactionInputType::Generic {
+            asset: Asset::from_chain(chain),
+            metadata,
+            extra,
+        },
+        value,
+        use_max_amount: false,
+        minimum_value: None,
+    })
+}
+
+fn encoded_extra(encoded: String, output_type: TransferDataOutputType, output_action: TransferDataOutputAction, transaction_type: TransactionType) -> GemTransferDataExtra {
+    GemTransferDataExtra {
+        to: String::new(),
+        gas_limit: None,
+        gas_price: None,
+        data: Some(encoded.into_bytes()),
+        output_type,
+        output_action,
+        transaction_type,
+        approval: None,
+    }
+}
+
+fn hex_to_decimal(value: &str) -> Result<String, GemServiceError> {
+    let digits = value.trim().trim_start_matches("0x").trim_start_matches("0X");
+    if digits.is_empty() {
+        return Ok("0".to_string());
+    }
+    BigInt::parse_bytes(digits.as_bytes(), 16)
+        .map(|value| value.to_string())
+        .ok_or_else(|| GemServiceError::InvalidInput {
+            msg: format!("invalid hex number {value}"),
+        })
+}
+
+fn hex_to_bytes(value: &str) -> Result<Vec<u8>, GemServiceError> {
+    let digits = value.trim().trim_start_matches("0x").trim_start_matches("0X");
+    hex::decode(digits).map_err(|_| GemServiceError::InvalidInput {
+        msg: format!("invalid hex data {value}"),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -324,5 +431,59 @@ mod tests {
         assert_eq!(metadata.icon, "https://x/icon.PNG");
         assert!(session_methods().contains(&"personal_sign".to_string()));
         assert!(session_events().contains(&"accountsChanged".to_string()));
+    }
+
+    #[test]
+    fn test_transfer_data_maps_evm_and_encoded_transactions() {
+        let metadata = application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]);
+        let evm = WalletConnectTransaction::Ethereum {
+            data: crate::wallet_connect::WCEthereumTransactionData {
+                chain_id: Some(1),
+                from: "0xfrom".to_string(),
+                to: "0xto".to_string(),
+                value: Some("0x10".to_string()),
+                gas: Some("0x5208".to_string()),
+                gas_limit: None,
+                gas_price: None,
+                max_fee_per_gas: Some("0x64".to_string()),
+                max_priority_fee_per_gas: Some("0x2".to_string()),
+                nonce: None,
+                data: Some("0xdeadbeef".to_string()),
+            },
+            kind: EvmTransactionKind::TokenApproval {
+                approval: primitives::swap::ApprovalData::mock(),
+            },
+        };
+
+        let transfer = transfer_data(Chain::Ethereum, metadata.clone(), evm, GemWalletConnectTransactionAction::Send).unwrap();
+
+        assert_eq!(transfer.value, "16");
+        assert_eq!(transfer.recipient.address, "0xto");
+        let GemTransactionInputType::Generic { asset, extra, .. } = transfer.input_type else {
+            panic!("expected a generic input");
+        };
+        assert_eq!(asset.id, primitives::AssetId::from_chain(Chain::Ethereum));
+        assert_eq!(extra.gas_limit.as_deref(), Some("21000"));
+        assert!(matches!(extra.gas_price, Some(GemGasPriceType::Eip1559 { ref gas_price, ref priority_fee }) if gas_price == "100" && priority_fee == "2"));
+        assert_eq!(extra.data, Some(vec![0xde, 0xad, 0xbe, 0xef]));
+        assert_eq!(extra.transaction_type, TransactionType::TokenApproval);
+        assert!(extra.approval.is_some());
+        assert_eq!(extra.output_action, TransferDataOutputAction::Send);
+
+        let solana = WalletConnectTransaction::Solana {
+            data: crate::wallet_connect::WCSolanaTransactionData { transaction: "AQID".to_string() },
+            output_type: TransferDataOutputType::Signature,
+            transaction_type: TransactionType::Swap,
+        };
+        let transfer = transfer_data(Chain::Solana, metadata, solana, GemWalletConnectTransactionAction::Sign).unwrap();
+        assert_eq!(transfer.value, "0");
+        assert_eq!(transfer.recipient.address, "");
+        let GemTransactionInputType::Generic { extra, .. } = transfer.input_type else {
+            panic!("expected a generic input");
+        };
+        assert_eq!(extra.data, Some(b"AQID".to_vec()));
+        assert_eq!(extra.output_type, TransferDataOutputType::Signature);
+        assert_eq!(extra.output_action, TransferDataOutputAction::Sign);
+        assert_eq!(extra.transaction_type, TransactionType::Swap);
     }
 }

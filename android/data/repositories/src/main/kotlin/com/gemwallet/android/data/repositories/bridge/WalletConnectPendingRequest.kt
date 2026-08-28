@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import uniffi.gemstone.SignMessage as GemSignMessage
-import uniffi.gemstone.WalletConnectTransaction
+import uniffi.gemstone.GemTransferData
 
 class WalletConnectRequestRejected : Exception("User rejected the request")
 
@@ -49,7 +49,7 @@ sealed class WalletConnectPendingRequest(
         account: Account,
         appMetadata: ApplicationMetadata,
         simulation: SimulationResult,
-        val transaction: WalletConnectTransaction,
+        val transfer: GemTransferData,
         val isSendable: Boolean,
     ) : WalletConnectPendingRequest(sessionId, chain, wallet, account, appMetadata, simulation)
 }

@@ -8,6 +8,10 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.toModel
 import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.ext.toChainType
+import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.StakeType
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
@@ -114,4 +118,23 @@ private fun ByteArray?.toGenericData(): String {
     } catch (_: CharacterCodingException) {
         "0x$hex"
     }
+}
+
+fun GemTransferData.toGenericParams(account: Account): ConfirmParams.TransferParams.Generic {
+    val input = inputType as? GemTransactionInputType.Generic ?: throw IllegalArgumentException("WalletConnect transfer is not generic")
+    val asset = input.asset.decodeJson<Asset>()
+    val data = input.extra.data ?: ByteArray(0)
+    return ConfirmParams.TransferParams.Generic(
+        asset = asset,
+        from = account,
+        amount = value.toBigInteger(),
+        destination = DestinationAddress(input.extra.to),
+        outputType = input.extra.outputType.decodeJson(),
+        outputAction = input.extra.outputAction.decodeJson(),
+        metadata = input.metadata.decodeJson(),
+        data = if (asset.id.chain.toChainType() == ChainType.Ethereum) "0x${data.hex}" else String(data),
+        gasLimit = input.extra.gasLimit,
+        decodedTransactionType = input.extra.transactionType.decodeJson(),
+        approval = input.extra.approval?.decodeJson(),
+    )
 }

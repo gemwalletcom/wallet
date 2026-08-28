@@ -1,15 +1,10 @@
 package com.gemwallet.android.features.bridge.viewmodels.model
 
 import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequest
-import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
-import com.gemwallet.android.math.hexToBigInteger
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.toGenericParams
 import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic
-import com.gemwallet.android.model.DestinationAddress
-import com.gemwallet.android.model.toModel
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.fromJson
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.PayloadField
@@ -20,15 +15,9 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
-import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.swap.ApprovalData
 import com.wallet.core.primitives.TransferDataOutputAction
-import uniffi.gemstone.EvmTransactionKind
 import uniffi.gemstone.MessageSigner
-import uniffi.gemstone.TransferDataOutputType
-import uniffi.gemstone.WalletConnectTransaction
-import java.math.BigInteger
 
 sealed class WCRequest(
     internal val pending: WalletConnectPendingRequest,
@@ -88,66 +77,6 @@ sealed class WCRequest(
             get() = if (isSendable) TransferDataOutputAction.Send else TransferDataOutputAction.Sign
 
         val confirmParams: Generic
-            get() = request.transaction.map(this, isSendable)
+            get() = request.transfer.toGenericParams(account)
     }
 }
-
-private fun WalletConnectTransaction.map(
-    request: WCRequest.Transaction,
-    isSendable: Boolean,
-): Generic {
-    return when (this) {
-        is WalletConnectTransaction.Ethereum -> Generic(
-            asset = request.chain.asset(),
-            from = request.account,
-            metadata = request.appMetadata,
-            data = data.data.orEmpty(),
-            gasLimit = data.gasLimit,
-            outputAction = request.outputAction,
-            destination = DestinationAddress(data.to),
-            amount = data.value?.hexToBigInteger() ?: BigInteger.ZERO,
-            decodedTransactionType = kind.transactionType,
-            approval = kind.approvalData,
-        )
-        is WalletConnectTransaction.Solana ->
-            buildEncodedTransactionParams(request, data.transaction, outputType, isSendable)
-        is WalletConnectTransaction.Sui ->
-            buildEncodedTransactionParams(request, data.transaction, outputType, isSendable)
-        is WalletConnectTransaction.Ton ->
-            buildEncodedTransactionParams(request, data, outputType, isSendable)
-        is WalletConnectTransaction.Tron ->
-            buildEncodedTransactionParams(request, data, outputType, isSendable)
-    }
-}
-
-private val EvmTransactionKind.transactionType: TransactionType
-    get() = when (this) {
-        EvmTransactionKind.Transfer -> TransactionType.Transfer
-        EvmTransactionKind.ContractCall -> TransactionType.SmartContractCall
-        is EvmTransactionKind.TokenApproval -> TransactionType.TokenApproval
-    }
-
-private val EvmTransactionKind.approvalData: ApprovalData?
-    get() = when (this) {
-        EvmTransactionKind.Transfer,
-        EvmTransactionKind.ContractCall,
-        -> null
-        is EvmTransactionKind.TokenApproval -> approval.toModel()
-    }
-
-private fun buildEncodedTransactionParams(
-    request: WCRequest.Transaction,
-    encodedTransaction: String,
-    outputType: TransferDataOutputType,
-    isSendable: Boolean,
-): Generic = Generic(
-    asset = request.chain.asset(),
-    from = request.account,
-    metadata = request.appMetadata,
-    data = encodedTransaction,
-    gasLimit = null,
-    outputType = outputType.decodeJson(),
-    outputAction = request.outputAction,
-    destination = DestinationAddress(""),
-    amount = BigInteger.ZERO,
-)

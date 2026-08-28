@@ -25,8 +25,11 @@ import uniffi.gemstone.GemWalletConnectSignRequest
 import uniffi.gemstone.GemWalletConnectTransactionAction
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
-import uniffi.gemstone.WcSolanaTransactionData
-import uniffi.gemstone.WalletConnectTransaction
+import com.gemwallet.android.ext.asset
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.GemTransferDataExtra
 
 class WalletConnectSignerTest {
     private val account = mockAccount(chain = Chain.Ethereum)
@@ -68,12 +71,27 @@ class WalletConnectSignerTest {
 
     @Test
     fun `send transaction is marked sendable`() = runTest {
-        val transaction = WalletConnectTransaction.Solana(
-            data = WcSolanaTransactionData(transaction = "tx"),
-            outputType = "\"encodedTransaction\"",
-            transactionType = "\"smartContractCall\"",
+        val transfer = GemTransferData(
+            inputType = GemTransactionInputType.Generic(
+                asset = Chain.Solana.asset().toJson(),
+                metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp.example", icon = "", source = ApplicationMetadataSource.WalletConnect).toJson(),
+                extra = GemTransferDataExtra(
+                    to = "",
+                    gasLimit = null,
+                    gasPrice = null,
+                    data = "tx".toByteArray(),
+                    outputType = "\"encodedTransaction\"",
+                    outputAction = "\"send\"",
+                    transactionType = "\"smartContractCall\"",
+                    approval = null,
+                ),
+            ),
+            recipient = GemRecipient(address = "", name = null, memo = null, references = emptyList()),
+            value = "0",
+            useMaxAmount = false,
+            minimumValue = null,
         )
-        val result = async { signer.sign(request(GemWalletConnectSignPayload.Transaction(transaction, GemWalletConnectTransactionAction.SEND))) }
+        val result = async { signer.sign(request(GemWalletConnectSignPayload.Transaction(transfer, GemWalletConnectTransactionAction.SEND))) }
         val pending = pendingRequests.current.filterNotNull().first() as WalletConnectPendingRequest.Transaction
         assertTrue(pending.isSendable)
         pending.approve("hash")

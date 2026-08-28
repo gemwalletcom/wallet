@@ -1,12 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import class Gemstone.Config
 import enum Gemstone.GemServiceError
 import protocol Gemstone.GemWalletConnectSigner
 import struct Gemstone.GemWalletConnectSignRequest
-import enum Gemstone.GemWalletConnectTransactionAction
 import GemstonePrimitives
 import GemstoneServices
 import Primitives
@@ -58,9 +56,8 @@ public final class WalletConnectorSigner: WalletConnectorSignable, GemWalletConn
         case let .message(message):
             let payload = SignMessagePayload(chain: chain, session: session, wallet: wallet, message: message, simulation: simulation)
             return try await interact { try await walletConnectorInteractor.signMessage(payload: payload) }
-        case let .transaction(transaction, action):
-            let transferData = try transferData(chain: chain, session: session, transaction: transaction.map(), action: action)
-            let data = WCTransferData(transferData: transferData, wallet: wallet, simulation: simulation)
+        case let .transaction(transfer, action):
+            let data = try WCTransferData(transferData: TransferData(transfer), wallet: wallet, simulation: simulation)
             return try await interact {
                 switch action {
                 case .sign: try await walletConnectorInteractor.signTransaction(transferData: data)
@@ -75,81 +72,6 @@ public final class WalletConnectorSigner: WalletConnectorSignable, GemWalletConn
             return try await action()
         } catch ConnectionsError.userCancelled {
             throw GemServiceError.Cancelled
-        }
-    }
-
-    private func transferData(
-        chain: Primitives.Chain,
-        session: WalletConnectionSession,
-        transaction: WalletConnectorTransaction,
-        action: GemWalletConnectTransactionAction,
-    ) throws -> TransferData {
-        switch transaction {
-        case let .ethereum(transaction, kind):
-            return try ethereumTransferData(chain: chain, session: session, transaction: transaction, kind: kind, action: action)
-        case let .solana(encodedTransaction, outputType, _),
-             let .sui(encodedTransaction, outputType),
-             let .ton(encodedTransaction, outputType),
-             let .tron(encodedTransaction, outputType):
-            return TransferData(
-                type: .generic(
-                    asset: chain.asset,
-                    metadata: session.metadata,
-                    extra: TransferDataExtra(
-                        to: "",
-                        data: Data(encodedTransaction.utf8),
-                        outputType: outputType,
-                        outputAction: action.outputAction,
-                        transactionType: transaction.transactionType,
-                    ),
-                ),
-                recipient: Recipient(name: nil, address: "", memo: nil),
-                value: .zero,
-            )
-        }
-    }
-
-    private func ethereumTransferData(
-        chain: Primitives.Chain,
-        session: WalletConnectionSession,
-        transaction: WCEthereumTransaction,
-        kind: WalletConnectorEVMTransactionKind,
-        action: GemWalletConnectTransactionAction,
-    ) throws -> TransferData {
-        let value = try BigInt.fromHex(transaction.value ?? .zero)
-        let gasLimit = (transaction.gasLimit ?? transaction.gas).flatMap { BigInt(hex: $0) }
-        let gasPrice: GasPriceType? = {
-            if let maxFeePerGas = transaction.maxFeePerGas,
-               let maxPriorityFeePerGas = transaction.maxPriorityFeePerGas,
-               let maxFeePerGasBigInt = BigInt(hex: maxFeePerGas),
-               let maxPriorityFeePerGasBigInt = BigInt(hex: maxPriorityFeePerGas)
-            {
-                return .eip1559(gasPrice: maxFeePerGasBigInt, priorityFee: maxPriorityFeePerGasBigInt)
-            }
-            return .none
-        }()
-
-        return TransferData(
-            type: .generic(asset: chain.asset, metadata: session.metadata, extra: TransferDataExtra(
-                to: transaction.to,
-                gasLimit: gasLimit,
-                gasPrice: gasPrice,
-                data: transaction.data.map { Data(hex: $0) },
-                outputAction: action.outputAction,
-                transactionType: kind.transactionType,
-                approval: kind.approvalData,
-            )),
-            recipient: Recipient(name: .none, address: transaction.to, memo: .none),
-            value: value,
-        )
-    }
-}
-
-private extension GemWalletConnectTransactionAction {
-    var outputAction: TransferDataOutputAction {
-        switch self {
-        case .sign: .sign
-        case .send: .send
         }
     }
 }

@@ -216,7 +216,8 @@ impl GemWalletConnectService {
         let (connection, account) = self.connection_account(&session_id, chain).await?;
         let simulation = self.simulation.simulate_send_transaction(chain, transaction_type.clone(), data.clone()).await?;
         let transaction = self.wallet_connect.decode_send_transaction(transaction_type, data)?;
-        let payload = GemWalletConnectSignPayload::Transaction { transaction, action };
+        let transfer = rules::transfer_data(chain, connection.session.metadata.clone(), transaction, action)?;
+        let payload = GemWalletConnectSignPayload::Transaction { transfer, action };
         self.signer.sign(sign_request(session_id, chain, connection, account, simulation, payload)).await
     }
 
