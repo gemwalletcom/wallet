@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemNftServiceProtocol
+import func Gemstone.nftSortedCollections
 import func Gemstone.nftUnverifiedCollections
 import func Gemstone.nftVerifiedCollections
 import Components
@@ -63,7 +64,7 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     private func collections(verified: Bool) -> [NFTData] {
         guard let data = try? nftDataList.map({ try $0.json() }) else { return [] }
         let collections = verified ? nftVerifiedCollections(data: data) : nftUnverifiedCollections(data: data)
-        return collections.compactMap { try? NFTData($0) }
+        return nftSortedCollections(data: collections).compactMap { try? NFTData($0) }
     }
 
     // MARK: - Actions

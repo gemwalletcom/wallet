@@ -12,6 +12,7 @@ import com.gemwallet.android.ui.models.NftItemUIModel
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
+import uniffi.gemstone.nftSortedCollections
 import uniffi.gemstone.nftUnverifiedCollections
 import uniffi.gemstone.nftVerifiedCollections
 import kotlinx.coroutines.Dispatchers
@@ -56,7 +57,7 @@ class NftListViewModels @Inject constructor(
                 NftListMode.Unverified -> nftUnverifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
                 NftListMode.Collections -> nftVerifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
             }
-            filtered.flatMap { nftData ->
+            nftSortedCollections(filtered.map { it.toJson() }).map { it.decodeJson<NFTData>() }.flatMap { nftData ->
                 val isSingleAsset = nftData.assets.size == 1
                 if (mode is NftListMode.Collection || isSingleAsset) {
                     nftData.assets.map { NftItemUIModel(nftData.collection, it) }
@@ -64,10 +65,6 @@ class NftListViewModels @Inject constructor(
                     listOf(NftItemUIModel(nftData.collection, null, nftData.assets.size))
                 }
             }
-            .sortedWith(
-                compareByDescending<NftItemUIModel> { it.collectionSize ?: 1 }
-                    .thenBy { it.collection.name }
-            )
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

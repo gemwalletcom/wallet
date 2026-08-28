@@ -8,6 +8,18 @@ pub fn unverified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
     collections(data, false)
 }
 
+pub fn sorted_collections(data: Vec<NFTData>) -> Vec<NFTData> {
+    let mut sorted = data;
+    sorted.sort_by(|left, right| {
+        right
+            .assets
+            .len()
+            .cmp(&left.assets.len())
+            .then_with(|| left.collection.name.to_lowercase().cmp(&right.collection.name.to_lowercase()))
+    });
+    sorted
+}
+
 pub fn collection_status(status: Option<VerificationStatus>) -> VerificationStatus {
     status.unwrap_or(VerificationStatus::Unverified)
 }
@@ -86,5 +98,16 @@ mod tests {
     fn test_an_unknown_collection_status_is_not_verified() {
         assert_eq!(collection_status(None), VerificationStatus::Unverified);
         assert_eq!(collection_status(Some(VerificationStatus::Verified)), VerificationStatus::Verified);
+    }
+
+    #[test]
+    fn test_collections_sort_by_size_then_name() {
+        let big = data("zebra", VerificationStatus::Verified, 3);
+        let small_a = data("alpha", VerificationStatus::Verified, 1);
+        let small_b = data("beta", VerificationStatus::Verified, 1);
+
+        let sorted = sorted_collections(vec![small_b, big, small_a]);
+
+        assert_eq!(names(sorted), vec!["zebra", "alpha", "beta"]);
     }
 }

@@ -62,6 +62,11 @@ where
 }
 
 #[uniffi::export]
+pub fn nft_sorted_collections(data: Vec<NFTData>) -> Vec<NFTData> {
+    rules::sorted_collections(data)
+}
+
+#[uniffi::export]
 pub fn nft_collection_status(status: Option<VerificationStatus>) -> VerificationStatus {
     rules::collection_status(status)
 }
