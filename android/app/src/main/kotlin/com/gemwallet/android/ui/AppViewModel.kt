@@ -147,10 +147,12 @@ class AppViewModel @Inject constructor(
     }
 
     private fun rateAs() {
-        if (userConfig.getLaunchNumber() == 10) {
-            state.update { it.copy(intent = AppIntent.ShowReview) }
-        }
         userConfig.increaseLaunchNumber()
+        if (!userConfig.shouldRequestReview()) {
+            return
+        }
+        state.update { it.copy(intent = AppIntent.ShowReview) }
+        userConfig.setRateApplicationShown()
     }
 
     private fun onSession(session: Session) {

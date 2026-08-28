@@ -157,6 +157,10 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
 
     public func setRateApplicationShown() throws {}
 
+    public func shouldAskNotifications() -> Bool { false }
+
+    public func setNotificationsAsked() throws {}
+
     public func defaultCurrency(localeCurrency _: String?) -> Gemstone.Currency {
         "\"USD\""
     }

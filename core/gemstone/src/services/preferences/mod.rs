@@ -9,6 +9,7 @@ use primitives::ChartPeriod;
 use primitives::currency::Currency;
 use primitives::{Appearance, Chain, ConfigResponse, Device, Wallet};
 
+use crate::clock::unix_seconds;
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;
 
@@ -21,6 +22,7 @@ const PERPETUAL_CHART_PERIOD: &str = "perpetual_chart_period";
 const PUSH_NOTIFICATIONS_ENABLED: &str = "is_push_notifications_enabled";
 const LAUNCHES_COUNT: &str = "launches_count";
 const RATE_APPLICATION_SHOWN: &str = "rate_application_shown";
+const NOTIFICATIONS_ASKED_AT: &str = "notifications_asked_at";
 const SKIPPED_APP_VERSION: &str = "skipped_app_version";
 const CONFIG: &str = "config";
 const BUY_ASSETS_VERSION: &str = "buy_assets_version";
@@ -197,6 +199,16 @@ impl GemPreferencesService {
 
     pub fn set_rate_application_shown(&self) -> Result<(), GemServiceError> {
         self.store.set(RATE_APPLICATION_SHOWN.to_string(), "true".to_string())
+    }
+
+    pub fn should_ask_notifications(&self) -> bool {
+        let last_asked_at: u64 = self.store.get(NOTIFICATIONS_ASKED_AT.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0);
+        rules::should_ask_notifications(last_asked_at, unix_seconds().unwrap_or(last_asked_at))
+    }
+
+    pub fn set_notifications_asked(&self) -> Result<(), GemServiceError> {
+        let now = unix_seconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        self.store.set(NOTIFICATIONS_ASKED_AT.to_string(), now.to_string())
     }
 
     pub fn is_price_alerts_enabled(&self) -> bool {

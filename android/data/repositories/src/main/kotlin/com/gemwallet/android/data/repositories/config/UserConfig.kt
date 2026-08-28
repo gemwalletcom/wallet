@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.serializer.decodeJson
@@ -13,7 +12,6 @@ import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.shouldAskNotifications
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -34,24 +32,27 @@ class UserConfig(
 
     fun developEnabled(enabled: Boolean) = preferencesService.setDeveloperEnabled(enabled)
 
-    fun getLaunchNumber(): Int = configStore.getInt(ConfigKey.LaunchNumber.string)
+    fun increaseLaunchNumber() {
+        preferencesService.incrementLaunchesCount()
+    }
 
-    fun increaseLaunchNumber() = configStore.putInt(ConfigKey.LaunchNumber.string, getLaunchNumber() + 1)
+    fun shouldRequestReview(): Boolean = preferencesService.shouldRequestReview()
 
-    fun chartPeriod(): ChartPeriod = configStore.getString(ConfigKey.ChartPeriod.string).toChartPeriod()
+    fun setRateApplicationShown() = preferencesService.setRateApplicationShown()
 
-    fun setChartPeriod(period: ChartPeriod) = configStore.putString(ConfigKey.ChartPeriod.string, period.string)
+    fun chartPeriod(): ChartPeriod = preferencesService.getChartPeriod().decodeJson()
 
-    fun perpetualChartPeriod(): ChartPeriod =
-        configStore.getString(ConfigKey.PerpetualChartPeriod.string).toChartPeriod()
+    fun setChartPeriod(period: ChartPeriod) = preferencesService.setChartPeriod(period.toJson())
 
-    fun setPerpetualChartPeriod(period: ChartPeriod) =
-        configStore.putString(ConfigKey.PerpetualChartPeriod.string, period.string)
+    fun perpetualChartPeriod(): ChartPeriod = preferencesService.getPerpetualChartPeriod().decodeJson()
+
+    fun setPerpetualChartPeriod(period: ChartPeriod) = preferencesService.setPerpetualChartPeriod(period.toJson())
 
     private val hideBalancesState = MutableStateFlow(preferencesService.isHideBalanceEnabled())
     private val perpetualEnabledState = MutableStateFlow(preferencesService.isPerpetualEnabled())
     private val appearanceState = MutableStateFlow(preferencesService.getAppearance().decodeJson<Appearance>())
     private val termsAcceptedState = MutableStateFlow(preferencesService.isAcceptTermsCompleted())
+    private val askNotificationsState = MutableStateFlow(preferencesService.shouldAskNotifications())
 
     fun isHideBalances(): Flow<Boolean> = hideBalancesState
 
@@ -112,6 +113,7 @@ class UserConfig(
         perpetualEnabledState.value = preferencesService.isPerpetualEnabled()
         appearanceState.value = preferencesService.getAppearance().decodeJson()
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
+        askNotificationsState.value = preferencesService.shouldAskNotifications()
         perpetualLeverageState.value = preferencesService.getPerpetualLeverage().toInt()
         perpetualTakeProfitState.value = preferencesService.getPerpetualTakeProfitPercent().toInt()
         perpetualStopLossState.value = preferencesService.getPerpetualStopLossPercent().toInt()
@@ -129,10 +131,12 @@ class UserConfig(
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
     }
 
-    fun isAskNotifications(): Flow<Boolean> = read(Key.AskNotifications, 0L)
-        .map { shouldAskNotifications(it / 1000, System.currentTimeMillis() / 1000) }
+    fun isAskNotifications(): Flow<Boolean> = askNotificationsState
 
-    suspend fun stopAskNotifications() = write(Key.AskNotifications, System.currentTimeMillis())
+    fun stopAskNotifications() {
+        preferencesService.setNotificationsAsked()
+        askNotificationsState.value = preferencesService.shouldAskNotifications()
+    }
 
     private fun <T> read(key: Preferences.Key<T>, default: T): Flow<T> =
         context.dataStore.data.map { it[key] ?: default }
@@ -141,19 +145,12 @@ class UserConfig(
         context.dataStore.edit { it[key] = value }
     }
 
-    private fun String.toChartPeriod(): ChartPeriod =
-        ChartPeriod.entries.firstOrNull { it.string == this } ?: ChartPeriod.Day
-
     private enum class ConfigKey(val string: String) {
         Auth("auth"),
-        ChartPeriod("chart_period"),
-        PerpetualChartPeriod("perpetual_chart_period"),
-        LaunchNumber("launch_number"),
         ;
     }
 
     private object Key {
         val LockInterval = intPreferencesKey("lock_interval")
-        val AskNotifications = longPreferencesKey("ask_notifications")
     }
 }
