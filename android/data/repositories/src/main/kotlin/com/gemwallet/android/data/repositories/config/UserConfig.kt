@@ -16,6 +16,8 @@ import uniffi.gemstone.GemSecureStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
 
 private val Context.dataStore by preferencesDataStore(name = "user_config")
 
@@ -59,6 +61,9 @@ class UserConfig(
     private val appearanceState = MutableStateFlow(preferencesService.getAppearance().decodeJson<Appearance>())
     private val termsAcceptedState = MutableStateFlow(preferencesService.isAcceptTermsCompleted())
     private val askNotificationsState = MutableStateFlow(preferencesService.shouldAskNotifications())
+    private val lockIntervalState = MutableStateFlow(
+        secureStore.get(SecureKey.LockInterval.string)?.toIntOrNull() ?: LOCK_INTERVAL_DEFAULT
+    )
 
     fun isHideBalances(): Flow<Boolean> = hideBalancesState
 
@@ -126,9 +131,19 @@ class UserConfig(
         swapSlippageBpsState.value = preferencesService.getSwapSlippageBps()
     }
 
-    fun getLockInterval(): Flow<Int> = read(Key.LockInterval, 1)
+    fun getLockInterval(): Flow<Int> = lockIntervalState.onStart { migrateLockInterval() }
 
-    suspend fun setLockInterval(minutes: Int) = write(Key.LockInterval, minutes)
+    suspend fun setLockInterval(minutes: Int) {
+        secureStore.set(SecureKey.LockInterval.string, minutes.toString())
+        lockIntervalState.value = minutes
+    }
+
+    private suspend fun migrateLockInterval() {
+        if (secureStore.get(SecureKey.LockInterval.string) != null) {
+            return
+        }
+        setLockInterval(read(Key.LockInterval, LOCK_INTERVAL_DEFAULT).first())
+    }
 
     fun isTermsAccepted(): Flow<Boolean> = termsAcceptedState
 
@@ -158,7 +173,12 @@ class UserConfig(
 
     private enum class SecureKey(val string: String) {
         Auth("auth_required"),
+        LockInterval("lock_interval"),
         ;
+    }
+
+    private companion object {
+        const val LOCK_INTERVAL_DEFAULT = 1
     }
 
     private object Key {

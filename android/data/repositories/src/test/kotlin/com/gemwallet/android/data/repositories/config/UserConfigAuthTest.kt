@@ -10,6 +10,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSecureStore
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 
 class UserConfigAuthTest {
 
@@ -45,6 +48,24 @@ class UserConfigAuthTest {
         every { configStore.getBoolean("auth", any()) } returns false
 
         assertFalse(subject().authRequired())
+    }
+
+    @Test
+    fun lockInterval_readsTheEncryptedValue() = runTest {
+        every { secureStore.get("lock_interval") } returns "7"
+
+        assertEquals(7, subject().getLockInterval().first())
+    }
+
+    @Test
+    fun setLockInterval_writesTheEncryptedValue() = runTest {
+        every { secureStore.get("lock_interval") } returns "7"
+        val subject = subject()
+
+        subject.setLockInterval(5)
+
+        verify { secureStore.set("lock_interval", "5") }
+        assertEquals(5, subject.getLockInterval().first())
     }
 
     @Test
