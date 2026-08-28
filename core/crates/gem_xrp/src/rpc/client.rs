@@ -1,15 +1,16 @@
-use serde::de::DeserializeOwned;
-use serde_json::Value;
 use std::error::Error;
 
-use crate::jsonrpc::XrpRpc;
-use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerCurrent, LedgerData, TransactionBroadcast, TransactionStatus};
+use serde::de::DeserializeOwned;
+use serde_json::Value;
 
 use chain_traits::{ChainAddressStatus, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainTraits};
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use primitives::Chain;
+
+use crate::jsonrpc::XrpRpc;
+use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, TransactionBroadcast, TransactionStatus};
 
 #[derive(Clone, Debug)]
 pub struct XrpClient<C: Client + Clone> {
@@ -43,8 +44,12 @@ impl<C: Client + Clone> XrpClient<C> {
         self.request(XrpRpc::GetAccountInfo(address.to_string())).await
     }
 
-    pub async fn get_ledger_current(&self) -> Result<LedgerCurrent, Box<dyn Error + Send + Sync>> {
-        self.request(XrpRpc::GetLedgerCurrent).await
+    pub async fn get_latest_validated_ledger(&self) -> Result<LedgerInfo, Box<dyn Error + Send + Sync>> {
+        let ledger: LedgerInfo = self.request(XrpRpc::GetLatestValidatedLedger).await?;
+        if !ledger.validated {
+            return Err("XRP RPC returned an unvalidated ledger".into());
+        }
+        Ok(ledger)
     }
 
     pub async fn get_fees(&self) -> Result<FeesResult, Box<dyn Error + Send + Sync>> {
@@ -140,19 +145,21 @@ mod tests {
 
     #[test]
     fn test_deserialize_result() {
-        let ledger = deserialize_result::<LedgerCurrent>(json!({
-            "ledger_current_index": 80123456,
+        let ledger = deserialize_result::<LedgerInfo>(json!({
+            "ledger_index": 80123456,
+            "validated": true,
             "status": "success"
         }))
         .unwrap();
-        assert_eq!(ledger.ledger_current_index, 80123456);
+        assert_eq!(ledger.ledger_index, 80123456);
+        assert!(ledger.validated);
 
-        let error = deserialize_result::<LedgerCurrent>(json!({
+        let error = deserialize_result::<LedgerInfo>(json!({
             "error": "amendmentBlocked",
             "error_code": 14,
             "error_message": "Amendment blocked, need upgrade.",
             "request": {
-                "command": method::LEDGER_CURRENT
+                "command": method::LEDGER
             },
             "status": "error"
         }))
