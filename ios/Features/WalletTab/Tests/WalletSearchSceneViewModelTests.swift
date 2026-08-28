@@ -114,7 +114,7 @@ struct WalletSearchSceneViewModelTests {
     func pinAssetPinsThroughBalanceService() async {
         let pinned: (assetId: String, pinned: Bool) = await withCheckedContinuation { continuation in
             let model = WalletSearchSceneViewModel.mock(
-                balanceService: .mock(onPinAsset: { _, assetId, pinned in continuation.resume(returning: (assetId, pinned)) }),
+                balanceService: .mock(onSetAssetPinned: { _, assetId, pinned in continuation.resume(returning: (assetId, pinned)) }),
             )
             model.onPinAsset(.mock(), value: true)
         }

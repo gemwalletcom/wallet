@@ -18,13 +18,8 @@ public final class Preferences: @unchecked Sendable {
         static let isSubscriptionsEnabled = "is_subscriptions_enabled"
         static let rateApplicationShown = "rate_application_shown"
         static let authenticationLockOption = "authentication_lock_option"
-        static let isDeveloperEnabled = "is_developer_enabled"
-        static let isHideBalanceEnabled = "is_balance_privacy_enabled"
-        static let isAcceptTermsCompleted = "is_accepted_terms"
         static let chartPeriod = "chart_period"
         static let perpetualChartPeriod = "perpetual_chart_period"
-        static let isPerpetualEnabled = "is_perpetual_enabled"
-        static let appearance = "appearance"
     }
 
     @ConfigurableDefaults(key: Keys.currency, defaultValue: Currency.usd.rawValue)
@@ -54,26 +49,11 @@ public final class Preferences: @unchecked Sendable {
     @ConfigurableDefaults(key: Keys.authenticationLockOption, defaultValue: 0)
     public var authenticationLockOption: Int
 
-    @ConfigurableDefaults(key: Keys.isDeveloperEnabled, defaultValue: false)
-    public var isDeveloperEnabled: Bool
-
-    @ConfigurableDefaults(key: Keys.isHideBalanceEnabled, defaultValue: false)
-    public var isHideBalanceEnabled: Bool
-
-    @ConfigurableDefaults(key: Keys.isAcceptTermsCompleted, defaultValue: false)
-    public var isAcceptTermsCompleted: Bool
-
     @ConfigurableDefaults(key: Keys.chartPeriod, defaultValue: ChartPeriod.day.rawValue)
     private var chartPeriodRawValue: String
 
     @ConfigurableDefaults(key: Keys.perpetualChartPeriod, defaultValue: ChartPeriod.day.rawValue)
     private var perpetualChartPeriodRawValue: String
-
-    @ConfigurableDefaults(key: Keys.isPerpetualEnabled, defaultValue: false)
-    public var isPerpetualEnabled: Bool
-
-    @ConfigurableDefaults(key: Keys.appearance, defaultValue: Appearance.system.rawValue)
-    private var appearanceRawValue: String
 
     public static let standard = Preferences()
     private let defaults: UserDefaults
@@ -98,16 +78,13 @@ public final class Preferences: @unchecked Sendable {
         configure(\._isSubscriptionsEnabled, key: Keys.isSubscriptionsEnabled, defaultValue: true)
         configure(\._rateApplicationShown, key: Keys.rateApplicationShown, defaultValue: false)
         configure(\._authenticationLockOption, key: Keys.authenticationLockOption, defaultValue: 0)
-        configure(\._isDeveloperEnabled, key: Keys.isDeveloperEnabled, defaultValue: false)
-        configure(\._isHideBalanceEnabled, key: Keys.isHideBalanceEnabled, defaultValue: false)
-        configure(\._isAcceptTermsCompleted, key: Keys.isAcceptTermsCompleted, defaultValue: false)
         configure(\._chartPeriodRawValue, key: Keys.chartPeriod, defaultValue: ChartPeriod.day.rawValue)
         configure(\._perpetualChartPeriodRawValue, key: Keys.perpetualChartPeriod, defaultValue: ChartPeriod.day.rawValue)
-        configure(\._isPerpetualEnabled, key: Keys.isPerpetualEnabled, defaultValue: false)
-        configure(\._appearanceRawValue, key: Keys.appearance, defaultValue: Appearance.system.rawValue)
     }
 
-    public static let sharedKeys: Set<String> = [Keys.currency, Keys.launchesCount, Keys.rateApplicationShown, "subscriptions_version", "pushed_device", "pushed_subscriptions", "swap_slippage_bps", "perpetual_leverage", "perpetual_take_profit", "perpetual_stop_loss"]
+    public static let sharedKeys: Set<String> = [Keys.currency, Keys.launchesCount, Keys.rateApplicationShown, "subscriptions_version", "pushed_device", "pushed_subscriptions", "swap_slippage_bps", "perpetual_leverage", "perpetual_take_profit", "perpetual_stop_loss", "is_perpetual_enabled", "is_developer_enabled", "appearance"]
+
+    public static let keyAliases: [String: String] = ["is_hide_balance_enabled": "is_balance_privacy_enabled", "is_accept_terms_completed": "is_accepted_terms"]
 
     public func incrementLaunchesCount() {
         launchesCount += 1
@@ -133,12 +110,4 @@ public final class Preferences: @unchecked Sendable {
         set { perpetualChartPeriodRawValue = newValue.rawValue }
     }
 
-    public var appearance: Appearance {
-        get { Appearance(rawValue: appearanceRawValue) ?? .system }
-        set { appearanceRawValue = newValue.rawValue }
-    }
-
-    public func showPerpetuals(for wallet: Wallet) -> Bool {
-        isPerpetualEnabled && wallet.hasPerpetualsSupport
-    }
 }

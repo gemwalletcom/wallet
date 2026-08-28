@@ -38,7 +38,7 @@ public final class SecurityViewModel {
 
     public init(
         service: any BiometryAuthenticatable = BiometryAuthenticationService(),
-        preferences: ObservablePreferences = .default,
+        preferences: ObservablePreferences,
     ) {
         self.service = service
         self.preferences = preferences

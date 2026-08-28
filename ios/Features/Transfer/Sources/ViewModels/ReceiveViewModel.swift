@@ -159,7 +159,7 @@ public final class ReceiveViewModel: Sendable {
 
     private func enableAsset() async {
         do {
-            try await balanceService.enableAssets(wallet: wallet, assetIds: [assetModel.asset.id], enabled: true)
+            try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [assetModel.asset.id], enabled: true)
         } catch {
             debugLog("ReceiveViewModel enableAsset error: \(error)")
         }

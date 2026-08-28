@@ -292,7 +292,7 @@ extension FiatSceneViewModel {
 extension FiatSceneViewModel {
     private func enableAsset() async {
         do {
-            try await balanceService.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
+            try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [asset.id], enabled: true)
         } catch {
             debugLog("FiatSceneViewModel enableAsset error: \(error)")
         }

@@ -1,27 +1,29 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
+import GemstonePrimitives
 import Primitives
 import SwiftUI
 
 @Observable
 public final class ObservablePreferences: Sendable {
-    public static let `default` = ObservablePreferences()
-
     public let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
 
-    public init(preferences: Preferences = .standard) {
+    public init(preferences: Preferences, preferencesService: any GemPreferencesServiceProtocol) {
         self.preferences = preferences
+        self.preferencesService = preferencesService
     }
 
     @ObservationIgnored
     public var isHideBalanceEnabled: Bool {
         get {
             access(keyPath: \.isHideBalanceEnabled)
-            return preferences.isHideBalanceEnabled
+            return preferencesService.isHideBalanceEnabled()
         }
         set {
             withMutation(keyPath: \.isHideBalanceEnabled) {
-                preferences.isHideBalanceEnabled = newValue
+                write { try preferencesService.setHideBalanceEnabled(enabled: newValue) }
             }
         }
     }
@@ -30,11 +32,11 @@ public final class ObservablePreferences: Sendable {
     public var isDeveloperEnabled: Bool {
         get {
             access(keyPath: \.isDeveloperEnabled)
-            return preferences.isDeveloperEnabled
+            return preferencesService.isDeveloperEnabled()
         }
         set {
             withMutation(keyPath: \.isDeveloperEnabled) {
-                preferences.isDeveloperEnabled = newValue
+                write { try preferencesService.setDeveloperEnabled(enabled: newValue) }
             }
         }
     }
@@ -54,14 +56,13 @@ public final class ObservablePreferences: Sendable {
 
     @ObservationIgnored
     public var isAcceptTermsCompleted: Bool {
-        get {
-            access(keyPath: \.isAcceptTermsCompleted)
-            return preferences.isAcceptTermsCompleted
-        }
-        set {
-            withMutation(keyPath: \.isAcceptTermsCompleted) {
-                preferences.isAcceptTermsCompleted = newValue
-            }
+        access(keyPath: \.isAcceptTermsCompleted)
+        return preferencesService.isAcceptTermsCompleted()
+    }
+
+    public func acceptTerms() {
+        withMutation(keyPath: \.isAcceptTermsCompleted) {
+            write { try preferencesService.setAcceptTermsCompleted() }
         }
     }
 
@@ -69,11 +70,11 @@ public final class ObservablePreferences: Sendable {
     public var isPerpetualEnabled: Bool {
         get {
             access(keyPath: \.isPerpetualEnabled)
-            return preferences.isPerpetualEnabled
+            return preferencesService.isPerpetualEnabled()
         }
         set {
             withMutation(keyPath: \.isPerpetualEnabled) {
-                preferences.isPerpetualEnabled = newValue
+                write { try preferencesService.setPerpetualEnabled(enabled: newValue) }
             }
         }
     }
@@ -82,23 +83,25 @@ public final class ObservablePreferences: Sendable {
     public var appearance: Appearance {
         get {
             access(keyPath: \.appearance)
-            return preferences.appearance
+            return preferencesService.appearanceValue
         }
         set {
             withMutation(keyPath: \.appearance) {
-                preferences.appearance = newValue
+                write { try preferencesService.setAppearanceValue(newValue) }
             }
         }
     }
 
     public func showPerpetuals(for wallet: Wallet) -> Bool {
         access(keyPath: \.isPerpetualEnabled)
-        return preferences.showPerpetuals(for: wallet)
+        return (try? preferencesService.showPerpetuals(wallet: wallet.json())) ?? false
     }
-}
 
-// MARK: - EnvironmentValues
-
-public extension EnvironmentValues {
-    @Entry var observablePreferences: ObservablePreferences = .default
+    private func write(_ operation: () throws -> Void) {
+        do {
+            try operation()
+        } catch {
+            debugLog("preferences write error: \(error)")
+        }
+    }
 }

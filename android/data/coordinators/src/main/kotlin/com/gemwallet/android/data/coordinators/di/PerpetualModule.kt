@@ -31,7 +31,6 @@ import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualPinnedImpl
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemPerpetualService
 import dagger.Module
 import dagger.Provides
@@ -47,10 +46,7 @@ object PerpetualModule {
     fun provideSyncPerpetuals(
         perpetualService: GemPerpetualService,
     ): SyncPerpetuals {
-        return SyncPerpetualsImpl(
-            perpetualService = perpetualService,
-            chains = listOf(Chain.HyperCore)
-        )
+        return SyncPerpetualsImpl(perpetualService = perpetualService)
     }
 
     @Provides

@@ -9,7 +9,7 @@ extension AppResolver {
     struct Storages {
         let db: DB = .init()
         let storeManager: StoreManager
-        let observablePreferences: ObservablePreferences = .default
+        let preferences: Preferences = .standard
         let keystore = LocalKeystore()
 
         init() {

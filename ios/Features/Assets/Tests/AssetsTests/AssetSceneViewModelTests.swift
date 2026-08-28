@@ -9,6 +9,7 @@ import Primitives
 import PrimitivesTestKit
 @testable import Store
 import SwiftUI
+import PreferencesTestKit
 import Testing
 
 @MainActor
@@ -110,6 +111,7 @@ extension AssetSceneViewModel {
             priceAlertService: GemPriceAlertServiceMock(),
             bannerService: GemBannerServiceMock(),
             explorerService: GemExplorerServiceMock(),
+            preferences: .mock(),
             input: AssetSceneInput(
                 wallet: .mock(),
                 asset: assetData.asset,

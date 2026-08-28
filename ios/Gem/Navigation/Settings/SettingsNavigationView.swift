@@ -87,7 +87,7 @@ struct SettingsNavigationView: View {
         )
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(for: Scenes.Security.self) { _ in
-            SecurityScene(model: SecurityViewModel())
+            SecurityScene(model: SecurityViewModel(preferences: observablePreferences))
         }
         .navigationDestination(for: Scenes.Notifications.self) { _ in
             NotificationsScene(
@@ -180,10 +180,10 @@ struct SettingsNavigationView: View {
             CurrencyScene(model: currencyModel)
         }
         .navigationDestination(for: Scenes.Preferences.self) { _ in
-            PreferencesScene(model: PreferencesViewModel(currencyModel: currencyModel, preferencesService: preferencesService))
+            PreferencesScene(model: PreferencesViewModel(currencyModel: currencyModel, preferencesService: preferencesService, preferences: observablePreferences))
         }
         .navigationDestination(for: Scenes.Appearance.self) { _ in
-            AppearanceScene(model: AppearanceViewModel())
+            AppearanceScene(model: AppearanceViewModel(preferences: observablePreferences))
         }
         .navigationDestination(for: Scenes.Referral.self) { scene in
             let wallets = walletSessionService.wallets.filter { $0.type == .multicoin }

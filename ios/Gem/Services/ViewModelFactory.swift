@@ -87,7 +87,7 @@ public struct ViewModelFactory: Sendable {
         AssetsResultsSceneViewModel(
             wallet: wallet,
             balanceService: balanceService,
-            preferences: Preferences.standard,
+            preferencesService: preferencesService,
             searchService: searchService,
             perpetualService: perpetualService,
             recentActivityStore: recentActivityStore,

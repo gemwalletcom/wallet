@@ -7,14 +7,17 @@ public final class GemstonePreferencesStore: GemPreferencesStore, @unchecked Sen
     private let userDefaults: UserDefaults
     private let namespace: String
     private let sharedKeys: Set<String>
+    private let keyAliases: [String: String]
 
     public init(
         namespace: String,
         sharedKeys: Set<String> = [],
+        keyAliases: [String: String] = [:],
         userDefaults: UserDefaults = .standard,
     ) {
         self.namespace = namespace
         self.sharedKeys = sharedKeys
+        self.keyAliases = keyAliases
         self.userDefaults = userDefaults
     }
 
@@ -31,6 +34,6 @@ public final class GemstonePreferencesStore: GemPreferencesStore, @unchecked Sen
     }
 
     private func storageKey(_ key: String) -> String {
-        sharedKeys.contains(key) ? key : namespace + key
+        keyAliases[key] ?? (sharedKeys.contains(key) ? key : namespace + key)
     }
 }

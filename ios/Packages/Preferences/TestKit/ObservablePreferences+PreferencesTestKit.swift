@@ -1,16 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+import class Gemstone.GemPreferencesService
+import protocol Gemstone.GemPreferencesServiceProtocol
+import GemstonePrimitivesTestKit
 import Preferences
-import Primitives
 
 public extension ObservablePreferences {
     static func mock(
         preferences: Preferences = .mock(),
+        preferencesService: any GemPreferencesServiceProtocol = GemPreferencesService(store: GemPreferencesStoreMock()),
         isPerpetualEnabled: Bool = true,
     ) -> ObservablePreferences {
-        let prefs = preferences
-        prefs.isPerpetualEnabled = isPerpetualEnabled
-        return ObservablePreferences(preferences: prefs)
+        let observable = ObservablePreferences(preferences: preferences, preferencesService: preferencesService)
+        observable.isPerpetualEnabled = isPerpetualEnabled
+        return observable
     }
 }

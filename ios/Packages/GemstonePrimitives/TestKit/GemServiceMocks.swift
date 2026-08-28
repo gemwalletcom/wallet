@@ -99,6 +99,36 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
 
     public func setPushNotificationsEnabled(enabled _: Bool) throws {}
 
+    private var perpetualEnabled = false
+    private var hideBalanceEnabled = false
+    private var developerEnabled = false
+    private var acceptTermsCompleted = false
+    private var appearance: Gemstone.Appearance = (try? Primitives.Appearance.system.json()) ?? "\"system\""
+
+    public func isPerpetualEnabled() -> Bool { perpetualEnabled }
+
+    public func setPerpetualEnabled(enabled: Bool) throws { perpetualEnabled = enabled }
+
+    public func showPerpetuals(wallet: Gemstone.Wallet) -> Bool {
+        perpetualEnabled && ((try? Primitives.Wallet(wallet).hasPerpetualsSupport) ?? false)
+    }
+
+    public func isHideBalanceEnabled() -> Bool { hideBalanceEnabled }
+
+    public func setHideBalanceEnabled(enabled: Bool) throws { hideBalanceEnabled = enabled }
+
+    public func isDeveloperEnabled() -> Bool { developerEnabled }
+
+    public func setDeveloperEnabled(enabled: Bool) throws { developerEnabled = enabled }
+
+    public func isAcceptTermsCompleted() -> Bool { acceptTermsCompleted }
+
+    public func setAcceptTermsCompleted() throws { acceptTermsCompleted = true }
+
+    public func getAppearance() -> Gemstone.Appearance { appearance }
+
+    public func setAppearance(appearance: Gemstone.Appearance) throws { self.appearance = appearance }
+
     public func getSwapSlippageBps() -> UInt32? { nil }
 
     public func setSwapSlippageBps(bps _: UInt32?) throws {}
@@ -321,17 +351,17 @@ public final class GemTransactionStateServiceMock: GemTransactionStateServicePro
 
 public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked Sendable {
     private let onUpdate: @Sendable (String, [Gemstone.AssetId]) async -> Void
-    private let onEnableAssets: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)?
-    private let onPinAsset: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)?
+    private let onSetAssetsEnabled: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)?
+    private let onSetAssetPinned: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)?
 
     public init(
         onUpdate: @escaping @Sendable (String, [Gemstone.AssetId]) async -> Void = { _, _ in },
-        onEnableAssets: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)? = nil,
-        onPinAsset: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)? = nil,
+        onSetAssetsEnabled: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)? = nil,
+        onSetAssetPinned: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)? = nil,
     ) {
         self.onUpdate = onUpdate
-        self.onEnableAssets = onEnableAssets
-        self.onPinAsset = onPinAsset
+        self.onSetAssetsEnabled = onSetAssetsEnabled
+        self.onSetAssetPinned = onSetAssetPinned
     }
 
     public func update(walletId: String, assetIds: [Gemstone.AssetId]) async throws {
@@ -339,24 +369,25 @@ public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked 
     }
 
     public func setAssetsEnabled(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
-        try await onEnableAssets?(walletId, assetIds, enabled)
+        try await onSetAssetsEnabled?(walletId, assetIds, enabled)
     }
 
     public func setAssetPinned(walletId: String, assetId: Gemstone.AssetId, pinned: Bool) async throws {
-        try await onPinAsset?(walletId, assetId, pinned)
+        try await onSetAssetPinned?(walletId, assetId, pinned)
     }
 }
 
 public extension GemBalanceServiceProtocol where Self == GemBalanceServiceMock {
     static func mock(
-        onEnableAssets: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)? = nil,
-        onPinAsset: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)? = nil,
+        onSetAssetsEnabled: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)? = nil,
+        onSetAssetPinned: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)? = nil,
     ) -> GemBalanceServiceMock {
-        GemBalanceServiceMock(onEnableAssets: onEnableAssets, onPinAsset: onPinAsset)
+        GemBalanceServiceMock(onSetAssetsEnabled: onSetAssetsEnabled, onSetAssetPinned: onSetAssetPinned)
     }
 }
 
 public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchecked Sendable {
+    public var isPerpetualEnabled = true
     public private(set) var syncMarketsCount = 0
     public private(set) var clearMarketsCount = 0
     private var updatedAt: Int64?
@@ -367,6 +398,19 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     public func marketsUpdatedAt() throws -> Int64? {
         updatedAt
+    }
+
+    public func syncEnablement(wallet: Gemstone.Wallet?) async throws -> Bool {
+        if isPerpetualEnabled {
+            try await syncMarkets(chain: "hypercore")
+        } else {
+            try await clearMarkets()
+        }
+        return shouldConnectPerpetuals(wallet: wallet)
+    }
+
+    public func shouldConnectPerpetuals(wallet: Gemstone.Wallet?) -> Bool {
+        isPerpetualEnabled && (wallet.flatMap { try? Primitives.Wallet($0).hasPerpetualsSupport } ?? false)
     }
 
     public func syncMarketsIfStale(chain: Gemstone.Chain) async throws -> Bool {

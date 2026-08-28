@@ -10,7 +10,7 @@ import Primitives
 public final class AppearanceViewModel {
     private let preferences: ObservablePreferences
 
-    public init(preferences: ObservablePreferences = .default) {
+    public init(preferences: ObservablePreferences) {
         self.preferences = preferences
     }
 

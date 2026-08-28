@@ -43,6 +43,7 @@ extension Primitives.BannerState: JsonCodable {}
 extension Primitives.CancelOrderData: JsonCodable {}
 extension Primitives.ChainAddress: JsonCodable {}
 extension Primitives.ChainAsset: JsonCodable {}
+extension Primitives.Appearance: JsonCodable {}
 extension Primitives.ChartCandleStick: JsonCodable {}
 extension Primitives.ChartCandleUpdate: JsonCodable {}
 extension Primitives.ChartDateValue: JsonCodable {}

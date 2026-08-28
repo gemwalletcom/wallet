@@ -23,7 +23,7 @@ struct GemApp: App {
         WindowGroup {
             RootScene(
                 model: RootSceneViewModel(
-                    observablePreferences: resolver.storages.observablePreferences,
+                    observablePreferences: resolver.services.observablePreferences,
                     walletConnectorPresenter: resolver.services.walletConnectorManager.presenter,
                     onstartService: resolver.services.onstartService,
                     appStartService: resolver.services.appStartService,

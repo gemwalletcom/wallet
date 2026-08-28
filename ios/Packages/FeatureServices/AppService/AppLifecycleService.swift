@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemStreamSubscriptionServiceProtocol
+import GemstonePrimitives
 import ConnectionsService
 import ConnectionStatusService
 import GemstoneServices
@@ -15,7 +17,8 @@ public actor AppLifecycleService: Sendable {
     private let deviceObserverService: DeviceObserverService
     private let streamObserverService: StreamObserverService
     private let streamSubscriptionService: any GemStreamSubscriptionServiceProtocol
-    private let perpetualEnablerService: PerpetualEnablerService
+    private let perpetualService: any GemPerpetualServiceProtocol
+    private let perpetualObserver: any PerpetualObservable
     private let walletSessionService: any WalletSessionManageable
 
     public init(
@@ -24,7 +27,8 @@ public actor AppLifecycleService: Sendable {
         deviceObserverService: DeviceObserverService,
         streamObserverService: StreamObserverService,
         streamSubscriptionService: any GemStreamSubscriptionServiceProtocol,
-        perpetualEnablerService: PerpetualEnablerService,
+        perpetualService: any GemPerpetualServiceProtocol,
+        perpetualObserver: any PerpetualObservable,
         walletSessionService: any WalletSessionManageable,
     ) {
         self.connectionsService = connectionsService
@@ -32,7 +36,8 @@ public actor AppLifecycleService: Sendable {
         self.deviceObserverService = deviceObserverService
         self.streamObserverService = streamObserverService
         self.streamSubscriptionService = streamSubscriptionService
-        self.perpetualEnablerService = perpetualEnablerService
+        self.perpetualService = perpetualService
+        self.perpetualObserver = perpetualObserver
         self.walletSessionService = walletSessionService
     }
 
@@ -52,7 +57,13 @@ public actor AppLifecycleService: Sendable {
     }
 
     public func updatePerpetualConnection() async {
-        await perpetualEnablerService.updateEnablement(wallet: walletSessionService.currentWallet)
+        let wallet = walletSessionService.currentWallet
+        do {
+            let connect = try await perpetualService.syncEnablement(wallet: wallet?.json())
+            await updatePerpetualObserver(wallet: wallet, connect: connect)
+        } catch {
+            debugLog("AppLifecycleService perpetual enablement error: \(error)")
+        }
     }
 
     public func handleScenePhase(_ phase: ScenePhase) async {
@@ -133,13 +144,23 @@ extension AppLifecycleService {
     }
 
     private func connectPerpetual() async {
-        await perpetualEnablerService.updateConnection(wallet: walletSessionService.currentWallet)
+        let wallet = walletSessionService.currentWallet
+        let connect = (try? perpetualService.shouldConnectPerpetuals(wallet: wallet?.json())) ?? false
+        await updatePerpetualObserver(wallet: wallet, connect: connect)
+    }
+
+    private func updatePerpetualObserver(wallet: Wallet?, connect: Bool) async {
+        if connect, let wallet {
+            await perpetualObserver.setup(for: wallet)
+        } else {
+            await perpetualObserver.disconnect()
+        }
     }
 
     private func disconnectObservers() async {
         async let connection: () = connectionStatusObserver.stop()
         async let price: () = streamObserverService.disconnect()
-        async let perpetual: () = perpetualEnablerService.disconnect()
+        async let perpetual: () = perpetualObserver.disconnect()
         _ = await (connection, price, perpetual)
     }
 }

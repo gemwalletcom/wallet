@@ -44,7 +44,7 @@ extension AddAssetNavigationStack {
         Task {
             do {
                 let asset = try await assetsService.ensureTokenAsset(for: asset.id)
-                try await balanceService.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
+                try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [asset.id], enabled: true)
             } catch {
                 debugLog("AddAssetNavigationStack add asset error: \(error)")
             }

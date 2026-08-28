@@ -62,6 +62,7 @@ struct WalletNavigationView: View {
                         recentActivityStore: recentActivityStore,
                         balanceService: balanceService,
                         perpetualService: perpetualService,
+                        preferences: preferences,
                         onDismissSearch: model.onToggleSearch,
                         onSelectAssetAction: navigationState.openAsset,
                         onAddToken: model.onSelectAddCustomToken,
@@ -105,6 +106,7 @@ struct WalletNavigationView: View {
                     priceAlertService: priceAlertService,
                     bannerService: bannerService,
                     explorerService: explorerService,
+                    preferences: preferences,
                     input: AssetSceneInput(
                         wallet: model.wallet,
                         asset: $0.asset,

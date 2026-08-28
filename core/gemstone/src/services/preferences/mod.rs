@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use primitives::ChartPeriod;
 use primitives::currency::Currency;
-use primitives::{Chain, ConfigResponse, Device};
+use primitives::{Appearance, Chain, ConfigResponse, Device, Wallet};
 
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;
@@ -33,6 +33,11 @@ const SWAP_SLIPPAGE_BPS: &str = "swap_slippage_bps";
 const PERPETUAL_LEVERAGE: &str = "perpetual_leverage";
 const PERPETUAL_TAKE_PROFIT: &str = "perpetual_take_profit";
 const PERPETUAL_STOP_LOSS: &str = "perpetual_stop_loss";
+const IS_PERPETUAL_ENABLED: &str = "is_perpetual_enabled";
+const IS_HIDE_BALANCE_ENABLED: &str = "is_hide_balance_enabled";
+const IS_DEVELOPER_ENABLED: &str = "is_developer_enabled";
+const IS_ACCEPT_TERMS_COMPLETED: &str = "is_accept_terms_completed";
+const APPEARANCE: &str = "appearance";
 const IS_DEVICE_REGISTERED: &str = "is_device_registered";
 const SUBSCRIPTIONS_VERSION: &str = "subscriptions_version";
 const PUSHED_DEVICE: &str = "pushed_device";
@@ -90,6 +95,50 @@ impl GemPreferencesService {
 
     pub fn set_push_notifications_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
         self.store.set(PUSH_NOTIFICATIONS_ENABLED.to_string(), enabled.to_string())
+    }
+
+    pub fn is_perpetual_enabled(&self) -> bool {
+        rules::flag(self.store.get(IS_PERPETUAL_ENABLED.to_string()))
+    }
+
+    pub fn set_perpetual_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        self.store.set(IS_PERPETUAL_ENABLED.to_string(), enabled.to_string())
+    }
+
+    pub fn show_perpetuals(&self, wallet: Wallet) -> bool {
+        crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), &wallet)
+    }
+
+    pub fn is_hide_balance_enabled(&self) -> bool {
+        rules::flag(self.store.get(IS_HIDE_BALANCE_ENABLED.to_string()))
+    }
+
+    pub fn set_hide_balance_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        self.store.set(IS_HIDE_BALANCE_ENABLED.to_string(), enabled.to_string())
+    }
+
+    pub fn is_developer_enabled(&self) -> bool {
+        rules::flag(self.store.get(IS_DEVELOPER_ENABLED.to_string()))
+    }
+
+    pub fn set_developer_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        self.store.set(IS_DEVELOPER_ENABLED.to_string(), enabled.to_string())
+    }
+
+    pub fn is_accept_terms_completed(&self) -> bool {
+        rules::flag(self.store.get(IS_ACCEPT_TERMS_COMPLETED.to_string()))
+    }
+
+    pub fn set_accept_terms_completed(&self) -> Result<(), GemServiceError> {
+        self.store.set(IS_ACCEPT_TERMS_COMPLETED.to_string(), true.to_string())
+    }
+
+    pub fn get_appearance(&self) -> Appearance {
+        rules::appearance(self.store.get(APPEARANCE.to_string()))
+    }
+
+    pub fn set_appearance(&self, appearance: Appearance) -> Result<(), GemServiceError> {
+        self.store.set(APPEARANCE.to_string(), rules::appearance_value(appearance).to_string())
     }
 
     pub fn get_swap_slippage_bps(&self) -> Option<u32> {

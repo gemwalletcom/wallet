@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use primitives::Appearance;
+
 use primitives::currency::Currency;
 
 const REVIEW_REQUEST_LAUNCHES: u32 = 5;
@@ -18,6 +20,22 @@ pub fn swap_slippage_bps(value: Option<String>) -> Option<u32> {
 
 pub fn percent_or_default(value: Option<String>, default: u8) -> u8 {
     value.and_then(|value| value.parse::<u8>().ok()).filter(|value| *value > 0).unwrap_or(default)
+}
+
+pub fn appearance(value: Option<String>) -> Appearance {
+    match value.as_deref() {
+        Some("light") => Appearance::Light,
+        Some("dark") => Appearance::Dark,
+        _ => Appearance::System,
+    }
+}
+
+pub fn appearance_value(appearance: Appearance) -> &'static str {
+    match appearance {
+        Appearance::System => "system",
+        Appearance::Light => "light",
+        Appearance::Dark => "dark",
+    }
 }
 
 pub fn flag(value: Option<String>) -> bool {
@@ -51,6 +69,13 @@ mod tests {
         assert_eq!(percent_or_default(Some("0".to_string()), 5), 5);
         assert_eq!(percent_or_default(Some("x".to_string()), 5), 5);
         assert_eq!(percent_or_default(None, 5), 5);
+    }
+
+    #[test]
+    fn test_appearance_defaults_to_system() {
+        assert_eq!(appearance(Some("dark".to_string())), Appearance::Dark);
+        assert_eq!(appearance(Some("nope".to_string())), Appearance::System);
+        assert_eq!(appearance(None), Appearance::System);
     }
 
     #[test]

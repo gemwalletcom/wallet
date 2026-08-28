@@ -178,7 +178,7 @@ extension SelectAssetViewModel {
         switch flow.rowSelection {
         case .toggle:
             do {
-                try await balanceService.enableAssets(wallet: wallet, assetIds: [assetId], enabled: enabled)
+                try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [assetId], enabled: enabled)
             } catch {
                 debugLog("SelectAssetViewModel handleAction error: \(error)")
             }

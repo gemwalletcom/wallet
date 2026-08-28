@@ -20,7 +20,7 @@ extension AssetActions {
     func onPinAsset(_ asset: Asset, value: Bool) {
         Task {
             do {
-                try await balanceService.pinAsset(wallet: wallet, assetId: asset.id, pinned: value)
+                try await balanceService.setAssetPinned(wallet: wallet, assetId: asset.id, pinned: value)
                 isPresentingToastMessage = .pin(asset.name, pinned: value)
             } catch {
                 debugLog("\(Self.self) pin asset error: \(error)")
@@ -31,7 +31,7 @@ extension AssetActions {
     func onHideAsset(_ assetId: AssetId) {
         Task {
             do {
-                try await balanceService.enableAssets(wallet: wallet, assetIds: [assetId], enabled: false)
+                try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [assetId], enabled: false)
             } catch {
                 debugLog("\(Self.self) hide asset error: \(error)")
             }
@@ -41,7 +41,7 @@ extension AssetActions {
     func onAddToWallet(_ assetId: AssetId) {
         Task {
             do {
-                try await balanceService.enableAssets(wallet: wallet, assetIds: [assetId], enabled: true)
+                try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [assetId], enabled: true)
                 isPresentingToastMessage = .addedToWallet()
             } catch {
                 debugLog("\(Self.self) enable asset error: \(error)")

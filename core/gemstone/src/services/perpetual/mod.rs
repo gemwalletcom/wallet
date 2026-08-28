@@ -10,7 +10,7 @@ use gem_hypercore::models::websocket::HyperliquidSocketMessage;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
 use primitives::perpetual::PerpetualBalance;
 use primitives::portfolio::PerpetualPortfolio;
-use primitives::{AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualProvider, WalletId};
+use primitives::{AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualProvider, Wallet, WalletId};
 use std::collections::HashMap;
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
@@ -86,6 +86,21 @@ impl GemPerpetualService {
         }
         self.sync_markets(chain).await?;
         Ok(true)
+    }
+
+    pub async fn sync_enablement(&self, wallet: Option<Wallet>) -> Result<bool, GemServiceError> {
+        if !self.preferences.is_perpetual_enabled() {
+            self.clear_markets().await?;
+            return Ok(false);
+        }
+        self.sync_markets_if_stale(Chain::HyperCore).await?;
+        Ok(self.should_connect_perpetuals(wallet))
+    }
+
+    pub fn should_connect_perpetuals(&self, wallet: Option<Wallet>) -> bool {
+        wallet
+            .as_ref()
+            .is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), wallet))
     }
 
     pub async fn get_candlesticks(&self, chain: Chain, symbol: String, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {

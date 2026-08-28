@@ -1,3 +1,4 @@
+use primitives::Appearance;
 use primitives::FiatRate;
 use primitives::TransactionId;
 use primitives::Wallet;
@@ -56,6 +57,7 @@ macro_rules! json_bridge {
 json_bridge!(
     AccountDataType,
     AddressName,
+    Appearance,
     ApplicationMetadata,
     ApplicationMetadataSource,
     ApprovalData,

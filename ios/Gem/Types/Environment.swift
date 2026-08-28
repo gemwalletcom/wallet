@@ -24,6 +24,7 @@ import AppService
 import ConnectionsService
 import ConnectionStatusService
 import Foundation
+import Preferences
 import protocol Gemstone.GemChartServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -50,6 +51,7 @@ extension EnvironmentValues {
     @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
     @Entry var walletService: WalletService = AppResolver.main.services.walletService
     @Entry var walletPreferencesService: any GemWalletPreferencesServiceProtocol = AppResolver.main.services.walletPreferencesService
+    @Entry var observablePreferences: ObservablePreferences = AppResolver.main.services.observablePreferences
     @Entry var preferencesService: any GemPreferencesServiceProtocol = AppResolver.main.services.preferencesService
     @Entry var walletSessionService: any WalletSessionManageable = AppResolver.main.services.walletSessionService
     @Entry var priceAlertService: any GemPriceAlertServiceProtocol = AppResolver.main.services.priceAlertService

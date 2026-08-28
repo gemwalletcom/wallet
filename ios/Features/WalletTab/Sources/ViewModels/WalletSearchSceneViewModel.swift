@@ -54,7 +54,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         recentActivityStore: RecentActivityStore,
         balanceService: any GemBalanceServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
-        preferences: ObservablePreferences = .default,
+        preferences: ObservablePreferences,
         onDismissSearch: VoidAction,
         onSelectAssetAction: AssetAction,
         onAddToken: VoidAction,

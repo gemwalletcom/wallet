@@ -10,7 +10,6 @@ import ConnectionStatusService
 import GemstoneServices
 import GemstoneServicesTestKit
 import Foundation
-import Preferences
 import PreferencesTestKit
 import StreamService
 import StreamServiceTestKit
@@ -22,7 +21,6 @@ public extension AppLifecycleService {
         deviceObserverService: DeviceObserverService = .mock(),
         streamObserverService: StreamObserverService = .mock(),
         streamSubscriptionService: any GemStreamSubscriptionServiceProtocol = GemStreamSubscriptionServiceMock(),
-        preferences: Preferences = .standard,
         hyperliquidObserverService: PerpetualObserverMock = PerpetualObserverMock(),
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         walletSessionService: any WalletSessionManageable = WalletSessionService.mock(),
@@ -33,11 +31,8 @@ public extension AppLifecycleService {
             deviceObserverService: deviceObserverService,
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
-            perpetualEnablerService: PerpetualEnablerService(
-                observer: hyperliquidObserverService,
-                service: perpetualService,
-                preferences: preferences,
-            ),
+            perpetualService: perpetualService,
+            perpetualObserver: hyperliquidObserverService,
             walletSessionService: walletSessionService,
         )
     }

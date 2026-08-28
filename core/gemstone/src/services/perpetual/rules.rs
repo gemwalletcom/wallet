@@ -2,7 +2,7 @@ use chrono::Utc;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::PerpetualBalance;
-use primitives::{AssetId, AssetPrice, AssetType, Chain, PerpetualAccountMode, PerpetualPosition, PerpetualProvider};
+use primitives::{AssetId, AssetPrice, AssetType, Chain, PerpetualAccountMode, PerpetualPosition, PerpetualProvider, Wallet, WalletType};
 
 use crate::models::asset::wallet_default_assets;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
@@ -15,6 +15,10 @@ pub fn includes_perpetual_collateral(mode: PerpetualAccountMode) -> bool {
         PerpetualAccountMode::Standard => true,
         PerpetualAccountMode::Unified => false,
     }
+}
+
+pub fn show_perpetuals(enabled: bool, wallet: &Wallet) -> bool {
+    enabled && wallet.wallet_type == WalletType::Multicoin && crate::services::stream::rules::hyperliquid_account(&wallet.accounts).is_some()
 }
 
 pub fn is_markets_stale(updated_at: Option<i64>, now: i64) -> bool {
@@ -150,5 +154,33 @@ mod tests {
             }
             update_type => panic!("expected a perpetual update, got {update_type:?}"),
         }
+    }
+
+    #[test]
+    fn test_show_perpetuals_needs_flag_multicoin_and_hyperliquid_account() {
+        let wallet = |wallet_type: WalletType, chains: &[Chain]| Wallet {
+            id: primitives::WalletId::Multicoin("w".to_string()),
+            external_id: None,
+            name: "w".to_string(),
+            index: 0,
+            wallet_type,
+            accounts: chains
+                .iter()
+                .map(|chain| primitives::Account {
+                    chain: *chain,
+                    address: "a".to_string(),
+                    derivation_path: String::new(),
+                    extended_public_key: None,
+                })
+                .collect(),
+            is_pinned: false,
+            image_url: None,
+            source: primitives::WalletSource::Import,
+        };
+
+        assert!(show_perpetuals(true, &wallet(WalletType::Multicoin, &[Chain::Arbitrum])));
+        assert!(!show_perpetuals(false, &wallet(WalletType::Multicoin, &[Chain::Arbitrum])));
+        assert!(!show_perpetuals(true, &wallet(WalletType::Single, &[Chain::Arbitrum])));
+        assert!(!show_perpetuals(true, &wallet(WalletType::Multicoin, &[Chain::Bitcoin])));
     }
 }

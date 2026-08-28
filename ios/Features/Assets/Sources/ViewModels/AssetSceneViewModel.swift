@@ -28,7 +28,7 @@ public final class AssetSceneViewModel: Sendable {
     private let priceUpdater: any PriceUpdater
     private let bannerService: any GemBannerServiceProtocol
 
-    private let preferences: ObservablePreferences = .default
+    private let preferences: ObservablePreferences
 
     let explorerService: any GemExplorerServiceProtocol
     public let priceAlertService: any GemPriceAlertServiceProtocol
@@ -51,6 +51,7 @@ public final class AssetSceneViewModel: Sendable {
         priceAlertService: any GemPriceAlertServiceProtocol,
         bannerService: any GemBannerServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
+        preferences: ObservablePreferences,
         input: AssetSceneInput,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
@@ -61,6 +62,7 @@ public final class AssetSceneViewModel: Sendable {
         self.priceAlertService = priceAlertService
         self.bannerService = bannerService
         self.explorerService = explorerService
+        self.preferences = preferences
 
         self.input = input
         assetQuery = ObservableQuery(
@@ -470,7 +472,7 @@ public extension AssetSceneViewModel {
         let pinned = !assetData.metadata.isPinned
         Task {
             do {
-                try await balanceService.pinAsset(wallet: wallet, assetId: asset.id, pinned: pinned)
+                try await balanceService.setAssetPinned(wallet: wallet, assetId: asset.id, pinned: pinned)
                 isPresentingToastMessage = .pin(asset.name, pinned: pinned)
             } catch {
                 debugLog("onSelectPin error: \(error)")
@@ -482,7 +484,7 @@ public extension AssetSceneViewModel {
         Task {
             let enabled = !assetData.metadata.isBalanceEnabled
             do {
-                try await balanceService.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: enabled)
+                try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [asset.id], enabled: enabled)
                 isPresentingToastMessage = .showAsset(visible: enabled)
             } catch {
                 debugLog("onSelectEnable error: \(error)")

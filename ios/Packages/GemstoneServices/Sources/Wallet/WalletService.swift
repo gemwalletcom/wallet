@@ -33,7 +33,7 @@ public struct WalletService: Sendable {
     }
 
     public func acceptTerms() {
-        preferences.isAcceptTermsCompleted = true
+        preferences.acceptTerms()
     }
 
     public func createWallet() throws -> [String] {

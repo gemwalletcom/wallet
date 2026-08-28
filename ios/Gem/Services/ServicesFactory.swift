@@ -30,7 +30,8 @@ struct ServicesFactory {
     func makeServices(storages: AppResolver.Storages, navigation: NavigationStateManager) -> AppResolver.Services {
         let storeManager = storages.storeManager
         let securePreferences = SecurePreferences()
-        let preferencesService = Gemstone.GemPreferencesService(store: GemstonePreferencesStore(namespace: "gemstone_", sharedKeys: Preferences.sharedKeys))
+        let preferencesService = Gemstone.GemPreferencesService(store: GemstonePreferencesStore(namespace: "gemstone_", sharedKeys: Preferences.sharedKeys, keyAliases: Preferences.keyAliases))
+        let observablePreferences = ObservablePreferences(preferences: storages.preferences, preferencesService: preferencesService)
         let nodeService = NodeService(
             nodeStore: storeManager.nodeStore,
             service: GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore)),
@@ -100,7 +101,7 @@ struct ServicesFactory {
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration), url: Constants.apiURL),
         )
         let chainServiceFactory = ChainServiceFactory(gatewayService: gatewayService)
-        let gemWalletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: storages.observablePreferences), wallets: gemWalletStore)
+        let gemWalletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(preferences: observablePreferences), wallets: gemWalletStore)
         let walletSessionService = WalletSessionService(service: gemWalletSessionService)
         let gemWalletService = Gemstone.GemWalletService(
             keystore: storages.keystore.gemKeystore,
@@ -116,7 +117,7 @@ struct ServicesFactory {
             service: gemWalletService,
             keystore: storages.keystore,
             walletSessionService: walletSessionService,
-            preferences: storages.observablePreferences,
+            preferences: observablePreferences,
         )
         let webSocket = Self.makeWebSocket(securePreferences: securePreferences)
         let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
@@ -153,7 +154,7 @@ struct ServicesFactory {
         )
         let transactionStateScheduler = TransactionStateScheduler(service: TransactionStateService(service: gemTransactionStateService))
 
-        let preferences = storages.observablePreferences.preferences
+        let preferences = storages.preferences
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService)
         let bannerService = Gemstone.GemBannerService(
             store: gemBannerStore,
@@ -296,18 +297,14 @@ struct ServicesFactory {
             files: gemFileStore,
         )
 
-        let perpetualEnablerService = PerpetualEnablerService(
-            observer: hyperliquidObserverService,
-            service: perpetualService,
-            preferences: preferences,
-        )
         let appLifecycleService = AppLifecycleService(
             connectionsService: connectionsService,
             connectionStatusObserver: connectionStatusObserver,
             deviceObserverService: deviceObserverService,
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
-            perpetualEnablerService: perpetualEnablerService,
+            perpetualService: perpetualService,
+            perpetualObserver: hyperliquidObserverService,
             walletSessionService: walletSessionService,
         )
 
@@ -368,6 +365,7 @@ struct ServicesFactory {
             walletService: walletService,
             walletPreferencesService: walletPreferencesService,
             preferencesService: preferencesService,
+            observablePreferences: observablePreferences,
             walletSessionService: walletSessionService,
             assetDiscoveryService: assetDiscoveryService,
             gemAssetsService: gemAssetsService,

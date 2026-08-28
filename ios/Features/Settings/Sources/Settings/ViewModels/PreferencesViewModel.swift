@@ -25,7 +25,7 @@ public final class PreferencesViewModel {
     public init(
         currencyModel: CurrencySceneViewModel,
         preferencesService: any GemPreferencesServiceProtocol,
-        preferences: ObservablePreferences = .default,
+        preferences: ObservablePreferences,
     ) {
         self.currencyModel = currencyModel
         self.preferencesService = preferencesService

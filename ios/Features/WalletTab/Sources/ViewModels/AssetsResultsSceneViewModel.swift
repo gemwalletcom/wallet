@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import Components
@@ -8,7 +9,6 @@ import GemstonePrimitives
 import GemstoneServices
 import Foundation
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -21,7 +21,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     public static let defaultLimit = 100
 
     let balanceService: any GemBalanceServiceProtocol
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let searchService: any GemSearchServiceProtocol
     let perpetualService: any GemPerpetualServiceProtocol
     private let recentActivityStore: RecentActivityStore
@@ -41,7 +41,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     public init(
         wallet: Wallet,
         balanceService: any GemBalanceServiceProtocol,
-        preferences: Preferences,
+        preferencesService: any GemPreferencesServiceProtocol,
         searchService: any GemSearchServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
         recentActivityStore: RecentActivityStore,
@@ -51,7 +51,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     ) {
         self.wallet = wallet
         self.balanceService = balanceService
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         self.searchService = searchService
         self.perpetualService = perpetualService
         self.recentActivityStore = recentActivityStore
@@ -61,7 +61,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var currencyCode: String {
-        preferences.currency
+        preferencesService.currencyCode
     }
 
     var sections: WalletSearchSections {
@@ -85,7 +85,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var showPerpetuals: Bool {
-        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && preferences.showPerpetuals(for: wallet)
+        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && preferencesService.showPerpetuals(for: wallet)
     }
 
     var showEmpty: Bool {
@@ -129,7 +129,7 @@ extension AssetsResultsSceneViewModel {
                 wallet: wallet,
                 query: searchQuery.request.searchBy,
                 scope: searchQuery.request.scope,
-                currency: preferences.currency,
+                currency: preferencesService.currencyCode,
             )
             state = .data(true)
         } catch {

@@ -22,11 +22,8 @@ struct PreferencesTests {
         #expect(preferences.isSubscriptionsEnabled)
         #expect(!preferences.isPushNotificationsEnabled)
         #expect(!preferences.rateApplicationShown)
-        #expect(!preferences.isDeveloperEnabled)
-        #expect(!preferences.isHideBalanceEnabled)
         #expect(preferences.chartPeriod == .day)
         #expect(preferences.perpetualChartPeriod == .day)
-        #expect(preferences.appearance == .system)
     }
 
 
@@ -69,11 +66,7 @@ struct PreferencesTests {
         preferences.rateApplicationShown = true
         #expect(preferences.rateApplicationShown)
 
-        preferences.isDeveloperEnabled = true
-        #expect(preferences.isDeveloperEnabled)
 
-        preferences.isHideBalanceEnabled = true
-        #expect(preferences.isHideBalanceEnabled)
 
         preferences.chartPeriod = .hour
         #expect(preferences.chartPeriod == .hour)
@@ -81,8 +74,6 @@ struct PreferencesTests {
         preferences.perpetualChartPeriod = .month
         #expect(preferences.perpetualChartPeriod == .month)
 
-        preferences.appearance = .dark
-        #expect(preferences.appearance == .dark)
 
     }
 
@@ -97,8 +88,6 @@ struct PreferencesTests {
         preferences.isSubscriptionsEnabled = false
         preferences.isPushNotificationsEnabled = true
         preferences.rateApplicationShown = true
-        preferences.isDeveloperEnabled = true
-        preferences.isHideBalanceEnabled = true
         preferences.chartPeriod = .hour
         preferences.perpetualChartPeriod = .month
 
@@ -111,8 +100,6 @@ struct PreferencesTests {
         #expect(!preferences.isSubscriptionsEnabled)
         #expect(preferences.isPushNotificationsEnabled)
         #expect(preferences.rateApplicationShown)
-        #expect(preferences.isDeveloperEnabled)
-        #expect(preferences.isHideBalanceEnabled)
         #expect(preferences.chartPeriod == .hour)
         #expect(preferences.perpetualChartPeriod == .month)
 
@@ -127,8 +114,6 @@ struct PreferencesTests {
         #expect(preferences.isSubscriptionsEnabled)
         #expect(!preferences.isPushNotificationsEnabled)
         #expect(!preferences.rateApplicationShown)
-        #expect(!preferences.isDeveloperEnabled)
-        #expect(!preferences.isHideBalanceEnabled)
         #expect(preferences.chartPeriod == .day)
         #expect(preferences.perpetualChartPeriod == .day)
     }

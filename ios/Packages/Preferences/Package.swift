@@ -49,6 +49,7 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Preferences",
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
             ],
             path: "TestKit",
         ),

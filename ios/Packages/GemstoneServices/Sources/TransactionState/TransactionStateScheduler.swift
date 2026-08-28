@@ -42,7 +42,7 @@ public struct TransactionStateScheduler: Sendable {
         scheduleUpdate(for: transactions.map { TransactionWallet(transaction: $0, wallet: wallet) })
         Task {
             do {
-                try await service.enableAssets(wallet: wallet, transactions: transactions)
+                try await service.setAssetsEnabled(wallet: wallet, transactions: transactions)
             } catch {
                 debugLog("transaction state: asset enabling failed: \(error)")
             }

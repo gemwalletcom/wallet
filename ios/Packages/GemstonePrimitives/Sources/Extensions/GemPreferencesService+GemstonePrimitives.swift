@@ -42,4 +42,16 @@ public extension GemPreferencesServiceProtocol {
         case let .manual(bps): try setSwapSlippageBps(bps: bps)
         }
     }
+
+    var appearanceValue: Primitives.Appearance {
+        (try? Primitives.Appearance(getAppearance())) ?? .system
+    }
+
+    func setAppearanceValue(_ appearance: Primitives.Appearance) throws {
+        try setAppearance(appearance: appearance.json())
+    }
+
+    func showPerpetuals(for wallet: Wallet) -> Bool {
+        (try? showPerpetuals(wallet: wallet.json())) ?? false
+    }
 }
