@@ -4,7 +4,6 @@ import enum Gemstone.GemServiceError
 import protocol Gemstone.GemWalletConnectSigner
 import struct Gemstone.GemWalletConnectMessageRequest
 import struct Gemstone.GemWalletConnectTransactionRequest
-import GemstonePrimitives
 import Primitives
 import SwiftUI
 import WalletConnectorService
@@ -42,22 +41,12 @@ extension WalletConnectorManager: WalletConnectorInteractable {
 
 extension WalletConnectorManager: GemWalletConnectSigner {
     public func signMessage(request: GemWalletConnectMessageRequest) async throws -> String {
-        let payload = try SignMessagePayload(
-            chain: request.chain.map(),
-            session: WalletConnectionSession(request.session),
-            wallet: Wallet(request.wallet),
-            message: request.message,
-            simulation: SimulationResult(request.simulation),
-        )
+        let payload = try SignMessagePayload(request)
         return try await present { try await presentSheet(payload: payload, sheetType: { .signMessage($0) }) }
     }
 
     public func signTransaction(request: GemWalletConnectTransactionRequest) async throws -> String {
-        let data = try WCTransferData(
-            transferData: TransferData(request.transfer),
-            wallet: Wallet(request.wallet),
-            simulation: SimulationResult(request.simulation),
-        )
+        let data = try WCTransferData(request)
         return try await present { try await presentSheet(payload: data, sheetType: { .transferData($0) }) }
     }
 
