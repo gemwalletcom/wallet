@@ -17,12 +17,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import uniffi.gemstone.GemNotificationService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class InAppNotificationsViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val repository: InAppNotificationsRepository,
+    private val notificationService: GemNotificationService,
 ) : ViewModel() {
 
     val notifications: StateFlow<List<InAppNotification>> = sessionRepository.session()
@@ -35,14 +37,14 @@ class InAppNotificationsViewModel @Inject constructor(
         viewModelScope.launch {
             val wallet = sessionRepository.getCurrentWallet() ?: return@launch
             try {
-                repository.sync(wallet.id)
+                notificationService.sync(wallet.id.id)
             } catch (err: Throwable) {
                 Log.e(TAG, "Sync notifications error", err)
             }
             try {
                 val hasUnread = repository.getNotifications(wallet.id).first().any { it.readAt == null }
                 if (hasUnread) {
-                    repository.markNotificationsRead()
+                    notificationService.markRead()
                 }
             } catch (err: Throwable) {
                 Log.e(TAG, "Mark notifications read error", err)

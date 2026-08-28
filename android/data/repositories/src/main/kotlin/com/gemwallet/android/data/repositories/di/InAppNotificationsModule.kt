@@ -34,10 +34,6 @@ object InAppNotificationsModule {
     @Provides
     @Singleton
     fun provideInAppNotificationsRepository(
-        notificationService: GemNotificationService,
         notificationsDao: InAppNotificationsDao,
-    ): InAppNotificationsRepository = InAppNotificationsRepository(
-        notificationService = notificationService,
-        notificationsDao = notificationsDao,
-    )
+    ): InAppNotificationsRepository = InAppNotificationsRepository(notificationsDao)
 }
