@@ -22,6 +22,10 @@ public extension Primitives.StakeChain {
         Config.shared.getStakeConfig(chain: rawValue).usesFreeze
     }
 
+    var usesWholeAmounts: Bool {
+        Config.shared.getStakeConfig(chain: rawValue).usesWholeAmounts
+    }
+
     var supportRedelegate: Bool {
         Config.shared.getStakeConfig(chain: rawValue).canRedelegate
     }

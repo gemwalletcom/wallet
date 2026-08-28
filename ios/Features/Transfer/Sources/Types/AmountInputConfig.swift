@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
@@ -19,12 +20,16 @@ struct AmountInputConfig: CurrencyInputConfigurable {
         .zero
     }
 
+    private var usesWholeAmounts: Bool {
+        StakeChain(rawValue: asset.chain.rawValue)?.usesWholeAmounts ?? false
+    }
+
     var keyboardType: UIKeyboardType {
         switch sceneType {
         case .transfer, .deposit, .withdraw, .perpetual, .earn: .decimalPad
         case let .stake(stakeType):
             switch stakeType {
-            case .stake, .unstake: asset.chain == .tron ? .numberPad : .decimalPad
+            case .stake, .unstake: usesWholeAmounts ? .numberPad : .decimalPad
             case .redelegate, .withdraw, .claimRewards, .freeze, .unfreeze: .decimalPad
             }
         }

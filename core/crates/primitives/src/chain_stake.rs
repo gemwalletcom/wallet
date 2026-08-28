@@ -58,6 +58,11 @@ impl StakeChain {
         matches!(self, Self::Tron)
     }
 
+    /// Get if the chain takes stake amounts in whole units
+    pub fn get_uses_whole_amounts(&self) -> bool {
+        matches!(self, Self::Tron)
+    }
+
     /// Get if chain support redelegate
     pub fn get_can_redelegate(&self) -> bool {
         self.config().can_redelegate

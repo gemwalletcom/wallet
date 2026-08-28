@@ -18,6 +18,7 @@ pub struct ChainConfig {
     pub is_swap_supported: bool,
     pub is_stake_supported: bool,
     pub is_nft_supported: bool,
+    pub supports_nft_transfer: bool,
     pub is_defi_supported: bool,
     pub is_memo_supported: bool,
     pub has_native_asset: bool,
@@ -41,10 +42,15 @@ pub fn get_chain_config(chain: Chain) -> ChainConfig {
         is_swap_supported: chain.is_swap_supported(),
         is_stake_supported: chain.is_stake_supported(),
         is_nft_supported: chain.is_nft_supported(),
+        supports_nft_transfer: supports_nft_transfer(chain),
         is_defi_supported: chain.is_defi_supported(),
         is_memo_supported: is_memo_supported(chain),
         has_native_asset: chain.has_native_asset(),
     }
+}
+
+pub fn supports_nft_transfer(chain: Chain) -> bool {
+    chain.is_nft_supported() && matches!(chain.chain_type(), ChainType::Ethereum | ChainType::Ton | ChainType::Solana)
 }
 
 pub fn is_memo_supported(chain: Chain) -> bool {

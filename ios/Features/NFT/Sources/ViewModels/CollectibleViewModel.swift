@@ -155,9 +155,7 @@ public final class CollectibleViewModel {
     }
 
     var isSendEnabled: Bool {
-        wallet.canSign &&
-            assetData.asset.chain.isNFTSupported &&
-            Self.enabledChainTypes.contains(assetData.asset.chain.type)
+        wallet.canSign && assetData.asset.chain.supportsNftTransfer
     }
 
     var headerButtons: [HeaderButton] {
@@ -307,7 +305,6 @@ extension CollectibleViewModel {
 // MARK: - Private
 
 extension CollectibleViewModel {
-    private static let enabledChainTypes: Set<ChainType> = [.ethereum, .ton, .solana]
     private var contractValue: String {
         assetData.collection.contractAddress
     }

@@ -120,6 +120,10 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).transactionTimeout / 1000
     }
 
+    var supportsNftTransfer: Bool {
+        ChainConfig.config(chain: self).supportsNftTransfer
+    }
+
     var feeAssetIds: [Primitives.AssetId] {
         Gemstone.chainFeeAssetIds(chain: rawValue).compactMap { try? Primitives.AssetId(id: $0) }
     }

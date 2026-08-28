@@ -41,6 +41,8 @@ fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isS
 
 fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
 
+fun Chain.supportsNftTransfer(): Boolean = Config().getChainConfig(this.string).supportsNftTransfer
+
 fun Chain.hasNativeAsset(): Boolean = Config().getChainConfig(this.string).hasNativeAsset
 
 fun Chain.asset(): Asset {
