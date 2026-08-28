@@ -6,6 +6,7 @@ import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.data.coordinators.session.GetSessionImpl
 import com.gemwallet.android.data.coordinators.session.SetCurrentCurrencyImpl
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import uniffi.gemstone.GemPriceService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,10 +27,12 @@ object SessionModule {
     @Singleton
     fun provideSetCurrentCurrency(
         sessionRepository: SessionRepository,
+        priceService: GemPriceService,
         syncDevice: SyncDevice,
     ): SetCurrentCurrency {
         return SetCurrentCurrencyImpl(
             sessionRepository = sessionRepository,
+            priceService = priceService,
             syncDevice = syncDevice,
         )
     }

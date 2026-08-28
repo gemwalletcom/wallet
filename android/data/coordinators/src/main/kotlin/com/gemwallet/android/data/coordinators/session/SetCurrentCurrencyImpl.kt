@@ -8,9 +8,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemPriceService
 
 class SetCurrentCurrencyImpl(
     private val sessionRepository: SessionRepository,
+    private val priceService: GemPriceService,
     private val syncDevice: SyncDevice,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : SetCurrentCurrency {
@@ -22,6 +25,7 @@ class SetCurrentCurrencyImpl(
             }
 
             sessionRepository.setCurrency(currency)
+            priceService.changeCurrency(currency.toJson())
             syncDevice.syncDevice()
         }
     }

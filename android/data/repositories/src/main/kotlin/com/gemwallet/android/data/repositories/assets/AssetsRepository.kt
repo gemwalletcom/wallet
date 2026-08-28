@@ -2,7 +2,6 @@ package com.gemwallet.android.data.repositories.assets
 
 import android.util.Log
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
@@ -50,6 +49,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import uniffi.gemstone.GemStreamSubscriptionService
 import com.gemwallet.android.ext.available
+import com.gemwallet.android.ext.runCatchingCancellable
+import uniffi.gemstone.GemBalanceService
 
 private const val TAG = "AssetsRepository"
 
@@ -57,21 +58,12 @@ private const val TAG = "AssetsRepository"
 @Singleton
 class AssetsRepository @Inject constructor(
     private val assetsDao: AssetsDao,
-    private val pricesRepository: PricesRepository,
     private val sessionRepository: SessionRepository,
     private val searchTokensCase: SearchTokensCase,
     private val streamSubscriptionService: GemStreamSubscriptionService,
-    private val updateBalances: UpdateBalances,
+    private val balanceService: GemBalanceService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
-
-    init {
-        scope.launch(Dispatchers.IO) {
-            sessionRepository.session().collectLatest {
-                pricesRepository.convertPricesToCurrency(it?.currency ?: return@collectLatest)
-            }
-        }
-    }
 
     private fun currentWalletId(): Flow<String> = sessionRepository.currentWalletId()
 
@@ -239,9 +231,18 @@ class AssetsRepository @Inject constructor(
         groupBy { it.walletId }
             .mapNotNull { (walletId, assetInfos) ->
                 walletId ?: return@mapNotNull null
-                async { updateBalances.updateBalances(walletId.id, assetInfos.map { it.asset.id.toIdentifier() }) }
+                async {
+                    runCatchingCancellable { balanceService.update(walletId.id, assetInfos.map { it.asset.id.toIdentifier() }) }
+                        .onFailure { Log.e(TAG, "balances update failed for ${walletId.id}", it) }
+                    Unit
+                }
             }
     }
+
+    private companion object {
+        const val TAG = "AssetsRepository"
+    }
+
 }
 
 private fun DbAsset.toBasicUpdateRecord() = DbAssetBasicUpdate(

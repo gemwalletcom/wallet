@@ -24,7 +24,7 @@ impl<C: Client + Clone> BscStakingClient<C> {
         Self { client }
     }
 
-    async fn fetch_staking_state(&self, address: &str) -> Result<(Vec<BscDelegation>, Vec<BscUndelegation>), Box<dyn Error + Sync + Send>> {
+    async fn get_staking_state(&self, address: &str) -> Result<(Vec<BscDelegation>, Vec<BscUndelegation>), Box<dyn Error + Sync + Send>> {
         let results = self
             .client
             .batch_eth_call(
@@ -65,12 +65,12 @@ impl<C: Client + Clone> EvmStakingClient for BscStakingClient<C> {
     }
 
     async fn get_staking_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let (delegations, undelegations) = self.fetch_staking_state(address).await?;
+        let (delegations, undelegations) = self.get_staking_state(address).await?;
         Ok(map_delegations(delegations, undelegations))
     }
 
     async fn get_staking_balance(&self, address: &str) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        let (delegations, undelegations) = self.fetch_staking_state(address).await?;
+        let (delegations, undelegations) = self.get_staking_state(address).await?;
         Ok(Some(AssetBalance::new_balance(
             AssetId::from_chain(Chain::SmartChain),
             map_staking_balance(&delegations, &undelegations),

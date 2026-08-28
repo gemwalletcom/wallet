@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.assets
 
-import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.service.store.database.AssetListDao
@@ -54,6 +53,7 @@ import org.junit.Test
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.defaultTokenRank
 import uniffi.gemstone.GemStreamSubscriptionService
+import uniffi.gemstone.GemBalanceService
 
 class AssetsRepositoryTest {
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
@@ -64,7 +64,7 @@ class AssetsRepositoryTest {
     private val sessionRepository = mockk<SessionRepository>()
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
     private val streamSubscriptionService = mockk<GemStreamSubscriptionService>(relaxed = true)
-    private val updateBalances = mockk<UpdateBalances>(relaxed = true)
+    private val balanceService = mockk<GemBalanceService>(relaxed = true)
     private val scope = CoroutineScope(Job())
     private val sessionFlow = MutableStateFlow<com.gemwallet.android.model.Session?>(null)
 
@@ -72,11 +72,10 @@ class AssetsRepositoryTest {
 
     private fun createSubject() = AssetsRepository(
         assetsDao = assetsDao,
-        pricesRepository = PricesRepository(priceService, sessionRepository),
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
-        updateBalances = updateBalances,
+        balanceService = balanceService,
         scope = scope,
     )
 

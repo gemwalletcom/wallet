@@ -311,7 +311,7 @@ where
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let quote_request = Self::build_quote_request(request, SwapType::FlexInput, true)?;
         let amount = quote_request.amount.clone();
-        let response = Self::extract_quote(self.client.fetch_quote(&quote_request).await?, request.from_asset.decimals)?;
+        let response = Self::extract_quote(self.client.get_quote(&quote_request).await?, request.from_asset.decimals)?;
 
         let eta = response.quote.time_estimate;
         let min_amount_in = response.quote.min_amount_in.to_string();
@@ -342,7 +342,7 @@ where
         let request_deposit_mode = quote_request.deposit_mode.clone();
         quote_request.dry = false;
 
-        let response: QuoteResponse = Self::extract_quote(self.client.fetch_quote(&quote_request).await?, quote.request.from_asset.decimals)?;
+        let response: QuoteResponse = Self::extract_quote(self.client.get_quote(&quote_request).await?, quote.request.from_asset.decimals)?;
         let QuoteResponse {
             quote_request: _,
             quote: near_quote,

@@ -26,7 +26,7 @@ pub(super) async fn input_mutability(client: &SuiClient, commands: &[Transaction
         .collect::<HashSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();
-    let cache = fetch_functions(client, keys).await?;
+    let cache = get_functions(client, keys).await?;
     let mut mutable_inputs = HashMap::<usize, bool>::new();
 
     for command in commands {
@@ -52,12 +52,12 @@ pub(super) async fn input_mutability(client: &SuiClient, commands: &[Transaction
     Ok(mutable_inputs)
 }
 
-async fn fetch_functions(client: &SuiClient, keys: Vec<MoveFunctionKey>) -> Result<HashMap<MoveFunctionKey, FunctionDescriptor>, SuiError> {
+async fn get_functions(client: &SuiClient, keys: Vec<MoveFunctionKey>) -> Result<HashMap<MoveFunctionKey, FunctionDescriptor>, SuiError> {
     try_join_all(keys.into_iter().map(|key| async move {
         let function = client
             .get_function(&key.package, &key.module, &key.function)
             .await
-            .map_err(|err| SuiError::invalid_input(format!("Failed to fetch Sui Move function signature: {err}")))?;
+            .map_err(|err| SuiError::invalid_input(format!("Failed to read Sui Move function signature: {err}")))?;
         Ok((key, function))
     }))
     .await

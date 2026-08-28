@@ -7,8 +7,6 @@ import com.gemwallet.android.cases.device.SyncDevice
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.assets.UpdateBalances
-import com.gemwallet.android.data.repositories.prices.PricesRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
 import com.gemwallet.android.data.repositories.support.SupportChatRepository
@@ -62,18 +60,16 @@ object AssetsModule {
     @Singleton
     fun provideAssetsRepository(
         assetsDao: AssetsDao,
-        pricesRepository: PricesRepository,
         sessionRepository: SessionRepository,
         searchTokensCase: SearchTokensCase,
         streamSubscriptionService: GemStreamSubscriptionService,
-        updateBalances: UpdateBalances,
+        balanceService: GemBalanceService,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
-        pricesRepository = pricesRepository,
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
-        updateBalances = updateBalances,
+        balanceService = balanceService,
     )
 
 
@@ -100,12 +96,6 @@ object AssetsModule {
         streamSubscriptionService,
         preferencesService,
     )
-
-    @Provides
-    @Singleton
-    fun provideUpdateBalances(
-        balanceService: GemBalanceService,
-    ): UpdateBalances = UpdateBalances(balanceService)
 
     @Provides
     @Singleton

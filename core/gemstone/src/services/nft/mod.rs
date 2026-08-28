@@ -149,26 +149,26 @@ mod tests {
     }
 
     #[test]
-    fn test_cached_asset_skips_fetch() {
+    fn test_cached_asset_skips_loading() {
         let store = MemoryStore {
             cached: Some(asset_data("cached")),
             ..Default::default()
         };
-        let fetched = Mutex::new(false);
+        let loaded = Mutex::new(false);
 
         let data = futures::executor::block_on(cached_or_loaded(&store, asset_data("cached").asset.id, async {
-            *fetched.lock().unwrap() = true;
+            *loaded.lock().unwrap() = true;
             Ok(asset_data("remote"))
         }))
         .unwrap();
 
         assert_eq!(data.collection.name, "cached");
-        assert!(!*fetched.lock().unwrap());
+        assert!(!*loaded.lock().unwrap());
         assert!(store.added.lock().unwrap().is_empty());
     }
 
     #[test]
-    fn test_missing_asset_is_fetched_and_added() {
+    fn test_missing_asset_is_loaded_and_added() {
         let store = MemoryStore::default();
 
         let data = futures::executor::block_on(cached_or_loaded(&store, asset_data("remote").asset.id, async { Ok(asset_data("remote")) })).unwrap();
