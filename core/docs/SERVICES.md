@@ -154,7 +154,7 @@ interface SetPriceAlertsEnabled {
 }
 ```
 
-`data/coordinators/.../pricealerts/PriceAlertsEnabledCoordinator.kt` — the implementation, holding nothing but the Core service (it is named `…Coordinator` instead of `…Impl` only because one class satisfies two case interfaces):
+`data/coordinators/.../pricealerts/PriceAlertsEnabledCoordinator.kt` — the implementation, holding nothing but the Core service and the signal that makes the read re-emit:
 
 ```kotlin
 class PriceAlertsEnabledCoordinator(
@@ -174,10 +174,10 @@ class PriceAlertsEnabledCoordinator(
 }
 ```
 
-Hilt builds the implementation once and binds every interface it satisfies, so the view model asks for the case it needs and nothing else:
+Hilt builds it once and binds both interfaces to it, so the view model asks for the case it needs and nothing else:
 
 ```kotlin
-@Provides
+@Provides @Singleton
 fun providePriceAlertsEnabledCoordinator(priceAlertService: GemPriceAlertService) = PriceAlertsEnabledCoordinator(priceAlertService)
 
 @Provides
@@ -187,7 +187,11 @@ fun provideGetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): Ge
 fun provideSetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): SetPriceAlertsEnabled = coordinator
 ```
 
-**One class implementing two cases** is right only when they share state. Here the read flow has to re-emit after a write, and `changes` is that shared signal — split them and you would have to invent a channel between the two classes. With no shared state, write one `*Impl` per case. The better fix is to remove the shared state: when Core exposes the value as something observable, the read and the write become independent cases again. **A case composing other cases is always fine** — `SyncAssetPriceAlertsImpl` holds `HasAssetPriceAlerts` and `UpdatePriceAlerts` — that is how a flow is assembled; what a case must not hold is a repository.
+**Two shapes, and the name says which:** `*Impl` is one case with no state — it forwards to Core, or returns the Room `Flow` the database already makes reactive (`GetAssetPriceAlertState`). `*Coordinator` implements the read *and* the write for one subject and owns the signal between them; it is the right shape when Core answers with a point read that screens must observe. `PriceAlertsEnabledCoordinator` is one (the enabled flag is a preference, so `isEnabled()` cannot be observed) and `AppUpdateCoordinator` is another (the update offer has no row behind it).
+
+Prefer the coordinator over refreshing state in each view model: `setPriceAlertsEnabled` has a second writer — `IncludePriceAlertImpl` turns alerts on when one is added — and a screen holding its own copy goes stale the moment someone else writes. Routing both directions through one object is what keeps every observer correct. iOS gets away with the simpler thing (`isPriceAlertsEnabled = priceAlertService.isEnabled()` after its own `setEnabled`) because its screens re-read on appear. If Core ever publishes preference changes as a stream, every coordinator of this kind collapses back into two stateless `*Impl`s.
+
+**A case composing other cases is always fine** — `SyncAssetPriceAlertsImpl` holds `HasAssetPriceAlerts` and `UpdatePriceAlerts` — that is how a flow is assembled; what a case must not hold is a repository.
 
 `features/settings/price_alerts/.../PriceAlertViewModel.kt` — the screen's view model, which injects the cases and never the service or a repository:
 
@@ -196,7 +200,15 @@ fun provideSetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): Se
 class PriceAlertViewModel @Inject constructor(
     private val getPriceAlertsEnabled: GetPriceAlertsEnabled,
     private val setPriceAlertsEnabled: SetPriceAlertsEnabled,
-) : ViewModel()
+) : ViewModel() {
+
+    val priceAlertEnabled = getPriceAlertsEnabled.isPriceAlertsEnabled()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch {
+        setPriceAlertsEnabled(enable)
+    }
+}
 ```
 
 A case may compose other cases ([`SyncAssetPriceAlertsImpl`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/SyncAssetPriceAlertsImpl.kt) calls `HasAssetPriceAlerts` and `UpdatePriceAlerts`), and it holds the Room DAO when the screen needs an observed read. It must not take a repository for data a Core service owns. The repositories left in the graph are legacy and shrink as services land; `SessionRepository` is the one still in wide use, and Core's `GemWalletSessionService` is replacing it.
