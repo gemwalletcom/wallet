@@ -94,6 +94,12 @@ struct LocalKeystoreTests {
 
         let lostPassword = LocalKeystore(directory: directory, keystorePassword: MockKeystorePassword(memoryPassword: ""))
         #expect(throws: Error.self) { try lostPassword.keystorePassword(createIfMissing: true) }
+
+        let storedPassword = try keystore.keystorePassword(createIfMissing: false)
+        #expect(storedPassword.isNotEmpty)
+        #expect(throws: Never.self) {
+            try keystore.importWallet(name: "second", type: .phrase(words: LocalKeystore.words, chains: [.bitcoin]))
+        }
     }
 
     @Test
