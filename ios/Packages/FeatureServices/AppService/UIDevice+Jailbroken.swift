@@ -14,20 +14,20 @@ public extension UIDevice {
     }
 
     var isJailBroken: Bool {
-        if JailBrokenHelper.hasCydiaInstalled() { return true }
-        if JailBrokenHelper.isContainsSuspiciousApps() { return true }
-        if JailBrokenHelper.isSuspiciousSystemPathsExists() { return true }
-        return JailBrokenHelper.canEditSystemFiles()
+        if JailbreakChecks.hasCydiaInstalled() { return true }
+        if JailbreakChecks.isContainsSuspiciousApps() { return true }
+        if JailbreakChecks.isSuspiciousSystemPathsExists() { return true }
+        return JailbreakChecks.canEditSystemFiles()
     }
 
     var isFridaDetected: Bool {
-        if JailBrokenHelper.checkDYLD() { return true }
-        if JailBrokenHelper.isFridaRunning() { return true }
+        if JailbreakChecks.checkDYLD() { return true }
+        if JailbreakChecks.isFridaRunning() { return true }
         return false
     }
 }
 
-private enum JailBrokenHelper {
+private enum JailbreakChecks {
     @MainActor static func hasCydiaInstalled() -> Bool {
         UIApplication.shared.canOpenURL(URL(string: "cydia://")!)
     }

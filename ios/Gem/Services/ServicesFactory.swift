@@ -60,7 +60,7 @@ struct ServicesFactory {
             walletStore: storeManager.walletStore,
         )
 
-        let nodeProvider: any NodeURLFetchable = nodeService
+        let nodeProvider: any NodeURLProvidable = nodeService
         let connectionStatusObserver = ConnectionStatusObserver(
             monitors: [
                 InternetConnectionMonitor(),

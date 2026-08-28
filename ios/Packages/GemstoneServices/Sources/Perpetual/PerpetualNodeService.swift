@@ -3,10 +3,10 @@
 import Foundation
 import Primitives
 
-public struct PerpetualNodeService: NodeURLFetchable {
-    private let nodeProvider: any NodeURLFetchable
+public struct PerpetualNodeService: NodeURLProvidable {
+    private let nodeProvider: any NodeURLProvidable
 
-    public init(nodeProvider: any NodeURLFetchable) {
+    public init(nodeProvider: any NodeURLProvidable) {
         self.nodeProvider = nodeProvider
     }
 

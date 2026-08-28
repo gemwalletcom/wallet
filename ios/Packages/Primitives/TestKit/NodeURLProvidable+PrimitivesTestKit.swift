@@ -3,13 +3,13 @@
 import Foundation
 @testable import Primitives
 
-public extension NodeURLFetchable {
-    static func mock() -> NodeURLFetchable {
-        MockNodeURLFetchable()
+public extension NodeURLProvidable {
+    static func mock() -> NodeURLProvidable {
+        NodeURLProviderMock()
     }
 }
 
-public struct MockNodeURLFetchable: NodeURLFetchable {
+public struct NodeURLProviderMock: NodeURLProvidable {
     public func node(for _: Chain) -> URL {
         URL(string: "https://mock-node.example.com")!
     }

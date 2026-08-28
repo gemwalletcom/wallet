@@ -2,6 +2,6 @@
 
 import Foundation
 
-public protocol NodeURLFetchable: Sendable {
+public protocol NodeURLProvidable: Sendable {
     func node(for chain: Chain) -> URL
 }

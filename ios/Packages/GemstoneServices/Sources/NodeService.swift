@@ -44,9 +44,9 @@ public final class NodeService: Sendable {
     }
 }
 
-// MARK: - NodeURLFetchable
+// MARK: - NodeURLProvidable
 
-extension NodeService: NodeURLFetchable {
+extension NodeService: NodeURLProvidable {
     public func node(for chain: Chain) -> URL {
         let selectedUrl = try? nodeStore.selectedNodeUrl(chain: chain)
         let storedNodes = (try? nodeStore.nodes(chain: chain).map { try $0.node.json() }) ?? []

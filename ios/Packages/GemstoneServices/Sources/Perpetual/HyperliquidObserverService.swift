@@ -17,7 +17,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
     public let chartService: any ChartStreamable
 
     public init(
-        nodeProvider: any NodeURLFetchable,
+        nodeProvider: any NodeURLProvidable,
         perpetualService: HyperliquidPerpetualServiceable,
     ) {
         let webSocket = WebSocketConnection(url: nodeProvider.node(for: .hyperCore))

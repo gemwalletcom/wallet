@@ -6,12 +6,12 @@ import Primitives
 
 public struct PerpetualProviderFactory {
     private let gatewayService: GatewayService
-    private let nodeProvider: any NodeURLFetchable
+    private let nodeProvider: any NodeURLProvidable
     private let requestInterceptor: any RequestInterceptable
 
     public init(
         gatewayService: GatewayService,
-        nodeProvider: any NodeURLFetchable,
+        nodeProvider: any NodeURLProvidable,
         requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
     ) {
         self.gatewayService = gatewayService
