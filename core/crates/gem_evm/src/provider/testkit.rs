@@ -77,12 +77,6 @@ pub fn create_arbitrum_test_client() -> EthereumProvider<ReqwestClient> {
 }
 
 #[cfg(all(test, feature = "rpc", feature = "reqwest"))]
-pub fn create_monad_test_client() -> EthereumProvider<ReqwestClient> {
-    let settings = get_test_settings();
-    build_test_client(EVMChain::Monad, &settings.chains.monad.url)
-}
-
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
 pub fn print_fee_rates(fee_rates: Vec<FeeRate>) {
     for fee_rate in &fee_rates {
         println!(

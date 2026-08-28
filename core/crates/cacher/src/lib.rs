@@ -129,10 +129,6 @@ impl CacherClient {
         Ok(results.0)
     }
 
-    pub async fn get_counter(&self, key: &str) -> Result<i64, Box<dyn Error + Send + Sync>> {
-        Ok(self.connection.clone().get::<&str, Option<i64>>(key).await?.unwrap_or(0))
-    }
-
     // CacheKey-aware methods
     pub async fn set_cached<T: serde::Serialize>(&self, key: CacheKey<'_>, value: &T) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.set_values_with_ttl(vec![(&key.key(), value)], key.ttl() as i64).await?;
@@ -162,10 +158,6 @@ impl CacherClient {
 
     pub async fn increment_cached(&self, key: CacheKey<'_>) -> Result<i64, Box<dyn Error + Send + Sync>> {
         self.increment_with_ttl(&key.key(), key.ttl() as i64).await
-    }
-
-    pub async fn get_cached_counter(&self, key: CacheKey<'_>) -> Result<i64, Box<dyn Error + Send + Sync>> {
-        self.get_counter(&key.key()).await
     }
 
     pub async fn add_to_set_cached(&self, key: CacheKey<'_>, members: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
