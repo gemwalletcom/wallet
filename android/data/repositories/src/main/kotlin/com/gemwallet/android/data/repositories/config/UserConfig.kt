@@ -10,11 +10,12 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemPreferencesService
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "user_config")
@@ -22,6 +23,7 @@ private val Context.dataStore by preferencesDataStore(name = "user_config")
 class UserConfig(
     private val context: Context,
     private val configStore: ConfigStore,
+    private val preferencesService: GemPreferencesService,
 ) {
 
     fun authRequired(): Boolean = configStore.getBoolean(ConfigKey.Auth.string)
@@ -63,21 +65,38 @@ class UserConfig(
 
 
 
-    fun perpetualLeverage(): Flow<Int> = read(Key.PerpetualLeverage, PerpetualConfig.defaultLeverage)
+    private val perpetualLeverageState = MutableStateFlow(preferencesService.getPerpetualLeverage().toInt())
+    private val perpetualTakeProfitState = MutableStateFlow(preferencesService.getPerpetualTakeProfitPercent().toInt())
+    private val perpetualStopLossState = MutableStateFlow(preferencesService.getPerpetualStopLossPercent().toInt())
+    private val swapSlippageBpsState = MutableStateFlow(preferencesService.getSwapSlippageBps())
 
-    suspend fun setPerpetualLeverage(value: Int) = write(Key.PerpetualLeverage, value)
+    fun perpetualLeverage(): Flow<Int> = perpetualLeverageState
 
-    fun perpetualTakeProfit(): Flow<Int> = read(Key.PerpetualTakeProfit, PerpetualConfig.defaultTakeProfit)
+    fun setPerpetualLeverage(value: Int) {
+        preferencesService.setPerpetualLeverage(value.toUByte())
+        perpetualLeverageState.value = preferencesService.getPerpetualLeverage().toInt()
+    }
 
-    suspend fun setPerpetualTakeProfit(value: Int) = write(Key.PerpetualTakeProfit, value)
+    fun perpetualTakeProfit(): Flow<Int> = perpetualTakeProfitState
 
-    fun perpetualStopLoss(): Flow<Int> = read(Key.PerpetualStopLoss, PerpetualConfig.defaultStopLoss)
+    fun setPerpetualTakeProfit(value: Int) {
+        preferencesService.setPerpetualTakeProfitPercent(value.toUByte())
+        perpetualTakeProfitState.value = preferencesService.getPerpetualTakeProfitPercent().toInt()
+    }
 
-    suspend fun setPerpetualStopLoss(value: Int) = write(Key.PerpetualStopLoss, value)
+    fun perpetualStopLoss(): Flow<Int> = perpetualStopLossState
 
-    fun swapSlippageBps(): Flow<UInt?> = read(Key.SwapSlippageBps, 0).map { bps -> bps.takeIf { it > 0 }?.toUInt() }
+    fun setPerpetualStopLoss(value: Int) {
+        preferencesService.setPerpetualStopLossPercent(value.toUByte())
+        perpetualStopLossState.value = preferencesService.getPerpetualStopLossPercent().toInt()
+    }
 
-    suspend fun setSwapSlippageBps(bps: UInt?) = write(Key.SwapSlippageBps, bps?.toInt() ?: 0)
+    fun swapSlippageBps(): Flow<UInt?> = swapSlippageBpsState
+
+    fun setSwapSlippageBps(bps: UInt?) {
+        preferencesService.setSwapSlippageBps(bps)
+        swapSlippageBpsState.value = preferencesService.getSwapSlippageBps()
+    }
 
     fun getLockInterval(): Flow<Int> = read(Key.LockInterval, 1)
 
@@ -121,10 +140,6 @@ class UserConfig(
         val IsTermsAccepted = booleanPreferencesKey("is_terms_accepted")
         val AskNotifications = longPreferencesKey("ask_notifications")
         val IsPerpetualEnabled = booleanPreferencesKey("is_perpetual_enabled")
-        val PerpetualLeverage = intPreferencesKey("perpetual_leverage")
-        val PerpetualTakeProfit = intPreferencesKey("perpetual_take_profit")
-        val PerpetualStopLoss = intPreferencesKey("perpetual_stop_loss")
-        val SwapSlippageBps = intPreferencesKey("swap_slippage_bps")
         val Appearance = stringPreferencesKey("appearance")
     }
 }

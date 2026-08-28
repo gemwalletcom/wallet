@@ -4,6 +4,7 @@ import android.content.Context
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.service.store.ConfigStore
 import dagger.Module
+import uniffi.gemstone.GemPreferencesService
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -18,8 +19,10 @@ object ConfigModule {
     @Provides
     fun provideUserConfig(
         @ApplicationContext context: Context,
+        preferencesService: GemPreferencesService,
     ): UserConfig = UserConfig(
         context = context,
         configStore = ConfigStore(context.getSharedPreferences("config", Context.MODE_PRIVATE)),
+        preferencesService = preferencesService,
     )
 }

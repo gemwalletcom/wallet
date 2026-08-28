@@ -28,4 +28,18 @@ public extension GemPreferencesServiceProtocol {
     func setPerpetualChartPeriodValue(_ period: ChartPeriod) {
         try? setPerpetualChartPeriod(period: period.json())
     }
+
+    var swapSlippage: SwapSlippage {
+        switch getSwapSlippageBps() {
+        case let .some(bps): .manual(bps: bps)
+        case .none: .auto
+        }
+    }
+
+    func setSwapSlippage(_ slippage: SwapSlippage) throws {
+        switch slippage {
+        case .auto: try setSwapSlippageBps(bps: nil)
+        case let .manual(bps): try setSwapSlippageBps(bps: bps)
+        }
+    }
 }

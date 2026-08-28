@@ -8,10 +8,12 @@ import Swap
 public struct ConfirmDetailsViewModel {
     private let type: TransferDataType
     private let metadata: TransferDataMetadata?
+    private let currency: String
 
-    init(type: TransferDataType, metadata: TransferDataMetadata?) {
+    init(type: TransferDataType, metadata: TransferDataMetadata?, currency: String) {
         self.type = type
         self.metadata = metadata
+        self.currency = currency
     }
 }
 
@@ -27,6 +29,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     toAssetPrice: AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id]),
                     selectedQuote: swapData.quote,
                     slippage: .manual(bps: swapData.quote.slippageBps),
+                    currency: currency,
                 ),
             )
         case let .perpetual(_, perpetualType):

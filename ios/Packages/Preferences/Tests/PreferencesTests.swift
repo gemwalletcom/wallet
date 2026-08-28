@@ -26,7 +26,6 @@ struct PreferencesTests {
         #expect(!preferences.isHideBalanceEnabled)
         #expect(preferences.chartPeriod == .day)
         #expect(preferences.perpetualChartPeriod == .day)
-        #expect(preferences.perpetualLeverage == 0)
         #expect(preferences.appearance == .system)
     }
 
@@ -85,8 +84,6 @@ struct PreferencesTests {
         preferences.appearance = .dark
         #expect(preferences.appearance == .dark)
 
-        preferences.perpetualLeverage = 25
-        #expect(preferences.perpetualLeverage == 25)
     }
 
     @Test
@@ -104,7 +101,6 @@ struct PreferencesTests {
         preferences.isHideBalanceEnabled = true
         preferences.chartPeriod = .hour
         preferences.perpetualChartPeriod = .month
-        preferences.perpetualLeverage = 25
 
         #expect(preferences.currency == Currency.eur.rawValue)
         #expect(preferences.importFiatMappingsVersion == 1)
@@ -135,7 +131,6 @@ struct PreferencesTests {
         #expect(!preferences.isHideBalanceEnabled)
         #expect(preferences.chartPeriod == .day)
         #expect(preferences.perpetualChartPeriod == .day)
-        #expect(preferences.perpetualLeverage == 0)
     }
 
     @Test

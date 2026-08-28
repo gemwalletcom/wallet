@@ -7,12 +7,12 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import enum Gemstone.SwapperError
 import enum Gemstone.SwapperProvider
 import struct Gemstone.SwapperQuote
 import GemstonePrimitives
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -56,12 +56,12 @@ public final class SwapSceneViewModel {
 
     private let onSwap: TransferDataAction
     private let swapService: any GemSwapServiceProtocol
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let formatter = SwapValueFormatter(valueFormatter: .full)
     private let toValueFormatter = SwapValueFormatter(valueFormatter: ValueFormatter(style: .auto))
 
     public init(
-        preferences: Preferences = Preferences.standard,
+        preferencesService: any GemPreferencesServiceProtocol,
         input: SwapInput,
         balanceService: any GemBalanceServiceProtocol,
         priceUpdater: any PriceUpdater,
@@ -70,7 +70,7 @@ public final class SwapSceneViewModel {
     ) {
         let pairSelectorModel = input.pairSelector
         self.pairSelectorModel = pairSelectorModel
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         wallet = input.wallet
         self.balanceService = balanceService
         self.priceUpdater = priceUpdater
@@ -79,7 +79,7 @@ public final class SwapSceneViewModel {
         toAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.toAssetId), initialValue: nil)
         self.swapService = swapService
         self.onSwap = onSwap
-        selectedSlippage = preferences.swapSlippage
+        selectedSlippage = preferencesService.swapSlippage
     }
 
     var title: String {
@@ -106,7 +106,7 @@ public final class SwapSceneViewModel {
             toAssetPrice: AssetPriceValue(asset: toAsset.asset, price: toAsset.price),
             selectedQuote: selectedQuote,
             slippage: selectedSlippage,
-            preferences: preferences,
+            currency: preferencesService.currencyCode,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
@@ -195,7 +195,7 @@ public final class SwapSceneViewModel {
                 AssetDataViewModel(
                     assetData: assetData,
                     formatter: .auto,
-                    currencyCode: preferences.currency,
+                    currencyCode: preferencesService.currencyCode,
                     currencyFormatterType: .currency,
                 ),
             ),
@@ -295,7 +295,11 @@ extension SwapSceneViewModel {
     func onSelectSlippage(_ slippage: SwapSlippage) {
         guard slippage != selectedSlippage else { return }
         selectedSlippage = slippage
-        preferences.swapSlippage = slippage
+        do {
+            try preferencesService.setSwapSlippage(slippage)
+        } catch {
+            debugLog("set swap slippage error: \(error)")
+        }
         resetTransferDataState()
         setFetchTrigger(isImmediate: true)
     }

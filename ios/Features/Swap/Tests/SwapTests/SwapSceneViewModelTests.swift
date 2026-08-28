@@ -7,13 +7,14 @@ import protocol Gemstone.GemSwapServiceProtocol
 import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote
 import GemstoneServices
-import Preferences
-import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 @testable import Swap
+import class Gemstone.GemPreferencesService
+import protocol Gemstone.GemPreferencesServiceProtocol
+import GemstonePrimitives
 import Testing
 
 @MainActor
@@ -352,14 +353,14 @@ struct SwapSceneViewModelTests {
 
     @Test
     func slippagePersistsAcrossSessions() {
-        let preferences = Preferences.mock()
-        let model = SwapSceneViewModel.mock(preferences: preferences)
+        let preferencesService = GemPreferencesService(store: GemPreferencesStoreMock())
+        let model = SwapSceneViewModel.mock(preferencesService: preferencesService)
         #expect(model.selectedSlippage == .auto)
 
         model.onSelectSlippage(.manual(bps: 150))
 
-        #expect(preferences.swapSlippage == .manual(bps: 150))
-        #expect(SwapSceneViewModel.mock(preferences: preferences).selectedSlippage == .manual(bps: 150))
+        #expect(preferencesService.swapSlippage == .manual(bps: 150))
+        #expect(SwapSceneViewModel.mock(preferencesService: preferencesService).selectedSlippage == .manual(bps: 150))
     }
 
     // MARK: - Private methods
@@ -377,10 +378,10 @@ struct SwapSceneViewModelTests {
 extension SwapSceneViewModel {
     static func mock(
         swapService: any GemSwapServiceProtocol = GemSwapServiceMock(),
-        preferences: Preferences = .mock(),
+        preferencesService: any GemPreferencesServiceProtocol = GemPreferencesService(store: GemPreferencesStoreMock()),
     ) -> SwapSceneViewModel {
         let model = SwapSceneViewModel(
-            preferences: preferences,
+            preferencesService: preferencesService,
             input: .init(
                 wallet: .mock(accounts: [.mock(chain: .ethereum)]),
                 pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil),

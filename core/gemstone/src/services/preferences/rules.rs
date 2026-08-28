@@ -12,6 +12,14 @@ pub fn default_currency(locale_currency: Option<String>) -> Currency {
     locale_currency.and_then(|code| Currency::from_str(&code).ok()).unwrap_or(Currency::USD)
 }
 
+pub fn swap_slippage_bps(value: Option<String>) -> Option<u32> {
+    value.and_then(|value| value.parse::<u32>().ok()).filter(|bps| *bps > 0)
+}
+
+pub fn percent_or_default(value: Option<String>, default: u8) -> u8 {
+    value.and_then(|value| value.parse::<u8>().ok()).filter(|value| *value > 0).unwrap_or(default)
+}
+
 pub fn flag(value: Option<String>) -> bool {
     value.as_deref() == Some("true")
 }
@@ -32,6 +40,17 @@ mod tests {
         assert_eq!(default_currency(Some("EUR".to_string())), Currency::EUR);
         assert_eq!(default_currency(Some("XXX".to_string())), Currency::USD);
         assert_eq!(default_currency(None), Currency::USD);
+    }
+
+    #[test]
+    fn test_swap_slippage_and_percent_defaults() {
+        assert_eq!(swap_slippage_bps(Some("150".to_string())), Some(150));
+        assert_eq!(swap_slippage_bps(Some("0".to_string())), None);
+        assert_eq!(swap_slippage_bps(None), None);
+        assert_eq!(percent_or_default(Some("25".to_string()), 5), 25);
+        assert_eq!(percent_or_default(Some("0".to_string()), 5), 5);
+        assert_eq!(percent_or_default(Some("x".to_string()), 5), 5);
+        assert_eq!(percent_or_default(None, 5), 5);
     }
 
     #[test]

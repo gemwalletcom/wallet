@@ -190,6 +190,7 @@ public struct ViewModelFactory: Sendable {
         onSwap: @escaping (TransferData) -> Void,
     ) -> SwapSceneViewModel {
         SwapSceneViewModel(
+            preferencesService: preferencesService,
             input: input,
             balanceService: balanceService,
             priceUpdater: priceUpdater,

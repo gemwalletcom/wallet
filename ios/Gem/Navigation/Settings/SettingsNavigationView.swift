@@ -180,7 +180,7 @@ struct SettingsNavigationView: View {
             CurrencyScene(model: currencyModel)
         }
         .navigationDestination(for: Scenes.Preferences.self) { _ in
-            PreferencesScene(model: PreferencesViewModel(currencyModel: currencyModel))
+            PreferencesScene(model: PreferencesViewModel(currencyModel: currencyModel, preferencesService: preferencesService))
         }
         .navigationDestination(for: Scenes.Appearance.self) { _ in
             AppearanceScene(model: AppearanceViewModel())

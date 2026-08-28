@@ -79,45 +79,6 @@ public final class ObservablePreferences: Sendable {
     }
 
     @ObservationIgnored
-    public var perpetualLeverage: UInt8 {
-        get {
-            access(keyPath: \.perpetualLeverage)
-            return preferences.perpetualLeverage
-        }
-        set {
-            withMutation(keyPath: \.perpetualLeverage) {
-                preferences.perpetualLeverage = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored
-    public var perpetualTakeProfit: UInt8 {
-        get {
-            access(keyPath: \.perpetualTakeProfit)
-            return preferences.perpetualTakeProfit
-        }
-        set {
-            withMutation(keyPath: \.perpetualTakeProfit) {
-                preferences.perpetualTakeProfit = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored
-    public var perpetualStopLoss: UInt8 {
-        get {
-            access(keyPath: \.perpetualStopLoss)
-            return preferences.perpetualStopLoss
-        }
-        set {
-            withMutation(keyPath: \.perpetualStopLoss) {
-                preferences.perpetualStopLoss = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored
     public var appearance: Appearance {
         get {
             access(keyPath: \.appearance)

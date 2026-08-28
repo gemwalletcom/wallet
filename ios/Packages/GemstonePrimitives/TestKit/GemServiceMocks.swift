@@ -99,6 +99,22 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
 
     public func setPushNotificationsEnabled(enabled _: Bool) throws {}
 
+    public func getSwapSlippageBps() -> UInt32? { nil }
+
+    public func setSwapSlippageBps(bps _: UInt32?) throws {}
+
+    public func getPerpetualLeverage() -> UInt8 { 5 }
+
+    public func setPerpetualLeverage(leverage _: UInt8) throws {}
+
+    public func getPerpetualTakeProfitPercent() -> UInt8 { 0 }
+
+    public func setPerpetualTakeProfitPercent(percent _: UInt8) throws {}
+
+    public func getPerpetualStopLossPercent() -> UInt8 { 0 }
+
+    public func setPerpetualStopLossPercent(percent _: UInt8) throws {}
+
     public func getLaunchesCount() -> UInt32 { 0 }
 
     public func incrementLaunchesCount() throws -> UInt32 { 1 }

@@ -12,7 +12,6 @@ public final class Preferences: @unchecked Sendable {
         static let currency = "currency"
         static let importFiatMappingsVersion = "migrate_fiat_mappings_version"
         static let importFiatPurchaseAssetsVersion = "migrate_fiat_purchase_assets_version"
-        static let swapSlippageBps = "swap_slippage_bps"
         static let launchesCount = "launches_count"
         static let currentWalletId = "currentWallet"
         static let isPushNotificationsEnabled = "is_push_notifications_enabled"
@@ -25,9 +24,6 @@ public final class Preferences: @unchecked Sendable {
         static let chartPeriod = "chart_period"
         static let perpetualChartPeriod = "perpetual_chart_period"
         static let isPerpetualEnabled = "is_perpetual_enabled"
-        static let perpetualLeverage = "perpetual_leverage"
-        static let perpetualTakeProfit = "perpetual_take_profit"
-        static let perpetualStopLoss = "perpetual_stop_loss"
         static let appearance = "appearance"
     }
 
@@ -39,9 +35,6 @@ public final class Preferences: @unchecked Sendable {
 
     @ConfigurableDefaults(key: Keys.importFiatPurchaseAssetsVersion, defaultValue: 0)
     public var importFiatPurchaseAssetsVersion: Int
-
-    @ConfigurableDefaults(key: Keys.swapSlippageBps, defaultValue: 0)
-    private var swapSlippageBpsRawValue: Int
 
     @ConfigurableDefaults(key: Keys.launchesCount, defaultValue: 0)
     public var launchesCount: Int
@@ -79,15 +72,6 @@ public final class Preferences: @unchecked Sendable {
     @ConfigurableDefaults(key: Keys.isPerpetualEnabled, defaultValue: false)
     public var isPerpetualEnabled: Bool
 
-    @ConfigurableDefaults(key: Keys.perpetualLeverage, defaultValue: 0)
-    public var perpetualLeverage: UInt8
-
-    @ConfigurableDefaults(key: Keys.perpetualTakeProfit, defaultValue: 0)
-    public var perpetualTakeProfit: UInt8
-
-    @ConfigurableDefaults(key: Keys.perpetualStopLoss, defaultValue: 0)
-    public var perpetualStopLoss: UInt8
-
     @ConfigurableDefaults(key: Keys.appearance, defaultValue: Appearance.system.rawValue)
     private var appearanceRawValue: String
 
@@ -108,7 +92,6 @@ public final class Preferences: @unchecked Sendable {
         configure(\._currency, key: Keys.currency, defaultValue: Currency.usd.rawValue, sharedDefaults: sharedDefaults)
         configure(\._importFiatMappingsVersion, key: Keys.importFiatMappingsVersion, defaultValue: 0)
         configure(\._importFiatPurchaseAssetsVersion, key: Keys.importFiatPurchaseAssetsVersion, defaultValue: 0)
-        configure(\._swapSlippageBpsRawValue, key: Keys.swapSlippageBps, defaultValue: 0)
         configure(\._launchesCount, key: Keys.launchesCount, defaultValue: 0)
         configure(\._currentWalletId, key: Keys.currentWalletId, defaultValue: nil)
         configure(\._isPushNotificationsEnabled, key: Keys.isPushNotificationsEnabled, defaultValue: false)
@@ -121,13 +104,10 @@ public final class Preferences: @unchecked Sendable {
         configure(\._chartPeriodRawValue, key: Keys.chartPeriod, defaultValue: ChartPeriod.day.rawValue)
         configure(\._perpetualChartPeriodRawValue, key: Keys.perpetualChartPeriod, defaultValue: ChartPeriod.day.rawValue)
         configure(\._isPerpetualEnabled, key: Keys.isPerpetualEnabled, defaultValue: false)
-        configure(\._perpetualLeverage, key: Keys.perpetualLeverage, defaultValue: 0)
-        configure(\._perpetualTakeProfit, key: Keys.perpetualTakeProfit, defaultValue: 0)
-        configure(\._perpetualStopLoss, key: Keys.perpetualStopLoss, defaultValue: 0)
         configure(\._appearanceRawValue, key: Keys.appearance, defaultValue: Appearance.system.rawValue)
     }
 
-    public static let sharedKeys: Set<String> = [Keys.currency, Keys.launchesCount, Keys.rateApplicationShown, "subscriptions_version", "pushed_device", "pushed_subscriptions"]
+    public static let sharedKeys: Set<String> = [Keys.currency, Keys.launchesCount, Keys.rateApplicationShown, "subscriptions_version", "pushed_device", "pushed_subscriptions", "swap_slippage_bps", "perpetual_leverage", "perpetual_take_profit", "perpetual_stop_loss"]
 
     public func incrementLaunchesCount() {
         launchesCount += 1
@@ -140,16 +120,6 @@ public final class Preferences: @unchecked Sendable {
     public func clear() {
         for key in defaults.dictionaryRepresentation().keys {
             defaults.removeObject(forKey: key)
-        }
-    }
-
-    public var swapSlippage: SwapSlippage {
-        get { swapSlippageBpsRawValue > 0 ? .manual(bps: UInt32(swapSlippageBpsRawValue)) : .auto }
-        set {
-            swapSlippageBpsRawValue = switch newValue {
-            case .auto: 0
-            case let .manual(bps): Int(bps)
-            }
         }
     }
 

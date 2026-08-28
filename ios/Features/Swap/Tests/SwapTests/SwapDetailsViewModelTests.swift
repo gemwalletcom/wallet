@@ -49,7 +49,7 @@ extension SwapDetailsViewModel {
             toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
             selectedQuote: selectedQuote,
             slippage: .auto,
-            preferences: .mock(),
+            currency: Currency.usd.rawValue,
             swapProviderSelectAction: nil,
         )
     }

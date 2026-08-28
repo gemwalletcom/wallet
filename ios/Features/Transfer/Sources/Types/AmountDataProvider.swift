@@ -1,3 +1,4 @@
+import protocol Gemstone.GemPreferencesServiceProtocol
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemAmountType
@@ -14,6 +15,7 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         from input: AmountInput,
         wallet: Wallet,
         service: AmountService,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) -> AmountDataProvider {
         switch input.type {
         case let .transfer(recipient):
@@ -25,7 +27,7 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         case let .stake(stakeType):
             .stake(AmountStakeViewModel(asset: input.asset, type: stakeType))
         case let .perpetual(data):
-            .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data))
+            .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data, preferencesService: preferencesService))
         case let .earn(earnType):
             .earn(AmountEarnViewModel(asset: input.asset, action: earnType, stakeService: service.stakeService, wallet: wallet))
         }

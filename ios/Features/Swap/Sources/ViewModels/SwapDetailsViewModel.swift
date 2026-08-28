@@ -5,7 +5,6 @@ import Formatters
 import Foundation
 import struct Gemstone.SwapperQuote
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 
@@ -39,7 +38,7 @@ public final class SwapDetailsViewModel {
         toAssetPrice: AssetPriceValue,
         selectedQuote: SwapQuote,
         slippage: SwapSlippage,
-        preferences: Preferences = .standard,
+        currency: String,
         isProviderSelectionEnabled: Bool = true,
         swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil,
     ) {
@@ -49,7 +48,7 @@ public final class SwapDetailsViewModel {
         providerViewModel = SwapProviderViewModel(providerData: selectedQuote.providerData)
         self.selectedQuote = selectedQuote
         self.slippage = slippage
-        priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: preferences.currency)
+        priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: currency)
         self.isProviderSelectionEnabled = isProviderSelectionEnabled
         self.swapProviderSelectAction = swapProviderSelectAction
     }
