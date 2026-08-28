@@ -7,12 +7,12 @@ import GemstonePrimitives
 import Primitives
 
 public protocol TransferTransactionProvidable: Sendable {
-    func loadTransferTransactionData(
+    func loadConfirmData(
         wallet: Primitives.Wallet,
         data: TransferData,
         selection: FeeSelection,
         feeAssetId: Primitives.AssetId?,
-    ) async throws -> TransferTransactionData
+    ) async throws -> GemConfirmData
 }
 
 public struct TransferTransactionProvider: TransferTransactionProvidable {
@@ -22,31 +22,21 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
         self.confirmService = confirmService
     }
 
-    public func loadTransferTransactionData(
+    public func loadConfirmData(
         wallet: Primitives.Wallet,
         data: TransferData,
         selection: FeeSelection,
         feeAssetId: Primitives.AssetId?,
-    ) async throws -> TransferTransactionData {
+    ) async throws -> GemConfirmData {
         let account = try wallet.account(for: data.chain)
-        let result: GemConfirmData
         do {
-            result = try await confirmService.load(
+            return try await confirmService.load(
                 input: data.confirmInput(from: account),
                 options: GemConfirmLoadOptions(feeSelection: selection.map(), feeAssetId: feeAssetId?.identifier),
             )
         } catch let error as GemConfirmError {
             throw error.map(symbol: data.type.asset.symbol)
         }
-        return try TransferTransactionData(
-            allRates: result.feeRates.map { try $0.map() },
-            transactionData: TransactionData(
-                fee: result.fee.map(),
-                metadata: result.metadata,
-            ),
-            scanResult: result.scan.map { try Primitives.ScanTransaction($0) },
-            simulation: result.simulation.map { try Primitives.SimulationResult($0) },
-        )
     }
 }
 

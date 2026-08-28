@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemConfirmData
 import func Gemstone.isInsufficientNetworkFee
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Validators
@@ -24,9 +26,9 @@ public struct ConfirmTransferInputProvider: Sendable {
         selection: FeeSelection,
         feeAssetSelection: FeeAssetSelection,
     ) async throws -> ConfirmTransferPreload {
-        let transactionData: TransferTransactionData
+        let confirmData: GemConfirmData
         do {
-            transactionData = try await transferTransactionProvider.loadTransferTransactionData(
+            confirmData = try await transferTransactionProvider.loadConfirmData(
                 wallet: request.wallet,
                 data: request.data,
                 selection: selection,
@@ -35,7 +37,7 @@ public struct ConfirmTransferInputProvider: Sendable {
         } catch {
             throw preloadFailureError(metadata: metadata) ?? error
         }
-        let fee = transactionData.transactionData.fee
+        let fee = try confirmData.fee.map()
         let feeAssetId = fee.feeAssetId
         let feeAssetData = try feeAssetProvider.getAssetData(walletId: request.wallet.id, assetId: feeAssetId)
         let assetPrices = if let feeAssetPrice = feeAssetData.price {
@@ -51,7 +53,8 @@ public struct ConfirmTransferInputProvider: Sendable {
             assetPrices: assetPrices,
         )
         let input = ConfirmTransferInput(
-            transactionData: transactionData.transactionData,
+            confirmData: confirmData,
+            fee: fee,
             transferAmount: TransferAmountCalculator().validate(
                 transferData: request.data,
                 availableValue: try request.data.availableValue(balance: metadata.assetBalance),
@@ -61,11 +64,11 @@ public struct ConfirmTransferInputProvider: Sendable {
             ),
             feeAsset: feeAssetData.asset,
         )
-        return ConfirmTransferPreload(
+        return try ConfirmTransferPreload(
             metadata: metadata,
             input: input,
-            feeRates: transactionData.rates,
-            simulation: transactionData.simulation,
+            feeRates: confirmData.feeRates.map { try $0.map() },
+            simulation: confirmData.simulation.map { try Primitives.SimulationResult($0) },
         )
     }
 

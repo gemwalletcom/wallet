@@ -24,7 +24,7 @@ struct ConfirmServiceTests {
 
         try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
             request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
-            transactionData: .mock(),
+            confirmData: .mock(),
             amount: .mock(),
             simulation: nil,
         )
@@ -40,7 +40,7 @@ struct ConfirmServiceTests {
 
         try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
             request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
-            transactionData: .mock(),
+            confirmData: .mock(),
             amount: .mock(),
             simulation: nil,
         )
@@ -56,7 +56,7 @@ struct ConfirmServiceTests {
         await #expect(throws: GemConfirmError.self) {
             try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
                 request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
-                transactionData: .mock(),
+                confirmData: .mock(),
                 amount: .mock(),
                 simulation: nil,
             )

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmData
 import func Gemstone.acquireAssetFlow
 import GemstoneServices
 import BigInt
@@ -148,7 +149,7 @@ public final class ConfirmTransferSceneViewModel {
             selection: feeSelection,
             rates: state.feeRates,
             feeAssetPrice: state.metadata?.feePrice,
-            feeAmount: state.transaction.value?.transactionData.fee.fee,
+            feeAmount: state.transaction.value?.fee.fee,
             feeAssets: state.feeAssets,
             onSelect: { [weak self] in self?.feeSelection = $0 },
             onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
@@ -277,7 +278,7 @@ extension ConfirmTransferSceneViewModel {
             Task { await fetch() }
             return
         }
-        confirm(transactionData: input.transactionData, amount: amount)
+        confirm(confirmData: input.confirmData, amount: amount)
     }
 
     func fetch() async {
@@ -337,14 +338,14 @@ extension ConfirmTransferSceneViewModel {
         }
     }
 
-    private func confirm(transactionData: TransactionData, amount: TransferAmount) {
+    private func confirm(confirmData: GemConfirmData, amount: TransferAmount) {
         guard !state.confirmation.isConfirming else { return }
         state.confirmation = .confirming
         Task {
             do {
                 try await confirmService.confirm(
                     request: request,
-                    transactionData: transactionData,
+                    confirmData: confirmData,
                     amount: amount,
                     simulation: state.simulation.result,
                 )

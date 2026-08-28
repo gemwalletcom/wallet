@@ -3,6 +3,7 @@
 import func Gemstone.defaultFeePriority
 import Store
 import GemstoneServices
+import struct Gemstone.GemConfirmData
 import enum Gemstone.GemConfirmError
 import protocol Gemstone.GemConfirmServiceProtocol
 import enum Gemstone.GemExecuteResult
@@ -85,14 +86,14 @@ public struct ConfirmService: Sendable {
         )
     }
 
-    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount, simulation: SimulationResult?) async throws {
+    func confirm(request: ConfirmTransferRequest, confirmData: GemConfirmData, amount: TransferAmount, simulation: SimulationResult?) async throws {
         let input = try GemSendInput(
             wallet: request.wallet.json(),
             transfer: request.data.gem,
             value: amount.value.description,
-            fee: transactionData.fee.map(),
+            fee: confirmData.fee,
             networkFee: amount.networkFee.description,
-            metadata: transactionData.metadata,
+            metadata: confirmData.metadata,
             simulation: simulation?.json(),
         )
         let result: GemExecuteResult

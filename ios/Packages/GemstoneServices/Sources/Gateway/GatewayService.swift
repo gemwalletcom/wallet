@@ -139,14 +139,6 @@ public extension GatewayService {
     }
 }
 
-// MARK: - Transaction Load
-
-public extension GatewayService {
-    func transactionLoad(chain: Primitives.Chain, input: GemTransactionLoadInput) async throws -> TransactionData {
-        try await gateway.getTransactionLoad(chain: chain.rawValue, input: input).map()
-    }
-}
-
 // MARK: - Staking
 
 public extension GatewayService {

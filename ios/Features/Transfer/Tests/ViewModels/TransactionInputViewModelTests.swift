@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
 import BigInt
 import GemstonePrimitives
 import Preferences
@@ -14,7 +15,7 @@ struct TransactionInputViewModelTests {
     func valueWithAmount() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: nil,
+            fee: nil,
             metaData: nil,
             transferAmount: .success(TransferAmount(value: 200, networkFee: 1, useMaxAmount: false)),
             feeAsset: .mock(),
@@ -28,7 +29,7 @@ struct TransactionInputViewModelTests {
     func valueWithError() {
         let viewModel = TransactionInputViewModel(
             data: .mock(value: 100),
-            transactionData: nil,
+            fee: nil,
             metaData: nil,
             transferAmount: .failure(TransferAmountCalculatorError.insufficientBalance(
                 .mock(),
@@ -45,7 +46,7 @@ struct TransactionInputViewModelTests {
     func valueWithNilResult() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: nil,
+            fee: nil,
             metaData: nil,
             transferAmount: nil,
             feeAsset: .mock(),
@@ -59,7 +60,7 @@ struct TransactionInputViewModelTests {
     func testNetworkFeeText() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: .mock(),
+            fee: .mock(fee: 1),
             metaData: nil,
             transferAmount: nil,
             feeAsset: .mock(),
@@ -74,7 +75,7 @@ struct TransactionInputViewModelTests {
         let feeAsset = Asset.mockEthereumUSDT()
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: TransactionData(fee: .mock(fee: 1_000_000, feeAsset: feeAsset)),
+            fee: .mock(fee: 1_000_000, feeAsset: feeAsset),
             metaData: nil,
             transferAmount: nil,
             feeAsset: feeAsset,
@@ -95,7 +96,7 @@ struct TransactionInputViewModelTests {
         )
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: .mock(),
+            fee: .mock(fee: 1),
             metaData: metaData,
             transferAmount: nil,
             feeAsset: .mock(),
@@ -109,7 +110,7 @@ struct TransactionInputViewModelTests {
     func nilFee() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: nil,
+            fee: nil,
             metaData: nil,
             transferAmount: nil,
             feeAsset: .mock(),

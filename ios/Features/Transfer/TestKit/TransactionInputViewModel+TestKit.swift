@@ -11,7 +11,7 @@ import Transfer
 public extension TransactionInputViewModel {
     static func mock(
         data: TransferData = .mock(),
-        transactionData: TransactionData? = nil,
+        fee: Fee? = nil,
         metaData: TransferDataMetadata? = nil,
         transferAmount: TransferAmountValidation? = nil,
         feeAsset: Asset = .mock(),
@@ -19,7 +19,7 @@ public extension TransactionInputViewModel {
     ) -> TransactionInputViewModel {
         TransactionInputViewModel(
             data: data,
-            transactionData: transactionData,
+            fee: fee,
             metaData: metaData,
             transferAmount: transferAmount,
             feeAsset: feeAsset,

@@ -6,6 +6,7 @@ import GemstoneServices
 import BigInt
 import Components
 import Foundation
+import struct Gemstone.GemFeeRate
 import class Gemstone.GemConfirmService
 import GemstonePrimitives
 import InfoSheet
@@ -259,7 +260,10 @@ struct ConfirmTransferSceneViewModelTests {
             FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
         ]
         let model = ConfirmTransferSceneViewModel.mock(
-            confirmService: .mock(transaction: .success(TransferTransactionData(allRates: rates, transactionData: .mock()))),
+            confirmService: .mock(transaction: .success(.mock(feeRates: [
+                GemFeeRate(priority: "normal", gasPriceType: .regular(gasPrice: "20")),
+                GemFeeRate(priority: "fast", gasPriceType: .regular(gasPrice: "30")),
+            ]))),
         )
 
         await model.fetch()

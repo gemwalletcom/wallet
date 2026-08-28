@@ -9,7 +9,7 @@ import PrimitivesComponents
 
 public struct TransactionInputViewModel: Sendable {
     let data: TransferData
-    let transactionData: TransactionData?
+    let fee: Fee?
     let metaData: TransferDataMetadata?
     let transferAmount: TransferAmountValidation?
     let feeAsset: Asset
@@ -18,13 +18,13 @@ public struct TransactionInputViewModel: Sendable {
 
     public init(
         data: TransferData,
-        transactionData: TransactionData?,
+        fee: Fee?,
         metaData: TransferDataMetadata?,
         transferAmount: TransferAmountValidation?,
         feeAsset: Asset,
         currency: String,
     ) {
-        self.transactionData = transactionData
+        self.fee = fee
         self.data = data
         self.metaData = metaData
         self.transferAmount = transferAmount
@@ -54,7 +54,7 @@ public struct TransactionInputViewModel: Sendable {
             feeAsset: feeAsset,
             feeAssetPrice: metaData?.feePrice,
             value: value,
-            feeValue: transactionData?.fee.fee,
+            feeValue: fee?.fee,
             direction: nil,
         )
     }
@@ -75,7 +75,7 @@ public struct TransactionInputViewModel: Sendable {
     }
 
     var networkFeeAmount: BigInt? {
-        transactionData?.fee.fee
+        fee?.fee
     }
 
     var headerType: TransactionHeaderType {

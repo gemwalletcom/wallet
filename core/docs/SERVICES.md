@@ -149,12 +149,13 @@ App types in the seam, with their Core home:
 | `TransferData` mappers (`toTransferData`, `toDto`, `toConfirmParams`) | Android | 62 | `GemTransferData`, `GemTransactionInputType` |
 | `SignerParams` (+ `.Data`) | Android | 17 | `GemConfirmData` (plus the two fields below) |
 | `Fee` (sealed), `FeeSelection`, `DestinationAddress` | Android | — | `GemTransactionLoadFee`, `GemConfirmFeeSelection`, `GemRecipient` |
-| `TransactionData` | iOS | 40 | `GemTransactionData` — the same two fields |
-| `TransferTransactionData`, `ConfirmTransferInput`, `ConfirmTransferPreload` | iOS | 15 | `GemConfirmData` |
+| `ConfirmTransferPreload` | iOS | 2 | `GemConfirmData` |
 | `TransferAmount` | iOS | 9 | value + network fee of `GemSendInput` |
 | `Fee`, `FeeRate`, `GasPriceType`, `TransferData`, `TransferDataExtra` (Primitives) | iOS | — | `GemTransactionLoadFee`, `GemFeeRate`, `GemGasPriceType`, `GemTransferData`, `GemTransferDataExtra` |
 
 Android converts the same payload seven times per confirm screen: `pack` → `unpack` → view model re-pack → `SignerPreloaderProxy.toConfirmInput` → `CalculateTransferAmount` → `availableValue` → `toSendInput`.
+
+Done on iOS: `ConfirmTransferInput` carries the `GemConfirmData` Core returned plus the typed `Fee` the fee views read, `ConfirmService.confirm` sends Core's own `fee`/`metadata` instead of re-encoding them, and `TransactionData`, `TransferTransactionData`, `GemTransactionData.map()` and the unused `GatewayService.transactionLoad` are deleted. What is left on iOS is the typed-value question in blocker 1 and 5: `Fee`/`FeeRate` stay as the `BigInt` view of Core's decimal strings.
 
 Blockers, in the order they have to be solved:
 

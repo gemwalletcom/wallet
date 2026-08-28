@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmData
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -12,7 +13,7 @@ import TransferTestKit
 
 extension ConfirmService {
     static func mock(
-        transaction: Result<TransferTransactionData, Error> = .success(TransferTransactionData(allRates: [], transactionData: .mock())),
+        transaction: Result<GemConfirmData, Error> = .success(.mock()),
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
         transactionStateTracker: TransactionStateTracker = .mock(),
     ) -> ConfirmService {
