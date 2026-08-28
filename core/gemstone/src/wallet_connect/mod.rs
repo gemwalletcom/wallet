@@ -35,7 +35,7 @@ pub enum WalletConnectLink {
     Session { topic: String },
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct WCEthereumTransactionData {
     pub chain_id: Option<u64>,
     pub from: String,
@@ -58,18 +58,18 @@ pub struct Account {
     pub extended_public_key: Option<String>,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct WCSolanaTransactionData {
     pub transaction: String,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct WCSuiTransactionData {
     pub transaction: String,
     pub wallet_address: String,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum WalletConnectAction {
     SignMessage {
         chain: Chain,
@@ -111,14 +111,14 @@ pub enum WalletConnectTransactionType {
     Tron { output_type: TransferDataOutputType },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum WalletConnectChainOperation {
     AddChain,
     SwitchChain { chain: Chain },
     GetChainId,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum WalletConnectTransaction {
     Ethereum {
@@ -144,7 +144,7 @@ pub enum WalletConnectTransaction {
     },
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone)]
 pub enum EvmTransactionKind {
     Transfer,
     ContractCall,
@@ -373,6 +373,20 @@ impl WalletConnect {
         Some(WalletConnectCAIP2::parse_chain_id(chain_id)?.to_string())
     }
 
+    pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
+        WalletConnectVerifier::validate_origin(metadata_url, origin, validation)
+    }
+
+    pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
+        let chains: Vec<Chain> = caip2_chains
+            .into_iter()
+            .filter_map(|caip2| WalletConnectCAIP2::get_chain_from_id(Some(caip2)).ok())
+            .collect();
+        config_session_properties(properties, &chains, &accounts)
+    }
+}
+
+impl WalletConnect {
     pub fn parse_account(&self, account: String) -> Option<ChainAddress> {
         WalletConnectCAIP2::parse_account(account)
     }
@@ -387,10 +401,6 @@ impl WalletConnect {
         };
         let action = WalletConnectRequestHandler::parse_request(request).map_err(|e| GemstoneError::AnyError { msg: e })?;
         Ok(action.into())
-    }
-
-    pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
-        WalletConnectVerifier::validate_origin(metadata_url, origin, validation)
     }
 
     pub fn encode_sign_message(&self, chain: Chain, signature: String) -> WalletConnectResponseType {
@@ -415,14 +425,6 @@ impl WalletConnect {
 
     pub fn decode_sign_message(&self, chain: Chain, sign_type: SignDigestType, data: String) -> SignMessage {
         simulation::decode_message(chain, sign_type, data)
-    }
-
-    pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
-        let chains: Vec<Chain> = caip2_chains
-            .into_iter()
-            .filter_map(|caip2| WalletConnectCAIP2::get_chain_from_id(Some(caip2)).ok())
-            .collect();
-        config_session_properties(properties, &chains, &accounts)
     }
 
     pub fn decode_send_transaction(&self, transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, GemstoneError> {
