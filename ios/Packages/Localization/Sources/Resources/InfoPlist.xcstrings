@@ -1,0 +1,770 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSCameraUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحتاج محفظة Gem Wallet إلى الوصول إلى الكاميرا الخاصة بك لمسح رموز QR."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QR কোড স্ক্যান করার জন্য জেম ওয়ালেটের আপনার ক্যামেরায় অ্যাক্সেস প্রয়োজন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet potřebuje přístup k vašemu fotoaparátu, aby mohl skenovat QR kódy."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet skal have adgang til dit kamera for at scanne QR-koder."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet benötigt Zugriff auf Ihre Kamera, um QR-Codes zu scannen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet needs access to your Camera to scan QR Codes."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet necesita acceso a su cámara para escanear códigos QR."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کیف پول Gem برای اسکن کدهای QR به دسترسی به دوربین شما نیاز دارد."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kailangan ng Gem Wallet ng access sa iyong Camera para ma-scan ang mga QR Code."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet a besoin d'accéder à votre appareil photo pour scanner les codes QR."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet yana buƙatar samun dama ga Kyamara don bincika Lambobin QR."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ארנק Gem Wallet זקוק לגישה למצלמה שלך כדי לסרוק קודי QR."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जेम वॉलेट को QR कोड स्कैन करने के लिए आपके कैमरे तक पहुंच की आवश्यकता होती है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet memerlukan akses ke Kamera Anda untuk memindai Kode QR."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet necessita dell'accesso alla tua fotocamera per scansionare i codici QR."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet は QR コードをスキャンするためにカメラにアクセスする必要があります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet은 QR 코드를 스캔하기 위해 카메라에 접근해야 합니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dompet Permata memerlukan akses kepada Kamera anda untuk mengimbas Kod QR."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet heeft toegang tot uw camera nodig om QR-codes te scannen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet potrzebuje dostępu do Twojego aparatu, aby skanować kody QR."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Gem Wallet precisa acessar sua câmera para escanear códigos QR."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet are nevoie de acces la camera foto pentru a scana coduri QR."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для сканирования QR-кодов Gem Wallet необходим доступ к вашей камере."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet inahitaji ufikiaji wa Kamera yako ili kuchanganua Misimbo ya QR."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet จำเป็นต้องเข้าถึงกล้องของคุณเพื่อสแกนรหัส QR"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QR Kodlarını tarayabilmek için Gem Wallet'ın Kameranıza erişmesi gerekiyor."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet потрібен доступ до вашої камери для сканування QR-кодів."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet کو QR کوڈز اسکین کرنے کے لیے آپ کے کیمرے تک رسائی درکار ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ví Gem cần truy cập vào Máy ảnh của bạn để quét Mã QR."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet 需要访问您的相机来扫描二维码。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem Wallet 需要存取您的相機來掃描二維碼。"
+          }
+        }
+      }
+    },
+    "NSFaceIDUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يساعد تمكين Face ID محفظة Gem Wallet على الحفاظ على أصولك آمنة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ফেস আইডি সক্ষম করলে জেম ওয়ালেট আপনার সম্পদ সুরক্ষিত রাখতে সাহায্য করে।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Povolení Face ID pomáhá Gem Wallet chránit vaše aktiva."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktivering af Face ID hjælper Gem Wallet med at beskytte dine aktiver."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durch die Aktivierung von Face ID kann Gem Wallet Ihre Vermögenswerte schützen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enabling Face ID helps Gem Wallet keep your assets secure."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habilitar Face ID ayuda a Gem Wallet a mantener sus activos seguros."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فعال کردن Face ID به کیف پول Gem کمک می‌کند تا دارایی‌های شما را ایمن نگه دارد."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ang pagpapagana ng Face ID ay nakakatulong sa Gem Wallet na panatilihing secure ang iyong mga asset."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'activation de Face ID aide Gem Wallet à sécuriser vos actifs."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ƙaddamar ID na Fuskar yana taimaka wa Gem Wallet kiyaye kadarorin ku amintacce."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הפעלת Face ID עוזרת ל-Gem Wallet לשמור על אבטחת הנכסים שלך."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फेस आईडी सक्षम करने से जेम वॉलेट को आपकी संपत्ति सुरक्षित रखने में मदद मिलती है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mengaktifkan Face ID membantu Gem Wallet menjaga aset Anda tetap aman."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abilitando Face ID, Gem Wallet protegge i tuoi beni."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID を有効にすると、Gem Wallet は資産を安全に保つことができます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID를 활성화하면 Gem Wallet에서 자산을 안전하게 보호하는 데 도움이 됩니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mendayakan Face ID membantu Gem Wallet memastikan aset anda selamat."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Door Face ID in te schakelen, kan Gem Wallet uw bezittingen veilig houden."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Włączenie funkcji Face ID pomaga Gem Wallet chronić Twoje aktywa."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habilitar o Face ID ajuda a Gem Wallet a manter seus ativos seguros."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activarea Face ID ajută Gem Wallet să vă păstreze bunurile în siguranță."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включение Face ID помогает Gem Wallet сохранять ваши активы в безопасности."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kuwasha Face ID husaidia Gem Wallet kuweka mali yako salama."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การเปิดใช้งาน Face ID ช่วยให้ Gem Wallet รักษาสินทรัพย์ของคุณให้ปลอดภัย"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID'yi etkinleştirmek Gem Wallet'ın varlıklarınızı güvende tutmasına yardımcı olur."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Увімкнення Face ID допомагає Gem Wallet захистити ваші активи."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فیس آئی ڈی کو فعال کرنے سے Gem Wallet آپ کے اثاثوں کو محفوظ رکھنے میں مدد کرتا ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bật Face ID giúp Gem Wallet bảo vệ tài sản của bạn một cách an toàn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用 Face ID 有助于 Gem Wallet 保证您的资产安全。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟用 Face ID 有助於 Gem Wallet 保證您的資產安全。"
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryAddUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يتطلب هذا التطبيق الوصول إلى مكتبة الصور الخاصة بك لحفظ NFTs."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NFT সংরক্ষণ করার জন্য এই অ্যাপটির আপনার ফটো লাইব্রেরিতে অ্যাক্সেস প্রয়োজন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tato aplikace vyžaduje přístup k vaší knihovně fotografií pro ukládání NFT souborů."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne app kræver adgang til dit fotobibliotek for at gemme NFT'er."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese App benötigt Zugriff auf Ihre Fotobibliothek, um NFTs zu speichern."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app requires access to your photo library to save NFTs."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta aplicación requiere acceso a su biblioteca de fotos para guardar NFT."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "این برنامه برای ذخیره NFTها نیاز به دسترسی به کتابخانه عکس شما دارد."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ang app na ito ay nangangailangan ng access sa iyong library ng larawan upang i-save ang mga NFT."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette application nécessite l'accès à votre photothèque pour enregistrer les NFT."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wannan app ɗin yana buƙatar samun dama ga ɗakin karatu na hoto don adana NFTs."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אפליקציה זו דורשת גישה לספריית התמונות שלך כדי לשמור קבצי NFT."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस ऐप को NFTs को सेव करने के लिए आपकी फोटो लाइब्रेरी तक पहुंच की आवश्यकता होती है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplikasi ini memerlukan akses ke perpustakaan foto Anda untuk menyimpan NFT."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa app richiede l'accesso alla tua libreria fotografica per salvare gli NFT."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このアプリは、NFT を保存するために写真ライブラリにアクセスする必要があります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 앱은 NFT를 저장하기 위해 사진 라이브러리에 대한 접근 권한이 필요합니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apl ini memerlukan akses kepada pustaka foto anda untuk menyimpan NFT."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze app heeft toegang tot uw fotobibliotheek nodig om NFT's op te slaan."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta aplikacja wymaga dostępu do Twojej biblioteki zdjęć, aby zapisywać NFT."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este aplicativo requer acesso à sua biblioteca de fotos para salvar NFTs."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Această aplicație necesită acces la biblioteca ta foto pentru a salva NFT-uri."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для сохранения NFT-файлов этому приложению требуется доступ к вашей библиотеке фотографий."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Programu hii inahitaji ufikiaji wa maktaba yako ya picha ili kuhifadhi NFTs."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "แอปนี้ต้องการเข้าถึงคลังภาพของคุณเพื่อบันทึก NFT"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu uygulamanın NFT'leri kaydedebilmesi için fotoğraf kütüphanenize erişmesi gerekiyor."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цьому додатку потрібен доступ до вашої фотобібліотеки для збереження NFT-файлів."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NFTs کو محفوظ کرنے کے لیے اس ایپ کو آپ کی فوٹو لائبریری تک رسائی درکار ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ứng dụng này yêu cầu quyền truy cập vào thư viện ảnh của bạn để lưu NFT."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此应用程序需要访问您的照片库来保存 NFT。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此應用程式需要存取您的照片庫來保存 NFT。"
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نحن بحاجة إلى الوصول إلى مكتبة الصور الخاصة بك حتى نتمكن من تحديد الصور."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনাকে ছবি নির্বাচন করতে দেওয়ার জন্য আমাদের আপনার ফটো লাইব্রেরিতে অ্যাক্সেস প্রয়োজন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abychom vám umožnili vybrat fotografie, potřebujeme přístup k vaší fotogalerii."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vi skal have adgang til dit fotobibliotek for at du kan vælge billeder."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Damit Sie Fotos auswählen können, benötigen wir Zugriff auf Ihre Fotobibliothek."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We need access to your photo library to let you select photos."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesitamos acceso a su biblioteca de fotografías para permitirle seleccionar fotografías."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "برای انتخاب عکس‌ها، باید به کتابخانه عکس شما دسترسی داشته باشیم."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kailangan namin ng access sa iyong library ng larawan upang hayaan kang pumili ng mga larawan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous avons besoin d'accéder à votre photothèque pour vous permettre de sélectionner des photos."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muna buƙatar samun dama ga ɗakin karatu na hoto don ba ku damar zaɓar hotuna."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אנחנו צריכים גישה לספריית התמונות שלך כדי שתוכל לבחור תמונות."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपको फ़ोटो चुनने देने के लिए हमें आपकी फ़ोटो लाइब्रेरी तक पहुंच की आवश्यकता है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kami memerlukan akses ke perpustakaan foto Anda agar Anda dapat memilih foto."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per consentirti di selezionare le foto abbiamo bisogno dell'accesso alla tua libreria fotografica."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写真を選択するには、写真ライブラリにアクセスする必要があります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사진을 선택하려면 사진 라이브러리에 액세스해야 합니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kami memerlukan akses kepada pustaka foto anda untuk membolehkan anda memilih foto."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Om foto's te kunnen selecteren, hebben we toegang tot uw fotobibliotheek nodig."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aby umożliwić Ci wybór zdjęć, potrzebujemy dostępu do Twojej biblioteki zdjęć."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisamos acessar sua biblioteca de fotos para que você possa selecionar fotos."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avem nevoie de acces la biblioteca ta foto pentru a te ajuta să selectezi fotografii."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нам нужен доступ к вашей фотобиблиотеке, чтобы вы могли выбирать фотографии."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tunahitaji ufikiaji wa maktaba yako ya picha ili kukuruhusu kuchagua picha."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เราจำเป็นต้องเข้าถึงคลังรูปภาพของคุณเพื่อให้คุณสามารถเลือกภาพถ่ายได้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotoğraf seçebilmeniz için fotoğraf arşivinize erişmemiz gerekiyor."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нам потрібен доступ до вашої фотобібліотеки, щоб ви могли вибрати фотографії."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ہمیں آپ کی تصویری لائبریری تک رسائی درکار ہے تاکہ آپ تصاویر منتخب کر سکیں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chúng tôi cần quyền truy cập vào thư viện ảnh của bạn để cho phép bạn chọn ảnh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们需要访问您的照片库以便您选择照片。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我們需要存取您的照片庫以便您選擇照片。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
