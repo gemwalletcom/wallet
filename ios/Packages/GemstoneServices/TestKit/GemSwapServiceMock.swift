@@ -5,6 +5,7 @@ import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
 import protocol Gemstone.GemSwapServiceProtocol
+import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperAssetList
 import struct Gemstone.SwapperQuote
@@ -20,6 +21,7 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
     private let assetList: SwapperAssetList
     private let quotesDelay: Duration?
     private let quotesError: Error?
+    private let pairSuggestion: GemSwapPairSuggestion?
 
     public init(
         quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
@@ -27,12 +29,14 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
         assetList: SwapperAssetList = .mock(),
         quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
+        pairSuggestion: GemSwapPairSuggestion? = nil,
     ) {
         self.quotes = quotes
         self.quoteData = quoteData
         self.assetList = assetList
         self.quotesDelay = quotesDelay
         self.quotesError = quotesError
+        self.pairSuggestion = pairSuggestion
     }
 
     public convenience init(
@@ -41,6 +45,7 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
         assetList: SwapperAssetList = .mock(),
         quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
+        pairSuggestion: GemSwapPairSuggestion? = nil,
     ) {
         self.init(
             quotes: { _ in quotes },
@@ -48,6 +53,7 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
             assetList: assetList,
             quotesDelay: quotesDelay,
             quotesError: quotesError,
+            pairSuggestion: pairSuggestion,
         )
     }
 
@@ -73,5 +79,9 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
 
     public func supportedAssets(assetId _: AssetId) -> SwapperAssetList {
         assetList
+    }
+
+    public func suggestPair(walletId _: String, payAssetId _: AssetId?) async throws -> GemSwapPairSuggestion? {
+        pairSuggestion
     }
 }

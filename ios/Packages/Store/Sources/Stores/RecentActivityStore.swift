@@ -33,6 +33,12 @@ public struct RecentActivityStore: Sendable {
         }
     }
 
+    public func getRecent(walletId: WalletId, types: [RecentActivityType]) throws -> [RecentAsset] {
+        try db.read { db in
+            try RecentActivityRequest(walletId: walletId, types: types).fetch(db)
+        }
+    }
+
     public func clear(walletId: WalletId, types: [RecentActivityType]) throws {
         _ = try db.write { db in
             try RecentActivityRecord

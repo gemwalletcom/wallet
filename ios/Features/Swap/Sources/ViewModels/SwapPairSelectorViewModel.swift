@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemstonePrimitives
 import Primitives
 
 public struct SwapPairSelectorViewModel: Equatable {
@@ -14,28 +13,5 @@ public struct SwapPairSelectorViewModel: Equatable {
     ) {
         self.fromAssetId = fromAssetId
         self.toAssetId = toAssetId
-    }
-}
-
-public extension SwapPairSelectorViewModel {
-    static func defaultSwapPair(for asset: Asset) -> SwapPairSelectorViewModel {
-        switch asset.id.type {
-        case .native:
-            if ProcessInfo.processInfo.environment["SCREENSHOTS_PATH"] != nil {
-                return SwapPairSelectorViewModel(
-                    fromAssetId: asset.chain.assetId,
-                    toAssetId: AssetId(chain: .ethereum),
-                )
-            }
-            return SwapPairSelectorViewModel(
-                fromAssetId: asset.chain.assetId,
-                toAssetId: nil,
-            )
-        case .token:
-            return SwapPairSelectorViewModel(
-                fromAssetId: asset.id,
-                toAssetId: asset.chain.hasNativeAsset ? asset.chain.assetId : nil,
-            )
-        }
     }
 }

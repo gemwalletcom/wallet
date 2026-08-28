@@ -10,6 +10,7 @@ import com.gemwallet.android.application.transactions.coordinators.TransactionsR
 import com.gemwallet.android.data.service.store.database.entities.DbAddress
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import com.gemwallet.android.data.service.store.database.entities.DbSwapPair
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
@@ -148,6 +149,14 @@ interface TransactionsDao {
 
     @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId AND NOT EXISTS (SELECT 1 FROM transactions WHERE transactions.id = :transactionId)")
     fun deleteUnreferencedSwapMetadata(transactionId: String)
+
+    @Query("""
+        SELECT swap.from_asset_id AS fromAssetId, swap.to_asset_id AS toAssetId
+        FROM tx_swap_metadata AS swap
+        JOIN transactions AS tx ON tx.id = swap.tx_id
+        WHERE tx.walletId = :walletId
+        """)
+    suspend fun getSwapPairs(walletId: String): List<DbSwapPair>
 
     @Query("DELETE FROM transactions WHERE state = :state")
     fun deleteByState(state: TransactionState)

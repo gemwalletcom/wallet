@@ -82,7 +82,7 @@ struct SelectedAssetNavigationStack: View {
                                 wallet: wallet,
                                 pairSelector: SwapPairSelectorViewModel(
                                     fromAssetId: fromAsset.id,
-                                    toAssetId: toAsset?.id ?? SwapPairSelectorViewModel.defaultSwapPair(for: fromAsset).toAssetId,
+                                    toAssetId: toAsset?.id,
                                 ),
                             ),
                             onSwap: {

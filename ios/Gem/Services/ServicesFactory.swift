@@ -202,6 +202,11 @@ struct ServicesFactory {
             swapper: gemSwapper,
             keystore: storages.keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: storages.keystore),
+            store: GemstoneSwapStore(
+                assetStore: storeManager.assetStore,
+                transactionStore: storeManager.transactionStore,
+                recentActivityStore: storeManager.recentActivityStore,
+            ),
         )
 
         let presenter = WalletConnectorPresenter()
