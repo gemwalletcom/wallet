@@ -120,6 +120,14 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).transactionTimeout / 1000
     }
 
+    var iconChain: Primitives.Chain {
+        Primitives.Chain(rawValue: ChainConfig.config(chain: self).iconChain) ?? self
+    }
+
+    var badgeChain: Primitives.Chain? {
+        ChainConfig.config(chain: self).badgeChain.flatMap { Primitives.Chain(rawValue: $0) }
+    }
+
     var supportsNftTransfer: Bool {
         ChainConfig.config(chain: self).supportsNftTransfer
     }

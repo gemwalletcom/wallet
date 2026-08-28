@@ -1,4 +1,4 @@
-use primitives::{BitcoinChain, Chain, ChainType, chain_transaction_timeout};
+use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_transaction_timeout};
 
 #[derive(uniffi::Record, Debug, Clone, PartialEq)]
 pub struct ChainConfig {
@@ -19,6 +19,8 @@ pub struct ChainConfig {
     pub is_stake_supported: bool,
     pub is_nft_supported: bool,
     pub supports_nft_transfer: bool,
+    pub icon_chain: String,
+    pub badge_chain: Option<String>,
     pub is_defi_supported: bool,
     pub is_memo_supported: bool,
     pub has_native_asset: bool,
@@ -43,10 +45,28 @@ pub fn get_chain_config(chain: Chain) -> ChainConfig {
         is_stake_supported: chain.is_stake_supported(),
         is_nft_supported: chain.is_nft_supported(),
         supports_nft_transfer: supports_nft_transfer(chain),
+        icon_chain: icon_chain(chain).as_ref().to_string(),
+        badge_chain: badge_chain(chain).map(|chain| chain.as_ref().to_string()),
         is_defi_supported: chain.is_defi_supported(),
         is_memo_supported: is_memo_supported(chain),
         has_native_asset: chain.has_native_asset(),
     }
+}
+
+pub fn icon_chain(chain: Chain) -> Chain {
+    match chain {
+        Chain::SeiEvm => Chain::Sei,
+        chain if is_ethereum_layer2(chain) => Chain::Ethereum,
+        chain => chain,
+    }
+}
+
+pub fn badge_chain(chain: Chain) -> Option<Chain> {
+    is_ethereum_layer2(chain).then_some(chain)
+}
+
+fn is_ethereum_layer2(chain: Chain) -> bool {
+    EVMChain::from_chain(chain).is_some_and(|chain| chain.is_ethereum_layer2())
 }
 
 pub fn supports_nft_transfer(chain: Chain) -> bool {
@@ -89,5 +109,33 @@ pub fn minimum_custom_fee_rate(chain: Chain) -> Option<u32> {
     match chain.chain_type() {
         ChainType::Bitcoin => BitcoinChain::from_chain(chain).map(|chain| chain.minimum_custom_fee_rate()),
         _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_nft_transfer_needs_a_supported_chain_type() {
+        assert!(supports_nft_transfer(Chain::Ethereum));
+        assert!(supports_nft_transfer(Chain::Solana));
+        assert!(supports_nft_transfer(Chain::Ton));
+        assert!(!supports_nft_transfer(Chain::Bitcoin));
+        assert!(!supports_nft_transfer(Chain::Tron));
+    }
+
+    #[test]
+    fn test_ethereum_layer2_chains_draw_the_ethereum_icon_with_their_own_badge() {
+        assert_eq!(icon_chain(Chain::Base), Chain::Ethereum);
+        assert_eq!(icon_chain(Chain::SeiEvm), Chain::Sei);
+        assert_eq!(icon_chain(Chain::OpBNB), Chain::OpBNB);
+        assert_eq!(icon_chain(Chain::Bitcoin), Chain::Bitcoin);
+        assert_eq!(icon_chain(Chain::Ethereum), Chain::Ethereum);
+
+        assert_eq!(badge_chain(Chain::Base), Some(Chain::Base));
+        assert_eq!(badge_chain(Chain::OpBNB), None);
+        assert_eq!(badge_chain(Chain::Bitcoin), None);
+        assert_eq!(badge_chain(Chain::Ethereum), None);
     }
 }
