@@ -18,7 +18,7 @@ public struct NodeStore: Sendable {
                     if let chain = Chain(rawValue: chainNode.chain) {
                         try node
                             .mapToRecord(chain: chain)
-                            .insert(db, onConflict: .ignore)
+                            .upsert(db)
                     }
                 }
             }

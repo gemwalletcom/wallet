@@ -87,10 +87,11 @@ public struct TransactionStore: Sendable {
     public func getTransactionState(walletId: WalletId, transactionId: TransactionId) throws -> TransactionState? {
         try db.read { db in
             try TransactionRecord
+                .select(TransactionRecord.Columns.state, as: String.self)
                 .filter(TransactionRecord.Columns.walletId == walletId.id)
                 .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
                 .fetchOne(db)
-                .map(\.state)
+                .flatMap(TransactionState.init(rawValue:))
         }
     }
 

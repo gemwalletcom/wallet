@@ -5,7 +5,7 @@ import Primitives
 
 public extension WalletConnectionSession {
     static func mock(
-        id: String = .empty,
+        id: String? = .none,
         sessionId: String = .empty,
         state: WalletConnectionState = .active,
         chains: [Chain] = [.ethereum],
@@ -14,7 +14,7 @@ public extension WalletConnectionSession {
         metadata: ApplicationMetadata = .mock(),
     ) -> WalletConnectionSession {
         WalletConnectionSession(
-            id: id,
+            id: id ?? sessionId,
             sessionId: sessionId,
             state: state,
             chains: chains,
