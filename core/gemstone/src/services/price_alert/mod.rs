@@ -4,7 +4,7 @@ pub mod store;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::{AssetId, PriceAlert};
+use primitives::{AssetId, PriceAlert, PriceAlertNotificationType};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::banner::GemNotificationPermissions;
@@ -96,6 +96,16 @@ impl GemPriceAlertService {
 #[uniffi::export]
 pub fn price_alert_id(alert: PriceAlert) -> String {
     alert.id()
+}
+
+#[uniffi::export]
+pub fn price_alert_notification_type(alert: PriceAlert) -> PriceAlertNotificationType {
+    alert.notification_type()
+}
+
+#[uniffi::export]
+pub fn price_alert_should_display(alert: PriceAlert) -> bool {
+    alert.should_display()
 }
 
 #[cfg(test)]

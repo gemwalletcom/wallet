@@ -25,8 +25,4 @@ public extension AssetData {
             BalanceType.earn: balance.earn,
         ]
     }
-
-    var isPriceAlertsEnabled: Bool {
-        priceAlerts.first(where: { $0.type == .auto }) != nil
-    }
 }

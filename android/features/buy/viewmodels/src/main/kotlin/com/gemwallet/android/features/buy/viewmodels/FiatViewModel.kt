@@ -178,7 +178,7 @@ class FiatViewModel @Inject constructor(
                     amount = amountParsed,
                 )
                 if (quotes.isEmpty()) throw Exception()
-                operation.updateQuotes(quotes.sortedByDescending { it.cryptoAmount })
+                operation.updateQuotes(quotes)
                 operation.updateState(FiatSceneState.Ready)
             } catch (_: Exception) {
                 operation.updateState(FiatSceneState.Error(BuyError.QuoteNotAvailable))

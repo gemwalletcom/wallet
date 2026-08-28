@@ -61,6 +61,21 @@ impl PriceAlert {
         }
     }
 
+    pub fn notification_type(&self) -> PriceAlertNotificationType {
+        match (self.price_direction.is_some(), self.price.is_some(), self.price_percent_change.is_some()) {
+            (true, true, false) => PriceAlertNotificationType::Price,
+            (true, false, true) => PriceAlertNotificationType::PricePercentChange,
+            _ => PriceAlertNotificationType::Auto,
+        }
+    }
+
+    pub fn should_display(&self) -> bool {
+        match self.notification_type() {
+            PriceAlertNotificationType::Auto => true,
+            PriceAlertNotificationType::Price | PriceAlertNotificationType::PricePercentChange => self.last_notified_at.is_none(),
+        }
+    }
+
     pub fn id(&self) -> String {
         if !self.identifier.is_empty() {
             return self.identifier.clone();
@@ -116,7 +131,7 @@ pub enum PriceAlertType {
     PriceMilestone,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub enum PriceAlertNotificationType {
@@ -188,5 +203,31 @@ mod tests {
             identifier: "stored_from_db".to_string(),
         };
         assert_eq!(alert.id(), "stored_from_db");
+    }
+
+    #[test]
+    fn test_notification_type_and_display_follow_the_set_fields() {
+        let asset_id = AssetId::from_chain(Chain::Ethereum);
+        let auto = PriceAlert::new_auto(asset_id.clone(), Currency::USD);
+        let mut price = PriceAlert::new_price(asset_id.clone(), Currency::USD, 100.0, PriceAlertDirection::Up);
+        let percent = PriceAlert::new_price_percent(asset_id, Currency::USD, 5.0, PriceAlertDirection::Down);
+
+        assert_eq!(auto.notification_type(), PriceAlertNotificationType::Auto);
+        assert_eq!(price.notification_type(), PriceAlertNotificationType::Price);
+        assert_eq!(percent.notification_type(), PriceAlertNotificationType::PricePercentChange);
+
+        assert!(auto.should_display());
+        assert!(price.should_display());
+        price.last_notified_at = Some(Utc::now());
+        assert!(!price.should_display());
+    }
+
+    #[test]
+    fn test_an_alert_with_both_price_and_percent_reads_as_auto() {
+        let mut alert = PriceAlert::new_auto(AssetId::from_chain(Chain::Ethereum), Currency::USD);
+        alert.price = Some(1.2);
+        alert.price_percent_change = Some(3.5);
+
+        assert_eq!(alert.notification_type(), PriceAlertNotificationType::Auto);
     }
 }

@@ -3,22 +3,16 @@ package com.gemwallet.android.ext
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertNotificationType
 import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.serializer.decodeJson
 import uniffi.gemstone.priceAlertId
+import uniffi.gemstone.priceAlertNotificationType
+import uniffi.gemstone.priceAlertShouldDisplay
 
 val PriceAlert.id: String
     get() = priceAlertId(toJson())
 
 val PriceAlert.type: PriceAlertNotificationType
-    get() = when {
-        priceDirection == null && price == null && pricePercentChange == null -> PriceAlertNotificationType.Auto
-        priceDirection != null && price != null && pricePercentChange == null -> PriceAlertNotificationType.Price
-        priceDirection != null && price == null && pricePercentChange != null -> PriceAlertNotificationType.PricePercentChange
-        else -> PriceAlertNotificationType.Auto
-    }
+    get() = priceAlertNotificationType(toJson()).decodeJson()
 
 val PriceAlert.shouldDisplay: Boolean
-    get() = when (type) {
-        PriceAlertNotificationType.Auto -> true
-        PriceAlertNotificationType.Price,
-        PriceAlertNotificationType.PricePercentChange -> lastNotifiedAt == null
-    }
+    get() = priceAlertShouldDisplay(toJson())
