@@ -118,18 +118,99 @@ fun provideGemPriceAlertStore(priceAlertsDao: PriceAlertsDao): GemPriceAlertStor
 fun provideGemPriceAlertService(...): GemPriceAlertService = GemPriceAlertService(api, preferences, store, device, permissions)
 ```
 
-### 5. Call it from the app
+### 5. Call it from the app — the service itself on iOS, a case on Android
 
-- **iOS**: the view model holds the generated protocol (`any GemPriceAlertServiceProtocol`) and calls it directly; the screen takes it from `@Environment(\.priceAlertService)`. Wrap a Core service in an app class only when the app adds state or types of its own.
-- **Android**: the view model holds a coordinator interface from `gemcore` (`application/<area>/coordinators/`), whose `*Impl` in `data/coordinators` holds the Core service; a coordinator depends on one Core service *or* on repositories plus the session, not both. Where there is nothing to coordinate, the view model injects the `Gem*Service` itself.
-- Neither app re-implements a rule the service already owns, and neither adds a repository or use case that only forwards one Core call.
-- Mocks: iOS in [`GemstoneServices/TestKit`](../../ios/Packages/GemstoneServices/TestKit/), Android in `gemcore` `testFixtures` — shared, never inline per test.
+**iOS: the view model holds the Core protocol.** Nothing sits in between.
+
+```swift
+@Observable
+@MainActor
+public final class PriceAlertsSceneViewModel: Sendable {
+    private let priceAlertService: any GemPriceAlertServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
+    public let query: ObservableQuery<PriceAlertsRequest>
+
+    public init(
+        priceAlertService: any GemPriceAlertServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
+    ) {
+        self.priceAlertService = priceAlertService
+        self.preferencesService = preferencesService
+        isPriceAlertsEnabled = priceAlertService.isEnabled()
+        query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
+    }
+}
+```
+
+The screen reads the service out of the environment and passes it in — `@Environment(\.priceAlertService)`, built once in `ServicesFactory`. **Do not write an app service around a Core service.** The distinction is which way the dependency points: a class that *implements* a Core trait is an adapter and is required (the `Gemstone*Store` classes, `GemstoneNotificationPermissions`, the WalletConnect signer); a class that *calls* a Core service and re-exposes it is a wrapper, and the view model should hold the protocol instead. The wrappers still in the app are listed under [iOS](#ios) below, and they go.
+
+**Android: the view model holds cases, never a repository.** A case is three files: the interface the screen asks for, the implementation that holds the Core service, and the view model that injects the interface.
+
+`gemcore/.../application/pricealerts/coordinators/SetPriceAlertsEnabled.kt` — the case:
+
+```kotlin
+interface SetPriceAlertsEnabled {
+    suspend operator fun invoke(enabled: Boolean)
+}
+```
+
+`data/coordinators/.../pricealerts/PriceAlertsEnabledCoordinator.kt` — the implementation, holding nothing but the Core service (it is named `…Coordinator` instead of `…Impl` only because one class satisfies two case interfaces):
+
+```kotlin
+class PriceAlertsEnabledCoordinator(
+    private val priceAlertService: GemPriceAlertService,
+) : GetPriceAlertsEnabled, SetPriceAlertsEnabled {
+
+    private val changes = MutableSharedFlow<Unit>()
+
+    override fun isPriceAlertsEnabled(): Flow<Boolean> = changes
+        .onStart { emit(Unit) }
+        .map { priceAlertService.isEnabled() }
+
+    override suspend fun invoke(enabled: Boolean) {
+        priceAlertService.setEnabled(enabled)
+        changes.emit(Unit)
+    }
+}
+```
+
+Hilt builds the implementation once and binds every interface it satisfies, so the view model asks for the case it needs and nothing else:
+
+```kotlin
+@Provides
+fun providePriceAlertsEnabledCoordinator(priceAlertService: GemPriceAlertService) = PriceAlertsEnabledCoordinator(priceAlertService)
+
+@Provides
+fun provideGetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): GetPriceAlertsEnabled = coordinator
+
+@Provides
+fun provideSetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): SetPriceAlertsEnabled = coordinator
+```
+
+**One class implementing two cases** is right only when they share state. Here the read flow has to re-emit after a write, and `changes` is that shared signal — split them and you would have to invent a channel between the two classes. With no shared state, write one `*Impl` per case. The better fix is to remove the shared state: when Core exposes the value as something observable, the read and the write become independent cases again. **A case composing other cases is always fine** — `SyncAssetPriceAlertsImpl` holds `HasAssetPriceAlerts` and `UpdatePriceAlerts` — that is how a flow is assembled; what a case must not hold is a repository.
+
+`features/settings/price_alerts/.../PriceAlertViewModel.kt` — the screen's view model, which injects the cases and never the service or a repository:
+
+```kotlin
+@HiltViewModel
+class PriceAlertViewModel @Inject constructor(
+    private val getPriceAlertsEnabled: GetPriceAlertsEnabled,
+    private val setPriceAlertsEnabled: SetPriceAlertsEnabled,
+) : ViewModel()
+```
+
+A case may compose other cases ([`SyncAssetPriceAlertsImpl`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/SyncAssetPriceAlertsImpl.kt) calls `HasAssetPriceAlerts` and `UpdatePriceAlerts`), and it holds the Room DAO when the screen needs an observed read. It must not take a repository for data a Core service owns. The repositories left in the graph are legacy and shrink as services land; `SessionRepository` is the one still in wide use, and Core's `GemWalletSessionService` is replacing it.
+
+**Observed reads.** Core has no observation primitive, so a screen that must update as rows change observes the app's own database — iOS with `ObservableQuery` over a GRDB request, Android with a Room `Flow` returned by the case. Everything else — writes, remote sync, point reads, every decision — goes through the service.
+
+**Tests.** iOS mocks the protocol from [`GemstoneServices/TestKit`](../../ios/Packages/GemstoneServices/TestKit/); Android fakes the case interface, or mocks `Gem*Service` with MockK, using fixtures from `gemcore` `testFixtures`. Neither app tests a rule that lives in Core — that test belongs in `rules.rs`.
 
 ### Done means
 
 - Core has the flow, the rules and their tests; the app code it replaced is deleted in the same commit.
 - Both apps implement the same store trait the same way, and both build and pass their suites.
 - No app-side copy of a Core decision, no raw preference keys, no swallowed store failure.
+- Nothing was added to reach it: iOS injects the protocol, Android calls a case — no wrapper service, no repository.
 - The service's row in the table above says **Done**, and its line in the plan below is removed.
 
 ## Core services
@@ -312,6 +393,15 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 ### iOS
 
+- Wrappers to retire, so a view model holds the Core protocol and nothing else (see [How a service is built](#5-call-it-from-the-app--the-service-itself-on-ios-a-case-on-android)):
+
+| Class | What it is today | Target |
+| --- | --- | --- |
+| [`ConnectionsService`](../../ios/Packages/FeatureServices/ConnectionsService/ConnectionsService.swift) | `setup`/`pair`/`disconnect`/`updateSessions` over `WalletConnectorServiceable`, plus an `NSLock` around setup | the scenes hold `any GemWalletConnectServiceProtocol`; pairing and setup stay with the Reown adapter. Delete the package, move its two tests onto the protocol |
+| [`WalletConnectorManager`](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorManager.swift) | two roles in one class: it implements Core's `GemWalletConnectSigner` (an adapter, keep) and drives sheet presentation (`presentSheet`, `sessionApproval`, `isPresentingError`) | split and rename: `WalletConnectSigner` for the trait, and let the presenter own presentation. Nothing outside should hold "manager" |
+| [`ChainServiceFactory`](../../ios/Packages/GemstoneServices/Sources/Gateway/ChainServiceFactory.swift) / `ChainService` | per-chain gateway construction, reached both as a factory protocol and as a namespace | one construction style. Decide whether the gateway per chain is a Core concern (`GemGatewayService`) or stays the app's gateway adapter, then delete the other path — this one is a decision, not a mechanical move |
+| [`SupportTypingState`](../../ios/Packages/GemstoneServices/Sources/SupportTypingState.swift) | app-held typing state that `GemstoneSupportStore` writes and `SupportChatSceneViewModel` reads | typing belongs to `GemSupportService`: expose it on `GemSupportServiceProtocol`, keep the store trait as the persistence seam, and delete the app state and the extra `typing:` parameter on the view model and the store |
+
 - Confirm view models still assemble `GemSendInput` from app aggregates. See **The confirm seam** below — it is the last migration item before the `TransactionInputType` collapse.
 - The rule for a failing Core call on iOS, applied to the `try?` list: a Core read whose `Optional` models a real state (no wallet yet, no selected node) returns that optional and says nothing; a failure the app recovers from is **logged** and the recovery is deliberate; a failure the user must act on is thrown and mapped to localized text. Deliberate recoveries, keep them: `NodeService.node(for:)` → the chain's default node, `PerpetualService.accountMode` → the stored mode, `AmountDataProvidable.limits` → zero available (fail-closed for a send), `String+Keystore` → utf8 bytes for pre-hex passwords, `LocalKeystore.keystorePassword` → `""` is the "no password stored yet" sentinel, not a swallowed error. Now logged instead of silent: `WalletSessionService.currentWallet`/`currentWalletId`, `WalletSessionManageable.hasMulticoinWallet`, `SettingsViewModel.walletsValue` (which showed "0 wallets" for a store failure and now shows nothing). `PerpetualEnablerService` and `HyperliquidEventHandler` no longer exist, and the last silent Core calls now log: `AssetSceneViewModel.visibleBanners` and its balance refresh, `ChainSettingsSceneViewModel.onSelectExplorer` (which showed the new explorer as selected while the write had failed), `SwapSceneViewModel.performUpdate` and `CurrencySceneViewModel.updateDevice`. The 513 `try?` left outside tests are value conversions — JSON round trips, formatter parses, `wallet.account(for:)` — where `nil` is the render path, plus the developer screen; leave them.
 - Store adapter divergences: `SupportStore` typing, `ConnectionsStore.updateSession`, `NodeStore.addNode`, `SearchStore.setLists` and `TransactionStore.getTransactionState` are aligned with Android (synchronous typing, skip the missing session row, upsert, single-column read). Two schema differences remain and are not adapter bugs: `banners.walletId`/`banners.assetId` are foreign keys, and SQLite does not apply `INSERT OR IGNORE` conflict resolution to foreign keys, so a banner for an asset the app has not stored throws where Android stores it; `PortfolioStore` reads through `asset_info`, which joins `accounts`, so a wallet without an account row for the chain contributes nothing.
@@ -320,6 +410,30 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 - Naming: the view models' load entry point is `load()` now — GRDB's `fetch(_ db:)` is the only `fetch` left in the app layer, and the `fetch*` vocabulary went with it (`loadTrigger` and the `*LoadTrigger` types, `loadOnce`, `loadTask`, the private `loadNodes`/`loadAssets`/`loadNFTs` helpers). Still open: `GemstoneNftStore` wrapping `NFTStore`, `ConnectionStore` wrapping `ConnectionsStore`, untyped `.map()` conversions vs Android `toPrimitives()`.
 
 ### Android
+
+- Repositories to retire, in this order — each becomes cases (interface in `gemcore` `application/<area>/coordinators/`, one implementation in `data/coordinators/<area>/` holding the Core service, or the DAO when the screen needs an observed read). Callers move to the case; the repository is deleted in the same commit:
+
+| Repository | Callers | What it holds today | Target |
+| --- | --- | --- | --- |
+| `ChainInfoRepository` | 2 | ten lines: `Chain.available().sortedByDescending { it.defaultAssetRank }` | delete — the ordering is a Core rule (`GemSearchService`/chain config), the callers take it from there |
+| `InAppNotificationsRepository` | 2 | one `NotificationsDao` flow | `GetInAppNotifications` case over the DAO |
+| `ContactsRepository` | 1 | two DAO flows plus `GemContactService` writes | `GetContacts`/`GetContactRecipients` cases; writes already go to the service |
+| `BannersRepository` | 1 | `GemBannerService` plus `BannersDao` | its case interfaces already exist (`GetActiveBanners`, `ApplyBannerAction`, `HasMultiSign`) — move the bodies into their `*Impl` and drop the repository |
+| `PriceAlertRepository` (+`Impl`) | 6 | four observed reads over `PriceAlertsDao` | the matching cases already exist (`GetPriceAlerts`, `GetAssetPriceAlertState`, `HasAssetPriceAlerts`) — give them the DAO |
+| `TransactionRepository` (+`Impl`) | 6 | `getTransactions(filters)`, `getTransaction(id)` | `GetTransactions`/`GetTransaction` cases over `TransactionsDao` |
+| `AddressesRepository` | 5 | address-name flow plus `saveWalletAddresses` over `GemNameService` | `GetAddressName`/`SaveWalletAddresses` cases |
+| `NftRepository` | 2 | two observed reads plus `GemNftService` and `nftCollectionStatus` | `GetNftList`/`GetNftAsset` cases; the `fetch*` names go with it |
+| `DeviceRepository` | 2 | push token and push-enabled over DataStore, device info for `GemDeviceService` | push token and flag are preferences — move the values into Core (`GemPreferencesService`) and keep a `GetPushEnabled`/`SetPushToken` case |
+| `PerpetualRepository` (+`Impl`) | 18 | six observed reads over the perpetual DAOs | one case per read (`GetPerpetuals`, `GetPerpetual`, `GetPositions`, `GetPosition`, `GetPerpetualBalance`) |
+| `StakeRepository` | 12 | DAO reads plus `GemStakeService` and the validator free functions | stake cases; the recommended/selectable validator calls go straight to Core |
+| `TokensRepository` | 4 | three search strategies over `GemSearchService`/`GemAssetsService` | the query strategy becomes `SearchTokensCase` holding `GemSearchService`; the Android-only "retry as a text query" fallback is decided against iOS first |
+| `SupportChatRepository` | 3 | forwards eight calls to `GemSupportService`, plus `SupportTypingState` | delete — the view model holds `GemSupportService`; typing moves into Core with the iOS item above |
+| `BridgesRepository` | 9 | 272 lines of Reown SDK calls with Core mixed in | it is the WalletConnect adapter, not a repository: rename, keep only the SDK seam, and expose approve/reject/pair/respond as cases |
+| `WalletsRepository` (+`Impl`) | 31 | wallet CRUD over `WalletsDao` while Core has `GemWalletService`/`GemWalletStore` | cases over `GemWalletService`; the DAO stays behind the `GemWalletStore` adapter |
+| `AssetsRepository` | 41 | 262 lines: observed asset lists, plus `GemAssetsService`/`GemBalanceService` orchestration | split — observed reads become `GetAssetsInfo*` cases over `AssetsDao`, the orchestration is already Core's |
+| `SessionRepository` (+`Impl`) | 107 | current wallet and currency, `session()` StateFlow | last, in slices: `GetCurrentWallet`/`SetCurrentWallet`/`ObserveSession` over `GemWalletSessionService` and currency over `GemPreferencesService` |
+
+  The observer services in the same module (`DeviceObserverService`, `StreamObserverService`, `HyperliquidObserverService`, `HyperliquidSubscriptionService`) are long-lived stream adapters, not cases — they stay, but move out of `data/repositories` when the repositories are gone.
 
 - Apply the preferences decision above: `UserConfig`/`ConfigStore` become the adapter, and the keys still in DataStore/`ConfigStore` (`authRequired`, `getLaunchNumber`, `chartPeriod`, `perpetualChartPeriod`, `getLockInterval`, `isAskNotifications` + its 30-day permission window) move to Core.
 - Error handling: the sync coordinators, `UpdateBalances`, `TokensRepository`, `SupportChatRepository`, `StreamObserverService` and `GetWalletSecretDataImpl` now use `runCatchingCancellable` and log what failed; `Chain.isSwapSupport()` no longer turns a config error into "swap unsupported"; `AddAssetViewModel` keeps the screen open when the add fails; the `!!` on Core data in `GetNftAssetDetailsImpl`, `PhraseAddressImportWalletService`, `NftDetailsScene` and `StakeScreen` are gone. `PriceAlertViewModel`, `WalletImageViewModel`, `SyncService` and `SwapViewModel` now use `runCatchingCancellable` and log. The `runCatching` calls left are around non-suspend work (URI parsing, `valueOf`, `startActivity`, focus requests, JSON decode helpers), where cancellation cannot be swallowed — leave them.
