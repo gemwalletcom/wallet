@@ -129,6 +129,7 @@ extension Primitives.ScanTransactionPayload: JsonCodable {}
 extension Primitives.SearchResponse: JsonCodable {}
 extension Primitives.SimulationPayloadField: JsonCodable {}
 extension Primitives.SimulationResult: JsonCodable {}
+extension Primitives.SimulationHeader: JsonCodable {}
 extension Primitives.SolanaNftStandard: JsonCodable {}
 extension Primitives.SolanaTokenProgramId: JsonCodable {}
 extension Primitives.StakeProviderType: JsonCodable {}

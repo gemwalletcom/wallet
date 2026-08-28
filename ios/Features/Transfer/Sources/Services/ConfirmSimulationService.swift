@@ -3,6 +3,8 @@
 import BigInt
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
+import func Gemstone.simulationHeader
+import func Gemstone.simulationPayloadFields
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -75,11 +77,11 @@ private extension ConfirmSimulationService {
         }
 
         let payload = simulation?.payload ?? []
-        guard shouldHideValueField(for: transferType, simulation: simulation) else {
+        let showsHeader = shouldHideValueField(for: transferType, simulation: simulation)
+        guard let fields = try? simulationPayloadFields(payload: payload.map { try $0.json() }, showsHeader: showsHeader) else {
             return payload
         }
-
-        return payload.filter { $0.kind != .value }
+        return fields.compactMap { try? SimulationPayloadField($0) }
     }
 
     func approvalHeaderData(for transferType: TransferDataType) -> AssetValueHeaderData? {
@@ -148,7 +150,7 @@ private extension ConfirmSimulationService {
     }
 
     func simulationHeaderValue(_ simulation: SimulationResult?) -> (assetId: AssetId, value: ApprovalValue)? {
-        guard let header = simulation?.header,
+        guard let header = try? simulationHeader(simulation: simulation?.json()).flatMap({ try SimulationHeader($0) }),
               let value = header.approvalValue
         else {
             return nil

@@ -12,7 +12,7 @@ use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{
     SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
 };
-use primitives::{Chain, EVMChain, SimulationInput, SimulationResult};
+use primitives::{Chain, EVMChain, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult};
 
 use crate::{
     GemstoneError,
@@ -185,6 +185,21 @@ fn map_transaction_object(transaction: &WcEthereumTransactionData) -> Transactio
     }
 }
 
+#[uniffi::export]
+pub fn simulation_header(simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
+    let header = simulation?.header?;
+    let has_value = header.is_unlimited || header.value.parse::<num_bigint::BigUint>().is_ok();
+    has_value.then_some(header)
+}
+
+#[uniffi::export]
+pub fn simulation_payload_fields(payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
+    if !shows_header {
+        return payload;
+    }
+    payload.into_iter().filter(|field| field.kind != SimulationPayloadFieldKind::Value).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -245,6 +260,47 @@ mod tests {
         assert_eq!(transaction_object.gas_price, None);
         assert_eq!(transaction_object.max_fee_per_gas, None);
         assert_eq!(transaction_object.max_priority_fee_per_gas, None);
+    }
+
+    fn header(value: &str, is_unlimited: bool) -> SimulationResult {
+        SimulationResult {
+            header: Some(SimulationHeader {
+                asset_id: primitives::AssetId::from_chain(Chain::Ethereum),
+                value: value.to_string(),
+                is_unlimited,
+            }),
+            ..SimulationResult::default()
+        }
+    }
+
+    fn field(kind: SimulationPayloadFieldKind) -> SimulationPayloadField {
+        SimulationPayloadField {
+            kind,
+            label: None,
+            value: String::new(),
+            field_type: primitives::SimulationPayloadFieldType::Text,
+            display: primitives::SimulationPayloadFieldDisplay::Primary,
+        }
+    }
+
+    #[test]
+    fn test_a_header_needs_a_value_that_can_be_read() {
+        assert!(simulation_header(Some(header("1000", false))).is_some());
+        assert!(simulation_header(Some(header("", true))).is_some());
+        assert!(simulation_header(Some(header("not a number", false))).is_none());
+        assert!(simulation_header(Some(SimulationResult::default())).is_none());
+        assert!(simulation_header(None).is_none());
+    }
+
+    #[test]
+    fn test_the_value_field_gives_way_to_the_header() {
+        let payload = vec![field(SimulationPayloadFieldKind::Value), field(SimulationPayloadFieldKind::Contract)];
+
+        assert_eq!(simulation_payload_fields(payload.clone(), false).len(), 2);
+        assert_eq!(
+            simulation_payload_fields(payload, true).into_iter().map(|field| field.kind).collect::<Vec<_>>(),
+            vec![SimulationPayloadFieldKind::Contract]
+        );
     }
 
     #[test]
