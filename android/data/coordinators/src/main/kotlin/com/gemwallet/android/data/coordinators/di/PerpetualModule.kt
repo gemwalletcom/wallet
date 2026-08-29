@@ -29,7 +29,7 @@ import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualPositions
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualPinnedImpl
 import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import uniffi.gemstone.GemPerpetualService
 import dagger.Module
@@ -37,6 +37,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionByAssetImpl
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -73,41 +75,47 @@ object PerpetualModule {
     @Singleton
     fun provideGetPerpetualPositions(
         sessionRepository: SessionRepository,
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
     ): GetPerpetualPositions {
         return GetPerpetualPositionsImpl(
             sessionRepository = sessionRepository,
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
         )
     }
 
     @Provides
     @Singleton
+    fun provideGetPerpetualPositionByAsset(
+        perpetualStore: GemstonePerpetualStore,
+    ): GetPerpetualPositionByAsset = GetPerpetualPositionByAssetImpl(perpetualStore)
+
+    @Provides
+    @Singleton
     fun provideGetPerpetualPosition(
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
     ): GetPerpetualPosition {
         return GetPerpetualPositionImpl(
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
         )
     }
 
     @Provides
     @Singleton
     fun provideGetPerpetuals(
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
     ): GetPerpetuals {
         return GetPerpetualsImpl(
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
         )
     }
 
     @Provides
     @Singleton
     fun provideGetPerpetual(
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
     ): GetPerpetual {
         return GetPerpetualImpl(
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
         )
     }
 
@@ -115,22 +123,22 @@ object PerpetualModule {
     @Singleton
     fun provideGetPerpetualBalances(
         sessionRepository: SessionRepository,
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
     ): GetPerpetualBalances {
         return GetPerpetualBalancesImpl(
             sessionRepository = sessionRepository,
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
         )
     }
 
     @Provides
     @Singleton
     fun provideGetPerpetualBalance(
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
         sessionRepository: SessionRepository,
     ): GetPerpetualBalance {
         return GetPerpetualBalanceImpl(
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
             sessionRepository = sessionRepository,
         )
     }
@@ -174,11 +182,11 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideBuildPerpetualParams(
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
         sessionRepository: SessionRepository,
     ): BuildPerpetualParams {
         return BuildPerpetualParamsImpl(
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
             sessionRepository = sessionRepository,
         )
     }

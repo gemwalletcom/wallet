@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Asset
@@ -13,11 +13,11 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetPerpetualsImpl @Inject constructor(
-    private val perpetualRepository: PerpetualRepository,
+    private val perpetualStore: GemstonePerpetualStore,
 ) : GetPerpetuals {
 
     override fun getPerpetuals(searchQuery: String?): Flow<List<PerpetualDataAggregate>> {
-        return perpetualRepository.getPerpetuals(searchQuery)
+        return perpetualStore.observePerpetuals(searchQuery)
             .map { items -> items.map { PerpetualDataAggregate(it) } }
     }
 

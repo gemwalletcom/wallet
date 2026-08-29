@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.testkit.mockAsset
@@ -50,10 +50,10 @@ class BuildPerpetualParamsImplTest {
         ),
     )
 
-    private val perpetualRepository = mockk<PerpetualRepository> {
-        every { getPerpetual(perpetualData.perpetual.id) } returns flowOf(perpetualData)
-        every { getPositionByPerpetualId(ownWalletId, perpetualData.perpetual.id) } returns flowOf(ownPosition)
-        every { getPositionByPerpetualId(otherWalletId, perpetualData.perpetual.id) } returns flowOf(otherWalletPosition)
+    private val perpetualStore = mockk<GemstonePerpetualStore> {
+        every { observePerpetual(perpetualData.perpetual.id) } returns flowOf(perpetualData)
+        every { observePositionByPerpetualId(ownWalletId, perpetualData.perpetual.id) } returns flowOf(ownPosition)
+        every { observePositionByPerpetualId(otherWalletId, perpetualData.perpetual.id) } returns flowOf(otherWalletPosition)
     }
 
     @Test
@@ -71,7 +71,7 @@ class BuildPerpetualParamsImplTest {
             every { session() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = walletId.id)))
         }
         val subject = BuildPerpetualParamsImpl(
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
             sessionRepository = sessionRepository,
         )
         val params = requireNotNull(subject.reduce(perpetualData.perpetual.id))

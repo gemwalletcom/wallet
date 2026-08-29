@@ -59,7 +59,7 @@ import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
@@ -128,7 +128,7 @@ object AssetModule {
     fun provideGetWalletSummary(
         sessionRepository: SessionRepository,
         assetsRepository: AssetsRepository,
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
         observePerpetualWallet: ObservePerpetualWallet,
         hasMultiSign: HasMultiSign,
         userConfig: UserConfig,
@@ -137,7 +137,7 @@ object AssetModule {
     ): GetWalletSummary = GetWalletSummaryImpl(
         sessionRepository = sessionRepository,
         assetsRepository = assetsRepository,
-        perpetualRepository = perpetualRepository,
+        perpetualStore = perpetualStore,
         observePerpetualWallet = observePerpetualWallet,
         hasMultiSign = hasMultiSign,
         userConfig = userConfig,

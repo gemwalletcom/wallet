@@ -9,7 +9,7 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import uniffi.gemstone.GemWalletPreferencesService
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
@@ -43,7 +43,7 @@ import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 class GetWalletSummaryImpl(
     private val sessionRepository: SessionRepository,
     private val assetsRepository: AssetsRepository,
-    private val perpetualRepository: PerpetualRepository,
+    private val perpetualStore: GemstonePerpetualStore,
     private val observePerpetualWallet: ObservePerpetualWallet,
     private val hasMultiSign: HasMultiSign,
     private val userConfig: UserConfig,
@@ -58,7 +58,7 @@ class GetWalletSummaryImpl(
             wallet ?: return@flatMapLatest flowOf(null)
             val collateralAssetId = perpetualService.collateralAssetId(Chain.HyperCore.string)?.toAssetId()
             if (collateralAssetId != null && walletPreferencesService.includesPerpetualCollateral(wallet.id.id)) {
-                perpetualRepository.getBalance(wallet.id, collateralAssetId)
+                perpetualStore.observeBalance(wallet.id, collateralAssetId)
             } else {
                 flowOf(null)
             }

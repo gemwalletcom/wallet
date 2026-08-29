@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.PerpetualOrderFactory
@@ -24,7 +24,7 @@ import java.math.BigInteger
 import kotlin.math.pow
 
 class BuildPerpetualParamsImpl(
-    private val perpetualRepository: PerpetualRepository,
+    private val perpetualStore: GemstonePerpetualStore,
     private val sessionRepository: SessionRepository,
 ) : BuildPerpetualParams {
 
@@ -87,11 +87,11 @@ class BuildPerpetualParamsImpl(
     }
 
     private suspend fun getPerpetual(perpetualId: PerpetualId): PerpetualData? =
-        perpetualRepository.getPerpetual(perpetualId).firstOrNull()
+        perpetualStore.observePerpetual(perpetualId).firstOrNull()
 
     private suspend fun getPosition(perpetualId: PerpetualId): PerpetualPosition? {
         val walletId = sessionRepository.session().value?.wallet?.id ?: return null
-        return perpetualRepository.getPositionByPerpetualId(walletId, perpetualId).firstOrNull()?.position
+        return perpetualStore.observePositionByPerpetualId(walletId, perpetualId).firstOrNull()?.position
     }
 
     private fun createTransferData(
