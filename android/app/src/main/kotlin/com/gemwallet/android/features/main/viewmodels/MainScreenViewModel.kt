@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
-import com.gemwallet.android.data.repositories.bridge.BridgesRepository
+import com.gemwallet.android.data.repositories.bridge.WalletConnectorService
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,10 +20,10 @@ import javax.inject.Inject
 class MainScreenViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
-    bridgesRepository: BridgesRepository,
+    walletConnectorService: WalletConnectorService,
     getTransactions: GetPendingTransactionsCount
 ) : ViewModel() {
-    val isWalletConnectEnabled: Boolean = bridgesRepository.isWalletConnectEnabled
+    val isWalletConnectEnabled: Boolean = walletConnectorService.isWalletConnectEnabled
 
     val pendingTxCount = sessionRepository.session()
         .filterNotNull()

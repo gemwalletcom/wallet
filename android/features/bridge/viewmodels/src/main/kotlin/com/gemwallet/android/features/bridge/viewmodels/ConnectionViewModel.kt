@@ -3,7 +3,7 @@ package com.gemwallet.android.features.bridge.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.bridge.BridgesRepository
+import com.gemwallet.android.data.repositories.bridge.WalletConnectorService
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -14,19 +14,19 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ConnectionViewModel @Inject constructor(
-    private val bridgesRepository: BridgesRepository,
+    private val walletConnectorService: WalletConnectorService,
     savedState: SavedStateHandle
 ) : ViewModel() {
 
     private val connectionId = savedState.requireString(RouteArgument.ConnectionId)
 
-    val connection = bridgesRepository.getConnection(connectionId)
+    val connection = walletConnectorService.getConnection(connectionId)
         .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, null)
 
     fun disconnect(onSuccess: () -> Unit) {
         connection.value?.session?.id?.let {
             viewModelScope.launch(Dispatchers.IO) {
-                bridgesRepository.disconnect(
+                walletConnectorService.disconnect(
                     id = it,
                     onSuccess = { viewModelScope.launch(Dispatchers.Main) { onSuccess() } },
                     onError = { viewModelScope.launch(Dispatchers.Main) { onSuccess() } },

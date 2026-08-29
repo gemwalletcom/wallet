@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class BridgesRepository(
+class WalletConnectorService(
     private val connectionStore: GemstoneConnectionStore,
     private val walletConnectClient: WalletConnectClient,
     private val walletConnectService: GemWalletConnectServiceInterface,
@@ -107,7 +107,7 @@ class BridgesRepository(
 
     private fun activeSessions(): List<WalletConnectSession>? =
         runCatching { walletConnectClient.activeSessions().filter { it.metadata != null } }
-            .onFailure { Log.e("BridgesRepository", "Failed to get active sessions", it) }
+            .onFailure { Log.e("WalletConnectorService", "Failed to get active sessions", it) }
             .getOrNull()
 
     suspend fun disconnect(id: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {

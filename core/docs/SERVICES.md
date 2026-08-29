@@ -382,7 +382,7 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 | Repository | Callers | What it holds today | Target |
 | --- | --- | --- | --- |
 | `PerpetualRepository` (+`Impl`) | 18 | six observed reads over the perpetual DAOs | one case per read (`GetPerpetuals`, `GetPerpetual`, `GetPositions`, `GetPosition`, `GetPerpetualBalance`). Do this one with a device: the reads are covered by `androidTest` suites through `FakePerpetualRepository`, which has to be reworked into fakes of the new cases and cannot be verified by `just test` |
-| `BridgesRepository` | 9 | 272 lines of Reown SDK calls with Core mixed in | it is the WalletConnect adapter, not a repository: rename, keep only the SDK seam, and expose approve/reject/pair/respond as cases |
+| `WalletConnectorService` (was `BridgesRepository`) | 9 | 272 lines of Reown SDK session handling with Core mixed in; named like iOS now | expose approve/reject/pair/respond as cases so the bridge view models stop holding the adapter itself |
 | `WalletsRepository` (+`Impl`) | 31 | wallet CRUD over `WalletsDao` while Core has `GemWalletService`/`GemWalletStore` | cases over `GemWalletService`; the DAO stays behind the `GemWalletStore` adapter |
 | `AssetsRepository` | 41 | 262 lines: observed asset lists, plus `GemAssetsService`/`GemBalanceService` orchestration | split — observed reads become `GetAssetsInfo*` cases over `AssetsDao`, the orchestration is already Core's |
 | `SessionRepository` (+`Impl`) | 107 | current wallet and currency, `session()` StateFlow | last, in slices: `GetCurrentWallet`/`SetCurrentWallet`/`ObserveSession` over `GemWalletSessionService` and currency over `GemPreferencesService` |

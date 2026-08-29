@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.data.repositories.bridge.BridgesRepository
+import com.gemwallet.android.data.repositories.bridge.WalletConnectorService
 import com.gemwallet.android.data.repositories.bridge.WalletConnectClient
 import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequests
 import com.gemwallet.android.data.repositories.bridge.WalletConnectRequestHandler
@@ -36,7 +36,7 @@ object BridgesModule {
         connectionStore: GemstoneConnectionStore,
         walletConnectClient: WalletConnectClient,
         walletConnectService: GemWalletConnectService,
-    ): BridgesRepository = BridgesRepository(
+    ): WalletConnectorService = WalletConnectorService(
         connectionStore = connectionStore,
         walletConnectClient = walletConnectClient,
         walletConnectService = walletConnectService,
@@ -45,9 +45,9 @@ object BridgesModule {
     @Singleton
     @Provides
     fun provideActiveWalletConnectRequest(
-        bridgesRepository: BridgesRepository,
+        walletConnectorService: WalletConnectorService,
     ): ActiveWalletConnectRequest = ActiveWalletConnectRequest(
-        events = bridgesRepository.bridgeEvents,
+        events = walletConnectorService.bridgeEvents,
     )
 
     @Singleton

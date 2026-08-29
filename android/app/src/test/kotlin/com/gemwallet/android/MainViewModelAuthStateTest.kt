@@ -1,6 +1,6 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.data.repositories.bridge.BridgesRepository
+import com.gemwallet.android.data.repositories.bridge.WalletConnectorService
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.model.AuthState
@@ -93,7 +93,7 @@ class MainViewModelAuthStateTest {
 
         return MainViewModel(
             userConfig = userConfig,
-            bridgesRepository = mockk<BridgesRepository>(relaxed = true),
+            walletConnectorService = mockk<WalletConnectorService>(relaxed = true),
             syncService = mockk<SyncService>(relaxed = true),
             migrateV3KeystoreService = mockk<MigrateV3KeystoreService>(relaxed = true),
             migratePriceAlertsPreference = mockk<MigratePriceAlertsPreference>(relaxed = true),

@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.data.repositories.bridge.BridgesRepository
+import com.gemwallet.android.data.repositories.bridge.WalletConnectorService
 import com.gemwallet.android.data.repositories.bridge.WalletConnectJsonRpcResponse
 import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequest
 import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequests
@@ -35,7 +35,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WCRequestViewModel @Inject constructor(
-    private val bridgeRepository: BridgesRepository,
+    private val walletConnectorService: WalletConnectorService,
     private val requestHandler: WalletConnectRequestHandler,
     private val pendingRequests: WalletConnectPendingRequests,
     private val passwordStore: PasswordStore,
@@ -71,7 +71,7 @@ class WCRequestViewModel @Inject constructor(
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
         Log.d(TAG, "Resolving request method=${sessionRequest.request.method} chainId=${sessionRequest.chainId} id=${sessionRequest.request.id}")
         val job = viewModelScope.launch(Dispatchers.IO) {
-            val connection = bridgeRepository.getConnectionByTopic(sessionRequest.topic)
+            val connection = walletConnectorService.getConnectionByTopic(sessionRequest.topic)
             if (connection == null) {
                 rejectRequest(sessionRequest)
                 return@launch
@@ -161,7 +161,7 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun respond(sessionRequest: WalletConnectSessionRequest, response: WalletConnectJsonRpcResponse, onError: (String) -> Unit) {
-        bridgeRepository.respondSessionRequest(
+        walletConnectorService.respondSessionRequest(
             topic = sessionRequest.topic,
             id = sessionRequest.request.id,
             response = response,
@@ -174,7 +174,7 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun rejectRequest(sessionRequest: WalletConnectSessionRequest) {
-        bridgeRepository.respondSessionRequest(
+        walletConnectorService.respondSessionRequest(
             topic = sessionRequest.topic,
             id = sessionRequest.request.id,
             response = requestHandler.rejected(),
