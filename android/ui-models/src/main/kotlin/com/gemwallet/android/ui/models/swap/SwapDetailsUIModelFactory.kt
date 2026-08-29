@@ -17,8 +17,6 @@ import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderType
 import uniffi.gemstone.GemSwapQuoteService
 
-private val swapQuoteService = GemSwapQuoteService()
-
 object SwapProviderUIModelFactory {
     fun create(
         provider: SwapperProviderType,
@@ -71,7 +69,7 @@ object SwapDetailsUIModelFactory {
 
     private val rateFormatter = AssetRateFormatter()
 
-    fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
+    fun create(input: SwapDetailsUIModelInput, swapQuoteService: GemSwapQuoteService): SwapDetailsUIModel? {
         return create(input) { payFiatValue, receiveFiatValue ->
             swapQuoteService.priceImpact(payFiatValue, receiveFiatValue)?.decodeJson()
         }

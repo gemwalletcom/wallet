@@ -30,6 +30,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+import uniffi.gemstone.GemTransactionFormatter
 
 class GetTransactionDetailsImplTest {
 
@@ -43,7 +44,8 @@ class GetTransactionDetailsImplTest {
         getTransaction = getTransaction,
         getWalletAssets = getWalletAssets,
         explorerService = explorerService,
-    )
+            transactionFormatter = GemTransactionFormatter(),
+        )
 
     @Test
     fun getTransactionDetails_keepsSwapExplorerForTransactionWithoutCrashing() = runTest {

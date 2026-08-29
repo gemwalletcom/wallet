@@ -62,6 +62,7 @@ class GetTransactionDetailsImpl(
     private val getTransaction: GetTransaction,
     private val getWalletAssets: GetWalletAssets,
     private val explorerService: GemExplorerService,
+    private val transactionFormatter: GemTransactionFormatter,
 ) : GetTransactionDetails {
 
     override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> {
@@ -92,6 +93,7 @@ class GetTransactionDetailsImpl(
                         swapMetadata = swapMetadata,
                         senderExplorerLink = explorerService.getAddressUrl(data.asset.chain.string, data.transaction.from).let { BlockExplorerLink(it.name, it.link) },
                         recipientExplorerLink = explorerService.getAddressUrl(data.asset.chain.string, data.transaction.to).let { BlockExplorerLink(it.name, it.link) },
+                        transactionFormatter = transactionFormatter,
                     )
                 }
             }
@@ -109,6 +111,7 @@ class TransactionDetailsAggregateImpl(
     private val swapProvider: SwapperProviderType? = null,
     private val senderExplorerLink: BlockExplorerLink? = null,
     private val recipientExplorerLink: BlockExplorerLink? = null,
+    private val transactionFormatter: GemTransactionFormatter,
 ) : TransactionDetailsAggregate {
 
     private val swapMetadata = swapMetadata?.takeIf {
@@ -386,5 +389,3 @@ private val SwapperProviderMode.isCrossChain: Boolean
         SwapperProviderMode.Bridge,
         is SwapperProviderMode.OmniChain -> true
     }
-
-private val transactionFormatter = GemTransactionFormatter()

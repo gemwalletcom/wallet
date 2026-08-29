@@ -13,6 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import java.util.Locale
+import uniffi.gemstone.GemSimulationFormatter
 
 class SimulationTest {
     @Before
@@ -34,7 +35,7 @@ class SimulationTest {
             ),
             payload = emptyList(),
             header = null,
-        ).toSimulation(assets = listOf(solana, usdc).associateBy { it.id })
+        ).toSimulation(GemSimulationFormatter(), assets = listOf(solana, usdc).associateBy { it.id })
 
         assertEquals(
             listOf("-0.100005 SOL", "+0.75 USDC"),
@@ -63,7 +64,7 @@ class SimulationTest {
             ),
             payload = emptyList(),
             header = null,
-        ).toSimulation(assets = mapOf(dust.id to dust))
+        ).toSimulation(GemSimulationFormatter(), assets = mapOf(dust.id to dust))
 
         assertEquals("+2.244508455 DUST", simulation.balanceChanges.single().formattedValue())
         assertEquals(dust, simulation.balanceChanges.single().asset)

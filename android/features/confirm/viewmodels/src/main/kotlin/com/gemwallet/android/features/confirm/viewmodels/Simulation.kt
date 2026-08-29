@@ -19,8 +19,6 @@ import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
 import java.math.BigInteger
 
-private val simulationFormatter = GemSimulationFormatter()
-
 data class Simulation(
     val warnings: List<SimulationWarning> = emptyList(),
     val primaryPayloadFields: List<PayloadField> = emptyList(),
@@ -37,6 +35,7 @@ data class SimulationAssetChange(
 )
 
 fun SimulationResult.toSimulation(
+    simulationFormatter: GemSimulationFormatter,
     assets: Map<AssetId, Asset>,
     chain: Chain? = null,
     explorerName: String? = null,

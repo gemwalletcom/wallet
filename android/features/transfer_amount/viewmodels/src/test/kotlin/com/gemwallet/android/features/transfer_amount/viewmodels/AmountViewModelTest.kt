@@ -38,6 +38,7 @@ import org.junit.Before
 import org.junit.Test
 import java.math.BigInteger
 import uniffi.gemstone.GemAmountLimits
+import uniffi.gemstone.GemAmountService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountViewModelTest {
@@ -180,7 +181,7 @@ class AmountViewModelTest {
 
     private fun viewModelTest(block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
         val params = AmountParams.Transfer(asset.id, DestinationAddress(address = "to", name = null))
-        val viewModel = AmountViewModel(factory, SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())))
+        val viewModel = AmountViewModel(factory, SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())), GemAmountService())
         try {
             runCurrent()
             block(viewModel)

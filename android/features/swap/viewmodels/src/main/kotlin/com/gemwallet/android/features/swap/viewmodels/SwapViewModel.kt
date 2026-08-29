@@ -216,7 +216,8 @@ class SwapViewModel @Inject constructor(
                     selectedSlippage = selectedSlippageBps.value,
                     etaInSeconds = quote.quote.etaInSeconds,
                     isProviderSelectable = providers.size > 1,
-                )
+                ),
+                swapQuoteService,
             )
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

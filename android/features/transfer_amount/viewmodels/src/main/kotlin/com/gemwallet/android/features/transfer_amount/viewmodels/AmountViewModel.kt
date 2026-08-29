@@ -38,12 +38,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import javax.inject.Inject
+import uniffi.gemstone.GemAmountService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AmountViewModel @Inject constructor(
     factory: AmountProviderFactory,
     savedStateHandle: SavedStateHandle,
+    private val amountService: GemAmountService,
 ) : ViewModel() {
 
     private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
@@ -139,7 +141,7 @@ class AmountViewModel @Inject constructor(
                 AmountValidation.parseAmount(asset, amount)
                 val price = current.price?.price?.price ?: 0.0
                 val crypto = amountInputType.value.getAmount(amount, asset.decimals, price)
-                AmountValidation.validate(asset, crypto, provider.availableBalance.value, provider.minimumValue.value)
+                AmountValidation.validate(amountService, asset, crypto, provider.availableBalance.value, provider.minimumValue.value)
                 amountError.value = AmountError.None
                 val isMax = crypto.atomicValue == provider.maxValue()
                 onConfirm(provider.buildConfirmParams(crypto, isMax))
@@ -160,7 +162,7 @@ class AmountViewModel @Inject constructor(
             AmountValidation.parseAmount(asset, inputs.amount)
             val price = current.price?.price?.price ?: 0.0
             val crypto = inputs.inputType.getAmount(inputs.amount, asset.decimals, price)
-            AmountValidation.validate(asset, crypto, inputs.availableBalance, inputs.minimumValue)
+            AmountValidation.validate(amountService, asset, crypto, inputs.availableBalance, inputs.minimumValue)
             AmountError.None
         } catch (err: Throwable) {
             err as? AmountError ?: AmountError.None

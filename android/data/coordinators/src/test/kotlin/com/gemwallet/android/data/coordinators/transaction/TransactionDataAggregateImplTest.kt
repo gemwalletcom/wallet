@@ -21,6 +21,7 @@ import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import uniffi.gemstone.GemTransactionFormatter
 
 class TransactionDataAggregateImplTest {
     private val gemstoneLibraryOverrideProperty = "uniffi.component.gemstone.libraryOverride"
@@ -131,7 +132,7 @@ class TransactionDataAggregateImplTest {
     )
 
     private fun createAggregate(transaction: TransactionExtended): TransactionDataAggregate =
-        TransactionDataAggregateImpl(transaction)
+        TransactionDataAggregateImpl(transaction, GemTransactionFormatter())
 
     @Test
     fun testBasicPropertyDelegation() {

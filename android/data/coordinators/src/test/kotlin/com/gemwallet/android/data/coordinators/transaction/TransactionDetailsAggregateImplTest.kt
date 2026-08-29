@@ -29,6 +29,7 @@ import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderMode
 import uniffi.gemstone.SwapperProviderType
 import uniffi.gemstone.SwapperSlippageMode
+import uniffi.gemstone.GemTransactionFormatter
 
 class TransactionDetailsAggregateImplTest {
 
@@ -139,7 +140,8 @@ class TransactionDetailsAggregateImplTest {
         explorer = TransactionDetailsValue.Explorer("https://example.com", "Explorer"),
         currency = currency,
         swapProvider = swapProvider,
-    )
+            transactionFormatter = GemTransactionFormatter(),
+        )
 
     private fun createSwapProvider(
         mode: SwapperProviderMode = SwapperProviderMode.CrossChain,

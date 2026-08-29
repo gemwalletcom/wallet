@@ -77,6 +77,8 @@ import kotlinx.coroutines.launch
 import com.wallet.core.primitives.SimulationResult
 import java.math.BigInteger
 import javax.inject.Inject
+import uniffi.gemstone.GemSimulationFormatter
+import uniffi.gemstone.GemSwapQuoteService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -97,6 +99,8 @@ class ConfirmViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val feeService: GemFeeService,
     private val transferService: GemTransferService,
+    private val simulationFormatter: GemSimulationFormatter,
+    private val swapQuoteService: GemSwapQuoteService,
 ) : ViewModel() {
 
     private val restart = MutableStateFlow(false)
@@ -135,7 +139,7 @@ class ConfirmViewModel @Inject constructor(
     val simulation = combine(simulationResult, simulationAssets, approvalAssetId, request) { simulationResult, simulationAssets, approvalAssetId, params ->
         val chain = params?.assetId?.chain
         val explorerName = chain?.let { explorerService.getExplorerName(it.string) }
-        val simulation = simulationResult?.toSimulation(simulationAssets, chain, explorerName, approvalAssetId != null) ?: Simulation()
+        val simulation = simulationResult?.toSimulation(simulationFormatter, simulationAssets, chain, explorerName, approvalAssetId != null) ?: Simulation()
         val headerAssetId = simulationResult?.header?.assetId
         val asset = when {
             headerAssetId == null || params == null -> null
@@ -469,7 +473,8 @@ class ConfirmViewModel @Inject constructor(
                 selectedSlippage = params.slippageBps,
                 etaInSeconds = params.etaInSeconds,
                 isProviderSelectable = false,
-            )
+            ),
+            swapQuoteService,
         ) ?: return null
 
         return ConfirmDetailElement.SwapDetails(model)
