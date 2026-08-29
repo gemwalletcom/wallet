@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.stake.viewmodels
 
+import uniffi.gemstone.GemStakeRulesService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,8 +9,6 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
-import uniffi.gemstone.stakeCanClaimRewards
-import uniffi.gemstone.stakeRequiresFrozenBalance
 import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.stake.sumRewardsBalance
@@ -62,6 +61,7 @@ class StakeViewModel @Inject constructor(
     private val getDelegations: GetDelegations,
     private val getValidators: GetValidators,
     private val syncStakeDelegations: SyncStakeDelegations,
+    private val stakeRules: GemStakeRulesService,
     sessionRepository: SessionRepository,
     stateHandle: SavedStateHandle,
 ): ViewModel() {
@@ -103,7 +103,7 @@ class StakeViewModel @Inject constructor(
 
     private val stakeFrozenRequired = assetInfo
         .mapLatest { assetInfo ->
-            assetInfo != null && stakeRequiresFrozenBalance(
+            assetInfo != null && stakeRules.requiresFrozenBalance(
                 assetInfo.asset.chain.string,
                 assetInfo.balance.balance.getFrozenResourceAmount().toString(),
             )
@@ -129,7 +129,7 @@ class StakeViewModel @Inject constructor(
             StakeAction.Freeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             StakeAction.Unfreeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             rewardsBalance
-                .takeIf { stakeCanClaimRewards(assetInfo.asset.chain.string, rewardsBalance.toString()) }
+                .takeIf { stakeRules.canClaimStakeRewards(assetInfo.asset.chain.string, rewardsBalance.toString()) }
                 ?.let {
                     StakeAction.Rewards(
                         data = ValueFormatter(style = ValueFormatter.Style.Auto)

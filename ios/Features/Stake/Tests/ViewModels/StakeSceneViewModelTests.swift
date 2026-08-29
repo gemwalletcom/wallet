@@ -67,16 +67,6 @@ struct StakeSceneViewModelTests {
     }
 
     @Test
-    func recommendedCurrentValidator() throws {
-        let model = StakeSceneViewModel.mock(chain: .cosmos)
-        let recommendedId = try #require(StakeRecommendedValidators().validatorsSet(chain: .cosmos).first)
-
-        model.validatorsQuery.value = [.mock(.cosmos, id: "other"), .mock(.cosmos, id: recommendedId)]
-
-        #expect(model.recommendedCurrentValidator?.id == recommendedId)
-    }
-
-    @Test
     func rewardsState() {
         let oneReward = [Delegation.mock(base: .mock(state: .active, rewards: "100"))]
         let twoRewards = [

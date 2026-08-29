@@ -21,10 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemStakeRulesService
 import uniffi.gemstone.GemStakeService
-import uniffi.gemstone.recommendedValidator
-import uniffi.gemstone.recommendedValidatorIds
-import uniffi.gemstone.stakeSelectableValidators
 import java.math.BigInteger
 
 class SyncStakeDelegationsImpl(
@@ -38,25 +36,29 @@ class SyncStakeDelegationsImpl(
 
 class GetValidatorsImpl(
     private val stakeDao: StakeDao,
+    private val stakeRules: GemStakeRulesService,
 ) : GetValidators {
 
     override fun invoke(assetId: AssetId): Flow<List<DelegationValidator>> =
         stakeDao.getValidators(assetId, StakeProviderType.Stake)
-            .map { items -> selectableValidators(items.toDTO()) }
+            .map { items -> stakeRules.selectableValidators(items.toDTO().map { it.toJson() }).map { it.decodeJson<DelegationValidator>() } }
 }
 
-class GetRecommendedValidatorIdsImpl : GetRecommendedValidatorIds {
+class GetRecommendedValidatorIdsImpl(
+    private val stakeRules: GemStakeRulesService,
+) : GetRecommendedValidatorIds {
 
-    override fun invoke(assetId: AssetId): List<String> = recommendedValidatorIds(assetId.chain.string)
+    override fun invoke(assetId: AssetId): List<String> = stakeRules.recommendedValidatorIds(assetId.chain.string)
 }
 
 class GetRecommendedValidatorImpl(
     private val getValidators: GetValidators,
+    private val stakeRules: GemStakeRulesService,
 ) : GetRecommendedValidator {
 
     override fun invoke(assetId: AssetId): Flow<DelegationValidator?> =
         getValidators(assetId).map { validators ->
-            recommendedValidator(assetId.chain.string, validators.map { it.toJson() })?.decodeJson<DelegationValidator>()
+            stakeRules.recommendedValidator(assetId.chain.string, validators.map { it.toJson() })?.decodeJson<DelegationValidator>()
         }
 }
 
@@ -89,6 +91,3 @@ class GetStakeValidatorImpl(
         stakeDao.getValidator(assetId, validatorId)?.toDTO()
     }
 }
-
-internal fun selectableValidators(validators: List<DelegationValidator>): List<DelegationValidator> =
-    stakeSelectableValidators(validators.map { it.toJson() }).map { it.decodeJson() }

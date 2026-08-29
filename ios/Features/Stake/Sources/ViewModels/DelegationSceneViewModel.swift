@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemStakeRulesService
 import Components
 import Foundation
-import func Gemstone.canClaimDelegationRewards
-import func Gemstone.delegationActions
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -19,6 +18,7 @@ public struct DelegationSceneViewModel {
 
     private let wallet: Wallet
     private let asset: Asset
+    private let stakeRules = GemStakeRulesService()
 
     public init(
         wallet: Wallet,
@@ -102,7 +102,7 @@ public struct DelegationSceneViewModel {
 
     public var availableActions: [DelegationActionType] {
         guard let provider = try? providerType.json(), let state = try? model.state.json() else { return [] }
-        return delegationActions(walletType: wallet.type.map(), chain: asset.chain.rawValue, provider: provider, state: state)
+        return stakeRules.delegationActions(walletType: wallet.type.map(), chain: asset.chain.rawValue, provider: provider, state: state)
             .map(DelegationActionType.init)
     }
 
@@ -112,7 +112,7 @@ public struct DelegationSceneViewModel {
 
     public var canClaimRewards: Bool {
         guard let state = try? model.state.json() else { return false }
-        return canClaimDelegationRewards(walletType: wallet.type.map(), chain: asset.chain.rawValue, state: state, rewards: model.delegation.base.rewards)
+        return stakeRules.canClaimDelegationRewards(walletType: wallet.type.map(), chain: asset.chain.rawValue, state: state, rewards: model.delegation.base.rewards)
     }
 
     public func actionTitle(_ action: DelegationActionType) -> String {
@@ -195,9 +195,9 @@ extension DelegationSceneViewModel {
     }
 
     private var recommendedValidator: DelegationValidator? {
-        StakeRecommendedValidators().randomValidator(
-            chain: model.delegation.base.assetId.chain,
-            from: validators,
-        )
+        (try? stakeRules.recommendedValidator(
+            chain: model.delegation.base.assetId.chain.rawValue,
+            validators: validators.map { try $0.json() },
+        ).map { try DelegationValidator($0) }) ?? .none
     }
 }

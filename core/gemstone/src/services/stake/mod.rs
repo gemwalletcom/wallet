@@ -215,37 +215,41 @@ mod tests {
     }
 }
 
-#[uniffi::export]
-pub fn delegation_actions(wallet_type: WalletType, chain: Chain, provider: StakeProviderType, state: DelegationState) -> Vec<GemDelegationAction> {
-    rules::delegation_actions(wallet_type, chain, provider, state)
-}
+#[derive(Default, uniffi::Object)]
+pub struct GemStakeRulesService {}
 
 #[uniffi::export]
-pub fn can_claim_delegation_rewards(wallet_type: WalletType, chain: Chain, state: DelegationState, rewards: String) -> bool {
-    rules::can_claim_rewards(wallet_type, chain, state, &rewards)
-}
+impl GemStakeRulesService {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
 
-#[uniffi::export]
-pub fn recommended_validator_ids(chain: Chain) -> Vec<String> {
-    rules::recommended_validator_ids(chain)
-}
+    pub fn delegation_actions(&self, wallet_type: WalletType, chain: Chain, provider: StakeProviderType, state: DelegationState) -> Vec<GemDelegationAction> {
+        rules::delegation_actions(wallet_type, chain, provider, state)
+    }
 
-#[uniffi::export]
-pub fn recommended_validator(chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
-    rules::recommended_validator(chain, validators)
-}
+    pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, chain: Chain, state: DelegationState, rewards: String) -> bool {
+        rules::can_claim_rewards(wallet_type, chain, state, &rewards)
+    }
 
-#[uniffi::export]
-pub fn stake_requires_frozen_balance(chain: Chain, frozen_amount: String) -> bool {
-    rules::requires_frozen_balance(chain, &frozen_amount)
-}
+    pub fn recommended_validator_ids(&self, chain: Chain) -> Vec<String> {
+        rules::recommended_validator_ids(chain)
+    }
 
-#[uniffi::export]
-pub fn stake_can_claim_rewards(chain: Chain, rewards_amount: String) -> bool {
-    rules::can_claim_stake_rewards(chain, &rewards_amount)
-}
+    pub fn recommended_validator(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
+        rules::recommended_validator(chain, validators)
+    }
 
-#[uniffi::export]
-pub fn stake_selectable_validators(validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
-    rules::selectable_validators(validators)
+    pub fn requires_frozen_balance(&self, chain: Chain, frozen_amount: String) -> bool {
+        rules::requires_frozen_balance(chain, &frozen_amount)
+    }
+
+    pub fn can_claim_stake_rewards(&self, chain: Chain, rewards_amount: String) -> bool {
+        rules::can_claim_stake_rewards(chain, &rewards_amount)
+    }
+
+    pub fn selectable_validators(&self, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
+        rules::selectable_validators(validators)
+    }
 }

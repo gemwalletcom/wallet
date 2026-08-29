@@ -1,11 +1,10 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
+import uniffi.gemstone.GemStakeRulesService
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.StakeProviderType
 import uniffi.gemstone.GemExplorerService
-import uniffi.gemstone.canClaimDelegationRewards
-import uniffi.gemstone.delegationActions
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -46,6 +45,7 @@ import javax.inject.Inject
 class DelegationViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
     private val getDelegation: GetDelegation,
+    private val stakeRules: GemStakeRulesService,
     private val explorerService: GemExplorerService,
     sessionRepository: SessionRepository,
     savedStateHandle: SavedStateHandle,
@@ -118,7 +118,7 @@ class DelegationViewModel @Inject constructor(
         if (delegation == null || assetInfo == null) {
             return@combine emptyList()
         }
-        delegationActions(
+        stakeRules.delegationActions(
             walletType = session.wallet.type.toGem(),
             chain = assetInfo.asset.id.chain.string,
             provider = StakeProviderType.Stake.toJson(),
@@ -135,7 +135,7 @@ class DelegationViewModel @Inject constructor(
         if (delegation == null || assetInfo == null) {
             return@combine false
         }
-        canClaimDelegationRewards(
+        stakeRules.canClaimDelegationRewards(
             walletType = session.wallet.type.toGem(),
             chain = assetInfo.asset.id.chain.string,
             state = delegation.base.state.toJson(),

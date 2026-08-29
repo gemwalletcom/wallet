@@ -13,6 +13,7 @@ import Transfer
 struct AmountNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.explorerService) private var explorerService
+    @Environment(\.stakeService) private var stakeService
     @State private var model: AmountSceneViewModel
 
     init(model: AmountSceneViewModel) {

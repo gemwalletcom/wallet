@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemStakeRulesService
 import BigInt
 import Components
 import GemstoneServices
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
-import func Gemstone.stakeSelectableValidators
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -17,6 +17,7 @@ import Store
 @Observable
 public final class EarnSceneViewModel {
     private let stakeService: any GemStakeServiceProtocol
+    private let stakeRules = GemStakeRulesService()
     private let explorerService: any GemExplorerServiceProtocol
     private var viewState: StateViewType<Bool> = .loading
 
@@ -37,7 +38,7 @@ public final class EarnSceneViewModel {
     }
 
     public var providers: [DelegationValidator] {
-        Self.selectable(providersQuery.value)
+        selectable(providersQuery.value)
     }
 
     public init(
@@ -67,8 +68,8 @@ public final class EarnSceneViewModel {
         Localized.Common.earn
     }
 
-    private static func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        (try? stakeSelectableValidators(validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? []
+    private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
+        (try? stakeRules.selectableValidators(validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var assetModel: AssetViewModel {

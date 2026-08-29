@@ -1,14 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemStakeRulesService
 import BigInt
 import Components
 import Formatters
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
-import func Gemstone.stakeCanClaimRewards
-import func Gemstone.stakeRequiresFrozenBalance
-import func Gemstone.stakeSelectableValidators
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -22,13 +20,13 @@ import SwiftUI
 @Observable
 public final class StakeSceneViewModel {
     private let stakeService: any GemStakeServiceProtocol
+    private let stakeRules = GemStakeRulesService()
     private let explorerService: any GemExplorerServiceProtocol
 
     private var delegationsState: StateViewType<Bool> = .loading
     private let chain: StakeChain
 
     private let formatter = ValueFormatter(style: .auto)
-    private let recommendedValidators = StakeRecommendedValidators()
     private let currencyCode: String
 
     public let wallet: Wallet
@@ -41,7 +39,7 @@ public final class StakeSceneViewModel {
     }
 
     public var validators: [DelegationValidator] {
-        Self.selectable(validatorsQuery.value)
+        selectable(validatorsQuery.value)
     }
 
     public var assetData: AssetData {
@@ -75,8 +73,8 @@ public final class StakeSceneViewModel {
         Localized.Transfer.Stake.title
     }
 
-    private static func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        (try? stakeSelectableValidators(validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? []
+    private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
+        (try? stakeRules.selectableValidators(validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var stakeTitle: String {
@@ -141,7 +139,7 @@ public final class StakeSceneViewModel {
     }
 
     var recommendedCurrentValidator: DelegationValidator? {
-        recommendedValidators.randomValidator(chain: chain.chain, from: validators)
+        (try? stakeRules.recommendedValidator(chain: chain.chain.rawValue, validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? .none
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
@@ -184,7 +182,7 @@ public final class StakeSceneViewModel {
     }
 
     var showRewards: Bool {
-        stakeCanClaimRewards(chain: chain.chain.rawValue, rewardsAmount: rewardsValue.description)
+        stakeRules.canClaimStakeRewards(chain: chain.chain.rawValue, rewardsAmount: rewardsValue.description)
     }
 
     var canClaimAllRewards: Bool {
@@ -298,7 +296,7 @@ extension StakeSceneViewModel {
     }
 
     private var stakeFrozenRequired: Bool {
-        stakeRequiresFrozenBalance(chain: chain.chain.rawValue, frozenAmount: balanceModel.frozenResources.description)
+        stakeRules.requiresFrozenBalance(chain: chain.chain.rawValue, frozenAmount: balanceModel.frozenResources.description)
     }
 
     private var balanceModel: BalanceViewModel {

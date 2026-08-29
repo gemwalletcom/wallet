@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
+import uniffi.gemstone.GemStakeRulesService
 import uniffi.gemstone.GemBlockExplorerLink
 import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
@@ -66,6 +67,7 @@ class DelegationViewModelTest {
         val viewModel = DelegationViewModel(
             assetsRepository = assetsRepository,
             getDelegation = getDelegation,
+            stakeRules = GemStakeRulesService(),
             explorerService = explorerService,
             sessionRepository = sessionRepository,
             savedStateHandle = SavedStateHandle(

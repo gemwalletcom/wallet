@@ -346,7 +346,7 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 | --- | --- |
 | `GemAssetService` (new) | `asset_default_rank`, `default_token_rank`, `wallet_default_assets`, `chain_fee_asset_ids`, `asset_ids_enabled_by_default`, `wallet_asset_is_enabled`, `asset_is_swapable`, `chain_asset_wrapper`, `asset_action_filters`, `popular_asset_ids`, `default_token_chain`, `search_matching_assets` |
 | `GemAddressService` (new) | `validate_address`, `checksum_address`, `short_address`, `format_address` |
-| `GemStakeService` | `delegation_actions`, `can_claim_delegation_rewards`, `recommended_validator_ids`, `recommended_validator`, `stake_requires_frozen_balance`, `stake_can_claim_rewards`, `stake_selectable_validators` |
+| ~~`GemStakeService`~~ → `GemStakeRulesService` (done) | the seven stake rules moved to a **stateless** service, not the I/O one: `GemStakeService` needs a gateway, a static API client and two stores, so rules hung off it can only be reached through a mock — which silently emptied four iOS view-model tests. A pure-rule service with a `new()` constructor keeps those tests exercising the real rule. Apply the same split to the groups below. |
 | `GemNftService` | `nft_sorted_collections`, `nft_collection_status`, `nft_verified_collections`, `nft_unverified_collections` |
 | `GemPriceAlertService` | `price_alert_id`, `price_alerts_sorted`, `price_alert_notification_type`, `price_alert_should_display` |
 | `GemPerpetualService` | `perpetual_collateral_asset_id`, `perpetual_funding_apr`, `perpetual_order`, `perpetual_close_order` |
