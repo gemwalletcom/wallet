@@ -82,8 +82,7 @@ private const val ASSET_INFO_SOURCE = """
     LEFT JOIN accounts ON accounts.wallet_id = :walletId AND asset.chain = accounts.chain
     LEFT JOIN balances ON asset.id = balances.asset_id AND balances.wallet_id = :walletId
     LEFT JOIN wallets ON wallets.id = :walletId
-    LEFT JOIN session ON session.id = 1
-    LEFT JOIN prices ON asset.id = prices.asset_id AND prices.currency = session.currency
+    LEFT JOIN prices ON asset.id = prices.asset_id
 """
 
 private const val ASSET_INFO_SELECT = "SELECT $ASSET_INFO_COLUMNS $ASSET_INFO_SOURCE"

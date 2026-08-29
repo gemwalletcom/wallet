@@ -7,7 +7,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.session.cases.SetCurrentCurrency
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletSessionStore
-import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -22,11 +22,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,7 +38,7 @@ import java.util.Locale
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionCoordinator(
     private val sessionStore: GemstoneWalletSessionStore,
-    private val walletStore: com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore,
+    private val walletStore: GemstoneWalletStore,
     private val walletSessionService: GemWalletSessionService,
     private val preferencesService: GemPreferencesService,
     private val priceService: GemPriceService,
@@ -49,14 +48,15 @@ class SessionCoordinator(
 
     private val currencyState = MutableStateFlow(preferencesService.getCurrency().decodeJson<Currency>())
 
-    private val session: StateFlow<Session?> = sessionStore.observeSession()
+    private val currentWallet: Flow<Wallet?> = sessionStore.observeSession()
         .flatMapLatest { record ->
             val walletId = record?.walletId ?: return@flatMapLatest flow { emit(null) }
-            walletStore.observeWallet(WalletId(walletId)).mapLatest { wallet ->
-                record.toDTO(wallet ?: return@mapLatest null)
-            }
+            walletStore.observeWallet(WalletId(walletId))
         }
-        .stateIn(scope, SharingStarted.Eagerly, null)
+
+    private val session: StateFlow<Session?> = combine(currentWallet, currencyState) { wallet, currency ->
+        wallet?.let { Session(wallet = it, currency = currency) }
+    }.stateIn(scope, SharingStarted.Eagerly, null)
 
     init {
         scope.launch {
@@ -95,7 +95,6 @@ class SessionCoordinator(
 
     private suspend fun setCurrency(currency: Currency) = withContext(Dispatchers.IO) {
         preferencesService.setCurrency(currency.toJson())
-        sessionStore.setCurrency(currency)
         currencyState.value = currency
     }
 

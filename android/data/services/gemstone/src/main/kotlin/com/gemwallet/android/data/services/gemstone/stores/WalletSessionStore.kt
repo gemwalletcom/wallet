@@ -26,7 +26,5 @@ class GemstoneWalletSessionStore(
 
     suspend fun storedCurrency(): Currency? = sessionDao.getCurrency()
 
-    suspend fun setCurrency(currency: Currency) = sessionDao.setCurrency(currency)
-
     suspend fun clear() = sessionDao.clear()
 }
