@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.tokens
+package com.gemwallet.android.data.coordinators.tokens
 
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.search.WalletSearchTag
@@ -19,10 +19,10 @@ import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemSearchService
 
 class WalletSearchTokensTest {
-    private val tokensRepository = mockk<TokensRepository>(relaxed = true)
+    private val searchTokens = mockk<SearchTokensImpl>(relaxed = true)
     private val searchService = mockk<GemSearchService>()
     private val sessionRepository = mockk<SessionRepository>()
-    private val subject = WalletSearchTokens(tokensRepository, searchService, sessionRepository)
+    private val subject = WalletSearchTokens(searchTokens, searchService, sessionRepository)
 
     @Test
     fun search_delegatesWalletAndScopeToCore() = runTest {

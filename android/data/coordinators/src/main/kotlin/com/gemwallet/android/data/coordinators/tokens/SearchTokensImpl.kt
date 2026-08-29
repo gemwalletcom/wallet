@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.tokens
+package com.gemwallet.android.data.coordinators.tokens
 
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -14,7 +14,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemSearchService
 
-class TokensRepository(
+class SearchTokensImpl(
     private val sessionRepository: SessionRepository,
     private val searchService: GemSearchService,
     private val assetsService: GemAssetsService,
@@ -43,8 +43,6 @@ class TokensRepository(
     }
 
     private companion object {
-        const val TAG = "TokensRepository"
+        const val TAG = "SearchTokens"
     }
 }
-
-fun listPriorityQuery(listId: String) = "tag:$listId"

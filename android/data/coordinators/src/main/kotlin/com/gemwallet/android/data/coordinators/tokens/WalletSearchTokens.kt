@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.tokens
+package com.gemwallet.android.data.coordinators.tokens
 
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.cases.tokens.WalletSearchScopeCase
@@ -14,10 +14,10 @@ import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemSearchService
 
 class WalletSearchTokens(
-    private val tokensRepository: TokensRepository,
+    private val searchTokens: SearchTokensImpl,
     private val searchService: GemSearchService,
     private val sessionRepository: SessionRepository,
-) : SearchTokensCase by tokensRepository, WalletSearchScopeCase {
+) : SearchTokensCase by searchTokens, WalletSearchScopeCase {
 
     override suspend fun search(query: String, currency: Currency, chains: List<Chain>): Boolean =
         searchScope(query, currency, WalletSearchTag.All)

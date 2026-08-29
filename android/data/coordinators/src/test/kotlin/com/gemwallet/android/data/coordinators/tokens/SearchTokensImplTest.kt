@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.tokens
+package com.gemwallet.android.data.coordinators.tokens
 
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.toIdentifier
@@ -20,7 +20,7 @@ import org.junit.Test
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemSearchService
 
-class TokensRepositoryTest {
+class SearchTokensImplTest {
 
     private val wallet = mockWallet(id = "wallet-1")
     private val sessionRepository = mockk<SessionRepository> {
@@ -29,7 +29,7 @@ class TokensRepositoryTest {
     private val searchService = mockk<GemSearchService>()
     private val assetsService = mockk<GemAssetsService>(relaxed = true)
 
-    private val subject = TokensRepository(
+    private val subject = SearchTokensImpl(
         sessionRepository = sessionRepository,
         searchService = searchService,
         assetsService = assetsService,

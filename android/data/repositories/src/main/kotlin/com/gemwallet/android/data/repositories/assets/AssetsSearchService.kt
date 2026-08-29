@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.tokens.listPriorityQuery
 import com.gemwallet.android.data.service.store.database.AssetListDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.SearchDao
@@ -109,3 +108,5 @@ class AssetsSearchService @Inject constructor(
             }
     }
 }
+
+fun listPriorityQuery(listId: String) = "tag:$listId"

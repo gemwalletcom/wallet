@@ -18,7 +18,7 @@ import com.gemwallet.android.cases.tokens.WalletSearchScopeCase
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.config.showPerpetuals
 import com.gemwallet.android.data.repositories.tokens.WalletSearch
-import com.gemwallet.android.data.repositories.tokens.listPriorityQuery
+import com.gemwallet.android.data.repositories.assets.listPriorityQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchConfig
