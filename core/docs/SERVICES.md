@@ -224,6 +224,21 @@ The same rule with each platform's noun:
 
 Still open: `AddNodeViewModel` on Android is the untouched twin — `NodeStatusService`, `AddNodeCase`, `SetCurrentNodeCase` and a raw `GemChainService` for the same network-id check. It belongs to the nodes work in flight.
 
+**An app service holds Core services, not the tables Core owns.** Reaching into a `Gem*Store`'s table from the app is a second read path the owner cannot see — the same violation as a case taking a Room DAO. The exception is a table Core has no concept of: the recent-activity list is the app's own, so `RecentActivityStore` (iOS) and `RecentAssetsService` (Android) are the platform's query layer and stay.
+
+Android already follows this: no view model holds a `Gemstone*Store`, and the fifty that do are cases in `data/coordinators`, which is the documented home for an observed read. iOS's confirm flow does not, and the reason is structural rather than careless — every method on a Core service crosses UniFFI as `async`, and the confirm screen builds its first state inside a synchronous initializer, so it reads the store directly instead:
+
+| Reader | Reads | Owner it bypasses |
+| --- | --- | --- |
+| `ConfirmSimulationService.simulationAssets` | `AssetStore.getAssets` | `GemAssetsService` |
+| `FeeAssetProvider` | `AssetStore.getAssetData`, `getAssetsData` | `GemAssetsService` |
+| `TransferMetadataProvider` | `BalanceStore.getBalance`, `PriceStore.getPrices` | `GemBalanceService`, `GemPriceService` |
+| `ConfirmService.addressName` | `AddressStore.getAddressName` | `GemNameService` |
+
+The fix has a precedent in the same codebase: `GemWalletStore.get_wallets` and `get_wallet` are **synchronous** trait methods, so `GemWalletService` answers a session lookup without `await`. The reads above are all point reads of a single row or a short list, so they can be synchronous the same way — the trait method loses `async`, the service exposes it synchronously, and the confirm flow asks the owner. Do that before the confirm seam, because the seam's own migration assumes those reads come from Core.
+
+`DeveloperViewModel` holds five stores to dump and reset them; it is a developer screen and stays as it is.
+
 **Observed reads.** Core has no observation primitive, so a screen that must update as rows change observes the app's own database — iOS with `ObservableQuery` over a GRDB request, Android with a Room `Flow` returned by the case. Everything else — writes, remote sync, point reads, every decision — goes through the service.
 
 **Tests.** iOS mocks the protocol from [`GemstoneServices/TestKit`](../../ios/Packages/GemstoneServices/TestKit/); Android fakes the case interface, or mocks `Gem*Service` with MockK, using fixtures from `gemcore` `testFixtures`. Never mock a constructible service (`GemStakeConfigService`, `GemAssetConfigService`, `GemChainService`, …) — construct the real one, or the test asserts the mock. Neither app tests a rule that lives in Core — that test belongs in `rules.rs`.
@@ -232,7 +247,7 @@ Still open: `AddNodeViewModel` on Android is the untouched twin — `NodeStatusS
 
 - Core has the flow, the rules and their tests; the app code it replaced is deleted in the same commit.
 - Both apps implement the same store trait the same way, and both build and pass their suites.
-- No app-side copy of a Core decision, no raw preference keys, no swallowed store failure.
+- No app-side copy of a Core decision, no raw preference keys, no swallowed store failure, and no app service reading a table a `Gem*Store` owns.
 - Nothing was added to reach it: iOS injects the protocol, Android calls a case — no wrapper service, no repository. A feature service or case that gathers several collaborators for one screen is not a wrapper; a class that forwards one call is.
 - No `private let`/`private val` holding a `Gem*Service` at file scope. A service comes from the initializer or from Hilt, so a test can substitute it.
 - The service is listed in [Core services](#core-services) with its store and both adapters, and its line in the plan below is removed.
@@ -408,6 +423,7 @@ The websocket URL rule went with it: `GemNodeService.websocket_node_url(chain)` 
 
 ### iOS
 
+- Store reads that belong to Core: `ConfirmSimulationService`, `FeeAssetProvider`, `TransferMetadataProvider` and `ConfirmService` read `AssetStore`, `BalanceStore`, `PriceStore` and `AddressStore` directly because the confirm screen builds its first state in a synchronous initializer and every Core method is `async`. Make those point reads synchronous on the store traits the way `GemWalletStore.get_wallet` already is, expose them synchronously on `GemAssetsService`, `GemBalanceService`, `GemPriceService` and `GemNameService`, and the four readers ask the owner. Do it before the confirm seam.
 - Confirm view models still assemble `GemSendInput` from app aggregates. See **The confirm seam** below — it is the last migration item before the `TransactionInputType` collapse.
 - The rule for a failing Core call on iOS: a Core read whose `Optional` models a real state (no wallet yet, no selected node) returns that optional and says nothing; a failure the app recovers from is **logged** and the recovery is deliberate; a failure the user must act on is thrown and mapped to localized text. Deliberate recoveries, keep them: `PerpetualService.accountMode` → the stored mode, `AmountDataProvidable.limits` → zero available (fail-closed for a send), `String+Keystore` → utf8 bytes for pre-hex passwords, `LocalKeystore.keystorePassword` → `""` is the "no password stored yet" sentinel, not a swallowed error. The 513 `try?` left outside tests are value conversions — JSON round trips, formatter parses, `wallet.account(for:)` — where `nil` is the render path, plus the developer screen; leave them.
 - Two store differences remain, and neither is an adapter bug: `banners.walletId`/`banners.assetId` are foreign keys and SQLite does not apply `INSERT OR IGNORE` conflict resolution to foreign keys, so a banner for an asset the app has not stored throws where Android stores it; `PortfolioStore` reads through `asset_info`, which joins `accounts`, so a wallet without an account row for the chain contributes nothing.
