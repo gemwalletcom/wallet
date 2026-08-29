@@ -47,7 +47,6 @@ extension AppResolver {
         // Environment-level services
         let balanceService: any GemBalanceServiceProtocol
         let bannerService: any GemBannerServiceProtocol
-        let chainServiceFactory: ChainServiceFactory
         let connectionsService: ConnectionsService
         let connectionStatusObserver: ConnectionStatusObserver
         let deviceService: any GemDeviceServiceProtocol

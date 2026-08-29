@@ -104,7 +104,6 @@ struct ServicesFactory {
         let serviceStatusService = Gemstone.GemServiceStatus(
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration), url: Constants.apiURL),
         )
-        let chainServiceFactory = ChainServiceFactory(gatewayService: gatewayService)
         let gemWalletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(store: preferencesStore), wallets: gemWalletStore)
         let walletSessionService = WalletSessionService(service: gemWalletSessionService)
         let gemWalletService = Gemstone.GemWalletService(
@@ -327,7 +326,6 @@ struct ServicesFactory {
         )
         let viewModelFactory = ViewModelFactory(
             keystore: storages.keystore,
-            chainServiceFactory: chainServiceFactory,
             gemConfirmService: gemConfirmService,
             swapService: swapService,
             priceUpdater: streamSubscriptionService,
@@ -357,7 +355,6 @@ struct ServicesFactory {
         return AppResolver.Services(
             balanceService: balanceService,
             bannerService: bannerService,
-            chainServiceFactory: chainServiceFactory,
             connectionsService: connectionsService,
             connectionStatusObserver: connectionStatusObserver,
             deviceService: deviceService,

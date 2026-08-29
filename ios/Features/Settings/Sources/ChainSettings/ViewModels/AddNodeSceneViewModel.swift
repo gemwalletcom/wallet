@@ -15,7 +15,7 @@ import Validators
 @Observable
 final class AddNodeSceneViewModel {
     private let nodeService: GemNodeService
-    private let chainServiceFactory: ChainServiceFactory
+    private let gatewayService: GatewayService
 
     let chain: Chain
 
@@ -25,10 +25,10 @@ final class AddNodeSceneViewModel {
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
 
-    init(chain: Chain, nodeService: GemNodeService, chainServiceFactory: ChainServiceFactory) {
+    init(chain: Chain, nodeService: GemNodeService, gatewayService: GatewayService) {
         self.chain = chain
         self.nodeService = nodeService
-        self.chainServiceFactory = chainServiceFactory
+        self.gatewayService = gatewayService
     }
 
     var title: String {
@@ -112,10 +112,9 @@ extension AddNodeSceneViewModel {
         }
 
         state = .loading
-        let service = chainServiceFactory.service(for: chain, url: url)
 
         do {
-            let nodeStatus = try await service.getNodeStatus(url: urlInputModel.text)
+            let nodeStatus = try await gatewayService.nodeStatus(chain: chain, url: url.absoluteString)
             guard ChainConfig.config(chain: chain).networkId == nodeStatus.chainId else {
                 throw AddNodeError.invalidNetworkId
             }

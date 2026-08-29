@@ -36,8 +36,8 @@ struct SettingsNavigationView: View {
     @Environment(\.priceService) private var priceService
     @Environment(\.chartService) private var chartService
     @Environment(\.nodeService) private var nodeService
+    @Environment(\.gatewayService) private var gatewayService
     @Environment(\.serviceStatusService) private var serviceStatusService
-    @Environment(\.chainServiceFactory) private var chainServiceFactory
     @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.appUpdateService) private var appUpdateService
     @Environment(\.perpetualService) private var perpetualService
@@ -206,7 +206,7 @@ struct SettingsNavigationView: View {
             ChainSettingsScene(
                 model: ChainSettingsSceneViewModel(
                     nodeService: nodeService,
-                    chainServiceFactory: chainServiceFactory,
+                    gatewayService: gatewayService,
                     explorerService: explorerService,
                     chain: $0.chain,
                 ),

@@ -15,7 +15,7 @@ public final class ChainSettingsSceneViewModel {
     private let explorerService: any GemExplorerServiceProtocol
 
     let nodeService: GemNodeService
-    let chainServiceFactory: ChainServiceFactory
+    let gatewayService: GatewayService
     let chain: Chain
 
     var selectedExplorer: String?
@@ -31,12 +31,12 @@ public final class ChainSettingsSceneViewModel {
 
     public init(
         nodeService: GemNodeService,
-        chainServiceFactory: ChainServiceFactory,
+        gatewayService: GatewayService,
         explorerService: any GemExplorerServiceProtocol,
         chain: Chain,
     ) {
         self.nodeService = nodeService
-        self.chainServiceFactory = chainServiceFactory
+        self.gatewayService = gatewayService
         self.explorerService = explorerService
 
         self.chain = chain
@@ -185,10 +185,8 @@ extension ChainSettingsSceneViewModel {
         guard let url = URL(string: node.node.url) else {
             return .error(error: URLError(.badURL))
         }
-        let service = chainServiceFactory.service(for: chain, url: url)
-
         do {
-            let nodeStatus = try await service.getNodeStatus(url: node.node.url)
+            let nodeStatus = try await gatewayService.nodeStatus(chain: chain, url: url.absoluteString)
             return .result(nodeStatus)
         } catch {
             return .error(error: error)

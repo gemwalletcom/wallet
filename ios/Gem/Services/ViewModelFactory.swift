@@ -31,7 +31,6 @@ import WalletTab
 
 public struct ViewModelFactory: Sendable {
     let keystore: any Keystore
-    let chainServiceFactory: ChainServiceFactory
     let gemConfirmService: GemConfirmService
     let swapService: any GemSwapServiceProtocol
     let priceUpdater: any PriceUpdater
