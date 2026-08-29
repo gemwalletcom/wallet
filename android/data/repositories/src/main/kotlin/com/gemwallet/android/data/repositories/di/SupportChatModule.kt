@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.data.repositories.support.SupportChatRepository
 import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import dagger.Module
 import dagger.Provides
@@ -23,15 +22,4 @@ object SupportChatModule {
     @Singleton
     fun provideGemSupportStore(supportStore: GemstoneSupportStore): GemSupportStore = supportStore
 
-    @Provides
-    @Singleton
-    fun provideSupportChatRepository(
-        supportService: GemSupportService,
-        supportMessagesDao: SupportMessagesDao,
-        supportStore: GemstoneSupportStore,
-    ): SupportChatRepository = SupportChatRepository(
-        supportService = supportService,
-        supportMessagesDao = supportMessagesDao,
-        supportStore = supportStore,
-    )
 }

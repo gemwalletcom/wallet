@@ -7,7 +7,6 @@ import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
-import com.gemwallet.android.data.repositories.support.SupportChatRepository
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import com.gemwallet.android.data.repositories.stream.WebSocketConnection
 import com.gemwallet.android.data.repositories.stream.WebSocketRequest
