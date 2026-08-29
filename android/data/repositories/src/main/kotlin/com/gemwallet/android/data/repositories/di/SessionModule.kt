@@ -20,22 +20,28 @@ import uniffi.gemstone.GemPreferencesService
 object SessionModule {
     @Singleton
     @Provides
-    fun provideGemWalletSessionService(
+    fun provideGemstoneWalletSessionStore(
         sessionDao: SessionDao,
-        walletStore: GemstoneWalletStore,
         preferencesService: GemPreferencesService,
-    ): GemWalletSessionService = GemWalletSessionService(GemstoneWalletSessionStore(sessionDao, preferencesService), walletStore)
+    ): GemstoneWalletSessionStore = GemstoneWalletSessionStore(sessionDao, preferencesService)
+
+    @Singleton
+    @Provides
+    fun provideGemWalletSessionService(
+        sessionStore: GemstoneWalletSessionStore,
+        walletStore: GemstoneWalletStore,
+    ): GemWalletSessionService = GemWalletSessionService(sessionStore, walletStore)
 
     @Singleton
     @Provides
     fun provideSessionRepository(
-        sessionDao: SessionDao,
-        walletsRepository: WalletsRepository,
+        sessionStore: GemstoneWalletSessionStore,
+        walletStore: GemstoneWalletStore,
         walletSessionService: GemWalletSessionService,
         preferencesService: GemPreferencesService,
     ): SessionRepository = SessionRepositoryImpl(
-        sessionDao = sessionDao,
-        walletsRepository = walletsRepository,
+        sessionStore = sessionStore,
+        walletStore = walletStore,
         walletSessionService = walletSessionService,
         preferencesService = preferencesService,
     )

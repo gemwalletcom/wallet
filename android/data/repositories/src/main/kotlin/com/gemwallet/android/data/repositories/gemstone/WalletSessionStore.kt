@@ -4,6 +4,7 @@ import com.gemwallet.android.data.service.store.database.SessionDao
 import com.gemwallet.android.data.service.store.database.entities.DbSession
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Currency
+import kotlinx.coroutines.flow.Flow
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletSessionStore
 
@@ -20,4 +21,12 @@ class GemstoneWalletSessionStore(
             ?: DbSession(walletId = walletId, currency = preferencesService.getCurrency().decodeJson<Currency>())
         sessionDao.updateNow(session)
     }
+
+    fun observeSession(): Flow<DbSession?> = sessionDao.session()
+
+    suspend fun storedCurrency(): Currency? = sessionDao.getCurrency()
+
+    suspend fun setCurrency(currency: Currency) = sessionDao.setCurrency(currency)
+
+    suspend fun clear() = sessionDao.clear()
 }

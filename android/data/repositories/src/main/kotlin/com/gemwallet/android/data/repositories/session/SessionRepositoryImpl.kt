@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.session
 
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.data.service.store.database.SessionDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletSessionStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.serializer.decodeJson
@@ -28,8 +28,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionRepositoryImpl(
-    private val sessionDao: SessionDao,
-    private val walletsRepository: WalletsRepository,
+    private val sessionStore: GemstoneWalletSessionStore,
+    private val walletStore: GemstoneWalletStore,
     private val walletSessionService: GemWalletSessionService,
     private val preferencesService: GemPreferencesService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
@@ -37,9 +37,9 @@ class SessionRepositoryImpl(
 
     private val currencyState = MutableStateFlow(preferencesService.getCurrency().decodeJson<Currency>())
 
-    val session = sessionDao.session().flatMapLatest { record ->
+    val session = sessionStore.observeSession().flatMapLatest { record ->
         val walletId = record?.walletId ?: return@flatMapLatest flow { emit(null) }
-        walletsRepository.getWallet(WalletId(walletId)).mapLatest { wallet ->
+        walletStore.observeWallet(WalletId(walletId)).mapLatest { wallet ->
             record.toDTO(wallet ?: return@mapLatest null)
         }
     }
@@ -47,7 +47,7 @@ class SessionRepositoryImpl(
 
     init {
         scope.launch(Dispatchers.IO) {
-            setCurrency(preferencesService.setupCurrency(sessionDao.getCurrency()?.string ?: localeCurrencyCode()).decodeJson())
+            setCurrency(preferencesService.setupCurrency(sessionStore.storedCurrency()?.string ?: localeCurrencyCode()).decodeJson())
         }
     }
 
@@ -63,12 +63,12 @@ class SessionRepositoryImpl(
 
     override suspend fun setCurrency(currency: Currency) = withContext(Dispatchers.IO) {
         preferencesService.setCurrency(currency.toJson())
-        sessionDao.setCurrency(currency)
+        sessionStore.setCurrency(currency)
         currencyState.value = currency
     }
 
     override suspend fun reset() = withContext(Dispatchers.IO) {
-        sessionDao.clear()
+        sessionStore.clear()
     }
 
     override suspend fun getCurrentCurrency(): Currency = currencyState.value
