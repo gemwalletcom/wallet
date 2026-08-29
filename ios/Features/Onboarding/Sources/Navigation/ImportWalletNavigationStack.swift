@@ -69,7 +69,7 @@ public struct ImportWalletNavigationStack: View {
     }
 
     private var importWalletTypeScene: some View {
-        ImportWalletTypeScene(model: ImportWalletTypeViewModel(walletService: model.walletService))
+        ImportWalletTypeScene(model: ImportWalletTypeViewModel(walletService: model.walletService, chainService: model.chainService))
     }
 }
 

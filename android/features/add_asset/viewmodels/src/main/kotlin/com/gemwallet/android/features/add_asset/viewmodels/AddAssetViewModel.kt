@@ -5,6 +5,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
 import uniffi.gemstone.defaultTokenChain
+import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemExplorerService
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
@@ -16,7 +17,6 @@ import com.gemwallet.android.application.add_asset.cases.GetAvailableTokenChains
 import com.gemwallet.android.application.add_asset.cases.ObserveToken
 import com.gemwallet.android.application.add_asset.cases.SearchCustomToken
 import com.gemwallet.android.ext.checksumAddress
-import com.gemwallet.android.ext.filter
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
 import com.gemwallet.android.ui.models.ButtonState
@@ -50,6 +50,7 @@ class AddAssetViewModel @Inject constructor(
     private val addCustomToken: AddCustomToken,
     getAvailableTokenChains: GetAvailableTokenChains,
     private val explorerService: GemExplorerService,
+    private val chainService: GemChainService,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
@@ -62,7 +63,7 @@ class AddAssetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
-        availableChains?.filter(query.toString().lowercase()) ?: emptyList()
+        availableChains?.let { chainService.getMatchingChains(it.map { chain -> chain.string }, query.toString()).mapNotNull { chain -> chain.toChain() } } ?: emptyList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

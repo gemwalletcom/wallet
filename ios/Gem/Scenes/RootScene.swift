@@ -62,6 +62,7 @@ struct RootScene: View {
                     walletSessionService: model.walletSessionService,
                     avatarService: model.avatarService,
                     nameService: model.nameService,
+                    chainService: model.chainService,
                     onComplete: model.dismissImportWallet,
                 ),
             )

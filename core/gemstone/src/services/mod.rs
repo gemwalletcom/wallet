@@ -7,6 +7,7 @@ pub mod auth;
 pub mod avatar;
 pub mod balance;
 pub mod banner;
+pub mod chain;
 pub mod chart;
 pub mod clock;
 pub mod collections;

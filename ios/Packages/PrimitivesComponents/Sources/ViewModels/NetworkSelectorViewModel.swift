@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import class Gemstone.GemChainService
+import protocol Gemstone.GemChainServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -17,6 +19,8 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
     public let state: StateViewType<SelectableListType<Chain>>
 
     public var selectedItems: Set<Chain>
+
+    private let chainService: any GemChainServiceProtocol = GemChainService()
 
     public init(
         state: StateViewType<SelectableListType<Chain>>,
@@ -63,6 +67,6 @@ extension NetworkSelectorViewModel: ItemFilterable {
     }
 
     public func filter(_ chain: Chain, query: String) -> Bool {
-        chain.matches(query: query)
+        !chainService.getMatchingChains(chains: [chain.rawValue], query: query).isEmpty
     }
 }

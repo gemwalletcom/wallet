@@ -1,29 +1,10 @@
+use crate::services::chain::rules::chain_matches_query;
 use crate::services::collections::unique_by;
 
 use primitives::perpetual::{PerpetualData, PerpetualMetadata, PerpetualSearchData};
-use primitives::{Asset, AssetBasic, AssetId, AssetPrice, Chain, ChainAsset, Wallet, WalletType};
+use primitives::{Asset, AssetBasic, AssetId, AssetPrice, Chain, Wallet, WalletType};
 
 use super::model::GemSearchScope;
-
-pub fn chain_matches_query(chain: Chain, query: &str) -> bool {
-    let query = query.trim().to_lowercase();
-    if query.is_empty() {
-        return true;
-    }
-    let chain_asset = ChainAsset::from_chain(chain);
-    [
-        chain_asset.network_name.to_lowercase(),
-        chain.as_ref().to_lowercase(),
-        chain_asset.asset.name.to_lowercase(),
-        chain_asset.asset.symbol.to_lowercase(),
-    ]
-    .iter()
-    .any(|value| value.contains(&query))
-}
-
-pub fn matching_chains(chains: Vec<Chain>, query: &str) -> Vec<Chain> {
-    chains.into_iter().filter(|chain| chain_matches_query(*chain, query)).collect()
-}
 
 pub fn matching_assets(assets: Vec<Asset>, query: &str) -> Vec<Asset> {
     let trimmed = query.trim().to_lowercase();
@@ -199,19 +180,6 @@ mod tests {
     fn test_only_the_all_scope_stores_lists() {
         assert!(stores_lists(&GemSearchScope::All));
         assert!(!stores_lists(&GemSearchScope::List { id: "trending".to_string() }));
-    }
-
-    #[test]
-    fn test_query_matching_ignores_case_and_surrounding_space() {
-        assert!(chain_matches_query(Chain::Ethereum, " ETH "));
-        assert!(chain_matches_query(Chain::Ethereum, "ethereum"));
-        assert!(!chain_matches_query(Chain::Ethereum, "bitcoin"));
-    }
-
-    #[test]
-    fn test_a_blank_query_keeps_every_chain() {
-        assert_eq!(matching_chains(vec![Chain::Ethereum, Chain::Bitcoin], "   "), vec![Chain::Ethereum, Chain::Bitcoin]);
-        assert_eq!(matching_chains(vec![Chain::Ethereum, Chain::Bitcoin], "bit"), vec![Chain::Bitcoin]);
     }
 
     #[test]

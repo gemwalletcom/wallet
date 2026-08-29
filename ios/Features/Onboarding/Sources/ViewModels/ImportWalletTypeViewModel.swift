@@ -1,4 +1,5 @@
 import Foundation
+import protocol Gemstone.GemChainServiceProtocol
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -7,9 +8,11 @@ import GemstoneServices
 
 public struct ImportWalletTypeViewModel {
     let walletService: WalletService
+    public let chainService: any GemChainServiceProtocol
 
-    public init(walletService: WalletService) {
+    public init(walletService: WalletService, chainService: any GemChainServiceProtocol) {
         self.walletService = walletService
+        self.chainService = chainService
     }
 
     var title: String {
@@ -29,7 +32,7 @@ public struct ImportWalletTypeViewModel {
 
 extension ImportWalletTypeViewModel: Equatable {
     public static func == (lhs: ImportWalletTypeViewModel, rhs: ImportWalletTypeViewModel) -> Bool {
-        lhs.chains == rhs.chains
+        lhs.filterChains(for: "") == rhs.filterChains(for: "")
     }
 }
 
@@ -37,14 +40,10 @@ extension ImportWalletTypeViewModel: Equatable {
 
 extension ImportWalletTypeViewModel: Hashable {
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(chains)
+        hasher.combine(filterChains(for: ""))
     }
 }
 
 // MARK: - ChainFilterable
 
-extension ImportWalletTypeViewModel: ChainFilterable {
-    public var chains: [Chain] {
-        AssetConfiguration.allChains.sortByRank()
-    }
-}
+extension ImportWalletTypeViewModel: ChainFilterable {}

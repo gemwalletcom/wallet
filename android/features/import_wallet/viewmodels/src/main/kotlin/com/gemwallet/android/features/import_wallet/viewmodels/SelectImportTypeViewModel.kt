@@ -1,12 +1,12 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
-import com.gemwallet.android.ext.availableByRank
+import com.gemwallet.android.ext.toChain
+import uniffi.gemstone.GemChainService
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.ext.filter
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SelectImportTypeViewModel @Inject constructor(
+    private val chainService: GemChainService,
 ) : ViewModel() {
     private val state = MutableStateFlow(SelectChainViewModelState())
     val uiState = state.map { it.toUIState() }
@@ -30,12 +31,12 @@ class SelectImportTypeViewModel @Inject constructor(
         viewModelScope.launch {
             snapshotFlow{ chainFilter.text }.collectLatest { query ->
                 state.update { old -> old.copy(
-                    chains = Chain.availableByRank().filter(query.toString().lowercase())
+                    chains = chainService.getChains(query.toString()).mapNotNull { it.toChain() }
                 ) }
             }
         }
         viewModelScope.launch {
-            state.update { it.copy(chains = Chain.availableByRank()) }
+            state.update { it.copy(chains = chainService.getChains("").mapNotNull { it.toChain() }) }
         }
     }
 

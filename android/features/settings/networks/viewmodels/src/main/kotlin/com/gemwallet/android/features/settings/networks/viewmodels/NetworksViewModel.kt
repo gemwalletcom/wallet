@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
-import com.gemwallet.android.ext.availableByRank
+import com.gemwallet.android.ext.toChain
+import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemExplorerService
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
@@ -12,7 +13,6 @@ import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.getGemNode
-import com.gemwallet.android.ext.filter
 import com.gemwallet.android.model.NodeStatus
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeStatusState
@@ -46,6 +46,7 @@ class NetworksViewModel @Inject constructor(
     private val deleteNodeCase: DeleteNodeCase,
     private val nodeStatusClient: NodeStatusService,
     private val config: Config,
+    private val chainService: GemChainService,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
@@ -59,9 +60,9 @@ class NetworksViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            updateState { it.copy(availableChains = Chain.availableByRank()) }
+            updateState { it.copy(availableChains = chainService.getChains("").mapNotNull { it.toChain() }) }
             snapshotFlow { chainFilter.text }.collectLatest { query ->
-                updateState { it.copy(availableChains = Chain.availableByRank().filter(query.toString().lowercase())) }
+                updateState { it.copy(availableChains = chainService.getChains(query.toString()).mapNotNull { it.toChain() }) }
             }
         }
     }

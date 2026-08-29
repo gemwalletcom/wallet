@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
+import protocol Gemstone.GemChainServiceProtocol
 import Primitives
 
 public protocol ChainFilterable {
-    var chains: [Chain] { get }
+    var chainService: any GemChainServiceProtocol { get }
 }
 
 public extension ChainFilterable {
     func filterChains(for query: String) -> [Chain] {
-        chains.filter(query: query)
+        chainService.getChains(query: query).compactMap { Chain(rawValue: $0) }
     }
 }

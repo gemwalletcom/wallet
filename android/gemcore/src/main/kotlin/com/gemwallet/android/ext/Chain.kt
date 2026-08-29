@@ -1,6 +1,5 @@
 package com.gemwallet.android.ext
 
-import com.gemwallet.android.domains.asset.defaultAssetRank
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
@@ -10,7 +9,6 @@ import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.EVMChain
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
-import uniffi.gemstone.searchMatchingChains
 import uniffi.gemstone.supportsPrivateKeyImport
 import uniffi.gemstone.validateAddress
 import uniffi.gemstone.checksumAddress as gemstoneChecksumAddress
@@ -57,10 +55,6 @@ fun Chain.networkName(): String {
 
 fun Chain.Companion.available() = Chain.entries.toSet()
 
-fun Chain.Companion.availableByRank() = available().sortedByDescending { it.defaultAssetRank }
-
-fun List<Chain>.filter(query: String): List<Chain> =
-    searchMatchingChains(map { it.string }, query).mapNotNull { chainString -> Chain.entries.firstOrNull { it.string == chainString } }
 
 fun Chain.toChainType(): ChainType {
     val chainType = Config().getChainConfig(string).chainType
@@ -68,9 +62,6 @@ fun Chain.toChainType(): ChainType {
 }
 
 
-fun Chain.getNetworkId(): String {
-    return Config().getChainConfig(string).networkId
-}
 
 fun Chain.isSwapSupport(): Boolean = Config().getChainConfig(string).isSwapSupported
 

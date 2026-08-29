@@ -35,6 +35,7 @@ struct GemApp: App {
                     walletService: resolver.services.walletService,
                     walletSessionService: resolver.services.walletSessionService,
                     nameService: resolver.services.nameService,
+                    chainService: resolver.services.chainService,
                     appUpdateService: resolver.services.appUpdateService,
                     rateService: resolver.services.rateService,
                     toastPresenter: resolver.services.toastPresenter,

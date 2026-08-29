@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemAvatarServiceProtocol
+import protocol Gemstone.GemChainServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstonePrimitives
@@ -38,6 +39,7 @@ final class RootSceneViewModel {
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
     let nameService: any GemNameServiceProtocol
+    let chainService: any GemChainServiceProtocol
     let avatarService: any GemAvatarServiceProtocol
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
@@ -87,6 +89,7 @@ final class RootSceneViewModel {
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
         nameService: any GemNameServiceProtocol,
+        chainService: any GemChainServiceProtocol,
         appUpdateService: any GemAppUpdateServiceProtocol,
         rateService: RateService,
         toastPresenter: ToastPresenter,
@@ -105,6 +108,7 @@ final class RootSceneViewModel {
         self.walletService = walletService
         self.walletSessionService = walletSessionService
         self.nameService = nameService
+        self.chainService = chainService
         self.appUpdateService = appUpdateService
         self.rateService = rateService
         self.toastPresenter = toastPresenter

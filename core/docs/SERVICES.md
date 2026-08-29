@@ -340,6 +340,27 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 ### Rust (core/gemstone)
 
+- Free functions become services. A `#[uniffi::export] pub fn` is a rule with no home: each app reaches it through its own extension (`Chain.matches(query:)`, `List<Chain>.filter(query)`), and those extensions are where app-side variants creep back in. `GemChainService` (`get_chains`, `get_matching_chains`, `is_valid_network_id`) is the shape: a `uniffi::Object` with a `new()` constructor, held like any other service. The remaining 82 exports, grouped by the service they belong in — take one group per commit, delete the app extensions that wrapped them, and keep the free function only where a single call has no siblings:
+
+| Target service | Functions to fold in |
+| --- | --- |
+| `GemAssetService` (new) | `asset_default_rank`, `default_token_rank`, `wallet_default_assets`, `chain_fee_asset_ids`, `asset_ids_enabled_by_default`, `wallet_asset_is_enabled`, `asset_is_swapable`, `chain_asset_wrapper`, `asset_action_filters`, `popular_asset_ids`, `default_token_chain`, `search_matching_assets` |
+| `GemAddressService` (new) | `validate_address`, `checksum_address`, `short_address`, `format_address` |
+| `GemStakeService` | `delegation_actions`, `can_claim_delegation_rewards`, `recommended_validator_ids`, `recommended_validator`, `stake_requires_frozen_balance`, `stake_can_claim_rewards`, `stake_selectable_validators` |
+| `GemNftService` | `nft_sorted_collections`, `nft_collection_status`, `nft_verified_collections`, `nft_unverified_collections` |
+| `GemPriceAlertService` | `price_alert_id`, `price_alerts_sorted`, `price_alert_notification_type`, `price_alert_should_display` |
+| `GemPerpetualService` | `perpetual_collateral_asset_id`, `perpetual_funding_apr`, `perpetual_order`, `perpetual_close_order` |
+| `GemWalletService` | `sorted_wallets`, `wallet_display_account`, `keystore_id_for_wallet`, `wallet_total_fiat_value`, `wallet_shows_pnl` |
+| `GemConfirmService` | `confirm_input_encode`, `confirm_input_decode`, `acquire_asset_flow`, `default_fee_priority`, `is_insufficient_network_fee`, `custom_gas_price`, `custom_fee_estimate`, `calculate_transfer_amount` |
+| `GemPaymentService` | `payment_decode_url`, `payment_destination`, `payment_transfer_destination`, `payment_decoded_transfer`, `deeplink_build_url`, `deeplink_build_gem_url`, `url_action` |
+| `GemWalletConnectService` | `wallet_connect_namespace`, `wallet_connect_reference`, `wallet_connect_chain`, `siwe_try_parse`, `siwe_validate`, `permit2_data_to_eip712_json` |
+| `GemTransactionStateService` | `transaction_state_config`, `transaction_timeout_ms`, `transaction_metadata_block_number`, `transaction_metadata_sequence` |
+| `GemSupportService` | `parse_support_message_display_content` |
+| `GemAppUpdateService` | `is_version_higher`, `application_metadata_short_name`, `lib_version` |
+| Keep as free functions | `generate_device_key_pair`, `decode_private_key`, `encode_private_key`, `supports_private_key_import`, `create_auth_message` — key material, called once at a boundary that already owns the secret |
+
+- No service is constructed at a call site. Every `Gem*Service` is built once in `ServicesFactory` (iOS) or a Hilt module (Android) and injected. Two places still break this and need a home for the instance: iOS `NetworkSelectorViewModel` (its `SelectableListAdoptable` initializer is fixed by the protocol, so the sheet holds its own `GemChainService()`), and Android's `selectFilterChain`/`ContactChainSelectScene` composables, which build one per composition.
+
 - One-sided exports still open: `wallet_connect::authentication_chain_ids` waits on iOS WalletConnect authentication; `nft::report` waits on an Android report screen; `wallet_preferences::is_initial_load_completed` drives the iOS wallet empty state and has no Android equivalent; `reset_transactions_timestamp` is an iOS developer action.
 - Transfer model: generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums collapse (685 Core, 52 Android, 5 iOS references — do it after both apps carry Core records through confirm, transaction construction is wallet-critical). **Not started.**
 

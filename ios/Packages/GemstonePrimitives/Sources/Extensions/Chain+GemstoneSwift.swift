@@ -163,10 +163,6 @@ public extension Primitives.Chain {
     var isPrivateKeyImportSupported: Bool {
         Gemstone.supportsPrivateKeyImport(chain: rawValue)
     }
-
-    func matches(query: String) -> Bool {
-        Gemstone.searchMatchingChains(chains: [rawValue], query: query).isNotEmpty
-    }
 }
 
 private extension Primitives.Chain {
@@ -181,11 +177,6 @@ private extension Primitives.Chain {
 public extension [Primitives.Chain] {
     func sortByRank() -> [Primitives.Chain] {
         sorted { AssetScore.defaultRank(chain: $0) > AssetScore.defaultRank(chain: $1) }
-    }
-
-    func filter(query: String) -> [Primitives.Chain] {
-        let matching = Set(Gemstone.searchMatchingChains(chains: map(\.rawValue), query: query))
-        return filter { matching.contains($0.rawValue) }
     }
 }
 

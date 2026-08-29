@@ -1,12 +1,12 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
+import uniffi.gemstone.GemChainService
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.cases.nodes.AddNodeCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
-import com.gemwallet.android.ext.getNetworkId
 import com.gemwallet.android.model.NodeStatus
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.features.settings.networks.viewmodels.models.AddNodeUIModel
@@ -29,6 +29,7 @@ class AddNodeViewModel @Inject constructor(
     private val nodeStatusClient: NodeStatusService,
     private val addNodeCase: AddNodeCase,
     private val setCurrentNodeCase: SetCurrentNodeCase,
+    private val chainService: GemChainService,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
@@ -55,7 +56,7 @@ class AddNodeViewModel @Inject constructor(
                 )
             }
 
-            status.chainId != chain.getNetworkId() -> state.update {
+            !chainService.isValidNetworkId(chain.string, status.chainId) -> state.update {
                 it.copy(
                     checking = false,
                     errorResId = R.string.errors_invalid_network_id,
