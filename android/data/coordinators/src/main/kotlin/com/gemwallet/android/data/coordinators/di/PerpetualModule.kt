@@ -28,8 +28,8 @@ import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualChartPerio
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualPositionsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualPinnedImpl
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
+import com.gemwallet.android.data.adapters.config.UserConfig
+import com.gemwallet.android.data.adapters.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
 import uniffi.gemstone.GemPerpetualService
 import dagger.Module

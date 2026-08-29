@@ -4,7 +4,7 @@ import com.gemwallet.android.application.transactions.cases.GetPendingTransactio
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.application.transactions.cases.ClearPendingTransactions
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneTransactionStore
 import com.wallet.core.primitives.TransactionState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

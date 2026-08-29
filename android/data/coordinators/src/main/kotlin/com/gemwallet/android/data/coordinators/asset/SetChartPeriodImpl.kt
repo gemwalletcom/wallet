@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.cases.SetChartPeriod
-import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.data.adapters.config.UserConfig
 import com.wallet.core.primitives.ChartPeriod
 
 class SetChartPeriodImpl(

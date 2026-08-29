@@ -2,7 +2,7 @@ package com.gemwallet.android.features.settings.security.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.data.adapters.config.UserConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted

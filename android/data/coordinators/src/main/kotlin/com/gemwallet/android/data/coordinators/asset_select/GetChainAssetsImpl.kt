@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.asset_select
 import com.gemwallet.android.application.asset_select.cases.GetChainAssets
 import com.gemwallet.android.application.assets.cases.SyncBalances
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneAssetStore
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.ExperimentalCoroutinesApi

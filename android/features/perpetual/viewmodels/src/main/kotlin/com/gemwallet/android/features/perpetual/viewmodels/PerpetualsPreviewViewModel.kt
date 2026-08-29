@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.config.showPerpetuals
+import com.gemwallet.android.data.adapters.config.UserConfig
+import com.gemwallet.android.data.adapters.config.showPerpetuals
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn

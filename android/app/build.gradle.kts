@@ -204,7 +204,7 @@ android {
 dependencies {
     implementation(project(":blockchain"))
     implementation(project(":ui"))
-    implementation(project(":data:repositories"))
+    implementation(project(":data:adapters"))
     implementation(project(":data:coordinators"))
 
     // Features

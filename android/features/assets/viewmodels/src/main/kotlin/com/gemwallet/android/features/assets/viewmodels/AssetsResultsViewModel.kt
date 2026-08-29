@@ -15,10 +15,10 @@ import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.application.tokens.cases.WalletSearchScope
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.config.showPerpetuals
-import com.gemwallet.android.data.repositories.tokens.WalletSearch
-import com.gemwallet.android.data.repositories.assets.listPriorityQuery
+import com.gemwallet.android.data.adapters.config.UserConfig
+import com.gemwallet.android.data.adapters.config.showPerpetuals
+import com.gemwallet.android.data.adapters.tokens.WalletSearch
+import com.gemwallet.android.data.adapters.assets.listPriorityQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchConfig

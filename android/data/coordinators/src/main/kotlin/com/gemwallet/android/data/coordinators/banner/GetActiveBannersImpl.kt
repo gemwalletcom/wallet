@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.banner
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.banner.cases.GetActiveBanners
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneBannerStore
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.domains.asset.isStakeable
 import com.gemwallet.android.ext.hasPerpetualsSupport

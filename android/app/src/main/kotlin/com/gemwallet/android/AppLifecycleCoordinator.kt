@@ -2,11 +2,11 @@ package com.gemwallet.android
 
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.gemwallet.android.data.repositories.connection.ConnectionStatusObserver
-import com.gemwallet.android.data.repositories.device.DeviceObserverService
-import com.gemwallet.android.data.repositories.perpetual.HyperliquidObserverService
-import com.gemwallet.android.data.repositories.stream.StreamObserverService
-import com.gemwallet.android.data.repositories.transactions.TransactionStateTracker
+import com.gemwallet.android.data.adapters.connection.ConnectionStatusObserver
+import com.gemwallet.android.data.adapters.device.DeviceObserverService
+import com.gemwallet.android.data.adapters.perpetual.HyperliquidObserverService
+import com.gemwallet.android.data.adapters.stream.StreamObserverService
+import com.gemwallet.android.data.adapters.transactions.TransactionStateTracker
 import javax.inject.Inject
 import javax.inject.Singleton
 

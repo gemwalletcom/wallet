@@ -9,8 +9,8 @@ import com.gemwallet.android.application.session.cases.SetCurrentCurrency
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.coordinators.session.GetCurrentWalletIdImpl
 import com.gemwallet.android.data.coordinators.session.SessionCoordinator
-import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletSessionStore
-import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneWalletSessionStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneWalletStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

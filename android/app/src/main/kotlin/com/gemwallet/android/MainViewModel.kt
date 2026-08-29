@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.pricealerts.MigratePriceAlertsPreference
+import com.gemwallet.android.data.adapters.config.UserConfig
+import com.gemwallet.android.data.adapters.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.ext.userMessage
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.CheckAccountsService

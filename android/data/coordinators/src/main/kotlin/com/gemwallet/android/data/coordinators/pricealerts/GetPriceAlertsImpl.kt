@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.pricealerts
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.data.repositories.gemstone.GemstonePriceAlertStore
+import com.gemwallet.android.data.adapters.gemstone.GemstonePriceAlertStore
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection

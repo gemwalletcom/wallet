@@ -49,7 +49,7 @@ android {
 dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
-    api(project(":data:repositories"))
+    api(project(":data:adapters"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

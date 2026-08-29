@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.application.confirm.cases.FeeAssetProvider
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneAssetStore
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.hasAvailable

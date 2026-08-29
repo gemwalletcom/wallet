@@ -19,7 +19,7 @@ import com.gemwallet.android.data.coordinators.pricealerts.SetAssetPriceAlertEna
 import com.gemwallet.android.data.coordinators.pricealerts.PriceAlertsEnabledCoordinator
 import com.gemwallet.android.data.coordinators.pricealerts.SyncAssetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.UpdatePriceAlertsImpl
-import com.gemwallet.android.data.repositories.gemstone.GemstonePriceAlertStore
+import com.gemwallet.android.data.adapters.gemstone.GemstonePriceAlertStore
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import dagger.Module
 import dagger.Provides

@@ -8,7 +8,7 @@ import com.gemwallet.android.data.coordinators.banner.ApplyBannerActionImpl
 import com.gemwallet.android.data.coordinators.banner.GetActiveBannersImpl
 import com.gemwallet.android.data.coordinators.banner.HasMultiSignImpl
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneBannerStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

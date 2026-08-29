@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetPortfolioData
 import com.gemwallet.android.application.assets.cases.walletChartPeriods
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
+import com.gemwallet.android.data.adapters.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PortfolioState
 import com.gemwallet.android.features.asset.viewmodels.chart.models.StopTimeoutMillis

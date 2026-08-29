@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.wallet
 
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
-import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneWalletStore
 import com.gemwallet.android.domains.wallet.aggregates.WalletDetailsAggregate
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress

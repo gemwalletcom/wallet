@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.wallet
 
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
-import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneWalletStore
 import com.gemwallet.android.testkit.TEST_PHRASE
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.WalletType

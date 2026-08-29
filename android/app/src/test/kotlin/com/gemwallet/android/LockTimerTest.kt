@@ -6,7 +6,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProp
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
-import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.data.adapters.config.UserConfig
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope

@@ -14,7 +14,7 @@ import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.data.coordinators.stake.GetRecommendedValidatorIdsImpl
 import com.gemwallet.android.data.coordinators.stake.GetValidatorsImpl
 import com.gemwallet.android.data.coordinators.stake.SyncStakeDelegationsImpl
-import com.gemwallet.android.data.repositories.gemstone.GemstoneStakeStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneStakeStore
 import uniffi.gemstone.GemStakeConfigService
 import uniffi.gemstone.GemStakeService
 import dagger.Module

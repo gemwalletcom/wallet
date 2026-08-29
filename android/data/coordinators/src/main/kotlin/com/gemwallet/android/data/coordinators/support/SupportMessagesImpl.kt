@@ -4,7 +4,7 @@ import com.gemwallet.android.application.support.cases.ClearSupportTyping
 import com.gemwallet.android.application.support.cases.FailPendingSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportTyping
-import com.gemwallet.android.data.repositories.gemstone.GemstoneSupportStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneSupportStore
 import com.wallet.core.primitives.SupportAgent
 import com.wallet.core.primitives.SupportMessage
 import kotlinx.coroutines.flow.Flow

@@ -12,7 +12,7 @@ import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProp
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.data.coordinators.wallet_connect.PrepareSessionProposalImpl
 import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectCoordinator
-import com.gemwallet.android.data.repositories.gemstone.GemstoneConnectionStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneConnectionStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

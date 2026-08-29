@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.asset
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneBannerStore
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.Wallet

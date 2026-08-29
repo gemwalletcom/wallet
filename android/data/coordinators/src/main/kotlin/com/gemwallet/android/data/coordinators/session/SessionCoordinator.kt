@@ -6,7 +6,7 @@ import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.session.cases.SetCurrentCurrency
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
-import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletSessionStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneWalletSessionStore
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.serializer.decodeJson
@@ -39,7 +39,7 @@ import java.util.Locale
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionCoordinator(
     private val sessionStore: GemstoneWalletSessionStore,
-    private val walletStore: com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore,
+    private val walletStore: com.gemwallet.android.data.adapters.gemstone.GemstoneWalletStore,
     private val walletSessionService: GemWalletSessionService,
     private val preferencesService: GemPreferencesService,
     private val priceService: GemPriceService,

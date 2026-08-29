@@ -38,7 +38,7 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.toBitmap
 import com.gemwallet.android.MainActivity
-import com.gemwallet.android.data.repositories.di.WidgetEntryPoint
+import com.gemwallet.android.data.adapters.di.WidgetEntryPoint
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.model.AssetInfo

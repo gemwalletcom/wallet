@@ -5,7 +5,7 @@ import com.gemwallet.android.application.tokens.cases.WalletSearchScope
 import com.gemwallet.android.data.coordinators.tokens.SearchTokensImpl
 import com.gemwallet.android.data.coordinators.tokens.WalletSearchTokens
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.repositories.tokens.WalletSearch
+import com.gemwallet.android.data.adapters.tokens.WalletSearch
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

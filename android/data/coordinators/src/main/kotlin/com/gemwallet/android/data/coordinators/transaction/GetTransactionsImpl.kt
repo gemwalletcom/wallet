@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneTransactionStore
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate

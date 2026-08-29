@@ -23,7 +23,7 @@ import com.gemwallet.android.application.addresses.cases.GetAddressNames
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
+import com.gemwallet.android.data.adapters.transactions.TransactionBalanceService
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toFeePriority

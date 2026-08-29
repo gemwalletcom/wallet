@@ -7,8 +7,8 @@ import com.gemwallet.android.application.swap.cases.SearchSwapAssets
 import com.gemwallet.android.data.coordinators.swap.BuildSwapConfirmParamsImpl
 import com.gemwallet.android.data.coordinators.swap.RequestSwapQuotesImpl
 import com.gemwallet.android.data.coordinators.swap.SearchSwapAssetsImpl
-import com.gemwallet.android.data.repositories.assets.AssetsSearchService
-import com.gemwallet.android.data.repositories.gemstone.GemstoneKeystorePassword
+import com.gemwallet.android.data.adapters.assets.AssetsSearchService
+import com.gemwallet.android.data.adapters.gemstone.GemstoneKeystorePassword
 import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
@@ -17,7 +17,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemKeystore
-import com.gemwallet.android.data.repositories.gemstone.GemstoneSwapStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneSwapStore
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import uniffi.gemstone.GemSwapService

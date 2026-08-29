@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.fiat
 
 import com.gemwallet.android.application.fiat.cases.ObserveFiatTransactions
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.repositories.gemstone.GemstoneFiatStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneFiatStore
 import com.wallet.core.primitives.FiatTransactionAssetData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

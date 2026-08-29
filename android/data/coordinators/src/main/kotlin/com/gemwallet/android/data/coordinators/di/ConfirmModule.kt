@@ -13,7 +13,7 @@ import com.gemwallet.android.data.coordinators.confirm.ConfirmTransactionImpl
 import com.gemwallet.android.data.coordinators.confirm.CalculateTransferAmountImpl
 import com.gemwallet.android.data.coordinators.confirm.GetFeeAssetsImpl
 import com.gemwallet.android.data.coordinators.confirm.ChainFeeAssetProvider
-import com.gemwallet.android.data.repositories.assets.RecentAssetsService
+import com.gemwallet.android.data.adapters.assets.RecentAssetsService
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.wallet.core.primitives.Chain
 import dagger.Module
@@ -21,7 +21,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 
 @InstallIn(SingletonComponent::class)

@@ -44,10 +44,10 @@ android {
 }
 
 dependencies {
-    implementation(project(":data:repositories"))
+    implementation(project(":data:adapters"))
     implementation(project(":gemcore"))
     implementation(project(":data:services:store"))
-    api(project(":data:services:remote-gem"))
+    api(project(":data:services:native-provider"))
 
     compileOnly(libs.compose.runtime.annotation)
 

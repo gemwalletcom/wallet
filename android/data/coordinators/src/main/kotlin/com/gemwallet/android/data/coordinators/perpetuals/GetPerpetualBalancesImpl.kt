@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalances
-import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
+import com.gemwallet.android.data.adapters.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance as PerpetualBalanceUi
 import com.gemwallet.android.ext.HypercoreUSDC

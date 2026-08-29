@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.wallet
 
 import com.gemwallet.android.application.wallet.cases.GetWallet
 import com.gemwallet.android.application.wallet.cases.GetWallets
-import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
+import com.gemwallet.android.data.adapters.gemstone.GemstoneWalletStore
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow

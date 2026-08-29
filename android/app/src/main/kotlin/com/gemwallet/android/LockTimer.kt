@@ -4,7 +4,7 @@ import android.os.SystemClock
 import android.text.format.DateUtils
 import androidx.annotation.VisibleForTesting
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.data.adapters.config.UserConfig
 import kotlinx.coroutines.flow.first
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject

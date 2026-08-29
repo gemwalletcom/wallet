@@ -6,10 +6,10 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.data.adapters.config.UserConfig
 import uniffi.gemstone.GemWalletPreferencesService
-import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
-import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
+import com.gemwallet.android.data.adapters.perpetual.ObservePerpetualWallet
+import com.gemwallet.android.data.adapters.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
