@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import class Gemstone.GemChainService
-import class Gemstone.GemNodeService
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -15,8 +13,7 @@ import Validators
 @MainActor
 @Observable
 final class AddNodeSceneViewModel {
-    private let nodeService: GemNodeService
-    private let gatewayService: GatewayService
+    private let service: AddNodeService
 
     let chain: Chain
 
@@ -26,13 +23,9 @@ final class AddNodeSceneViewModel {
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
 
-    private let chainService: GemChainService
-
-    init(chain: Chain, nodeService: GemNodeService, gatewayService: GatewayService, chainService: GemChainService) {
-        self.chainService = chainService
+    init(chain: Chain, service: AddNodeService) {
         self.chain = chain
-        self.nodeService = nodeService
-        self.gatewayService = gatewayService
+        self.service = service
     }
 
     var title: String {
@@ -100,7 +93,7 @@ extension AddNodeSceneViewModel {
         }
 
         // TODO: - implement disable after user selects "import node button", we can't use state: StateViewType<ImportNodeResult> progress
-        try await nodeService.addNode(chain: chain.rawValue, url: model.url.absoluteString)
+        try await service.add(chain: chain, url: model.url)
 
         // TODO: - implement correct way of selection node
         /*
@@ -118,19 +111,7 @@ extension AddNodeSceneViewModel {
         state = .loading
 
         do {
-            let nodeStatus = try await gatewayService.nodeStatus(chain: chain, url: url.absoluteString)
-            guard chainService.isValidNetworkId(chain: chain.rawValue, networkId: nodeStatus.chainId) else {
-                throw AddNodeError.invalidNetworkId
-            }
-
-            let result = AddNodeResult(
-                url: url,
-                chainID: nodeStatus.chainId,
-                blockNumber: nodeStatus.latestBlockNumber,
-                isInSync: true,
-                latency: nodeStatus.latency,
-            )
-            state = .data(AddNodeResultViewModel(addNodeResult: result))
+            state = .data(AddNodeResultViewModel(addNodeResult: try await service.check(chain: chain, url: url)))
         } catch {
             state.setError(error)
         }

@@ -208,7 +208,11 @@ struct SettingsNavigationView: View {
                 model: ChainSettingsSceneViewModel(
                     nodeService: nodeService,
                     gatewayService: gatewayService,
-                    chainService: chainService,
+                    addNodeService: AddNodeService(
+                        nodeService: nodeService,
+                        gatewayService: gatewayService,
+                        chainService: chainService,
+                    ),
                     explorerService: explorerService,
                     chain: $0.chain,
                 ),

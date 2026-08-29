@@ -89,9 +89,7 @@ public struct ChainSettingsScene: View {
                 AddNodeScene(
                     model: AddNodeSceneViewModel(
                         chain: model.chain,
-                        nodeService: model.nodeService,
-                        gatewayService: model.gatewayService,
-                        chainService: model.chainService,
+                        service: model.addNodeService,
                     ),
                     onDismiss: model.onDismissImportNode,
                 )
