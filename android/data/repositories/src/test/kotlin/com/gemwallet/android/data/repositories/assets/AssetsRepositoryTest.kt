@@ -51,7 +51,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemPriceService
-import uniffi.gemstone.defaultTokenRank
+import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemStreamSubscriptionService
 import uniffi.gemstone.GemBalanceService
 
@@ -232,7 +232,7 @@ class AssetsRepositoryTest {
             )
         }
 
-        assertTrue(assetSlot.captured.rank > defaultTokenRank())
+        assertTrue(assetSlot.captured.rank > GemAssetConfigService().defaultTokenRank())
         assertEquals(asset.defaultBasic.score.rank, assetSlot.captured.rank)
     }
 

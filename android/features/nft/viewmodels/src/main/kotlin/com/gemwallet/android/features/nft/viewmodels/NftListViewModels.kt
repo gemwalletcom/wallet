@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.nft.viewmodels
 
-import uniffi.gemstone.GemNftRulesService
+import uniffi.gemstone.GemNftService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,7 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NftListViewModels @Inject constructor(
     private val syncNftCollections: SyncNftCollections,
-    private val nftRules: GemNftRulesService,
+    private val nftService: GemNftService,
     getNftCollections: GetNftCollections,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
@@ -53,10 +53,10 @@ class NftListViewModels @Inject constructor(
         .map { data ->
             val filtered = when (mode) {
                 is NftListMode.Collection -> data.filter { it.assets.isNotEmpty() }
-                NftListMode.Unverified -> nftRules.unverifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
-                NftListMode.Collections -> nftRules.verifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
+                NftListMode.Unverified -> nftService.unverifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
+                NftListMode.Collections -> nftService.verifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
             }
-            nftRules.sortedCollections(filtered.map { it.toJson() }).map { it.decodeJson<NFTData>() }.flatMap { nftData ->
+            nftService.sortedCollections(filtered.map { it.toJson() }).map { it.decodeJson<NFTData>() }.flatMap { nftData ->
                 val isSingleAsset = nftData.assets.size == 1
                 if (mode is NftListMode.Collection || isSingleAsset) {
                     nftData.assets.map { NftItemUIModel(nftData.collection, it) }
@@ -68,7 +68,7 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unverifiedCount = nftData
-        .map { data -> nftRules.unverifiedCollections(data.map { it.toJson() }).size }
+        .map { data -> nftService.unverifiedCollections(data.map { it.toJson() }).size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     fun syncIfNeeded() {

@@ -1,5 +1,16 @@
 use primitives::ApplicationMetadata;
 
-pub fn application_metadata_short_name(metadata: ApplicationMetadata) -> String {
-    metadata.short_name()
+#[derive(Default, uniffi::Object)]
+pub struct GemApplicationMetadataService {}
+
+#[uniffi::export]
+impl GemApplicationMetadataService {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn short_name(&self, metadata: ApplicationMetadata) -> String {
+        metadata.short_name()
+    }
 }

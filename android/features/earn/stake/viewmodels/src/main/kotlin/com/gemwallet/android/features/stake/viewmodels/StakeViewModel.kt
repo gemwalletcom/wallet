@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.stake.viewmodels
 
-import uniffi.gemstone.GemStakeRulesService
+import uniffi.gemstone.GemStakeConfigService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -61,7 +61,7 @@ class StakeViewModel @Inject constructor(
     private val getDelegations: GetDelegations,
     private val getValidators: GetValidators,
     private val syncStakeDelegations: SyncStakeDelegations,
-    private val stakeRules: GemStakeRulesService,
+    private val stakeConfig: GemStakeConfigService,
     sessionRepository: SessionRepository,
     stateHandle: SavedStateHandle,
 ): ViewModel() {
@@ -103,7 +103,7 @@ class StakeViewModel @Inject constructor(
 
     private val stakeFrozenRequired = assetInfo
         .mapLatest { assetInfo ->
-            assetInfo != null && stakeRules.requiresFrozenBalance(
+            assetInfo != null && stakeConfig.requiresFrozenBalance(
                 assetInfo.asset.chain.string,
                 assetInfo.balance.balance.getFrozenResourceAmount().toString(),
             )
@@ -129,7 +129,7 @@ class StakeViewModel @Inject constructor(
             StakeAction.Freeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             StakeAction.Unfreeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             rewardsBalance
-                .takeIf { stakeRules.canClaimStakeRewards(assetInfo.asset.chain.string, rewardsBalance.toString()) }
+                .takeIf { stakeConfig.canClaimStakeRewards(assetInfo.asset.chain.string, rewardsBalance.toString()) }
                 ?.let {
                     StakeAction.Rewards(
                         data = ValueFormatter(style = ValueFormatter.Style.Auto)

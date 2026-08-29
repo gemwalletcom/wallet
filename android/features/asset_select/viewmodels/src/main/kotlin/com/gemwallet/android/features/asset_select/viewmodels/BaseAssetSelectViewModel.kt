@@ -31,7 +31,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.gemwallet.android.ext.toAssetId
-import uniffi.gemstone.popularAssetIds
+import uniffi.gemstone.GemAssetConfigService
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
@@ -53,6 +53,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+private val assetConfig = GemAssetConfigService()
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class BaseAssetSelectViewModel(
@@ -118,7 +120,7 @@ open class BaseAssetSelectViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>())
 
     val popular = assets.map { items ->
-        val popularIds = popularAssetIds().mapNotNull { it.toAssetId() }
+        val popularIds = assetConfig.popularIds().mapNotNull { it.toAssetId() }
         items.filter { it.asset.id in popularIds }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)

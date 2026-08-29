@@ -14,10 +14,10 @@ pub fn format_address(address: &str, chain: Option<Chain>, style: GemAddressForm
 }
 
 #[derive(Default, uniffi::Object)]
-pub struct GemAddressRulesService {}
+pub struct GemAddressService {}
 
 #[uniffi::export]
-impl GemAddressRulesService {
+impl GemAddressService {
     #[uniffi::constructor]
     pub fn new() -> Self {
         Self {}

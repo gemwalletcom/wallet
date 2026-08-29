@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemWalletRulesService
 import Foundation
 import Gemstone
 import Primitives
 
-private let walletRules = GemWalletRulesService()
+private let balanceCalculator = BalanceCalculator()
 
 public extension Gemstone.TotalFiatValue {
     func map() -> Primitives.TotalFiatValue {
@@ -19,6 +18,6 @@ public extension Gemstone.TotalFiatValue {
 
 public extension Primitives.TotalFiatValue {
     var showsPnl: Bool {
-        walletRules.showsPnl(total: Gemstone.TotalFiatValue(value: value, pnlAmount: pnlAmount, pnlPercentage: pnlPercentage))
+        balanceCalculator.showsPnl(self)
     }
 }

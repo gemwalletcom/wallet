@@ -240,6 +240,7 @@ public struct ViewModelFactory: Sendable {
             wallet: wallet,
             model: DelegationViewModel(explorerService: explorerService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: preferencesService.currencyCode),
             asset: asset,
+            stakeService: stakeService,
             validators: validators,
             onAmountInputAction: onAmountInputAction,
             onTransferAction: onTransferAction,

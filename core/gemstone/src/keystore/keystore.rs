@@ -29,6 +29,10 @@ impl GemKeystore {
         }))
     }
 
+    pub fn keystore_id(&self, wallet_id: String) -> String {
+        keystore_id_for_wallet(wallet_id)
+    }
+
     pub fn preview_import(&self, import: GemImportType) -> Result<GemWalletImport, GemstoneError> {
         match import {
             GemImportType::PrivateKey { value, chain } => {

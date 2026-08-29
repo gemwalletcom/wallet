@@ -20,10 +20,6 @@ pub fn sorted_collections(data: Vec<NFTData>) -> Vec<NFTData> {
     sorted
 }
 
-pub fn collection_status(status: Option<VerificationStatus>) -> VerificationStatus {
-    status.unwrap_or(VerificationStatus::Unverified)
-}
-
 fn collections(data: Vec<NFTData>, verified: bool) -> Vec<NFTData> {
     data.into_iter()
         .filter(|item| !item.assets.is_empty() && (item.collection.status == VerificationStatus::Verified) == verified)
@@ -48,12 +44,6 @@ mod tests {
 
     fn names(data: Vec<NFTData>) -> Vec<String> {
         data.into_iter().map(|item| item.collection.name).collect()
-    }
-
-    #[test]
-    fn test_an_unknown_collection_status_is_not_verified() {
-        assert_eq!(collection_status(None), VerificationStatus::Unverified);
-        assert_eq!(collection_status(Some(VerificationStatus::Verified)), VerificationStatus::Verified);
     }
 
     #[test]

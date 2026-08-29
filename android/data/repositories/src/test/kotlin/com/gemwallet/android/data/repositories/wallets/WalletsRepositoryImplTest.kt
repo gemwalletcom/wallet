@@ -28,7 +28,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.assetDefaultRank
 
 class WalletsRepositoryImplTest {
 
@@ -105,7 +104,6 @@ class WalletsRepositoryImplTest {
         every { Chain.Solana.isSwapSupport() } returns true
         every { Chain.Ethereum.isStakeSupported() } returns false
         every { Chain.Solana.isStakeSupported() } returns true
-        every { assetDefaultRank(any()) } returns 1
     }
 
     private class RecordingStoreTransactionRunner : StoreTransactionRunner {

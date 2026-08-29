@@ -2,14 +2,12 @@ package com.gemwallet.android.data.repositories.nft
 
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.NFTImages
 import com.wallet.core.primitives.NFTResource
-import uniffi.gemstone.GemNftRulesService
+import com.wallet.core.primitives.VerificationStatus
 
 fun DbNFTAsset.toNftData(collection: DbNFTCollection) = NFTData(
     collection = collection.toCollectionModel(),
@@ -18,14 +16,14 @@ fun DbNFTAsset.toNftData(collection: DbNFTCollection) = NFTData(
 
 fun List<DbNFTCollection>.toCollectionModels() = map { it.toCollectionModel() }
 
-internal fun DbNFTCollection.toCollectionModel(nftRules: GemNftRulesService = GemNftRulesService()) = NFTCollection(
+internal fun DbNFTCollection.toCollectionModel() = NFTCollection(
     id = id,
     name = name,
     description = description,
     chain = chain,
     contractAddress = contractAddress,
     images = NFTImages(NFTResource(imageUrl, "")),
-    status = nftRules.collectionStatus(status?.toJson()).decodeJson(),
+    status = status ?: VerificationStatus.Unverified,
     links = links ?: emptyList(),
 )
 

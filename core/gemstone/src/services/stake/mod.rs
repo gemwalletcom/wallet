@@ -1,3 +1,4 @@
+pub mod config;
 pub mod model;
 pub mod rules;
 pub mod store;
@@ -6,7 +7,7 @@ use crate::services::error::GemServiceError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{AssetId, Chain, DelegationState, DelegationValidator, StakeProviderType, WalletId, WalletType};
+use primitives::{AssetId, Chain, DelegationValidator, StakeProviderType, WalletId};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
@@ -212,44 +213,5 @@ mod tests {
 
         assert_eq!(validators[0].apr, 4.5);
         assert_eq!(validators[0].provider_type, StakeProviderType::Earn);
-    }
-}
-
-#[derive(Default, uniffi::Object)]
-pub struct GemStakeRulesService {}
-
-#[uniffi::export]
-impl GemStakeRulesService {
-    #[uniffi::constructor]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn delegation_actions(&self, wallet_type: WalletType, chain: Chain, provider: StakeProviderType, state: DelegationState) -> Vec<GemDelegationAction> {
-        rules::delegation_actions(wallet_type, chain, provider, state)
-    }
-
-    pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, chain: Chain, state: DelegationState, rewards: String) -> bool {
-        rules::can_claim_rewards(wallet_type, chain, state, &rewards)
-    }
-
-    pub fn recommended_validator_ids(&self, chain: Chain) -> Vec<String> {
-        rules::recommended_validator_ids(chain)
-    }
-
-    pub fn recommended_validator(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
-        rules::recommended_validator(chain, validators)
-    }
-
-    pub fn requires_frozen_balance(&self, chain: Chain, frozen_amount: String) -> bool {
-        rules::requires_frozen_balance(chain, &frozen_amount)
-    }
-
-    pub fn can_claim_stake_rewards(&self, chain: Chain, rewards_amount: String) -> bool {
-        rules::can_claim_stake_rewards(chain, &rewards_amount)
-    }
-
-    pub fn selectable_validators(&self, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
-        rules::selectable_validators(validators)
     }
 }

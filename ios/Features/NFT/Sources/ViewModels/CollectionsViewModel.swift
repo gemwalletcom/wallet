@@ -2,7 +2,6 @@
 
 import protocol Gemstone.GemNftServiceProtocol
 import Components
-import class Gemstone.GemNftRulesService
 import Foundation
 import Localization
 import GemstonePrimitives
@@ -16,7 +15,6 @@ import SwiftUI
 @MainActor
 public final class CollectionsViewModel: CollectionsViewable, Sendable {
     private let nftService: any GemNftServiceProtocol
-    private let nftRules = GemNftRulesService()
 
     public let query: ObservableQuery<NFTRequest>
 
@@ -62,8 +60,8 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
 
     private func collections(verified: Bool) -> [NFTData] {
         guard let data = try? nftDataList.map({ try $0.json() }) else { return [] }
-        let collections = verified ? nftRules.verifiedCollections(data: data) : nftRules.unverifiedCollections(data: data)
-        return nftRules.sortedCollections(data: collections).compactMap { try? NFTData($0) }
+        let collections = verified ? nftService.verifiedCollections(data: data) : nftService.unverifiedCollections(data: data)
+        return nftService.sortedCollections(data: collections).compactMap { try? NFTData($0) }
     }
 
     // MARK: - Actions

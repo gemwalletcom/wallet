@@ -133,6 +133,7 @@ object AssetModule {
         hasMultiSign: HasMultiSign,
         userConfig: UserConfig,
         walletPreferencesService: GemWalletPreferencesService,
+        perpetualService: GemPerpetualService,
     ): GetWalletSummary = GetWalletSummaryImpl(
         sessionRepository = sessionRepository,
         assetsRepository = assetsRepository,
@@ -141,6 +142,7 @@ object AssetModule {
         hasMultiSign = hasMultiSign,
         userConfig = userConfig,
         walletPreferencesService = walletPreferencesService,
+        perpetualService = perpetualService,
     )
 
     @Provides

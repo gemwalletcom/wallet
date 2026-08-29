@@ -5,7 +5,7 @@ use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
-use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, VerificationStatus, WalletId};
+use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId};
 
 pub use store::GemNftStore;
 
@@ -46,6 +46,18 @@ impl GemNftService {
     pub async fn report(&self, report: ReportNft) -> Result<(), GemServiceError> {
         self.api.client.report_nft(report).await.map_err(GemApiError::from)?;
         Ok(())
+    }
+
+    pub fn sorted_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
+        rules::sorted_collections(data)
+    }
+
+    pub fn verified_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
+        rules::verified_collections(data)
+    }
+
+    pub fn unverified_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
+        rules::unverified_collections(data)
     }
 }
 
@@ -155,32 +167,5 @@ mod tests {
 
         assert_eq!(data.collection.name, "remote");
         assert_eq!(store.added.lock().unwrap().len(), 1);
-    }
-}
-
-#[derive(Default, uniffi::Object)]
-pub struct GemNftRulesService {}
-
-#[uniffi::export]
-impl GemNftRulesService {
-    #[uniffi::constructor]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn sorted_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
-        rules::sorted_collections(data)
-    }
-
-    pub fn collection_status(&self, status: Option<VerificationStatus>) -> VerificationStatus {
-        rules::collection_status(status)
-    }
-
-    pub fn verified_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
-        rules::verified_collections(data)
-    }
-
-    pub fn unverified_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
-        rules::unverified_collections(data)
     }
 }

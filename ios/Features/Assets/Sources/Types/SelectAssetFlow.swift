@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import func Gemstone.assetActionFilters
+import class Gemstone.GemAssetConfigService
 import enum Gemstone.GemAssetAction
 import GemstonePrimitives
 import Localization
@@ -67,7 +67,7 @@ public struct SelectAssetFlow: Sendable {
 
 private extension [AssetsRequestFilter] {
     static func filters(for action: GemAssetAction) -> [AssetsRequestFilter] {
-        assetActionFilters(action: action).map { filter in
+        GemAssetConfigService().actionFilters(action: action).map { filter in
             switch filter {
             case .enabled: .enabled
             case .buyable: .buyable

@@ -1,3 +1,4 @@
+pub mod config;
 pub mod model;
 pub mod rules;
 pub mod store;
@@ -210,17 +211,14 @@ impl GemAssetsService {
     }
 }
 
-#[uniffi::export]
 pub fn asset_action_filters(action: GemAssetAction) -> Vec<GemAssetFilter> {
     rules::asset_action_filters(action)
 }
 
-#[uniffi::export]
 pub fn popular_asset_ids() -> Vec<AssetId> {
     rules::popular_asset_ids()
 }
 
-#[uniffi::export]
 pub fn default_token_chain(chains: Vec<Chain>) -> Option<Chain> {
     rules::default_token_chain(&chains)
 }

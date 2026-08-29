@@ -19,7 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemStakeRulesService
+import uniffi.gemstone.GemStakeConfigService
 import uniffi.gemstone.GemStakeService
 import java.math.BigInteger
 
@@ -34,29 +34,29 @@ class SyncStakeDelegationsImpl(
 
 class GetValidatorsImpl(
     private val stakeStore: GemstoneStakeStore,
-    private val stakeRules: GemStakeRulesService,
+    private val stakeConfig: GemStakeConfigService,
 ) : GetValidators {
 
     override fun invoke(assetId: AssetId): Flow<List<DelegationValidator>> =
         stakeStore.observeValidators(assetId, StakeProviderType.Stake)
-            .map { validators -> stakeRules.selectableValidators(validators.map { it.toJson() }).map { it.decodeJson<DelegationValidator>() } }
+            .map { validators -> stakeConfig.selectableValidators(validators.map { it.toJson() }).map { it.decodeJson<DelegationValidator>() } }
 }
 
 class GetRecommendedValidatorIdsImpl(
-    private val stakeRules: GemStakeRulesService,
+    private val stakeConfig: GemStakeConfigService,
 ) : GetRecommendedValidatorIds {
 
-    override fun invoke(assetId: AssetId): List<String> = stakeRules.recommendedValidatorIds(assetId.chain.string)
+    override fun invoke(assetId: AssetId): List<String> = stakeConfig.recommendedValidatorIds(assetId.chain.string)
 }
 
 class GetRecommendedValidatorImpl(
     private val getValidators: GetValidators,
-    private val stakeRules: GemStakeRulesService,
+    private val stakeConfig: GemStakeConfigService,
 ) : GetRecommendedValidator {
 
     override fun invoke(assetId: AssetId): Flow<DelegationValidator?> =
         getValidators(assetId).map { validators ->
-            stakeRules.recommendedValidator(assetId.chain.string, validators.map { it.toJson() })?.decodeJson<DelegationValidator>()
+            stakeConfig.recommendedValidator(assetId.chain.string, validators.map { it.toJson() })?.decodeJson<DelegationValidator>()
         }
 }
 

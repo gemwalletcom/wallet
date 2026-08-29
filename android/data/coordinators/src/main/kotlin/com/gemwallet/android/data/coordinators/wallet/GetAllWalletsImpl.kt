@@ -12,28 +12,33 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
-import uniffi.gemstone.GemWalletRulesService
+import uniffi.gemstone.GemWalletService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 
-private val walletRules = GemWalletRulesService()
-
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetAllWalletsImpl(
     private val sessionRepository: SessionRepository,
     private val walletsRepository: WalletsRepository,
+    private val walletService: GemWalletService,
 ) : GetAllWallets {
 
     override fun getAllWallets(): Flow<List<WalletDataAggregate>> {
         return sessionRepository.session().flatMapLatest { session ->
             val currentWalletId = session?.wallet?.id
             walletsRepository.getAll().map { items ->
-                walletRules.sortedWallets(items.map { it.toJson() }).map { it.decodeJson<Wallet>() }
+                walletService.sortedWallets(items.map { it.toJson() }).map { it.decodeJson<Wallet>() }
             }.mapLatest { items ->
-                items.map { WalletDataAggregateImpl(it, it.id == currentWalletId) }
+                items.map {
+                    WalletDataAggregateImpl(
+                        wallet = it,
+                        isCurrent = it.id == currentWalletId,
+                        walletAccount = walletService.displayAccount(it.toJson())?.toPrimitives(),
+                    )
+                }
             }
         }
     }
@@ -43,6 +48,7 @@ class GetAllWalletsImpl(
 class WalletDataAggregateImpl(
     private val wallet: Wallet,
     override val isCurrent: Boolean,
+    private val walletAccount: Account?,
 ) : WalletDataAggregate {
 
     override val id: String = wallet.id.id
@@ -58,7 +64,4 @@ class WalletDataAggregateImpl(
     override val isPinned: Boolean = wallet.isPinned
 
     override val imageUrl: String? = wallet.imageUrl
-
-    private val walletAccount: Account?
-        get() = walletRules.displayAccount(wallet.toJson())?.toPrimitives()
 }

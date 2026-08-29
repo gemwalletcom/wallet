@@ -4,7 +4,7 @@ pub mod store;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::{AssetId, PriceAlert, PriceAlertNotificationType};
+use primitives::{AssetId, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::banner::GemNotificationPermissions;
@@ -124,29 +124,5 @@ mod tests {
 
         let changes = reconcile(Vec::new(), Vec::new());
         assert!(changes.delete_ids.is_empty() && changes.alerts.is_empty());
-    }
-}
-
-#[derive(Default, uniffi::Object)]
-pub struct GemPriceAlertRulesService {}
-
-#[uniffi::export]
-impl GemPriceAlertRulesService {
-    #[uniffi::constructor]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn alert_id(&self, alert: PriceAlert) -> String {
-        alert.id()
-    }
-    pub fn sorted_alerts(&self, alerts: Vec<PriceAlert>) -> Vec<PriceAlert> {
-        rules::sorted_price_alerts(alerts)
-    }
-    pub fn notification_type(&self, alert: PriceAlert) -> PriceAlertNotificationType {
-        alert.notification_type()
-    }
-    pub fn should_display(&self, alert: PriceAlert) -> bool {
-        alert.should_display()
     }
 }

@@ -8,14 +8,16 @@ import com.gemwallet.android.model.hasAvailable
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import uniffi.gemstone.chainFeeAssetIds
+import uniffi.gemstone.GemAssetConfigService
+
+private val assetConfig = GemAssetConfigService()
 
 class ChainFeeAssetProvider(
     private val chain: Chain,
     private val assetsRepository: AssetsRepository,
 ) : FeeAssetProvider {
 
-    private val feeAssetIds = chainFeeAssetIds(chain.string).mapNotNull { it.toAssetId() }.toSet()
+    private val feeAssetIds = assetConfig.chainFeeAssetIds(chain.string).mapNotNull { it.toAssetId() }.toSet()
 
     override fun getFeeAssets(): Flow<List<AssetInfo>> = combine(
         assetsRepository.getAssetsInfoByChain(chain),

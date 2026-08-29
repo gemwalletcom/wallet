@@ -7,7 +7,12 @@ use primitives::{
     WalletType,
 };
 
-use super::model::GemPerpetualOrderAction;
+use super::model::{GemPerpetualCloseInput, GemPerpetualOrderAction, GemPerpetualOrderInput};
+use crate::perpetual::GemPerpetual;
+use crate::services::error::GemServiceError;
+use num_bigint::BigInt;
+use primitives::{PerpetualConfirmData, PerpetualReduceData, PerpetualType};
+use std::str::FromStr;
 
 use crate::models::asset::wallet_default_assets;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
@@ -132,9 +137,68 @@ pub fn collateral_price(chain: Chain) -> Option<AssetPrice> {
     collateral_asset_id(chain).map(|asset_id| AssetPrice::new(asset_id, 1.0, 0.0, Utc::now()))
 }
 
+pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> Result<PerpetualType, GemServiceError> {
+    let usdc_amount = BigInt::from_str(&input.usdc_amount).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
+    let usd_amount = usdc_amount.to_string().parse::<f64>().unwrap_or_default() / 10f64.powi(input.usdc_decimals);
+    let slippage = slippage_percent(input.slippage);
+    let (size, fiat_value, margin_amount) = order_amounts(usd_amount, input.leverage, input.price);
+    let price = slippage_price(input.price, input.direction.clone(), opens_position(&input.action), slippage);
+    let formatter = GemPerpetual::new(provider);
+
+    let data = PerpetualConfirmData {
+        direction: input.direction,
+        margin_type: input.margin_type,
+        base_asset: input.base_asset,
+        asset_index: input.asset_index,
+        price: formatter.format_price(price, input.asset.decimals),
+        fiat_value,
+        size: formatter.format_size(size, input.asset.decimals),
+        slippage,
+        leverage: input.leverage,
+        pnl: None,
+        entry_price: None,
+        market_price: input.price,
+        margin_amount,
+        take_profit: input.take_profit,
+        stop_loss: input.stop_loss,
+    };
+
+    Ok(match input.action {
+        GemPerpetualOrderAction::Open => PerpetualType::Open(data),
+        GemPerpetualOrderAction::Increase => PerpetualType::Increase(data),
+        GemPerpetualOrderAction::Reduce { position_direction } => PerpetualType::Reduce(PerpetualReduceData { data, position_direction }),
+    })
+}
+
+pub fn close_order(provider: PerpetualProvider, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
+    let slippage = slippage_percent(input.slippage);
+    let price = slippage_price(input.market_price, input.direction.clone(), false, slippage);
+    let size = input.size.abs();
+    let formatter = GemPerpetual::new(provider);
+
+    PerpetualConfirmData {
+        direction: input.direction,
+        margin_type: input.margin_type,
+        base_asset: input.base_asset,
+        asset_index: input.asset_index,
+        price: formatter.format_price(price, input.asset.decimals),
+        fiat_value: size * price,
+        size: formatter.format_size(size, input.asset.decimals),
+        slippage,
+        leverage: input.leverage,
+        pnl: Some(input.pnl),
+        entry_price: Some(input.entry_price),
+        market_price: input.market_price,
+        margin_amount: input.margin_amount,
+        take_profit: None,
+        stop_loss: None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::{Asset, PerpetualDirection, PerpetualId, PerpetualMarginType};
 
     #[test]
     fn test_perpetual_collateral_counts_only_in_standard_mode() {
@@ -148,8 +212,6 @@ mod tests {
         assert!(!is_markets_stale(Some(10_000 - 3_599), 10_000));
         assert!(is_markets_stale(Some(10_000 - 3_600), 10_000));
     }
-
-    use primitives::{PerpetualDirection, PerpetualId, PerpetualMarginType};
 
     fn position(id: &str) -> PerpetualPosition {
         PerpetualPosition {
@@ -282,5 +344,70 @@ mod tests {
     fn test_slippage_percent_defaults_to_two() {
         assert_eq!(slippage_percent(None), 2.0);
         assert_eq!(slippage_percent(Some(0.5)), 0.5);
+    }
+
+    fn order_input(action: GemPerpetualOrderAction) -> GemPerpetualOrderInput {
+        GemPerpetualOrderInput {
+            action,
+            direction: PerpetualDirection::Long,
+            margin_type: PerpetualMarginType::Cross,
+            base_asset: Asset::mock(),
+            asset: Asset::mock(),
+            asset_index: 1,
+            price: 100.0,
+            usdc_amount: "50000000".to_string(),
+            usdc_decimals: 6,
+            leverage: 4,
+            slippage: None,
+            take_profit: None,
+            stop_loss: None,
+        }
+    }
+
+    #[test]
+    fn test_perpetual_order_keeps_the_position_action_and_prices_in_the_slippage() {
+        let open = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Open)).unwrap();
+        let increase = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Increase)).unwrap();
+        let reduce = order(
+            PerpetualProvider::Hypercore,
+            order_input(GemPerpetualOrderAction::Reduce {
+                position_direction: PerpetualDirection::Short,
+            }),
+        )
+        .unwrap();
+
+        let PerpetualType::Open(data) = open else { panic!("expected an open order") };
+        assert_eq!(data.slippage, 2.0);
+        assert_eq!(data.market_price, 100.0);
+        assert_eq!(data.fiat_value, 200.0);
+        assert_eq!(data.margin_amount, 50.0);
+        assert!(matches!(increase, PerpetualType::Increase(_)));
+        let PerpetualType::Reduce(reduce) = reduce else { panic!("expected a reduce order") };
+        assert_eq!(reduce.position_direction, PerpetualDirection::Short);
+    }
+
+    #[test]
+    fn test_perpetual_close_order_carries_the_position_result() {
+        let data = close_order(
+            PerpetualProvider::Hypercore,
+            GemPerpetualCloseInput {
+                asset_index: 1,
+                direction: PerpetualDirection::Long,
+                margin_type: PerpetualMarginType::Cross,
+                base_asset: Asset::mock(),
+                asset: Asset::mock(),
+                market_price: 100.0,
+                size: -2.0,
+                leverage: 4,
+                pnl: 12.5,
+                entry_price: 90.0,
+                margin_amount: 50.0,
+                slippage: None,
+            },
+        );
+
+        assert_eq!(data.pnl, Some(12.5));
+        assert_eq!(data.entry_price, Some(90.0));
+        assert_eq!(data.fiat_value, 196.0);
     }
 }

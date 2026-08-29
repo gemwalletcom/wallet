@@ -401,6 +401,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt
     }
 
+    public func collateralAssetId(chain _: Gemstone.Chain) -> Gemstone.AssetId? {
+        .none
+    }
+
     public func syncEnablement(wallet: Gemstone.Wallet?) async throws -> Bool {
         if isPerpetualEnabled {
             try await syncMarkets(chain: "hypercore")

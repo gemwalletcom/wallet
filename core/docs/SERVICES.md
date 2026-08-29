@@ -45,7 +45,9 @@ pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceErro
 }
 ```
 
-Everything that decides belongs in `rules.rs` with a test that fails if the rule flips. A rule that needs no service state is exported as a free function (`price_alerts_sorted`, `price_alert_id`) so a screen can call it without holding the service. A failure is either impossible (a rule with a built-in default), surfaced (returned as `GemServiceError`), or recorded through `services::failures::record` — never swallowed.
+Everything that decides belongs in `rules.rs` with a test that fails if the rule flips. A failure is either impossible (a rule with a built-in default), surfaced (returned as `GemServiceError`), or recorded through `services::failures::record` — never swallowed.
+
+**There is no `*RulesService`.** A domain has one service, and a rule that domain's service owns is a method on it. When a rule has to be reachable from code that can never hold an injected service — a SwiftUI `Identifiable`, a Compose scene, a value-type extension, an enum property, a `Gem*Store` adapter (Core constructs the service *from* it) — it belongs on a service that needs no store and no API and so can be constructed anywhere: `GemChainService`, `GemAddressService`, `GemAssetConfigService` ([`assets/config.rs`](../gemstone/src/services/assets/config.rs)), `GemStakeConfigService` ([`stake/config.rs`](../gemstone/src/services/stake/config.rs)), `GemApplicationMetadataService`, `PriceAlertFormatter`, `BalanceCalculator`, `GemPerpetual`, `GemKeystore`. The I/O service never carries a second copy. This is also what keeps rule tests honest: a rule hung off a service that needs a gateway can only be reached through a mock, and the mock's answer is what the test then asserts (four iOS stake tests were doing exactly that).
 
 ### 2. Pick the store the value belongs in
 
@@ -213,7 +215,7 @@ A case may compose other cases ([`SyncAssetPriceAlertsImpl`](../../android/data/
 
 **Observed reads.** Core has no observation primitive, so a screen that must update as rows change observes the app's own database — iOS with `ObservableQuery` over a GRDB request, Android with a Room `Flow` returned by the case. Everything else — writes, remote sync, point reads, every decision — goes through the service.
 
-**Tests.** iOS mocks the protocol from [`GemstoneServices/TestKit`](../../ios/Packages/GemstoneServices/TestKit/); Android fakes the case interface, or mocks `Gem*Service` with MockK, using fixtures from `gemcore` `testFixtures`. Neither app tests a rule that lives in Core — that test belongs in `rules.rs`.
+**Tests.** iOS mocks the protocol from [`GemstoneServices/TestKit`](../../ios/Packages/GemstoneServices/TestKit/); Android fakes the case interface, or mocks `Gem*Service` with MockK, using fixtures from `gemcore` `testFixtures`. Never mock a constructible service (`GemStakeConfigService`, `GemAssetConfigService`, `GemChainService`, …) — construct the real one, or the test asserts the mock. Neither app tests a rule that lives in Core — that test belongs in `rules.rs`.
 
 ### Done means
 
@@ -340,14 +342,14 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 ### One service per feature, the same one on both platforms
 
-A screen should ask one thing for its data, and that thing should be the same on both platforms: on iOS a feature service (the Core `Gem*Service`, or a stateless rules service), on Android the coordinator that implements that feature's cases. Where a feature's rules are pure, they belong on a **stateless** service — `GemChainService`, `GemStakeRulesService` — because a service that needs a gateway or a store can only be reached through a mock, which quietly turns a rule test into an assertion about the mock (four iOS stake tests were doing exactly that). Where a feature needs I/O, it holds the I/O service too, and the split stays visible.
+A screen should ask one thing for its data, and that thing should be the same on both platforms: on iOS the Core `Gem*Service` for the feature, on Android the coordinator that implements that feature's cases. Where a feature's decisions need no store or API they live on its constructible service (`GemStakeConfigService`, `GemAssetConfigService`, `GemChainService`); where it needs I/O it holds the I/O service too, and the split stays visible.
 
 The features to shape this way, in the order the screens were built:
 
 | Feature | iOS today | Android today | Target |
 | --- | --- | --- | --- |
-| Validator selection | `ValidatorSelectSceneViewModel` + `StakeSceneViewModel` each build their own rules calls | `GetValidators`, `GetRecommendedValidator`, `GetRecommendedValidatorIds` cases | one `GemValidatorService` in Core over `GemStakeStore` (selectable, recommended, ids, by id), so neither app filters or sorts validators itself |
-| Delegation | `DelegationSceneViewModel` holds the rules service | `GetDelegation`/`GetDelegations` cases over `StakeDao` | delegation reads move behind `GemStakeService`, actions and claimability stay on `GemStakeRulesService` |
+| Validator selection | `ValidatorSelectSceneViewModel` + `StakeSceneViewModel` each call `GemStakeConfigService` | `GetValidators`, `GetRecommendedValidator`, `GetRecommendedValidatorIds` cases | one `GemValidatorService` in Core over `GemStakeStore` (selectable, recommended, ids, by id), so neither app filters or sorts validators itself |
+| Delegation | `DelegationSceneViewModel` holds `GemStakeConfigService` | `GetDelegation`/`GetDelegations` cases over `StakeDao` | delegation reads move behind `GemStakeService`; actions and claimability stay on `GemStakeConfigService` |
 | Price alerts | `PriceAlertsSceneViewModel` holds `GemPriceAlertServiceProtocol` | four cases, three of them over `PriceAlertsDao` | the reads move onto `GemPriceAlertService` (it already owns the store trait), leaving the cases as one-line forwards or nothing |
 | Transactions | `TransactionsViewModel` over GRDB requests | `GetTransactions`/`GetTransaction` over `TransactionsDao` | `GemTransactionsService` answers the point reads; only the observed list stays platform-side |
 | Perpetuals | `PerpetualSceneViewModel` + observer trio | `PerpetualRepository` + observer trio | see the Hyperliquid item below; the reads join `GemPerpetualService` |
@@ -365,19 +367,19 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 
 | Target service | Functions to fold in |
 | --- | --- |
-| `GemAssetService` (new) | `asset_default_rank`, `default_token_rank`, `wallet_default_assets`, `chain_fee_asset_ids`, `asset_ids_enabled_by_default`, `wallet_asset_is_enabled`, `asset_is_swapable`, `chain_asset_wrapper`, `asset_action_filters`, `popular_asset_ids`, `default_token_chain`, `search_matching_assets` |
-| ~~`GemAddressService`~~ → `GemAddressRulesService` (done) | validation, checksum, short form and formatting; the `Chain` extensions and the address formatters on both apps hold one instance |
-| ~~`GemStakeService`~~ → `GemStakeRulesService` (done) | the seven stake rules moved to a **stateless** service, not the I/O one: `GemStakeService` needs a gateway, a static API client and two stores, so rules hung off it can only be reached through a mock — which silently emptied four iOS view-model tests. A pure-rule service with a `new()` constructor keeps those tests exercising the real rule. Apply the same split to the groups below. |
-| ~~`GemNftService`~~ → `GemNftRulesService` (done) | the four collection rules, on a stateless service for the same reason as the stake ones |
-| ~~`GemPriceAlertService`~~ → `GemPriceAlertRulesService` (done) | id, ordering, notification type and display rule; the value helpers (`PriceAlert.id`, `.type`, `.shouldDisplay`) keep their shape on both apps and hold one service instance in the extension file |
-| ~~`GemPerpetualService`~~ → `GemPerpetualRulesService` (done) | collateral asset, funding APR and the two order builders |
-| ~~`GemWalletService`~~ → `GemWalletRulesService` (done) | wallet ordering, display account, keystore id and the total/PnL calculation, gathered from three Core files |
+| ~~`GemAssetService` (new)~~ → `GemAssetConfigService` (done) | the twelve static asset lookups (rank, default assets, fee asset ids, enabled-by-default, swapable, chain asset, action filters, popular ids, default token chain, matching assets) on the constructible service the value extensions can hold; `GemAssetsService` keeps only what needs the API or the store |
+| ~~`GemAddressService`~~ (done) | validation, checksum, short form and formatting; the `Chain` extensions and the address formatters on both apps hold one instance |
+| ~~`GemStakeService`~~ → `GemStakeConfigService` (done) | the seven stake rules sit on the constructible config service, not the I/O one: `GemStakeService` needs a gateway, a static API client and two stores, so rules hung off it are only reachable through a mock — which silently emptied four iOS view-model tests. |
+| ~~`GemNftService`~~ (done) | sorting and the verified/unverified split are methods on `GemNftService`; both callers are view models that already hold it. The nullable-status default went back to the two store adapters, where it is a column default, not a rule |
+| ~~`GemPriceAlertService`~~ → `PriceAlertFormatter` (done) | id, ordering, notification type and display rule joined the price suggestions on the constructible formatter, because `PriceAlert.id` is the SwiftUI `Identifiable` conformance and the iOS store adapter writes it |
+| ~~`GemPerpetualService`~~ → `GemPerpetual` (done) | funding APR and the two order builders joined the provider-scoped formatter object (renamed `Perpetual` → `GemPerpetual`), which also let `provider` leave both order inputs; `collateral_asset_id` stayed on `GemPerpetualService` — its one caller injects it |
+| ~~`GemWalletService`~~ (done) | ordering and display account stayed on `GemWalletService` (both callers hold it); the keystore id moved to `GemKeystore`, which every caller already had open, and the wallet total and PnL rule to `BalanceCalculator` |
 | `GemConfirmService` | `confirm_input_encode`, `confirm_input_decode`, `acquire_asset_flow`, `default_fee_priority`, `is_insufficient_network_fee`, `custom_gas_price`, `custom_fee_estimate`, `calculate_transfer_amount` |
 | `GemPaymentService` | `payment_decode_url`, `payment_destination`, `payment_transfer_destination`, `payment_decoded_transfer`, `deeplink_build_url`, `deeplink_build_gem_url`, `url_action` |
-| `GemWalletConnectRulesService` (partly done) | namespace, reference, chain and the dapp metadata short name are methods now; `siwe_try_parse`, `siwe_validate` and `permit2_data_to_eip712_json` still to fold in |
+| `GemWalletConnectService` (partly done) | the CAIP-2 lookups are `GemChainService.caip2_namespace/caip2_reference/chain_from_caip2` and the dapp short name is `GemApplicationMetadataService.short_name` (both are read from Compose scenes and value extensions); `siwe_try_parse`, `siwe_validate` and `permit2_data_to_eip712_json` still to fold in |
 | ~~`GemTransactionStateService`~~ (done) | neither app called these four: they are internal Core functions now, and the unused `transaction_timeout_ms` is deleted |
 | `GemSupportService` | `parse_support_message_display_content` |
-| ~~`GemAppUpdateService`~~ (done) | `is_version_higher` is a method; the metadata short name went to the WalletConnect rules and `lib_version` is no longer exported |
+| ~~`GemAppUpdateService`~~ (done) | `is_version_higher` is a method and `lib_version` is no longer exported |
 | Keep as free functions | `generate_device_key_pair`, `decode_private_key`, `encode_private_key`, `supports_private_key_import`, `create_auth_message` — key material, called once at a boundary that already owns the secret |
 
 - No service is constructed at a call site. Every `Gem*Service` is built once in `ServicesFactory` (iOS) or a Hilt module (Android) and injected. Two places still break this and need a home for the instance: iOS `NetworkSelectorViewModel` (its `SelectableListAdoptable` initializer is fixed by the protocol, so the sheet holds its own `GemChainService()`), and Android's `selectFilterChain`/`ContactChainSelectScene` composables, which build one per composition.

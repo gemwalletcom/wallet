@@ -21,6 +21,7 @@ public extension DelegationSceneViewModel {
             wallet: wallet,
             model: DelegationViewModel(explorerService: GemExplorerServiceMock(), delegation: delegation, asset: chain.asset, currencyCode: "USD"),
             asset: chain.asset,
+            stakeService: GemStakeServiceMock(),
             validators: validators,
             onAmountInputAction: nil,
             onTransferAction: nil,

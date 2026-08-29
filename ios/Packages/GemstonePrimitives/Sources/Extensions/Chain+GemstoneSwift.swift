@@ -1,16 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAddressRulesService
+import class Gemstone.GemAssetConfigService
+import class Gemstone.GemAddressService
 import BigInt
 import Foundation
 import Gemstone
-import func Gemstone.chainAssetWrapper
 import Primitives
 
-private let addressRules = GemAddressRulesService()
+private let assetConfig = GemAssetConfigService()
+
+private let addressService = GemAddressService()
 
 private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
-    guard let chainAsset = try? Primitives.ChainAsset(chainAssetWrapper(chain: chain.rawValue)) else {
+    guard let chainAsset = try? Primitives.ChainAsset(assetConfig.chainAsset(chain: chain.rawValue)) else {
         preconditionFailure("Invalid chain asset for \(chain)")
     }
     result[chain] = chainAsset
@@ -136,11 +138,11 @@ public extension Primitives.Chain {
     }
 
     var feeAssetIds: [Primitives.AssetId] {
-        Gemstone.chainFeeAssetIds(chain: rawValue).compactMap { try? Primitives.AssetId(id: $0) }
+        assetConfig.chainFeeAssetIds(chain: rawValue).compactMap { try? Primitives.AssetId(id: $0) }
     }
 
     var defaultAssets: [Primitives.Asset] {
-        Gemstone.walletDefaultAssets(chain: map()).map { asset in
+        assetConfig.walletDefaultAssets(chain: map()).map { asset in
             guard let asset = try? Primitives.Asset(asset) else {
                 preconditionFailure("Invalid default asset for \(self)")
             }
@@ -156,11 +158,11 @@ public extension Primitives.Chain {
     }
 
     func isValidAddress(_ address: String) -> Bool {
-        addressRules.validate(address: checksumAddress(address), chain: rawValue)
+        addressService.validate(address: checksumAddress(address), chain: rawValue)
     }
 
     func checksumAddress(_ address: String) -> String {
-        addressRules.checksum(address: address, chain: rawValue)
+        addressService.checksum(address: address, chain: rawValue)
     }
 
     var isPrivateKeyImportSupported: Bool {
@@ -186,6 +188,6 @@ public extension [Primitives.Chain] {
 public extension [Primitives.Asset] {
     func matching(query: String) -> [Primitives.Asset] {
         guard let assets = try? map({ try $0.json() }) else { return self }
-        return Gemstone.searchMatchingAssets(assets: assets, query: query).compactMap { try? Primitives.Asset($0) }
+        return assetConfig.matchingAssets(assets: assets, query: query).compactMap { try? Primitives.Asset($0) }
     }
 }

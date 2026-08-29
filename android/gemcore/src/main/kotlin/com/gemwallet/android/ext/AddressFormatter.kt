@@ -2,9 +2,9 @@ package com.gemwallet.android.ext
 
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAddressFormatStyle
-import uniffi.gemstone.GemAddressRulesService
+import uniffi.gemstone.GemAddressService
 
-private val addressRules = GemAddressRulesService()
+private val addressService = GemAddressService()
 
 class AddressFormatter(
     private val address: String,
@@ -23,6 +23,6 @@ class AddressFormatter(
             is Style.Full -> GemAddressFormatStyle.Full
             is Style.Extra -> GemAddressFormatStyle.Extra(style.count.coerceAtLeast(0).toUInt())
         }
-        return addressRules.format(address, chain?.string, gemstoneStyle)
+        return addressService.format(address, chain?.string, gemstoneStyle)
     }
 }

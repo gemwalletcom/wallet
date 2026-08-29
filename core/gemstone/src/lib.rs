@@ -2,7 +2,7 @@ pub mod address;
 pub mod address_formatter;
 pub mod alien;
 pub mod api;
-mod application;
+pub mod application;
 pub mod auth;
 pub mod balance_calculator;
 pub mod block_explorer;

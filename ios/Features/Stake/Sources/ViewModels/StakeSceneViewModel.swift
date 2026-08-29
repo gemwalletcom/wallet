@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemStakeRulesService
 import BigInt
 import Components
 import Formatters
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemStakeConfigService
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import InfoSheet
@@ -19,8 +19,8 @@ import SwiftUI
 @MainActor
 @Observable
 public final class StakeSceneViewModel {
+    private let stakeConfig = GemStakeConfigService()
     private let stakeService: any GemStakeServiceProtocol
-    private let stakeRules = GemStakeRulesService()
     private let explorerService: any GemExplorerServiceProtocol
 
     private var delegationsState: StateViewType<Bool> = .loading
@@ -74,7 +74,7 @@ public final class StakeSceneViewModel {
     }
 
     private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        (try? stakeRules.selectableValidators(validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? []
+        (try? stakeConfig.selectableValidators(validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var stakeTitle: String {
@@ -139,7 +139,7 @@ public final class StakeSceneViewModel {
     }
 
     var recommendedCurrentValidator: DelegationValidator? {
-        (try? stakeRules.recommendedValidator(chain: chain.chain.rawValue, validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? .none
+        (try? stakeConfig.recommendedValidator(chain: chain.chain.rawValue, validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? .none
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
@@ -182,7 +182,7 @@ public final class StakeSceneViewModel {
     }
 
     var showRewards: Bool {
-        stakeRules.canClaimStakeRewards(chain: chain.chain.rawValue, rewardsAmount: rewardsValue.description)
+        stakeConfig.canClaimStakeRewards(chain: chain.chain.rawValue, rewardsAmount: rewardsValue.description)
     }
 
     var canClaimAllRewards: Bool {
@@ -296,7 +296,7 @@ extension StakeSceneViewModel {
     }
 
     private var stakeFrozenRequired: Bool {
-        stakeRules.requiresFrozenBalance(chain: chain.chain.rawValue, frozenAmount: balanceModel.frozenResources.description)
+        stakeConfig.requiresFrozenBalance(chain: chain.chain.rawValue, frozenAmount: balanceModel.frozenResources.description)
     }
 
     private var balanceModel: BalanceViewModel {

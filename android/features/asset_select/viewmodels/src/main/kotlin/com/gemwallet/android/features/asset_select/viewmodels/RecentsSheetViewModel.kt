@@ -17,7 +17,7 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.searchMatchingAssets
+import uniffi.gemstone.GemAssetConfigService
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,6 +32,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private val assetConfig = GemAssetConfigService()
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -75,7 +77,7 @@ class RecentsSheetViewModel @Inject constructor(
     }
 
     private fun buildUIModel(items: List<RecentAsset>, searchText: String): RecentsSheetUIModel {
-        val matching = searchMatchingAssets(items.map { it.asset.toJson() }, searchText)
+        val matching = assetConfig.matchingAssets(items.map { it.asset.toJson() }, searchText)
             .map { it.decodeJson<Asset>().id.toIdentifier() }
             .toSet()
         val filtered = items.filter { it.asset.id.toIdentifier() in matching }

@@ -1,6 +1,5 @@
 import Components
 import Foundation
-import class Gemstone.GemWalletRulesService
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -12,7 +11,6 @@ import GemstoneServices
 @Observable
 @MainActor
 public final class WalletsSceneViewModel {
-    private let walletRules = GemWalletRulesService()
 
     public static let walletsLimit = 100
 
@@ -59,7 +57,7 @@ public final class WalletsSceneViewModel {
     }
 
     private func sorted(_ wallets: [Wallet]) -> [Wallet] {
-        (try? walletRules.sortedWallets(wallets: wallets.map { try $0.json() }).map { try Wallet($0) }) ?? wallets
+        service.sorted(wallets: wallets)
     }
 }
 

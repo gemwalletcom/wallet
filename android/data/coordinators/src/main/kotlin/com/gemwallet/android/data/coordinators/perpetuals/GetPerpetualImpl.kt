@@ -5,7 +5,8 @@ import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.model.CurrencyFormatter
-import uniffi.gemstone.GemPerpetualRulesService
+import com.gemwallet.android.ext.PerpetualFormatter.toGemProvider
+import uniffi.gemstone.GemPerpetual
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -50,7 +51,7 @@ class PerpetualDetailsDataAggregateImpl(
 
     override val openInterest: String = abbreviatedFormatter.string(data.perpetual.openInterest)
 
-    override val funding: String = GemPerpetualRulesService().fundingApr(data.perpetual.funding).formatAsPercentage()
+    override val funding: String = GemPerpetual(data.perpetual.provider.toGemProvider()).use { it.fundingApr(data.perpetual.funding) }.formatAsPercentage()
 
     override val maxLeverage: Int = data.perpetual.maxLeverage.toInt()
 

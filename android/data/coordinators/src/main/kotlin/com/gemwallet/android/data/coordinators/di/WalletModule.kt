@@ -45,8 +45,9 @@ object WalletModule {
     fun provideGetAllWallets(
         sessionRepository: SessionRepository,
         walletsRepository: WalletsRepository,
+        walletService: GemWalletService,
     ): GetAllWallets {
-        return GetAllWalletsImpl(sessionRepository, walletsRepository)
+        return GetAllWalletsImpl(sessionRepository, walletsRepository, walletService)
     }
 
     @Provides

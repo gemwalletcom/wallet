@@ -1,13 +1,15 @@
 package com.gemwallet.android.domains.asset
 
+import uniffi.gemstone.GemAssetConfigService
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.hasAvailable
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemAssetFilter
-import uniffi.gemstone.assetActionFilters
 
-fun GemAssetAction.filters(): List<GemAssetFilter> = assetActionFilters(this)
+private val assetConfig = GemAssetConfigService()
+
+fun GemAssetAction.filters(): List<GemAssetFilter> = assetConfig.actionFilters(this)
 
 fun GemAssetAction.recentFilters(): Set<AssetFilter> = filters().mapNotNull { it.recentFilter() }.toSet()
 

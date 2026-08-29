@@ -7,7 +7,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemDeviceApiClient
-import uniffi.gemstone.GemNftRulesService
 import uniffi.gemstone.GemNftService
 import javax.inject.Singleton
 
@@ -19,8 +18,4 @@ class NftModule {
     @Singleton
     fun provideGemNftService(apiClient: GemDeviceApiClient, nftDao: NftDao): GemNftService =
         GemNftService(apiClient, GemstoneNftStore(nftDao))
-
-    @Provides
-    @Singleton
-    fun provideGemNftRulesService(): GemNftRulesService = GemNftRulesService()
 }

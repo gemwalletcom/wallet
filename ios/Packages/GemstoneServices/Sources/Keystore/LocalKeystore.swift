@@ -73,7 +73,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         case .view: break
         case .multicoin, .single, .privateKey:
             try await queue.asyncTask { [gemKeystore, keystoreURL] in
-                _ = try gemKeystore.delete(keystoreId: wallet.keystoreId)
+                _ = try gemKeystore.delete(keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id))
                 if let legacyURL = Self.findV3File(in: keystoreURL, matching: wallet.legacyV3Id) {
                     try FileManager.default.removeItem(at: legacyURL)
                 }
@@ -83,7 +83,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
 
     public func sign(wallet: Primitives.Wallet, input: GemSignerInput) async throws -> [GemSignedTransaction] {
         let password = try await getPassword()
-        let keystoreId = wallet.keystoreId
+        let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
         let chain = try Primitives.Asset(GemTransferService().asset(inputType: input.input.inputType)).id.chain.rawValue
         return try await queue.asyncTask { [gemKeystore] in
             try withV4Password(password) { passwordBytes in
@@ -94,7 +94,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
 
     public func signMessage(signer: MessageSigner, wallet: Primitives.Wallet) async throws -> String {
         let password = try await getPassword()
-        let keystoreId = wallet.keystoreId
+        let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
         return try await queue.asyncTask { [gemKeystore] in
             try withV4Password(password) { passwordBytes in
                 try signer.signWithKeystore(keystore: gemKeystore, keystoreId: keystoreId, password: passwordBytes)
@@ -107,7 +107,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         return try await queue.asyncTask { [gemKeystore] in
             try withV4Password(password) { passwordBytes in
                 try gemKeystore.exportPrivateKey(
-                    keystoreId: wallet.keystoreId,
+                    keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id),
                     chain: chain.rawValue,
                     password: passwordBytes,
                 )
@@ -120,7 +120,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         return try await queue.asyncTask { [gemKeystore] in
             try withV4Password(password) { passwordBytes in
                 try gemKeystore.exportRecoveryPhrase(
-                    keystoreId: wallet.keystoreId,
+                    keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id),
                     password: passwordBytes,
                 )
             }

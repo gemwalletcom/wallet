@@ -4,22 +4,18 @@ pub type GemAsset = Asset;
 pub type GemAssetType = AssetType;
 pub type GemChainAsset = ChainAsset;
 
-#[uniffi::export]
 pub fn asset_default_rank(asset_id: AssetId) -> i32 {
     asset_id.default_rank()
 }
 
-#[uniffi::export]
 pub fn default_token_rank() -> i32 {
     AssetScore::default().rank
 }
 
-#[uniffi::export]
 pub fn wallet_default_assets(chain: Chain) -> Vec<GemAsset> {
     known_assets::wallet_default_assets(chain)
 }
 
-#[uniffi::export]
 pub fn chain_fee_asset_ids(chain: Chain) -> Vec<AssetId> {
     match chain {
         Chain::Tempo => wallet_default_assets(chain).into_iter().map(|asset| asset.id).collect(),
@@ -27,7 +23,6 @@ pub fn chain_fee_asset_ids(chain: Chain) -> Vec<AssetId> {
     }
 }
 
-#[uniffi::export]
 pub fn asset_ids_enabled_by_default() -> Vec<AssetId> {
     [Chain::Bitcoin, Chain::Ethereum, Chain::SmartChain, Chain::Solana, Chain::Tron]
         .into_iter()
@@ -36,7 +31,6 @@ pub fn asset_ids_enabled_by_default() -> Vec<AssetId> {
         .collect()
 }
 
-#[uniffi::export]
 pub fn wallet_asset_is_enabled(asset_id: AssetId, wallet_type: WalletType) -> bool {
     match wallet_type {
         WalletType::Multicoin => asset_ids_enabled_by_default().contains(&asset_id),
@@ -48,12 +42,10 @@ pub fn wallet_asset_is_enabled(asset_id: AssetId, wallet_type: WalletType) -> bo
     }
 }
 
-#[uniffi::export]
 pub fn asset_is_swapable(asset_id: AssetId) -> bool {
     AssetProperties::default(asset_id).is_swapable
 }
 
-#[uniffi::export]
 pub fn chain_asset_wrapper(chain: Chain) -> GemChainAsset {
     ChainAsset::from_chain(chain)
 }

@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAssetConfigService
 import Foundation
-import func Gemstone.assetDefaultRank
-import func Gemstone.assetIsSwapable
 import Primitives
+
+private let assetConfig = GemAssetConfigService()
 
 public extension AssetProperties {
     static func defaultValue(assetId: AssetId) -> AssetProperties {
@@ -16,7 +17,7 @@ public extension AssetProperties {
             isEnabled: isEnabled,
             isBuyable: false,
             isSellable: false,
-            isSwapable: Gemstone.assetIsSwapable(assetId: assetId.identifier),
+            isSwapable: assetConfig.isSwapable(assetId: assetId.identifier),
             isStakeable: isStakeable,
             stakingApr: .none,
             isEarnable: false,
@@ -28,6 +29,6 @@ public extension AssetProperties {
 
 public extension AssetScore {
     static func defaultValue(assetId: AssetId) -> AssetScore {
-        AssetScore(rank: Gemstone.assetDefaultRank(assetId: assetId.identifier))
+        AssetScore(rank: assetConfig.defaultRank(assetId: assetId.identifier))
     }
 }

@@ -15,7 +15,7 @@ import com.gemwallet.android.data.coordinators.stake.GetRecommendedValidatorIdsI
 import com.gemwallet.android.data.coordinators.stake.GetValidatorsImpl
 import com.gemwallet.android.data.coordinators.stake.SyncStakeDelegationsImpl
 import com.gemwallet.android.data.repositories.gemstone.GemstoneStakeStore
-import uniffi.gemstone.GemStakeRulesService
+import uniffi.gemstone.GemStakeConfigService
 import uniffi.gemstone.GemStakeService
 import dagger.Module
 import dagger.Provides
@@ -29,6 +29,10 @@ object StakeModule {
 
     @Provides
     @Singleton
+    fun provideGemStakeConfigService(): GemStakeConfigService = GemStakeConfigService()
+
+    @Provides
+    @Singleton
     fun provideGetDelegation(stakeStore: GemstoneStakeStore): GetDelegation = GetDelegationImpl(stakeStore)
 
     @Provides
@@ -37,16 +41,16 @@ object StakeModule {
 
     @Provides
     @Singleton
-    fun provideGetValidators(stakeStore: GemstoneStakeStore, stakeRules: GemStakeRulesService): GetValidators = GetValidatorsImpl(stakeStore, stakeRules)
+    fun provideGetValidators(stakeStore: GemstoneStakeStore, stakeConfig: GemStakeConfigService): GetValidators = GetValidatorsImpl(stakeStore, stakeConfig)
 
     @Provides
     @Singleton
-    fun provideGetRecommendedValidatorIds(stakeRules: GemStakeRulesService): GetRecommendedValidatorIds = GetRecommendedValidatorIdsImpl(stakeRules)
+    fun provideGetRecommendedValidatorIds(stakeConfig: GemStakeConfigService): GetRecommendedValidatorIds = GetRecommendedValidatorIdsImpl(stakeConfig)
 
     @Provides
     @Singleton
-    fun provideGetRecommendedValidator(getValidators: GetValidators, stakeRules: GemStakeRulesService): GetRecommendedValidator =
-        GetRecommendedValidatorImpl(getValidators, stakeRules)
+    fun provideGetRecommendedValidator(getValidators: GetValidators, stakeConfig: GemStakeConfigService): GetRecommendedValidator =
+        GetRecommendedValidatorImpl(getValidators, stakeConfig)
 
     @Provides
     @Singleton

@@ -4,7 +4,7 @@ import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.defaultTokenChain
+import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemExplorerService
 import androidx.compose.foundation.text.input.TextFieldState
@@ -42,6 +42,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
+private val assetConfig = GemAssetConfigService()
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AddAssetViewModel @Inject constructor(
@@ -69,7 +71,7 @@ class AddAssetViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val defaultChain = availableChains.map { chains ->
-        defaultTokenChain(chains.orEmpty().map { it.string })?.toChain() ?: Chain.Ethereum
+        assetConfig.defaultTokenChain(chains.orEmpty().map { it.string })?.toChain() ?: Chain.Ethereum
     }
     private val chain = MutableStateFlow<Chain?>(null)
     val selectedChain = defaultChain.combine(chain) {defaultChain, chain ->

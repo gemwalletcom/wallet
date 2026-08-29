@@ -5,17 +5,22 @@ use gem_hypercore::{
     perpetual_formatter::PerpetualFormatter,
     provider::{websocket_mapper::account_subscriptions, websocket_subscriptions::WebSocketSubscriptions},
 };
-use primitives::{AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, TpslType};
+use primitives::{
+    AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType,
+};
 
 use crate::models::perpetual::GemPerpetualSubscription;
+use crate::services::error::GemServiceError;
+use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
+use crate::services::perpetual::rules as perpetual_rules;
 
 #[derive(Debug, uniffi::Object)]
-pub struct Perpetual {
+pub struct GemPerpetual {
     provider: PerpetualProvider,
 }
 
 #[uniffi::export]
-impl Perpetual {
+impl GemPerpetual {
     #[uniffi::constructor]
     pub fn new(provider: PerpetualProvider) -> Self {
         Self { provider }
@@ -37,6 +42,18 @@ impl Perpetual {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
         }
+    }
+
+    pub fn funding_apr(&self, funding: f64) -> f64 {
+        perpetual_rules::funding_apr(funding)
+    }
+
+    pub fn order(&self, input: GemPerpetualOrderInput) -> Result<PerpetualType, GemServiceError> {
+        perpetual_rules::order(self.provider.clone(), input)
+    }
+
+    pub fn close_order(&self, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
+        perpetual_rules::close_order(self.provider.clone(), input)
     }
 }
 

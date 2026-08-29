@@ -1,7 +1,7 @@
 package com.gemwallet.android.ext
 
 import com.wallet.core.primitives.PerpetualProvider
-import uniffi.gemstone.Perpetual
+import uniffi.gemstone.GemPerpetual
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 import uniffi.gemstone.PerpetualProvider as GemPerpetualProvider
@@ -9,7 +9,7 @@ import uniffi.gemstone.PerpetualProvider as GemPerpetualProvider
 object PerpetualFormatter {
 
     fun formatPrice(provider: PerpetualProvider, price: Double, decimals: Int): String =
-        Perpetual(provider.toGemProvider()).use { it.formatPrice(price, decimals) }
+        GemPerpetual(provider.toGemProvider()).use { it.formatPrice(price, decimals) }
 
     fun formatInputPrice(
         provider: PerpetualProvider,
@@ -23,10 +23,10 @@ object PerpetualFormatter {
     }
 
     fun formatSize(provider: PerpetualProvider, size: Double, decimals: Int): String =
-        Perpetual(provider.toGemProvider()).use { it.formatSize(size, decimals) }
+        GemPerpetual(provider.toGemProvider()).use { it.formatSize(size, decimals) }
 
     fun minimumOrderUsdAmount(provider: PerpetualProvider, price: Double, decimals: Int, leverage: Int): ULong =
-        Perpetual(provider.toGemProvider()).use {
+        GemPerpetual(provider.toGemProvider()).use {
             it.minimumOrderUsdAmount(price, decimals, leverage.toUByte())
         }
 

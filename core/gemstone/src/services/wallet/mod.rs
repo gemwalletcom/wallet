@@ -4,7 +4,6 @@ pub mod password;
 mod rules;
 pub mod store;
 
-use primitives::{AssetFiatValue, TotalFiatValue};
 use std::sync::Arc;
 
 use gem_keystore::Mnemonic;
@@ -163,6 +162,14 @@ impl GemWalletService {
     pub async fn rename(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError> {
         self.store.set_name(wallet_id, name).await
     }
+
+    pub fn sorted_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
+        rules::sorted_wallets(wallets)
+    }
+
+    pub fn display_account(&self, wallet: Wallet) -> Option<Account> {
+        rules::display_account(&wallet)
+    }
 }
 
 impl GemWalletService {
@@ -195,36 +202,5 @@ fn keystore_import(import: GemWalletImportType) -> GemImportType {
         GemWalletImportType::SinglePhrase { words, chain } => GemImportType::SinglePhrase { words, chain },
         GemWalletImportType::PrivateKey { value, chain } => GemImportType::PrivateKey { value, chain },
         GemWalletImportType::Address { address, chain } => GemImportType::PrivateKey { value: address, chain },
-    }
-}
-
-#[derive(Default, uniffi::Object)]
-pub struct GemWalletRulesService {}
-
-#[uniffi::export]
-impl GemWalletRulesService {
-    #[uniffi::constructor]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn sorted_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
-        rules::sorted_wallets(wallets)
-    }
-
-    pub fn display_account(&self, wallet: Wallet) -> Option<Account> {
-        rules::display_account(&wallet)
-    }
-
-    pub fn keystore_id(&self, wallet_id: String) -> String {
-        crate::keystore::keystore_id_for_wallet(wallet_id)
-    }
-
-    pub fn total_fiat_value(&self, balances: Vec<AssetFiatValue>) -> TotalFiatValue {
-        crate::balance_calculator::wallet_total_fiat_value(balances)
-    }
-
-    pub fn shows_pnl(&self, total: TotalFiatValue) -> bool {
-        crate::balance_calculator::wallet_shows_pnl(total)
     }
 }

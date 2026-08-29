@@ -5,10 +5,8 @@ import Foundation
 import struct Gemstone.GemPerpetualCloseInput
 import enum Gemstone.GemPerpetualOrderAction
 import struct Gemstone.GemPerpetualOrderInput
-import class Gemstone.GemPerpetualRulesService
+import class Gemstone.GemPerpetual
 import Primitives
-
-private let perpetualRules = GemPerpetualRulesService()
 
 public extension PerpetualPositionAction {
     func order(
@@ -26,7 +24,6 @@ public extension PerpetualPositionAction {
             baseAsset: data.baseAsset.json(),
             asset: data.asset.json(),
             assetIndex: Int32(data.assetIndex),
-            provider: data.provider.map(),
             price: data.price,
             usdcAmount: usdcAmount.description,
             usdcDecimals: Int32(usdcDecimals),
@@ -35,7 +32,7 @@ public extension PerpetualPositionAction {
             takeProfit: takeProfit,
             stopLoss: stopLoss,
         )
-        return try PerpetualType(perpetualRules.order(input: input))
+        return try PerpetualType(GemPerpetual(provider: data.provider.map()).order(input: input))
     }
 
     private func orderAction() throws -> GemPerpetualOrderAction {
@@ -55,7 +52,6 @@ public extension PerpetualPosition {
             marginType: marginType.json(),
             baseAsset: baseAsset.json(),
             asset: asset.json(),
-            provider: perpetual.provider.map(),
             marketPrice: perpetual.price,
             size: size,
             leverage: leverage,
@@ -64,6 +60,6 @@ public extension PerpetualPosition {
             marginAmount: marginAmount,
             slippage: .none,
         )
-        return try PerpetualConfirmData(perpetualRules.closeOrder(input: input))
+        return try PerpetualConfirmData(GemPerpetual(provider: perpetual.provider.map()).closeOrder(input: input))
     }
 }

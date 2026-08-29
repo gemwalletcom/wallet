@@ -1,8 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.ext.toAssetId
-import uniffi.gemstone.GemPerpetualRulesService
-import uniffi.gemstone.GemWalletRulesService
+import uniffi.gemstone.GemPerpetualService
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.cases.banners.HasMultiSign
@@ -40,8 +39,6 @@ import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
 import uniffi.gemstone.BalanceCalculator as GemBalanceCalculator
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
-private val walletRules = GemWalletRulesService()
-
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetWalletSummaryImpl(
     private val sessionRepository: SessionRepository,
@@ -51,6 +48,7 @@ class GetWalletSummaryImpl(
     private val hasMultiSign: HasMultiSign,
     private val userConfig: UserConfig,
     private val walletPreferencesService: GemWalletPreferencesService,
+    private val perpetualService: GemPerpetualService,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetWalletSummary {
     private val balanceCalculator = GemBalanceCalculator()
@@ -58,7 +56,7 @@ class GetWalletSummaryImpl(
     private val perpetualCollateral: Flow<PerpetualBalance?> =
         observePerpetualWallet().flatMapLatest { wallet ->
             wallet ?: return@flatMapLatest flowOf(null)
-            val collateralAssetId = GemPerpetualRulesService().collateralAssetId(Chain.HyperCore.string)?.toAssetId()
+            val collateralAssetId = perpetualService.collateralAssetId(Chain.HyperCore.string)?.toAssetId()
             if (collateralAssetId != null && walletPreferencesService.includesPerpetualCollateral(wallet.id.id)) {
                 perpetualRepository.getBalance(wallet.id, collateralAssetId)
             } else {
@@ -91,7 +89,8 @@ class GetWalletSummaryImpl(
                 wallet = wallet,
                 displayState = buildWalletSummaryDisplayState(
                     currency = session.currency,
-                    total = walletRules.totalFiatValue(balances),
+                    balanceCalculator = balanceCalculator,
+                    total = balanceCalculator.walletTotalFiatValue(balances),
                 ),
                 isBalanceHidden = hideBalances,
                 isOperationsAvailable = !hasMultiSign,
@@ -107,10 +106,11 @@ class GetWalletSummaryImpl(
 internal fun buildWalletSummaryDisplayState(
     currency: Currency,
     total: GemTotalFiatValue,
+    balanceCalculator: GemBalanceCalculator = GemBalanceCalculator(),
 ): WalletSummaryDisplayState {
     val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
     val totalValue = total.value.toBigDecimal()
-    if (!walletRules.showsPnl(total)) {
+    if (!balanceCalculator.showsPnl(total)) {
         return WalletSummaryDisplayState(
             totalValue = formatter.string(totalValue.coerceAtLeast(BigDecimal.ZERO)),
             changedValue = null,

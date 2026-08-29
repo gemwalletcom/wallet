@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemKeystore
 import GemstonePrimitives
 @testable import GemstoneServices
 import GemstoneServicesTestKit
@@ -117,7 +118,7 @@ struct MigrateV3KeystoreTests {
 
         let failures = try await keystore.migrateV3Keystores(for: [legacy])
         #expect(failures.isEmpty)
-        let v4URL = baseDir.appending(path: "\(legacy.keystoreId).json")
+        let v4URL = baseDir.appending(path: "\(try GemKeystore(baseDir: baseDir.path).keystoreId(walletId: legacy.id.id)).json")
         #expect(FileManager.default.fileExists(atPath: v4URL.path))
         #expect(!FileManager.default.fileExists(atPath: v3URL.path), "a verified migration deletes the v3 file")
 
@@ -145,7 +146,7 @@ struct MigrateV3KeystoreTests {
 
         let failures = try await keystore.migrateV3Keystores(for: [legacy])
         #expect(failures.isEmpty)
-        let keystoreId = legacy.keystoreId
+        let keystoreId = try GemKeystore(baseDir: baseDir.path).keystoreId(walletId: legacy.id.id)
         #expect(FileManager.default.fileExists(atPath: baseDir.appending(path: "\(keystoreId).json").path))
         #expect(!FileManager.default.fileExists(atPath: v3URL.path), "a verified migration deletes the v3 file")
 

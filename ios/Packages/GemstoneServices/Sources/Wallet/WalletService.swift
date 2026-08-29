@@ -40,6 +40,13 @@ public struct WalletService: Sendable {
         try service.createWallet()
     }
 
+    public func sorted(wallets: [Wallet]) -> [Wallet] {
+        guard let sorted = try? service.sortedWallets(wallets: wallets.map { try $0.json() }).map({ try Wallet($0) }) else {
+            return wallets
+        }
+        return sorted
+    }
+
     public func importWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> WalletImportResult {
         let walletImport = try service.validateImport(import: type.walletImport)
         return switch try await service.importWallet(name: name, import: walletImport, source: source.map()) {

@@ -1,5 +1,5 @@
 use primitives::chart::ChartCandleUpdate;
-use primitives::{Asset, PerpetualDirection, PerpetualMarginType, PerpetualProvider};
+use primitives::{Asset, PerpetualDirection, PerpetualMarginType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemPerpetualSocketUpdate {
@@ -25,7 +25,6 @@ pub struct GemPerpetualOrderInput {
     pub base_asset: Asset,
     pub asset: Asset,
     pub asset_index: i32,
-    pub provider: PerpetualProvider,
     pub price: f64,
     pub usdc_amount: String,
     pub usdc_decimals: i32,
@@ -42,7 +41,6 @@ pub struct GemPerpetualCloseInput {
     pub margin_type: PerpetualMarginType,
     pub base_asset: Asset,
     pub asset: Asset,
-    pub provider: PerpetualProvider,
     pub market_price: f64,
     pub size: f64,
     pub leverage: u8,
