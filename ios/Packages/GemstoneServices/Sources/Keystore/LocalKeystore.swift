@@ -1,7 +1,6 @@
 public import Gemstone
 import Foundation
 import GemstonePrimitives
-import Localization
 import Primitives
 
 private let transferService = GemTransferService()
@@ -41,7 +40,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
             return try password.v4KeystorePasswordBytes()
         }
         guard createIfMissing, try !gemKeystore.hasStoredWallets() else {
-            throw AnyError(Localized.Errors.keystoreAccess)
+            throw KeystoreError.missingPassword
         }
         let newPassword = try SecureRandom.generateKey(length: 32).hex
         try keystorePassword.setPassword(newPassword, authentication: .none)
@@ -210,7 +209,7 @@ func withV4Password<T>(
     _ operation: (Data) throws -> T,
 ) throws -> T {
     guard password.isNotEmpty else {
-        throw AnyError(Localized.Errors.keystoreAccess)
+        throw KeystoreError.missingPassword
     }
     var passwordBytes = try password.v4KeystorePasswordBytes()
     defer { passwordBytes.zeroize() }
