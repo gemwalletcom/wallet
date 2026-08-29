@@ -3,7 +3,7 @@
 import Components
 import Formatters
 import Foundation
-import func Gemstone.perpetualFundingApr
+import class Gemstone.GemPerpetualRulesService
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -43,7 +43,7 @@ public struct PerpetualViewModel {
     }
 
     public var fundingRateField: ListItemField {
-        let annualized = perpetualFundingApr(funding: perpetual.funding)
+        let annualized = GemPerpetualRulesService().fundingApr(funding: perpetual.funding)
         return ListItemField(title: Localized.Info.Perpetual.FundingApr.title, value: percentFormatter.string(annualized))
     }
 

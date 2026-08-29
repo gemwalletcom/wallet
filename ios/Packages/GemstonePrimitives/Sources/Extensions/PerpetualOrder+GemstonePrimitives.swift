@@ -5,9 +5,10 @@ import Foundation
 import struct Gemstone.GemPerpetualCloseInput
 import enum Gemstone.GemPerpetualOrderAction
 import struct Gemstone.GemPerpetualOrderInput
-import func Gemstone.perpetualCloseOrder
-import func Gemstone.perpetualOrder
+import class Gemstone.GemPerpetualRulesService
 import Primitives
+
+private let perpetualRules = GemPerpetualRulesService()
 
 public extension PerpetualPositionAction {
     func order(
@@ -34,7 +35,7 @@ public extension PerpetualPositionAction {
             takeProfit: takeProfit,
             stopLoss: stopLoss,
         )
-        return try PerpetualType(perpetualOrder(input: input))
+        return try PerpetualType(perpetualRules.order(input: input))
     }
 
     private func orderAction() throws -> GemPerpetualOrderAction {
@@ -63,6 +64,6 @@ public extension PerpetualPosition {
             marginAmount: marginAmount,
             slippage: .none,
         )
-        return try PerpetualConfirmData(perpetualCloseOrder(input: input))
+        return try PerpetualConfirmData(perpetualRules.closeOrder(input: input))
     }
 }

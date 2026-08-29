@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.perpetual
 
+import uniffi.gemstone.GemPerpetualRulesService
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
@@ -11,9 +12,9 @@ import com.gemwallet.android.ext.PerpetualFormatter.toGemProvider
 import uniffi.gemstone.GemPerpetualCloseInput
 import uniffi.gemstone.GemPerpetualOrderAction
 import uniffi.gemstone.GemPerpetualOrderInput
-import uniffi.gemstone.perpetualCloseOrder
-import uniffi.gemstone.perpetualOrder
 import java.math.BigInteger
+
+private val perpetualRules = GemPerpetualRulesService()
 
 object PerpetualOrderFactory {
 
@@ -42,7 +43,7 @@ object PerpetualOrderFactory {
             takeProfit = takeProfit,
             stopLoss = stopLoss,
         )
-        return perpetualOrder(input).decodeJson()
+        return perpetualRules.order(input).decodeJson()
     }
 
     fun makeCloseOrder(
@@ -67,7 +68,7 @@ object PerpetualOrderFactory {
             marginAmount = position.marginAmount,
             slippage = null,
         )
-        return perpetualCloseOrder(input).decodeJson()
+        return perpetualRules.closeOrder(input).decodeJson()
     }
 
     private fun PerpetualPositionAction.orderAction(): GemPerpetualOrderAction = when (this) {

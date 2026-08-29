@@ -199,76 +199,6 @@ fn provider(chain: Chain) -> Result<PerpetualProvider, GemServiceError> {
     })
 }
 
-#[uniffi::export]
-pub fn perpetual_collateral_asset_id(chain: Chain) -> Option<AssetId> {
-    rules::collateral_asset_id(chain)
-}
-
-#[uniffi::export]
-pub fn perpetual_funding_apr(funding: f64) -> f64 {
-    rules::funding_apr(funding)
-}
-
-#[uniffi::export]
-pub fn perpetual_order(input: GemPerpetualOrderInput) -> Result<PerpetualType, GemServiceError> {
-    let usdc_amount = BigInt::from_str(&input.usdc_amount).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
-    let usd_amount = usdc_amount.to_string().parse::<f64>().unwrap_or_default() / 10f64.powi(input.usdc_decimals);
-    let slippage = rules::slippage_percent(input.slippage);
-    let (size, fiat_value, margin_amount) = rules::order_amounts(usd_amount, input.leverage, input.price);
-    let price = rules::slippage_price(input.price, input.direction.clone(), rules::opens_position(&input.action), slippage);
-    let formatter = Perpetual::new(input.provider);
-
-    let data = PerpetualConfirmData {
-        direction: input.direction,
-        margin_type: input.margin_type,
-        base_asset: input.base_asset,
-        asset_index: input.asset_index,
-        price: formatter.format_price(price, input.asset.decimals),
-        fiat_value,
-        size: formatter.format_size(size, input.asset.decimals),
-        slippage,
-        leverage: input.leverage,
-        pnl: None,
-        entry_price: None,
-        market_price: input.price,
-        margin_amount,
-        take_profit: input.take_profit,
-        stop_loss: input.stop_loss,
-    };
-
-    Ok(match input.action {
-        GemPerpetualOrderAction::Open => PerpetualType::Open(data),
-        GemPerpetualOrderAction::Increase => PerpetualType::Increase(data),
-        GemPerpetualOrderAction::Reduce { position_direction } => PerpetualType::Reduce(PerpetualReduceData { data, position_direction }),
-    })
-}
-
-#[uniffi::export]
-pub fn perpetual_close_order(input: GemPerpetualCloseInput) -> PerpetualConfirmData {
-    let slippage = rules::slippage_percent(input.slippage);
-    let price = rules::slippage_price(input.market_price, input.direction.clone(), false, slippage);
-    let size = input.size.abs();
-    let formatter = Perpetual::new(input.provider);
-
-    PerpetualConfirmData {
-        direction: input.direction,
-        margin_type: input.margin_type,
-        base_asset: input.base_asset,
-        asset_index: input.asset_index,
-        price: formatter.format_price(price, input.asset.decimals),
-        fiat_value: size * price,
-        size: formatter.format_size(size, input.asset.decimals),
-        slippage,
-        leverage: input.leverage,
-        pnl: Some(input.pnl),
-        entry_price: Some(input.entry_price),
-        market_price: input.market_price,
-        margin_amount: input.margin_amount,
-        take_profit: None,
-        stop_loss: None,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -295,12 +225,13 @@ mod tests {
 
     #[test]
     fn test_perpetual_order_keeps_the_position_action_and_prices_in_the_slippage() {
-        let open = perpetual_order(order_input(GemPerpetualOrderAction::Open)).unwrap();
-        let increase = perpetual_order(order_input(GemPerpetualOrderAction::Increase)).unwrap();
-        let reduce = perpetual_order(order_input(GemPerpetualOrderAction::Reduce {
-            position_direction: PerpetualDirection::Short,
-        }))
-        .unwrap();
+        let open = GemPerpetualRulesService::new().order(order_input(GemPerpetualOrderAction::Open)).unwrap();
+        let increase = GemPerpetualRulesService::new().order(order_input(GemPerpetualOrderAction::Increase)).unwrap();
+        let reduce = GemPerpetualRulesService::new()
+            .order(order_input(GemPerpetualOrderAction::Reduce {
+                position_direction: PerpetualDirection::Short,
+            }))
+            .unwrap();
 
         let PerpetualType::Open(data) = open else { panic!("expected an open order") };
         assert_eq!(data.slippage, 2.0);
@@ -314,7 +245,7 @@ mod tests {
 
     #[test]
     fn test_perpetual_close_order_carries_the_position_result() {
-        let data = perpetual_close_order(GemPerpetualCloseInput {
+        let data = GemPerpetualRulesService::new().close_order(GemPerpetualCloseInput {
             asset_index: 1,
             direction: PerpetualDirection::Long,
             margin_type: PerpetualMarginType::Cross,
@@ -333,5 +264,82 @@ mod tests {
         assert_eq!(data.pnl, Some(12.5));
         assert_eq!(data.entry_price, Some(90.0));
         assert_eq!(data.fiat_value, 196.0);
+    }
+}
+
+#[derive(Default, uniffi::Object)]
+pub struct GemPerpetualRulesService {}
+
+#[uniffi::export]
+impl GemPerpetualRulesService {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn collateral_asset_id(&self, chain: Chain) -> Option<AssetId> {
+        rules::collateral_asset_id(chain)
+    }
+
+    pub fn funding_apr(&self, funding: f64) -> f64 {
+        rules::funding_apr(funding)
+    }
+
+    pub fn order(&self, input: GemPerpetualOrderInput) -> Result<PerpetualType, GemServiceError> {
+        let usdc_amount = BigInt::from_str(&input.usdc_amount).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
+        let usd_amount = usdc_amount.to_string().parse::<f64>().unwrap_or_default() / 10f64.powi(input.usdc_decimals);
+        let slippage = rules::slippage_percent(input.slippage);
+        let (size, fiat_value, margin_amount) = rules::order_amounts(usd_amount, input.leverage, input.price);
+        let price = rules::slippage_price(input.price, input.direction.clone(), rules::opens_position(&input.action), slippage);
+        let formatter = Perpetual::new(input.provider);
+
+        let data = PerpetualConfirmData {
+            direction: input.direction,
+            margin_type: input.margin_type,
+            base_asset: input.base_asset,
+            asset_index: input.asset_index,
+            price: formatter.format_price(price, input.asset.decimals),
+            fiat_value,
+            size: formatter.format_size(size, input.asset.decimals),
+            slippage,
+            leverage: input.leverage,
+            pnl: None,
+            entry_price: None,
+            market_price: input.price,
+            margin_amount,
+            take_profit: input.take_profit,
+            stop_loss: input.stop_loss,
+        };
+
+        Ok(match input.action {
+            GemPerpetualOrderAction::Open => PerpetualType::Open(data),
+            GemPerpetualOrderAction::Increase => PerpetualType::Increase(data),
+            GemPerpetualOrderAction::Reduce { position_direction } => PerpetualType::Reduce(PerpetualReduceData { data, position_direction }),
+        })
+    }
+
+    pub fn close_order(&self, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
+        let slippage = rules::slippage_percent(input.slippage);
+        let price = rules::slippage_price(input.market_price, input.direction.clone(), false, slippage);
+        let size = input.size.abs();
+        let formatter = Perpetual::new(input.provider);
+
+        PerpetualConfirmData {
+            direction: input.direction,
+            margin_type: input.margin_type,
+            base_asset: input.base_asset,
+            asset_index: input.asset_index,
+            price: formatter.format_price(price, input.asset.decimals),
+            fiat_value: size * price,
+            size: formatter.format_size(size, input.asset.decimals),
+            slippage,
+            leverage: input.leverage,
+            pnl: Some(input.pnl),
+            entry_price: Some(input.entry_price),
+            market_price: input.market_price,
+            margin_amount: input.margin_amount,
+            take_profit: None,
+            stop_loss: None,
+        }
     }
 }

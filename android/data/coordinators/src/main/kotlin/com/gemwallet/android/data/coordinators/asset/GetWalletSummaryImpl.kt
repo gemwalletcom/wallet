@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.ext.toAssetId
-import uniffi.gemstone.perpetualCollateralAssetId
+import uniffi.gemstone.GemPerpetualRulesService
 import uniffi.gemstone.walletShowsPnl
 import uniffi.gemstone.walletTotalFiatValue
 import androidx.compose.runtime.Stable
@@ -57,7 +57,7 @@ class GetWalletSummaryImpl(
     private val perpetualCollateral: Flow<PerpetualBalance?> =
         observePerpetualWallet().flatMapLatest { wallet ->
             wallet ?: return@flatMapLatest flowOf(null)
-            val collateralAssetId = perpetualCollateralAssetId(Chain.HyperCore.string)?.toAssetId()
+            val collateralAssetId = GemPerpetualRulesService().collateralAssetId(Chain.HyperCore.string)?.toAssetId()
             if (collateralAssetId != null && walletPreferencesService.includesPerpetualCollateral(wallet.id.id)) {
                 perpetualRepository.getBalance(wallet.id, collateralAssetId)
             } else {

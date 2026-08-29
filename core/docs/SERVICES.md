@@ -370,7 +370,7 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 | ~~`GemStakeService`~~ → `GemStakeRulesService` (done) | the seven stake rules moved to a **stateless** service, not the I/O one: `GemStakeService` needs a gateway, a static API client and two stores, so rules hung off it can only be reached through a mock — which silently emptied four iOS view-model tests. A pure-rule service with a `new()` constructor keeps those tests exercising the real rule. Apply the same split to the groups below. |
 | ~~`GemNftService`~~ → `GemNftRulesService` (done) | the four collection rules, on a stateless service for the same reason as the stake ones |
 | ~~`GemPriceAlertService`~~ → `GemPriceAlertRulesService` (done) | id, ordering, notification type and display rule; the value helpers (`PriceAlert.id`, `.type`, `.shouldDisplay`) keep their shape on both apps and hold one service instance in the extension file |
-| `GemPerpetualService` | `perpetual_collateral_asset_id`, `perpetual_funding_apr`, `perpetual_order`, `perpetual_close_order` |
+| ~~`GemPerpetualService`~~ → `GemPerpetualRulesService` (done) | collateral asset, funding APR and the two order builders |
 | `GemWalletService` | `sorted_wallets`, `wallet_display_account`, `keystore_id_for_wallet`, `wallet_total_fiat_value`, `wallet_shows_pnl` |
 | `GemConfirmService` | `confirm_input_encode`, `confirm_input_decode`, `acquire_asset_flow`, `default_fee_priority`, `is_insufficient_network_fee`, `custom_gas_price`, `custom_fee_estimate`, `calculate_transfer_amount` |
 | `GemPaymentService` | `payment_decode_url`, `payment_destination`, `payment_transfer_destination`, `payment_decoded_transfer`, `deeplink_build_url`, `deeplink_build_gem_url`, `url_action` |
