@@ -16,7 +16,7 @@ public final class GemstoneContactStore: GemContactStore, @unchecked Sendable {
     }
 
     public func getAddresses(contactId: String) async throws -> [Gemstone.ContactAddress] {
-        try store.getAddresses(contactId: contactId).map { try $0.json() }
+        try store.getAddresses(contactId: contactId).map { $0.json() }
     }
 
     public func saveContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress]) async throws {

@@ -33,7 +33,7 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
     }
 
     public func getPositions(walletId: String, provider: Gemstone.PerpetualProvider) async throws -> [Gemstone.PerpetualPosition] {
-        try store.getPositions(walletId: WalletId.from(id: walletId), provider: provider.map()).map { try $0.json() }
+        try store.getPositions(walletId: WalletId.from(id: walletId), provider: provider.map()).map { $0.json() }
     }
 
     public func updateMarket(market: Gemstone.PerpetualMarketData) async throws {

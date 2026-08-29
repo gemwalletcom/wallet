@@ -10,6 +10,6 @@ public extension GemPriceAlertServiceProtocol {
     }
 
     func delete(priceAlerts: [PriceAlert]) async throws {
-        try await deletePriceAlerts(alerts: priceAlerts.map { try $0.json() })
+        try await deletePriceAlerts(alerts: priceAlerts.map { $0.json() })
     }
 }

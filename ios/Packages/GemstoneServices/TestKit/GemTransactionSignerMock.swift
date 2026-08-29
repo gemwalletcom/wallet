@@ -7,7 +7,7 @@ public import GemstonePrimitives
 import Primitives
 
 public final class GemTransactionSignerMock: GemTransactionSigner {
-    public static let transferType = (try? Primitives.TransactionType.transfer.json()) ?? ""
+    public static let transferType = Primitives.TransactionType.transfer.json()
 
     public let signedTransactions: [GemSignedTransaction]
 
@@ -22,6 +22,6 @@ public final class GemTransactionSignerMock: GemTransactionSigner {
 
 public extension GemSignedTransaction {
     init(data: String, type: Primitives.TransactionType) {
-        self.init(data: data, transactionType: (try? type.json()) ?? "")
+        self.init(data: data, transactionType: type.json())
     }
 }

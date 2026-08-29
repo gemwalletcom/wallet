@@ -81,7 +81,7 @@ public struct TransactionViewModel: Sendable {
     }
 
     private var amountSign: GemAmountSign {
-        guard case let .amount(sign) = transactionFormatter.value(for: transaction.transaction) else { return .none }
+        guard case let .amount(sign) = transactionFormatter.value(transaction: transaction.transaction.json()) else { return .none }
         return sign
     }
 
@@ -100,7 +100,7 @@ public struct TransactionViewModel: Sendable {
 
     public var titleTextValue: TextValue {
         TextValue(
-            text: transactionFormatter.title(for: transaction.transaction),
+            text: transactionFormatter.title(transaction: transaction.transaction.json()).title,
             style: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
         )
     }
@@ -128,7 +128,7 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var titleExtraTextValue: TextValue? {
-        let title: String? = switch transactionFormatter.subtitle(for: transaction.transaction) {
+        let title: String? = switch transactionFormatter.subtitle(transaction: transaction.transaction.json()) {
         case let .toAddress(address): participantTitle(prefix: Localized.Transfer.to, address: address, chain: assetId.chain)
         case let .fromAddress(address): participantTitle(prefix: Localized.Transfer.from, address: address, chain: assetId.chain)
         case let .toResource(resource): resourceTitle(prefix: Localized.Transfer.to, resource: resource)
@@ -147,11 +147,11 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var subtitleTextValue: TextValue? {
-        amountTextValue(transactionFormatter.value(for: transaction.transaction), textStyle: nil)
+        amountTextValue(transactionFormatter.value(transaction: transaction.transaction.json()), textStyle: nil)
     }
 
     public var subtitleExtraTextValue: TextValue? {
-        amountTextValue(transactionFormatter.equivalentValue(for: transaction.transaction), textStyle: .footnote)
+        amountTextValue(transactionFormatter.equivalentValue(transaction: transaction.transaction.json()), textStyle: .footnote)
     }
 
     private func amountTextValue(_ value: GemTransactionValue, textStyle: TextStyle?) -> TextValue? {

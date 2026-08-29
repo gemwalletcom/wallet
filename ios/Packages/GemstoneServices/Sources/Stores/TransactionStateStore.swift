@@ -32,7 +32,7 @@ public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unc
     }
 
     public func getState(walletId: String, transactionId: Gemstone.TransactionId) async throws -> Gemstone.TransactionState? {
-        try store.getTransactionState(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(transactionId)).map { try $0.json() }
+        try store.getTransactionState(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(transactionId)).map { $0.json() }
     }
 
     public func renameTransaction(walletId: String, transactionId: Gemstone.TransactionId, newTransactionId: Gemstone.TransactionId) async throws {

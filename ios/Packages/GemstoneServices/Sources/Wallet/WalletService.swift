@@ -41,7 +41,7 @@ public struct WalletService: Sendable {
     }
 
     public func sorted(wallets: [Wallet]) -> [Wallet] {
-        guard let sorted = try? service.sortedWallets(wallets: wallets.map { try $0.json() }).map({ try Wallet($0) }) else {
+        guard let sorted = try? service.sortedWallets(wallets: wallets.map { $0.json() }).map({ try Wallet($0) }) else {
             return wallets
         }
         return sorted

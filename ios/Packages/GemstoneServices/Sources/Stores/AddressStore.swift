@@ -16,7 +16,7 @@ public final class GemstoneAddressStore: GemAddressStore, @unchecked Sendable {
     }
 
     public func getAddressName(chain: Gemstone.Chain, address: String) async throws -> Gemstone.AddressName? {
-        try store.getAddressName(chain: Primitives.Chain(id: chain), address: address).map { try $0.json() }
+        try store.getAddressName(chain: Primitives.Chain(id: chain), address: address).map { $0.json() }
     }
 
     public func saveAddressNames(names: [Gemstone.AddressName]) async throws {

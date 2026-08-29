@@ -81,7 +81,7 @@ private extension ConfirmSimulationService {
 
         let payload = simulation?.payload ?? []
         let showsHeader = shouldHideValueField(for: transferType, simulation: simulation)
-        guard let fields = try? simulationFormatter.payloadFields(payload: payload.map { try $0.json() }, showsHeader: showsHeader) else {
+        guard let fields = try? simulationFormatter.payloadFields(payload: payload.map { $0.json() }, showsHeader: showsHeader) else {
             return payload
         }
         return fields.compactMap { try? SimulationPayloadField($0) }

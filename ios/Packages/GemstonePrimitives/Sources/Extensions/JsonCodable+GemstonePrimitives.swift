@@ -18,8 +18,12 @@ public extension JsonCodable {
         self = try JSONDateDecoder.standard.decode(Self.self, from: Data(json.utf8))
     }
 
-    func json() throws -> String {
-        try String(decoding: JsonCodableEncoder.standard.encode(self), as: UTF8.self)
+    func json() -> String {
+        guard let data = try? JsonCodableEncoder.standard.encode(self) else {
+            assertionFailure("failed to serialize \(Self.self)")
+            return ""
+        }
+        return String(decoding: data, as: UTF8.self)
     }
 }
 

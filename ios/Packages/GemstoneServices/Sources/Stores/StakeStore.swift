@@ -26,7 +26,7 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     }
 
     public func getValidators(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [Gemstone.DelegationValidator] {
-        try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: Primitives.StakeProviderType(providerType)).map { try $0.json() }
+        try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: Primitives.StakeProviderType(providerType)).map { $0.json() }
     }
 
     public func saveValidators(validators: [Gemstone.DelegationValidator]) async throws {

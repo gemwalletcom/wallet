@@ -18,7 +18,7 @@ public final class GemstoneBannerStore: GemBannerStore, @unchecked Sendable {
 
     public func getState(key: GemBannerKey) async throws -> Gemstone.BannerState? {
         try store.getBanner(id: bannerIdentifier(key: key))
-            .map { try $0.state.json() }
+            .map { $0.state.json() }
     }
 
     public func setState(key: GemBannerKey, state: Gemstone.BannerState) async throws {

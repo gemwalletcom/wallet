@@ -85,17 +85,17 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         lock.withLock { priceAlertsEnabled = enabled }
     }
 
-    public func getCurrency() -> Gemstone.Currency { (try? Primitives.Currency.usd.json()) ?? "\"USD\"" }
+    public func getCurrency() -> Gemstone.Currency { (Primitives.Currency.usd.json()) ?? "\"USD\"" }
 
     public func setCurrency(currency _: Gemstone.Currency) throws {}
 
-    public func setupCurrency(localeCurrency _: String?) throws -> Gemstone.Currency { try Primitives.Currency.usd.json() }
+    public func setupCurrency(localeCurrency _: String?) throws -> Gemstone.Currency { Primitives.Currency.usd.json() }
 
-    public func getChartPeriod() -> Gemstone.ChartPeriod { (try? Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
+    public func getChartPeriod() -> Gemstone.ChartPeriod { (Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
 
     public func setChartPeriod(period _: Gemstone.ChartPeriod) throws {}
 
-    public func getPerpetualChartPeriod() -> Gemstone.ChartPeriod { (try? Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
+    public func getPerpetualChartPeriod() -> Gemstone.ChartPeriod { (Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
 
     public func setPerpetualChartPeriod(period _: Gemstone.ChartPeriod) throws {}
 
@@ -107,7 +107,7 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     private var hideBalanceEnabled = false
     private var developerEnabled = false
     private var acceptTermsCompleted = false
-    private var appearance: Gemstone.Appearance = (try? Primitives.Appearance.system.json()) ?? "\"system\""
+    private var appearance: Gemstone.Appearance = (Primitives.Appearance.system.json()) ?? "\"system\""
 
     public func isPerpetualEnabled() -> Bool { perpetualEnabled }
 
@@ -249,7 +249,7 @@ public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendab
     public func syncTransactions(walletId _: String) async throws {}
 
     public func getQuotes(walletId _: String, quoteType _: Gemstone.FiatQuoteType, assetId _: String, amount _: Double, currency _: String) async throws -> [Gemstone.FiatQuote] {
-        try quotes.map { try $0.json() }
+        quotes.map { $0.json() }
     }
 
     public func getQuoteUrl(walletId _: String, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
@@ -285,7 +285,7 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         let requested = try requests.map { try Primitives.ChainAddress($0) }
         return try addressNames
             .filter { name in requested.contains { $0.chain == name.chain && $0.address == name.address } }
-            .map { try $0.json() }
+            .map { $0.json() }
     }
 }
 
@@ -442,7 +442,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func syncPositions(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualAccountMode {
-        try Primitives.PerpetualAccountMode.standard.json()
+        Primitives.PerpetualAccountMode.standard.json()
     }
 
     public func connection(wallet: Gemstone.Wallet) async throws -> Gemstone.GemPerpetualConnection? {
@@ -466,7 +466,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func accountMode(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualAccountMode {
-        try Primitives.PerpetualAccountMode.standard.json()
+        Primitives.PerpetualAccountMode.standard.json()
     }
 }
 
@@ -570,7 +570,7 @@ public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Se
     }
 
     public func searchAssets(wallet _: Gemstone.Wallet, query _: String, currency _: Gemstone.Currency) async throws -> [Gemstone.AssetBasic] {
-        try assets.map { try $0.json() }
+        assets.map { $0.json() }
     }
 }
 

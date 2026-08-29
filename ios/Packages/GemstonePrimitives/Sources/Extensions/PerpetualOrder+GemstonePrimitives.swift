@@ -39,7 +39,7 @@ public extension PerpetualPositionAction {
         switch self {
         case .open: .open
         case .increase: .increase
-        case let .reduce(_, _, positionDirection): .reduce(positionDirection: try positionDirection.json())
+        case let .reduce(_, _, positionDirection): .reduce(positionDirection: positionDirection.json())
         }
     }
 }

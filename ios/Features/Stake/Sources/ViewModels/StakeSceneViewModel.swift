@@ -74,7 +74,7 @@ public final class StakeSceneViewModel {
     }
 
     private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        (try? stakeConfig.selectableValidators(validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? []
+        (try? stakeConfig.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var stakeTitle: String {
@@ -139,7 +139,7 @@ public final class StakeSceneViewModel {
     }
 
     var recommendedCurrentValidator: DelegationValidator? {
-        (try? stakeConfig.recommendedValidator(chain: chain.chain.rawValue, validators: validators.map { try $0.json() }).map { try DelegationValidator($0) }) ?? .none
+        (try? stakeConfig.recommendedValidator(chain: chain.chain.rawValue, validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? .none
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {

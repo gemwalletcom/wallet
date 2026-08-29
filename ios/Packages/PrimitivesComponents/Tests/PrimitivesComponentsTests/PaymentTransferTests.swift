@@ -207,7 +207,7 @@ struct PaymentTransferTests {
             transaction: "encoded-transaction",
             transactionType: Primitives.TransactionType.transfer.json(),
             memo: memo,
-            request: request.map { try $0.json() },
+            request: request.map { $0.json() },
         )
     }
 }

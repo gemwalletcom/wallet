@@ -105,8 +105,12 @@ public struct DelegationSceneViewModel {
     }
 
     public var availableActions: [DelegationActionType] {
-        guard let provider = try? providerType.json(), let state = try? model.state.json() else { return [] }
-        return stakeConfig.delegationActions(walletType: wallet.type.map(), chain: asset.chain.rawValue, provider: provider, state: state)
+        return stakeConfig.delegationActions(
+            walletType: wallet.type.map(),
+            chain: asset.chain.rawValue,
+            provider: providerType.json(),
+            state: model.state.json(),
+        )
             .map(DelegationActionType.init)
     }
 
@@ -115,8 +119,12 @@ public struct DelegationSceneViewModel {
     }
 
     public var canClaimRewards: Bool {
-        guard let state = try? model.state.json() else { return false }
-        return stakeConfig.canClaimDelegationRewards(walletType: wallet.type.map(), chain: asset.chain.rawValue, state: state, rewards: model.delegation.base.rewards)
+        return stakeConfig.canClaimDelegationRewards(
+            walletType: wallet.type.map(),
+            chain: asset.chain.rawValue,
+            state: model.state.json(),
+            rewards: model.delegation.base.rewards,
+        )
     }
 
     public func actionTitle(_ action: DelegationActionType) -> String {
@@ -201,7 +209,7 @@ extension DelegationSceneViewModel {
     private var recommendedValidator: DelegationValidator? {
         (try? stakeConfig.recommendedValidator(
             chain: model.delegation.base.assetId.chain.rawValue,
-            validators: validators.map { try $0.json() },
+            validators: validators.map { $0.json() },
         ).map { try DelegationValidator($0) }) ?? .none
     }
 }

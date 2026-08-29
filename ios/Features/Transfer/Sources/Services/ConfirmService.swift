@@ -135,7 +135,7 @@ public struct ConfirmService: Sendable {
     private func track(wallet: Wallet, transactions: [Transaction]) {
         Task {
             do {
-                try await transactionStateService.track(walletId: wallet.id.id, transactions: transactions.map { try $0.json() })
+                try await transactionStateService.track(walletId: wallet.id.id, transactions: transactions.map { $0.json() })
             } catch {
                 debugLog("confirm: transaction tracking failed \(error)")
             }

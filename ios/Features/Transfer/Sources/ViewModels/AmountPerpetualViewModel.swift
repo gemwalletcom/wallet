@@ -203,7 +203,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         let estimator = GemAutocloseEstimator(
             entryPrice: transferData.price,
             positionSize: 0,
-            direction: (try? transferData.direction.json()) ?? "",
+            direction: transferData.direction.json(),
             leverage: leverage,
         )
         let formatter = PerpetualFormatter(provider: .hypercore)

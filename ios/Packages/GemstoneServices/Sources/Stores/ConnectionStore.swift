@@ -16,11 +16,11 @@ public final class GemstoneConnectionStore: GemConnectionStore, @unchecked Senda
     }
 
     public func getConnection(sessionId: String) async throws -> Gemstone.WalletConnection? {
-        try store.getConnection(sessionId: sessionId).map { try $0.json() }
+        try store.getConnection(sessionId: sessionId).map { $0.json() }
     }
 
     public func getSessions() async throws -> [Gemstone.WalletConnectionSession] {
-        try store.getSessions().map { try $0.json() }
+        try store.getSessions().map { $0.json() }
     }
 
     public func addConnection(connection: Gemstone.WalletConnection) async throws {
