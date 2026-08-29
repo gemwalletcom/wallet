@@ -5,7 +5,7 @@ use swapper::permit2_data::{Permit2Detail, PermitSingle};
 use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
-use crate::services::swap::model::{GemSwapPair, GemSwapTransfer};
+use crate::services::swap::model::{GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
 use std::collections::HashMap;
 
 pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, value: String, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<QuoteRequest, SwapperError> {
@@ -130,8 +130,50 @@ pub fn first_other_asset(asset_ids: Vec<AssetId>, pay_asset_id: &AssetId) -> Opt
     asset_ids.into_iter().find(|asset_id| asset_id != pay_asset_id)
 }
 
+pub fn pair_for_asset(asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
+    let pays_with_native = asset_id.is_token() && !has_balance && asset_id.chain.has_native_asset();
+    if pays_with_native {
+        return GemSwapPairSuggestion {
+            pay_asset_id: AssetId::from_chain(asset_id.chain),
+            receive_asset_id: Some(asset_id),
+        };
+    }
+    GemSwapPairSuggestion {
+        pay_asset_id: asset_id,
+        receive_asset_id: None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_pair_for_asset_pays_with_the_native_asset_only_when_the_token_is_unheld() {
+        let ethereum = AssetId::from_chain(Chain::Ethereum);
+        let usdc = AssetId::from_token(Chain::Ethereum, "0xusdc");
+
+        assert_eq!(
+            pair_for_asset(usdc.clone(), false),
+            GemSwapPairSuggestion {
+                pay_asset_id: ethereum.clone(),
+                receive_asset_id: Some(usdc.clone()),
+            }
+        );
+        assert_eq!(
+            pair_for_asset(usdc.clone(), true),
+            GemSwapPairSuggestion {
+                pay_asset_id: usdc,
+                receive_asset_id: None,
+            }
+        );
+        assert_eq!(
+            pair_for_asset(ethereum.clone(), false),
+            GemSwapPairSuggestion {
+                pay_asset_id: ethereum,
+                receive_asset_id: None,
+            }
+        );
+    }
+
     use super::*;
     use primitives::{Account, AssetId, AssetType, Chain, WalletId, WalletSource, WalletType};
 

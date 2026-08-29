@@ -1,10 +1,11 @@
-use primitives::Chain;
 use primitives::swap::{SwapPriceImpact, SwapQuote};
+use primitives::{AssetId, Chain};
 use swapper::{Quote, SwapperSlippage};
 
 use super::rules;
 use crate::config::swap_config::get_default_slippage;
 use crate::models::swap::calculate_swap_price_impact;
+use crate::services::swap::model::GemSwapPairSuggestion;
 
 #[derive(Default, uniffi::Object)]
 pub struct GemSwapQuoteService {}
@@ -22,6 +23,10 @@ impl GemSwapQuoteService {
 
     pub fn price_impact(&self, pay_fiat_value: f64, receive_fiat_value: f64) -> Option<SwapPriceImpact> {
         calculate_swap_price_impact(pay_fiat_value, receive_fiat_value)
+    }
+
+    pub fn pair_for_asset(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
+        rules::pair_for_asset(asset_id, has_balance)
     }
 
     pub fn default_slippage(&self, chain: Chain) -> SwapperSlippage {

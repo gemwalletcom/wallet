@@ -9,6 +9,7 @@ import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemSwapQuoteService
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -18,6 +19,8 @@ import Store
 import Style
 import SwiftUI
 import UIKit
+
+private let swapQuoteService = GemSwapQuoteService()
 
 @Observable
 @MainActor
@@ -309,15 +312,12 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var swapAssetType: SelectedAssetType {
-        switch assetData.asset.id.type {
-        case .native: .swap(assetData.asset, nil)
-        case .token:
-            if assetData.balance.available == .zero, assetData.asset.chain.hasNativeAsset {
-                .swap(assetData.asset.chain.asset, assetData.asset)
-            } else {
-                .swap(assetData.asset, nil)
-            }
-        }
+        let pair = swapQuoteService.pairForAsset(
+            assetId: assetData.asset.id.identifier,
+            hasBalance: assetData.balance.available > .zero,
+        )
+        guard pair.receiveAssetId != nil else { return .swap(assetData.asset, nil) }
+        return .swap(assetData.asset.chain.asset, assetData.asset)
     }
 
     func showProviderBalance(for type: StakeProviderType) -> Bool {

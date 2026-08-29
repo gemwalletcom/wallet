@@ -18,7 +18,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getReserveBalanceUrl
-import com.gemwallet.android.ext.hasNativeAsset
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -40,8 +39,13 @@ import com.gemwallet.android.features.asset.presents.details.components.network
 import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.presents.details.components.status
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
-import com.wallet.core.primitives.AssetSubtype
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toIdentifier
+import java.math.BigInteger
+import uniffi.gemstone.GemSwapQuoteService
 import com.wallet.core.primitives.WalletType
+
+private val swapQuoteService = GemSwapQuoteService()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,12 +71,16 @@ internal fun AssetDetailsScene(
     val addToastMessage = stringResource(R.string.asset_added_to_wallet)
     val swapAction: (() -> Unit)? = if (uiState.isSwapEnabled && uiState.accountInfoUIModel.walletType != WalletType.View) {
         {
-            val chain = uiState.asset.id.chain
-            val toAssetId = when (uiState.asset.id.type()) {
-                AssetSubtype.NATIVE -> null
-                AssetSubtype.TOKEN -> if (chain.hasNativeAsset()) chain.asset().id else null
-            }
-            onAction(AssetDetailsAction.Swap(uiState.asset.id, toAssetId))
+            val pair = swapQuoteService.pairForAsset(
+                assetId = uiState.asset.id.toIdentifier(),
+                hasBalance = (uiState.assetInfo.balance.balance.available.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO,
+            )
+            onAction(
+                AssetDetailsAction.Swap(
+                    fromAssetId = pair.payAssetId.toAssetId() ?: uiState.asset.id,
+                    toAssetId = pair.receiveAssetId?.toAssetId(),
+                )
+            )
         }
     } else {
         null
