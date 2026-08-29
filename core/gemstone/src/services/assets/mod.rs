@@ -56,7 +56,13 @@ impl GemAssetsService {
         let Some(token_id) = asset_id.token_id.clone() else {
             return self.ensure_asset(asset_id).await;
         };
-        let asset = self.gateway.get_token_data(asset_id.chain, token_id).await?;
+        let asset = match self.gateway.get_token_data(asset_id.chain, token_id.clone()).await {
+            Ok(asset) => asset,
+            Err(error) => match self.search_token_asset(&asset_id, token_id).await {
+                Ok(Some(asset)) => asset,
+                Ok(None) | Err(_) => return Err(error.into()),
+            },
+        };
         self.store.save_assets(vec![rules::default_asset_basic(asset.clone())]).await?;
         Ok(asset)
     }
@@ -140,6 +146,11 @@ impl GemAssetsService {
 }
 
 impl GemAssetsService {
+    async fn search_token_asset(&self, asset_id: &AssetId, token_id: String) -> Result<Option<Asset>, GemApiError> {
+        let assets = self.api.client.get_search_assets(token_id, vec![asset_id.chain]).await?;
+        Ok(assets.into_iter().map(|basic| basic.asset).find(|asset| &asset.id == asset_id))
+    }
+
     pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
         for (list, remote_version) in rules::asset_list_versions(&versions) {
             if !rules::is_asset_list_outdated(self.preferences.get_assets_version(list).as_deref(), remote_version) {
