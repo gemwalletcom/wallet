@@ -74,7 +74,7 @@ extension EnvironmentValues {
     @Entry var gatewayService: GatewayService = AppResolver.main.services.gatewayService
     @Entry var walletConnector: WalletConnectorService = AppResolver.main.services.walletConnector
     @Entry var connectionStatus: ConnectionStatusObserver = AppResolver.main.services.connectionStatusObserver
-    @Entry var walletConnectorManager: WalletConnectorManager = AppResolver.main.services.walletConnectorManager
+    @Entry var walletConnectorPresenter: WalletConnectorPresenter = AppResolver.main.services.walletConnectorPresenter
     @Entry var nftService: any GemNftServiceProtocol = AppResolver.main.services.nftService
     @Entry var avatarService: any GemAvatarServiceProtocol = AppResolver.main.services.avatarService
     @Entry var appUpdateService: any GemAppUpdateServiceProtocol = AppResolver.main.services.appUpdateService

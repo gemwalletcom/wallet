@@ -41,7 +41,7 @@ struct SettingsNavigationView: View {
     @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.appUpdateService) private var appUpdateService
     @Environment(\.perpetualService) private var perpetualService
-    @Environment(\.walletConnectorManager) private var walletConnectorManager
+    @Environment(\.walletConnectorPresenter) private var walletConnectorPresenter
     @Environment(\.rewardsService) private var rewardsService
     @Environment(\.inAppNotificationService) private var inAppNotificationService
     @Environment(\.contactService) private var contactService
@@ -146,7 +146,7 @@ struct SettingsNavigationView: View {
             ConnectionsScene(
                 model: ConnectionsViewModel(
                     connector: walletConnector,
-                    walletConnectorPresenter: walletConnectorManager.presenter,
+                    walletConnectorPresenter: walletConnectorPresenter,
                 ),
             )
         }

@@ -24,7 +24,7 @@ struct GemApp: App {
             RootScene(
                 model: RootSceneViewModel(
                     observablePreferences: resolver.services.observablePreferences,
-                    walletConnectorPresenter: resolver.services.walletConnectorManager.presenter,
+                    walletConnectorPresenter: resolver.services.walletConnectorPresenter,
                     onstartService: resolver.services.onstartService,
                     appStartService: resolver.services.appStartService,
                     pushNotificationEnablerService: resolver.services.pushNotificationEnablerService,

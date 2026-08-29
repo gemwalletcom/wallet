@@ -83,7 +83,7 @@ extension AppResolver {
         let onstartService: OnstartService
         let appStartService: any GemAppStartServiceProtocol
         let pushNotificationEnablerService: PushNotificationEnablerService
-        let walletConnectorManager: WalletConnectorManager
+        let walletConnectorPresenter: WalletConnectorPresenter
         let perpetualService: any GemPerpetualServiceProtocol
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: any GemNameServiceProtocol

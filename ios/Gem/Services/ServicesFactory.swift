@@ -216,12 +216,12 @@ struct ServicesFactory {
             ),
         )
 
-        let presenter = WalletConnectorPresenter()
-        let walletConnectorManager = WalletConnectorManager(presenter: presenter)
+        let walletConnectorPresenter = WalletConnectorPresenter()
+        let walletConnectorInteractor = WalletConnectorInteractor(presenter: walletConnectorPresenter)
         let walletConnector = Self.makeWalletConnector(
             connectionsStore: storeManager.connectionsStore,
             walletSessionService: walletSessionService,
-            interactor: walletConnectorManager,
+            interactor: walletConnectorInteractor,
             transactionSimulationService: transactionSimulationService,
             gemWalletSessionService: gemWalletSessionService,
         )
@@ -284,7 +284,7 @@ struct ServicesFactory {
             paymentService: paymentService,
             transactionStore: storeManager.transactionStore,
             transactionStateService: gemTransactionStateService,
-            walletConnectorPresenter: presenter,
+            walletConnectorPresenter: walletConnectorPresenter,
             walletSessionService: walletSessionService,
         )
         let searchService = Gemstone.GemSearchService(
@@ -388,7 +388,7 @@ struct ServicesFactory {
             onstartService: onStartService,
             appStartService: appStartService,
             pushNotificationEnablerService: pushNotificationEnablerService,
-            walletConnectorManager: walletConnectorManager,
+            walletConnectorPresenter: walletConnectorPresenter,
             perpetualService: perpetualService,
             hyperliquidObserverService: hyperliquidObserverService,
             nameService: gemNameService,
@@ -443,7 +443,7 @@ extension ServicesFactory {
     private static func makeWalletConnector(
         connectionsStore: ConnectionsStore,
         walletSessionService: WalletSessionService,
-        interactor: WalletConnectorManager,
+        interactor: WalletConnectorInteractor,
         transactionSimulationService: TransactionSimulationService,
         gemWalletSessionService: GemWalletSessionService,
     ) -> WalletConnectorService {

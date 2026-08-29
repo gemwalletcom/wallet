@@ -9,8 +9,8 @@ import Primitives
 import SwiftUI
 import WalletConnectorService
 
-public final class WalletConnectorManager {
-    public let presenter: WalletConnectorPresenter
+public final class WalletConnectorInteractor {
+    private let presenter: WalletConnectorPresenter
 
     public init(presenter: WalletConnectorPresenter) {
         self.presenter = presenter
@@ -19,7 +19,7 @@ public final class WalletConnectorManager {
 
 // MARK: - WalletConnectorInteractable
 
-extension WalletConnectorManager: WalletConnectorInteractable {
+extension WalletConnectorInteractor: WalletConnectorInteractable {
     public func sessionReject(error: any Error) async {
         guard !error.isCancelled else { return }
         switch error {
@@ -36,12 +36,11 @@ extension WalletConnectorManager: WalletConnectorInteractable {
         let value = try await presentSheet(payload: payload, sheetType: { .connectionProposal($0) })
         return try WalletId.from(id: value)
     }
-
 }
 
 // MARK: - GemWalletConnectSigner
 
-extension WalletConnectorManager: GemWalletConnectSigner {
+extension WalletConnectorInteractor: GemWalletConnectSigner {
     public func signMessage(request: GemWalletConnectMessageRequest) async throws -> String {
         let payload = try SignMessagePayload(request)
         return try await present { try await presentSheet(payload: payload, sheetType: { .signMessage($0) }) }
@@ -63,8 +62,7 @@ extension WalletConnectorManager: GemWalletConnectSigner {
 
 // MARK: - Private
 
-extension WalletConnectorManager {
-
+extension WalletConnectorInteractor {
     private func presentSheet<T: Identifiable & Sendable>(
         payload: T,
         sheetType: @Sendable @escaping (TransferDataCallback<T>) -> WalletConnectorSheetType,

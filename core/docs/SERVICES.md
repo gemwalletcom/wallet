@@ -345,12 +345,6 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 ### iOS
 
-- Wrappers to retire, so a view model holds the Core protocol and nothing else (see [How a service is built](#5-call-it-from-the-app--the-service-itself-on-ios-a-case-on-android)):
-
-| Class | What it is today | Target |
-| --- | --- | --- |
-| [`WalletConnectorManager`](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorManager.swift) | two roles in one class: it implements Core's `GemWalletConnectSigner` (an adapter, keep) and drives sheet presentation (`presentSheet`, `sessionApproval`, `isPresentingError`) | split and rename: `WalletConnectSigner` for the trait, and let the presenter own presentation. Nothing outside should hold "manager" |
-
 - Confirm view models still assemble `GemSendInput` from app aggregates. See **The confirm seam** below — it is the last migration item before the `TransactionInputType` collapse.
 - The rule for a failing Core call on iOS: a Core read whose `Optional` models a real state (no wallet yet, no selected node) returns that optional and says nothing; a failure the app recovers from is **logged** and the recovery is deliberate; a failure the user must act on is thrown and mapped to localized text. Deliberate recoveries, keep them: `PerpetualService.accountMode` → the stored mode, `AmountDataProvidable.limits` → zero available (fail-closed for a send), `String+Keystore` → utf8 bytes for pre-hex passwords, `LocalKeystore.keystorePassword` → `""` is the "no password stored yet" sentinel, not a swallowed error. The 513 `try?` left outside tests are value conversions — JSON round trips, formatter parses, `wallet.account(for:)` — where `nil` is the render path, plus the developer screen; leave them.
 - Two store differences remain, and neither is an adapter bug: `banners.walletId`/`banners.assetId` are foreign keys and SQLite does not apply `INSERT OR IGNORE` conflict resolution to foreign keys, so a banner for an asset the app has not stored throws where Android stores it; `PortfolioStore` reads through `asset_info`, which joins `accounts`, so a wallet without an account row for the chain contributes nothing.
