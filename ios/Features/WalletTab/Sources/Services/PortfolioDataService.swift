@@ -1,91 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemPerpetualServiceProtocol
-import Store
-import GemstonePrimitives
-import protocol Gemstone.GemPortfolioServiceProtocol
 import Foundation
-import GemstoneServices
+import GemstonePrimitives
+import enum Gemstone.GemPortfolioDataInput
+import protocol Gemstone.GemPortfolioServiceProtocol
 import Primitives
-
-enum PortfolioDataInput {
-    case wallet(walletId: WalletId, period: ChartPeriod, currencyCode: String)
-    case perpetuals(period: ChartPeriod, address: String)
-}
 
 public struct PortfolioDataService: Sendable {
     private let portfolioService: any GemPortfolioServiceProtocol
-    private let perpetualService: any GemPerpetualServiceProtocol
 
-    public init(
-        portfolioService: any GemPortfolioServiceProtocol,
-        perpetualService: any GemPerpetualServiceProtocol,
-    ) {
+    public init(portfolioService: any GemPortfolioServiceProtocol) {
         self.portfolioService = portfolioService
-        self.perpetualService = perpetualService
     }
 
-    func getPortfoliData(input: PortfolioDataInput) async throws -> PortfolioData {
-        switch input {
-        case let .wallet(walletId, period, currencyCode):
-            try await getWalletData(walletId: walletId, period: period, currencyCode: currencyCode)
-        case let .perpetuals(period, address):
-            try await getPerpetualData(address: address, period: period)
-        }
-    }
-}
-
-// MARK: - Private
-
-extension PortfolioDataService {
-    private func getWalletData(walletId: WalletId, period: ChartPeriod, currencyCode: String) async throws -> PortfolioData {
-        let portfolio = try await portfolioService.syncWalletValues(
-            walletId: walletId.id,
-            period: period.json(),
-            currency: Currency(id: currencyCode).json(),
-        )
-        let values = try portfolio.values.map { try Primitives.ChartDateValue($0) }
-        let charts = [PortfolioChartData(chartType: .value, values: values)]
-
-        let statistics: [PortfolioStatistic] = try [
-            portfolio.allTimeHigh.map { try .allTimeHigh(Primitives.ChartValuePercentage($0)) },
-            portfolio.allTimeLow.map { try .allTimeLow(Primitives.ChartValuePercentage($0)) },
-        ].compactMap(\.self)
-
-        return PortfolioData(charts: charts, statistics: statistics, availablePeriods: [.day, .week, .month, .year, .all])
-    }
-
-    private func getPerpetualData(address: String, period: ChartPeriod) async throws -> PortfolioData {
-        let portfolio = try await perpetualService.portfolio(address: address)
-        let timeframe = portfolio.timeframeData(for: period)
-
-        let pnlValues = timeframe?.pnlHistory ?? []
-        let valueValues = timeframe.map { Array($0.accountValueHistory.drop(while: { $0.value == .zero })) } ?? []
-
-        let charts = [
-            PortfolioChartData(chartType: .pnl, values: pnlValues),
-            PortfolioChartData(chartType: .value, values: valueValues),
-        ]
-
-        let summaryStats: [PortfolioStatistic] = portfolio.accountSummary.map { summary in
-            [
-                .unrealizedPnl(summary.unrealizedPnl),
-                .accountLeverage(summary.accountLeverage),
-                .marginUsage(PortfolioMarginUsage(accountValue: summary.accountValue, usage: summary.marginUsage)),
-            ]
-        } ?? []
-
-        let allTimeStats: [PortfolioStatistic] = portfolio.allTime.map { allTime in
-            [
-                allTime.pnlHistory.last.map { .allTimePnl($0.value) },
-                .volume(allTime.volume),
-            ].compactMap(\.self)
-        } ?? []
-
-        return PortfolioData(
-            charts: charts,
-            statistics: summaryStats + allTimeStats,
-            availablePeriods: portfolio.availablePeriods,
-        )
+    func portfolioData(input: GemPortfolioDataInput) async throws -> PortfolioData {
+        try await PortfolioData(portfolioService.portfolioData(input: input))
     }
 }

@@ -157,11 +157,9 @@ object AssetModule {
     @Singleton
     fun provideGetPortfolioData(
         portfolioService: GemPortfolioService,
-        perpetualService: GemPerpetualService,
         sessionRepository: SessionRepository,
     ): GetPortfolioData = GetPortfolioDataImpl(
         portfolioService = portfolioService,
-        perpetualService = perpetualService,
         sessionRepository = sessionRepository,
     )
 

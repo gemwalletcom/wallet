@@ -275,10 +275,7 @@ struct WalletNavigationView: View {
                     PortfolioScene(
                         model: PortfolioSceneViewModel(
                             wallet: model.wallet,
-                            service: PortfolioDataService(
-                                portfolioService: portfolioService,
-                                perpetualService: perpetualService,
-                            ),
+                            service: PortfolioDataService(portfolioService: portfolioService),
                             preferences: preferences,
                             defaultType: defaultType,
                         ),

@@ -17,12 +17,8 @@ import WalletTab
 public extension PortfolioDataService {
     static func mock(
         portfolioService: any GemPortfolioServiceProtocol = GemPortfolioServiceMock(),
-        perpetualService: GemPerpetualServiceMock = GemPerpetualServiceMock(),
     ) -> PortfolioDataService {
-        PortfolioDataService(
-            portfolioService: portfolioService,
-            perpetualService: perpetualService,
-        )
+        PortfolioDataService(portfolioService: portfolioService)
     }
 }
 

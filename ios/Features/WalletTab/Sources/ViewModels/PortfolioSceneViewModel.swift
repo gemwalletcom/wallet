@@ -3,6 +3,8 @@
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemPortfolioDataInput
+import GemstonePrimitives
 import Localization
 import Preferences
 import Primitives
@@ -90,7 +92,7 @@ extension PortfolioSceneViewModel {
     public func load() async {
         selectedState = .loading
         do {
-            let data = try await service.getPortfoliData(input: getDataInput())
+            let data = try await service.portfolioData(input: getDataInput())
             if data.availablePeriods.isNotEmpty, !data.availablePeriods.contains(selectedPeriod) {
                 selectedPeriod = data.availablePeriods.first ?? selectedPeriod
             }
@@ -145,15 +147,15 @@ extension PortfolioSceneViewModel {
 // MARK: - Private
 
 extension PortfolioSceneViewModel {
-    private func getDataInput() throws -> PortfolioDataInput {
+    private func getDataInput() throws -> GemPortfolioDataInput {
         switch state.selectedType {
         case .wallet:
-            return .wallet(walletId: wallet.id, period: selectedPeriod, currencyCode: currencyCode)
+            return try .wallet(walletId: wallet.id.id, period: selectedPeriod.json(), currency: Currency(id: currencyCode).json())
         case .perpetuals:
             guard let address = wallet.hyperliquidAccount?.address else {
                 throw AnyError("perpetual account not available")
             }
-            return .perpetuals(period: selectedPeriod, address: address)
+            return try .perpetuals(chain: Chain.hyperCore.rawValue, address: address, period: selectedPeriod.json())
         }
     }
 

@@ -114,6 +114,7 @@ extension Primitives.PerpetualType: JsonCodable {}
 extension Primitives.PortfolioAssets: JsonCodable {}
 extension Primitives.PortfolioAsset: JsonCodable {}
 extension Primitives.PortfolioAssetsRequest: JsonCodable {}
+extension Primitives.PortfolioData: JsonCodable {}
 extension Primitives.Price: JsonCodable {}
 extension Primitives.PriceAlert: JsonCodable {}
 extension Primitives.PriceAlertNotificationType: JsonCodable {}
