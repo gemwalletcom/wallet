@@ -9,7 +9,6 @@ import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.TransactionsDao
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
@@ -25,6 +24,7 @@ import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.GemTransactionsService
 import javax.inject.Singleton
 import uniffi.gemstone.GemWalletPreferencesService
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -57,7 +57,7 @@ object TransactionsModule {
     @Provides
     fun provideTransactionStateService(
         transactionsDao: TransactionsDao,
-        walletsRepository: Lazy<WalletsRepository>,
+        walletStore: GemstoneWalletStore,
         gateway: GemGateway,
         assetsService: GemAssetsService,
         balanceService: GemBalanceService,
@@ -66,7 +66,7 @@ object TransactionsModule {
         transactionRunner: StoreTransactionRunner,
     ): GemTransactionStateService = GemTransactionStateService(
         gateway,
-        GemstoneTransactionStateStore(transactionsDao, walletsRepository, transactionRunner),
+        GemstoneTransactionStateStore(transactionsDao, walletStore, transactionRunner),
         assetsService,
         balanceService,
         stakeService,

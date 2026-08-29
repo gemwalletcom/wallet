@@ -1,6 +1,4 @@
-package com.gemwallet.android.data.repositories.wallets
-
-import com.gemwallet.android.cases.addresses.SaveWalletAddresses
+package com.gemwallet.android.data.repositories.gemstone
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
@@ -29,19 +27,19 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class WalletsRepositoryImplTest {
+class GemstoneWalletStoreTest {
 
     private val walletsDao = mockk<WalletsDao>(relaxed = true)
     private val accountsDao = mockk<AccountsDao>(relaxed = true)
-    private val saveWalletAddresses = mockk<SaveWalletAddresses>(relaxed = true)
+    private val addressStore = mockk<GemstoneAddressStore>(relaxed = true)
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
     private val transactionRunner = RecordingStoreTransactionRunner()
 
-    private val subject = WalletsRepositoryImpl(
+    private val subject = GemstoneWalletStore(
         walletsDao = walletsDao,
         accountsDao = accountsDao,
-        saveWalletAddresses = saveWalletAddresses,
         assetsDao = assetsDao,
+        addressStore = addressStore,
         transactionRunner = transactionRunner,
     )
 

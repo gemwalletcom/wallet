@@ -1,89 +1,34 @@
 package com.gemwallet.android.data.repositories.wallets
 
-import com.gemwallet.android.cases.addresses.SaveWalletAddresses
-import com.gemwallet.android.data.service.store.database.AccountsDao
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
-import com.gemwallet.android.data.service.store.database.WalletsDao
-import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.domains.asset.defaultBasic
-import com.gemwallet.android.ext.asset
-import com.wallet.core.primitives.Account
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class WalletsRepositoryImpl @Inject constructor(
-    private val walletsDao: WalletsDao,
-    private val accountsDao: AccountsDao,
-    private val saveWalletAddresses: SaveWalletAddresses,
-    private val assetsDao: AssetsDao,
-    private val transactionRunner: StoreTransactionRunner,
+    private val walletStore: GemstoneWalletStore,
 ) : WalletsRepository {
 
-    override fun getAll(): Flow<List<Wallet>> = walletsDao.getAll().toDTO()
+    override fun getAll(): Flow<List<Wallet>> = walletStore.observeWallets()
 
-    override suspend fun addWallet(wallet: Wallet): Wallet = putWallet(wallet)
+    override suspend fun addWallet(wallet: Wallet): Wallet = walletStore.addWallet(wallet)
 
-    override fun getAllNow(): List<Wallet> = walletsDao.getAllNow().toDTO()
+    override fun getAllNow(): List<Wallet> = walletStore.getAllNow()
 
-    override fun getWalletNow(walletId: WalletId): Wallet? = walletsDao.getByIdNow(walletId.id).toDTO().firstOrNull()
+    override fun getWalletNow(walletId: WalletId): Wallet? = walletStore.getWalletNow(walletId)
 
-    override suspend fun setPinned(walletId: WalletId, pinned: Boolean) = walletsDao.setPinned(walletId.id, pinned)
+    override suspend fun setPinned(walletId: WalletId, pinned: Boolean) = walletStore.setPinned(walletId, pinned)
 
-    override suspend fun rename(walletId: WalletId, name: String) = walletsDao.setName(walletId.id, name)
+    override suspend fun rename(walletId: WalletId, name: String) = walletStore.rename(walletId, name)
 
-    override suspend fun setImageUrl(walletId: WalletId, imageUrl: String?) = walletsDao.setImageUrl(walletId.id, imageUrl)
+    override suspend fun setImageUrl(walletId: WalletId, imageUrl: String?) = walletStore.setImageUrl(walletId, imageUrl)
 
-    override suspend fun updateAccounts(wallet: Wallet) = withContext(Dispatchers.IO) {
-        transactionRunner.run {
-            insertAccountsWithNativeAssets(wallet)
-        }
-    }
+    override suspend fun updateAccounts(wallet: Wallet) = walletStore.updateAccounts(wallet)
 
-    private suspend fun insertAccountsWithNativeAssets(wallet: Wallet) {
-        insertNativeAssets(wallet.accounts)
-        accountsDao.insert(wallet.accounts.map { it.toRecord(wallet.id.id) })
-    }
+    override suspend fun removeWallet(walletId: WalletId): Boolean = walletStore.removeWallet(walletId)
 
-    override suspend fun removeWallet(walletId: WalletId) = withContext(Dispatchers.IO) {
-        val wallet = walletsDao.getById(walletId.id).firstOrNull() ?: return@withContext false
-        accountsDao.deleteByWalletId(walletId.id)
-        walletsDao.delete(wallet)
-        true
-    }
-
-    override fun getWallet(walletId: WalletId): Flow<Wallet?> {
-        return walletsDao.getById(walletId.id).map { walletRecord ->
-            walletRecord?.toDTO(accountsDao.getByWalletId(walletId.id))
-        }.flowOn(Dispatchers.IO)
-    }
-
-    private suspend fun putWallet(wallet: Wallet): Wallet = withContext(Dispatchers.IO) {
-        transactionRunner.run {
-            walletsDao.insert(wallet.toRecord())
-            insertAccountsWithNativeAssets(wallet)
-            saveWalletAddresses(wallet)
-            wallet
-        }
-    }
-
-    private suspend fun insertNativeAssets(accounts: List<Account>) {
-        val records = accounts
-            .map { it.chain.asset().defaultBasic.toRecord() }
-            .distinctBy { it.id }
-        if (records.isEmpty()) {
-            return
-        }
-        assetsDao.insert(records)
-    }
+    override fun getWallet(walletId: WalletId): Flow<Wallet?> = walletStore.observeWallet(walletId)
 }

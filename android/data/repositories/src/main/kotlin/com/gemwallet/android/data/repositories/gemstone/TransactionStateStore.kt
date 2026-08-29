@@ -9,18 +9,16 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.wallet.core.primitives.Transaction
-import dagger.Lazy
 import uniffi.gemstone.GemPendingTransaction
 import uniffi.gemstone.GemTransactionStateStore
 import uniffi.gemstone.GemTransactionStateUpdate
 
 class GemstoneTransactionStateStore(
     private val transactionsDao: TransactionsDao,
-    private val walletsRepository: Lazy<WalletsRepository>,
+    private val walletStore: GemstoneWalletStore,
     private val transactionRunner: StoreTransactionRunner,
 ) : GemTransactionStateStore {
     override suspend fun getPendingTransactions(): List<GemPendingTransaction> {
@@ -28,7 +26,7 @@ class GemstoneTransactionStateStore(
         if (records.isEmpty()) {
             return emptyList()
         }
-        val wallets = walletsRepository.get().getAllNow().associateBy { it.id }
+        val wallets = walletStore.getAllNow().associateBy { it.id }
         return records.mapNotNull { record ->
             val wallet = wallets[record.walletId] ?: return@mapNotNull null
             GemPendingTransaction(wallet = wallet.toJson(), transaction = record.toDTO().toJson())
@@ -47,7 +45,7 @@ class GemstoneTransactionStateStore(
     }
 
     private fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
-        val wallet = walletsRepository.get().getWalletNow(record.walletId) ?: return null
+        val wallet = walletStore.getWalletNow(record.walletId) ?: return null
         return GemPendingTransaction(wallet = wallet.toJson(), transaction = record.toDTO().toJson())
     }
 

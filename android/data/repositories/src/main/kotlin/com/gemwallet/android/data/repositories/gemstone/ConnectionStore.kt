@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.gemstone
 
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.data.service.store.database.entities.toDTO
@@ -20,21 +19,21 @@ import uniffi.gemstone.GemConnectionStore
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GemstoneConnectionStore(
-    private val walletsRepository: WalletsRepository,
+    private val walletStore: GemstoneWalletStore,
     private val connectionsDao: ConnectionsDao,
 ) : GemConnectionStore {
 
-    fun observeConnections(): Flow<List<WalletConnection>> = walletsRepository.getAll().flatMapLatest { wallets ->
+    fun observeConnections(): Flow<List<WalletConnection>> = walletStore.observeWallets().flatMapLatest { wallets ->
         connectionsDao.getAll().map { records -> records.mapNotNull { it.toConnection(wallets) } }
     }
 
-    fun observeConnection(connectionId: String): Flow<WalletConnection?> = walletsRepository.getAll().flatMapLatest { wallets ->
+    fun observeConnection(connectionId: String): Flow<WalletConnection?> = walletStore.observeWallets().flatMapLatest { wallets ->
         connectionsDao.getConnection(connectionId).map { it?.toConnection(wallets) }
     }
 
     suspend fun getConnectionBySessionId(sessionId: String): WalletConnection? {
         val record = connectionsDao.getBySessionId(sessionId) ?: return null
-        return record.toConnection(walletsRepository.getAll().firstOrNull().orEmpty())
+        return record.toConnection(walletStore.observeWallets().firstOrNull().orEmpty())
     }
 
     override suspend fun getConnection(sessionId: String): String? = getConnectionBySessionId(sessionId)?.toJson()

@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.repositories.gemstone
 
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.data.service.store.database.entities.toDTO
@@ -23,13 +22,13 @@ import com.wallet.core.primitives.WalletConnectionSession
 
 class GemstoneConnectionStoreTest {
 
-    private val walletsRepository = mockk<WalletsRepository>()
+    private val walletStore = mockk<GemstoneWalletStore>()
     private val connectionsDao = mockk<ConnectionsDao>(relaxed = true)
-    private val store = GemstoneConnectionStore(walletsRepository, connectionsDao)
+    private val store = GemstoneConnectionStore(walletStore, connectionsDao)
 
     @Test
     fun observeConnections_mapsOnlyRecordsWithMatchingWallets() = runTest {
-        every { walletsRepository.getAll() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
+        every { walletStore.observeWallets() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
         every { connectionsDao.getAll() } returns flowOf(
             listOf(
                 connection(id = "connection-1", walletId = "wallet-1"),
@@ -58,7 +57,7 @@ class GemstoneConnectionStoreTest {
     @Test
     fun getConnectionBySessionId_returnsNullForMissingWallet() = runTest {
         coEvery { connectionsDao.getBySessionId("topic-1") } returns connection(id = "topic-1", walletId = "missing-wallet")
-        every { walletsRepository.getAll() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
+        every { walletStore.observeWallets() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
 
         assertNull(store.getConnectionBySessionId("topic-1"))
         assertNull(store.getConnection("topic-1"))

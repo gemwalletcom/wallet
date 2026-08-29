@@ -7,6 +7,7 @@ import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.cases.addresses.SaveWalletAddresses
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepositoryImpl
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAddressStore
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
@@ -35,21 +36,7 @@ import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletPreference
 object WalletsModule {
 
     @Provides
-    fun provideWalletsRepository(
-        walletsDao: WalletsDao,
-        accountsDao: AccountsDao,
-        saveWalletAddresses: SaveWalletAddresses,
-        assetsDao: AssetsDao,
-        transactionRunner: StoreTransactionRunner,
-    ): WalletsRepository {
-        return WalletsRepositoryImpl(
-            walletsDao = walletsDao,
-            accountsDao = accountsDao,
-            saveWalletAddresses = saveWalletAddresses,
-            assetsDao = assetsDao,
-            transactionRunner = transactionRunner,
-        )
-    }
+    fun provideWalletsRepository(walletStore: GemstoneWalletStore): WalletsRepository = WalletsRepositoryImpl(walletStore)
 
     @Provides
     @Singleton
@@ -86,7 +73,13 @@ object WalletsModule {
 
     @Provides
     @Singleton
-    fun provideGemWalletStore(walletsRepository: Lazy<WalletsRepository>): GemstoneWalletStore = GemstoneWalletStore(walletsRepository)
+    fun provideGemWalletStore(
+        walletsDao: WalletsDao,
+        accountsDao: AccountsDao,
+        assetsDao: AssetsDao,
+        addressStore: GemstoneAddressStore,
+        transactionRunner: StoreTransactionRunner,
+    ): GemstoneWalletStore = GemstoneWalletStore(walletsDao, accountsDao, assetsDao, addressStore, transactionRunner)
 
     @Provides
     @Singleton
