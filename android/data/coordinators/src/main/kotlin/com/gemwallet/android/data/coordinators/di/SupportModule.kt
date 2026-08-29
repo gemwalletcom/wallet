@@ -8,7 +8,6 @@ import com.gemwallet.android.data.coordinators.support.FailPendingSupportMessage
 import com.gemwallet.android.data.coordinators.support.GetSupportMessagesImpl
 import com.gemwallet.android.data.coordinators.support.SupportTypingCoordinator
 import com.gemwallet.android.data.repositories.gemstone.GemstoneSupportStore
-import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,13 +20,13 @@ object SupportModule {
 
     @Provides
     @Singleton
-    fun provideGetSupportMessages(supportMessagesDao: SupportMessagesDao): GetSupportMessages =
-        GetSupportMessagesImpl(supportMessagesDao)
+    fun provideGetSupportMessages(supportStore: GemstoneSupportStore): GetSupportMessages =
+        GetSupportMessagesImpl(supportStore)
 
     @Provides
     @Singleton
-    fun provideFailPendingSupportMessages(supportMessagesDao: SupportMessagesDao): FailPendingSupportMessages =
-        FailPendingSupportMessagesImpl(supportMessagesDao)
+    fun provideFailPendingSupportMessages(supportStore: GemstoneSupportStore): FailPendingSupportMessages =
+        FailPendingSupportMessagesImpl(supportStore)
 
     @Provides
     @Singleton

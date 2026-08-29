@@ -35,17 +35,23 @@ object TransactionsModule {
     fun provideTransactionsService(
         apiClient: GemDeviceApiClient,
         assetsService: GemAssetsService,
-        transactionsDao: TransactionsDao,
+        transactionStore: GemstoneTransactionStore,
         addressesDao: AddressesDao,
         walletPreferencesService: GemWalletPreferencesService,
-        transactionRunner: StoreTransactionRunner,
     ): GemTransactionsService = GemTransactionsService(
         apiClient,
         assetsService,
-        GemstoneTransactionStore(transactionsDao, transactionRunner),
+        transactionStore,
         GemstoneAddressStore(addressesDao),
         walletPreferencesService,
     )
+
+    @Singleton
+    @Provides
+    fun provideGemstoneTransactionStore(
+        transactionsDao: TransactionsDao,
+        transactionRunner: StoreTransactionRunner,
+    ): GemstoneTransactionStore = GemstoneTransactionStore(transactionsDao, transactionRunner)
 
     @Singleton
     @Provides

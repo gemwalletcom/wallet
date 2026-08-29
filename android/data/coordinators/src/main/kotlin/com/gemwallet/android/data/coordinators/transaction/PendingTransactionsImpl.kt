@@ -4,7 +4,7 @@ import com.gemwallet.android.application.transactions.cases.GetPendingTransactio
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
 import com.wallet.core.primitives.TransactionState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -15,12 +15,12 @@ private val pendingTransactionStates = listOf(TransactionState.Pending, Transact
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetPendingTransactionsCountImpl(
     private val sessionRepository: SessionRepository,
-    private val transactionsDao: TransactionsDao,
+    private val transactionStore: GemstoneTransactionStore,
 ) : GetPendingTransactionsCount {
 
     override fun getPendingTransactionsCount(): Flow<Int?> = sessionRepository.currentWalletId()
         .flatMapLatest { walletId ->
-            transactionsDao.getTransactionsCount(
+            transactionStore.observeTransactionsCount(
                 walletId,
                 TransactionsRequestFilter.activityDefaults() + TransactionsRequestFilter.States(pendingTransactionStates),
             )
@@ -28,10 +28,10 @@ class GetPendingTransactionsCountImpl(
 }
 
 class ClearPendingTransactionsImpl(
-    private val transactionsDao: TransactionsDao,
+    private val transactionStore: GemstoneTransactionStore,
 ) : ClearPendingTransactions {
 
     override suspend fun clearPending() {
-        transactionsDao.deleteByState(TransactionState.Pending)
+        transactionStore.deletePending(TransactionState.Pending)
     }
 }

@@ -16,7 +16,7 @@ import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.data.coordinators.transaction.ClearPendingTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetPendingTransactionsCountImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionImpl
-import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,28 +30,28 @@ object TransactionModule {
     @Singleton
     fun provideGetTransactions(
         sessionRepository: SessionRepository,
-        transactionsDao: TransactionsDao,
+        transactionStore: GemstoneTransactionStore,
     ): GetTransactions {
-        return GetTransactionsImpl(sessionRepository, transactionsDao)
+        return GetTransactionsImpl(sessionRepository, transactionStore)
     }
 
     @Provides
     @Singleton
     fun provideGetTransaction(
         sessionRepository: SessionRepository,
-        transactionsDao: TransactionsDao,
-    ): GetTransaction = GetTransactionImpl(sessionRepository, transactionsDao)
+        transactionStore: GemstoneTransactionStore,
+    ): GetTransaction = GetTransactionImpl(sessionRepository, transactionStore)
 
     @Provides
     @Singleton
     fun provideGetPendingTransactionsCount(
         sessionRepository: SessionRepository,
-        transactionsDao: TransactionsDao,
-    ): GetPendingTransactionsCount = GetPendingTransactionsCountImpl(sessionRepository, transactionsDao)
+        transactionStore: GemstoneTransactionStore,
+    ): GetPendingTransactionsCount = GetPendingTransactionsCountImpl(sessionRepository, transactionStore)
 
     @Provides
     @Singleton
-    fun provideClearPending(transactionsDao: TransactionsDao): ClearPendingTransactions = ClearPendingTransactionsImpl(transactionsDao)
+    fun provideClearPending(transactionStore: GemstoneTransactionStore): ClearPendingTransactions = ClearPendingTransactionsImpl(transactionStore)
 
     @Provides
     @Singleton

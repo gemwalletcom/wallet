@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
@@ -43,12 +43,12 @@ private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.F
 
 class GetTransactionsImpl(
     private val sessionRepository: SessionRepository,
-    private val transactionsDao: TransactionsDao,
+    private val transactionStore: GemstoneTransactionStore,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetTransactions {
 
     private val transactions: StateFlow<List<TransactionDataAggregate>> =
-        transactionsDao.walletTransactions(sessionRepository, emptyList())
+        transactionStore.walletTransactions(sessionRepository, emptyList())
             .map { items -> items.map { TransactionDataAggregateImpl(it) } }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
@@ -56,7 +56,7 @@ class GetTransactionsImpl(
 
     override fun getTransactions(
         filters: List<TransactionsRequestFilter>,
-    ): Flow<List<TransactionDataAggregate>> = transactionsDao.walletTransactions(sessionRepository, filters)
+    ): Flow<List<TransactionDataAggregate>> = transactionStore.walletTransactions(sessionRepository, filters)
         .map { items -> items.map { TransactionDataAggregateImpl(it) } }
         .flowOn(Dispatchers.IO)
 }
