@@ -9,11 +9,10 @@ import uniffi.gemstone.GemSignerInput
 import uniffi.gemstone.GemTransactionSigner
 import uniffi.gemstone.GemTransferService
 
-private val transferService = GemTransferService()
-
 class KeystoreTransactionSigner(
     private val baseDir: String,
     private val passwordStore: PasswordStore,
+    private val transferService: GemTransferService,
 ) : GemTransactionSigner {
     override suspend fun sign(wallet: String, input: GemSignerInput): List<GemSignedTransaction> {
         val wallet = wallet.decodeJson<Wallet>()

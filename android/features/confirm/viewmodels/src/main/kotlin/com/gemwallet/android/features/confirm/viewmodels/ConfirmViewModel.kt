@@ -78,10 +78,6 @@ import com.wallet.core.primitives.SimulationResult
 import java.math.BigInteger
 import javax.inject.Inject
 
-private val feeService = GemFeeService()
-
-private val transferService = GemTransferService()
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ConfirmViewModel @Inject constructor(
@@ -99,6 +95,8 @@ class ConfirmViewModel @Inject constructor(
     private val getAddressName: GetAddressName,
     private val getAddressNames: GetAddressNames,
     private val savedStateHandle: SavedStateHandle,
+    private val feeService: GemFeeService,
+    private val transferService: GemTransferService,
 ) : ViewModel() {
 
     private val restart = MutableStateFlow(false)
@@ -120,7 +118,7 @@ class ConfirmViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val approvalAssetId = request
-        .map { it.approvalAssetId() }
+        .map { it.approvalAssetId(transferService) }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -347,7 +345,7 @@ class ConfirmViewModel @Inject constructor(
             }
         )
         viewModelScope.launch(Dispatchers.IO) {
-            val assetIds = simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(params.approvalAssetId())
+            val assetIds = simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(params.approvalAssetId(transferService))
             syncMissingAssets.syncMissingAssets(assetIds.distinct())
         }
         viewModelScope.launch(Dispatchers.IO) {
@@ -486,7 +484,7 @@ class ConfirmViewModel @Inject constructor(
 private fun SimulationResult.simulationAssetIds(): List<AssetId> =
     (balanceChanges.map { it.assetId } + listOfNotNull(header?.assetId)).distinct()
 
-private fun ConfirmParams?.approvalAssetId(): AssetId? =
+private fun ConfirmParams?.approvalAssetId(transferService: GemTransferService): AssetId? =
     (this as? ConfirmParams.TransferParams.Generic)
         ?.takeIf { it.getTransactionType() == TransactionType.TokenApproval }
         ?.let { generic ->

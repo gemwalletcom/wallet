@@ -18,6 +18,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.math.BigInteger
+import uniffi.gemstone.GemTransferService
 
 class TransactionBalanceServiceTest {
 
@@ -27,6 +28,7 @@ class TransactionBalanceServiceTest {
     private val subject = TransactionBalanceService(
         perpetualStore = perpetualStore,
         getSession = getSession,
+        transferService = GemTransferService(),
     )
 
     @Test

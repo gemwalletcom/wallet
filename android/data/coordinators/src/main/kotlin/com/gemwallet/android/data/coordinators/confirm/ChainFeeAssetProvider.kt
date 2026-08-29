@@ -13,13 +13,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.combine
 import uniffi.gemstone.GemAssetConfigService
 
-private val assetConfig = GemAssetConfigService()
-
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChainFeeAssetProvider(
     private val chain: Chain,
     private val assetStore: GemstoneAssetStore,
     private val getCurrentWalletId: GetCurrentWalletId,
+    private val assetConfig: GemAssetConfigService,
 ) : FeeAssetProvider {
 
     private val feeAssetIds = assetConfig.chainFeeAssetIds(chain.string).mapNotNull { it.toAssetId() }.toSet()

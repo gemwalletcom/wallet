@@ -23,6 +23,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import uniffi.gemstone.GemAssetConfigService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -34,8 +35,12 @@ object ConfirmModule {
 
     @Provides
     @Singleton
-    fun provideGetFeeAssets(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetFeeAssets = GetFeeAssetsImpl(
-        providers = mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetStore, getCurrentWalletId)),
+    fun provideGetFeeAssets(
+        assetStore: GemstoneAssetStore,
+        getCurrentWalletId: GetCurrentWalletId,
+        assetConfig: GemAssetConfigService,
+    ): GetFeeAssets = GetFeeAssetsImpl(
+        providers = mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetStore, getCurrentWalletId, assetConfig)),
     )
 
     @Provides

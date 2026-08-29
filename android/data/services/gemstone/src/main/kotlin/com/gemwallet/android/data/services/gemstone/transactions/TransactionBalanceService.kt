@@ -13,11 +13,10 @@ import uniffi.gemstone.GemTransferService
 import java.math.BigInteger
 import javax.inject.Inject
 
-private val transferService = GemTransferService()
-
 class TransactionBalanceService @Inject constructor(
     private val perpetualStore: GemstonePerpetualStore,
     private val getSession: GetSession,
+    private val transferService: GemTransferService,
 ) {
 
     suspend fun getBalance(assetInfo: AssetInfo, params: ConfirmParams): BigInteger {

@@ -16,13 +16,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemAssetConfigService
 
 class GetFeeAssetsImplTest {
 
     private val walletId = mockWalletId()
     private val assetStore = mockk<GemstoneAssetStore>()
     private val getCurrentWalletId = mockk<GetCurrentWalletId> { every { this@mockk() } returns flowOf(walletId) }
-    private val subject = GetFeeAssetsImpl(mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetStore, getCurrentWalletId)))
+    private val subject = GetFeeAssetsImpl(mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetStore, getCurrentWalletId, GemAssetConfigService())))
 
     @Test
     fun returnsFundedDefaultTempoAssets() = runTest {
