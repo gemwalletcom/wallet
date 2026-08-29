@@ -381,7 +381,6 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 | Repository | Callers | What it holds today | Target |
 | --- | --- | --- | --- |
-| `TransactionRepository` (+`Impl`) | 6 | `getTransactions(filters)`, `getTransaction(id)` | `GetTransactions`/`GetTransaction` cases over `TransactionsDao` |
 | `AddressesRepository` | 5 | address-name flow plus `saveWalletAddresses` over `GemNameService` | `GetAddressName`/`SaveWalletAddresses` cases |
 | `NftRepository` | 2 | two observed reads plus `GemNftService` and `nftCollectionStatus` | `GetNftList`/`GetNftAsset` cases; the `fetch*` names go with it |
 | `DeviceRepository` | 2 | push token and push-enabled over DataStore, device info for `GemDeviceService` | push token and flag are preferences — move the values into Core (`GemPreferencesService`) and keep a `GetPushEnabled`/`SetPushToken` case |

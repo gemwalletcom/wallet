@@ -10,7 +10,13 @@ import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.SyncTransactionsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.transactions.TransactionRepository
+import com.gemwallet.android.application.transactions.cases.GetTransaction
+import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
+import com.gemwallet.android.cases.transactions.ClearPendingTransactions
+import com.gemwallet.android.data.coordinators.transaction.ClearPendingTransactionsImpl
+import com.gemwallet.android.data.coordinators.transaction.GetPendingTransactionsCountImpl
+import com.gemwallet.android.data.coordinators.transaction.GetTransactionImpl
+import com.gemwallet.android.data.service.store.database.TransactionsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,10 +29,29 @@ object TransactionModule {
     @Provides
     @Singleton
     fun provideGetTransactions(
-        transactionRepository: TransactionRepository,
+        sessionRepository: SessionRepository,
+        transactionsDao: TransactionsDao,
     ): GetTransactions {
-        return GetTransactionsImpl(transactionRepository)
+        return GetTransactionsImpl(sessionRepository, transactionsDao)
     }
+
+    @Provides
+    @Singleton
+    fun provideGetTransaction(
+        sessionRepository: SessionRepository,
+        transactionsDao: TransactionsDao,
+    ): GetTransaction = GetTransactionImpl(sessionRepository, transactionsDao)
+
+    @Provides
+    @Singleton
+    fun provideGetPendingTransactionsCount(
+        sessionRepository: SessionRepository,
+        transactionsDao: TransactionsDao,
+    ): GetPendingTransactionsCount = GetPendingTransactionsCountImpl(sessionRepository, transactionsDao)
+
+    @Provides
+    @Singleton
+    fun provideClearPending(transactionsDao: TransactionsDao): ClearPendingTransactions = ClearPendingTransactionsImpl(transactionsDao)
 
     @Provides
     @Singleton
@@ -44,13 +69,13 @@ object TransactionModule {
     @Singleton
     fun provideGetTransactionDetails(
         sessionRepository: SessionRepository,
-        transactionRepository: TransactionRepository,
+        getTransaction: GetTransaction,
         assetsRepository: AssetsRepository,
         explorerService: GemExplorerService,
     ): GetTransactionDetails {
         return GetTransactionDetailsImpl(
             sessionRepository = sessionRepository,
-            transactionRepository = transactionRepository,
+            getTransaction = getTransaction,
             assetsRepository = assetsRepository,
             explorerService = explorerService,
         )
