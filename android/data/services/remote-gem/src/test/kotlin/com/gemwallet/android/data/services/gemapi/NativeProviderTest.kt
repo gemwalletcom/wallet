@@ -151,6 +151,8 @@ class NativeProviderTest {
         return NativeProvider(
             getNodeUrlCase = object : GetNodeUrlCase {
                 override fun getNodeUrl(chain: Chain): String = "https://gemnodes.com/${chain.string}"
+
+                override fun getWebSocketNodeUrl(chain: Chain): String = "wss://gemnodes.com/${chain.string}/ws"
             },
             httpClient = httpClient,
         )

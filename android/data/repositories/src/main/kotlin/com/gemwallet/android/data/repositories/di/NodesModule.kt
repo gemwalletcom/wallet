@@ -56,6 +56,8 @@ object NodesModule {
         nodeService: GemNodeService,
     ): GetNodeUrlCase = object : GetNodeUrlCase {
         override fun getNodeUrl(chain: Chain) = nodeService.nodeUrl(chain.string)
+
+        override fun getWebSocketNodeUrl(chain: Chain) = nodeService.websocketNodeUrl(chain.string)
     }
 
     @Provides

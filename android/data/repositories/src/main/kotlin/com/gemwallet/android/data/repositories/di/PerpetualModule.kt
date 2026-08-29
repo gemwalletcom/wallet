@@ -9,7 +9,6 @@ import com.gemwallet.android.data.repositories.perpetual.HyperliquidObserverServ
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepositoryImpl
-import com.gemwallet.android.data.repositories.perpetual.toWebSocketUrl
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
 import com.gemwallet.android.data.repositories.stream.WebSocketConnection
 import com.gemwallet.android.data.repositories.stream.WebSocketRequest
@@ -93,8 +92,7 @@ object PerpetualModule {
         val connection = WebSocketConnection(
             client = okHttpClient,
             requestProvider = {
-                val url = getNodeUrlCase.getNodeUrl(Chain.HyperCore)
-                WebSocketRequest(url = url.toWebSocketUrl())
+                WebSocketRequest(url = getNodeUrlCase.getWebSocketNodeUrl(Chain.HyperCore))
             },
             reconnection = ExponentialReconnection(maxDelay = 30.0),
         )

@@ -20,10 +20,10 @@ public actor HyperliquidObserverService: PerpetualObservable {
     public let chartService: any ChartStreamable
 
     public init(
-        nodeProvider: any NodeURLProvidable,
+        webSocketURL: URL,
         perpetualService: GemPerpetualService,
     ) {
-        let webSocket = WebSocketConnection(url: nodeProvider.node(for: .hyperCore))
+        let webSocket = WebSocketConnection(url: webSocketURL)
         self.webSocket = webSocket
         chartService = ChartObserverService()
         self.perpetualService = perpetualService

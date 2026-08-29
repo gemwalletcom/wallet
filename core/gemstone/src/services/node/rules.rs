@@ -67,6 +67,18 @@ pub fn default_nodes(chain: Chain) -> Vec<Node> {
         .collect()
 }
 
+pub fn websocket_url(url: &str) -> String {
+    let base = url.trim_end_matches('/');
+    let base = match base.strip_prefix("http") {
+        Some(rest) => format!("ws{rest}"),
+        None => base.to_string(),
+    };
+    match base.ends_with("/ws") {
+        true => base,
+        false => format!("{base}/ws"),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -77,6 +89,15 @@ mod tests {
             status: NodeState::Active,
             priority,
         }
+    }
+
+    #[test]
+    fn test_websocket_url_swaps_the_scheme_and_appends_the_path_once() {
+        assert_eq!(websocket_url("https://rpc.hypercore.dev"), "wss://rpc.hypercore.dev/ws");
+        assert_eq!(websocket_url("https://rpc.hypercore.dev/"), "wss://rpc.hypercore.dev/ws");
+        assert_eq!(websocket_url("https://rpc.hypercore.dev/ws"), "wss://rpc.hypercore.dev/ws");
+        assert_eq!(websocket_url("http://localhost:8545"), "ws://localhost:8545/ws");
+        assert_eq!(websocket_url("wss://api.hyperliquid.xyz"), "wss://api.hyperliquid.xyz/ws");
     }
 
     #[test]

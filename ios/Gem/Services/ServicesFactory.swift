@@ -259,7 +259,7 @@ struct ServicesFactory {
         )
 
         let hyperliquidObserverService = HyperliquidObserverService(
-            nodeProvider: PerpetualNodeService(nodeProvider: nodeProvider),
+            webSocketURL: nodeService.webSocketNode(for: .hyperCore) ?? Chain.hyperCore.defaultBaseUrl,
             perpetualService: perpetualService,
         )
 

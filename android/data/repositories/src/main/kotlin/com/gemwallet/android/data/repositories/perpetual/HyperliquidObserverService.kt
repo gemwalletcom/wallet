@@ -112,8 +112,3 @@ class HyperliquidObserverService(
         private const val MESSAGE_LOG_LIMIT = 100
     }
 }
-
-internal fun String.toWebSocketUrl(): String {
-    val base = removeSuffix("/").replaceFirst("http", "ws")
-    return if (base.endsWith("/ws")) base else "$base/ws"
-}

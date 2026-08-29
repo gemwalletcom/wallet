@@ -53,6 +53,10 @@ impl GemNodeService {
         rules::preferred_chain_node(chain, self.selected_url(chain)).url
     }
 
+    pub fn websocket_node_url(&self, chain: Chain) -> String {
+        rules::websocket_url(&self.node_url(chain))
+    }
+
     pub fn selected_node(&self, chain: Chain) -> Node {
         rules::preferred_chain_node(chain, self.selected_url(chain))
     }
