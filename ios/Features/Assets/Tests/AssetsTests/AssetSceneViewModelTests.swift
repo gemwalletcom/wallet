@@ -11,7 +11,8 @@ import PrimitivesTestKit
 import SwiftUI
 import PreferencesTestKit
 import Testing
-import class Gemstone.GemSwapSelectionService
+import protocol Gemstone.GemSwapServiceProtocol
+import struct Gemstone.GemSwapPairSuggestion
 
 @MainActor
 struct AssetSceneViewModelTests {
@@ -29,35 +30,27 @@ struct AssetSceneViewModelTests {
     }
 
     @Test
-    func swapAssetTypeNative() {
-        let asset = Asset.mock(type: .native)
-        let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .zero))
+    func swapAssetTypeUsesTheAssetWhenCoreSuggestsNoReceiveAsset() {
+        let asset = Asset.mockEthereumUSDT()
+        let model = AssetSceneViewModel.mock(
+            .mock(asset: asset, balance: .mock()),
+            swapService: GemSwapServiceMock(assetPair: GemSwapPairSuggestion(payAssetId: asset.id.identifier, receiveAssetId: nil)),
+        )
 
         #expect(model.swapAssetType == .swap(asset, nil))
     }
 
     @Test
-    func swapAssetTypeTokenWithZeroBalance() {
+    func swapAssetTypePaysWithTheChainAssetWhenCoreSuggestsAReceiveAsset() {
         let asset = Asset.mockEthereumUSDT()
-        let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .zero))
+        let model = AssetSceneViewModel.mock(
+            .mock(asset: asset, balance: .zero),
+            swapService: GemSwapServiceMock(
+                assetPair: GemSwapPairSuggestion(payAssetId: asset.chain.assetId.identifier, receiveAssetId: asset.id.identifier),
+            ),
+        )
 
         #expect(model.swapAssetType == .swap(asset.chain.asset, asset))
-    }
-
-    @Test
-    func swapAssetTypeTokenWithBalance() {
-        let asset = Asset.mockEthereumUSDT()
-        let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .mock()))
-
-        #expect(model.swapAssetType == .swap(asset, nil))
-    }
-
-    @Test
-    func swapAssetTypeDoesNotSelectHiddenNativeAsset() {
-        let asset = Asset.mockTempoUSDC()
-        let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .zero))
-
-        #expect(model.swapAssetType == .swap(asset, nil))
     }
 
     @Test
@@ -103,7 +96,10 @@ struct AssetSceneViewModelTests {
 // MARK: - Mock Extensions
 
 extension AssetSceneViewModel {
-    static func mock(_ assetData: AssetData = AssetData.mock()) -> AssetSceneViewModel {
+    static func mock(
+        _ assetData: AssetData = AssetData.mock(),
+        swapService: any GemSwapServiceProtocol = GemSwapServiceMock(),
+    ) -> AssetSceneViewModel {
         let model = AssetSceneViewModel(
             balanceService: GemBalanceServiceMock(),
             assetsService: GemAssetsServiceMock(),
@@ -111,7 +107,7 @@ extension AssetSceneViewModel {
             priceUpdater: .mock(),
             priceAlertService: GemPriceAlertServiceMock(),
             bannerService: GemBannerServiceMock(),
-            swapSelectionService: GemSwapSelectionService(),
+            swapService: swapService,
             explorerService: GemExplorerServiceMock(),
             preferences: .mock(),
             input: AssetSceneInput(

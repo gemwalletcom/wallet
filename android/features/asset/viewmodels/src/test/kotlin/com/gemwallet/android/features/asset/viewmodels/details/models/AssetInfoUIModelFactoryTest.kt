@@ -18,7 +18,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemSwapSelectionService
+import io.mockk.every
+import io.mockk.mockk
+import uniffi.gemstone.GemSwapPairSuggestion
+import uniffi.gemstone.GemSwapServiceInterface
 
 class AssetInfoUIModelFactoryTest {
 
@@ -79,7 +82,7 @@ class AssetInfoUIModelFactoryTest {
     ): AssetInfoUIModel {
         val balance = AssetBalance.create(asset, available = available, staked = staked, reserved = reserved)
         val assetInfo = mockAssetInfo(asset = asset, owner = null, balance = balance)
-        return AssetInfoUIModelFactory(GemSwapSelectionService()).create(
+        return AssetInfoUIModelFactory(mockk<GemSwapServiceInterface> { every { pairForAsset(any(), any()) } answers { GemSwapPairSuggestion(firstArg(), null) } }).create(
             ChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
             explorerName = "Explorer",
             walletType = WalletType.Multicoin,

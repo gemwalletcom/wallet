@@ -308,5 +308,8 @@ class RequestSwapQuotesImplTest {
         override fun supportedAssets(assetId: String): SwapperAssetList = SwapperAssetList(emptyList(), emptyList())
 
         override suspend fun suggestPair(walletId: String, payAssetId: String?): GemSwapPairSuggestion? = null
+
+        override fun pairForAsset(assetId: String, hasBalance: Boolean): GemSwapPairSuggestion =
+            GemSwapPairSuggestion(assetId, null)
     }
 }

@@ -22,6 +22,7 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
     private let quotesDelay: Duration?
     private let quotesError: Error?
     private let pairSuggestion: GemSwapPairSuggestion?
+    private let assetPair: GemSwapPairSuggestion?
 
     public init(
         quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
@@ -30,6 +31,7 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
         quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
+        assetPair: GemSwapPairSuggestion? = nil,
     ) {
         self.quotes = quotes
         self.quoteData = quoteData
@@ -37,6 +39,7 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
         self.quotesDelay = quotesDelay
         self.quotesError = quotesError
         self.pairSuggestion = pairSuggestion
+        self.assetPair = assetPair
     }
 
     public convenience init(
@@ -46,6 +49,7 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
         quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
+        assetPair: GemSwapPairSuggestion? = nil,
     ) {
         self.init(
             quotes: { _ in quotes },
@@ -54,6 +58,7 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
             quotesDelay: quotesDelay,
             quotesError: quotesError,
             pairSuggestion: pairSuggestion,
+            assetPair: assetPair,
         )
     }
 
@@ -83,5 +88,9 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
 
     public func suggestPair(walletId _: String, payAssetId _: AssetId?) async throws -> GemSwapPairSuggestion? {
         pairSuggestion
+    }
+
+    public func pairForAsset(assetId: AssetId, hasBalance _: Bool) -> GemSwapPairSuggestion {
+        assetPair ?? GemSwapPairSuggestion(payAssetId: assetId, receiveAssetId: nil)
     }
 }

@@ -9,7 +9,7 @@ import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemSwapSelectionService
+import protocol Gemstone.GemSwapServiceProtocol
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -28,7 +28,7 @@ public final class AssetSceneViewModel: Sendable {
     private let transactionsService: any GemTransactionsServiceProtocol
     private let priceUpdater: any PriceUpdater
     private let bannerService: any GemBannerServiceProtocol
-    private let swapSelectionService: GemSwapSelectionService
+    private let swapService: any GemSwapServiceProtocol
 
     private let preferences: ObservablePreferences
 
@@ -52,7 +52,7 @@ public final class AssetSceneViewModel: Sendable {
         priceUpdater: any PriceUpdater,
         priceAlertService: any GemPriceAlertServiceProtocol,
         bannerService: any GemBannerServiceProtocol,
-        swapSelectionService: GemSwapSelectionService,
+        swapService: any GemSwapServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         preferences: ObservablePreferences,
         input: AssetSceneInput,
@@ -64,7 +64,7 @@ public final class AssetSceneViewModel: Sendable {
         self.priceUpdater = priceUpdater
         self.priceAlertService = priceAlertService
         self.bannerService = bannerService
-        self.swapSelectionService = swapSelectionService
+        self.swapService = swapService
         self.explorerService = explorerService
         self.preferences = preferences
 
@@ -313,7 +313,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var swapAssetType: SelectedAssetType {
-        let pair = swapSelectionService.pairForAsset(
+        let pair = swapService.pairForAsset(
             assetId: assetData.asset.id.identifier,
             hasBalance: assetData.balance.available > .zero,
         )

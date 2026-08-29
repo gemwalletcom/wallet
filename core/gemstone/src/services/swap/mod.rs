@@ -1,7 +1,6 @@
 pub mod config;
 pub mod model;
 pub mod rules;
-pub mod selection;
 pub mod store;
 
 use crate::clock::unix_seconds;
@@ -59,6 +58,10 @@ impl GemSwapService {
         let request = rules::quote_request(&wallet, &from_asset, &to_asset, value, use_max_amount, slippage_bps)?;
         self.swapper.preload_routes(from_asset.id, to_asset.id).await;
         Ok(rules::sort_quotes(self.swapper.get_quote(&request).await?))
+    }
+
+    pub fn pair_for_asset(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
+        rules::pair_for_asset(asset_id, has_balance)
     }
 
     pub async fn suggest_pair(&self, wallet_id: WalletId, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
