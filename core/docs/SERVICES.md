@@ -288,7 +288,7 @@ Every other app service is gone and its callers hold the Core service; the four 
 
 ## Remaining
 
-- **iOS `Packages/GemAPI`** — only the widget's one-endpoint client (`GemPriceWidget`) is left; the app and feature packages no longer depend on it.
+- **iOS `Packages/GemAPI`** — one endpoint, one caller: `GemPriceWidget` reads asset prices with it. It stays. Routing the widget through Core would link the Rust library into an app extension that runs under a tight memory budget and makes a single GET, so the trade is wrong; nothing else in the app or the feature packages depends on the package. Android's equivalent is already down to the alien provider itself (`data/services/remote-gem` is `NativeProvider` plus its cache — the module name is what is left to fix).
 - iOS `Primitives` keeps hand-written views of Core types (`GasPriceType`, `FeeRate`, `Fee`, `FeeSelection`, `CustomFeeEstimate`, `TransferAmount`, `BalanceRequirement`, and ids such as `WalletId`/`TransactionId`/`AssetId`). They stay: they are typed views bridged once at the seam, not a second source of truth.
 
 ## TODO — finish Core as the single owner of logic
@@ -412,7 +412,7 @@ The websocket URL rule went with it: `GemNodeService.websocket_node_url(chain)` 
 | `PerpetualRepository` (+`Impl`) | 18 | six observed reads over the perpetual DAOs | one case per read (`GetPerpetuals`, `GetPerpetual`, `GetPositions`, `GetPosition`, `GetPerpetualBalance`). Do this one with a device: the reads are covered by `androidTest` suites through `FakePerpetualRepository`, which has to be reworked into fakes of the new cases and cannot be verified by `just test` |
 | `WalletConnectorService` (was `BridgesRepository`) | 9 | 272 lines of Reown SDK session handling with Core mixed in; named like iOS now | expose approve/reject/pair/respond as cases so the bridge view models stop holding the adapter itself |
 | `WalletsRepository` (+`Impl`) | 31 | a thin forward to `GemstoneWalletStore` | inverted: the DAOs, the insert order and the wallet reads live in `GemstoneWalletStore`, and `GemstoneConnectionStore`/`GemstoneTransactionStateStore` hold that adapter instead of the repository. What is left is turning the 31 callers into cases over `GemWalletService`, after which the interface and its `Impl` go |
-| `AssetsRepository` | 41 | 262 lines: observed asset lists, plus `GemAssetsService`/`GemBalanceService` orchestration | split — observed reads become `GetAssetsInfo*` cases over `AssetsDao`, the orchestration is already Core's |
+| `AssetsRepository` | 41 | orchestration plus a forward for the observed lists | the eleven observed reads moved to `GemstoneAssetStore` and the repository forwards to it, so `AssetsDao` has one reader for them. What is left is the write half — `add`, `linkAssetToWallet`, `insertLocalAsset` still write assets around Core — and then the 41 callers become cases over `GemAssetsService` |
 | `SessionRepository` (+`Impl`) | 107 | current wallet and currency, `session()` StateFlow | last, in slices: `GetCurrentWallet`/`SetCurrentWallet`/`ObserveSession` over `GemWalletSessionService` and currency over `GemPreferencesService` |
 
   The observer services in the same module (`DeviceObserverService`, `StreamObserverService`, `HyperliquidObserverService`, `HyperliquidSubscriptionService`) are long-lived stream adapters, not cases — they stay, but move out of `data/repositories` when the repositories are gone.

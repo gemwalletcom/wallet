@@ -54,6 +54,7 @@ import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemStreamSubscriptionService
 import uniffi.gemstone.GemBalanceService
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
 
 class AssetsRepositoryTest {
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
@@ -72,6 +73,7 @@ class AssetsRepositoryTest {
 
     private fun createSubject() = AssetsRepository(
         assetsDao = assetsDao,
+        assetStore = GemstoneAssetStore(assetsDao, AssetsAvailabilityService(assetsDao)),
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,

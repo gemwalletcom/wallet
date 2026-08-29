@@ -59,12 +59,14 @@ object AssetsModule {
     @Singleton
     fun provideAssetsRepository(
         assetsDao: AssetsDao,
+        assetStore: GemstoneAssetStore,
         sessionRepository: SessionRepository,
         searchTokensCase: SearchTokensCase,
         streamSubscriptionService: GemStreamSubscriptionService,
         balanceService: GemBalanceService,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
+        assetStore = assetStore,
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
@@ -178,10 +180,14 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideGemAssetStore(
+    fun provideGemstoneAssetStore(
         assetsDao: AssetsDao,
         availabilityService: AssetsAvailabilityService,
-    ): GemAssetStore = GemstoneAssetStore(assetsDao, availabilityService)
+    ): GemstoneAssetStore = GemstoneAssetStore(assetsDao, availabilityService)
+
+    @Provides
+    @Singleton
+    fun provideGemAssetStore(store: GemstoneAssetStore): GemAssetStore = store
 
     @Provides
     @Singleton

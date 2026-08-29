@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.assets
 import android.util.Log
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
@@ -39,6 +40,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -58,6 +60,7 @@ private const val TAG = "AssetsRepository"
 @Singleton
 class AssetsRepository @Inject constructor(
     private val assetsDao: AssetsDao,
+    private val assetStore: GemstoneAssetStore,
     private val sessionRepository: SessionRepository,
     private val searchTokensCase: SearchTokensCase,
     private val streamSubscriptionService: GemStreamSubscriptionService,
@@ -72,67 +75,49 @@ class AssetsRepository @Inject constructor(
     }
 
     private val assetsInfo: Flow<List<AssetInfo>> = currentWalletId()
-        .flatMapLatest { walletId -> assetsDao.getAssetsInfo(walletId) }
-        .toAssetInfoModel()
+        .flatMapLatest { walletId -> assetStore.observeAssetsInfo(walletId) }
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     fun getAssetsInfo(): Flow<List<AssetInfo>> = assetsInfo
 
-    fun getAssetsInfo(walletId: WalletId): Flow<List<AssetInfo>> = assetsDao.getAssetsInfo(walletId.id)
-        .toAssetInfoModel()
-        .flowOn(Dispatchers.IO)
+    fun getAssetsInfo(walletId: WalletId): Flow<List<AssetInfo>> = assetStore.observeAssetsInfo(walletId.id).flowOn(Dispatchers.IO)
 
     fun getAssetsInfo(assetsId: List<AssetId>): Flow<List<AssetInfo>> = currentWalletId()
-        .flatMapLatest { walletId -> assetsDao.getAssetsInfo(walletId, assetsId.map { it.toIdentifier() }) }
-        .toAssetInfoModel()
+        .flatMapLatest { walletId -> assetStore.observeAssetsInfo(walletId, assetsId.map { it.toIdentifier() }) }
         .flowOn(Dispatchers.IO)
 
     fun getAssetsInfoByChain(chain: Chain): Flow<List<AssetInfo>> = currentWalletId()
-        .flatMapLatest { walletId -> assetsDao.getAssetsInfoByChain(walletId, chain) }
-        .toAssetInfoModel()
+        .flatMapLatest { walletId -> assetStore.observeAssetsInfoByChain(walletId, chain) }
         .flowOn(Dispatchers.IO)
 
     fun getHiddenAssetsInfoByChain(chain: Chain): Flow<List<AssetInfo>> = currentWalletId()
-        .flatMapLatest { walletId -> assetsDao.getHiddenAssetsInfoByChain(walletId, chain) }
-        .toAssetInfoModel()
+        .flatMapLatest { walletId -> assetStore.observeHiddenAssetsInfoByChain(walletId, chain) }
         .flowOn(Dispatchers.IO)
 
     fun getAssetInfo(assetId: AssetId): Flow<AssetInfo?> {
         return currentWalletId()
-            .flatMapLatest { walletId -> assetsDao.getAssetInfo(walletId, assetId.toIdentifier(), assetId.chain) }
-            .map { it?.toDTO() }
+            .flatMapLatest { walletId -> assetStore.observeAssetInfo(walletId, assetId) }
             .flowOn(Dispatchers.IO)
     }
 
-    fun asset(assetId: AssetId): Flow<Asset?> {
-        return assetsDao.getAsset(assetId.toIdentifier())
-            .map { it?.toDTO() }
-            .flowOn(Dispatchers.IO)
-    }
+    fun asset(assetId: AssetId): Flow<Asset?> = assetStore.observeAsset(assetId).flowOn(Dispatchers.IO)
 
     fun getToken(assetId: AssetId): Flow<Asset?> = currentWalletId()
-        .flatMapLatest { walletId -> assetsDao.getTokenInfo(walletId, assetId.toIdentifier(), assetId.chain) }
-        .map { it?.toDTO()?.asset }
+        .flatMapLatest { walletId -> assetStore.observeTokenInfo(walletId, assetId) }
+        .map { it?.asset }
         .flowOn(Dispatchers.IO)
 
     fun getTokenInfo(assetId: AssetId): Flow<AssetInfo?> {
         return currentWalletId().flatMapLatest { walletId ->
-            assetsDao.getAssetInfo(walletId, assetId.toIdentifier(), assetId.chain).flatMapLatest { assetInfo ->
-                if (assetInfo == null) {
-                    assetsDao.getTokenInfo(walletId, assetId.toIdentifier(), assetId.chain).map { it?.toDTO() }
-                } else {
-                    flow { emit(assetInfo.toDTO()) }
-                }
+            assetStore.observeAssetInfo(walletId, assetId).flatMapLatest { assetInfo ->
+                assetInfo?.let { flowOf(it) } ?: assetStore.observeTokenInfo(walletId, assetId)
             }
         }
         .flowOn(Dispatchers.IO)
     }
 
-    fun getTokensInfo(assetsId: List<String>): Flow<List<AssetInfo>> {
-        return currentWalletId()
-            .flatMapLatest { walletId -> assetsDao.getAssetsInfoByAllWallets(walletId, assetsId) }
-            .toAssetInfoModel()
-    }
+    fun getTokensInfo(assetsId: List<String>): Flow<List<AssetInfo>> = currentWalletId()
+        .flatMapLatest { walletId -> assetStore.observeAssetsInfoByAllWallets(walletId, assetsId) }
 
     suspend fun getWidgetTokens(currency: Currency): List<AssetInfo> = withContext(Dispatchers.IO) {
         val widgetAssetIds = listOf(AssetId(Chain.Bitcoin), AssetId(Chain.Ethereum), AssetId(Chain.Solana))
@@ -215,17 +200,9 @@ class AssetsRepository @Inject constructor(
         assetsDao.setWalletAssetVisibility(walletId, assetIdIdentifier, visible)
     }
 
-    fun getAssetLinks(id: AssetId): Flow<List<AssetLink>> {
-        return assetsDao.getAssetLinks(id.toIdentifier())
-            .toAssetLinksModel()
-            .flowOn(Dispatchers.IO)
-    }
+    fun getAssetLinks(id: AssetId): Flow<List<AssetLink>> = assetStore.observeAssetLinks(id).flowOn(Dispatchers.IO)
 
-    fun getAssetMarket(id: AssetId): Flow<AssetMarket?> {
-        return assetsDao.getAssetMarket(id.toIdentifier())
-            .map { it?.toDTO() }
-            .flowOn(Dispatchers.IO)
-    }
+    fun getAssetMarket(id: AssetId): Flow<AssetMarket?> = assetStore.observeAssetMarket(id).flowOn(Dispatchers.IO)
 
     private suspend fun List<AssetInfo>.refreshBalances(): List<Deferred<Unit>> = withContext(Dispatchers.IO) {
         groupBy { it.walletId }
