@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemWalletConnectService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -51,6 +52,7 @@ class WCAuthViewModel @Inject constructor(
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectService,
+    private val chainService: GemChainService,
 ) : ViewModel() {
 
     private var authRequest: WalletConnectAuthenticationRequest? = null
@@ -266,7 +268,7 @@ class WCAuthViewModel @Inject constructor(
         request: WalletConnectAuthenticationRequest,
     ): List<AuthAccount> {
         return request.ethereumChainIds().mapNotNull { chainId ->
-            val chain = Chain.fromWalletConnectChainId(chainId) ?: return@mapNotNull null
+            val chain = Chain.fromWalletConnectChainId(chainService, chainId) ?: return@mapNotNull null
             val account = wallet.getAccount(chain) ?: return@mapNotNull null
             AuthAccount(account = account, chainId = chainId)
         }

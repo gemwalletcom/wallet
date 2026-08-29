@@ -7,8 +7,6 @@ import uniffi.gemstone.GemSessionApproval
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemChainService
 
-private val chainService = GemChainService()
-
 fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInterface): WalletConnectionSession? {
     val metadata = metadata ?: return null
     return runCatching {
@@ -21,7 +19,7 @@ fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInt
     }.getOrNull()?.decodeJson()
 }
 
-fun GemSessionApproval.toSupportedNamespaces(): Map<String, WalletConnectSessionNamespace> {
+fun GemSessionApproval.toSupportedNamespaces(chainService: GemChainService): Map<String, WalletConnectSessionNamespace> {
     return accounts
         .mapNotNull { account ->
             val namespace = chainService.caip2Namespace(account.chain) ?: return@mapNotNull null

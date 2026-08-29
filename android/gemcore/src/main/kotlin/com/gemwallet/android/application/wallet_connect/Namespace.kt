@@ -6,8 +6,6 @@ import com.wallet.core.primitives.WalletConnectionEvents
 import com.wallet.core.primitives.WalletConnectionMethods
 import uniffi.gemstone.GemChainService
 
-private val chainService = GemChainService()
-
 enum class ChainNamespace(val string: String, val methods: List<WalletConnectionMethods>) {
     Eip155(
         "eip155",
@@ -76,7 +74,7 @@ enum class ChainNamespace(val string: String, val methods: List<WalletConnection
     }
 }
 
-fun Chain.Companion.fromWalletConnectChainId(walletConnectChainId: String?): Chain? {
+fun Chain.Companion.fromWalletConnectChainId(chainService: GemChainService, walletConnectChainId: String?): Chain? {
     val chainId = walletConnectChainId ?: return null
     return chainService.chainFromCaip2(chainId)?.toChain()
 }

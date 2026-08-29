@@ -17,6 +17,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemWalletConnectService
 import javax.inject.Singleton
 
@@ -37,10 +38,12 @@ object WalletConnectModule {
         connectionStore: GemstoneConnectionStore,
         walletConnectClient: WalletConnectClient,
         walletConnectService: GemWalletConnectService,
+        chainService: GemChainService,
     ): WalletConnectCoordinator = WalletConnectCoordinator(
         connectionStore = connectionStore,
         walletConnectClient = walletConnectClient,
         walletConnectService = walletConnectService,
+        chainService = chainService,
     )
 
     @Singleton

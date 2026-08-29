@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,6 +44,7 @@ class WalletConnectCoordinator(
     private val connectionStore: GemstoneConnectionStore,
     private val walletConnectClient: WalletConnectClient,
     private val walletConnectService: GemWalletConnectServiceInterface,
+    private val chainService: GemChainService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) : IsWalletConnectEnabled,
     PairWalletConnect,
@@ -124,7 +126,7 @@ class WalletConnectCoordinator(
         val approval = walletConnectService.sessionApproval(wallet = wallet.toJson())
         val sessionNamespaces = walletConnectClient.generateApprovedNamespaces(
             proposal = proposal,
-            supportedNamespaces = approval.toSupportedNamespaces(),
+            supportedNamespaces = approval.toSupportedNamespaces(chainService),
         )
         val sessionProperties = walletConnectService.configSessionProperties(
             properties = proposal.properties ?: emptyMap(),
