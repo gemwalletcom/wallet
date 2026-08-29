@@ -15,7 +15,9 @@ import com.wallet.core.primitives.swap.SwapPriceImpact
 import java.math.BigInteger
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderType
-import uniffi.gemstone.calculateSwapPriceImpact
+import uniffi.gemstone.GemSwapQuoteService
+
+private val swapQuoteService = GemSwapQuoteService()
 
 object SwapProviderUIModelFactory {
     fun create(
@@ -71,7 +73,7 @@ object SwapDetailsUIModelFactory {
 
     fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
         return create(input) { payFiatValue, receiveFiatValue ->
-            calculateSwapPriceImpact(payFiatValue, receiveFiatValue)?.decodeJson()
+            swapQuoteService.priceImpact(payFiatValue, receiveFiatValue)?.decodeJson()
         }
     }
 

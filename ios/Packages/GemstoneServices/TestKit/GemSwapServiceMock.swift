@@ -4,12 +4,12 @@ import BigInt
 import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
+import class Gemstone.GemSwapQuoteService
 import protocol Gemstone.GemSwapServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperAssetList
 import struct Gemstone.SwapperQuote
-import func Gemstone.swapQuote
 import typealias Gemstone.Wallet
 import GemstonePrimitives
 import Primitives
@@ -69,7 +69,7 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
 
     public func getTransfer(wallet _: Wallet, quote: SwapperQuote) async throws -> GemSwapTransfer {
         try GemSwapTransfer(
-            quote: swapQuote(quote: quote),
+            quote: GemSwapQuoteService().quote(quote: quote),
             data: quoteData.json(),
             recipient: quote.request.destinationAddress,
             value: quote.request.value,

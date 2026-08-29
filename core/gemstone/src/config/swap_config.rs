@@ -16,7 +16,6 @@ pub struct SwapConfig {
     pub amount_percent_presets: Vec<u32>,
 }
 
-#[uniffi::export]
 pub fn get_default_slippage(chain: &Chain) -> SwapperSlippage {
     swap_config::get_default_slippage(chain)
 }

@@ -81,6 +81,7 @@ pub use stake::{GemStakeService, GemStakeStore};
 pub use stream::{GemStreamConnection, GemStreamService, GemStreamSubscriptionService};
 pub use subscription::GemSubscriptionService;
 pub use support::{GemSupportService, GemSupportStore};
+pub use swap::config::GemSwapQuoteService;
 pub use swap::{GemSwapPair, GemSwapPairSuggestion, GemSwapService, GemSwapStore};
 pub use transaction_state::{GemPendingTransaction, GemTransactionStateService, GemTransactionStateStore};
 pub use transactions::{GemTransactionStore, GemTransactionsService};

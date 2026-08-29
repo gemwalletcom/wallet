@@ -76,12 +76,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.Config
-import uniffi.gemstone.getDefaultSlippage
+import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperProvider
 import java.math.BigDecimal
 import javax.inject.Inject
 import com.gemwallet.android.ext.runCatchingCancellable
+
+private val swapQuoteService = GemSwapQuoteService()
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -126,7 +128,7 @@ class SwapViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val defaultSlippageBps: StateFlow<UInt?> = payAsset
-        .map { asset -> asset?.let { getDefaultSlippage(it.asset.id.chain.string).bps } }
+        .map { asset -> asset?.let { swapQuoteService.defaultSlippage(it.asset.id.chain.string).bps } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val receiveAsset = savedStateHandle.getStateFlow<String?>(RouteArgument.ToAssetId.key, null)

@@ -185,15 +185,32 @@ fn map_transaction_object(transaction: &WcEthereumTransactionData) -> Transactio
     }
 }
 
+#[derive(Default, uniffi::Object)]
+pub struct GemSimulationFormatter {}
+
 #[uniffi::export]
-pub fn simulation_header(simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
+impl GemSimulationFormatter {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn header(&self, simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
+        simulation_header(simulation)
+    }
+
+    pub fn payload_fields(&self, payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
+        simulation_payload_fields(payload, shows_header)
+    }
+}
+
+fn simulation_header(simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
     let header = simulation?.header?;
     let has_value = header.is_unlimited || header.value.parse::<num_bigint::BigUint>().is_ok();
     has_value.then_some(header)
 }
 
-#[uniffi::export]
-pub fn simulation_payload_fields(payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
+fn simulation_payload_fields(payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
     if !shows_header {
         return payload;
     }

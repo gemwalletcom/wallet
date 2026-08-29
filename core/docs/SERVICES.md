@@ -363,7 +363,7 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 
 ### Rust (core/gemstone)
 
-- Free functions become services. A `#[uniffi::export] pub fn` is a rule with no home: each app reaches it through its own extension (`Chain.matches(query:)`, `List<Chain>.filter(query)`), and those extensions are where app-side variants creep back in. `GemChainService` (`get_chains`, `get_matching_chains`, `is_valid_network_id`) is the shape: a `uniffi::Object` with a `new()` constructor, held like any other service. The remaining 82 exports, grouped by the service they belong in — take one group per commit, delete the app extensions that wrapped them, and keep the free function only where a single call has no siblings:
+- Free functions become services. A `#[uniffi::export] pub fn` is a rule with no home: each app reaches it through its own extension (`Chain.matches(query:)`, `List<Chain>.filter(query)`), and those extensions are where app-side variants creep back in. `GemChainService` (`get_chains`, `get_matching_chains`, `is_valid_network_id`) is the shape: a `uniffi::Object` with a `new()` constructor, held like any other service. This started at 82 exports; 10 are left, all deliberate — the five key-material boundary calls and the five singles at the bottom of the table. The record of where each group went:
 
 | Target service | Functions to fold in |
 | --- | --- |
@@ -379,7 +379,9 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 | ~~`GemDeeplinkService`~~ (done) | `build_url`, `build_gem_url` and `url_action`; every caller is a value extension, a Compose menu or a navigation object, so the service is constructible |
 | ~~`GemWalletConnectService`~~ (done) | the CAIP-2 lookups are `GemChainService.caip2_namespace/caip2_reference/chain_from_caip2` and the dapp short name is `GemApplicationMetadataService.short_name` (both are read from Compose scenes and value extensions); `siwe_try_parse` and `siwe_validate` had no caller on either platform and `permit2_data_to_eip712_json` has only a Core one, so all three left the FFI |
 | ~~`GemTransactionStateService`~~ (done) | neither app called these four: they are internal Core functions now, and the unused `transaction_timeout_ms` is deleted |
-| `GemSupportService` | `parse_support_message_display_content` stays a free function: it is one markdown parse with no siblings, and both callers (an iOS message view model, an Android message composable) are per-message value code |
+| ~~`GemSwapService`~~ → `GemSwapQuoteService` (done) | the quote mapping, the price impact and the default slippage: everything a quote screen needs without a provider ([swap/config.rs](../gemstone/src/services/swap/config.rs)) |
+| ~~`TransactionSimulationService`~~ → `GemSimulationFormatter` (done) | the header rule and the payload-field filter, read from an iOS app service and an Android extension; the provider-backed `TransactionSimulationService` keeps the fetch |
+| Left as free functions | `parse_support_message_display_content`, `banner_identifier`, `default_contact_chain`, `connection_status`, `service_status_timeout_seconds` — one function each, no siblings to group with, and every caller is value code (a message composable, a store adapter, a UI-state default). A service needs at least two methods to be worth holding |
 | ~~`GemAppUpdateService`~~ (done) | `is_version_higher` is a method and `lib_version` is no longer exported |
 | Keep as free functions | `generate_device_key_pair`, `decode_private_key`, `encode_private_key`, `supports_private_key_import`, `create_auth_message` — key material, called once at a boundary that already owns the secret |
 

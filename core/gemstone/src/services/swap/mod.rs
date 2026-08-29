@@ -1,3 +1,4 @@
+pub mod config;
 pub mod model;
 pub mod rules;
 pub mod store;
@@ -14,7 +15,7 @@ use crate::gem_swapper::{GemSwapper, permit2_data_to_eip712_json};
 use crate::keystore::{GemKeystore, keystore_id_for_wallet};
 use crate::message::sign_type::{SignDigestType, SignMessage};
 use crate::message::signer::MessageSigner;
-use crate::models::swap::{GemSwapQuote, GemSwapQuoteData};
+use crate::models::swap::GemSwapQuoteData;
 use crate::services::error::GemServiceError;
 use crate::services::wallet::GemKeystorePassword;
 pub use model::{GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
@@ -77,11 +78,6 @@ impl GemSwapService {
         let data = self.get_quote_data(&wallet, &quote).await?;
         rules::swap_transfer(&wallet, &quote, data)
     }
-}
-
-#[uniffi::export]
-pub fn swap_quote(quote: Quote) -> GemSwapQuote {
-    rules::swap_quote(&quote)
 }
 
 impl GemSwapService {

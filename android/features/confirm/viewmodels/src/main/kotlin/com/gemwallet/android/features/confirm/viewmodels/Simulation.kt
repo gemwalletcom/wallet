@@ -5,8 +5,7 @@ import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
-import uniffi.gemstone.simulationHeader
-import uniffi.gemstone.simulationPayloadFields
+import uniffi.gemstone.GemSimulationFormatter
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
@@ -19,6 +18,8 @@ import com.wallet.core.primitives.SimulationPayloadFieldKind
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
 import java.math.BigInteger
+
+private val simulationFormatter = GemSimulationFormatter()
 
 data class Simulation(
     val warnings: List<SimulationWarning> = emptyList(),
@@ -41,8 +42,8 @@ fun SimulationResult.toSimulation(
     explorerName: String? = null,
     isApproval: Boolean = false,
 ): Simulation {
-    val showsHeader = isApproval || simulationHeader(toJson()) != null
-    val filtered = simulationPayloadFields(payload.map { it.toJson() }, showsHeader)
+    val showsHeader = isApproval || simulationFormatter.header(toJson()) != null
+    val filtered = simulationFormatter.payloadFields(payload.map { it.toJson() }, showsHeader)
         .map { it.decodeJson<SimulationPayloadField>() }
 
     return Simulation(
