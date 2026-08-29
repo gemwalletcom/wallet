@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
+import class Gemstone.GemPerpetualService
 import protocol Gemstone.GemPerpetualServiceProtocol
+import class Gemstone.GemPerpetualStreamService
 import Foundation
 import enum Gemstone.GemPerpetualSubscription
 import Primitives
@@ -10,8 +12,7 @@ import WebSocketClient
 public actor HyperliquidObserverService: PerpetualObservable {
     private let perpetualService: any GemPerpetualServiceProtocol
     private let webSocket: any WebSocketConnectable
-    private let subscriptionService: HyperliquidSubscriptionService
-    private let eventHandler: HyperliquidEventHandler
+    private let streamService: GemPerpetualStreamService
 
     private var observeTask: Task<Void, Never>?
     private var currentWallet: Wallet?
@@ -20,16 +21,16 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     public init(
         nodeProvider: any NodeURLProvidable,
-        perpetualService: any GemPerpetualServiceProtocol,
+        perpetualService: GemPerpetualService,
     ) {
         let webSocket = WebSocketConnection(url: nodeProvider.node(for: .hyperCore))
-        let chartService = ChartObserverService()
-
         self.webSocket = webSocket
+        chartService = ChartObserverService()
         self.perpetualService = perpetualService
-        self.chartService = chartService
-        subscriptionService = HyperliquidSubscriptionService(webSocket: webSocket)
-        eventHandler = HyperliquidEventHandler(perpetualService: perpetualService, chartService: chartService)
+        streamService = GemPerpetualStreamService(
+            perpetual: perpetualService,
+            connection: PerpetualStreamConnection(webSocket: webSocket),
+        )
     }
 
     deinit {
@@ -49,16 +50,16 @@ public actor HyperliquidObserverService: PerpetualObservable {
         observeTask = nil
         currentWallet = nil
 
-        await subscriptionService.disconnected()
+        await streamService.disconnected()
         await webSocket.disconnect()
     }
 
     public func subscribe(_ subscription: GemPerpetualSubscription) async throws {
-        try await subscriptionService.subscribe(subscription)
+        try await streamService.subscribe(subscription: subscription)
     }
 
     public func unsubscribe(_ subscription: GemPerpetualSubscription) async throws {
-        try await subscriptionService.unsubscribe(subscription)
+        try await streamService.unsubscribe(subscription: subscription)
     }
 
     @discardableResult
@@ -107,9 +108,9 @@ public actor HyperliquidObserverService: PerpetualObservable {
             case .connected:
                 await handleConnected(mode: mode)
             case let .message(data):
-                await eventHandler.handle(data, walletId: walletId, mode: mode)
+                await handle(data, walletId: walletId, mode: mode)
             case .disconnected:
-                await subscriptionService.disconnected()
+                await streamService.disconnected()
             }
         }
     }
@@ -117,9 +118,18 @@ public actor HyperliquidObserverService: PerpetualObservable {
     private func handleConnected(mode: PerpetualAccountMode) async {
         guard let address = currentWallet?.hyperliquidAccount?.address else { return }
         do {
-            try await subscriptionService.connected(address: address, mode: mode)
+            try await streamService.connected(address: address, mode: mode.json())
         } catch {
             debugLog("HyperliquidObserver: subscribe failed: \(error)")
+        }
+    }
+
+    private func handle(_ data: Data, walletId: WalletId, mode: PerpetualAccountMode) async {
+        do {
+            guard let candle = try await streamService.handle(walletId: walletId.id, mode: mode.json(), data: data) else { return }
+            try await chartService.yield(Primitives.ChartCandleUpdate(candle))
+        } catch {
+            debugLog("HyperliquidObserver: handle message failed: \(error)")
         }
     }
 

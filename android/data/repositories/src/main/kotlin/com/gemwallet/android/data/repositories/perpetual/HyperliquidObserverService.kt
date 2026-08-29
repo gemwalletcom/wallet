@@ -13,15 +13,19 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.WalletId
+import com.gemwallet.android.serializer.decodeJson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemPerpetualStreamService
 import uniffi.gemstone.GemPerpetualSubscription
 
 class HyperliquidObserverService(
@@ -29,15 +33,19 @@ class HyperliquidObserverService(
     private val syncPerpetuals: SyncPerpetuals,
     private val syncPerpetualPositions: SyncPerpetualPositions,
     private val getPerpetualAccountMode: GetPerpetualAccountMode,
-    private val eventHandler: HyperliquidEventHandler,
-    private val subscriptionService: HyperliquidSubscriptionService,
+    private val streamService: GemPerpetualStreamService,
     private val connection: WebSocketConnectable,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : PerpetualObserver {
 
     private val foreground = MutableStateFlow(false)
 
-    override val chartUpdates: Flow<ChartCandleUpdate> = eventHandler.chartUpdates
+    private val chartFlow = MutableSharedFlow<ChartCandleUpdate>(
+        extraBufferCapacity = CHART_BUFFER_CAPACITY,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+
+    override val chartUpdates: Flow<ChartCandleUpdate> = chartFlow.asSharedFlow()
 
     init {
         scope.launch {
@@ -71,33 +79,37 @@ class HyperliquidObserverService(
     }
 
     override fun subscribe(subscription: GemPerpetualSubscription) {
-        subscriptionService.subscribe(subscription)
+        scope.launch { send { streamService.subscribe(subscription) } }
     }
 
     override fun unsubscribe(subscription: GemPerpetualSubscription) {
-        subscriptionService.unsubscribe(subscription)
+        scope.launch { send { streamService.unsubscribe(subscription) } }
     }
 
-    private suspend fun observeConnection(walletId: WalletId, address: String, mode: PerpetualAccountMode) = coroutineScope {
-        launch { sendSubscriptionRequests() }
+    private suspend fun observeConnection(walletId: WalletId, address: String, mode: PerpetualAccountMode) {
         connection.connect().collect { event ->
             when (event) {
-                WebSocketEvent.Connected -> subscriptionService.connected(address, mode.toGem())
-                is WebSocketEvent.Message -> eventHandler.handle(walletId, mode, event.text)
-                WebSocketEvent.Disconnected -> subscriptionService.disconnected()
+                WebSocketEvent.Connected -> send { streamService.connected(address, mode.toGem()) }
+                is WebSocketEvent.Message -> handle(walletId, mode, event.text)
+                WebSocketEvent.Disconnected -> streamService.disconnected()
             }
         }
     }
 
-    private suspend fun sendSubscriptionRequests() {
-        for (request in subscriptionService.messages) {
-            runCatchingCancellable { connection.send(request) }
-                .onFailure { Log.e(TAG, "Subscription request error", it) }
-        }
+    private suspend fun handle(walletId: WalletId, mode: PerpetualAccountMode, text: String) {
+        runCatchingCancellable { streamService.handle(walletId.id, mode.toGem(), text.encodeToByteArray()) }
+            .onSuccess { candle -> candle?.decodeJson<ChartCandleUpdate>()?.let { chartFlow.emit(it) } }
+            .onFailure { Log.e(TAG, "Handle message error: ${text.take(MESSAGE_LOG_LIMIT)}", it) }
+    }
+
+    private suspend fun send(request: suspend () -> Unit) {
+        runCatchingCancellable(request).onFailure { Log.e(TAG, "Subscription request error", it) }
     }
 
     companion object {
         private const val TAG = "HyperliquidObserver"
+        private const val CHART_BUFFER_CAPACITY = 64
+        private const val MESSAGE_LOG_LIMIT = 100
     }
 }
 

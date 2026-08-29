@@ -5,9 +5,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualAccountMode
 import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
-import com.gemwallet.android.data.repositories.perpetual.HyperliquidEventHandler
 import com.gemwallet.android.data.repositories.perpetual.HyperliquidObserverService
-import com.gemwallet.android.data.repositories.perpetual.HyperliquidSubscriptionService
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepositoryImpl
@@ -27,6 +25,7 @@ import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPerpetualStreamService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemPriceService
@@ -36,7 +35,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import javax.inject.Singleton
-import uniffi.gemstone.HyperliquidSubscriptions
+import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStreamConnection
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -82,42 +81,32 @@ object PerpetualModule {
 
     @Provides
     @Singleton
-    fun provideHyperliquidEventHandler(
-        perpetualService: GemPerpetualService,
-    ): HyperliquidEventHandler = HyperliquidEventHandler(perpetualService)
-
-    @Provides
-    @Singleton
-    fun provideHyperliquidSubscriptionService(): HyperliquidSubscriptionService =
-        HyperliquidSubscriptionService(HyperliquidSubscriptions())
-
-    @Provides
-    @Singleton
     fun provideHyperliquidObserverService(
         observePerpetualWallet: ObservePerpetualWallet,
         syncPerpetuals: SyncPerpetuals,
         syncPerpetualPositions: SyncPerpetualPositions,
         getPerpetualAccountMode: GetPerpetualAccountMode,
-        eventHandler: HyperliquidEventHandler,
-        subscriptionService: HyperliquidSubscriptionService,
+        perpetualService: GemPerpetualService,
         getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
-    ): HyperliquidObserverService = HyperliquidObserverService(
-        observePerpetualWallet = observePerpetualWallet,
-        syncPerpetuals = syncPerpetuals,
-        syncPerpetualPositions = syncPerpetualPositions,
-        getPerpetualAccountMode = getPerpetualAccountMode,
-        eventHandler = eventHandler,
-        subscriptionService = subscriptionService,
-        connection = WebSocketConnection(
+    ): HyperliquidObserverService {
+        val connection = WebSocketConnection(
             client = okHttpClient,
             requestProvider = {
                 val url = getNodeUrlCase.getNodeUrl(Chain.HyperCore)
                 WebSocketRequest(url = url.toWebSocketUrl())
             },
             reconnection = ExponentialReconnection(maxDelay = 30.0),
-        ),
-    )
+        )
+        return HyperliquidObserverService(
+            observePerpetualWallet = observePerpetualWallet,
+            syncPerpetuals = syncPerpetuals,
+            syncPerpetualPositions = syncPerpetualPositions,
+            getPerpetualAccountMode = getPerpetualAccountMode,
+            streamService = GemPerpetualStreamService(perpetualService, GemstonePerpetualStreamConnection(connection)),
+            connection = connection,
+        )
+    }
 
     @Provides
     @Singleton

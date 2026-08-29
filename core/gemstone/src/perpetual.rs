@@ -148,7 +148,7 @@ impl From<HyperliquidSubscription> for GemPerpetualSubscription {
 }
 
 impl GemPerpetualSubscription {
-    fn map(self) -> HyperliquidSubscription {
+    pub(crate) fn map(self) -> HyperliquidSubscription {
         match self {
             Self::AccountState { address } => HyperliquidSubscription::AccountState { address },
             Self::SpotState { address } => HyperliquidSubscription::SpotState { address },

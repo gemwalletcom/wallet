@@ -68,6 +68,7 @@ pub use name::{GemAddressStore, GemNameService};
 pub use nft::{GemNftService, GemNftStore};
 pub use node::{GemNodeService, GemNodeStore};
 pub use notification::{GemNotificationService, GemNotificationStore};
+pub use perpetual::stream::{GemPerpetualStreamConnection, GemPerpetualStreamService};
 pub use perpetual::{GemPerpetualService, GemPerpetualStore};
 pub use portfolio::{GemPortfolioService, GemPortfolioStore};
 pub use preferences::{GemPreferencesService, GemPreferencesStore};

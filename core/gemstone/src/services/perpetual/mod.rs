@@ -1,6 +1,7 @@
 pub mod model;
 pub mod rules;
 pub mod store;
+pub mod stream;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
