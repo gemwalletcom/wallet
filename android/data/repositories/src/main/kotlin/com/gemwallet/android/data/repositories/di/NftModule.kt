@@ -1,11 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.cases.nft.GetAssetNft
-import com.gemwallet.android.cases.nft.GetListNftCase
-import com.gemwallet.android.cases.nft.RefreshNftAsset
-import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.repositories.gemstone.GemstoneNftStore
-import com.gemwallet.android.data.repositories.nft.NftRepository
 import com.gemwallet.android.data.service.store.database.NftDao
 import dagger.Module
 import dagger.Provides
@@ -24,24 +19,4 @@ class NftModule {
     fun provideGemNftService(apiClient: GemDeviceApiClient, nftDao: NftDao): GemNftService =
         GemNftService(apiClient, GemstoneNftStore(nftDao))
 
-    @Provides
-    @Singleton
-    fun provideNftRepository(
-        nftService: GemNftService,
-        nftDao: NftDao
-    ): NftRepository {
-        return NftRepository(nftService, nftDao)
-    }
-
-    @Provides
-    fun provideSyncNfts(nftRepository: NftRepository): SyncNfts = nftRepository
-
-    @Provides
-    fun provideGetNftCase(nftRepository: NftRepository): GetListNftCase = nftRepository
-
-    @Provides
-    fun provideGetAssetNftCase(nftRepository: NftRepository): GetAssetNft = nftRepository
-
-    @Provides
-    fun provideRefreshNftAsset(nftRepository: NftRepository): RefreshNftAsset = nftRepository
 }

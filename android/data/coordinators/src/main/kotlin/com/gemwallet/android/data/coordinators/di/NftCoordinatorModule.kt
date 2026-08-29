@@ -1,14 +1,13 @@
 package com.gemwallet.android.data.coordinators.di
 
 import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemNftService
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.nft.cases.RefreshNftAsset
 import com.gemwallet.android.application.nft.cases.SyncNftCollections
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.cases.nft.GetListNftCase
-import com.gemwallet.android.cases.nft.RefreshNftAsset as RefreshNftAssetCase
-import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.coordinators.nft.GetNftAssetDetailsImpl
 import com.gemwallet.android.data.coordinators.nft.GetNftCollectionsImpl
 import com.gemwallet.android.data.coordinators.nft.RefreshNftAssetImpl
@@ -46,17 +45,17 @@ object NftCoordinatorModule {
     @Provides
     @Singleton
     fun provideSyncNftCollections(
-        syncNfts: SyncNfts,
+        nftService: GemNftService,
     ): SyncNftCollections {
-        return SyncNftCollectionsImpl(syncNfts)
+        return SyncNftCollectionsImpl(nftService)
     }
 
     @Provides
     @Singleton
     fun provideRefreshNftAsset(
         sessionRepository: SessionRepository,
-        refreshNftAsset: RefreshNftAssetCase,
+        nftService: GemNftService,
     ): RefreshNftAsset {
-        return RefreshNftAssetImpl(sessionRepository, refreshNftAsset)
+        return RefreshNftAssetImpl(sessionRepository, nftService)
     }
 }

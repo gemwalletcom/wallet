@@ -381,7 +381,6 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 | Repository | Callers | What it holds today | Target |
 | --- | --- | --- | --- |
-| `NftRepository` | 2 | two observed reads plus `GemNftService` and `nftCollectionStatus` | `GetNftList`/`GetNftAsset` cases; the `fetch*` names go with it |
 | `DeviceRepository` | 2 | push token and push-enabled over DataStore, device info for `GemDeviceService` | push token and flag are preferences — move the values into Core (`GemPreferencesService`) and keep a `GetPushEnabled`/`SetPushToken` case |
 | `PerpetualRepository` (+`Impl`) | 18 | six observed reads over the perpetual DAOs | one case per read (`GetPerpetuals`, `GetPerpetual`, `GetPositions`, `GetPosition`, `GetPerpetualBalance`) |
 | `StakeRepository` | 12 | DAO reads plus `GemStakeService` and the validator free functions | stake cases; the recommended/selectable validator calls go straight to Core |

@@ -1,18 +1,19 @@
 package com.gemwallet.android.data.coordinators.nft
 
-import com.gemwallet.android.cases.nft.RefreshNftAsset
+import com.gemwallet.android.application.nft.cases.RefreshNftAsset
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.NFTAssetId
 import kotlinx.coroutines.flow.firstOrNull
-import com.gemwallet.android.application.nft.cases.RefreshNftAsset as RefreshNftAssetCoordinator
+import uniffi.gemstone.GemNftService
 
 class RefreshNftAssetImpl(
     private val sessionRepository: SessionRepository,
-    private val refreshNftAsset: RefreshNftAsset,
-) : RefreshNftAssetCoordinator {
+    private val nftService: GemNftService,
+) : RefreshNftAsset {
 
     override suspend fun invoke(assetId: NFTAssetId) {
         val wallet = sessionRepository.session().firstOrNull()?.wallet ?: return
-        refreshNftAsset.refreshNftAsset(wallet, assetId)
+        nftService.refreshAsset(wallet.id.id, assetId.toIdentifier())
     }
 }

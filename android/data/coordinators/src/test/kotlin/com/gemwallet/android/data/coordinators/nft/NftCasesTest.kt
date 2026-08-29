@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.nft
+package com.gemwallet.android.data.coordinators.nft
 
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
@@ -26,11 +26,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemNftService
 
-class NftRepositoryTest {
+class NftCasesTest {
 
     private val nftService = mockk<GemNftService>()
     private val nftDao = mockk<NftDao>()
-    private val subject = NftRepository(nftService, nftDao)
+    private val getListNft = GetListNftImpl(nftDao)
+    private val getAssetNft = GetAssetNftImpl(nftService, nftDao)
 
     private val collectionId = mockNftCollectionId()
     private val otherCollectionId = mockNftCollectionId(contractAddress = "0xother")
@@ -41,7 +42,7 @@ class NftRepositoryTest {
         every { nftDao.getCollections("wallet-1") } returns flowOf(listOf(dbCollection(collectionId)))
         every { nftDao.getAssets("wallet-1") } returns flowOf(listOf(dbAsset(assetId, collectionId)))
 
-        val result = subject.getListNft(mockWalletId("wallet-1")).first()
+        val result = getListNft.getListNft(mockWalletId("wallet-1")).first()
 
         assertEquals(listOf(collectionId), result.map { it.collection.id })
         assertEquals(listOf(assetId), result.flatMap { it.assets }.map { it.id })
@@ -52,7 +53,7 @@ class NftRepositoryTest {
         every { nftDao.getAsset(assetId) } returns flowOf(dbAsset(assetId, collectionId))
         every { nftDao.getCollection(collectionId) } returns flowOf(dbCollection(collectionId))
 
-        val result = subject.getAssetNft(assetId).first()
+        val result = getAssetNft.getAssetNft(assetId).first()
 
         assertEquals(collectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
@@ -67,7 +68,7 @@ class NftRepositoryTest {
             asset = mockNftAsset(id = assetId, collectionId = collectionId),
         ).toJson()
 
-        val result = subject.getAssetNft(assetId).first()
+        val result = getAssetNft.getAssetNft(assetId).first()
 
         assertEquals(collectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
@@ -83,7 +84,7 @@ class NftRepositoryTest {
             asset = mockNftAsset(id = assetId, collectionId = otherCollectionId),
         ).toJson()
 
-        val result = subject.getAssetNft(assetId).first()
+        val result = getAssetNft.getAssetNft(assetId).first()
 
         assertEquals(otherCollectionId, result.collection.id)
         assertEquals(assetId, result.assets.single().id)
