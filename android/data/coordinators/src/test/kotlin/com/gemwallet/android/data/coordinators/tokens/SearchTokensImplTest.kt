@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.tokens
 
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAsset
@@ -23,14 +23,14 @@ import uniffi.gemstone.GemSearchService
 class SearchTokensImplTest {
 
     private val wallet = mockWallet(id = "wallet-1")
-    private val sessionRepository = mockk<SessionRepository> {
-        every { session() } returns MutableStateFlow(mockSession(wallet = wallet))
+    private val getSession = mockk<GetSession> {
+        every { this@mockk() } returns MutableStateFlow(mockSession(wallet = wallet))
     }
     private val searchService = mockk<GemSearchService>()
     private val assetsService = mockk<GemAssetsService>(relaxed = true)
 
     private val subject = SearchTokensImpl(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
         searchService = searchService,
         assetsService = assetsService,
     )

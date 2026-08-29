@@ -22,7 +22,7 @@ import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.cases.addresses.GetAddressNames
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
@@ -85,7 +85,7 @@ private val transferService = GemTransferService()
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ConfirmViewModel @Inject constructor(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val getWalletAssets: GetWalletAssets,
     private val getAssetInfo: GetAssetInfo,
     private val syncMissingAssets: SyncMissingAssets,
@@ -116,7 +116,7 @@ class ConfirmViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val session = sessionRepository.session()
+    val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val approvalAssetId = request

@@ -5,7 +5,8 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.cases.parseNotificationData
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.application.wallet.cases.GetWallet
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationData
@@ -30,7 +31,8 @@ import uniffi.gemstone.GemAssetsService
 import javax.inject.Inject
 
 class NotificationNavigation @Inject constructor(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
+    private val setCurrentWallet: SetCurrentWallet,
     private val getWallet: GetWallet,
     private val createTransaction: CreateTransaction,
     private val syncMissingAssets: SyncMissingAssets,
@@ -94,8 +96,8 @@ class NotificationNavigation @Inject constructor(
     }
 
     private suspend fun selectWallet(wallet: Wallet) {
-        if (sessionRepository.session().firstOrNull()?.wallet?.id != wallet.id) {
-            sessionRepository.setWallet(wallet)
+        if (getSession().firstOrNull()?.wallet?.id != wallet.id) {
+            setCurrentWallet.setCurrentWallet(wallet.id)
         }
     }
 }

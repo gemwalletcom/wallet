@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.tokens
 
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
@@ -15,7 +15,7 @@ import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemSearchService
 
 class SearchTokensImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val searchService: GemSearchService,
     private val assetsService: GemAssetsService,
 ) : SearchTokensCase {
@@ -24,7 +24,7 @@ class SearchTokensImpl(
         if (query.isEmpty()) {
             return@withContext false
         }
-        val wallet = sessionRepository.session().value?.wallet ?: return@withContext false
+        val wallet = getSession().value?.wallet ?: return@withContext false
         runCatchingCancellable { searchService.searchAssets(wallet.toJson(), query, currency.toJson()) }
             .getOrElse { return@withContext false }
             .isNotEmpty()

@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.nft
 import uniffi.gemstone.GemExplorerService
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.cases.nft.GetAssetNft
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import com.gemwallet.android.ext.getAccount
 import com.wallet.core.primitives.BlockExplorerLink
@@ -16,13 +16,13 @@ import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetNftAssetDetailsImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val getAssetNft: GetAssetNft,
     private val explorerService: GemExplorerService,
 ) : GetNftAssetDetails {
 
     override fun invoke(assetId: NFTAssetId): Flow<NftAssetDetailsData?> {
-        return sessionRepository.session().filterNotNull()
+        return getSession().filterNotNull()
             .flatMapLatest { session ->
                 getAssetNft.getAssetNft(assetId)
                     .map { nftData ->

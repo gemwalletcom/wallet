@@ -9,7 +9,7 @@ import com.gemwallet.android.data.coordinators.referral.CreateReferralImpl
 import com.gemwallet.android.data.coordinators.referral.GetRewardsImpl
 import com.gemwallet.android.data.coordinators.referral.RedeemImpl
 import com.gemwallet.android.data.coordinators.referral.UseReferralCodeImpl
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

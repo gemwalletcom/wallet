@@ -4,7 +4,8 @@ import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import com.gemwallet.android.data.repositories.stream.WebSocketConnection
@@ -144,14 +145,16 @@ object AssetsModule {
     @Provides
     @Singleton
     fun provideStreamObserverService(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
+        getCurrentCurrency: GetCurrentCurrency,
         syncAssets: SyncAssets,
         streamSubscriptionService: GemStreamSubscriptionService,
         streamService: GemStreamService,
         connection: WebSocketConnectable,
         deviceService: GemDeviceService,
     ): StreamObserverService = StreamObserverService(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
+        getCurrentCurrency = getCurrentCurrency,
         syncAssets = syncAssets,
         subscriptionService = streamSubscriptionService,
         streamService = streamService,

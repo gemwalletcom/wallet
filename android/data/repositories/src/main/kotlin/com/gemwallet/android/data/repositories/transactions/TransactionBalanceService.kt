@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.transactions
 
 import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.domains.confirm.toTransferData
 import com.gemwallet.android.model.AssetInfo
@@ -17,7 +17,7 @@ private val transferService = GemTransferService()
 
 class TransactionBalanceService @Inject constructor(
     private val perpetualStore: GemstonePerpetualStore,
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
 ) {
 
     suspend fun getBalance(assetInfo: AssetInfo, params: ConfirmParams): BigInteger {
@@ -36,7 +36,7 @@ class TransactionBalanceService @Inject constructor(
     }
 
     private suspend fun perpetualAvailable(assetInfo: AssetInfo): String {
-        val walletId = sessionRepository.session().value?.wallet?.id ?: return "0"
+        val walletId = getSession().value?.wallet?.id ?: return "0"
         val amount = perpetualStore.observeBalance(walletId, HypercoreUSDC.id).firstOrNull()?.available ?: 0.0
         return Crypto(amount.toBigDecimal(), assetInfo.asset.decimals).atomicValue.toString()
     }

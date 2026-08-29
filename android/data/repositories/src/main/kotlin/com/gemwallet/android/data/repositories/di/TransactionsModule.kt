@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionStateTracker
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAddressStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStateStore

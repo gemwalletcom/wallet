@@ -2,7 +2,8 @@ package com.gemwallet.android
 
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.application.wallet.cases.GetWallet
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationData
@@ -36,18 +37,21 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetsService
+import com.wallet.core.primitives.WalletId
 
 class NotificationNavigationTest {
     private val currentWallet = mockWallet(id = "current-wallet")
     private val session = MutableStateFlow(mockSession(wallet = currentWallet))
-    private val sessionRepository = mockk<SessionRepository>()
+    private val getSession = mockk<GetSession>()
+    private val setCurrentWallet = mockk<SetCurrentWallet>(relaxed = true)
     private val getWallet = mockk<GetWallet>()
     private val createTransaction = mockk<CreateTransaction>()
     private val syncMissingAssets = mockk<SyncMissingAssets>()
     private val assetsService = mockk<GemAssetsService>()
 
     private val subject = NotificationNavigation(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
+        setCurrentWallet = setCurrentWallet,
         getWallet = getWallet,
         createTransaction = createTransaction,
         syncMissingAssets = syncMissingAssets,
@@ -56,10 +60,9 @@ class NotificationNavigationTest {
 
     @Before
     fun setup() {
-        every { sessionRepository.session() } returns session
-        coEvery { sessionRepository.getCurrentCurrency() } returns Currency.USD
-        coEvery { sessionRepository.setWallet(any()) } coAnswers {
-            session.value = mockSession(wallet = invocation.args.first() as Wallet)
+        every { getSession() } returns session
+        coEvery { setCurrentWallet.setCurrentWallet(any()) } coAnswers {
+            session.value = mockSession(wallet = mockWallet(id = (invocation.args.first() as WalletId).id))
         }
         coEvery { syncMissingAssets.syncMissingAssets(any()) } returns emptyList()
     }
@@ -87,7 +90,7 @@ class NotificationNavigationTest {
         )
 
         assertEquals(listOf(AssetRoute(asset.id), TransactionDetailsRoute(transaction.id)), route)
-        coVerify { sessionRepository.setWallet(wallet) }
+        coVerify { setCurrentWallet.setCurrentWallet(wallet.id) }
     }
 
     @Test
@@ -109,7 +112,7 @@ class NotificationNavigationTest {
         )
 
         assertEquals(emptyList<Any>(), route)
-        coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
+        coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
     }
 
     @Test
@@ -171,7 +174,7 @@ class NotificationNavigationTest {
         )
 
         assertEquals(listOf(AssetRoute(asset.id)), route)
-        coVerify { sessionRepository.setWallet(wallet) }
+        coVerify { setCurrentWallet.setCurrentWallet(wallet.id) }
     }
 
     @Test
@@ -187,7 +190,7 @@ class NotificationNavigationTest {
 
         assertEquals(emptyList<Any>(), route)
         coVerify(exactly = 0) { assetsService.openWalletAsset(any(), any()) }
-        coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
+        coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
         coVerify(exactly = 0) { createTransaction.createNotificationTransaction(any(), any(), any()) }
     }
 
@@ -197,7 +200,7 @@ class NotificationNavigationTest {
 
         assertEquals(listOf(SupportRoute), route)
         coVerify(exactly = 0) { syncMissingAssets.syncMissingAssets(any()) }
-        coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
+        coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
     }
 
     @Test
@@ -211,6 +214,6 @@ class NotificationNavigationTest {
 
         assertEquals(listOf(AssetRoute(assetId)), route)
         coVerify { syncMissingAssets.syncMissingAssets(listOf(assetId)) }
-        coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
+        coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
     }
 }

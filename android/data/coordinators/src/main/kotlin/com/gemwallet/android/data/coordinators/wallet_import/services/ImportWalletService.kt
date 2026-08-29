@@ -14,14 +14,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemDeviceService
 
 class ImportWalletService(
     private val discoveryService: GemAssetDiscoveryService,
-    private val sessionRepository: SessionRepository,
+    private val getCurrentCurrency: GetCurrentCurrency,
     private val deviceService: GemDeviceService,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }),
 ) : SyncWalletImport, GetImportWalletState {

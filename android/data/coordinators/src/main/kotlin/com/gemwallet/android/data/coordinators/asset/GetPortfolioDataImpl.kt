@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.cases.GetPortfolioData
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.ext.hyperliquidAccount
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -15,7 +15,7 @@ import uniffi.gemstone.GemPortfolioService
 
 class GetPortfolioDataImpl(
     private val portfolioService: GemPortfolioService,
-    private val sessionRepository: SessionRepository,
+    private val getCurrentWallet: GetCurrentWallet,
 ) : GetPortfolioData {
 
     override suspend fun getPortfolioData(
@@ -26,11 +26,11 @@ class GetPortfolioDataImpl(
 
     private suspend fun input(type: PortfolioType, period: ChartPeriod, currency: Currency): GemPortfolioDataInput = when (type) {
         PortfolioType.Wallet -> {
-            val walletId = checkNotNull(sessionRepository.getCurrentWallet()?.id) { "Missing current wallet" }
+            val walletId = checkNotNull(getCurrentWallet.getCurrentWallet()?.id) { "Missing current wallet" }
             GemPortfolioDataInput.Wallet(walletId.id, period.toJson(), currency.toJson())
         }
         PortfolioType.Perpetuals -> {
-            val address = checkNotNull(sessionRepository.session().value?.wallet?.hyperliquidAccount?.address) {
+            val address = checkNotNull(getCurrentWallet.getCurrentWallet()?.hyperliquidAccount?.address) {
                 "Perpetual account is not available"
             }
             GemPortfolioDataInput.Perpetuals(Chain.HyperCore.string, address, period.toJson())

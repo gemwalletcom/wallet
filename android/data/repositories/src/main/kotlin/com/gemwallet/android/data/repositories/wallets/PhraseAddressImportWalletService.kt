@@ -4,7 +4,7 @@ import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.cases.wallet.WalletImportResult
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.words
 import com.gemwallet.android.model.ImportType
@@ -24,7 +24,7 @@ import uniffi.gemstone.GemDeviceService
 
 class PhraseAddressImportWalletService(
     private val walletService: GemWalletService,
-    private val sessionRepository: SessionRepository,
+    private val setCurrentWallet: SetCurrentWallet,
     private val appStartService: GemAppStartService,
     private val deviceService: GemDeviceService,
     private val walletImportSync: SyncWalletImport,
@@ -84,7 +84,7 @@ class PhraseAddressImportWalletService(
         appStartService.setupWallet(wallet.toJson()).forEach { failure ->
             Log.e(TAG, "${failure.step} failed for ${wallet.id.id}: ${failure.message}")
         }
-        sessionRepository.setWallet(wallet)
+        setCurrentWallet.setCurrentWallet(wallet.id)
     }
 
     private fun validated(import: GemWalletImportType): GemWalletImportType {

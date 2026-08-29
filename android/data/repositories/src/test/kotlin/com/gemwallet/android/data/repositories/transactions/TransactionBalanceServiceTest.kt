@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.transactions
 
 import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -22,11 +22,11 @@ import java.math.BigInteger
 class TransactionBalanceServiceTest {
 
     private val perpetualStore = mockk<GemstonePerpetualStore>()
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true)
+    private val getSession = mockk<GetSession>(relaxed = true)
 
     private val subject = TransactionBalanceService(
         perpetualStore = perpetualStore,
-        sessionRepository = sessionRepository,
+        getSession = getSession,
     )
 
     @Test

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.assets
 
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
 import com.gemwallet.android.data.service.store.database.entities.toDTO
@@ -21,7 +21,7 @@ import javax.inject.Singleton
 @Singleton
 class RecentAssetsService @Inject constructor(
     private val assetsDao: AssetsDao,
-    private val sessionRepository: SessionRepository,
+    private val getCurrentWalletId: GetCurrentWalletId,
 ) {
 
     suspend fun addRecentActivity(
@@ -42,8 +42,8 @@ class RecentAssetsService @Inject constructor(
     }
 
     fun getRecentAssets(request: RecentAssetsRequest): Flow<List<RecentAsset>> {
-        return sessionRepository.currentWalletId()
-            .flatMapLatest { walletId -> assetsDao.getRecentAssets(walletId, request.types, request.filters, request.limit) }
+        return getCurrentWalletId()
+            .flatMapLatest { walletId -> assetsDao.getRecentAssets(walletId.id, request.types, request.filters, request.limit) }
             .map { items ->
                 items.mapNotNull { row ->
                     val asset = row.asset.toDTO() ?: return@mapNotNull null

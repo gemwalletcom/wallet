@@ -10,7 +10,7 @@ import com.gemwallet.android.data.coordinators.add_asset.GetAvailableTokenChains
 import com.gemwallet.android.data.coordinators.add_asset.ObserveTokenImpl
 import com.gemwallet.android.data.coordinators.add_asset.SearchCustomTokenImpl
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,6 +18,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -26,17 +27,17 @@ object AddAssetModule {
     @Provides
     @Singleton
     fun provideGetAvailableTokenChains(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
     ): GetAvailableTokenChains {
-        return GetAvailableTokenChainsImpl(sessionRepository)
+        return GetAvailableTokenChainsImpl(getSession)
     }
 
     @Provides
     @Singleton
     fun provideSearchCustomToken(
-        sessionRepository: SessionRepository,
+        getCurrentCurrency: GetCurrentCurrency,
         searchTokensCase: SearchTokensCase,
-    ): SearchCustomToken = SearchCustomTokenImpl(sessionRepository, searchTokensCase)
+    ): SearchCustomToken = SearchCustomTokenImpl(getCurrentCurrency, searchTokensCase)
 
     @Provides
     @Singleton
@@ -48,9 +49,9 @@ object AddAssetModule {
     @Provides
     @Singleton
     fun provideAddCustomToken(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         enableAsset: EnableAsset,
     ): AddCustomToken {
-        return AddCustomTokenImpl(sessionRepository, enableAsset)
+        return AddCustomTokenImpl(getSession, enableAsset)
     }
 }

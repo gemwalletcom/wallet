@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.swap
 
 import com.gemwallet.android.application.swap.cases.BuildSwapConfirmParams
 import com.gemwallet.android.application.swap.cases.SwapNoQuoteException
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.serializer.decodeJson
@@ -16,7 +16,7 @@ import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperQuote
 
 class BuildSwapConfirmParamsImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val swapService: GemSwapServiceInterface,
 ) : BuildSwapConfirmParams {
 
@@ -25,7 +25,7 @@ class BuildSwapConfirmParamsImpl(
         pay: AssetInfo,
         receive: AssetInfo,
     ): ConfirmParams.SwapParams? {
-        val wallet = sessionRepository.session().firstOrNull()?.wallet ?: return null
+        val wallet = getSession().firstOrNull()?.wallet ?: return null
         val from = pay.owner ?: throw SwapNoQuoteException()
 
         val (transfer, swapQuote, swapData) = try {

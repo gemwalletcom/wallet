@@ -65,10 +65,10 @@ class PricesWidget : GlanceAppWidget() {
         id: GlanceId
     ) {
         val getWidgetAssets = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).getWidgetAssets()
-        val sessionRepository = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).sessionRepository()
+        val getCurrentCurrency = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).getCurrentCurrency()
         val noData = context.getString(R.string.errors_no_data_available)
         val items = try {
-            val currency = sessionRepository.session().firstOrNull()?.currency ?: Currency.USD
+            val currency = getCurrentCurrency.getCurrentCurrency()
             loadItems(context, getWidgetAssets(currency))
         } catch (_: Throwable) {
             emptyList()

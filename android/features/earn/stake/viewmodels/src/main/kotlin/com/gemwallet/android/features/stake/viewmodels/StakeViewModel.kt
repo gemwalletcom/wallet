@@ -5,7 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
@@ -62,7 +62,7 @@ class StakeViewModel @Inject constructor(
     private val getValidators: GetValidators,
     private val syncStakeDelegations: SyncStakeDelegations,
     private val stakeConfig: GemStakeConfigService,
-    sessionRepository: SessionRepository,
+    getSession: GetSession,
     stateHandle: SavedStateHandle,
 ): ViewModel() {
     private val initialAssetId = stateHandle.get<String>(RouteArgument.AssetId.key)?.toAssetId()
@@ -80,7 +80,7 @@ class StakeViewModel @Inject constructor(
         .mapLatest { it?.stakeChain?.let { chain -> AppUrl.docs(DocsUrl.Staking(chain.string)) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val session = sessionRepository.session()
+    private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val walletType = session.mapLatest { it?.wallet?.type }

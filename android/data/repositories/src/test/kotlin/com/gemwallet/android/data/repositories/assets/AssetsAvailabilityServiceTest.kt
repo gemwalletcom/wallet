@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.assets
 
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.service.store.database.AssetListDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
@@ -61,7 +61,7 @@ class AssetsAvailabilityServiceTest {
     private val assetListDao = mockk<AssetListDao>(relaxed = true)
     private val pricesDao = mockk<PricesDao>(relaxed = true)
     private val priceService = mockk<GemPriceService>(relaxed = true)
-    private val sessionRepository = mockk<SessionRepository>()
+    private val getCurrentWalletId = mockk<GetCurrentWalletId>()
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
     private val balanceService = mockk<GemBalanceService>(relaxed = true)
     private val scope = CoroutineScope(Job())
@@ -146,7 +146,7 @@ class AssetsAvailabilityServiceTest {
             )
         )
 
-        val subject = AssetsSearchService(assetsDao, searchDao, assetListDao, sessionRepository)
+        val subject = AssetsSearchService(assetsDao, searchDao, assetListDao, getCurrentWalletId)
         val result = subject.swapSearch(
             wallet = wallet,
             query = "",
@@ -182,7 +182,7 @@ class AssetsAvailabilityServiceTest {
             )
         )
 
-        val subject = AssetsSearchService(assetsDao, searchDao, assetListDao, sessionRepository)
+        val subject = AssetsSearchService(assetsDao, searchDao, assetListDao, getCurrentWalletId)
         val result = subject.swapSearch(
             wallet = wallet,
             query = "usd",

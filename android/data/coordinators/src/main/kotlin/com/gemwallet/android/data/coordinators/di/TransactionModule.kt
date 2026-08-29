@@ -8,7 +8,6 @@ import com.gemwallet.android.application.transactions.cases.SyncTransactions
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionDetailsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.SyncTransactionsImpl
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
@@ -22,6 +21,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -29,25 +30,23 @@ object TransactionModule {
     @Provides
     @Singleton
     fun provideGetTransactions(
-        sessionRepository: SessionRepository,
+        getCurrentWalletId: GetCurrentWalletId,
         transactionStore: GemstoneTransactionStore,
-    ): GetTransactions {
-        return GetTransactionsImpl(sessionRepository, transactionStore)
-    }
+    ): GetTransactions = GetTransactionsImpl(getCurrentWalletId, transactionStore)
 
     @Provides
     @Singleton
     fun provideGetTransaction(
-        sessionRepository: SessionRepository,
+        getCurrentWalletId: GetCurrentWalletId,
         transactionStore: GemstoneTransactionStore,
-    ): GetTransaction = GetTransactionImpl(sessionRepository, transactionStore)
+    ): GetTransaction = GetTransactionImpl(getCurrentWalletId, transactionStore)
 
     @Provides
     @Singleton
     fun provideGetPendingTransactionsCount(
-        sessionRepository: SessionRepository,
+        getCurrentWalletId: GetCurrentWalletId,
         transactionStore: GemstoneTransactionStore,
-    ): GetPendingTransactionsCount = GetPendingTransactionsCountImpl(sessionRepository, transactionStore)
+    ): GetPendingTransactionsCount = GetPendingTransactionsCountImpl(getCurrentWalletId, transactionStore)
 
     @Provides
     @Singleton
@@ -68,13 +67,13 @@ object TransactionModule {
     @Provides
     @Singleton
     fun provideGetTransactionDetails(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         getTransaction: GetTransaction,
         getWalletAssets: GetWalletAssets,
         explorerService: GemExplorerService,
     ): GetTransactionDetails {
         return GetTransactionDetailsImpl(
-            sessionRepository = sessionRepository,
+            getSession = getSession,
             getTransaction = getTransaction,
             getWalletAssets = getWalletAssets,
             explorerService = explorerService,

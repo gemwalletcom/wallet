@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.SyncTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
@@ -31,7 +31,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TransactionsViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
+    getSession: GetSession,
     getTransactions: GetTransactions,
     private val syncTransactions: SyncTransactions,
 ) : ViewModel() {
@@ -43,7 +43,7 @@ class TransactionsViewModel @Inject constructor(
 
     val typeFilter = MutableStateFlow<List<TransactionTypeFilter>>(emptyList())
 
-    val session = sessionRepository.session()
+    val session = getSession()
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, null)
 
     val walletId: StateFlow<WalletId?> = session

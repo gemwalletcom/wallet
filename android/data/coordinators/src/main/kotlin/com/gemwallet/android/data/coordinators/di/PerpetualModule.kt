@@ -30,7 +30,7 @@ import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualPinnedImpl
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import uniffi.gemstone.GemPerpetualService
 import dagger.Module
 import dagger.Provides
@@ -62,11 +62,11 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideSyncPerpetualPositions(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         perpetualService: GemPerpetualService,
     ): SyncPerpetualPositions {
         return SyncPerpetualPositionsImpl(
-            sessionRepository = sessionRepository,
+            getSession = getSession,
             perpetualService = perpetualService,
         )
     }
@@ -74,11 +74,11 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideGetPerpetualPositions(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         perpetualStore: GemstonePerpetualStore,
     ): GetPerpetualPositions {
         return GetPerpetualPositionsImpl(
-            sessionRepository = sessionRepository,
+            getSession = getSession,
             perpetualStore = perpetualStore,
         )
     }
@@ -122,11 +122,11 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideGetPerpetualBalances(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         perpetualStore: GemstonePerpetualStore,
     ): GetPerpetualBalances {
         return GetPerpetualBalancesImpl(
-            sessionRepository = sessionRepository,
+            getSession = getSession,
             perpetualStore = perpetualStore,
         )
     }
@@ -135,11 +135,11 @@ object PerpetualModule {
     @Singleton
     fun provideGetPerpetualBalance(
         perpetualStore: GemstonePerpetualStore,
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
     ): GetPerpetualBalance {
         return GetPerpetualBalanceImpl(
             perpetualStore = perpetualStore,
-            sessionRepository = sessionRepository,
+            getSession = getSession,
         )
     }
 
@@ -183,11 +183,11 @@ object PerpetualModule {
     @Singleton
     fun provideBuildPerpetualParams(
         perpetualStore: GemstonePerpetualStore,
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
     ): BuildPerpetualParams {
         return BuildPerpetualParamsImpl(
             perpetualStore = perpetualStore,
-            sessionRepository = sessionRepository,
+            getSession = getSession,
         )
     }
 }

@@ -12,7 +12,7 @@ import com.gemwallet.android.data.coordinators.fiat.GetBuyQuoteUrlImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuotesImpl
 import com.gemwallet.android.data.coordinators.fiat.ObserveFiatTransactionsImpl
 import com.gemwallet.android.data.coordinators.fiat.SyncFiatTransactionsImpl
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.repositories.gemstone.GemstonePriceStore
 import dagger.Module
@@ -35,10 +35,10 @@ object FiatModule {
     @Provides
     @Singleton
     fun provideObserveFiatTransactions(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         fiatStore: GemstoneFiatStore,
     ): ObserveFiatTransactions {
-        return ObserveFiatTransactionsImpl(sessionRepository, fiatStore)
+        return ObserveFiatTransactionsImpl(getSession, fiatStore)
     }
 
 
@@ -53,16 +53,16 @@ object FiatModule {
     @Provides
     @Singleton
     fun provideSyncFiatTransactions(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         fiatService: GemFiatService,
-    ): SyncFiatTransactions = SyncFiatTransactionsImpl(sessionRepository, fiatService)
+    ): SyncFiatTransactions = SyncFiatTransactionsImpl(getSession, fiatService)
 
     @Provides
     @Singleton
     fun provideGetBuyAssetInfo(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         getAssetTokenInfo: GetAssetTokenInfo,
-    ): GetBuyAssetInfo = GetBuyAssetInfoImpl(sessionRepository, getAssetTokenInfo)
+    ): GetBuyAssetInfo = GetBuyAssetInfoImpl(getSession, getAssetTokenInfo)
 
     @Provides
     @Singleton

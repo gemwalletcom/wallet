@@ -5,7 +5,7 @@ import com.gemwallet.android.application.swap.cases.RequestSwapQuotes.Companion.
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CancellationException
@@ -26,7 +26,7 @@ import uniffi.gemstone.GemSwapServiceInterface
 import java.math.BigInteger
 
 class RequestSwapQuotesImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val swapService: GemSwapServiceInterface,
 ) : RequestSwapQuotes {
 
@@ -67,7 +67,7 @@ class RequestSwapQuotesImpl(
     }
 
     private suspend fun fetchQuotes(params: SwapQuoteRequestParams): SwapQuotesResult = try {
-        val wallet = checkNotNull(sessionRepository.session().value?.wallet) { "Swap has no active wallet" }
+        val wallet = checkNotNull(getSession().value?.wallet) { "Swap has no active wallet" }
         val amount = Crypto(params.value, params.pay.asset.decimals).atomicValue
         val quotes = swapService.getQuotes(
             wallet = wallet.toJson(),

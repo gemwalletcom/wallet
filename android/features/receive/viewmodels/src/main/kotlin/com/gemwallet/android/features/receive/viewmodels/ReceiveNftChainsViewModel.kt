@@ -4,7 +4,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.isNftSupported
@@ -20,11 +20,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReceiveNftChainsViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
+    getSession: GetSession,
     private val chainService: GemChainService,
 ) : ViewModel() {
 
-    private val wallet = sessionRepository.session().value?.wallet
+    private val wallet = getSession().value?.wallet
 
     private val allChains: List<Chain> = Chain.entries
         .filter { it.isNftSupported() }

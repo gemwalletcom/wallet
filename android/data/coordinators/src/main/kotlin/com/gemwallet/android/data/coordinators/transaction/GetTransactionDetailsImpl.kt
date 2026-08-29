@@ -5,7 +5,7 @@ import uniffi.gemstone.GemExplorerService
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.price.toValueDirection
@@ -54,7 +54,7 @@ import uniffi.gemstone.swapperProviderFromStr
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetTransactionDetailsImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val getTransaction: GetTransaction,
     private val getWalletAssets: GetWalletAssets,
     private val explorerService: GemExplorerService,
@@ -62,7 +62,7 @@ class GetTransactionDetailsImpl(
 
     override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> {
         return combine(
-            sessionRepository.session().filterNotNull(),
+            getSession().filterNotNull(),
             getTransaction(id),
         ) { session, data -> Pair(session, data) }
             .flatMapLatest { (session, data) ->

@@ -1,19 +1,25 @@
 package com.gemwallet.android.data.coordinators.di
 
+import com.gemwallet.android.application.session.cases.ClearSession
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.session.cases.SetCurrentCurrency
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.coordinators.session.GetCurrentWalletIdImpl
-import com.gemwallet.android.data.coordinators.session.GetSessionImpl
-import com.gemwallet.android.data.coordinators.session.SetCurrentCurrencyImpl
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import uniffi.gemstone.GemPriceService
+import com.gemwallet.android.data.coordinators.session.SessionCoordinator
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletSessionStore
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemWalletSessionService
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -21,25 +27,47 @@ object SessionModule {
 
     @Provides
     @Singleton
-    fun provideGetCurrentWalletId(getSession: GetSession): GetCurrentWalletId = GetCurrentWalletIdImpl(getSession)
-
-    @Provides
-    @Singleton
-    fun provideGetSession(
-        sessionRepository: SessionRepository,
-    ): GetSession = GetSessionImpl(sessionRepository)
-
-    @Provides
-    @Singleton
-    fun provideSetCurrentCurrency(
-        sessionRepository: SessionRepository,
+    fun provideSessionCoordinator(
+        sessionStore: GemstoneWalletSessionStore,
+        walletStore: GemstoneWalletStore,
+        walletSessionService: GemWalletSessionService,
+        preferencesService: GemPreferencesService,
         priceService: GemPriceService,
         deviceService: GemDeviceService,
-    ): SetCurrentCurrency {
-        return SetCurrentCurrencyImpl(
-            sessionRepository = sessionRepository,
-            priceService = priceService,
-            deviceService = deviceService,
-        )
-    }
+    ): SessionCoordinator = SessionCoordinator(
+        sessionStore = sessionStore,
+        walletStore = walletStore,
+        walletSessionService = walletSessionService,
+        preferencesService = preferencesService,
+        priceService = priceService,
+        deviceService = deviceService,
+    )
+
+    @Provides
+    @Singleton
+    fun provideGetSession(coordinator: SessionCoordinator): GetSession = coordinator
+
+    @Provides
+    @Singleton
+    fun provideGetCurrentWallet(coordinator: SessionCoordinator): GetCurrentWallet = coordinator
+
+    @Provides
+    @Singleton
+    fun provideGetCurrentCurrency(coordinator: SessionCoordinator): GetCurrentCurrency = coordinator
+
+    @Provides
+    @Singleton
+    fun provideSetCurrentCurrency(coordinator: SessionCoordinator): SetCurrentCurrency = coordinator
+
+    @Provides
+    @Singleton
+    fun provideSetCurrentWallet(coordinator: SessionCoordinator): SetCurrentWallet = coordinator
+
+    @Provides
+    @Singleton
+    fun provideClearSession(coordinator: SessionCoordinator): ClearSession = coordinator
+
+    @Provides
+    @Singleton
+    fun provideGetCurrentWalletId(getSession: GetSession): GetCurrentWalletId = GetCurrentWalletIdImpl(getSession)
 }

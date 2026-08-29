@@ -20,7 +20,7 @@ import com.gemwallet.android.data.coordinators.pricealerts.PriceAlertsEnabledCoo
 import com.gemwallet.android.data.coordinators.pricealerts.SyncAssetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.UpdatePriceAlertsImpl
 import com.gemwallet.android.data.repositories.gemstone.GemstonePriceAlertStore
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,12 +36,12 @@ object PriceAlertModule {
     @Singleton
     fun provideAddPriceAlerts(
         priceAlertService: GemPriceAlertService,
-        sessionRepository: SessionRepository,
+        getCurrentCurrency: GetCurrentCurrency,
         setPriceAlertsEnabled: SetPriceAlertsEnabled,
     ): IncludePriceAlert {
         return IncludePriceAlertImpl(
             priceAlertService = priceAlertService,
-            sessionRepository = sessionRepository,
+            getCurrentCurrency = getCurrentCurrency,
             setPriceAlertsEnabled = setPriceAlertsEnabled,
         )
     }
@@ -86,11 +86,11 @@ object PriceAlertModule {
     @Singleton
     fun providePriceAlertExclude(
         priceAlertService: GemPriceAlertService,
-        sessionRepository: SessionRepository,
+        getCurrentCurrency: GetCurrentCurrency,
     ): ExcludePriceAlert {
         return ExcludePriceAlertImpl(
             priceAlertService = priceAlertService,
-            sessionRepository = sessionRepository,
+            getCurrentCurrency = getCurrentCurrency,
         )
     }
 

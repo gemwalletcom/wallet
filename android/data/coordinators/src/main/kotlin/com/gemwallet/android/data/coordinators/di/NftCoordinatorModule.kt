@@ -12,7 +12,7 @@ import com.gemwallet.android.data.coordinators.nft.GetNftAssetDetailsImpl
 import com.gemwallet.android.data.coordinators.nft.GetNftCollectionsImpl
 import com.gemwallet.android.data.coordinators.nft.RefreshNftAssetImpl
 import com.gemwallet.android.data.coordinators.nft.SyncNftCollectionsImpl
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,20 +26,20 @@ object NftCoordinatorModule {
     @Provides
     @Singleton
     fun provideGetNftAssetDetails(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         getAssetNft: GetAssetNft,
         explorerService: GemExplorerService,
     ): GetNftAssetDetails {
-        return GetNftAssetDetailsImpl(sessionRepository, getAssetNft, explorerService)
+        return GetNftAssetDetailsImpl(getSession, getAssetNft, explorerService)
     }
 
     @Provides
     @Singleton
     fun provideGetNftCollections(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         getListNftCase: GetListNftCase,
     ): GetNftCollections {
-        return GetNftCollectionsImpl(sessionRepository, getListNftCase)
+        return GetNftCollectionsImpl(getSession, getListNftCase)
     }
 
     @Provides
@@ -53,9 +53,9 @@ object NftCoordinatorModule {
     @Provides
     @Singleton
     fun provideRefreshNftAsset(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         nftService: GemNftService,
     ): RefreshNftAsset {
-        return RefreshNftAssetImpl(sessionRepository, nftService)
+        return RefreshNftAssetImpl(getSession, nftService)
     }
 }

@@ -12,7 +12,7 @@ import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
@@ -94,8 +94,8 @@ class SwapViewModelTest {
     )
     private val usdcInfo = mockAssetInfo(asset = usdcAsset)
 
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
-        every { session() } returns MutableStateFlow(null)
+    private val getSession = mockk<GetSession>(relaxed = true) {
+        every { this@mockk() } returns MutableStateFlow(null)
     }
     private val getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
         every { this@mockk(solAsset.id) } returns flowOf(solInfo)
@@ -115,8 +115,8 @@ class SwapViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         mockkObject(SwapDetailsUIModelFactory)
-        clearMocks(sessionRepository, getAssetInfo, buildSwapConfirmParams, requestSwapQuotes)
-        every { sessionRepository.session() } returns MutableStateFlow(null)
+        clearMocks(getSession, getAssetInfo, buildSwapConfirmParams, requestSwapQuotes)
+        every { getSession() } returns MutableStateFlow(null)
         every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
         every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns emptyFlow()
@@ -130,7 +130,7 @@ class SwapViewModelTest {
     }
 
     private fun createViewModel(savedStateHandle: SavedStateHandle) = SwapViewModel(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
         getAssetInfo = getAssetInfo,
         enableAsset = enableAsset,
         buildSwapConfirmParams = buildSwapConfirmParams,
@@ -165,7 +165,7 @@ class SwapViewModelTest {
     @Test
     fun `init applies the suggested pair when the screen opens empty`() = runTest(testDispatcher) {
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
+        every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
         coEvery { swapService.suggestPair(wallet.id.id, null) } returns GemSwapPairSuggestion(
             payAssetId = solAsset.id.toIdentifier(),
             receiveAssetId = usdcAsset.id.toIdentifier(),
@@ -276,7 +276,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
 
@@ -313,7 +313,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
         coEvery { buildSwapConfirmParams(any(), any(), any()) } throws SwapNoQuoteException()
@@ -339,7 +339,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
         coEvery { buildSwapConfirmParams(any(), any(), any()) } throws SwapNoQuoteException()
@@ -375,7 +375,7 @@ class SwapViewModelTest {
         } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
 
@@ -443,7 +443,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
         val confirmParamsGate = CompletableDeferred<Unit>()
@@ -474,7 +474,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
         val confirmParamsGate = CompletableDeferred<Unit>()
@@ -525,7 +525,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
 

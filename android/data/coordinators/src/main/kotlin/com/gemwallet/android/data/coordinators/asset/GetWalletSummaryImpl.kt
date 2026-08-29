@@ -10,7 +10,7 @@ import com.gemwallet.android.data.repositories.config.UserConfig
 import uniffi.gemstone.GemWalletPreferencesService
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
@@ -41,7 +41,7 @@ import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetWalletSummaryImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val getWalletAssets: GetWalletAssets,
     private val perpetualStore: GemstonePerpetualStore,
     private val observePerpetualWallet: ObservePerpetualWallet,
@@ -64,7 +64,7 @@ class GetWalletSummaryImpl(
             }
         }
 
-    private val walletSummary = sessionRepository.session().flatMapLatest { session ->
+    private val walletSummary = getSession().flatMapLatest { session ->
         val wallet = session?.wallet ?: return@flatMapLatest flowOf(null)
 
         combine(

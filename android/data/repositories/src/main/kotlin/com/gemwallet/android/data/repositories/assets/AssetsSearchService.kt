@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.assets
 
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.service.store.database.AssetListDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.SearchDao
@@ -29,7 +29,7 @@ class AssetsSearchService @Inject constructor(
     private val assetsDao: AssetsDao,
     private val searchDao: SearchDao,
     private val assetListDao: AssetListDao,
-    private val sessionRepository: SessionRepository,
+    private val getCurrentWalletId: GetCurrentWalletId,
 ) {
 
     fun search(
@@ -39,7 +39,8 @@ class AssetsSearchService @Inject constructor(
         filters: Set<AssetFilter> = emptySet(),
     ): Flow<List<AssetInfo>> {
         val query = query.trim()
-        return sessionRepository.currentWalletId().flatMapLatest { walletId ->
+        return getCurrentWalletId().flatMapLatest { wallet ->
+            val walletId = wallet.id
             searchDao.hasAssetPriorities(query).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 when {
                     byAllWallets && hasPriority -> assetsDao.searchByAllWalletsWithPriority(walletId, query, limit)
@@ -77,7 +78,8 @@ class AssetsSearchService @Inject constructor(
 
     fun searchListAssets(listId: String, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> {
         val query = listPriorityQuery(listId)
-        return sessionRepository.currentWalletId().flatMapLatest { walletId ->
+        return getCurrentWalletId().flatMapLatest { wallet ->
+            val walletId = wallet.id
             searchDao.hasAssetPriorities(query).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 if (hasPriority) {
                     assetsDao.searchWithPriority(walletId, query, limit).toAssetInfoModel()

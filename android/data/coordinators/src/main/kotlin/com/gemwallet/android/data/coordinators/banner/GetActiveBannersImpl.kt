@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.banner
 
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.banner.cases.GetActiveBanners
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.domains.asset.isStakeable
@@ -25,14 +25,14 @@ import uniffi.gemstone.GemBannerService
 import java.math.BigInteger
 
 class GetActiveBannersImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val getAssetInfo: GetAssetInfo,
     private val bannerStore: GemstoneBannerStore,
     private val bannerService: GemBannerService,
 ) : GetActiveBanners {
 
     override suspend fun invoke(asset: Asset?, isGlobal: Boolean): List<Banner> = withContext(Dispatchers.IO) {
-        val wallet = sessionRepository.session().firstOrNull()?.wallet
+        val wallet = getSession().firstOrNull()?.wallet
         val assetInfo = asset?.id?.let { getAssetInfo(it).firstOrNull() }
         val sceneWallet = wallet.takeUnless { isGlobal }
         val stored = when {

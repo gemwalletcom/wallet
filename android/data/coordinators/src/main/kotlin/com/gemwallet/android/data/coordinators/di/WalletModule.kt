@@ -7,7 +7,6 @@ import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.application.wallet.cases.GetAllWallets
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
 import com.gemwallet.android.application.wallet.cases.GetWalletSecretData
-import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.application.wallet.cases.SetWalletName
 import com.gemwallet.android.application.wallet.cases.SetWalletPinned
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
@@ -19,18 +18,18 @@ import com.gemwallet.android.data.coordinators.wallet.GetWalletsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetAllWalletsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletDetailsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletSecretDataImpl
-import com.gemwallet.android.data.coordinators.wallet.SetCurrentWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.SetWalletNameImpl
 import com.gemwallet.android.data.coordinators.wallet.SetWalletPinnedImpl
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemWalletService
 import javax.inject.Singleton
+import com.gemwallet.android.application.session.cases.ClearSession
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -55,11 +54,11 @@ object WalletModule {
     @Provides
     @Singleton
     fun provideGetAllWallets(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         walletStore: GemstoneWalletStore,
         walletService: GemWalletService,
     ): GetAllWallets {
-        return GetAllWalletsImpl(sessionRepository, walletStore, walletService)
+        return GetAllWalletsImpl(getSession, walletStore, walletService)
     }
 
     @Provides
@@ -87,12 +86,12 @@ object WalletModule {
 
     @Provides
     fun provideDeleteWallet(
-        sessionRepository: SessionRepository,
+        clearSession: ClearSession,
         deleteKeyStoreOperator: DeleteKeyStoreOperator,
         walletService: GemWalletService,
         userConfig: UserConfig,
     ): DeleteWallet {
-        return DeleteWalletImpl(sessionRepository, deleteKeyStoreOperator, walletService, userConfig)
+        return DeleteWalletImpl(clearSession, deleteKeyStoreOperator, walletService, userConfig)
     }
 
     @Provides
@@ -100,11 +99,4 @@ object WalletModule {
         return SetWalletPinnedImpl(walletService)
     }
 
-    @Provides
-    fun provideSetCurrentWallet(
-        sessionRepository: SessionRepository,
-        walletStore: GemstoneWalletStore,
-    ): SetCurrentWallet {
-        return SetCurrentWalletImpl(sessionRepository, walletStore)
-    }
 }

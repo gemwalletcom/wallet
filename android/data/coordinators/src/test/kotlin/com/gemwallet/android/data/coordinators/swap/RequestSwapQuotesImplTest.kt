@@ -9,7 +9,7 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWalletId
 import io.mockk.every
@@ -44,7 +44,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `canceled in flight quote request does not emit an error result`() = runBlocking {
         val fakeQuotes = StubSwapService(delayOnFirst = 5_000)
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -68,7 +68,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `invalid input clears quote and late success is ignored`() = runBlocking {
         val fakeQuotes = StubSwapService(nonCancellableOnFirst = true)
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -114,7 +114,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `successful quote refresh waits for the configured interval`() = runBlocking {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
 
         val job = launch {
@@ -138,7 +138,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `quote errors do not schedule automatic retries`() = runBlocking {
         val fakeQuotes = StubSwapService(shouldFail = true)
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -164,7 +164,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `automatic refresh stops in background and resumes in foreground`() = runBlocking {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
 
         val job = launch {
@@ -192,7 +192,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `null params emits null without calling quotes service`() = runBlocking {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(null)
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -215,7 +215,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `changing params during debounce does not emit stale result`() = runBlocking {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -271,8 +271,8 @@ class RequestSwapQuotesImplTest {
         )
     }
 
-    private fun sessionRepository(): SessionRepository = mockk {
-        every { session() } returns MutableStateFlow(mockSession())
+    private fun getSession(): GetSession = mockk {
+        every { this@mockk() } returns MutableStateFlow(mockSession())
     }
 
     private class StubSwapService(

@@ -2,7 +2,7 @@ package com.gemwallet.android.features.activities.viewmodels
 
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.SyncTransactions
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockSession
@@ -31,8 +31,8 @@ class TransactionsViewModelSyncTest {
         every { getTransactions(any()) } returns MutableStateFlow(emptyList<TransactionDataAggregate>())
         every { transactions() } returns MutableStateFlow(emptyList())
     }
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
-        every { session() } returns session
+    private val getSession = mockk<GetSession>(relaxed = true) {
+        every { this@mockk() } returns session
     }
 
     @Before
@@ -76,7 +76,7 @@ class TransactionsViewModelSyncTest {
     }
 
     private fun createViewModel() = TransactionsViewModel(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
         getTransactions = getTransactions,
         syncTransactions = syncTransactions,
     )

@@ -5,7 +5,7 @@ import com.gemwallet.android.application.wallet_import.cases.SetupWallet
 import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
 import com.gemwallet.android.data.coordinators.wallet_import.SetupWalletImpl
 import com.gemwallet.android.data.coordinators.wallet_import.services.ImportWalletService
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,11 +30,11 @@ object WalletImportModule {
     @Singleton
     fun provideImportWalletService(
         discoveryService: GemAssetDiscoveryService,
-        sessionRepository: SessionRepository,
+        getCurrentCurrency: GetCurrentCurrency,
         deviceService: GemDeviceService,
     ): ImportWalletService = ImportWalletService(
         discoveryService = discoveryService,
-        sessionRepository = sessionRepository,
+        getCurrentCurrency = getCurrentCurrency,
         deviceService = deviceService,
     )
 

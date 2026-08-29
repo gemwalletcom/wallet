@@ -9,7 +9,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.stake.hasRewards
@@ -47,7 +47,7 @@ class DelegationViewModel @Inject constructor(
     private val getDelegation: GetDelegation,
     private val stakeConfig: GemStakeConfigService,
     private val explorerService: GemExplorerService,
-    sessionRepository: SessionRepository,
+    getSession: GetSession,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -57,7 +57,7 @@ class DelegationViewModel @Inject constructor(
     val delegation = combine(
         validatorId,
         delegationId,
-        sessionRepository.session().filterNotNull(),
+        getSession().filterNotNull(),
     ) { validatorId, delegationId, session -> Triple(validatorId, delegationId, session.wallet.id) }
         .flatMapLatest { (validatorId, delegationId, walletId) ->
             getDelegation(walletId = walletId, validatorId = validatorId, delegationId = delegationId)
@@ -113,7 +113,7 @@ class DelegationViewModel @Inject constructor(
     val actions = combine(
         delegation,
         assetInfo,
-        sessionRepository.session().filterNotNull(),
+        getSession().filterNotNull(),
     ) { delegation, assetInfo, session ->
         if (delegation == null || assetInfo == null) {
             return@combine emptyList()
@@ -130,7 +130,7 @@ class DelegationViewModel @Inject constructor(
     val canClaimRewards = combine(
         delegation,
         assetInfo,
-        sessionRepository.session().filterNotNull(),
+        getSession().filterNotNull(),
     ) { delegation, assetInfo, session ->
         if (delegation == null || assetInfo == null) {
             return@combine false
@@ -147,7 +147,7 @@ class DelegationViewModel @Inject constructor(
     val delegationInfo = combine(
         delegation,
         assetInfo,
-        sessionRepository.session().filterNotNull(),
+        getSession().filterNotNull(),
     ) { delegation, assetInfo, session ->
         if (assetInfo == null || delegation == null) {
             return@combine null
@@ -159,7 +159,7 @@ class DelegationViewModel @Inject constructor(
     val uiState = combine(
         delegation,
         assetInfo,
-        sessionRepository.session().filterNotNull(),
+        getSession().filterNotNull(),
     ) { delegation, assetInfo, session ->
         if (assetInfo == null || delegation == null) {
             return@combine null

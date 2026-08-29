@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.wallet
 
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.wallet.cases.GetAllWallets
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.ext.toPrimitives
@@ -21,13 +21,13 @@ import kotlinx.coroutines.flow.mapLatest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetAllWalletsImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val walletStore: GemstoneWalletStore,
     private val walletService: GemWalletService,
 ) : GetAllWallets {
 
     override fun getAllWallets(): Flow<List<WalletDataAggregate>> {
-        return sessionRepository.session().flatMapLatest { session ->
+        return getSession().flatMapLatest { session ->
             val currentWalletId = session?.wallet?.id
             walletStore.observeWallets().map { items ->
                 walletService.sortedWallets(items.map { it.toJson() }).map { it.decodeJson<Wallet>() }

@@ -11,7 +11,9 @@ import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.AppUpdateOffer
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWallet
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.onboarding.OnboardingRoute
@@ -38,7 +40,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
+    private val getCurrentWallet: GetCurrentWallet,
+    private val setCurrentWallet: SetCurrentWallet,
     private val userConfig: UserConfig,
     private val getPushEnabled: GetPushEnabled,
     private val switchPushEnabled: SwitchPushEnabled,
@@ -78,7 +82,7 @@ class AppViewModel @Inject constructor(
 
     val askNotifications = combine(
         userConfig.isAskNotifications(),
-        sessionRepository.session(),
+        getSession(),
         getPushEnabled.getPushEnabled(),
     ) { isAsk, session, pushEnabled ->
         notificationsAvailable && isAsk && session != null && !pushEnabled
@@ -91,12 +95,12 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             handleAppVersion()
             rateAs()
-            sessionRepository.session().collectLatest {
+            getSession().collectLatest {
                 onSession(it ?: return@collectLatest)
             }
         }
         viewModelScope.launch(Dispatchers.IO) {
-            sessionRepository.session()
+            getSession()
                 .filterNotNull()
                 .distinctUntilChangedBy { it.wallet.id }
                 .collectLatest { setupWallet.setup(it.wallet) }
@@ -162,7 +166,7 @@ class AppViewModel @Inject constructor(
     }
 
     private suspend fun getStartDestination(): NavKey = withContext(Dispatchers.IO) {
-        if (sessionRepository.getCurrentWallet() != null) {
+        if (getCurrentWallet.getCurrentWallet() != null) {
             WalletRootRoute
         } else {
             val wallet = getWallets().firstOrNull()
@@ -170,7 +174,7 @@ class AppViewModel @Inject constructor(
                 ?.sortedWith(compareBy({ it.index }, { it.id.id }))
                 ?.firstOrNull()
             if (wallet != null) {
-                sessionRepository.setWallet(wallet)
+                setCurrentWallet.setCurrentWallet(wallet.id)
                 WalletRootRoute
             } else {
                 OnboardingRoute

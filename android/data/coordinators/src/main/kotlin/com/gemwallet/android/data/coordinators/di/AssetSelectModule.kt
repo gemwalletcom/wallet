@@ -19,7 +19,7 @@ import com.gemwallet.android.data.coordinators.asset_select.SwitchAssetVisibilit
 import com.gemwallet.android.data.coordinators.asset_select.UpdateRecentAssetImpl
 import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.data.repositories.assets.RecentAssetsService
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -75,14 +75,14 @@ object AssetSelectModule {
     @Provides
     @Singleton
     fun provideUpdateRecentAsset(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         recentAssetsService: RecentAssetsService,
-    ): UpdateRecentAsset = UpdateRecentAssetImpl(sessionRepository, recentAssetsService)
+    ): UpdateRecentAsset = UpdateRecentAssetImpl(getSession, recentAssetsService)
 
     @Provides
     @Singleton
     fun provideClearRecentAssets(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         recentAssetsService: RecentAssetsService,
-    ): ClearRecentAssets = ClearRecentAssetsImpl(sessionRepository, recentAssetsService)
+    ): ClearRecentAssets = ClearRecentAssetsImpl(getSession, recentAssetsService)
 }

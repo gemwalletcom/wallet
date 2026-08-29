@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.notifications.cases.GetInAppNotifications
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.wallet.core.primitives.InAppNotification
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,20 +22,20 @@ import uniffi.gemstone.GemNotificationService
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class InAppNotificationsViewModel @Inject constructor(
-    private val sessionRepository: SessionRepository,
+    private val getCurrentWallet: GetCurrentWallet,
     private val getInAppNotifications: GetInAppNotifications,
     private val notificationService: GemNotificationService,
 ) : ViewModel() {
 
-    val notifications: StateFlow<List<InAppNotification>> = sessionRepository.session()
-        .map { it?.wallet?.id }
+    val notifications: StateFlow<List<InAppNotification>> = getCurrentWallet.observe()
+        .map { it?.id }
         .filterNotNull()
         .flatMapLatest { walletId -> getInAppNotifications(walletId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
         viewModelScope.launch {
-            val wallet = sessionRepository.getCurrentWallet() ?: return@launch
+            val wallet = getCurrentWallet.getCurrentWallet() ?: return@launch
             try {
                 notificationService.sync(wallet.id.id)
             } catch (err: Throwable) {

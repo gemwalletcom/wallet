@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockWallet
@@ -24,11 +24,11 @@ import uniffi.gemstone.GemPortfolioService
 class GetPortfolioDataImplTest {
 
     private val portfolioService = mockk<GemPortfolioService>()
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true)
+    private val getCurrentWallet = mockk<GetCurrentWallet>(relaxed = true)
 
     private val subject = GetPortfolioDataImpl(
         portfolioService = portfolioService,
-        sessionRepository = sessionRepository,
+        getCurrentWallet = getCurrentWallet,
     )
 
     @Test
@@ -39,7 +39,7 @@ class GetPortfolioDataImplTest {
             statistics = emptyList(),
             availablePeriods = listOf(ChartPeriod.Day),
         )
-        coEvery { sessionRepository.getCurrentWallet() } returns wallet
+        coEvery { getCurrentWallet.getCurrentWallet() } returns wallet
         coEvery {
             portfolioService.portfolioData(GemPortfolioDataInput.Wallet(wallet.id.id, ChartPeriod.Day.toJson(), Currency.EUR.toJson()))
         } returns data.toJson()
@@ -54,7 +54,7 @@ class GetPortfolioDataImplTest {
         val address = "0xabc"
         val wallet = mockWallet(id = "wallet-1", accounts = listOf(com.gemwallet.android.testkit.mockAccount(chain = Chain.HyperCore, address = address)))
         val data = PortfolioData(charts = emptyList(), statistics = emptyList(), availablePeriods = emptyList())
-        every { sessionRepository.session() } returns MutableStateFlow<Session?>(com.gemwallet.android.testkit.mockSession(wallet = wallet))
+        coEvery { getCurrentWallet.getCurrentWallet() } returns wallet
         coEvery {
             portfolioService.portfolioData(GemPortfolioDataInput.Perpetuals(Chain.HyperCore.string, address, ChartPeriod.All.toJson()))
         } returns data.toJson()
@@ -66,7 +66,7 @@ class GetPortfolioDataImplTest {
 
     @Test(expected = IllegalStateException::class)
     fun getPortfolioData_perpetualsThrowsWithoutAccount() = runTest {
-        every { sessionRepository.session() } returns MutableStateFlow<Session?>(null)
+        coEvery { getCurrentWallet.getCurrentWallet() } returns null
 
         subject.getPortfolioData(PortfolioType.Perpetuals, period = ChartPeriod.All, currency = Currency.USD)
     }

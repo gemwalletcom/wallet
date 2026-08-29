@@ -4,7 +4,7 @@ import com.gemwallet.android.ext.hash
 import uniffi.gemstone.GemBlockExplorerLink
 import uniffi.gemstone.GemExplorerService
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAccount
@@ -33,13 +33,13 @@ import org.junit.Test
 
 class GetTransactionDetailsImplTest {
 
-    private val sessionRepository = mockk<SessionRepository>()
+    private val getSession = mockk<GetSession>()
     private val getTransaction = mockk<GetTransaction>()
     private val getWalletAssets = mockk<GetWalletAssets>()
     private val explorerService = mockk<GemExplorerService>()
 
     private val subject = GetTransactionDetailsImpl(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
         getTransaction = getTransaction,
         getWalletAssets = getWalletAssets,
         explorerService = explorerService,
@@ -77,7 +77,7 @@ class GetTransactionDetailsImplTest {
             accounts = listOf(mockAccount(chain = Chain.Near, address = transaction.from)),
         )
 
-        every { sessionRepository.session() } returns MutableStateFlow(mockSession(wallet = wallet))
+        every { getSession() } returns MutableStateFlow(mockSession(wallet = wallet))
         every { getTransaction(transaction.id) } returns flowOf(transactionExtended)
         every { getWalletAssets(any<List<AssetId>>()) } returns flowOf(
             listOf(mockAssetInfo(asset = asset, owner = mockAccount(chain = Chain.Near, address = transaction.from)))

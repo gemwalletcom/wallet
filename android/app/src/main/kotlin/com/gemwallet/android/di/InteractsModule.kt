@@ -20,7 +20,7 @@ import uniffi.gemstone.GemTransactionSigner
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.data.password.TinkPasswordStore
 import com.gemwallet.android.data.password.TinkSecurityStore
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.repositories.wallets.PhraseAddressImportWalletService
 import dagger.Module
 import dagger.Provides
@@ -92,13 +92,13 @@ object InteractsModule {
     @Provides
     fun provideAddWalletInteract(
         walletService: GemWalletService,
-        sessionRepository: SessionRepository,
+        setCurrentWallet: SetCurrentWallet,
         appStartService: GemAppStartService,
         deviceService: GemDeviceService,
         walletImportSync: SyncWalletImport,
     ): ImportWalletService = PhraseAddressImportWalletService(
         walletService = walletService,
-        sessionRepository = sessionRepository,
+        setCurrentWallet = setCurrentWallet,
         appStartService = appStartService,
         deviceService = deviceService,
         walletImportSync = walletImportSync,

@@ -4,7 +4,7 @@ import android.util.Log
 import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.ClearSession
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -14,7 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 class DeleteWalletImpl @Inject constructor(
-    private val sessionRepository: SessionRepository,
+    private val clearSession: ClearSession,
     private val deleteKeyStoreOperator: DeleteKeyStoreOperator,
     private val walletService: GemWalletService,
     private val userConfig: UserConfig,
@@ -39,7 +39,7 @@ class DeleteWalletImpl @Inject constructor(
         val callback: () -> Unit = if (hasWallets) {
             onComplete
         } else {
-            sessionRepository.reset()
+            clearSession.clearSession()
             userConfig.reload()
             onBoard
         }

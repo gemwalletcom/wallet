@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.tokens
 
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.serializer.toJson
@@ -21,13 +21,13 @@ import uniffi.gemstone.GemSearchService
 class WalletSearchTokensTest {
     private val searchTokens = mockk<SearchTokensImpl>(relaxed = true)
     private val searchService = mockk<GemSearchService>()
-    private val sessionRepository = mockk<SessionRepository>()
-    private val subject = WalletSearchTokens(searchTokens, searchService, sessionRepository)
+    private val getSession = mockk<GetSession>()
+    private val subject = WalletSearchTokens(searchTokens, searchService, getSession)
 
     @Test
     fun search_delegatesWalletAndScopeToCore() = runTest {
         val wallet = mockWallet()
-        every { sessionRepository.session() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
+        every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
         coEvery { searchService.search(wallet.toJson(), "btc", GemSearchScope.List("stocks"), Currency.USD.toJson()) } returns true
 
         val result = subject.search("btc", Currency.USD, emptyList(), WalletSearchTag.List("stocks"))
@@ -38,7 +38,7 @@ class WalletSearchTokensTest {
 
     @Test
     fun search_returnsFalseWithoutSession() = runTest {
-        every { sessionRepository.session() } returns MutableStateFlow(null)
+        every { getSession() } returns MutableStateFlow(null)
 
         assertFalse(subject.search("btc", Currency.USD, emptyList()))
         coVerify(exactly = 0) { searchService.search(any(), any(), any(), any()) }

@@ -4,7 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockWallet
@@ -38,8 +38,8 @@ class SettingsViewModelTest {
     private val getWallets = mockk<GetWallets>(relaxed = true) {
         every { this@mockk() } returns wallets
     }
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
-        every { session() } returns session
+    private val getSession = mockk<GetSession>(relaxed = true) {
+        every { this@mockk() } returns session
     }
     private val switchPushEnabled = mockk<SwitchPushEnabled>(relaxed = true)
     private val getPushEnabled = object : GetPushEnabled {
@@ -93,7 +93,7 @@ class SettingsViewModelTest {
     private fun createViewModel() = SettingsViewModel(
         userConfig = userConfig,
         getWallets = getWallets,
-        sessionRepository = sessionRepository,
+        getSession = getSession,
         switchPushEnabled = switchPushEnabled,
         getPushEnabled = getPushEnabled,
         notificationsAvailable = true,

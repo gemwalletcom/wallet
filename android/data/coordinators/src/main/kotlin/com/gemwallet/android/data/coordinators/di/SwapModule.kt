@@ -9,7 +9,7 @@ import com.gemwallet.android.data.coordinators.swap.RequestSwapQuotesImpl
 import com.gemwallet.android.data.coordinators.swap.SearchSwapAssetsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.data.repositories.gemstone.GemstoneKeystorePassword
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,20 +53,20 @@ object SwapModule {
     @Singleton
     @Provides
     fun provideRequestSwapQuotes(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         swapService: GemSwapServiceInterface,
     ): RequestSwapQuotes = RequestSwapQuotesImpl(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
         swapService = swapService,
     )
 
     @Singleton
     @Provides
     fun provideBuildSwapConfirmParams(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         swapService: GemSwapServiceInterface,
     ): BuildSwapConfirmParams = BuildSwapConfirmParamsImpl(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
         swapService = swapService,
     )
 

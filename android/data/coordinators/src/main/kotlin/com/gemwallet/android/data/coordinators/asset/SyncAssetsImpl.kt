@@ -4,14 +4,14 @@ import android.util.Log
 import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.assets.cases.SyncBalances
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 
 class SyncAssetsImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val deviceAssetsSyncService: DeviceAssetsSyncService,
     private val getWalletAssets: GetWalletAssets,
     private val syncBalances: SyncBalances,
@@ -20,7 +20,7 @@ class SyncAssetsImpl(
 
     private suspend fun syncAssets() {
         coroutineScope {
-            val walletId = sessionRepository.session().value?.wallet?.id?.id
+            val walletId = getSession().value?.wallet?.id?.id
             val balances = async {
                 runCatchingCancellable { syncBalances(getWalletAssets().firstOrNull().orEmpty()) }
                     .onFailure { Log.e(TAG, "assets sync failed", it) }

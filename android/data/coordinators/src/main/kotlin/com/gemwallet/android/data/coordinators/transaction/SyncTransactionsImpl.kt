@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.transaction
 import android.util.Log
 import com.gemwallet.android.application.transactions.cases.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.cases.SyncTransactions
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
@@ -15,7 +15,7 @@ import uniffi.gemstone.GemTransactionsService
 @Singleton
 class SyncTransactionsImpl @Inject constructor(
     private val transactionsService: GemTransactionsService,
-    private val sessionRepository: SessionRepository,
+    private val getCurrentWallet: GetCurrentWallet,
 ) : SyncTransactions, SyncAssetTransactions {
 
     override suspend fun syncTransactions(wallet: Wallet): Boolean =
@@ -24,7 +24,7 @@ class SyncTransactionsImpl @Inject constructor(
             .isSuccess
 
     override suspend fun syncAssetTransactions(assetId: AssetId) {
-        val wallet = sessionRepository.getCurrentWallet() ?: return
+        val wallet = getCurrentWallet.getCurrentWallet() ?: return
         runCatchingCancellable { transactionsService.sync(wallet.id.id, assetId.toIdentifier()) }
             .onFailure { Log.e(TAG, "asset transactions sync failed for ${assetId.toIdentifier()}", it) }
     }

@@ -4,7 +4,7 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.cases.tokens.WalletSearchScopeCase
 import com.gemwallet.android.data.coordinators.tokens.SearchTokensImpl
 import com.gemwallet.android.data.coordinators.tokens.WalletSearchTokens
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.repositories.tokens.WalletSearch
 import dagger.Module
 import dagger.Provides
@@ -21,10 +21,10 @@ object TokensCasesModule {
     @Provides
     @Singleton
     fun provideSearchTokens(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         searchService: GemSearchService,
         assetsService: GemAssetsService,
-    ): SearchTokensImpl = SearchTokensImpl(sessionRepository, searchService, assetsService)
+    ): SearchTokensImpl = SearchTokensImpl(getSession, searchService, assetsService)
 
     @Provides
     @Singleton
@@ -35,8 +35,8 @@ object TokensCasesModule {
     fun provideWalletSearchTokens(
         searchTokens: SearchTokensImpl,
         searchService: GemSearchService,
-        sessionRepository: SessionRepository,
-    ): WalletSearchTokens = WalletSearchTokens(searchTokens, searchService, sessionRepository)
+        getSession: GetSession,
+    ): WalletSearchTokens = WalletSearchTokens(searchTokens, searchService, getSession)
 
     @Provides
     @Singleton

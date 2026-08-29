@@ -2,7 +2,8 @@ package com.gemwallet.android.data.repositories.stream
 
 import android.util.Log
 import com.gemwallet.android.application.assets.cases.SyncAssets
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +16,8 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import uniffi.gemstone.GemDeviceService
 
 class StreamObserverService(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
+    private val getCurrentCurrency: GetCurrentCurrency,
     private val syncAssets: SyncAssets,
     private val subscriptionService: GemStreamSubscriptionService,
     private val streamService: GemStreamService,
@@ -28,7 +30,7 @@ class StreamObserverService(
 
     init {
         scope.launch {
-            sessionRepository.session().collectLatest { session ->
+            getSession().collectLatest { session ->
                 val wallet = session?.wallet ?: return@collectLatest
                 if (wallet.id.id == currentWalletId) return@collectLatest
                 currentWalletId = wallet.id.id
@@ -43,7 +45,7 @@ class StreamObserverService(
 
     fun start() {
         if (connectionJob != null) return
-        if (sessionRepository.session().value?.wallet == null) return
+        if (getSession().value?.wallet == null) return
         connectionJob = scope.launch {
             runCatchingCancellable { deviceService.synchronizeIfNeeded() }
                 .onFailure { Log.e(TAG, "Device synchronization error", it) }
@@ -65,7 +67,7 @@ class StreamObserverService(
 
     private fun handleMessage(text: String) {
         scope.launch {
-            runCatchingCancellable { streamService.handle(text, sessionRepository.getCurrentCurrency().toJson()) }
+            runCatchingCancellable { streamService.handle(text, getCurrentCurrency.getCurrentCurrency().toJson()) }
                 .onFailure { Log.e(TAG, "Event handler error", it) }
         }
     }

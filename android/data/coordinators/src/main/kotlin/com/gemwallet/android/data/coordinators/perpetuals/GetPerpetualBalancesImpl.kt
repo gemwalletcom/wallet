@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalances
 import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance as PerpetualBalanceUi
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.model.CurrencyFormatter
@@ -18,12 +18,12 @@ private val EmptyBalance = PerpetualBalance(available = 0.0, reserved = 0.0, wit
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetPerpetualBalancesImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val perpetualStore: GemstonePerpetualStore,
 ) : GetPerpetualBalances {
 
     override fun getPerpetualBalance(): Flow<PerpetualBalanceUi> {
-        return sessionRepository.session()
+        return getSession()
             .filterNotNull()
             .flatMapLatest { perpetualStore.observeBalance(it.wallet.id, HypercoreUSDC.id) }
             .map { PerpetualBalanceImpl(it ?: EmptyBalance) }

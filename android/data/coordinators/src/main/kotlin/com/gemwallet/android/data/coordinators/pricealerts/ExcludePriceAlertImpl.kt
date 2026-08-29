@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
 import com.gemwallet.android.application.pricealerts.cases.ExcludePriceAlert
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -13,7 +13,7 @@ import uniffi.gemstone.GemPriceAlertService
 
 class ExcludePriceAlertImpl(
     private val priceAlertService: GemPriceAlertService,
-    private val sessionRepository: SessionRepository,
+    private val getCurrentCurrency: GetCurrentCurrency,
 ) : ExcludePriceAlert {
 
     override suspend fun invoke(priceAlert: PriceAlert) {
@@ -34,7 +34,7 @@ class ExcludePriceAlertImpl(
         invoke(
             PriceAlert(
                 assetId = assetId,
-                currency = currency ?: sessionRepository.getCurrentCurrency(),
+                currency = currency ?: getCurrentCurrency.getCurrentCurrency(),
                 price = price,
                 pricePercentChange = percentage,
                 priceDirection = direction,

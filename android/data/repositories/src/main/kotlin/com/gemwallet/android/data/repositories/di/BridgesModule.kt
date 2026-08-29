@@ -32,7 +32,7 @@ object BridgesModule {
 
     @Singleton
     @Provides
-    fun provideBridgeRepository(
+    fun provideWalletConnectorService(
         connectionStore: GemstoneConnectionStore,
         walletConnectClient: WalletConnectClient,
         walletConnectService: GemWalletConnectService,

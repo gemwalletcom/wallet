@@ -5,7 +5,7 @@ import uniffi.gemstone.GemBlockExplorerLink
 import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -60,8 +60,8 @@ class DelegationViewModelTest {
         every { getDelegation(ownWalletId, "v1", "d1") } returns flowOf(ownDelegation)
         every { getDelegation(otherWalletId, "v1", "d1") } returns flowOf(otherWalletDelegation)
 
-        val sessionRepository = mockk<SessionRepository> {
-            every { session() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = ownWalletId.id)))
+        val getSession = mockk<GetSession> {
+            every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = ownWalletId.id)))
         }
 
         val viewModel = DelegationViewModel(
@@ -69,7 +69,7 @@ class DelegationViewModelTest {
             getDelegation = getDelegation,
             stakeConfig = GemStakeConfigService(),
             explorerService = explorerService,
-            sessionRepository = sessionRepository,
+            getSession = getSession,
             savedStateHandle = SavedStateHandle(
                 mapOf(
                     RouteArgument.ValidatorId.key to "v1",

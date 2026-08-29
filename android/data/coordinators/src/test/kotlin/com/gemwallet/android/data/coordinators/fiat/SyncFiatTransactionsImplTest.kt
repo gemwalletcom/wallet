@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.fiat
 
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.WalletId
@@ -16,15 +16,15 @@ import uniffi.gemstone.GemFiatService
 class SyncFiatTransactionsImplTest {
 
     private val walletId = WalletId("wallet-1")
-    private val sessionRepository = mockk<SessionRepository>()
+    private val getSession = mockk<GetSession>()
     private val fiatService = mockk<GemFiatService> {
         coEvery { syncTransactions(any()) } returns Unit
     }
-    private val subject = SyncFiatTransactionsImpl(sessionRepository, fiatService)
+    private val subject = SyncFiatTransactionsImpl(getSession, fiatService)
 
     @Test
     fun syncFiatTransactions_withoutSession_skipsWork() = runTest {
-        every { sessionRepository.session() } returns MutableStateFlow(null)
+        every { getSession() } returns MutableStateFlow(null)
 
         subject()
 
@@ -33,7 +33,7 @@ class SyncFiatTransactionsImplTest {
 
     @Test
     fun syncFiatTransactions_usesCurrentSessionWallet() = runTest {
-        every { sessionRepository.session() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = walletId.id)))
+        every { getSession() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = walletId.id)))
 
         subject()
 

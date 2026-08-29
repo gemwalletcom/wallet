@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.transaction
 import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.repositories.gemstone.GemstoneTransactionStore
 import com.wallet.core.primitives.TransactionState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,11 +14,11 @@ private val pendingTransactionStates = listOf(TransactionState.Pending, Transact
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetPendingTransactionsCountImpl(
-    private val sessionRepository: SessionRepository,
+    private val getCurrentWalletId: GetCurrentWalletId,
     private val transactionStore: GemstoneTransactionStore,
 ) : GetPendingTransactionsCount {
 
-    override fun getPendingTransactionsCount(): Flow<Int?> = sessionRepository.currentWalletId()
+    override fun getPendingTransactionsCount(): Flow<Int?> = getCurrentWalletId()
         .flatMapLatest { walletId ->
             transactionStore.observeTransactionsCount(
                 walletId,

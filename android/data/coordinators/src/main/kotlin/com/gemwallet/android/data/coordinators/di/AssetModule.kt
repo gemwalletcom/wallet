@@ -60,7 +60,7 @@ import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemBalanceService
@@ -87,6 +87,8 @@ import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.coordinators.asset.GetWidgetAssetsImpl
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.application.assets.cases.GetWidgetAssets
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.application.session.cases.GetCurrentWallet
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -131,7 +133,7 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideGetWalletSummary(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         getWalletAssets: GetWalletAssets,
         perpetualStore: GemstonePerpetualStore,
         observePerpetualWallet: ObservePerpetualWallet,
@@ -140,7 +142,7 @@ object AssetModule {
         walletPreferencesService: GemWalletPreferencesService,
         perpetualService: GemPerpetualService,
     ): GetWalletSummary = GetWalletSummaryImpl(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
         getWalletAssets = getWalletAssets,
         perpetualStore = perpetualStore,
         observePerpetualWallet = observePerpetualWallet,
@@ -162,10 +164,10 @@ object AssetModule {
     @Singleton
     fun provideGetPortfolioData(
         portfolioService: GemPortfolioService,
-        sessionRepository: SessionRepository,
+        getCurrentWallet: GetCurrentWallet,
     ): GetPortfolioData = GetPortfolioDataImpl(
         portfolioService = portfolioService,
-        sessionRepository = sessionRepository,
+        getCurrentWallet = getCurrentWallet,
     )
 
     @Provides
@@ -189,13 +191,13 @@ object AssetModule {
         balanceService: GemBalanceService,
         streamSubscriptionService: GemStreamSubscriptionService,
         syncMissingAssets: SyncMissingAssets,
-        sessionRepository: SessionRepository,
+        getCurrentCurrency: GetCurrentCurrency,
     ): SyncAssetInfo = SyncAssetInfoImpl(
         assetsService = assetsService,
         balanceService = balanceService,
         streamSubscriptionService = streamSubscriptionService,
         syncMissingAssets = syncMissingAssets,
-        sessionRepository = sessionRepository,
+        getCurrentCurrency = getCurrentCurrency,
     )
 
     @Provides
@@ -219,12 +221,12 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideSyncAssets(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         deviceAssetsSyncService: DeviceAssetsSyncService,
         getWalletAssets: GetWalletAssets,
         syncBalances: SyncBalances,
     ): SyncAssets = SyncAssetsImpl(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
         deviceAssetsSyncService = deviceAssetsSyncService,
         getWalletAssets = getWalletAssets,
         syncBalances = syncBalances,
@@ -247,32 +249,32 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideHideAsset(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         enableAsset: EnableAsset,
-    ): HideAsset = HideAssetImpl(sessionRepository, enableAsset)
+    ): HideAsset = HideAssetImpl(getSession, enableAsset)
 
     @Provides
     @Singleton
     fun provideSetAssetPinned(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         balanceService: GemBalanceService,
-    ): SetAssetPinned = SetAssetPinnedImpl(sessionRepository, balanceService)
+    ): SetAssetPinned = SetAssetPinnedImpl(getSession, balanceService)
 
     @Provides
     @Singleton
     fun provideGetShowWelcomeBanner(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         bannerStore: GemstoneBannerStore,
         bannerService: GemBannerService,
         getActiveAssetsInfo: GetActiveAssetsInfo,
-    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(sessionRepository, bannerStore, bannerService, getActiveAssetsInfo)
+    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(getSession, bannerStore, bannerService, getActiveAssetsInfo)
 
     @Provides
     @Singleton
     fun provideHideWelcomeBanner(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         applyBannerAction: ApplyBannerAction,
-    ): HideWelcomeBanner = HideWelcomeBannerImpl(sessionRepository, applyBannerAction)
+    ): HideWelcomeBanner = HideWelcomeBannerImpl(getSession, applyBannerAction)
 
     @Provides
     @Singleton
@@ -301,7 +303,7 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideGetImportInProgress(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         getImportWalletState: GetImportWalletState,
-    ): GetImportInProgress = GetImportInProgressImpl(sessionRepository, getImportWalletState)
+    ): GetImportInProgress = GetImportInProgressImpl(getSession, getImportWalletState)
 }

@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.pricealerts
 
 import com.gemwallet.android.application.pricealerts.cases.IncludePriceAlert
 import com.gemwallet.android.application.pricealerts.cases.SetPriceAlertsEnabled
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -14,7 +14,7 @@ import uniffi.gemstone.GemPriceAlertService
 
 class IncludePriceAlertImpl(
     private val priceAlertService: GemPriceAlertService,
-    private val sessionRepository: SessionRepository,
+    private val getCurrentCurrency: GetCurrentCurrency,
     private val setPriceAlertsEnabled: SetPriceAlertsEnabled,
 ) : IncludePriceAlert {
 
@@ -27,7 +27,7 @@ class IncludePriceAlertImpl(
     ) {
         val priceAlert = PriceAlert(
             assetId = assetId,
-            currency = currency ?: sessionRepository.getCurrentCurrency(),
+            currency = currency ?: getCurrentCurrency.getCurrentCurrency(),
             price = price,
             pricePercentChange = percentage,
             priceDirection = direction,

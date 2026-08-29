@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.tokens
 
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.cases.tokens.WalletSearchScopeCase
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.serializer.toJson
@@ -16,7 +16,7 @@ import uniffi.gemstone.GemSearchService
 class WalletSearchTokens(
     private val searchTokens: SearchTokensImpl,
     private val searchService: GemSearchService,
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
 ) : SearchTokensCase by searchTokens, WalletSearchScopeCase {
 
     override suspend fun search(query: String, currency: Currency, chains: List<Chain>): Boolean =
@@ -26,7 +26,7 @@ class WalletSearchTokens(
         searchScope(query, currency, scope)
 
     private suspend fun searchScope(query: String, currency: Currency, scope: WalletSearchTag): Boolean = withContext(Dispatchers.IO) {
-        val wallet = sessionRepository.session().value?.wallet ?: return@withContext false
+        val wallet = getSession().value?.wallet ?: return@withContext false
         runCatchingCancellable {
             searchService.search(wallet.toJson(), query, scope.toGem(), currency.toJson())
         }.getOrElse { false }

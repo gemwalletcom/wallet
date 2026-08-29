@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.wallet
 
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.ClearSession
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockWalletId
 import io.mockk.coEvery
@@ -25,7 +25,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeleteWalletImplTest {
 
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true)
+    private val clearSession = mockk<ClearSession>(relaxed = true)
     private val deleteKeyStoreOperator = mockk<DeleteKeyStoreOperator>()
 
     private val walletService = mockk<GemWalletService>()
@@ -33,7 +33,7 @@ class DeleteWalletImplTest {
     private val userConfig = mockk<UserConfig>(relaxed = true)
 
     private val delete = DeleteWalletImpl(
-        sessionRepository,
+        clearSession,
         deleteKeyStoreOperator,
         walletService,
         userConfig,
@@ -52,7 +52,6 @@ class DeleteWalletImplTest {
     @Test
     fun keepsWalletWhenKeystoreDeletionFails() = runTest {
         val walletId = mockWalletId()
-        every { sessionRepository.session() } returns MutableStateFlow<Session?>(null)
         every { deleteKeyStoreOperator(walletId) } returns false
 
         delete.deleteWallet(walletId, onBoard = {}, onComplete = {})
@@ -70,7 +69,7 @@ class DeleteWalletImplTest {
         delete.deleteWallet(walletId, onBoard = {}, onComplete = {})
 
         coVerify { walletService.deleteWallet(walletId.id) }
-        coVerify { sessionRepository.reset() }
+        coVerify { clearSession.clearSession() }
         verify { userConfig.reload() }
     }
 }

@@ -18,7 +18,7 @@ import com.gemwallet.android.application.swap.cases.create
 import com.gemwallet.android.application.swap.cases.matches
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.calculateFiat
 import com.gemwallet.android.domains.asset.formatFiat
 import com.gemwallet.android.domains.swap.SwapItemType
@@ -88,7 +88,7 @@ private val swapQuoteService = GemSwapQuoteService()
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SwapViewModel @Inject constructor(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val getAssetInfo: GetAssetInfo,
     private val enableAsset: EnableAsset,
     private val buildSwapConfirmParams: BuildSwapConfirmParams,
@@ -239,7 +239,7 @@ class SwapViewModel @Inject constructor(
         if (savedStateHandle.get<String?>(RouteArgument.ToAssetId.key) != null) {
             return
         }
-        val walletId = sessionRepository.session().firstOrNull()?.wallet?.id ?: return
+        val walletId = getSession().firstOrNull()?.wallet?.id ?: return
         val payAssetId = savedStateHandle.get<String?>(RouteArgument.FromAssetId.key)
         val suggestion = runCatchingCancellable { swapService.suggestPair(walletId.id, payAssetId) }.getOrNull() ?: return
         savedStateHandle[RouteArgument.FromAssetId.key] = suggestion.payAssetId
@@ -371,7 +371,7 @@ class SwapViewModel @Inject constructor(
     }
 
     private fun updateBalance(id: AssetId) = viewModelScope.launch(Dispatchers.IO) {
-        val currentSession = sessionRepository.session().firstOrNull() ?: return@launch
+        val currentSession = getSession().firstOrNull() ?: return@launch
         currentSession.wallet.getAccount(id.chain) ?: return@launch
         enableAsset(currentSession.wallet.id, id)
     }
