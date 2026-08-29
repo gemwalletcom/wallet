@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.bridge
+package com.gemwallet.android.application.bridge
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

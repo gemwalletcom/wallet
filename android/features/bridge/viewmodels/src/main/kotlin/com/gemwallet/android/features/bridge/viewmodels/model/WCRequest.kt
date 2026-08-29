@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels.model
 
-import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequest
+import com.gemwallet.android.application.bridge.WalletConnectPendingRequest
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.domains.confirm.toGenericParams

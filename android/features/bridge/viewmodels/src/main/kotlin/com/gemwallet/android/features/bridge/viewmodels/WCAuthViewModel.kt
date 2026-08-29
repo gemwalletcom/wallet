@@ -7,13 +7,13 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
-import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectorService
-import com.gemwallet.android.data.repositories.bridge.ChainNamespace
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthPayloadParams
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
-import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
+import com.gemwallet.android.application.bridge.ActiveWalletConnectRequest
+import com.gemwallet.android.application.bridge.cases.ApproveWalletConnectAuthentication
+import com.gemwallet.android.application.bridge.ChainNamespace
+import com.gemwallet.android.application.bridge.WalletConnectAuthPayloadParams
+import com.gemwallet.android.application.bridge.WalletConnectAuthenticationRequest
+import com.gemwallet.android.application.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.bridge.fromWalletConnectChainId
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
@@ -44,7 +44,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WCAuthViewModel @Inject constructor(
-    private val walletConnectorService: WalletConnectorService,
+    private val approveWalletConnectAuthentication: ApproveWalletConnectAuthentication,
     private val prepareSessionProposal: PrepareSessionProposal,
     private val passwordStore: PasswordStore,
     private val signMessageOperator: GemSignMessageOperator,
@@ -75,7 +75,7 @@ class WCAuthViewModel @Inject constructor(
         if (verification.isScam) {
             onNotify(BridgeRequestError.MaliciousSession)
             hasResponded = true
-            walletConnectorService.rejectAuthentication(request)
+            approveWalletConnectAuthentication.rejectAuthentication(request)
             finish(request)
             return
         }
@@ -158,12 +158,12 @@ class WCAuthViewModel @Inject constructor(
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
-                val authObject = walletConnectorService.generateAuthObject(
+                val authObject = approveWalletConnectAuthentication.authObject(
                     payloadParams = approval.payloadParams,
                     issuer = approval.issuer,
                     signature = signature,
                 )
-                walletConnectorService.approveAuthentication(
+                approveWalletConnectAuthentication.approveAuthentication(
                     request = request,
                     auths = listOf(authObject),
                     wallet = approval.wallet,
@@ -197,7 +197,7 @@ class WCAuthViewModel @Inject constructor(
             return
         }
         hasResponded = true
-        walletConnectorService.rejectAuthentication(request)
+        approveWalletConnectAuthentication.rejectAuthentication(request)
         finish()
     }
 
@@ -209,7 +209,7 @@ class WCAuthViewModel @Inject constructor(
             return
         }
         hasResponded = true
-        walletConnectorService.rejectAuthentication(request)
+        approveWalletConnectAuthentication.rejectAuthentication(request)
         _state.update { errorState }
     }
 
@@ -241,13 +241,13 @@ class WCAuthViewModel @Inject constructor(
         val selectedAccount = supportedAccounts.firstOrNull()
             ?: throw IllegalStateException("Requested chains are not supported")
         val supportedChains = supportedAccounts.map { it.chainId }.distinct()
-        val payloadParams = walletConnectorService.generateAuthPayloadParams(
+        val payloadParams = approveWalletConnectAuthentication.authPayloadParams(
             payloadParams = request.payloadParams,
             supportedChains = supportedChains,
             supportedMethods = ChainNamespace.Eip155.methodIds,
         )
         val issuer = selectedAccount.issuer
-        val message = walletConnectorService.formatAuthMessage(payloadParams, issuer)
+        val message = approveWalletConnectAuthentication.authMessage(payloadParams, issuer)
         val payloadPreview = payloadPreview(selectedAccount.account.chain, message)
 
         return AuthApproval(

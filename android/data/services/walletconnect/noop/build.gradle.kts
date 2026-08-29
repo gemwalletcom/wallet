@@ -28,7 +28,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":data:repositories"))
+    implementation(project(":gemcore"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

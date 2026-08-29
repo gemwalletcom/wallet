@@ -3,7 +3,8 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.bridge.WalletConnectorService
+import com.gemwallet.android.application.bridge.cases.IsWalletConnectEnabled
+import com.gemwallet.android.application.bridge.cases.PairWalletConnect
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.ext.userMessage
@@ -32,7 +33,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val userConfig: UserConfig,
-    private val walletConnectorService: WalletConnectorService,
+    private val isWalletConnectEnabledCase: IsWalletConnectEnabled,
+    private val pairWalletConnect: PairWalletConnect,
     private val syncService: SyncService,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
     private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
@@ -55,7 +57,7 @@ class MainViewModel @Inject constructor(
 
     private val activeAuthRequestId = AtomicLong(NoActiveAuthRequestId)
 
-    val isWalletConnectEnabled: Boolean = walletConnectorService.isWalletConnectEnabled
+    val isWalletConnectEnabled: Boolean = isWalletConnectEnabledCase.isWalletConnectEnabled()
 
     val appearance = userConfig.appearance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, Appearance.System)
@@ -206,7 +208,7 @@ class MainViewModel @Inject constructor(
         }
         showWalletConnectPairingToast()
         viewModelScope.launch(Dispatchers.IO) {
-            walletConnectorService.addPairing(
+            pairWalletConnect.pair(
                 uri = uri,
                 onSuccess = {},
                 onError = ::showWalletConnectError,

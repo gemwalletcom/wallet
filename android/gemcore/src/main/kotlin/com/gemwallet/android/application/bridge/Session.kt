@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.bridge
+package com.gemwallet.android.application.bridge
 
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -9,7 +9,7 @@ import uniffi.gemstone.GemChainService
 
 private val chainService = GemChainService()
 
-internal fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInterface): WalletConnectionSession? {
+fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInterface): WalletConnectionSession? {
     val metadata = metadata ?: return null
     return runCatching {
         service.session(
@@ -21,7 +21,7 @@ internal fun WalletConnectSession.toConnectionSession(service: GemWalletConnectS
     }.getOrNull()?.decodeJson()
 }
 
-internal fun GemSessionApproval.toSupportedNamespaces(): Map<String, WalletConnectSessionNamespace> {
+fun GemSessionApproval.toSupportedNamespaces(): Map<String, WalletConnectSessionNamespace> {
     return accounts
         .mapNotNull { account ->
             val namespace = chainService.caip2Namespace(account.chain) ?: return@mapNotNull null

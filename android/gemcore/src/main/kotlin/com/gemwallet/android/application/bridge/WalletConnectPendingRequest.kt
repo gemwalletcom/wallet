@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.bridge
+package com.gemwallet.android.application.bridge
 
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toChain

@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels.model
 
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.bridge.WalletConnectVerifyContext
 import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import javax.inject.Inject

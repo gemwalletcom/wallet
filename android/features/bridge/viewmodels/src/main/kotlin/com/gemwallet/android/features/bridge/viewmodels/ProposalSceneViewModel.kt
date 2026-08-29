@@ -5,10 +5,10 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
-import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectorService
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.bridge.ActiveWalletConnectRequest
+import com.gemwallet.android.application.bridge.cases.ApproveWalletConnection
+import com.gemwallet.android.application.bridge.WalletConnectSessionProposal
+import com.gemwallet.android.application.bridge.WalletConnectVerifyContext
 import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
@@ -30,7 +30,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProposalSceneViewModel @Inject constructor(
-    private val walletConnectorService: WalletConnectorService,
+    private val approveWalletConnection: ApproveWalletConnection,
     private val prepareSessionProposal: PrepareSessionProposal,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
@@ -106,7 +106,7 @@ class ProposalSceneViewModel @Inject constructor(
         state.update { ProposalSceneState.Approving(it.verificationStatus) }
         viewModelScope.launch(Dispatchers.IO) {
             val result = runCatching {
-                walletConnectorService.approveConnection(
+                approveWalletConnection.approveConnection(
                     wallet = wallet,
                     proposal = proposal,
                     onSuccess = { finish(proposal) },
@@ -138,7 +138,7 @@ class ProposalSceneViewModel @Inject constructor(
 
     private fun reject(proposal: WalletConnectSessionProposal) {
         viewModelScope.launch(Dispatchers.IO) {
-            walletConnectorService.rejectConnection(
+            approveWalletConnection.rejectConnection(
                 proposal = proposal,
                 onSuccess = { finish(proposal) },
                 onError = { finish(proposal) }

@@ -5,14 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
-import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectorService
-import com.gemwallet.android.data.repositories.bridge.WalletConnectJsonRpcResponse
-import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequests
-import com.gemwallet.android.data.repositories.bridge.WalletConnectRequestHandler
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.bridge.ActiveWalletConnectRequest
+import com.gemwallet.android.application.bridge.cases.GetWalletConnections
+import com.gemwallet.android.application.bridge.cases.RespondWalletConnectRequest
+import com.gemwallet.android.application.bridge.WalletConnectJsonRpcResponse
+import com.gemwallet.android.application.bridge.WalletConnectPendingRequest
+import com.gemwallet.android.application.bridge.WalletConnectPendingRequests
+import com.gemwallet.android.application.bridge.WalletConnectRequestHandler
+import com.gemwallet.android.application.bridge.WalletConnectSessionRequest
+import com.gemwallet.android.application.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
@@ -35,7 +36,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WCRequestViewModel @Inject constructor(
-    private val walletConnectorService: WalletConnectorService,
+    private val getWalletConnections: GetWalletConnections,
+    private val respondWalletConnectRequest: RespondWalletConnectRequest,
     private val requestHandler: WalletConnectRequestHandler,
     private val pendingRequests: WalletConnectPendingRequests,
     private val passwordStore: PasswordStore,
@@ -71,7 +73,7 @@ class WCRequestViewModel @Inject constructor(
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
         Log.d(TAG, "Resolving request method=${sessionRequest.request.method} chainId=${sessionRequest.chainId} id=${sessionRequest.request.id}")
         val job = viewModelScope.launch(Dispatchers.IO) {
-            val connection = walletConnectorService.getConnectionByTopic(sessionRequest.topic)
+            val connection = getWalletConnections.getConnectionByTopic(sessionRequest.topic)
             if (connection == null) {
                 rejectRequest(sessionRequest)
                 return@launch
@@ -161,7 +163,7 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun respond(sessionRequest: WalletConnectSessionRequest, response: WalletConnectJsonRpcResponse, onError: (String) -> Unit) {
-        walletConnectorService.respondSessionRequest(
+        respondWalletConnectRequest.respond(
             topic = sessionRequest.topic,
             id = sessionRequest.request.id,
             response = response,
@@ -174,7 +176,7 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun rejectRequest(sessionRequest: WalletConnectSessionRequest) {
-        walletConnectorService.respondSessionRequest(
+        respondWalletConnectRequest.respond(
             topic = sessionRequest.topic,
             id = sessionRequest.request.id,
             response = requestHandler.rejected(),

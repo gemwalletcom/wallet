@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.repositories.bridge
+package com.gemwallet.android.application.bridge
 
 import uniffi.gemstone.GemWalletConnectRequest
 import uniffi.gemstone.GemWalletConnectResponse

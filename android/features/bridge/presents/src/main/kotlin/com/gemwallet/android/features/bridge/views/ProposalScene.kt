@@ -22,8 +22,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.bridge.WalletConnectSessionProposal
+import com.gemwallet.android.application.bridge.WalletConnectVerifyContext
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneState
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
