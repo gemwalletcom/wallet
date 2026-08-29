@@ -360,8 +360,6 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 | Repository | Callers | What it holds today | Target |
 | --- | --- | --- | --- |
-| `ContactsRepository` | 1 | two DAO flows plus `GemContactService` writes | `GetContacts`/`GetContactRecipients` cases; writes already go to the service |
-| `BannersRepository` | 1 | `GemBannerService` plus `BannersDao` | its case interfaces already exist (`GetActiveBanners`, `ApplyBannerAction`, `HasMultiSign`) — move the bodies into their `*Impl` and drop the repository |
 | `PriceAlertRepository` (+`Impl`) | 6 | four observed reads over `PriceAlertsDao` | the matching cases already exist (`GetPriceAlerts`, `GetAssetPriceAlertState`, `HasAssetPriceAlerts`) — give them the DAO |
 | `TransactionRepository` (+`Impl`) | 6 | `getTransactions(filters)`, `getTransaction(id)` | `GetTransactions`/`GetTransaction` cases over `TransactionsDao` |
 | `AddressesRepository` | 5 | address-name flow plus `saveWalletAddresses` over `GemNameService` | `GetAddressName`/`SaveWalletAddresses` cases |
