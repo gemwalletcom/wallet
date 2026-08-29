@@ -35,14 +35,12 @@ impl BalanceCalculator {
     }
 }
 
-#[uniffi::export]
-pub fn wallet_total_fiat_value(balances: Vec<AssetFiatValue>) -> TotalFiatValue {
+pub(crate) fn wallet_total_fiat_value(balances: Vec<AssetFiatValue>) -> TotalFiatValue {
     let priced: Vec<AssetFiatValue> = balances.into_iter().filter(|balance| balance.price > 0.0).collect();
     Calculator::total_fiat_value(&priced)
 }
 
-#[uniffi::export]
-pub fn wallet_shows_pnl(total: TotalFiatValue) -> bool {
+pub(crate) fn wallet_shows_pnl(total: TotalFiatValue) -> bool {
     total.value > 0.0 && total.pnl_amount != 0.0
 }
 

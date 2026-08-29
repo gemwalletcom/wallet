@@ -371,7 +371,7 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 | ~~`GemNftService`~~ → `GemNftRulesService` (done) | the four collection rules, on a stateless service for the same reason as the stake ones |
 | ~~`GemPriceAlertService`~~ → `GemPriceAlertRulesService` (done) | id, ordering, notification type and display rule; the value helpers (`PriceAlert.id`, `.type`, `.shouldDisplay`) keep their shape on both apps and hold one service instance in the extension file |
 | ~~`GemPerpetualService`~~ → `GemPerpetualRulesService` (done) | collateral asset, funding APR and the two order builders |
-| `GemWalletService` | `sorted_wallets`, `wallet_display_account`, `keystore_id_for_wallet`, `wallet_total_fiat_value`, `wallet_shows_pnl` |
+| ~~`GemWalletService`~~ → `GemWalletRulesService` (done) | wallet ordering, display account, keystore id and the total/PnL calculation, gathered from three Core files |
 | `GemConfirmService` | `confirm_input_encode`, `confirm_input_decode`, `acquire_asset_flow`, `default_fee_priority`, `is_insufficient_network_fee`, `custom_gas_price`, `custom_fee_estimate`, `calculate_transfer_amount` |
 | `GemPaymentService` | `payment_decode_url`, `payment_destination`, `payment_transfer_destination`, `payment_decoded_transfer`, `deeplink_build_url`, `deeplink_build_gem_url`, `url_action` |
 | `GemWalletConnectService` | `wallet_connect_namespace`, `wallet_connect_reference`, `wallet_connect_chain`, `siwe_try_parse`, `siwe_validate`, `permit2_data_to_eip712_json` |

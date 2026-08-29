@@ -4,6 +4,7 @@ pub mod password;
 mod rules;
 pub mod store;
 
+use primitives::{AssetFiatValue, TotalFiatValue};
 use std::sync::Arc;
 
 use gem_keystore::Mnemonic;
@@ -197,12 +198,33 @@ fn keystore_import(import: GemWalletImportType) -> GemImportType {
     }
 }
 
-#[uniffi::export]
-pub fn sorted_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
-    rules::sorted_wallets(wallets)
-}
+#[derive(Default, uniffi::Object)]
+pub struct GemWalletRulesService {}
 
 #[uniffi::export]
-pub fn wallet_display_account(wallet: Wallet) -> Option<Account> {
-    rules::display_account(&wallet)
+impl GemWalletRulesService {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn sorted_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
+        rules::sorted_wallets(wallets)
+    }
+
+    pub fn display_account(&self, wallet: Wallet) -> Option<Account> {
+        rules::display_account(&wallet)
+    }
+
+    pub fn keystore_id(&self, wallet_id: String) -> String {
+        crate::keystore::keystore_id_for_wallet(wallet_id)
+    }
+
+    pub fn total_fiat_value(&self, balances: Vec<AssetFiatValue>) -> TotalFiatValue {
+        crate::balance_calculator::wallet_total_fiat_value(balances)
+    }
+
+    pub fn shows_pnl(&self, total: TotalFiatValue) -> bool {
+        crate::balance_calculator::wallet_shows_pnl(total)
+    }
 }

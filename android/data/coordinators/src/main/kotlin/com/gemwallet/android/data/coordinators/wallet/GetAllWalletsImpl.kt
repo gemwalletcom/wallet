@@ -12,13 +12,14 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
-import uniffi.gemstone.sortedWallets
-import uniffi.gemstone.walletDisplayAccount
+import uniffi.gemstone.GemWalletRulesService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+
+private val walletRules = GemWalletRulesService()
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetAllWalletsImpl(
@@ -30,7 +31,7 @@ class GetAllWalletsImpl(
         return sessionRepository.session().flatMapLatest { session ->
             val currentWalletId = session?.wallet?.id
             walletsRepository.getAll().map { items ->
-                sortedWallets(items.map { it.toJson() }).map { it.decodeJson<Wallet>() }
+                walletRules.sortedWallets(items.map { it.toJson() }).map { it.decodeJson<Wallet>() }
             }.mapLatest { items ->
                 items.map { WalletDataAggregateImpl(it, it.id == currentWalletId) }
             }
@@ -59,5 +60,5 @@ class WalletDataAggregateImpl(
     override val imageUrl: String? = wallet.imageUrl
 
     private val walletAccount: Account?
-        get() = walletDisplayAccount(wallet.toJson())?.toPrimitives()
+        get() = walletRules.displayAccount(wallet.toJson())?.toPrimitives()
 }

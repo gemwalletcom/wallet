@@ -58,7 +58,7 @@ class MigrateV3KeystoreServiceTest {
 
         service()
 
-        val keystoreId = uniffi.gemstone.keystoreIdForWallet(walletId.id)
+        val keystoreId = uniffi.gemstone.GemWalletRulesService().keystoreId(walletId.id)
         assertTrue("v4 file must exist at the deterministic id", File(baseDir, "$keystoreId.json").exists())
         assertFalse("v3 file must be deleted after a verified migration", File(baseDir, walletId.id).exists())
         assertEquals(EXPECTED_PRIVATE_KEY, loadKey(current, Chain.Ethereum, KEYSTORE_TEST_PASSWORD))
@@ -76,7 +76,7 @@ class MigrateV3KeystoreServiceTest {
 
         service()
 
-        val keystoreId = uniffi.gemstone.keystoreIdForWallet(walletId.id)
+        val keystoreId = uniffi.gemstone.GemWalletRulesService().keystoreId(walletId.id)
         assertTrue("v4 file must exist at the deterministic id", File(baseDir, "$keystoreId.json").exists())
         assertFalse("v3 file must be deleted after a verified migration", File(baseDir, walletId.id).exists())
         assertEquals(EXPECTED_PRIVATE_KEY, loadKey(current, Chain.Ethereum, KEYSTORE_TEST_PASSWORD))
@@ -94,7 +94,7 @@ class MigrateV3KeystoreServiceTest {
 
         service()
 
-        val keystoreId = uniffi.gemstone.keystoreIdForWallet(walletId.id)
+        val keystoreId = uniffi.gemstone.GemWalletRulesService().keystoreId(walletId.id)
         assertTrue("v4 file must exist after migrating an empty-salt v3 file", File(baseDir, "$keystoreId.json").exists())
         assertFalse("v3 file must be deleted after a verified migration", File(baseDir, walletId.id).exists())
         assertEquals(EXPECTED_PRIVATE_KEY, loadKey(current, Chain.Ethereum, KEYSTORE_TEST_PASSWORD))

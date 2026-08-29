@@ -5,7 +5,7 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemKeystore
-import uniffi.gemstone.keystoreIdForWallet
+import uniffi.gemstone.GemWalletRulesService
 import java.io.File
 
 class GemDeleteKeyStoreOperator(
@@ -17,7 +17,7 @@ class GemDeleteKeyStoreOperator(
         var deletedAll = true
 
         try {
-            GemKeystore(baseDir).use { keystore -> keystore.delete(keystoreIdForWallet(walletId.id)) }
+            GemKeystore(baseDir).use { keystore -> keystore.delete(GemWalletRulesService().keystoreId(walletId.id)) }
         } catch (e: Exception) {
             Log.e(TAG, "v4 keystore delete failed for ${walletId.id}", e)
             deletedAll = false

@@ -1,5 +1,6 @@
 package com.gemwallet.android.ext
 
+import uniffi.gemstone.GemWalletRulesService
 import com.gemwallet.android.domains.asset.defaultAssets
 import com.gemwallet.android.math.fromHex
 import com.wallet.core.primitives.Account
@@ -10,6 +11,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemWalletType
+
+private val walletRules = GemWalletRulesService()
 
 fun Wallet.getAccount(chain: Chain): Account? {
     return accounts.firstOrNull { it.chain == chain }
@@ -27,7 +30,7 @@ fun WalletType.toGem(): GemWalletType = when (this) {
 }
 
 val Wallet.keystoreId: String
-    get() = uniffi.gemstone.keystoreIdForWallet(id.id)
+    get() = walletRules.keystoreId(id.id)
 
 fun String.v4KeystorePasswordBytes(): ByteArray = fromHex()
 

@@ -152,8 +152,7 @@ impl GemKeystore {
     }
 }
 
-#[uniffi::export]
-pub fn keystore_id_for_wallet(wallet_id: String) -> String {
+pub(crate) fn keystore_id_for_wallet(wallet_id: String) -> String {
     KeystoreId::from_wallet_id(&wallet_id).into_string()
 }
 
