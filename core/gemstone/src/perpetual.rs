@@ -6,7 +6,8 @@ use gem_hypercore::{
     provider::{websocket_mapper::account_subscriptions, websocket_subscriptions::WebSocketSubscriptions},
 };
 use primitives::{
-    AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType,
+    AutocloseEstimator as Estimator, AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualProvider,
+    PerpetualType, TpslType,
 };
 
 use crate::models::perpetual::GemPerpetualSubscription;
@@ -87,6 +88,52 @@ impl AutocloseValidator {
 
     pub fn validate(&self, price: f64) -> AutocloseValidation {
         self.inner.validate(price)
+    }
+}
+
+#[derive(Debug, uniffi::Object)]
+pub struct GemAutocloseEstimator {
+    inner: Estimator,
+}
+
+#[uniffi::export]
+impl GemAutocloseEstimator {
+    #[uniffi::constructor]
+    pub fn new(entry_price: f64, position_size: f64, direction: PerpetualDirection, leverage: u8) -> Self {
+        Self {
+            inner: Estimator::new(entry_price, position_size, direction, leverage),
+        }
+    }
+
+    #[uniffi::constructor]
+    pub fn for_open(market_price: f64, size: f64, leverage: u8, direction: PerpetualDirection) -> Self {
+        Self {
+            inner: Estimator::for_open(market_price, size, leverage, direction),
+        }
+    }
+
+    pub fn has_size(&self) -> bool {
+        self.inner.has_size()
+    }
+
+    pub fn percent_suggestions(&self) -> Vec<u8> {
+        crate::config::perpetual_config::get_autoclose_suggestions(self.inner.leverage)
+    }
+
+    pub fn pnl(&self, price: f64) -> f64 {
+        self.inner.pnl(price)
+    }
+
+    pub fn price_change_percent(&self, price: f64) -> f64 {
+        self.inner.price_change_percent(price)
+    }
+
+    pub fn roe(&self, price: f64) -> f64 {
+        self.inner.roe(price)
+    }
+
+    pub fn target_price_from_roe(&self, roe_percent: i32, trigger_type: TpslType) -> f64 {
+        self.inner.target_price_from_roe(roe_percent, trigger_type)
     }
 }
 

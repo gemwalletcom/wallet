@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
+import uniffi.gemstone.GemAutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseModifyBuilder
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
@@ -39,6 +39,8 @@ import kotlinx.coroutines.launch
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 import javax.inject.Inject
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.domains.perpetual.toGem
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -98,7 +100,7 @@ class AutocloseViewModel @Inject constructor(
         submitAttempted.value = false
         val position = position.value ?: return
         val estimator = estimator(position)
-        val target = estimator.targetPriceFromRoe(percent, type)
+        val target = estimator.targetPriceFromRoe(percent, type.toGem())
         val formatted = PerpetualFormatter.formatInputPrice(
             provider = position.perpetual.provider,
             price = target,
@@ -180,10 +182,10 @@ class AutocloseViewModel @Inject constructor(
         )
     }
 
-    private fun estimator(position: PerpetualPositionData) = AutocloseEstimator(
+    private fun estimator(position: PerpetualPositionData) = GemAutocloseEstimator(
         entryPrice = position.position.entryPrice,
         positionSize = position.position.size,
-        direction = position.position.direction,
+        direction = position.position.direction.toJson(),
         leverage = position.position.leverage,
     )
 

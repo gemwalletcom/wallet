@@ -9,6 +9,7 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
+import class Gemstone.GemAutocloseEstimator
 
 @Observable
 @MainActor
@@ -17,14 +18,33 @@ public final class AutocloseSceneViewModel {
     private let percentFormatter = PercentFormatter.signed
     private let perpetualFormatter = PerpetualFormatter(provider: .hypercore)
     private let type: AutocloseType
-    private let estimator: AutocloseEstimator
+    private let estimator: GemAutocloseEstimator
 
     var input: AutocloseInput
+
+    private static func estimator(for type: AutocloseType) -> GemAutocloseEstimator {
+        switch type {
+        case let .modify(position, _):
+            GemAutocloseEstimator(
+                entryPrice: position.position.entryPrice,
+                positionSize: position.position.size,
+                direction: (try? position.position.direction.json()) ?? "",
+                leverage: position.position.leverage,
+            )
+        case let .open(data, _):
+            GemAutocloseEstimator.forOpen(
+                marketPrice: data.marketPrice,
+                size: data.size,
+                leverage: data.leverage,
+                direction: (try? data.direction.json()) ?? "",
+            )
+        }
+    }
 
     public init(type: AutocloseType, currencyFormatter: CurrencyFormatter = .usd) {
         self.type = type
         self.currencyFormatter = currencyFormatter
-        estimator = AutocloseEstimator(type: type)
+        estimator = Self.estimator(for: type)
 
         input = AutocloseInput(
             type: type,
@@ -123,7 +143,7 @@ public extension AutocloseSceneViewModel {
     func onSelectPercent(_ percent: Int) {
         guard let type = input.focusedType, let focused = input.focused else { return }
         focused.text = perpetualFormatter.formatInputPrice(
-            estimator.calculateTargetPriceFromROE(roePercent: percent, type: type),
+            estimator.targetPriceFromRoe(roePercent: Int32(percent), triggerType: type.map()),
             decimals: assetDecimals,
         )
     }

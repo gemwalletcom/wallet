@@ -13,6 +13,7 @@ import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style
+import class Gemstone.GemAutocloseEstimator
 
 @Observable
 public final class AmountPerpetualViewModel: AmountDataProvidable {
@@ -199,17 +200,17 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         }
 
         let transferData = data.positionAction.transferData
-        let estimator = AutocloseEstimator(
+        let estimator = GemAutocloseEstimator(
             entryPrice: transferData.price,
             positionSize: 0,
-            direction: transferData.direction,
+            direction: (try? transferData.direction.json()) ?? "",
             leverage: leverage,
         )
         let formatter = PerpetualFormatter(provider: .hypercore)
         func price(_ percent: UInt8, _ type: TpslType) -> String? {
             guard percent > 0 else { return nil }
             return formatter.formatInputPrice(
-                estimator.calculateTargetPriceFromROE(roePercent: Int(percent), type: type),
+                estimator.targetPriceFromRoe(roePercent: Int32(percent), triggerType: type.map()),
                 decimals: transferData.asset.decimals,
             )
         }

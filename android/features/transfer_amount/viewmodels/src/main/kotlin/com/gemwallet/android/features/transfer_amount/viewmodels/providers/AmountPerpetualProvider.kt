@@ -9,7 +9,7 @@ import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.domains.perpetual.PerpetualOrderFactory
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
+import uniffi.gemstone.GemAutocloseEstimator
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
@@ -35,6 +35,8 @@ import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemTransferBalance
 import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountType
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.domains.perpetual.toGem
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProvider(
@@ -98,17 +100,16 @@ class AmountPerpetualProvider(
 
     fun setLeverage(value: Int) { userSelectedLeverage.value = value }
 
-    fun estimatorFor(amount: String): AutocloseEstimator {
+    fun estimatorFor(amount: String): GemAutocloseEstimator {
         val market = perpetual.value
         val leverage = (leverageState.value?.current ?: market?.maxLeverage ?: 1).coerceAtLeast(1)
         val marketPrice = market?.price ?: 0.0
         val usdAmount = amount.parseInputNumberOrNull()?.toDouble() ?: 0.0
-        val positionSize = if (marketPrice > 0.0) (usdAmount * leverage) / marketPrice else 0.0
-        return AutocloseEstimator(
-            entryPrice = marketPrice,
-            positionSize = positionSize,
-            direction = direction,
+        return GemAutocloseEstimator.forOpen(
+            marketPrice = marketPrice,
+            size = usdAmount,
             leverage = leverage.toUByte(),
+            direction = direction.toJson(),
         )
     }
 
@@ -138,7 +139,7 @@ class AmountPerpetualProvider(
                 combine(perpetual.filterNotNull(), leverageState.filterNotNull()) { market, _ ->
                     PerpetualFormatter.formatInputPrice(
                         provider = market.provider,
-                        price = estimatorFor("").targetPriceFromRoe(value, type),
+                        price = estimatorFor("").targetPriceFromRoe(value, type.toGem()),
                         decimals = market.asset.decimals,
                     )
                 }
