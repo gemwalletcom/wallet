@@ -3,19 +3,34 @@ package com.gemwallet.android.data.repositories.gemstone
 import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.serializer.decodeJson
+import com.wallet.core.primitives.SupportAgent
 import com.wallet.core.primitives.SupportMessage
-import uniffi.gemstone.GemSupportStore
-import com.gemwallet.android.data.repositories.support.SupportTypingState
 import com.wallet.core.primitives.SupportTyping
+import com.wallet.core.primitives.SupportTypingStatus
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import uniffi.gemstone.GemSupportStore
 
 class GemstoneSupportStore(
     private val supportMessagesDao: SupportMessagesDao,
-    private val supportTypingState: SupportTypingState,
 ) : GemSupportStore {
-    override fun updateTyping(typing: String) = supportTypingState.update(typing.decodeJson<SupportTyping>())
 
-    override fun clearTyping() = supportTypingState.clear()
+    private val agent = MutableStateFlow<SupportAgent?>(null)
+    val typingAgent: StateFlow<SupportAgent?> = agent.asStateFlow()
 
+    override fun updateTyping(typing: String) {
+        agent.value = typing.decodeJson<SupportTyping>().let {
+            when (it.status) {
+                SupportTypingStatus.On -> it.agent
+                SupportTypingStatus.Off -> null
+            }
+        }
+    }
+
+    override fun clearTyping() {
+        agent.value = null
+    }
 
     override suspend fun saveMessages(messages: List<String>) {
         supportMessagesDao.addMessages(messages.map { it.decodeJson<SupportMessage>().toRecord() })

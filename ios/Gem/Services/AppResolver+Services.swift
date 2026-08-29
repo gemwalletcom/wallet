@@ -97,6 +97,6 @@ extension AppResolver {
         let fiatService: any GemFiatServiceProtocol
         let contactService: any GemContactServiceProtocol
         let supportService: any GemSupportServiceProtocol
-        let supportTypingState: SupportTypingState
+        let supportStore: GemstoneSupportStore
     }
 }

@@ -89,5 +89,5 @@ extension EnvironmentValues {
     @Entry var portfolioService: any GemPortfolioServiceProtocol = AppResolver.main.services.portfolioService
     @Entry var contactService: any GemContactServiceProtocol = AppResolver.main.services.contactService
     @Entry var supportService: any GemSupportServiceProtocol = AppResolver.main.services.supportService
-    @Entry var supportTypingState: SupportTypingState = AppResolver.main.services.supportTypingState
+    @Entry var supportStore: GemstoneSupportStore = AppResolver.main.services.supportStore
 }

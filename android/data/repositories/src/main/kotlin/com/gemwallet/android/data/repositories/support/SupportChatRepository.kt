@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.support
 
+import com.gemwallet.android.data.repositories.gemstone.GemstoneSupportStore
 import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.service.store.database.entities.toModel
 import com.gemwallet.android.data.service.store.database.entities.toRecord
@@ -15,12 +16,11 @@ import uniffi.gemstone.GemSupportService
 class SupportChatRepository(
     private val supportService: GemSupportService,
     private val supportMessagesDao: SupportMessagesDao,
-    private val supportTypingState: SupportTypingState,
+    private val supportStore: GemstoneSupportStore,
 ) {
-    val typing: StateFlow<SupportAgent?> = supportTypingState.agent
+    val typing: StateFlow<SupportAgent?> = supportStore.typingAgent
 
-    fun clearTyping() = supportTypingState.clear()
-
+    fun clearTyping() = supportStore.clearTyping()
 
 
     fun getMessages(): Flow<List<SupportMessage>> =

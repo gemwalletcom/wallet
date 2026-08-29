@@ -48,7 +48,7 @@ struct SettingsNavigationView: View {
     @Environment(\.nameService) private var nameService
     @Environment(\.supportService) private var supportService
     @Environment(\.walletPreferencesService) private var walletPreferencesService
-    @Environment(\.supportTypingState) private var supportTypingState
+    @Environment(\.supportStore) private var supportStore
     @Environment(\.navigationPresenter) private var presenter
 
     @State private var currencyModel: CurrencySceneViewModel
@@ -219,7 +219,7 @@ struct SettingsNavigationView: View {
         }
         .sheet(isPresented: $isPresentingSupport) {
             NavigationStack {
-                SupportChatScene(model: SupportChatSceneViewModel(service: supportService, typing: supportTypingState))
+                SupportChatScene(model: SupportChatSceneViewModel(service: supportService, store: supportStore))
                     .toolbarDismissItem(type: .close, placement: .topBarLeading)
             }
             .environment(\.openURL, OpenURLAction { url in
