@@ -1,10 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressRulesService
 import BigInt
 import Foundation
 import Gemstone
 import func Gemstone.chainAssetWrapper
 import Primitives
+
+private let addressRules = GemAddressRulesService()
 
 private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
     guard let chainAsset = try? Primitives.ChainAsset(chainAssetWrapper(chain: chain.rawValue)) else {
@@ -153,11 +156,11 @@ public extension Primitives.Chain {
     }
 
     func isValidAddress(_ address: String) -> Bool {
-        Gemstone.validateAddress(address: checksumAddress(address), chain: rawValue)
+        addressRules.validate(address: checksumAddress(address), chain: rawValue)
     }
 
     func checksumAddress(_ address: String) -> String {
-        Gemstone.checksumAddress(address: address, chain: rawValue)
+        addressRules.checksum(address: address, chain: rawValue)
     }
 
     var isPrivateKeyImportSupported: Bool {

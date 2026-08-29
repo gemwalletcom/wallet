@@ -10,9 +10,10 @@ import com.wallet.core.primitives.EVMChain
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.supportsPrivateKeyImport
-import uniffi.gemstone.validateAddress
-import uniffi.gemstone.checksumAddress as gemstoneChecksumAddress
+import uniffi.gemstone.GemAddressRulesService
 import java.math.BigInteger
+
+private val addressRules = GemAddressRulesService()
 
 private val chainAssetCache: Map<Chain, ChainAsset> by lazy {
     Chain.entries.associateWith { chain ->
@@ -71,9 +72,9 @@ fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 
-fun Chain.isValidAddress(address: String): Boolean = validateAddress(checksumAddress(address), string)
+fun Chain.isValidAddress(address: String): Boolean = addressRules.validate(checksumAddress(address), string)
 
-fun Chain.checksumAddress(address: String): String = gemstoneChecksumAddress(address = address, chain = string)
+fun Chain.checksumAddress(address: String): String = addressRules.checksum(address = address, chain = string)
 
 fun Chain.isPrivateKeyImportSupported(): Boolean = supportsPrivateKeyImport(string)
 

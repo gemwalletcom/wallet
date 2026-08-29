@@ -1,7 +1,6 @@
 use gem_bitcoin::models::address::Address as BitcoinAddress;
 use primitives::{Chain, ChainType};
 
-#[uniffi::export]
 pub fn validate_address(address: &str, chain: Chain) -> bool {
     match chain.chain_type() {
         ChainType::Ethereum | ChainType::HyperCore => gem_evm::validate_address(address),
@@ -21,7 +20,6 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
     }
 }
 
-#[uniffi::export]
 pub fn checksum_address(address: &str, chain: Chain) -> String {
     let address = address.trim();
     match chain.chain_type() {
@@ -30,7 +28,6 @@ pub fn checksum_address(address: &str, chain: Chain) -> String {
     }
 }
 
-#[uniffi::export]
 pub fn short_address(address: &str, chain: Chain) -> String {
     match chain {
         Chain::BitcoinCash => BitcoinAddress::new(address, Chain::BitcoinCash).short().to_string(),

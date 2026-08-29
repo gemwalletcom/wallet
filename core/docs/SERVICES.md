@@ -366,7 +366,7 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 | Target service | Functions to fold in |
 | --- | --- |
 | `GemAssetService` (new) | `asset_default_rank`, `default_token_rank`, `wallet_default_assets`, `chain_fee_asset_ids`, `asset_ids_enabled_by_default`, `wallet_asset_is_enabled`, `asset_is_swapable`, `chain_asset_wrapper`, `asset_action_filters`, `popular_asset_ids`, `default_token_chain`, `search_matching_assets` |
-| `GemAddressService` (new) | `validate_address`, `checksum_address`, `short_address`, `format_address` |
+| ~~`GemAddressService`~~ → `GemAddressRulesService` (done) | validation, checksum, short form and formatting; the `Chain` extensions and the address formatters on both apps hold one instance |
 | ~~`GemStakeService`~~ → `GemStakeRulesService` (done) | the seven stake rules moved to a **stateless** service, not the I/O one: `GemStakeService` needs a gateway, a static API client and two stores, so rules hung off it can only be reached through a mock — which silently emptied four iOS view-model tests. A pure-rule service with a `new()` constructor keeps those tests exercising the real rule. Apply the same split to the groups below. |
 | ~~`GemNftService`~~ → `GemNftRulesService` (done) | the four collection rules, on a stateless service for the same reason as the stake ones |
 | ~~`GemPriceAlertService`~~ → `GemPriceAlertRulesService` (done) | id, ordering, notification type and display rule; the value helpers (`PriceAlert.id`, `.type`, `.shouldDisplay`) keep their shape on both apps and hold one service instance in the extension file |
