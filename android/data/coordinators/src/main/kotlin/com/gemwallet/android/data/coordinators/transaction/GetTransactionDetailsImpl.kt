@@ -37,6 +37,9 @@ import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemTransactionFormatter
+import uniffi.gemstone.GemTransactionTitle
 import com.wallet.core.primitives.TransferDataOutputAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -114,6 +117,8 @@ class TransactionDetailsAggregateImpl(
     override val id: String = data.transaction.id.identifier
 
     override val asset: Asset = data.asset
+    override val title: GemTransactionTitle = transactionFormatter.title(data.transaction.toJson())
+
     override val type: TransactionType = data.transaction.type
     override val direction: TransactionDirection = data.transaction.direction
     override val state: TransactionState = data.transaction.state
@@ -380,3 +385,5 @@ private val SwapperProviderMode.isCrossChain: Boolean
         SwapperProviderMode.Bridge,
         is SwapperProviderMode.OmniChain -> true
     }
+
+private val transactionFormatter = GemTransactionFormatter()

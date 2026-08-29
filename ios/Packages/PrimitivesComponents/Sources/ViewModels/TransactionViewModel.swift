@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemTransactionFormatter
 import protocol Gemstone.GemExplorerServiceProtocol
 import BigInt
 import Components
@@ -16,6 +17,7 @@ public struct TransactionViewModel: Sendable {
 
     private let explorerService: any GemExplorerServiceProtocol
     private let assetImageFormatter = AssetImageFormatter()
+    private let transactionFormatter = GemTransactionFormatter()
     private let currency: String
     private let formatter: ValueFormatter = .short
 
@@ -92,62 +94,8 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var titleTextValue: TextValue {
-        let title: String = {
-            switch transaction.transaction.type {
-            case .transfer, .transferNFT:
-                switch transaction.transaction.state {
-                case .confirmed:
-                    switch transaction.transaction.direction {
-                    case .incoming:
-                        return Localized.Transaction.Title.received
-                    case .outgoing, .selfTransfer:
-                        return Localized.Transaction.Title.sent
-                    }
-                case .failed, .pending, .reverted, .inTransit:
-                    return Localized.Transfer.title
-                }
-            case .smartContractCall:
-                return Localized.Transfer.SmartContract.title
-            case .swap:
-                return Localized.Wallet.swap
-            case .tokenApproval:
-                return Localized.Transfer.Approve.title
-            case .stakeDelegate:
-                return Localized.Transfer.Stake.title
-            case .stakeUndelegate:
-                return Localized.Transfer.Unstake.title
-            case .stakeRedelegate:
-                return Localized.Transfer.Redelegate.title
-            case .stakeRewards:
-                return Localized.Transfer.Rewards.title
-            case .stakeWithdraw:
-                return Localized.Transfer.Withdraw.title
-            case .assetActivation:
-                return Localized.Transfer.ActivateAsset.title
-            case .stakeFreeze:
-                return Localized.Transfer.Freeze.title
-            case .stakeUnfreeze:
-                return Localized.Transfer.Unfreeze.title
-            case .perpetualOpenPosition:
-                if let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self) {
-                    return Localized.Perpetual.openDirection(PerpetualDirectionViewModel(direction: metadata.direction).title)
-                }
-                return .empty
-            case .perpetualClosePosition:
-                if let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self) {
-                    return Localized.Perpetual.closeDirection(PerpetualDirectionViewModel(direction: metadata.direction).title)
-                }
-                return .empty
-            case .perpetualModifyPosition:
-                return .empty
-            case .earnDeposit:
-                return Localized.Common.earn
-            case .earnWithdraw:
-                return Localized.Transfer.Withdraw.title
-            }
-        }()
-        return TextValue(
-            text: title,
+        TextValue(
+            text: transactionFormatter.title(for: transaction.transaction),
             style: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
         )
     }

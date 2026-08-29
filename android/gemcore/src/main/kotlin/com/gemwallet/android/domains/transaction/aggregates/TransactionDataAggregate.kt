@@ -7,6 +7,7 @@ import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemTransactionTitle
 
 interface TransactionDataAggregate {
     val id: TransactionId
@@ -16,6 +17,8 @@ interface TransactionDataAggregate {
         get() = null
     val value: String
     val equivalentValue: String?
+    val title: GemTransactionTitle
+
     val type: TransactionType
     val direction: TransactionDirection
     val perpetualDirection: PerpetualDirection?

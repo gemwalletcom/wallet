@@ -8,10 +8,13 @@ import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemTransactionTitle
 
 interface TransactionDetailsAggregate {
     val id: String
     val asset: Asset
+    val title: GemTransactionTitle
+
     val type: TransactionType
     val direction: TransactionDirection
     val perpetualDirection: PerpetualDirection?

@@ -29,6 +29,9 @@ import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemTransactionFormatter
+import uniffi.gemstone.GemTransactionTitle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -148,6 +151,8 @@ class TransactionDataAggregateImpl(
 
     override val nftImageUrl: String? = data.transaction.getNftMetadata()?.getImageUrl()
 
+    override val title: GemTransactionTitle = transactionFormatter.title(data.transaction.toJson())
+
     override val type: TransactionType = data.transaction.type
 
     override val direction: TransactionDirection  = data.transaction.direction
@@ -184,3 +189,5 @@ class TransactionDataAggregateImpl(
         val formatter = ValueFormatter(style = ValueFormatter.Style.Short)
     }
 }
+
+private val transactionFormatter = GemTransactionFormatter()

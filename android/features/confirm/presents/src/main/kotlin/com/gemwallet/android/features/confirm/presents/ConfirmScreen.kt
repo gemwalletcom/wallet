@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.confirm.presents
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -430,5 +431,27 @@ private fun confirmTitle(
 ): String = when {
     isExternalRequest -> stringResource(R.string.transfer_review_request)
     perpetualType != null -> perpetualType.title()
-    else -> stringResource(transactionType?.getTitle() ?: R.string.transfer_title)
+    else -> stringResource(transactionType?.titleRes() ?: R.string.transfer_title)
+}
+
+@StringRes
+private fun TransactionType.titleRes(): Int = when (this) {
+    TransactionType.EarnDeposit,
+    TransactionType.StakeDelegate -> R.string.transfer_stake_title
+    TransactionType.EarnWithdraw,
+    TransactionType.StakeWithdraw -> R.string.transfer_withdraw_title
+    TransactionType.StakeUndelegate -> R.string.transfer_unstake_title
+    TransactionType.StakeRedelegate -> R.string.transfer_redelegate_title
+    TransactionType.StakeRewards -> R.string.transfer_rewards_title
+    TransactionType.Transfer,
+    TransactionType.TransferNFT -> R.string.transfer_send_title
+    TransactionType.Swap -> R.string.wallet_swap
+    TransactionType.TokenApproval -> R.string.transfer_approve_title
+    TransactionType.AssetActivation -> R.string.transfer_activate_asset_title
+    TransactionType.SmartContractCall -> R.string.transfer_smart_contract_title
+    TransactionType.PerpetualOpenPosition -> R.string.perpetual_position
+    TransactionType.PerpetualClosePosition -> R.string.perpetual_close_position
+    TransactionType.StakeFreeze -> R.string.transfer_freeze_title
+    TransactionType.StakeUnfreeze -> R.string.transfer_unfreeze_title
+    TransactionType.PerpetualModifyPosition -> R.string.perpetual_modify
 }

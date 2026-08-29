@@ -1,3 +1,4 @@
+pub mod model;
 pub mod rules;
 pub mod store;
 
@@ -5,8 +6,9 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{AssetId, WalletId};
+use primitives::{AssetId, Transaction, WalletId};
 
+pub use model::GemTransactionTitle;
 pub use store::GemTransactionStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -62,4 +64,17 @@ impl GemTransactionsService {
     }
 }
 
-impl GemTransactionsService {}
+#[derive(Default, uniffi::Object)]
+pub struct GemTransactionFormatter {}
+
+#[uniffi::export]
+impl GemTransactionFormatter {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn title(&self, transaction: Transaction) -> GemTransactionTitle {
+        rules::transaction_title(&transaction)
+    }
+}
