@@ -5,6 +5,8 @@ import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
+import com.gemwallet.android.data.service.store.database.entities.DbPerpetualData
+import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toDB
 import com.gemwallet.android.data.service.store.database.entities.toDto
 import com.gemwallet.android.data.service.store.database.entities.toRecord
@@ -14,12 +16,17 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarketData
 import com.wallet.core.primitives.PerpetualPosition
+import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.WalletId
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemPerpetualStore
 import uniffi.gemstone.PerpetualProvider as GemPerpetualProvider
 
@@ -72,4 +79,26 @@ class GemstonePerpetualStore(
     private fun GemPerpetualProvider.toPrimitives(): PerpetualProvider = when (this) {
         GemPerpetualProvider.HYPERCORE -> PerpetualProvider.Hypercore
     }
+
+    fun observePerpetuals(): Flow<List<PerpetualData>> = perpetualDao.getPerpetualsData().toPerpetualData()
+
+    fun observePerpetualsWithPriority(query: String): Flow<List<PerpetualData>> = perpetualDao.searchWithPriority(query).toPerpetualData()
+
+    fun observePerpetual(perpetualId: PerpetualId): Flow<PerpetualData?> = perpetualDao.getPerpetual(perpetualId.toIdentifier()).map { it?.toDTO() }
+
+    fun observePerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?> =
+        perpetualDao.getPerpetualByAssetId(assetId.toIdentifier()).map { it?.toDTO() }
+
+    fun observePositions(walletId: WalletId): Flow<List<PerpetualPositionData>> =
+        perpetualPositionDao.getPositionsData(walletId.id).map { items -> items.mapNotNull { it.toDTO() } }
+
+    fun observePositionByPerpetualId(walletId: WalletId, perpetualId: PerpetualId): Flow<PerpetualPositionData?> =
+        perpetualPositionDao.getPositionDataByPerpetual(walletId.id, perpetualId.toIdentifier()).map { it?.toDTO() }
+
+    fun observeBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?> =
+        balancesDao.perpetualBalance(walletId.id, assetId.toIdentifier()).map { balance ->
+            balance?.let { PerpetualBalance(available = it.available, reserved = it.reserved, withdrawable = it.withdrawable) }
+        }
+
+    private fun Flow<List<DbPerpetualData>>.toPerpetualData(): Flow<List<PerpetualData>> = map { items -> items.mapNotNull { it.toDTO() } }
 }

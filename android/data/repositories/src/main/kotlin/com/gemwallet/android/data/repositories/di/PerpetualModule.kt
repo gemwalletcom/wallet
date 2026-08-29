@@ -65,18 +65,9 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun providePerpetualRepository(
-        perpetualDao: PerpetualDao,
-        perpetualPositionDao: PerpetualPositionDao,
-        balancesDao: BalancesDao,
+        perpetualStore: GemstonePerpetualStore,
         searchDao: SearchDao,
-    ): PerpetualRepository {
-        return PerpetualRepositoryImpl(
-            perpetualDao = perpetualDao,
-            perpetualPositionDao = perpetualPositionDao,
-            balancesDao = balancesDao,
-            searchDao = searchDao,
-        )
-    }
+    ): PerpetualRepository = PerpetualRepositoryImpl(perpetualStore = perpetualStore, searchDao = searchDao)
 
     @Provides
     @Singleton

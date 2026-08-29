@@ -1,12 +1,7 @@
 package com.gemwallet.android.data.repositories.perpetual
 
-import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.PerpetualDao
-import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
+import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.data.service.store.database.SearchDao
-import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.DbPerpetualData
-import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
@@ -21,9 +16,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 class PerpetualRepositoryImpl(
-    private val perpetualDao: PerpetualDao,
-    private val perpetualPositionDao: PerpetualPositionDao,
-    private val balancesDao: BalancesDao,
+    private val perpetualStore: GemstonePerpetualStore,
     private val searchDao: SearchDao,
 ) : PerpetualRepository {
 
@@ -31,47 +24,33 @@ class PerpetualRepositoryImpl(
     override fun getPerpetuals(query: String?): Flow<List<PerpetualData>> {
         val searchQuery = query?.trim().orEmpty()
         if (searchQuery.isEmpty()) {
-            return perpetualDao.getPerpetualsData().toPerpetualData()
+            return perpetualStore.observePerpetuals()
         }
         return searchDao.hasPerpetualPriorities(searchQuery)
             .map { it > 0 }
             .distinctUntilChanged()
             .flatMapLatest { hasPriority ->
                 if (hasPriority) {
-                    perpetualDao.searchWithPriority(searchQuery).toPerpetualData()
+                    perpetualStore.observePerpetualsWithPriority(searchQuery)
                 } else {
-                    perpetualDao.getPerpetualsData().toPerpetualData()
-                        .map { items -> items.filter { it.matches(searchQuery) } }
+                    perpetualStore.observePerpetuals().map { items -> items.filter { it.matches(searchQuery) } }
                 }
             }
     }
-
-    private fun Flow<List<DbPerpetualData>>.toPerpetualData(): Flow<List<PerpetualData>> =
-        map { items -> items.mapNotNull { it.toDTO() } }
 
     private fun PerpetualData.matches(query: String): Boolean =
         perpetual.name.contains(query, ignoreCase = true) ||
             asset.symbol.contains(query, ignoreCase = true)
 
-    override fun getPerpetual(perpetualId: PerpetualId): Flow<PerpetualData?> {
-        return perpetualDao.getPerpetual(perpetualId.toIdentifier()).map { it?.toDTO() }
-    }
+    override fun getPerpetual(perpetualId: PerpetualId): Flow<PerpetualData?> = perpetualStore.observePerpetual(perpetualId)
 
-    override fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?> {
-        return perpetualDao.getPerpetualByAssetId(assetId.toIdentifier()).map { it?.toDTO() }
-    }
+    override fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?> = perpetualStore.observePerpetualByAssetId(assetId)
 
-    override fun getPositions(walletId: WalletId): Flow<List<PerpetualPositionData>> {
-        return perpetualPositionDao.getPositionsData(walletId.id).map { items -> items.mapNotNull { it.toDTO() } }
-    }
+    override fun getPositions(walletId: WalletId): Flow<List<PerpetualPositionData>> = perpetualStore.observePositions(walletId)
 
-    override fun getPositionByPerpetualId(walletId: WalletId, id: PerpetualId): Flow<PerpetualPositionData?> {
-        return perpetualPositionDao.getPositionDataByPerpetual(walletId.id, id.toIdentifier()).map { it?.toDTO() }
-    }
+    override fun getPositionByPerpetualId(walletId: WalletId, id: PerpetualId): Flow<PerpetualPositionData?> =
+        perpetualStore.observePositionByPerpetualId(walletId, id)
 
-    override fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?> {
-        return balancesDao.perpetualBalance(walletId.id, assetId.toIdentifier())
-            .map { it?.let { PerpetualBalance(available = it.available, reserved = it.reserved, withdrawable = it.withdrawable) } }
-    }
+    override fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?> = perpetualStore.observeBalance(walletId, assetId)
 
 }
