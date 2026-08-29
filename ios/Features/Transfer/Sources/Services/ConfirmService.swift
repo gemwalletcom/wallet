@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import func Gemstone.defaultFeePriority
+import class Gemstone.GemFeeService
 import Store
 import GemstoneServices
 import struct Gemstone.GemConfirmData
@@ -155,7 +155,7 @@ public struct ConfirmService: Sendable {
     }
 
     public func defaultPriority(for type: TransferDataType) -> FeePriority {
-        (try? type.map()).flatMap { FeePriority(rawValue: defaultFeePriority(inputType: $0)) } ?? .normal
+        (try? type.map()).flatMap { FeePriority(rawValue: GemFeeService().defaultPriority(inputType: $0)) } ?? .normal
     }
 }
 

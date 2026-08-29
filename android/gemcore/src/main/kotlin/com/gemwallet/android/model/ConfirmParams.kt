@@ -38,9 +38,10 @@ import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransactionInputType.*
 import uniffi.gemstone.GemTransferDataExtra
 import uniffi.gemstone.SwapperProvider
-import uniffi.gemstone.confirmInputDecode
-import uniffi.gemstone.confirmInputEncode
+
 import uniffi.gemstone.GemTransferService
+private val transferService = GemTransferService()
+
 sealed class ConfirmParams() {
 
     abstract val asset: Asset
@@ -498,11 +499,11 @@ sealed class ConfirmParams() {
         )
     }
 
-    fun pack(): String? = runCatching { confirmInputEncode(toConfirmInput()).packRouteString() }
+    fun pack(): String? = runCatching { transferService.encodeConfirmInput(toConfirmInput()).packRouteString() }
         .onFailure { Log.e(TAG, "confirm params encode failed", it) }
         .getOrNull()
 
-    fun getTransactionType(): TransactionType = GemTransferService().transactionType(toDto()).decodeJson<TransactionType>()
+    fun getTransactionType(): TransactionType = transferService.transactionType(toDto()).decodeJson<TransactionType>()
 
     open fun destination(): DestinationAddress? = null
 
@@ -521,7 +522,7 @@ sealed class ConfirmParams() {
         private const val TAG = "ConfirmParams"
 
         fun unpack(input: String): ConfirmParams? = runCatching {
-            confirmInputDecode(input.unpackRouteString()).toConfirmParams()
+            transferService.decodeConfirmInput(input.unpackRouteString()).toConfirmParams()
         }
             .onFailure { Log.e(TAG, "confirm params decode failed", it) }
             .getOrNull()

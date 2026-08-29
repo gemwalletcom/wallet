@@ -8,6 +8,8 @@ import struct Gemstone.GemTransferData
 import class Gemstone.GemTransferService
 import Primitives
 
+private let transferService = GemTransferService()
+
 public extension TransferData {
     init(_ transfer: GemTransferData) throws {
         self.init(
@@ -37,7 +39,7 @@ public extension TransferData {
             withdrawable: balance.withdrawable.description,
             votes: UInt32(balance.metadata?.votes ?? 0),
         )
-        return try BigInt.from(string: GemTransferService().availableValue(transfer: gem, balance: transferBalance))
+        return try BigInt.from(string: transferService.availableValue(transfer: gem, balance: transferBalance))
     }
 }
 

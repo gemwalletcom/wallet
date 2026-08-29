@@ -2,7 +2,7 @@
 
 import Foundation
 import struct Gemstone.GemConfirmData
-import func Gemstone.isInsufficientNetworkFee
+import class Gemstone.GemFeeService
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -77,7 +77,7 @@ public struct ConfirmTransferInputProvider: Sendable {
     }
 
     private func preloadFailureError(metadata: TransferDataMetadata) -> TransferAmountCalculatorError? {
-        guard isInsufficientNetworkFee(feeAssetId: metadata.feeAssetId.identifier, feeAvailable: metadata.feeAvailable.description) else {
+        guard GemFeeService().isInsufficientNetworkFee(feeAssetId: metadata.feeAssetId.identifier, feeAvailable: metadata.feeAvailable.description) else {
             return nil
         }
         return .insufficientNetworkFee(metadata.feeAssetId.chain.asset, requirement: nil)

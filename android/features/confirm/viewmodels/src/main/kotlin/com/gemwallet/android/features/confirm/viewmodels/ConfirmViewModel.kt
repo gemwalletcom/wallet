@@ -11,7 +11,7 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.confirm.toTransferData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import uniffi.gemstone.defaultFeePriority
+import uniffi.gemstone.GemFeeService
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
@@ -76,6 +76,10 @@ import kotlinx.coroutines.launch
 import com.wallet.core.primitives.SimulationResult
 import java.math.BigInteger
 import javax.inject.Inject
+
+private val feeService = GemFeeService()
+
+private val transferService = GemTransferService()
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -333,7 +337,7 @@ class ConfirmViewModel @Inject constructor(
 
     fun init(params: ConfirmParams, simulationResult: SimulationResult? = null) {
         this.simulationResult.value = simulationResult
-        val priority = defaultFeePriority(params.toTransferData().inputType)
+        val priority = feeService.defaultPriority(params.toTransferData().inputType)
         feeSelection.value = FeeSelection.Preset(
             priority.toFeePriority() ?: run {
                 Log.e(TAG, "unsupported default fee priority \"$priority\"")
@@ -484,7 +488,7 @@ private fun ConfirmParams?.approvalAssetId(): AssetId? =
     (this as? ConfirmParams.TransferParams.Generic)
         ?.takeIf { it.getTransactionType() == TransactionType.TokenApproval }
         ?.let { generic ->
-            GemTransferService()
+            transferService
                 .approval(generic.toTransferData().inputType, TransactionType.TokenApproval.toJson())
                 ?.decodeJson<ApprovalData>()
                 ?.let { approval -> AssetId(generic.assetId.chain, tokenId = approval.token) }

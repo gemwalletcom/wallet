@@ -5,6 +5,7 @@ use crate::services::amount::model::GemAmountError;
 
 use crate::GemstoneError;
 use crate::models::transaction::GemTransactionInputType;
+use crate::services::confirm::GemConfirmInput;
 use primitives::swap::ApprovalData;
 use primitives::{Asset, AssetId, Transaction, TransactionType};
 
@@ -18,6 +19,14 @@ impl GemTransferService {
     #[uniffi::constructor]
     pub fn new() -> Self {
         Self
+    }
+
+    pub fn encode_confirm_input(&self, input: &GemConfirmInput) -> Result<String, GemstoneError> {
+        serde_json::to_string(input).map_err(GemstoneError::from)
+    }
+
+    pub fn decode_confirm_input(&self, input: String) -> Result<GemConfirmInput, GemstoneError> {
+        serde_json::from_str(&input).map_err(GemstoneError::from)
     }
 
     pub fn transaction_type(&self, input_type: &GemTransactionInputType) -> TransactionType {

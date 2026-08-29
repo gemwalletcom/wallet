@@ -48,7 +48,6 @@ impl From<GemTransferAmountInput> for TransferAmountInput {
     }
 }
 
-#[uniffi::export]
 pub fn calculate_transfer_amount(input: GemTransferAmountInput) -> Result<GemTransferAmount, GemTransferAmountError> {
     TransferAmountInput::from(input).calculate()
 }

@@ -5,6 +5,8 @@ import Foundation
 import Gemstone
 import Primitives
 
+private let feeService = GemFeeService()
+
 public extension GemGasPriceType {
     func map() throws -> GasPriceType {
         switch self {
@@ -20,7 +22,7 @@ public extension GemGasPriceType {
 
 public extension GasPriceType {
     static func custom(base: GasPriceType, gasPrice: BigInt) throws -> GasPriceType {
-        try Gemstone.customGasPrice(base: base.map(), gasPrice: gasPrice.description).map()
+        try feeService.customGasPrice(base: base.map(), gasPrice: gasPrice.description).map()
     }
 
     func map() -> GemGasPriceType {

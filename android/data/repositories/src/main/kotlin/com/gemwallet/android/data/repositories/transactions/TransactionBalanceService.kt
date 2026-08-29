@@ -13,6 +13,8 @@ import uniffi.gemstone.GemTransferService
 import java.math.BigInteger
 import javax.inject.Inject
 
+private val transferService = GemTransferService()
+
 class TransactionBalanceService @Inject constructor(
     private val perpetualRepository: PerpetualRepository,
     private val sessionRepository: SessionRepository,
@@ -21,7 +23,7 @@ class TransactionBalanceService @Inject constructor(
     suspend fun getBalance(assetInfo: AssetInfo, params: ConfirmParams): BigInteger {
         val balance = assetInfo.balance.balance
         val available = if (params is ConfirmParams.PerpetualParams) perpetualAvailable(assetInfo) else balance.available
-        return GemTransferService().availableValue(
+        return transferService.availableValue(
             params.toTransferData(),
             GemTransferBalance(
                 available = available,

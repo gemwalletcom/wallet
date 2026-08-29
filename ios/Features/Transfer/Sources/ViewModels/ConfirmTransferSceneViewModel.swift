@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemConfirmData
-import func Gemstone.acquireAssetFlow
+import class Gemstone.GemAssetConfigService
 import GemstoneServices
 import BigInt
 import Components
@@ -326,7 +326,7 @@ extension ConfirmTransferSceneViewModel {
 
 extension ConfirmTransferSceneViewModel {
     private func onSelectGetAsset(_ asset: Asset, buyAmount: Int? = nil) {
-        switch acquireAssetFlow(chain: asset.chain.rawValue) {
+        switch GemAssetConfigService().acquireFlow(chain: asset.chain.rawValue) {
         case .options:
             isPresentingSheet = .getAsset(asset, buyAmount: buyAmount)
         case .fiat:

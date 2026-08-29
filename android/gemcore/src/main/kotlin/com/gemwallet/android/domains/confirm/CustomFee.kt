@@ -7,8 +7,10 @@ import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.customFeeEstimate
+import uniffi.gemstone.GemFeeService
 import java.math.BigInteger
+
+private val feeService = GemFeeService()
 
 data class CustomFee(
     val rate: BigInteger?,
@@ -35,7 +37,7 @@ data class CustomFee(
             val rate = input.parseInputNumberOrNull()?.movePointRight(decimals)?.toBigInteger()?.takeIf { it > BigInteger.ZERO }
             val isBelowMinimum = rate != null && minimumCustomFeeRate != null && rate < minimumCustomFeeRate
 
-            val estimate = customFeeEstimate(
+            val estimate = feeService.customFeeEstimate(
                 rate = rate?.toString(),
                 loadedFee = currentFee.amount.toString(),
                 baseTotal = baseTotal.toString(),

@@ -1,6 +1,6 @@
 mod error;
 mod model;
-mod rules;
+pub(crate) mod rules;
 mod signer;
 
 use std::sync::Arc;
@@ -8,10 +8,9 @@ use std::time::Duration;
 
 pub use error::GemConfirmError;
 pub use model::*;
-pub use rules::{acquire_asset_flow, default_fee_priority, is_insufficient_network_fee};
+pub use rules::acquire_asset_flow;
 pub use signer::GemTransactionSigner;
 
-use crate::GemstoneError;
 use crate::gateway::GemGateway;
 use crate::models::gateway::GemTransactionPreloadInput;
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadInput};
@@ -21,16 +20,6 @@ use crate::services::transaction_state::GemTransactionStateService;
 use crate::signer::GemSignerError;
 use crate::transaction_simulation::TransactionSimulationService;
 use primitives::{Chain, SimulationResult, Transaction, TransferDataOutputAction};
-
-#[uniffi::export]
-pub fn confirm_input_encode(input: &GemConfirmInput) -> Result<String, GemstoneError> {
-    serde_json::to_string(input).map_err(GemstoneError::from)
-}
-
-#[uniffi::export]
-pub fn confirm_input_decode(input: &str) -> Result<GemConfirmInput, GemstoneError> {
-    serde_json::from_str(input).map_err(GemstoneError::from)
-}
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {

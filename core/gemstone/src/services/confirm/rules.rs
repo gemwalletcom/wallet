@@ -50,7 +50,6 @@ pub fn output_action(input_type: &GemTransactionInputType) -> TransferDataOutput
     transfer_rules::output(input_type).output_action
 }
 
-#[uniffi::export]
 pub fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {
     match chain {
         Chain::Tron => GemAcquireAssetFlow::Options,
@@ -58,7 +57,6 @@ pub fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {
     }
 }
 
-#[uniffi::export]
 pub fn default_fee_priority(input_type: GemTransactionInputType) -> String {
     let priority = match input_type {
         GemTransactionInputType::Swap { from_asset, .. } if from_asset.chain() == Chain::Bitcoin => FeePriority::Fast,
@@ -67,8 +65,7 @@ pub fn default_fee_priority(input_type: GemTransactionInputType) -> String {
     priority.as_ref().to_string()
 }
 
-#[uniffi::export]
-pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: String) -> bool {
+pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: &str) -> bool {
     if matches!(fee_asset_id.chain, Chain::HyperCore | Chain::Tron) || !fee_asset_id.is_native() {
         return false;
     }
@@ -598,14 +595,14 @@ mod tests {
 
     #[test]
     fn test_insufficient_network_fee_only_for_empty_native_balances() {
-        assert!(is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "0".into()));
-        assert!(is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "".into()));
-        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "10".into()));
-        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::Tron), "0".into()));
-        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::HyperCore), "0".into()));
+        assert!(is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "0"));
+        assert!(is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), ""));
+        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "10"));
+        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::Tron), "0"));
+        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::HyperCore), "0"));
         assert!(!is_insufficient_network_fee(
             AssetId::from(Chain::Ethereum, Some("0xdac17f958d2ee523a2206206994597c13d831ec7".into())),
-            "0".into()
+            "0"
         ));
     }
 

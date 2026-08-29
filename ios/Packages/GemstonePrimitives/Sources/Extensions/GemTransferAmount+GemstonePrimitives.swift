@@ -5,6 +5,8 @@ import Foundation
 import Gemstone
 import Primitives
 
+private let amountService = GemAmountService()
+
 public extension TransferAmount {
     static func calculate(
         transferData: TransferData,
@@ -24,7 +26,7 @@ public extension TransferAmount {
             minimumValue: transferData.minimumValue?.description,
         )
         do {
-            return try Gemstone.calculateTransferAmount(input: input).map()
+            return try amountService.calculate(input: input).map()
         } catch let error as GemTransferAmountError {
             throw try error.map()
         }

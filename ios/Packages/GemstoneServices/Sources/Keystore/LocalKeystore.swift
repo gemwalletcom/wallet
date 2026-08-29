@@ -3,6 +3,8 @@ import Foundation
 import GemstonePrimitives
 import Primitives
 
+private let transferService = GemTransferService()
+
 public final class LocalKeystore: Keystore, @unchecked Sendable {
     public let gemKeystore: GemKeystore
     private let keystoreURL: URL
@@ -84,7 +86,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     public func sign(wallet: Primitives.Wallet, input: GemSignerInput) async throws -> [GemSignedTransaction] {
         let password = try await getPassword()
         let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
-        let chain = try Primitives.Asset(GemTransferService().asset(inputType: input.input.inputType)).id.chain.rawValue
+        let chain = try Primitives.Asset(transferService.asset(inputType: input.input.inputType)).id.chain.rawValue
         return try await queue.asyncTask { [gemKeystore] in
             try withV4Password(password) { passwordBytes in
                 try gemKeystore.sign(keystoreId: keystoreId, chain: chain, input: input, password: passwordBytes)
