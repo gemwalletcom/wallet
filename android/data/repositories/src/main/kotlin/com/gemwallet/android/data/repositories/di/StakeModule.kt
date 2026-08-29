@@ -19,8 +19,12 @@ import javax.inject.Singleton
 object StakeModule {
     @Singleton
     @Provides
-    fun provideGemStakeStore(stakeDao: StakeDao, assetsDao: AssetsDao): GemStakeStore =
+    fun provideGemstoneStakeStore(stakeDao: StakeDao, assetsDao: AssetsDao): GemstoneStakeStore =
         GemstoneStakeStore(stakeDao, assetsDao)
+
+    @Singleton
+    @Provides
+    fun provideGemStakeStore(store: GemstoneStakeStore): GemStakeStore = store
 
     @Singleton
     @Provides

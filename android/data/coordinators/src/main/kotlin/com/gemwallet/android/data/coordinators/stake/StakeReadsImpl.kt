@@ -7,9 +7,7 @@ import com.gemwallet.android.application.stake.cases.GetRecommendedValidatorIds
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
-import com.gemwallet.android.data.service.store.database.StakeDao
-import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toModel
+import com.gemwallet.android.data.repositories.gemstone.GemstoneStakeStore
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
@@ -35,13 +33,13 @@ class SyncStakeDelegationsImpl(
 }
 
 class GetValidatorsImpl(
-    private val stakeDao: StakeDao,
+    private val stakeStore: GemstoneStakeStore,
     private val stakeRules: GemStakeRulesService,
 ) : GetValidators {
 
     override fun invoke(assetId: AssetId): Flow<List<DelegationValidator>> =
-        stakeDao.getValidators(assetId, StakeProviderType.Stake)
-            .map { items -> stakeRules.selectableValidators(items.toDTO().map { it.toJson() }).map { it.decodeJson<DelegationValidator>() } }
+        stakeStore.observeValidators(assetId, StakeProviderType.Stake)
+            .map { validators -> stakeRules.selectableValidators(validators.map { it.toJson() }).map { it.decodeJson<DelegationValidator>() } }
 }
 
 class GetRecommendedValidatorIdsImpl(
@@ -63,31 +61,27 @@ class GetRecommendedValidatorImpl(
 }
 
 class GetDelegationsImpl(
-    private val stakeDao: StakeDao,
+    private val stakeStore: GemstoneStakeStore,
 ) : GetDelegations {
 
     override fun invoke(walletId: WalletId, assetId: AssetId): Flow<List<Delegation>> =
-        stakeDao.getDelegations(walletId, assetId)
-            .map { rows ->
-                rows
-                    .sortedByDescending { it.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO }
-                    .mapNotNull { it.toModel() }
-            }
+        stakeStore.observeDelegations(walletId, assetId)
+            .map { delegations -> delegations.sortedByDescending { it.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO } }
 }
 
 class GetDelegationImpl(
-    private val stakeDao: StakeDao,
+    private val stakeStore: GemstoneStakeStore,
 ) : GetDelegation {
 
     override fun invoke(walletId: WalletId, validatorId: String, delegationId: String): Flow<Delegation?> =
-        stakeDao.getDelegation(walletId, validatorId, delegationId).map { it?.toModel() }
+        stakeStore.observeDelegation(walletId, validatorId, delegationId)
 }
 
 class GetStakeValidatorImpl(
-    private val stakeDao: StakeDao,
+    private val stakeStore: GemstoneStakeStore,
 ) : GetStakeValidator {
 
     override suspend fun invoke(assetId: AssetId, validatorId: String): DelegationValidator? = withContext(Dispatchers.IO) {
-        stakeDao.getValidator(assetId, validatorId)?.toDTO()
+        stakeStore.getValidator(assetId, validatorId)
     }
 }

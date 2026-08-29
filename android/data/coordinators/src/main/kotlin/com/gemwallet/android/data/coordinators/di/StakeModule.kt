@@ -14,7 +14,7 @@ import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.coordinators.stake.GetRecommendedValidatorIdsImpl
 import com.gemwallet.android.data.coordinators.stake.GetValidatorsImpl
 import com.gemwallet.android.data.coordinators.stake.SyncStakeDelegationsImpl
-import com.gemwallet.android.data.service.store.database.StakeDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneStakeStore
 import uniffi.gemstone.GemStakeRulesService
 import uniffi.gemstone.GemStakeService
 import dagger.Module
@@ -29,15 +29,15 @@ object StakeModule {
 
     @Provides
     @Singleton
-    fun provideGetDelegation(stakeDao: StakeDao): GetDelegation = GetDelegationImpl(stakeDao)
+    fun provideGetDelegation(stakeStore: GemstoneStakeStore): GetDelegation = GetDelegationImpl(stakeStore)
 
     @Provides
     @Singleton
-    fun provideGetDelegations(stakeDao: StakeDao): GetDelegations = GetDelegationsImpl(stakeDao)
+    fun provideGetDelegations(stakeStore: GemstoneStakeStore): GetDelegations = GetDelegationsImpl(stakeStore)
 
     @Provides
     @Singleton
-    fun provideGetValidators(stakeDao: StakeDao, stakeRules: GemStakeRulesService): GetValidators = GetValidatorsImpl(stakeDao, stakeRules)
+    fun provideGetValidators(stakeStore: GemstoneStakeStore, stakeRules: GemStakeRulesService): GetValidators = GetValidatorsImpl(stakeStore, stakeRules)
 
     @Provides
     @Singleton
@@ -50,7 +50,7 @@ object StakeModule {
 
     @Provides
     @Singleton
-    fun provideGetStakeValidator(stakeDao: StakeDao): GetStakeValidator = GetStakeValidatorImpl(stakeDao)
+    fun provideGetStakeValidator(stakeStore: GemstoneStakeStore): GetStakeValidator = GetStakeValidatorImpl(stakeStore)
 
     @Provides
     @Singleton
