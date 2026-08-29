@@ -5,8 +5,9 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.WalletConnectionSession
 import uniffi.gemstone.GemSessionApproval
 import uniffi.gemstone.GemWalletConnectServiceInterface
-import uniffi.gemstone.walletConnectNamespace
-import uniffi.gemstone.walletConnectReference
+import uniffi.gemstone.GemWalletConnectRulesService
+
+private val walletConnectRules = GemWalletConnectRulesService()
 
 internal fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInterface): WalletConnectionSession? {
     val metadata = metadata ?: return null
@@ -23,8 +24,8 @@ internal fun WalletConnectSession.toConnectionSession(service: GemWalletConnectS
 internal fun GemSessionApproval.toSupportedNamespaces(): Map<String, WalletConnectSessionNamespace> {
     return accounts
         .mapNotNull { account ->
-            val namespace = walletConnectNamespace(account.chain) ?: return@mapNotNull null
-            val reference = walletConnectReference(account.chain) ?: return@mapNotNull null
+            val namespace = walletConnectRules.namespace(account.chain) ?: return@mapNotNull null
+            val reference = walletConnectRules.reference(account.chain) ?: return@mapNotNull null
             ApprovedAccount(namespace = namespace, chainId = "$namespace:$reference", address = account.address)
         }
         .groupBy { it.namespace }

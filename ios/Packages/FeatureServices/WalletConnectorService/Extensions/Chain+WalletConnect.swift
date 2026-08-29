@@ -1,20 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import func Gemstone.walletConnectNamespace
-import func Gemstone.walletConnectReference
+import class Gemstone.GemWalletConnectRulesService
 import Primitives
 import struct WalletConnectUtils.Blockchain
+
+private let walletConnectRules = GemWalletConnectRulesService()
 
 extension Primitives.Chain {
     /// CAIP-2 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
     var namespace: String? {
-        walletConnectNamespace(chain: rawValue)
+        walletConnectRules.namespace(chain: rawValue)
     }
 
     /// CAIP-20 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-20.md
     var reference: String? {
-        walletConnectReference(chain: rawValue)
+        walletConnectRules.reference(chain: rawValue)
     }
 
     var blockchain: Blockchain? {

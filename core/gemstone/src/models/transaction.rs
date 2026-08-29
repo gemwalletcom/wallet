@@ -381,7 +381,6 @@ impl From<GemTransferDataExtra> for TransferDataExtra {
     }
 }
 
-#[uniffi::export]
 pub fn transaction_metadata_block_number(metadata: &GemTransactionLoadMetadata) -> String {
     match metadata {
         GemTransactionLoadMetadata::Polkadot { block_number, .. }
@@ -392,7 +391,6 @@ pub fn transaction_metadata_block_number(metadata: &GemTransactionLoadMetadata) 
     }
 }
 
-#[uniffi::export]
 pub fn transaction_metadata_sequence(metadata: &GemTransactionLoadMetadata) -> String {
     match metadata {
         GemTransactionLoadMetadata::Ton { sequence, .. }

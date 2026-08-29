@@ -41,7 +41,6 @@ use alien::AlienError;
 uniffi::setup_scaffolding!("gemstone");
 const LIB_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[uniffi::export]
 pub fn lib_version() -> String {
     String::from(LIB_VERSION)
 }

@@ -342,17 +342,14 @@ impl From<WcWalletConnectResponseType> for WalletConnectResponseType {
 
 // WalletConnect UniFFI object
 
-#[uniffi::export]
 pub fn wallet_connect_namespace(chain: Chain) -> Option<String> {
     WalletConnectCAIP2::get_namespace(chain)
 }
 
-#[uniffi::export]
 pub fn wallet_connect_reference(chain: Chain) -> Option<String> {
     WalletConnectCAIP2::get_reference(chain)
 }
 
-#[uniffi::export]
 pub fn wallet_connect_chain(chain_id: String) -> Option<Chain> {
     WalletConnectCAIP2::parse_chain_id(chain_id)
 }

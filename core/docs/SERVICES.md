@@ -374,10 +374,10 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 | ~~`GemWalletService`~~ → `GemWalletRulesService` (done) | wallet ordering, display account, keystore id and the total/PnL calculation, gathered from three Core files |
 | `GemConfirmService` | `confirm_input_encode`, `confirm_input_decode`, `acquire_asset_flow`, `default_fee_priority`, `is_insufficient_network_fee`, `custom_gas_price`, `custom_fee_estimate`, `calculate_transfer_amount` |
 | `GemPaymentService` | `payment_decode_url`, `payment_destination`, `payment_transfer_destination`, `payment_decoded_transfer`, `deeplink_build_url`, `deeplink_build_gem_url`, `url_action` |
-| `GemWalletConnectService` | `wallet_connect_namespace`, `wallet_connect_reference`, `wallet_connect_chain`, `siwe_try_parse`, `siwe_validate`, `permit2_data_to_eip712_json` |
-| `GemTransactionStateService` | `transaction_state_config`, `transaction_timeout_ms`, `transaction_metadata_block_number`, `transaction_metadata_sequence` |
+| `GemWalletConnectRulesService` (partly done) | namespace, reference, chain and the dapp metadata short name are methods now; `siwe_try_parse`, `siwe_validate` and `permit2_data_to_eip712_json` still to fold in |
+| ~~`GemTransactionStateService`~~ (done) | neither app called these four: they are internal Core functions now, and the unused `transaction_timeout_ms` is deleted |
 | `GemSupportService` | `parse_support_message_display_content` |
-| `GemAppUpdateService` | `is_version_higher`, `application_metadata_short_name`, `lib_version` |
+| ~~`GemAppUpdateService`~~ (done) | `is_version_higher` is a method; the metadata short name went to the WalletConnect rules and `lib_version` is no longer exported |
 | Keep as free functions | `generate_device_key_pair`, `decode_private_key`, `encode_private_key`, `supports_private_key_import`, `create_auth_message` — key material, called once at a boundary that already owns the secret |
 
 - No service is constructed at a call site. Every `Gem*Service` is built once in `ServicesFactory` (iOS) or a Hilt module (Android) and injected. Two places still break this and need a home for the instance: iOS `NetworkSelectorViewModel` (its `SelectableListAdoptable` initializer is fixed by the protocol, so the sheet holds its own `GemChainService()`), and Android's `selectFilterChain`/`ContactChainSelectScene` composables, which build one per composition.

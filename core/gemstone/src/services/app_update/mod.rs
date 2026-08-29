@@ -41,4 +41,8 @@ impl GemAppUpdateService {
     pub fn skip(&self, version: String) -> Result<(), GemServiceError> {
         self.preferences.set_skipped_app_version(version)
     }
+
+    pub fn is_version_higher(&self, new: String, current: String) -> bool {
+        rules::is_version_higher(new, current)
+    }
 }

@@ -1,4 +1,4 @@
-use primitives::{Chain, JobConfiguration, swap_transaction_timeout};
+use primitives::{Chain, JobConfiguration};
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
 pub struct GemJobConfiguration {
@@ -34,12 +34,6 @@ impl GemJobConfiguration {
     }
 }
 
-#[uniffi::export]
 pub fn transaction_state_config(chain: Chain) -> GemJobConfiguration {
     JobConfiguration::transaction_state(chain).into()
-}
-
-#[uniffi::export]
-pub fn transaction_timeout_ms(chain: Chain, destination_chain: Option<Chain>) -> u64 {
-    swap_transaction_timeout(chain, destination_chain.unwrap_or(chain))
 }

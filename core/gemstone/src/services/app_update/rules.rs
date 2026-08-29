@@ -1,6 +1,5 @@
 use primitives::{PlatformStore, Release};
 
-#[uniffi::export]
 pub fn is_version_higher(new: String, current: String) -> bool {
     let new: Vec<u32> = new.split('.').filter_map(|part| part.parse().ok()).collect();
     let current: Vec<u32> = current.split('.').filter_map(|part| part.parse().ok()).collect();

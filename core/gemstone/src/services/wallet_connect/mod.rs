@@ -271,3 +271,30 @@ impl GemWalletConnectService {
         })
     }
 }
+
+#[derive(Default, uniffi::Object)]
+pub struct GemWalletConnectRulesService {}
+
+#[uniffi::export]
+impl GemWalletConnectRulesService {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn metadata_short_name(&self, metadata: ApplicationMetadata) -> String {
+        crate::application::application_metadata_short_name(metadata)
+    }
+
+    pub fn namespace(&self, chain: Chain) -> Option<String> {
+        crate::wallet_connect::wallet_connect_namespace(chain)
+    }
+
+    pub fn reference(&self, chain: Chain) -> Option<String> {
+        crate::wallet_connect::wallet_connect_reference(chain)
+    }
+
+    pub fn chain(&self, chain_id: String) -> Option<Chain> {
+        crate::wallet_connect::wallet_connect_chain(chain_id)
+    }
+}

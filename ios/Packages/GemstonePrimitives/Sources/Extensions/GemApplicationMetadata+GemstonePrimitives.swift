@@ -1,11 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Gemstone
+import class Gemstone.GemWalletConnectRulesService
 import Primitives
+
+private let walletConnectRules = GemWalletConnectRulesService()
 
 public extension Primitives.ApplicationMetadata {
     var shortName: String {
         guard let metadata = try? json() else { return name }
-        return Gemstone.applicationMetadataShortName(metadata: metadata)
+        return walletConnectRules.metadataShortName(metadata: metadata)
     }
 }
