@@ -54,8 +54,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-private val assetConfig = GemAssetConfigService()
-
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class BaseAssetSelectViewModel(
     getSession: GetSession,
@@ -65,6 +63,7 @@ open class BaseAssetSelectViewModel(
     private val setAssetPinned: SetAssetPinned,
     private val searchTokensCase: SearchTokens,
     val search: SelectSearch,
+    private val assetConfig: GemAssetConfigService,
     private val remoteSearch: Boolean = true,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 

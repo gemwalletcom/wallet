@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -61,6 +62,7 @@ class AssetsResultsViewModel @Inject constructor(
     switchAssetVisibility: SwitchAssetVisibility,
     setAssetPinned: SetAssetPinned,
     @WalletSearch searchTokensCase: SearchTokens,
+    assetConfig: GemAssetConfigService,
     private val searchScopeCase: WalletSearchScope,
     getPerpetuals: GetPerpetuals,
     userConfig: UserConfig,
@@ -75,6 +77,7 @@ class AssetsResultsViewModel @Inject constructor(
     setAssetPinned,
     searchTokensCase,
     selectSearchOf(savedStateHandle, searchSelectAssets, searchListAssets),
+    assetConfig,
     remoteSearch = false,
 ) {
 

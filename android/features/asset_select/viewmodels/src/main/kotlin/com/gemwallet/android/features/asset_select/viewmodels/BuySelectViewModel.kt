@@ -18,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import uniffi.gemstone.GemAssetConfigService
 
 @HiltViewModel
 class BuySelectViewModel @Inject constructor(
@@ -28,6 +29,7 @@ class BuySelectViewModel @Inject constructor(
     switchAssetVisibility: SwitchAssetVisibility,
     setAssetPinned: SetAssetPinned,
     searchTokensCase: SearchTokens,
+    assetConfig: GemAssetConfigService,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
@@ -36,6 +38,7 @@ class BuySelectViewModel @Inject constructor(
     setAssetPinned,
     searchTokensCase,
     BuySelectSearch(searchSelectAssets),
+    assetConfig,
 ) {
     override fun assetFilters() = GemAssetAction.BUY.recentFilters()
 }

@@ -83,8 +83,6 @@ import java.math.BigDecimal
 import javax.inject.Inject
 import com.gemwallet.android.ext.runCatchingCancellable
 
-private val swapQuoteService = GemSwapQuoteService()
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SwapViewModel @Inject constructor(
@@ -96,6 +94,7 @@ class SwapViewModel @Inject constructor(
     private val swapService: GemSwapServiceInterface,
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
+    private val swapQuoteService: GemSwapQuoteService,
 ) : ViewModel() {
 
     private val session = MutableStateFlow(SwapQuoteSession())

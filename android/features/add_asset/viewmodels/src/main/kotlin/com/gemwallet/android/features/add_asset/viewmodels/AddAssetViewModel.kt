@@ -42,8 +42,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
-private val assetConfig = GemAssetConfigService()
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AddAssetViewModel @Inject constructor(
@@ -53,6 +51,7 @@ class AddAssetViewModel @Inject constructor(
     getAvailableTokenChains: GetAvailableTokenChains,
     private val explorerService: GemExplorerService,
     private val chainService: GemChainService,
+    private val assetConfig: GemAssetConfigService,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())

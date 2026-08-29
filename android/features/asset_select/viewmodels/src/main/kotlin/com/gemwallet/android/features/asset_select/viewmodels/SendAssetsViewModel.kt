@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -33,6 +34,7 @@ open class SendSelectViewModel @Inject constructor(
     switchAssetVisibility: SwitchAssetVisibility,
     setAssetPinned: SetAssetPinned,
     searchTokensCase: SearchTokens,
+    assetConfig: GemAssetConfigService,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
@@ -41,6 +43,7 @@ open class SendSelectViewModel @Inject constructor(
     setAssetPinned,
     searchTokensCase,
     SendSelectSearch(searchSelectAssets, getSelectAssetsInfo),
+    assetConfig,
     remoteSearch = false,
 ) {
     override fun assetFilters() = setOf(AssetFilter.HasBalance)

@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
+import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -43,6 +44,7 @@ class SwapSelectViewModel @Inject constructor(
     switchAssetVisibility: SwitchAssetVisibility,
     setAssetPinned: SetAssetPinned,
     searchTokensCase: SearchTokens,
+    assetConfig: GemAssetConfigService,
     searchSwapAssets: SearchSwapAssets,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
@@ -53,6 +55,7 @@ class SwapSelectViewModel @Inject constructor(
     setAssetPinned = setAssetPinned,
     searchTokensCase = searchTokensCase,
     search = SwapSelectSearch(searchSwapAssets),
+    assetConfig,
     remoteSearch = savedStateHandle.requireSwapItemType() == SwapItemType.Receive,
 ) {
 

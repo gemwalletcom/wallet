@@ -33,13 +33,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private val assetConfig = GemAssetConfigService()
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecentsSheetViewModel @Inject constructor(
     private val getRecentAssets: GetRecentAssets,
     private val clearRecentAssets: ClearRecentAssets,
+    private val assetConfig: GemAssetConfigService,
 ) : ViewModel() {
 
     val query = TextFieldState()

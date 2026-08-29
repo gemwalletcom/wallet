@@ -28,6 +28,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapSelectViewModelTest {
@@ -75,6 +76,7 @@ class SwapSelectViewModelTest {
         switchAssetVisibility = switchAssetVisibility,
         setAssetPinned = setAssetPinned,
         searchTokensCase = searchTokensCase,
+        assetConfig = GemAssetConfigService(),
         searchSwapAssets = searchSwapAssets,
         savedStateHandle = SavedStateHandle(
             mapOf(RouteArgument.SwapItemType.key to type)

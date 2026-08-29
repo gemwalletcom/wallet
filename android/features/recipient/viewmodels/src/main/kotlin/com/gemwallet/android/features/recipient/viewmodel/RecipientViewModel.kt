@@ -66,8 +66,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private val recipientService = GemRecipientService()
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecipientViewModel @Inject constructor(
@@ -77,7 +75,8 @@ class RecipientViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
     private val getAssetNft: GetAssetNft,
     private val getNameRecord: GetNameRecord,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    private val recipientService: GemRecipientService,
 ) : ViewModel() {
 
     private val addressInput = AddressInputModel(

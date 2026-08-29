@@ -15,6 +15,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemAssetConfigService
 
 class RecentAssetsConfigTest {
 
@@ -31,7 +32,7 @@ class RecentAssetsConfigTest {
     fun `receive shows recents without filters`() {
         val vm = AssetSelectViewModel(
             getSession, searchSelectAssets, getRecentAssets, updateRecentAsset,
-            switchAssetVisibility, setAssetPinned, searchTokensCase,
+            switchAssetVisibility, setAssetPinned, searchTokensCase, GemAssetConfigService(),
         )
         assertTrue(vm.showRecents)
         assertEquals(emptySet<AssetFilter>(), vm.assetFilters())
@@ -41,7 +42,7 @@ class RecentAssetsConfigTest {
     fun `buy filters recents to buyable`() {
         val vm = BuySelectViewModel(
             getSession, searchSelectAssets, getRecentAssets, updateRecentAsset,
-            switchAssetVisibility, setAssetPinned, searchTokensCase,
+            switchAssetVisibility, setAssetPinned, searchTokensCase, GemAssetConfigService(),
         )
         assertTrue(vm.showRecents)
         assertEquals(setOf(AssetFilter.Buyable), vm.assetFilters())
@@ -51,7 +52,7 @@ class RecentAssetsConfigTest {
     fun `send filters recents to has balance`() {
         val vm = SendSelectViewModel(
             getSession, searchSelectAssets, getSelectAssetsInfo, getRecentAssets,
-            updateRecentAsset, switchAssetVisibility, setAssetPinned, searchTokensCase,
+            updateRecentAsset, switchAssetVisibility, setAssetPinned, searchTokensCase, GemAssetConfigService(),
         )
         assertTrue(vm.showRecents)
         assertEquals(setOf(AssetFilter.HasBalance), vm.assetFilters())

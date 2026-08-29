@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
+import uniffi.gemstone.GemAssetConfigService
 
 @HiltViewModel
 class PriceAlertsSelectViewModel @Inject constructor(
@@ -28,6 +29,7 @@ class PriceAlertsSelectViewModel @Inject constructor(
     setAssetPinned: SetAssetPinned,
     searchService: AssetsSearchService,
     searchTokensCase: SearchTokens,
+    assetConfig: GemAssetConfigService,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
@@ -36,6 +38,7 @@ class PriceAlertsSelectViewModel @Inject constructor(
     setAssetPinned,
     searchTokensCase,
     PriceAlertSelectSearch(searchService),
+    assetConfig,
 ) {
     override val showRecents: Boolean get() = false
 }

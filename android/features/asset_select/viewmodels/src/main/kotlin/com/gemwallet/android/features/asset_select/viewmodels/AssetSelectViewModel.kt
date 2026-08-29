@@ -11,6 +11,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
+import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -22,6 +23,7 @@ class AssetSelectViewModel @Inject constructor(
     switchAssetVisibility: SwitchAssetVisibility,
     setAssetPinned: SetAssetPinned,
     searchTokensCase: SearchTokens,
+    assetConfig: GemAssetConfigService,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
@@ -30,4 +32,5 @@ class AssetSelectViewModel @Inject constructor(
     setAssetPinned,
     searchTokensCase,
     BaseSelectSearch(searchSelectAssets),
+    assetConfig,
 )

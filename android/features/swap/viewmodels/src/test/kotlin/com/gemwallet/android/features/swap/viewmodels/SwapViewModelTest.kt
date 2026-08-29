@@ -80,6 +80,7 @@ import uniffi.gemstone.SwapperQuoteRequest
 import uniffi.gemstone.SwapperRoute
 import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.SwapperSlippageMode
+import uniffi.gemstone.GemSwapQuoteService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapViewModelTest {
@@ -137,6 +138,7 @@ class SwapViewModelTest {
         userConfig = userConfig,
         swapService = swapService,
         requestSwapQuotes = requestSwapQuotes,
+        swapQuoteService = GemSwapQuoteService(),
         savedStateHandle = savedStateHandle,
     )
 
