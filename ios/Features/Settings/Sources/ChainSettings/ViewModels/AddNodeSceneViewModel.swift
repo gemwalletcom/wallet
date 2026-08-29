@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import class Gemstone.GemChainService
 import class Gemstone.GemNodeService
 import GemstonePrimitives
 import GemstoneServices
@@ -115,7 +116,7 @@ extension AddNodeSceneViewModel {
 
         do {
             let nodeStatus = try await gatewayService.nodeStatus(chain: chain, url: url.absoluteString)
-            guard ChainConfig.config(chain: chain).networkId == nodeStatus.chainId else {
+            guard GemChainService().isValidNetworkId(chain: chain.rawValue, networkId: nodeStatus.chainId) else {
                 throw AddNodeError.invalidNetworkId
             }
 
