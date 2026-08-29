@@ -26,7 +26,7 @@ class TransactionDataAggregateImplTest {
     private val gemstoneLibraryOverrideProperty = "uniffi.component.gemstone.libraryOverride"
 
     companion object {
-        private fun resolveGemstoneLibraryPath(): Path? {
+        private fun gemstoneLibraryPath(): Path? {
             val libraryName = System.mapLibraryName("gemstone")
             var directory: Path? = Paths.get("").toAbsolutePath()
 
@@ -43,7 +43,7 @@ class TransactionDataAggregateImplTest {
     }
 
     private fun assumeHostGemstoneRuntime() {
-        val libraryPath = resolveGemstoneLibraryPath()
+        val libraryPath = gemstoneLibraryPath()
         val isAvailable = try {
             Class.forName("com.sun.jna.Native", true, javaClass.classLoader)
             true

@@ -74,7 +74,7 @@ class AssetsResultsViewModel @Inject constructor(
     switchAssetVisibility,
     setAssetPinned,
     searchTokensCase,
-    resolveSearch(savedStateHandle, searchSelectAssets, searchListAssets),
+    selectSearchOf(savedStateHandle, searchSelectAssets, searchListAssets),
     remoteSearch = false,
 ) {
 
@@ -152,7 +152,7 @@ class AssetsResultsViewModel @Inject constructor(
     }
 }
 
-private fun resolveSearch(
+private fun selectSearchOf(
     savedStateHandle: SavedStateHandle,
     searchSelectAssets: SearchSelectAssets,
     searchListAssets: SearchListAssets,

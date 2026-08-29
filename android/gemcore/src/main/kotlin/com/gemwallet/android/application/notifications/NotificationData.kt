@@ -4,7 +4,7 @@ import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.model.PushNotificationData.Asset
 import com.gemwallet.android.model.PushNotificationData.BuyAsset
 import com.gemwallet.android.model.PushNotificationData.Swap
-import com.gemwallet.android.serializer.fromJson
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.PushNotificationAsset
 import com.wallet.core.primitives.PushNotificationReward
 import com.wallet.core.primitives.PushNotificationSwapAsset
@@ -18,25 +18,25 @@ fun parseNotificationData(rawType: String?, rawData: String?): PushNotificationD
     val type = PushNotificationTypes.entries.firstOrNull { it.string == rawType } ?: return null
     return runCatching {
         when (type) {
-            PushNotificationTypes.Transaction -> rawData.fromJson<PushNotificationData.Transaction>()
+            PushNotificationTypes.Transaction -> rawData?.decodeJson<PushNotificationData.Transaction>()
             PushNotificationTypes.PriceAlert,
-            PushNotificationTypes.Asset -> rawData.fromJson<PushNotificationAsset>()?.let {
+            PushNotificationTypes.Asset -> rawData?.decodeJson<PushNotificationAsset>()?.let {
                 Asset(
                     assetId = it.assetId,
                 )
             }
-            PushNotificationTypes.BuyAsset -> rawData.fromJson<PushNotificationAsset>()?.let {
+            PushNotificationTypes.BuyAsset -> rawData?.decodeJson<PushNotificationAsset>()?.let {
                 BuyAsset(
                     assetId = it.assetId,
                 )
             }
-            PushNotificationTypes.FiatTransaction -> rawData.fromJson<PushNotificationWalletAsset>()?.let {
+            PushNotificationTypes.FiatTransaction -> rawData?.decodeJson<PushNotificationWalletAsset>()?.let {
                 PushNotificationData.WalletAsset(
                     assetId = it.assetId,
                     walletId = it.walletId,
                 )
             }
-            PushNotificationTypes.SwapAsset -> rawData.fromJson<PushNotificationSwapAsset>()?.let {
+            PushNotificationTypes.SwapAsset -> rawData?.decodeJson<PushNotificationSwapAsset>()?.let {
                 Swap(
                     fromAssetId = it.fromAssetId,
                     toAssetId = it.toAssetId,
@@ -44,11 +44,11 @@ fun parseNotificationData(rawType: String?, rawData: String?): PushNotificationD
             }
             PushNotificationTypes.Support -> PushNotificationData.Support
             PushNotificationTypes.Test -> null
-            PushNotificationTypes.Rewards -> rawData.fromJson<PushNotificationReward>()?.let {
+            PushNotificationTypes.Rewards -> rawData?.decodeJson<PushNotificationReward>()?.let {
                 PushNotificationData.Reward
             }
 
-            PushNotificationTypes.Stake -> rawData.fromJson<PushNotificationWalletAsset>()?.let {
+            PushNotificationTypes.Stake -> rawData?.decodeJson<PushNotificationWalletAsset>()?.let {
                 PushNotificationData.Stake(assetId = it.assetId, walletId = it.walletId)
             }
         }

@@ -82,7 +82,7 @@ class GemstoneAssetStore(
     fun observeAssetsInfo(walletId: String): Flow<List<AssetInfo>> = assetsDao.getAssetsInfo(walletId).toAssetInfoModel()
 
     fun observeAssetsInfo(walletId: String, assetIds: List<String>): Flow<List<AssetInfo>> =
-        assetsDao.getAssetsInfo(walletId, assetIds).toAssetInfoModel()
+        assetsDao.getAssetsInfoByIds(walletId, assetIds).toAssetInfoModel()
 
     fun observeAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<AssetInfo>> =
         assetsDao.getAssetsInfoByChain(walletId, chain).toAssetInfoModel()

@@ -32,7 +32,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbSearch
 import com.gemwallet.android.data.service.store.database.entities.DbSession
 import com.gemwallet.android.data.service.store.database.entities.DbSupportMessage
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
-import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
+import com.gemwallet.android.data.service.store.database.entities.DbTransactionSwapMetadata
 import com.gemwallet.android.data.service.store.database.entities.DbWallet
 
 @Database(
@@ -47,7 +47,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbWallet
         DbBalance::class,
         DbPrice::class,
         DbTransaction::class,
-        DbTxSwapMetadata::class,
+        DbTransactionSwapMetadata::class,
         DbConnection::class,
         DbDelegationValidator::class,
         DbDelegationBase::class,

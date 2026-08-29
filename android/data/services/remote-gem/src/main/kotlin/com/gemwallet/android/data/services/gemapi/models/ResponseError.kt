@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.services.gemapi.models
 
-import com.gemwallet.android.serializer.fromJson
+import com.gemwallet.android.serializer.decodeJsonOrNull
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -10,6 +10,6 @@ data class ResponseError(val error: ErrorDescription) {
 
     companion object {
         fun parseOrNull(body: String): ResponseError? =
-            body.fromJson<ResponseError>()
+            body.decodeJsonOrNull<ResponseError>()
     }
 }

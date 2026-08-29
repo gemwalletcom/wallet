@@ -224,7 +224,7 @@ interface AssetsDao {
     fun getHiddenAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 
     @Query("SELECT * FROM $ASSET_INFO WHERE id IN (:ids) AND walletId = :walletId ORDER BY balanceFiatTotalAmount DESC")
-    fun getAssetsInfo(walletId: String, ids: List<String>): Flow<List<DbAssetInfo>>
+    fun getAssetsInfoByIds(walletId: String, ids: List<String>): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*

@@ -304,7 +304,7 @@ class ConfirmViewModel @Inject constructor(
             if (address == null) flowOf(null) else getAddressName.getAddressNameFlow(chain, address)
         }
 
-    val txProperties = combine(request, session, assetsInfo, recipientAddressName) { request, session, assetsInfo, addressName ->
+    val transactionProperties = combine(request, session, assetsInfo, recipientAddressName) { request, session, assetsInfo, addressName ->
         request ?: return@combine emptyList()
         session ?: return@combine emptyList()
         assetsInfo ?: return@combine emptyList()

@@ -53,7 +53,7 @@ class RequestSwapQuotesImpl(
                         while (currentCoroutineContext().isActive) {
                             delay(QUOTE_DEBOUNCE_MS)
                             onFetchStarted(params.key)
-                            val data = fetchQuotes(params)
+                            val data = requestQuotes(params)
                             emit(data)
                             if (data.err != null) {
                                 break
@@ -66,7 +66,7 @@ class RequestSwapQuotesImpl(
         .flowOn(Dispatchers.IO)
     }
 
-    private suspend fun fetchQuotes(params: SwapQuoteRequestParams): SwapQuotesResult = try {
+    private suspend fun requestQuotes(params: SwapQuoteRequestParams): SwapQuotesResult = try {
         val wallet = checkNotNull(getSession().value?.wallet) { "Swap has no active wallet" }
         val amount = Crypto(params.value, params.pay.asset.decimals).atomicValue
         val quotes = swapService.getQuotes(

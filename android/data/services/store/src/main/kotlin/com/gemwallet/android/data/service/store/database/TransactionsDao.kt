@@ -13,7 +13,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.DbSwapPair
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
-import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
+import com.gemwallet.android.data.service.store.database.entities.DbTransactionSwapMetadata
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
@@ -83,7 +83,7 @@ interface TransactionsDao {
             DbTransaction::class,
             DbAsset::class,
             DbPrice::class,
-            DbTxSwapMetadata::class,
+            DbTransactionSwapMetadata::class,
             DbAddress::class,
         ]
     )
@@ -144,8 +144,8 @@ interface TransactionsDao {
         updatedAt: Long = System.currentTimeMillis(),
     ): Int
 
-    @Insert(entity = DbTxSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
-    fun addSwapMetadata(metadata: List<DbTxSwapMetadata>)
+    @Insert(entity = DbTransactionSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
+    fun addSwapMetadata(metadata: List<DbTransactionSwapMetadata>)
 
     @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId AND NOT EXISTS (SELECT 1 FROM transactions WHERE transactions.id = :transactionId)")
     fun deleteUnreferencedSwapMetadata(transactionId: String)

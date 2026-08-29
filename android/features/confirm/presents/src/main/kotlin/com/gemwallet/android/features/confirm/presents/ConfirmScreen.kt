@@ -97,7 +97,7 @@ fun ConfirmScreen(
 ) {
     val context = LocalContext.current
     val amountModel by viewModel.amountUIModel.collectAsStateWithLifecycle()
-    val txProperties by viewModel.txProperties.collectAsStateWithLifecycle()
+    val transactionProperties by viewModel.transactionProperties.collectAsStateWithLifecycle()
     val feeModel by viewModel.feeUIModel.collectAsStateWithLifecycle()
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -112,7 +112,7 @@ fun ConfirmScreen(
     val request = params as? ConfirmParams.TransferParams.Generic
     val isExternalRequest = request != null
     val isPayment = request?.metadata?.source == ApplicationMetadataSource.Payment
-    val displayTxProperties = if (isExternalRequest) txProperties.reorderRequestProperties() else txProperties
+    val displayTransactionProperties = if (isExternalRequest) transactionProperties.reorderRequestProperties() else transactionProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
@@ -209,8 +209,8 @@ fun ConfirmScreen(
                     )
                 }
             }
-            val sectionSize = displayTxProperties.size + detailElements.size
-            itemsIndexed(displayTxProperties) { index, item ->
+            val sectionSize = displayTransactionProperties.size + detailElements.size
+            itemsIndexed(displayTransactionProperties) { index, item ->
                 val listPosition = ListPosition.getPosition(index, sectionSize)
                 when (item) {
                     is ConfirmProperty.Destination -> PropertyDestination(
@@ -234,7 +234,7 @@ fun ConfirmScreen(
                 }
             }
             itemsIndexed(detailElements) { index, item ->
-                val listPosition = ListPosition.getPosition(displayTxProperties.size + index, sectionSize)
+                val listPosition = ListPosition.getPosition(displayTransactionProperties.size + index, sectionSize)
                 ConfirmDetailElementRow(
                     item = item,
                     listPosition = listPosition,

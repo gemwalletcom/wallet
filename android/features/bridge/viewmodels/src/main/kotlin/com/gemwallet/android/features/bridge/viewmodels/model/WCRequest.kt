@@ -5,7 +5,7 @@ import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.domains.confirm.toGenericParams
 import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic
-import com.gemwallet.android.serializer.fromJson
+import com.gemwallet.android.serializer.decodeJsonOrNull
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
@@ -55,14 +55,14 @@ sealed class WCRequest(
 
         override val primaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.primary
-                ?.mapNotNull { it.fromJson<SimulationPayloadField>() }
+                ?.mapNotNull { it.decodeJsonOrNull<SimulationPayloadField>() }
                 .orEmpty()
                 .withExplorerLinks(chain, explorerName)
         }
 
         override val secondaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.secondary
-                ?.mapNotNull { it.fromJson<SimulationPayloadField>() }
+                ?.mapNotNull { it.decodeJsonOrNull<SimulationPayloadField>() }
                 .orEmpty()
                 .withExplorerLinks(chain, explorerName)
         }
