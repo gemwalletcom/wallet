@@ -5,13 +5,13 @@ import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.receive.cases.SetAssetVisible
 import com.gemwallet.android.data.coordinators.receive.GetReceiveAssetInfoImpl
 import com.gemwallet.android.data.coordinators.receive.SetAssetVisibleImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -21,10 +21,8 @@ object ReceiveModule {
     @Singleton
     fun provideGetReceiveAssetInfo(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): GetReceiveAssetInfo {
-        return GetReceiveAssetInfoImpl(sessionRepository, assetsRepository)
-    }
+        getAssetTokenInfo: GetAssetTokenInfo,
+    ): GetReceiveAssetInfo = GetReceiveAssetInfoImpl(sessionRepository, getAssetTokenInfo)
 
     @Provides
     @Singleton

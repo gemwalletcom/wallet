@@ -1,12 +1,12 @@
 package com.gemwallet.android.data.coordinators.asset_select
 
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.model.AssetInfo
 import kotlinx.coroutines.flow.Flow
 
 class GetSelectAssetsInfoImpl(
-    private val assetsRepository: AssetsRepository,
+    private val getWalletAssets: GetWalletAssets,
 ) : GetSelectAssetsInfo {
-    override fun invoke(): Flow<List<AssetInfo>> = assetsRepository.getAssetsInfo()
+    override fun invoke(): Flow<List<AssetInfo>> = getWalletAssets()
 }

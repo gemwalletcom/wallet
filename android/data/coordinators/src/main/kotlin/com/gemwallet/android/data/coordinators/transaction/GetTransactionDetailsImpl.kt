@@ -4,7 +4,7 @@ import com.gemwallet.android.ext.hash
 import uniffi.gemstone.GemExplorerService
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.domains.asset.chain
@@ -56,7 +56,7 @@ import uniffi.gemstone.swapperProviderFromStr
 class GetTransactionDetailsImpl(
     private val sessionRepository: SessionRepository,
     private val getTransaction: GetTransaction,
-    private val assetsRepository: AssetsRepository,
+    private val getWalletAssets: GetWalletAssets,
     private val explorerService: GemExplorerService,
 ) : GetTransactionDetails {
 
@@ -75,7 +75,7 @@ class GetTransactionDetailsImpl(
                     recipient = data.transaction.to,
                     memo = data.transaction.memo,
                 ).let { TransactionDetailsValue.Explorer(it.link, it.name) }
-                assetsRepository.getAssetsInfo(ids).mapLatest { assets ->
+                getWalletAssets(ids).mapLatest { assets ->
                     val swapProvider = swapMetadata?.provider
                         ?.let(::swapperProviderFromStr)
                         ?.let(::swapperProviderConfig)

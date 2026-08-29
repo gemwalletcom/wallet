@@ -8,7 +8,6 @@ import com.gemwallet.android.application.transactions.cases.SyncTransactions
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionDetailsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.SyncTransactionsImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
@@ -22,6 +21,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -70,13 +70,13 @@ object TransactionModule {
     fun provideGetTransactionDetails(
         sessionRepository: SessionRepository,
         getTransaction: GetTransaction,
-        assetsRepository: AssetsRepository,
+        getWalletAssets: GetWalletAssets,
         explorerService: GemExplorerService,
     ): GetTransactionDetails {
         return GetTransactionDetailsImpl(
             sessionRepository = sessionRepository,
             getTransaction = getTransaction,
-            assetsRepository = assetsRepository,
+            getWalletAssets = getWalletAssets,
             explorerService = explorerService,
         )
     }

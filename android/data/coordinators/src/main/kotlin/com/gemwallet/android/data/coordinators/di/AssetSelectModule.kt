@@ -17,7 +17,6 @@ import com.gemwallet.android.data.coordinators.asset_select.SearchListAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SearchSelectAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SwitchAssetVisibilityImpl
 import com.gemwallet.android.data.coordinators.asset_select.UpdateRecentAssetImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -26,6 +25,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.application.assets.cases.SyncBalances
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -46,14 +49,16 @@ object AssetSelectModule {
     @Provides
     @Singleton
     fun provideGetChainAssets(
-        assetsRepository: AssetsRepository,
-    ): GetChainAssets = GetChainAssetsImpl(assetsRepository)
+        assetStore: GemstoneAssetStore,
+        getCurrentWalletId: GetCurrentWalletId,
+        syncBalances: SyncBalances,
+    ): GetChainAssets = GetChainAssetsImpl(assetStore, getCurrentWalletId, syncBalances)
 
     @Provides
     @Singleton
     fun provideGetSelectAssetsInfo(
-        assetsRepository: AssetsRepository,
-    ): GetSelectAssetsInfo = GetSelectAssetsInfoImpl(assetsRepository)
+        getWalletAssets: GetWalletAssets,
+    ): GetSelectAssetsInfo = GetSelectAssetsInfoImpl(getWalletAssets)
 
     @Provides
     @Singleton

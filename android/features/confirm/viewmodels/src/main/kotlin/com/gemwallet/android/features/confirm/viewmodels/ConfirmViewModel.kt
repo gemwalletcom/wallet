@@ -20,7 +20,8 @@ import com.gemwallet.android.application.confirm.cases.CalculateTransferAmount
 import com.gemwallet.android.application.confirm.cases.GetFeeAssets
 import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.cases.addresses.GetAddressNames
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
 import com.gemwallet.android.domains.asset.chain
@@ -85,7 +86,8 @@ private val transferService = GemTransferService()
 @HiltViewModel
 class ConfirmViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
-    private val assetsRepository: AssetsRepository,
+    private val getWalletAssets: GetWalletAssets,
+    private val getAssetInfo: GetAssetInfo,
     private val syncMissingAssets: SyncMissingAssets,
     private val confirmLoader: ConfirmLoader,
     private val transactionBalanceService: TransactionBalanceService,
@@ -127,7 +129,7 @@ class ConfirmViewModel @Inject constructor(
     }
         .distinctUntilChanged()
         .flatMapLatest { assetIds ->
-            assetsRepository.getTokensInfo(assetIds.map { it.toIdentifier() })
+            getWalletAssets(assetIds)
                 .map { assets -> assets.associate { it.asset.id to it.asset } }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
@@ -180,7 +182,7 @@ class ConfirmViewModel @Inject constructor(
             listOf(it.assetId)
         }
     }
-    .flatMapLatest { assetsRepository.getAssetsInfo(it) }
+    .flatMapLatest { getWalletAssets(it) }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val feeAssets = request
@@ -233,7 +235,7 @@ class ConfirmViewModel @Inject constructor(
         if (signerParams == null) {
             flowOf(null)
         } else {
-            assetsRepository.getAssetInfo(signerParams.fee.feeAssetId)
+            getAssetInfo(signerParams.fee.feeAssetId)
         }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)

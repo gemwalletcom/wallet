@@ -4,7 +4,7 @@ import uniffi.gemstone.GemStakeConfigService
 import uniffi.gemstone.GemBlockExplorerLink
 import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -36,8 +36,8 @@ class DelegationViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAssetCosmos()
 
-    private val assetsRepository = mockk<AssetsRepository> {
-        every { getAssetInfo(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
+    private val getAssetInfo = mockk<GetAssetInfo> {
+        every { this@mockk(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
     }
     private val getDelegation = mockk<GetDelegation>()
     private val explorerService = mockk<GemExplorerService>(relaxed = true) {
@@ -65,7 +65,7 @@ class DelegationViewModelTest {
         }
 
         val viewModel = DelegationViewModel(
-            assetsRepository = assetsRepository,
+            getAssetInfo = getAssetInfo,
             getDelegation = getDelegation,
             stakeConfig = GemStakeConfigService(),
             explorerService = explorerService,

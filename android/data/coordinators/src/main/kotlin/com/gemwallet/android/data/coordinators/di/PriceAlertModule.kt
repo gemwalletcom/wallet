@@ -19,7 +19,6 @@ import com.gemwallet.android.data.coordinators.pricealerts.SetAssetPriceAlertEna
 import com.gemwallet.android.data.coordinators.pricealerts.PriceAlertsEnabledCoordinator
 import com.gemwallet.android.data.coordinators.pricealerts.SyncAssetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.UpdatePriceAlertsImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.gemstone.GemstonePriceAlertStore
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.Module
@@ -28,6 +27,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemPriceAlertService
 import javax.inject.Singleton
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -50,11 +50,11 @@ object PriceAlertModule {
     @Singleton
     fun provideGetPriceAlerts(
         priceAlertStore: GemstonePriceAlertStore,
-        assetsRepository: AssetsRepository,
+        getWalletAssets: GetWalletAssets,
     ): GetPriceAlerts {
         return GetPriceAlertsImpl(
             priceAlertStore = priceAlertStore,
-            assetsRepository = assetsRepository,
+            getWalletAssets = getWalletAssets,
         )
     }
 

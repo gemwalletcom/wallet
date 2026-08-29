@@ -12,7 +12,6 @@ import com.gemwallet.android.data.coordinators.fiat.GetBuyQuoteUrlImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuotesImpl
 import com.gemwallet.android.data.coordinators.fiat.ObserveFiatTransactionsImpl
 import com.gemwallet.android.data.coordinators.fiat.SyncFiatTransactionsImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.repositories.gemstone.GemstonePriceStore
@@ -24,6 +23,7 @@ import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemFiatStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneFiatStore
 import javax.inject.Singleton
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -61,10 +61,8 @@ object FiatModule {
     @Singleton
     fun provideGetBuyAssetInfo(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): GetBuyAssetInfo {
-        return GetBuyAssetInfoImpl(sessionRepository, assetsRepository)
-    }
+        getAssetTokenInfo: GetAssetTokenInfo,
+    ): GetBuyAssetInfo = GetBuyAssetInfoImpl(sessionRepository, getAssetTokenInfo)
 
     @Provides
     @Singleton

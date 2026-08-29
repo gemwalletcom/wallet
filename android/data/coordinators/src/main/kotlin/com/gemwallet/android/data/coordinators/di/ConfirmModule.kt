@@ -13,7 +13,6 @@ import com.gemwallet.android.data.coordinators.confirm.ConfirmTransactionImpl
 import com.gemwallet.android.data.coordinators.confirm.CalculateTransferAmountImpl
 import com.gemwallet.android.data.coordinators.confirm.GetFeeAssetsImpl
 import com.gemwallet.android.data.coordinators.confirm.ChainFeeAssetProvider
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.wallet.core.primitives.Chain
@@ -22,6 +21,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -33,8 +34,8 @@ object ConfirmModule {
 
     @Provides
     @Singleton
-    fun provideGetFeeAssets(assetsRepository: AssetsRepository): GetFeeAssets = GetFeeAssetsImpl(
-        providers = mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetsRepository)),
+    fun provideGetFeeAssets(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetFeeAssets = GetFeeAssetsImpl(
+        providers = mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetStore, getCurrentWalletId)),
     )
 
     @Provides

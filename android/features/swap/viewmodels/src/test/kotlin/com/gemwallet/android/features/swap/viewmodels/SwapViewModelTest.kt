@@ -10,7 +10,7 @@ import com.gemwallet.android.application.swap.cases.SwapNoQuoteException
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.swap.AssetRatePair
@@ -97,9 +97,9 @@ class SwapViewModelTest {
     private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
         every { session() } returns MutableStateFlow(null)
     }
-    private val assetsRepository = mockk<AssetsRepository>(relaxed = true) {
-        every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
-        every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
+    private val getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
+        every { this@mockk(solAsset.id) } returns flowOf(solInfo)
+        every { this@mockk(usdcAsset.id) } returns flowOf(usdcInfo)
     }
     private val enableAsset = mockk<EnableAsset>(relaxed = true)
     private val buildSwapConfirmParams = mockk<BuildSwapConfirmParams>(relaxed = true)
@@ -115,10 +115,10 @@ class SwapViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         mockkObject(SwapDetailsUIModelFactory)
-        clearMocks(sessionRepository, assetsRepository, buildSwapConfirmParams, requestSwapQuotes)
+        clearMocks(sessionRepository, getAssetInfo, buildSwapConfirmParams, requestSwapQuotes)
         every { sessionRepository.session() } returns MutableStateFlow(null)
-        every { assetsRepository.getAssetInfo(solAsset.id) } returns flowOf(solInfo)
-        every { assetsRepository.getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
+        every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
+        every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns emptyFlow()
         every { SwapDetailsUIModelFactory.create(any()) } returns mockk(relaxed = true)
     }
@@ -131,7 +131,7 @@ class SwapViewModelTest {
 
     private fun createViewModel(savedStateHandle: SavedStateHandle) = SwapViewModel(
         sessionRepository = sessionRepository,
-        assetsRepository = assetsRepository,
+        getAssetInfo = getAssetInfo,
         enableAsset = enableAsset,
         buildSwapConfirmParams = buildSwapConfirmParams,
         userConfig = userConfig,

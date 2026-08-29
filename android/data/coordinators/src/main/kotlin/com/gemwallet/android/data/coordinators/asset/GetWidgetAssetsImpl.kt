@@ -1,0 +1,28 @@
+package com.gemwallet.android.data.coordinators.asset
+
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.assets.cases.GetWidgetAssets
+import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.model.AssetInfo
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
+
+class GetWidgetAssetsImpl(
+    private val searchTokensCase: SearchTokensCase,
+    private val getWalletAssets: GetWalletAssets,
+) : GetWidgetAssets {
+
+    override suspend fun invoke(currency: Currency): List<AssetInfo> = withContext(Dispatchers.IO) {
+        runCatchingCancellable { searchTokensCase.search(WIDGET_ASSET_IDS, currency) }
+        getWalletAssets(WIDGET_ASSET_IDS).firstOrNull().orEmpty()
+    }
+
+    private companion object {
+        val WIDGET_ASSET_IDS = listOf(AssetId(Chain.Bitcoin), AssetId(Chain.Ethereum), AssetId(Chain.Solana))
+    }
+}

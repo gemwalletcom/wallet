@@ -1,7 +1,9 @@
 package com.gemwallet.android.data.coordinators.di
 
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.session.cases.SetCurrentCurrency
+import com.gemwallet.android.data.coordinators.session.GetCurrentWalletIdImpl
 import com.gemwallet.android.data.coordinators.session.GetSessionImpl
 import com.gemwallet.android.data.coordinators.session.SetCurrentCurrencyImpl
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -16,6 +18,10 @@ import uniffi.gemstone.GemDeviceService
 @InstallIn(SingletonComponent::class)
 @Module
 object SessionModule {
+
+    @Provides
+    @Singleton
+    fun provideGetCurrentWalletId(getSession: GetSession): GetCurrentWalletId = GetCurrentWalletIdImpl(getSession)
 
     @Provides
     @Singleton

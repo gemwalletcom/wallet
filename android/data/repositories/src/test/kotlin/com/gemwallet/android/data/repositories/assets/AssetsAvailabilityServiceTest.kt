@@ -55,7 +55,7 @@ import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
 
-class AssetsRepositoryTest {
+class AssetsAvailabilityServiceTest {
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
     private val searchDao = mockk<SearchDao>(relaxed = true)
     private val assetListDao = mockk<AssetListDao>(relaxed = true)
@@ -68,15 +68,6 @@ class AssetsRepositoryTest {
     private val sessionFlow = MutableStateFlow<com.gemwallet.android.model.Session?>(null)
 
     private val assetsService = mockk<GemAssetsService>(relaxed = true)
-
-    private fun createSubject() = AssetsRepository(
-        assetsDao = assetsDao,
-        assetStore = GemstoneAssetStore(assetsDao, AssetsAvailabilityService(assetsDao)),
-        sessionRepository = sessionRepository,
-        searchTokensCase = searchTokensCase,
-        balanceService = balanceService,
-        scope = scope,
-    )
 
     @After
     fun tearDown() {
@@ -201,24 +192,4 @@ class AssetsRepositoryTest {
 
         assertEquals(listOf(highPriorityAsset.id, lowPriorityAsset.id), result.map { it.asset.id })
     }
-
-    @Test
-    fun getAssetsInfo_returnsStoreRowsWithoutRepositoryDedupe() = runBlocking {
-        sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
-        every { sessionRepository.session() } returns sessionFlow
-
-        val asset = mockAssetSolana()
-        every { assetsDao.getAssetsInfo("wallet-1") } returns flowOf(
-            listOf(
-                mockDbAssetInfo(asset = asset, address = "first-address"),
-                mockDbAssetInfo(asset = asset, address = "duplicate-address"),
-            )
-        )
-
-        val subject = createSubject()
-        val result = subject.getAssetsInfo().first()
-
-        assertEquals(listOf(asset.id, asset.id), result.map { it.asset.id })
-    }
-
 }

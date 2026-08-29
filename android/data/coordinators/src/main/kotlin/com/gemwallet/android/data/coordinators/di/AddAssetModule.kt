@@ -9,13 +9,15 @@ import com.gemwallet.android.data.coordinators.add_asset.AddCustomTokenImpl
 import com.gemwallet.android.data.coordinators.add_asset.GetAvailableTokenChainsImpl
 import com.gemwallet.android.data.coordinators.add_asset.ObserveTokenImpl
 import com.gemwallet.android.data.coordinators.add_asset.SearchCustomTokenImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -33,18 +35,15 @@ object AddAssetModule {
     @Singleton
     fun provideSearchCustomToken(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): SearchCustomToken {
-        return SearchCustomTokenImpl(sessionRepository, assetsRepository)
-    }
+        searchTokensCase: SearchTokensCase,
+    ): SearchCustomToken = SearchCustomTokenImpl(sessionRepository, searchTokensCase)
 
     @Provides
     @Singleton
     fun provideObserveToken(
-        assetsRepository: AssetsRepository,
-    ): ObserveToken {
-        return ObserveTokenImpl(assetsRepository)
-    }
+        assetStore: GemstoneAssetStore,
+        getCurrentWalletId: GetCurrentWalletId,
+    ): ObserveToken = ObserveTokenImpl(assetStore, getCurrentWalletId)
 
     @Provides
     @Singleton

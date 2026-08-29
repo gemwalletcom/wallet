@@ -4,7 +4,6 @@ import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
@@ -55,22 +54,6 @@ import uniffi.gemstone.GemDeviceKeyService
 @InstallIn(SingletonComponent::class)
 @Module
 object AssetsModule {
-    @Provides
-    @Singleton
-    fun provideAssetsRepository(
-        assetsDao: AssetsDao,
-        assetStore: GemstoneAssetStore,
-        sessionRepository: SessionRepository,
-        searchTokensCase: SearchTokensCase,
-        balanceService: GemBalanceService,
-    ): AssetsRepository = AssetsRepository(
-        assetsDao = assetsDao,
-        assetStore = assetStore,
-        sessionRepository = sessionRepository,
-        searchTokensCase = searchTokensCase,
-        balanceService = balanceService,
-    )
-
 
     @Provides
     @Singleton

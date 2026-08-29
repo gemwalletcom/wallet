@@ -16,7 +16,7 @@ import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.application.swap.cases.create
 import com.gemwallet.android.application.swap.cases.matches
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.calculateFiat
@@ -89,7 +89,7 @@ private val swapQuoteService = GemSwapQuoteService()
 @HiltViewModel
 class SwapViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
-    private val assetsRepository: AssetsRepository,
+    private val getAssetInfo: GetAssetInfo,
     private val enableAsset: EnableAsset,
     private val buildSwapConfirmParams: BuildSwapConfirmParams,
     private val userConfig: UserConfig,
@@ -124,7 +124,7 @@ class SwapViewModel @Inject constructor(
     val payAsset = savedStateHandle.getStateFlow<String?>(RouteArgument.FromAssetId.key, null)
         .map { it?.toAssetId() }
         .onEach { id -> id?.let { updateBalance(it) } }
-        .flatMapLatest { assetId -> assetId?.let { assetsRepository.getAssetInfo(it) } ?: flow { emit(null) } }
+        .flatMapLatest { assetId -> assetId?.let { getAssetInfo(it) } ?: flow { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val defaultSlippageBps: StateFlow<UInt?> = payAsset
@@ -134,7 +134,7 @@ class SwapViewModel @Inject constructor(
     val receiveAsset = savedStateHandle.getStateFlow<String?>(RouteArgument.ToAssetId.key, null)
         .map { it?.toAssetId() }
         .onEach { id -> id?.let { updateBalance(it) } }
-        .flatMapLatest { assetId -> assetId?.let { assetsRepository.getAssetInfo(it) } ?: flow { emit(null) } }
+        .flatMapLatest { assetId -> assetId?.let { getAssetInfo(it) } ?: flow { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val payEquivalentFormatted = combine(payValueFlow, payAsset) { input, fromAsset ->

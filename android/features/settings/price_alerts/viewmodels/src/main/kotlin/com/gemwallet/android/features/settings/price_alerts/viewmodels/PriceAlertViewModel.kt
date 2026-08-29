@@ -11,7 +11,7 @@ import com.gemwallet.android.application.pricealerts.cases.GetPriceAlertsEnabled
 import com.gemwallet.android.application.pricealerts.cases.IncludePriceAlert
 import com.gemwallet.android.application.pricealerts.cases.SetPriceAlertsEnabled
 import com.gemwallet.android.application.pricealerts.cases.UpdatePriceAlerts
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Asset
@@ -41,7 +41,7 @@ class PriceAlertViewModel @Inject constructor(
     private val getAssetPriceAlertState: GetAssetPriceAlertState,
     private val setPriceAlertsEnabled: SetPriceAlertsEnabled,
     private val updatePriceAlerts: UpdatePriceAlerts,
-    private val assetsRepository: AssetsRepository,
+    private val getAssetTokenInfo: GetAssetTokenInfo,
     private val includePriceAlert: IncludePriceAlert,
     private val excludePriceAlert: ExcludePriceAlert,
     private val enableDevicePush: EnableDevicePush,
@@ -55,7 +55,7 @@ class PriceAlertViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val assetInfo = assetId.flatMapLatest { id ->
-        if (id != null) assetsRepository.getTokenInfo(id) else flowOf(null)
+        if (id != null) getAssetTokenInfo(id) else flowOf(null)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val data = assetId.flatMapLatest { getPriceAlerts(it) }
@@ -134,7 +134,7 @@ class PriceAlertViewModel @Inject constructor(
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
         includePriceAlert(assetId)
 
-        val assetInfo = assetsRepository.getTokenInfo(assetId).firstOrNull() ?: return@launch
+        val assetInfo = getAssetTokenInfo(assetId).firstOrNull() ?: return@launch
         withContext(Dispatchers.Main) { callback(assetInfo.asset) }
     }
 

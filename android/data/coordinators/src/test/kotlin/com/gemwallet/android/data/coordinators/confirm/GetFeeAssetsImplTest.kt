@@ -1,6 +1,8 @@
 package com.gemwallet.android.data.coordinators.confirm
 
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
+import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.domains.asset.defaultAssets
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.testkit.mockAsset
@@ -17,8 +19,10 @@ import org.junit.Test
 
 class GetFeeAssetsImplTest {
 
-    private val assetsRepository = mockk<AssetsRepository>()
-    private val subject = GetFeeAssetsImpl(mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetsRepository)))
+    private val walletId = mockWalletId()
+    private val assetStore = mockk<GemstoneAssetStore>()
+    private val getCurrentWalletId = mockk<GetCurrentWalletId> { every { this@mockk() } returns flowOf(walletId) }
+    private val subject = GetFeeAssetsImpl(mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetStore, getCurrentWalletId)))
 
     @Test
     fun returnsFundedDefaultTempoAssets() = runTest {
@@ -36,8 +40,8 @@ class GetFeeAssetsImplTest {
             asset = unsupportedAsset,
             balance = AssetBalance.create(unsupportedAsset, available = "1"),
         )
-        every { assetsRepository.getAssetsInfoByChain(Chain.Tempo) } returns flowOf(funded.take(1) + unsupported + unfunded)
-        every { assetsRepository.getHiddenAssetsInfoByChain(Chain.Tempo) } returns flowOf(funded.drop(1))
+        every { assetStore.observeAssetsInfoByChain(walletId.id, Chain.Tempo) } returns flowOf(funded.take(1) + unsupported + unfunded)
+        every { assetStore.observeHiddenAssetsInfoByChain(walletId.id, Chain.Tempo) } returns flowOf(funded.drop(1))
 
         val result = subject(Chain.Tempo).first()
 

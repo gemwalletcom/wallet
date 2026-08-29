@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.pricealerts
 
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.repositories.gemstone.GemstonePriceAlertStore
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
@@ -31,7 +31,7 @@ import kotlinx.coroutines.flow.mapLatest
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetPriceAlertsImpl(
     private val priceAlertStore: GemstonePriceAlertStore,
-    private val assetsRepository: AssetsRepository,
+    private val getWalletAssets: GetWalletAssets,
     private val priceAlertFormatter: PriceAlertFormatter = PriceAlertFormatter(),
 ) : GetPriceAlerts {
     override fun invoke(assetId: AssetId?): Flow<List<PriceAlertDataAggregate>> {
@@ -43,7 +43,7 @@ class GetPriceAlertsImpl(
                 val index = displayed
                     .sortedBy { alert -> order.indexOf(alert.priceAlert.id).takeIf { it >= 0 } ?: order.size }
                     .groupBy { it.priceAlert.assetId.toIdentifier() }
-                assetsRepository.getTokensInfo(index.keys.toList()).mapLatest { assetInfos ->
+                getWalletAssets.byIdentifiers(index.keys.toList()).mapLatest { assetInfos ->
                     assetInfos.flatMap { assetInfo ->
                         index[assetInfo.id().toIdentifier()]?.map { item ->
                             PriceAlertDataAggregateImpl(

@@ -4,7 +4,7 @@ import uniffi.gemstone.GemStakeConfigService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
@@ -57,7 +57,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class StakeViewModel @Inject constructor(
-    private val assetsRepository: AssetsRepository,
+    private val getAssetInfo: GetAssetInfo,
     private val getDelegations: GetDelegations,
     private val getValidators: GetValidators,
     private val syncStakeDelegations: SyncStakeDelegations,
@@ -73,7 +73,7 @@ class StakeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialAssetId)
 
     val assetInfo = assetId
-        .flatMapLatest { assetsRepository.getAssetInfo(it) }
+        .flatMapLatest { getAssetInfo(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val stakeInfoUrl = assetInfo

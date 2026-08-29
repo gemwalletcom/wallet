@@ -8,7 +8,7 @@ import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.domains.asset.chain
@@ -43,7 +43,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class DelegationViewModel @Inject constructor(
-    private val assetsRepository: AssetsRepository,
+    private val getAssetInfo: GetAssetInfo,
     private val getDelegation: GetDelegation,
     private val stakeConfig: GemStakeConfigService,
     private val explorerService: GemExplorerService,
@@ -65,7 +65,7 @@ class DelegationViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val assetInfo = delegation.filterNotNull()
-        .flatMapLatest { assetsRepository.getAssetInfo(it.base.assetId) }
+        .flatMapLatest { getAssetInfo(it.base.assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val properties = combine(

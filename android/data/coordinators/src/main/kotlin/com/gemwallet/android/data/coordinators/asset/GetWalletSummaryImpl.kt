@@ -5,7 +5,7 @@ import uniffi.gemstone.GemPerpetualService
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.cases.banners.HasMultiSign
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.repositories.config.UserConfig
 import uniffi.gemstone.GemWalletPreferencesService
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
@@ -42,7 +42,7 @@ import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetWalletSummaryImpl(
     private val sessionRepository: SessionRepository,
-    private val assetsRepository: AssetsRepository,
+    private val getWalletAssets: GetWalletAssets,
     private val perpetualStore: GemstonePerpetualStore,
     private val observePerpetualWallet: ObservePerpetualWallet,
     private val hasMultiSign: HasMultiSign,
@@ -68,7 +68,7 @@ class GetWalletSummaryImpl(
         val wallet = session?.wallet ?: return@flatMapLatest flowOf(null)
 
         combine(
-            assetsRepository.getAssetsInfo(),
+            getWalletAssets(),
             perpetualCollateral,
             hasMultiSign.hasMultiSign(wallet),
             userConfig.isHideBalances(),

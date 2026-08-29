@@ -54,7 +54,6 @@ import com.gemwallet.android.data.coordinators.asset.SyncAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.SetAssetPinnedImpl
 import com.gemwallet.android.data.coordinators.asset.ToggleHideBalancesImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.AssetsSearchService
 import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.config.UserConfig
@@ -79,14 +78,23 @@ import uniffi.gemstone.GemPortfolioService
 import javax.inject.Singleton
 import uniffi.gemstone.GemStreamSubscriptionService
 import uniffi.gemstone.GemWalletPreferencesService
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.coordinators.asset.WalletAssetsCoordinator
+import com.gemwallet.android.data.coordinators.asset.SyncBalancesImpl
+import com.gemwallet.android.application.assets.cases.SyncBalances
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.data.coordinators.asset.GetWidgetAssetsImpl
+import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.assets.cases.GetWidgetAssets
 
 @InstallIn(SingletonComponent::class)
 @Module
 object AssetModule {
     @Provides
     @Singleton
-    fun provideGetActiveAssetsInfo(assetsRepository: AssetsRepository): GetActiveAssetsInfo =
-        GetActiveAssetsInfoImpl(assetsRepository)
+    fun provideGetActiveAssetsInfo(getWalletAssets: GetWalletAssets): GetActiveAssetsInfo =
+        GetActiveAssetsInfoImpl(getWalletAssets)
 
     @Provides
     @Singleton
@@ -95,39 +103,36 @@ object AssetModule {
 
     @Provides
     @Singleton
-    fun provideGetAssetTokenInfo(assetsRepository: AssetsRepository): GetAssetTokenInfo =
-        GetAssetTokenInfoImpl(assetsRepository)
+    fun provideGetAssetTokenInfo(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetAssetTokenInfo =
+        GetAssetTokenInfoImpl(assetStore, getCurrentWalletId)
 
     @Provides
     @Singleton
-    fun provideGetChainAssetInfo(assetsRepository: AssetsRepository): GetChainAssetInfo =
-        GetChainAssetInfoImpl(assetsRepository)
+    fun provideGetChainAssetInfo(getAssetTokenInfo: GetAssetTokenInfo): GetChainAssetInfo =
+        GetChainAssetInfoImpl(getAssetTokenInfo)
 
     @Provides
     @Singleton
-    fun provideGetAssetById(assetsRepository: AssetsRepository): GetAssetById =
-        GetAssetByIdImpl(assetsRepository)
+    fun provideGetAssetById(assetStore: GemstoneAssetStore): GetAssetById = GetAssetByIdImpl(assetStore)
 
     @Provides
     @Singleton
-    fun provideGetAssetInfo(assetsRepository: AssetsRepository): GetAssetInfo =
-        GetAssetInfoImpl(assetsRepository)
+    fun provideGetAssetInfo(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetAssetInfo =
+        GetAssetInfoImpl(assetStore, getCurrentWalletId)
 
     @Provides
     @Singleton
-    fun provideGetAssetLinks(assetsRepository: AssetsRepository): GetAssetLinks =
-        GetAssetLinksImpl(assetsRepository)
+    fun provideGetAssetLinks(assetStore: GemstoneAssetStore): GetAssetLinks = GetAssetLinksImpl(assetStore)
 
     @Provides
     @Singleton
-    fun provideGetAssetMarket(assetsRepository: AssetsRepository): GetAssetMarket =
-        GetAssetMarketImpl(assetsRepository)
+    fun provideGetAssetMarket(assetStore: GemstoneAssetStore): GetAssetMarket = GetAssetMarketImpl(assetStore)
 
     @Provides
     @Singleton
     fun provideGetWalletSummary(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
+        getWalletAssets: GetWalletAssets,
         perpetualStore: GemstonePerpetualStore,
         observePerpetualWallet: ObservePerpetualWallet,
         hasMultiSign: HasMultiSign,
@@ -136,7 +141,7 @@ object AssetModule {
         perpetualService: GemPerpetualService,
     ): GetWalletSummary = GetWalletSummaryImpl(
         sessionRepository = sessionRepository,
-        assetsRepository = assetsRepository,
+        getWalletAssets = getWalletAssets,
         perpetualStore = perpetualStore,
         observePerpetualWallet = observePerpetualWallet,
         hasMultiSign = hasMultiSign,
@@ -216,12 +221,28 @@ object AssetModule {
     fun provideSyncAssets(
         sessionRepository: SessionRepository,
         deviceAssetsSyncService: DeviceAssetsSyncService,
-        assetsRepository: AssetsRepository,
+        getWalletAssets: GetWalletAssets,
+        syncBalances: SyncBalances,
     ): SyncAssets = SyncAssetsImpl(
         sessionRepository = sessionRepository,
         deviceAssetsSyncService = deviceAssetsSyncService,
-        assetsRepository = assetsRepository,
+        getWalletAssets = getWalletAssets,
+        syncBalances = syncBalances,
     )
+
+    @Provides
+    @Singleton
+    fun provideSyncBalances(balanceService: GemBalanceService): SyncBalances = SyncBalancesImpl(balanceService)
+
+    @Provides
+    @Singleton
+    fun provideGetWidgetAssets(searchTokensCase: SearchTokensCase, getWalletAssets: GetWalletAssets): GetWidgetAssets =
+        GetWidgetAssetsImpl(searchTokensCase, getWalletAssets)
+
+    @Provides
+    @Singleton
+    fun provideGetWalletAssets(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetWalletAssets =
+        WalletAssetsCoordinator(assetStore, getCurrentWalletId)
 
     @Provides
     @Singleton

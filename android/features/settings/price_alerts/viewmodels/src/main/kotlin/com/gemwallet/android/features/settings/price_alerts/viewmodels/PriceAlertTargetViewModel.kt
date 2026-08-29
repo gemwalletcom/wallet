@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.EnableDevicePush
 import com.gemwallet.android.application.pricealerts.cases.IncludePriceAlert
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.domains.pricealerts.direction
 import com.gemwallet.android.domains.pricealerts.formatAmount
 import com.gemwallet.android.domains.percentage.formatAsPercentage
@@ -41,7 +41,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PriceAlertTargetViewModel @Inject constructor(
-    private val assetsRepository: AssetsRepository,
+    private val getAssetInfo: GetAssetInfo,
     private val includePriceAlert: IncludePriceAlert,
     private val enableDevicePush: EnableDevicePush,
     savedStateHandle: SavedStateHandle,
@@ -55,7 +55,7 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     val assetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
-    val assetInfo = assetsRepository.getAssetInfo(assetId)
+    val assetInfo = getAssetInfo(assetId)
     val currency = assetInfo.map { it?.price?.currency ?: Currency.USD }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Currency.USD)
     val currentPrice = assetInfo.map { info ->
