@@ -8,7 +8,7 @@ use std::sync::Arc;
 use chrono::Utc;
 use primitives::{AssetId, Transaction, WalletId};
 
-pub use model::GemTransactionTitle;
+pub use model::{GemTransactionSubtitle, GemTransactionTitle};
 pub use store::GemTransactionStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -76,5 +76,9 @@ impl GemTransactionFormatter {
 
     pub fn title(&self, transaction: Transaction) -> GemTransactionTitle {
         rules::transaction_title(&transaction)
+    }
+
+    pub fn subtitle(&self, transaction: Transaction) -> GemTransactionSubtitle {
+        rules::transaction_subtitle(&transaction)
     }
 }

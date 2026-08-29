@@ -13,12 +13,14 @@ import com.gemwallet.android.ui.components.statusColor
 import com.gemwallet.android.ui.components.statusLabelRes
 import com.gemwallet.android.ui.components.titleRes
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.decodeJsonOrNull
+import uniffi.gemstone.GemTransactionSubtitle
 import uniffi.gemstone.GemTransactionTitle
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionDirection
-import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 
 private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
@@ -69,44 +71,18 @@ fun TransactionDataAggregate.getBadgeText(): String =
 fun TransactionDataAggregate.getBadgeColor(): Color = state.statusColor()
 
 @Composable
-fun TransactionDataAggregate.formatAddress(): String? = when (type) {
-    TransactionType.TransferNFT,
-    TransactionType.Transfer,
-    TransactionType.TokenApproval,
-    TransactionType.SmartContractCall -> {
-        val displayAddress = addressName ?: address
-        when (direction) {
-            TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> "${stringResource(id = R.string.transfer_to)} $displayAddress"
-            TransactionDirection.Incoming -> "${stringResource(id = R.string.transfer_from)} $displayAddress"
-        }
-    }
-    TransactionType.StakeDelegate,
-    TransactionType.StakeRedelegate,
-    TransactionType.EarnDeposit -> (addressName ?: address)
-        .takeIf { it.isNotEmpty() }
-        ?.let { "${stringResource(id = R.string.transfer_to)} $it" }
-    TransactionType.StakeUndelegate,
-    TransactionType.EarnWithdraw -> (addressName ?: address)
-        .takeIf { it.isNotEmpty() }
-        ?.let { "${stringResource(id = R.string.transfer_from)} $it" }
-    TransactionType.PerpetualOpenPosition,
-    TransactionType.PerpetualClosePosition,
-    TransactionType.PerpetualModifyPosition -> perpetualPrice?.let {
-        "${stringResource(R.string.asset_price)}: ${usdFiatFormatter.string(it)}"
-    }
-    TransactionType.StakeFreeze -> resourceType?.let {
-        "${stringResource(id = R.string.transfer_to)} ${stringResource(it.titleRes())}"
-    }
-    TransactionType.StakeUnfreeze -> resourceType?.let {
-        "${stringResource(id = R.string.transfer_from)} ${stringResource(it.titleRes())}"
-    }
-    TransactionType.Swap,
-    TransactionType.StakeWithdraw,
-    TransactionType.AssetActivation,
-    TransactionType.StakeRewards,
-        -> null
+fun TransactionDataAggregate.formatAddress(): String? = when (val subtitle = subtitle) {
+    is GemTransactionSubtitle.ToAddress -> prefixed(R.string.transfer_to, addressName ?: address)
+    is GemTransactionSubtitle.FromAddress -> prefixed(R.string.transfer_from, addressName ?: address)
+    is GemTransactionSubtitle.ToResource -> prefixed(R.string.transfer_to, stringResource(subtitle.resource.decodeJson<Resource>().titleRes()))
+    is GemTransactionSubtitle.FromResource -> prefixed(R.string.transfer_from, stringResource(subtitle.resource.decodeJson<Resource>().titleRes()))
+    is GemTransactionSubtitle.Price -> "${stringResource(R.string.asset_price)}: ${usdFiatFormatter.string(subtitle.value)}"
+    GemTransactionSubtitle.None -> null
 }
+
+@Composable
+private fun prefixed(@StringRes prefix: Int, value: String): String? =
+    value.takeIf { it.isNotEmpty() }?.let { "${stringResource(prefix)} $it" }
 
 @Composable
 fun TransactionDataAggregate.getValueColor(): Color = when (type) {

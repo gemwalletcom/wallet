@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemTransactionFormatter
+import enum Gemstone.GemTransactionSubtitle
 import enum Gemstone.GemTransactionTitle
 import GemstonePrimitives
 import Localization
@@ -10,6 +11,11 @@ extension GemTransactionFormatter {
     public func title(for transaction: Primitives.Transaction) -> String {
         guard let json = try? transaction.json() else { return Localized.Transfer.title }
         return title(transaction: json).title
+    }
+
+    public func subtitle(for transaction: Primitives.Transaction) -> GemTransactionSubtitle {
+        guard let json = try? transaction.json() else { return .none }
+        return subtitle(transaction: json)
     }
 }
 

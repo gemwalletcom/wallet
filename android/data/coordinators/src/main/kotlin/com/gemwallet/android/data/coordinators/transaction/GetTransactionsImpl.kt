@@ -13,7 +13,6 @@ import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.getNftMetadata
 import com.gemwallet.android.ext.getPerpetualMetadata
-import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
@@ -23,14 +22,13 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemTransactionFormatter
+import uniffi.gemstone.GemTransactionSubtitle
 import uniffi.gemstone.GemTransactionTitle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,44 +71,15 @@ class TransactionDataAggregateImpl(
 
     override val asset: Asset = data.asset
 
-    override val addressName: String? = when (data.transaction.type) {
-        TransactionType.StakeDelegate,
-        TransactionType.StakeUndelegate,
-        TransactionType.StakeRedelegate,
-        TransactionType.EarnDeposit,
-        TransactionType.EarnWithdraw -> data.toAddress
-        else -> when (data.transaction.direction) {
-            TransactionDirection.Incoming -> data.fromAddress
-            TransactionDirection.Outgoing,
-            TransactionDirection.SelfTransfer -> data.toAddress
-        }
-    }?.name
+    override val subtitle: GemTransactionSubtitle = transactionFormatter.subtitle(data.transaction.toJson())
 
-    override val address: String get() = when (data.transaction.type) {
-        TransactionType.TransferNFT,
-        TransactionType.Transfer,
-        TransactionType.TokenApproval,
-        TransactionType.SmartContractCall -> when (data.transaction.direction) {
-            TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
-            TransactionDirection.Incoming -> AddressFormatter(data.transaction.from, chain = data.transaction.assetId.chain).value()
-        }
-        TransactionType.StakeDelegate,
-        TransactionType.StakeUndelegate,
-        TransactionType.StakeRedelegate,
-        TransactionType.EarnDeposit,
-        TransactionType.EarnWithdraw -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
-        TransactionType.Swap,
-        TransactionType.StakeWithdraw,
-        TransactionType.AssetActivation,
-        TransactionType.StakeRewards,
-        TransactionType.PerpetualOpenPosition,
-        TransactionType.StakeFreeze,
-        TransactionType.StakeUnfreeze,
-        TransactionType.PerpetualClosePosition,
-        TransactionType.PerpetualModifyPosition
-            -> ""
+    override val addressName: String? = subtitle.address()?.let { address ->
+        listOfNotNull(data.fromAddress, data.toAddress).firstOrNull { it.address == address }?.name
     }
+
+    override val address: String = subtitle.address()
+        ?.let { AddressFormatter(it, chain = data.transaction.assetId.chain).value() }
+        .orEmpty()
 
     override val value: String get() = when (data.transaction.type) {
         TransactionType.Swap -> {
@@ -159,13 +128,7 @@ class TransactionDataAggregateImpl(
 
     private val perpetualMetadata = data.transaction.getPerpetualMetadata()
 
-    override val perpetualDirection: PerpetualDirection? = perpetualMetadata?.direction
-
-    override val perpetualPrice: Double? = perpetualMetadata?.price?.takeIf { it > 0 }
-
     override val pnl: Double? = perpetualMetadata?.pnl
-
-    override val resourceType: Resource? = data.transaction.getResourceMetadata()?.resourceType
 
     override val state: TransactionState = data.transaction.state
     override val createdAt: Long = data.transaction.createdAt
@@ -191,3 +154,12 @@ class TransactionDataAggregateImpl(
 }
 
 private val transactionFormatter = GemTransactionFormatter()
+
+fun GemTransactionSubtitle.address(): String? = when (this) {
+    is GemTransactionSubtitle.ToAddress -> address
+    is GemTransactionSubtitle.FromAddress -> address
+    is GemTransactionSubtitle.ToResource,
+    is GemTransactionSubtitle.FromResource,
+    is GemTransactionSubtitle.Price,
+    GemTransactionSubtitle.None -> null
+}
