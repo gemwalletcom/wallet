@@ -18,9 +18,13 @@ object InAppNotificationsModule {
 
     @Provides
     @Singleton
-    fun provideGemNotificationStore(
+    fun provideGemstoneNotificationStore(
         notificationsDao: InAppNotificationsDao,
-    ): GemNotificationStore = GemstoneNotificationStore(notificationsDao)
+    ): GemstoneNotificationStore = GemstoneNotificationStore(notificationsDao)
+
+    @Provides
+    @Singleton
+    fun provideGemNotificationStore(store: GemstoneNotificationStore): GemNotificationStore = store
 
     @Provides
     @Singleton

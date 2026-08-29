@@ -20,7 +20,11 @@ object PriceAlertsModule {
 
     @Singleton
     @Provides
-    fun provideGemPriceAlertStore(priceAlertsDao: PriceAlertsDao): GemPriceAlertStore = GemstonePriceAlertStore(priceAlertsDao)
+    fun provideGemstonePriceAlertStore(priceAlertsDao: PriceAlertsDao): GemstonePriceAlertStore = GemstonePriceAlertStore(priceAlertsDao)
+
+    @Provides
+    @Singleton
+    fun provideGemPriceAlertStore(store: GemstonePriceAlertStore): GemPriceAlertStore = store
 
     @Singleton
     @Provides

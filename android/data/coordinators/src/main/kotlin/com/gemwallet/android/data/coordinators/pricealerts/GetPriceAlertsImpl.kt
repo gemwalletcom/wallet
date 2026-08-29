@@ -3,8 +3,7 @@ package com.gemwallet.android.data.coordinators.pricealerts
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.service.store.database.PriceAlertsDao
-import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.repositories.gemstone.GemstonePriceAlertStore
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection
@@ -31,12 +30,11 @@ import kotlinx.coroutines.flow.mapLatest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetPriceAlertsImpl(
-    private val priceAlertsDao: PriceAlertsDao,
+    private val priceAlertStore: GemstonePriceAlertStore,
     private val assetsRepository: AssetsRepository,
 ) : GetPriceAlerts {
     override fun invoke(assetId: AssetId?): Flow<List<PriceAlertDataAggregate>> {
-        return (assetId?.let { priceAlertsDao.getAlerts(it.toIdentifier()) } ?: priceAlertsDao.getAlerts())
-            .mapLatest { it.toDTO() }
+        return priceAlertStore.observePriceAlerts(assetId)
             .flatMapLatest { items ->
                 val displayed = items.filter { it.priceAlert.shouldDisplay }
                 val order = priceAlertsSorted(displayed.map { it.priceAlert.toJson() })

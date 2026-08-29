@@ -8,7 +8,7 @@ import com.gemwallet.android.data.coordinators.contacts.AddContactImpl
 import com.gemwallet.android.data.coordinators.contacts.DeleteContactImpl
 import com.gemwallet.android.data.coordinators.contacts.GetContactsImpl
 import com.gemwallet.android.data.coordinators.contacts.UpdateContactImpl
-import com.gemwallet.android.data.service.store.database.ContactsDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneContactStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,7 +22,7 @@ object ContactsCasesModule {
 
     @Singleton
     @Provides
-    fun provideGetContacts(contactsDao: ContactsDao): GetContacts = GetContactsImpl(contactsDao)
+    fun provideGetContacts(contactStore: GemstoneContactStore): GetContacts = GetContactsImpl(contactStore)
 
     @Singleton
     @Provides

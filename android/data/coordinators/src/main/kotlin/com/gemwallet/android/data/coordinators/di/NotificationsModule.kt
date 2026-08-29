@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.notifications.cases.GetInAppNotifications
 import com.gemwallet.android.data.coordinators.notifications.GetInAppNotificationsImpl
-import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneNotificationStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,6 +15,6 @@ object NotificationsModule {
 
     @Provides
     @Singleton
-    fun provideGetInAppNotifications(notificationsDao: InAppNotificationsDao): GetInAppNotifications =
-        GetInAppNotificationsImpl(notificationsDao)
+    fun provideGetInAppNotifications(notificationStore: GemstoneNotificationStore): GetInAppNotifications =
+        GetInAppNotificationsImpl(notificationStore)
 }

@@ -19,8 +19,12 @@ object ContactsModule {
 
     @Singleton
     @Provides
-    fun provideGemContactStore(contactsDao: ContactsDao, addressesDao: AddressesDao): GemContactStore =
+    fun provideGemstoneContactStore(contactsDao: ContactsDao, addressesDao: AddressesDao): GemstoneContactStore =
         GemstoneContactStore(contactsDao)
+
+    @Singleton
+    @Provides
+    fun provideGemContactStore(store: GemstoneContactStore): GemContactStore = store
 
     @Singleton
     @Provides
