@@ -15,7 +15,7 @@ import com.gemwallet.android.ext.id
 import com.gemwallet.android.ext.shouldDisplay
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.CurrencyFormatter
-import uniffi.gemstone.priceAlertsSorted
+import uniffi.gemstone.GemPriceAlertRulesService
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
@@ -32,12 +32,13 @@ import kotlinx.coroutines.flow.mapLatest
 class GetPriceAlertsImpl(
     private val priceAlertStore: GemstonePriceAlertStore,
     private val assetsRepository: AssetsRepository,
+    private val priceAlertRules: GemPriceAlertRulesService = GemPriceAlertRulesService(),
 ) : GetPriceAlerts {
     override fun invoke(assetId: AssetId?): Flow<List<PriceAlertDataAggregate>> {
         return priceAlertStore.observePriceAlerts(assetId)
             .flatMapLatest { items ->
                 val displayed = items.filter { it.priceAlert.shouldDisplay }
-                val order = priceAlertsSorted(displayed.map { it.priceAlert.toJson() })
+                val order = priceAlertRules.sortedAlerts(displayed.map { it.priceAlert.toJson() })
                     .map { it.decodeJson<PriceAlert>().id }
                 val index = displayed
                     .sortedBy { alert -> order.indexOf(alert.priceAlert.id).takeIf { it >= 0 } ?: order.size }

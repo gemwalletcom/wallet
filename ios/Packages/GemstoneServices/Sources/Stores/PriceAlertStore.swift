@@ -3,13 +3,14 @@
 import Foundation
 import protocol Gemstone.GemPriceAlertStore
 import typealias Gemstone.PriceAlert
-import func Gemstone.priceAlertId
+import class Gemstone.GemPriceAlertRulesService
 import GemstonePrimitives
 import Primitives
 import Store
 
 public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Sendable {
     private let store: PriceAlertStore
+    private let priceAlertRules = GemPriceAlertRulesService()
 
     public init(store: PriceAlertStore) {
         self.store = store
@@ -23,7 +24,7 @@ public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Senda
     public func updatePriceAlerts(alerts: [Gemstone.PriceAlert], deleteIds: [String]) async throws {
         try store.diffPriceAlerts(
             deleteIds: deleteIds,
-            alerts: alerts.map { try (id: priceAlertId(alert: $0), alert: Primitives.PriceAlert($0)) },
+            alerts: alerts.map { try (id: priceAlertRules.alertId(alert: $0), alert: Primitives.PriceAlert($0)) },
         )
     }
 }

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemPreferencesServiceProtocol
-import func Gemstone.priceAlertsSorted
+import class Gemstone.GemPriceAlertRulesService
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
 import Localization
@@ -15,6 +15,8 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AssetPriceAlertsViewModel: Sendable {
+    private let priceAlertRules = GemPriceAlertRulesService()
+
     let priceAlertService: any GemPriceAlertServiceProtocol
     let preferencesService: any GemPreferencesServiceProtocol
     let walletId: WalletId
@@ -69,7 +71,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
 
     var alertsModel: [PriceAlertItemViewModel] {
         let manual = priceAlerts.filter { $0.priceAlert.shouldDisplay && $0.priceAlert.type != .auto }
-        let order = (try? priceAlertsSorted(alerts: manual.map { try $0.priceAlert.json() }).map { try PriceAlert($0).id }) ?? []
+        let order = (try? priceAlertRules.sortedAlerts(alerts: manual.map { try $0.priceAlert.json() }).map { try PriceAlert($0).id }) ?? []
         return order
             .compactMap { id in manual.first { $0.priceAlert.id == id } }
             .map { PriceAlertItemViewModel(data: $0, currency: preferencesService.currencyCode) }

@@ -93,26 +93,6 @@ impl GemPriceAlertService {
     }
 }
 
-#[uniffi::export]
-pub fn price_alert_id(alert: PriceAlert) -> String {
-    alert.id()
-}
-
-#[uniffi::export]
-pub fn price_alerts_sorted(alerts: Vec<PriceAlert>) -> Vec<PriceAlert> {
-    rules::sorted_price_alerts(alerts)
-}
-
-#[uniffi::export]
-pub fn price_alert_notification_type(alert: PriceAlert) -> PriceAlertNotificationType {
-    alert.notification_type()
-}
-
-#[uniffi::export]
-pub fn price_alert_should_display(alert: PriceAlert) -> bool {
-    alert.should_display()
-}
-
 #[cfg(test)]
 mod tests {
     use super::rules::reconcile;
@@ -144,5 +124,29 @@ mod tests {
 
         let changes = reconcile(Vec::new(), Vec::new());
         assert!(changes.delete_ids.is_empty() && changes.alerts.is_empty());
+    }
+}
+
+#[derive(Default, uniffi::Object)]
+pub struct GemPriceAlertRulesService {}
+
+#[uniffi::export]
+impl GemPriceAlertRulesService {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn alert_id(&self, alert: PriceAlert) -> String {
+        alert.id()
+    }
+    pub fn sorted_alerts(&self, alerts: Vec<PriceAlert>) -> Vec<PriceAlert> {
+        rules::sorted_price_alerts(alerts)
+    }
+    pub fn notification_type(&self, alert: PriceAlert) -> PriceAlertNotificationType {
+        alert.notification_type()
+    }
+    pub fn should_display(&self, alert: PriceAlert) -> bool {
+        alert.should_display()
     }
 }

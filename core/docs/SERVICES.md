@@ -369,7 +369,7 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 | `GemAddressService` (new) | `validate_address`, `checksum_address`, `short_address`, `format_address` |
 | ~~`GemStakeService`~~ → `GemStakeRulesService` (done) | the seven stake rules moved to a **stateless** service, not the I/O one: `GemStakeService` needs a gateway, a static API client and two stores, so rules hung off it can only be reached through a mock — which silently emptied four iOS view-model tests. A pure-rule service with a `new()` constructor keeps those tests exercising the real rule. Apply the same split to the groups below. |
 | ~~`GemNftService`~~ → `GemNftRulesService` (done) | the four collection rules, on a stateless service for the same reason as the stake ones |
-| `GemPriceAlertService` | `price_alert_id`, `price_alerts_sorted`, `price_alert_notification_type`, `price_alert_should_display` |
+| ~~`GemPriceAlertService`~~ → `GemPriceAlertRulesService` (done) | id, ordering, notification type and display rule; the value helpers (`PriceAlert.id`, `.type`, `.shouldDisplay`) keep their shape on both apps and hold one service instance in the extension file |
 | `GemPerpetualService` | `perpetual_collateral_asset_id`, `perpetual_funding_apr`, `perpetual_order`, `perpetual_close_order` |
 | `GemWalletService` | `sorted_wallets`, `wallet_display_account`, `keystore_id_for_wallet`, `wallet_total_fiat_value`, `wallet_shows_pnl` |
 | `GemConfirmService` | `confirm_input_encode`, `confirm_input_decode`, `acquire_asset_flow`, `default_fee_priority`, `is_insufficient_network_fee`, `custom_gas_price`, `custom_fee_estimate`, `calculate_transfer_amount` |

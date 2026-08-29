@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import func Gemstone.priceAlertId
-import func Gemstone.priceAlertNotificationType
-import func Gemstone.priceAlertShouldDisplay
+import class Gemstone.GemPriceAlertRulesService
 import Primitives
+
+private let priceAlertRules = GemPriceAlertRulesService()
 
 extension PriceAlert: @retroactive Identifiable {
     public var id: String {
         do {
-            return try priceAlertId(alert: json())
+            return try priceAlertRules.alertId(alert: json())
         } catch {
             preconditionFailure("Unencodable price alert: \(error)")
         }
@@ -25,7 +25,7 @@ extension PriceAlertData: @retroactive Identifiable {
 public extension PriceAlert {
     var type: PriceAlertNotificationType {
         guard let alert = try? json(),
-              let type = try? PriceAlertNotificationType(priceAlertNotificationType(alert: alert))
+              let type = try? PriceAlertNotificationType(priceAlertRules.notificationType(alert: alert))
         else {
             return .auto
         }
@@ -34,7 +34,7 @@ public extension PriceAlert {
 
     var shouldDisplay: Bool {
         guard let alert = try? json() else { return true }
-        return priceAlertShouldDisplay(alert: alert)
+        return priceAlertRules.shouldDisplay(alert: alert)
     }
 }
 
