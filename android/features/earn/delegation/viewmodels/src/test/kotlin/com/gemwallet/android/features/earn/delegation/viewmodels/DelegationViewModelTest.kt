@@ -5,7 +5,7 @@ import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
@@ -38,7 +38,7 @@ class DelegationViewModelTest {
     private val assetsRepository = mockk<AssetsRepository> {
         every { getAssetInfo(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
     }
-    private val stakeRepository = mockk<StakeRepository>()
+    private val getDelegation = mockk<GetDelegation>()
     private val explorerService = mockk<GemExplorerService>(relaxed = true) {
         every { getValidatorUrl(asset.id.chain.string, any()) } answers { GemBlockExplorerLink("Mintscan", "https://mintscan.io/validators/${secondArg<String>()}") }
     }
@@ -56,8 +56,8 @@ class DelegationViewModelTest {
         val ownDelegation = mockDelegation(assetId = asset.id, balance = "77", validatorId = "v1", delegationId = "d1")
         val otherWalletDelegation = mockDelegation(assetId = asset.id, balance = "999999", validatorId = "v1", delegationId = "d1")
 
-        every { stakeRepository.getDelegation(ownWalletId, "v1", "d1") } returns flowOf(ownDelegation)
-        every { stakeRepository.getDelegation(otherWalletId, "v1", "d1") } returns flowOf(otherWalletDelegation)
+        every { getDelegation(ownWalletId, "v1", "d1") } returns flowOf(ownDelegation)
+        every { getDelegation(otherWalletId, "v1", "d1") } returns flowOf(otherWalletDelegation)
 
         val sessionRepository = mockk<SessionRepository> {
             every { session() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = ownWalletId.id)))
@@ -65,7 +65,7 @@ class DelegationViewModelTest {
 
         val viewModel = DelegationViewModel(
             assetsRepository = assetsRepository,
-            stakeRepository = stakeRepository,
+            getDelegation = getDelegation,
             explorerService = explorerService,
             sessionRepository = sessionRepository,
             savedStateHandle = SavedStateHandle(

@@ -8,7 +8,14 @@ import com.gemwallet.android.data.coordinators.stake.GetDelegationImpl
 import com.gemwallet.android.data.coordinators.stake.GetDelegationsImpl
 import com.gemwallet.android.data.coordinators.stake.GetRecommendedValidatorImpl
 import com.gemwallet.android.data.coordinators.stake.GetStakeValidatorImpl
-import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.application.stake.cases.GetRecommendedValidatorIds
+import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.cases.stake.SyncStakeDelegations
+import com.gemwallet.android.data.coordinators.stake.GetRecommendedValidatorIdsImpl
+import com.gemwallet.android.data.coordinators.stake.GetValidatorsImpl
+import com.gemwallet.android.data.coordinators.stake.SyncStakeDelegationsImpl
+import com.gemwallet.android.data.service.store.database.StakeDao
+import uniffi.gemstone.GemStakeService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,21 +28,29 @@ object StakeModule {
 
     @Provides
     @Singleton
-    fun provideGetDelegation(stakeRepository: StakeRepository): GetDelegation =
-        GetDelegationImpl(stakeRepository)
+    fun provideGetDelegation(stakeDao: StakeDao): GetDelegation = GetDelegationImpl(stakeDao)
 
     @Provides
     @Singleton
-    fun provideGetDelegations(stakeRepository: StakeRepository): GetDelegations =
-        GetDelegationsImpl(stakeRepository)
+    fun provideGetDelegations(stakeDao: StakeDao): GetDelegations = GetDelegationsImpl(stakeDao)
 
     @Provides
     @Singleton
-    fun provideGetRecommendedValidator(stakeRepository: StakeRepository): GetRecommendedValidator =
-        GetRecommendedValidatorImpl(stakeRepository)
+    fun provideGetValidators(stakeDao: StakeDao): GetValidators = GetValidatorsImpl(stakeDao)
 
     @Provides
     @Singleton
-    fun provideGetStakeValidator(stakeRepository: StakeRepository): GetStakeValidator =
-        GetStakeValidatorImpl(stakeRepository)
+    fun provideGetRecommendedValidatorIds(): GetRecommendedValidatorIds = GetRecommendedValidatorIdsImpl()
+
+    @Provides
+    @Singleton
+    fun provideGetRecommendedValidator(getValidators: GetValidators): GetRecommendedValidator = GetRecommendedValidatorImpl(getValidators)
+
+    @Provides
+    @Singleton
+    fun provideGetStakeValidator(stakeDao: StakeDao): GetStakeValidator = GetStakeValidatorImpl(stakeDao)
+
+    @Provides
+    @Singleton
+    fun provideSyncStakeDelegations(stakeService: GemStakeService): SyncStakeDelegations = SyncStakeDelegationsImpl(stakeService)
 }

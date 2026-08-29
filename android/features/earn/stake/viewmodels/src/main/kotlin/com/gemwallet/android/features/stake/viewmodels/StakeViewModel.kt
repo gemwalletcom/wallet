@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.application.stake.cases.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import uniffi.gemstone.stakeCanClaimRewards
 import uniffi.gemstone.stakeRequiresFrozenBalance
 import com.gemwallet.android.domains.stake.hasRewards
@@ -57,7 +59,9 @@ import javax.inject.Inject
 @HiltViewModel
 class StakeViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
-    private val stakeRepository: StakeRepository,
+    private val getDelegations: GetDelegations,
+    private val getValidators: GetValidators,
+    private val syncStakeDelegations: SyncStakeDelegations,
     sessionRepository: SessionRepository,
     stateHandle: SavedStateHandle,
 ): ViewModel() {
@@ -89,11 +93,11 @@ class StakeViewModel @Inject constructor(
     val delegations = session.filterNotNull().combine(assetId) { session, assetId ->
         session.wallet.id to assetId
     }
-        .flatMapLatest { (walletId, assetId) -> stakeRepository.getDelegations(walletId, assetId) }
+        .flatMapLatest { (walletId, assetId) -> getDelegations(walletId, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val isStakeEnabled = assetId
-        .flatMapLatest { stakeRepository.getValidators(it) }
+        .flatMapLatest { getValidators(it) }
         .mapLatest { validators -> validators.isNotEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -159,7 +163,7 @@ class StakeViewModel @Inject constructor(
                 val account = account.filterNotNull().first()
                 val walletId = session.filterNotNull().first().wallet.id
                 emit(true)
-                stakeRepository.sync(
+                syncStakeDelegations.sync(
                     walletId = walletId,
                     assetId = assetInfo.asset.id,
                     address = account.address,

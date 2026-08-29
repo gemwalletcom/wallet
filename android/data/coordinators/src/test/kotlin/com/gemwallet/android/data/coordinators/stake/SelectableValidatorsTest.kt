@@ -1,11 +1,11 @@
-package com.gemwallet.android.data.repositories.stake
+package com.gemwallet.android.data.coordinators.stake
 
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.wallet.core.primitives.Chain
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class StakeRepositoryTest {
+class SelectableValidatorsTest {
 
     @Test
     fun selectableValidators_filtersOutUnnamedValidators() {

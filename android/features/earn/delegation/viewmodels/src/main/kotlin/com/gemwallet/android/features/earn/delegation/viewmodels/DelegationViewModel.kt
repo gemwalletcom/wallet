@@ -11,7 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.domains.stake.rewardsBalance
@@ -45,7 +45,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DelegationViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
-    private val stakeRepository: StakeRepository,
+    private val getDelegation: GetDelegation,
     private val explorerService: GemExplorerService,
     sessionRepository: SessionRepository,
     savedStateHandle: SavedStateHandle,
@@ -60,7 +60,7 @@ class DelegationViewModel @Inject constructor(
         sessionRepository.session().filterNotNull(),
     ) { validatorId, delegationId, session -> Triple(validatorId, delegationId, session.wallet.id) }
         .flatMapLatest { (validatorId, delegationId, walletId) ->
-            stakeRepository.getDelegation(walletId = walletId, validatorId = validatorId, delegationId = delegationId)
+            getDelegation(walletId = walletId, validatorId = validatorId, delegationId = delegationId)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

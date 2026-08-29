@@ -1,8 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.data.repositories.gemstone.GemstoneStakeStore
-import com.gemwallet.android.cases.stake.SyncStakeDelegations
-import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StakeDao
 import dagger.Module
@@ -29,17 +27,4 @@ object StakeModule {
     fun provideGemStakeService(gateway: GemGateway, staticApiClient: GemStaticApiClient, store: GemStakeStore, addressStore: GemAddressStore): GemStakeService =
         GemStakeService(gateway, staticApiClient, store, addressStore)
 
-    @Singleton
-    @Provides
-    fun provideStakeRepository(
-        stakeDao: StakeDao,
-        stakeService: GemStakeService,
-    ): StakeRepository = StakeRepository(
-        stakeDao = stakeDao,
-        stakeService = stakeService,
-    )
-
-    @Singleton
-    @Provides
-    fun provideSyncStakeDelegations(stakeRepository: StakeRepository): SyncStakeDelegations = stakeRepository
 }

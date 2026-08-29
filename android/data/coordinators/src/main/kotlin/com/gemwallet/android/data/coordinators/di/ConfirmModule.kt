@@ -15,7 +15,7 @@ import com.gemwallet.android.data.coordinators.confirm.GetFeeAssetsImpl
 import com.gemwallet.android.data.coordinators.confirm.ChainFeeAssetProvider
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.RecentAssetsService
-import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.wallet.core.primitives.Chain
 import dagger.Module
 import dagger.Provides
@@ -54,10 +54,10 @@ object ConfirmModule {
     @Provides
     @Singleton
     fun provideBuildConfirmProperties(
-        stakeRepository: StakeRepository,
+        getStakeValidator: GetStakeValidator,
         explorerService: GemExplorerService,
     ): BuildConfirmProperties = BuildConfirmPropertiesImpl(
-        stakeRepository,
+        getStakeValidator,
         explorerService,
     )
 }

@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.confirm
 
 import uniffi.gemstone.GemExplorerService
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
-import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.isMemoSupport
 import com.gemwallet.android.domains.confirm.ConfirmError
@@ -18,7 +18,7 @@ import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.Wallet
 
 class BuildConfirmPropertiesImpl(
-    private val stakeRepository: StakeRepository,
+    private val getStakeValidator: GetStakeValidator,
     private val explorerService: GemExplorerService,
 ) : BuildConfirmProperties {
 
@@ -78,7 +78,7 @@ class BuildConfirmPropertiesImpl(
             is ConfirmParams.PerpetualParams,
             is ConfirmParams.TransferParams -> null
         }
-        return stakeRepository.getStakeValidator(params.assetId, validatorId ?: return null)
+        return getStakeValidator(params.assetId, validatorId ?: return null)
     }
 
     private fun List<AssetInfo>.getByAssetId(assetId: AssetId): AssetInfo? {
