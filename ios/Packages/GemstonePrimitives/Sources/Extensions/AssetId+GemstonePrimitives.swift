@@ -10,11 +10,4 @@ public extension Primitives.AssetId {
         }
         return AssetType(rawValue: type)
     }
-
-    func getAssetType() throws -> AssetType {
-        guard let assetType else {
-            throw AnyError("Unknown asset type")
-        }
-        return assetType
-    }
 }

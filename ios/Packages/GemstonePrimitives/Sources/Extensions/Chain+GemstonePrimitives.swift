@@ -48,10 +48,6 @@ public extension Primitives.Chain {
         return URL(string: url)
     }
 
-    var tokenActivateFee: BigInt {
-        BigInt(ChainConfig.config(chain: self).tokenActivationFee ?? 0)
-    }
-
     var minimumAccountBalance: BigInt {
         BigInt(ChainConfig.config(chain: self).minimumAccountBalance ?? .zero)
     }
