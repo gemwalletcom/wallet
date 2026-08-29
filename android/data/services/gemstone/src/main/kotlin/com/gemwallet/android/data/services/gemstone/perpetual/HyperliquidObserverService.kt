@@ -1,14 +1,11 @@
 package com.gemwallet.android.data.services.gemstone.perpetual
 
 import android.util.Log
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualAccountMode
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketEvent
 import com.gemwallet.android.domains.perpetual.toGem
-import com.gemwallet.android.ext.hyperliquidAccount
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.PerpetualAccountMode
@@ -25,14 +22,15 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPerpetualStreamService
 import uniffi.gemstone.GemPerpetualSubscription
 
 class HyperliquidObserverService(
     private val observePerpetualWallet: ObservePerpetualWallet,
     private val syncPerpetuals: SyncPerpetuals,
-    private val syncPerpetualPositions: SyncPerpetualPositions,
-    private val getPerpetualAccountMode: GetPerpetualAccountMode,
+    private val perpetualService: GemPerpetualService,
     private val streamService: GemPerpetualStreamService,
     private val connection: WebSocketConnectable,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
@@ -54,10 +52,11 @@ class HyperliquidObserverService(
             }
                 .distinctUntilChangedBy { it?.id?.id }
                 .collectLatest { wallet ->
-                    val address = wallet?.hyperliquidAccount?.address ?: return@collectLatest
-                    val mode = syncPerpetualPositions.syncPerpetualPositions()
-                        ?: getPerpetualAccountMode.getPerpetualAccountMode(wallet.id, address)
-                    observeConnection(wallet.id, address, mode)
+                    wallet ?: return@collectLatest
+                    val connection = runCatchingCancellable { perpetualService.connection(wallet.toJson()) }
+                        .onFailure { Log.e(TAG, "Perpetual connection failed", it) }
+                        .getOrNull() ?: return@collectLatest
+                    observeConnection(wallet.id, connection.address, connection.mode.decodeJson())
                 }
         }
         scope.launch {

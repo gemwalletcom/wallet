@@ -4,6 +4,7 @@ pub mod store;
 pub mod stream;
 
 use crate::services::error::GemServiceError;
+use model::GemPerpetualConnection;
 use std::sync::Arc;
 
 use chrono::Utc;
@@ -171,6 +172,19 @@ impl GemPerpetualService {
         self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
         self.update_balance(wallet_id, summary.balance).await?;
         Ok(mode)
+    }
+
+    pub async fn connection(&self, wallet: Wallet) -> Result<Option<GemPerpetualConnection>, GemServiceError> {
+        let Some(account) = crate::services::stream::rules::hyperliquid_account(&wallet.accounts) else {
+            return Ok(None);
+        };
+        let chain = account.chain;
+        let address = account.address.clone();
+        let mode = match self.sync_positions(wallet.id.clone(), chain, address.clone()).await {
+            Ok(mode) => mode,
+            Err(_) => self.account_mode(wallet.id, chain, address.clone()).await?,
+        };
+        Ok(Some(GemPerpetualConnection { address, mode }))
     }
 
     pub fn collateral_asset_id(&self, chain: Chain) -> Option<AssetId> {

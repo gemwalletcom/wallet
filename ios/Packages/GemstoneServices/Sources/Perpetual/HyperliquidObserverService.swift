@@ -5,6 +5,7 @@ import class Gemstone.GemPerpetualService
 import protocol Gemstone.GemPerpetualServiceProtocol
 import class Gemstone.GemPerpetualStreamService
 import Foundation
+import struct Gemstone.GemPerpetualConnection
 import enum Gemstone.GemPerpetualSubscription
 import Primitives
 import WebSocketClient
@@ -80,33 +81,31 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
         await disconnect()
         currentWallet = wallet
-        let mode: PerpetualAccountMode
-        if let synced = await update(for: wallet) {
-            mode = synced
-        } else {
-            do {
-                mode = try await accountMode(for: wallet)
-            } catch {
-                debugLog("HyperliquidObserver: account mode failed: \(error)")
-                return
-            }
+
+        let connection: GemPerpetualConnection?
+        do {
+            connection = try await perpetualService.connection(wallet: wallet.json())
+        } catch {
+            debugLog("HyperliquidObserver: connection failed: \(error)")
+            return
         }
+        guard let connection, let mode = try? PerpetualAccountMode(connection.mode) else { return }
 
         guard observeTask == nil else { return }
 
         observeTask = Task { [weak self] in
             guard let self else { return }
-            await observeConnection(walletId: wallet.id, mode: mode)
+            await observeConnection(walletId: wallet.id, address: connection.address, mode: mode)
         }
     }
 
-    private func observeConnection(walletId: WalletId, mode: PerpetualAccountMode) async {
+    private func observeConnection(walletId: WalletId, address: String, mode: PerpetualAccountMode) async {
         for await event in await webSocket.connect() {
             guard !Task.isCancelled else { break }
 
             switch event {
             case .connected:
-                await handleConnected(mode: mode)
+                await handleConnected(address: address, mode: mode)
             case let .message(data):
                 await handle(data, walletId: walletId, mode: mode)
             case .disconnected:
@@ -115,8 +114,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
         }
     }
 
-    private func handleConnected(mode: PerpetualAccountMode) async {
-        guard let address = currentWallet?.hyperliquidAccount?.address else { return }
+    private func handleConnected(address: String, mode: PerpetualAccountMode) async {
         do {
             try await streamService.connected(address: address, mode: mode.json())
         } catch {
@@ -133,8 +131,4 @@ public actor HyperliquidObserverService: PerpetualObservable {
         }
     }
 
-    private func accountMode(for wallet: Wallet) async throws -> PerpetualAccountMode {
-        guard let address = wallet.hyperliquidAccount?.address else { return .standard }
-        return try await perpetualService.accountMode(walletId: wallet.id, address: address)
-    }
 }

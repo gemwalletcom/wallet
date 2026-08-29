@@ -445,6 +445,14 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         try Primitives.PerpetualAccountMode.standard.json()
     }
 
+    public func connection(wallet: Gemstone.Wallet) async throws -> Gemstone.GemPerpetualConnection? {
+        guard let account = try Primitives.Wallet(wallet).hyperliquidAccount else { return nil }
+        return try Gemstone.GemPerpetualConnection(
+            address: account.address,
+            mode: Primitives.PerpetualAccountMode.standard.json(),
+        )
+    }
+
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
 
     public func getCandlesticks(chain _: Gemstone.Chain, symbol _: String, period _: Gemstone.ChartPeriod) async throws -> [Gemstone.ChartCandleStick] { [] }
