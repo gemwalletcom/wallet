@@ -1,7 +1,5 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
-import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepositoryImpl
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import dagger.Module
 import dagger.Provides
@@ -39,8 +37,4 @@ object PriceAlertsModule {
         device = deviceService,
         permissions = notificationPermissions,
     )
-
-    @Provides
-    @Singleton
-    fun providePriceAlertsRepositoryImpl(priceAlertsDao: PriceAlertsDao): PriceAlertRepository = PriceAlertRepositoryImpl(priceAlertsDao)
 }

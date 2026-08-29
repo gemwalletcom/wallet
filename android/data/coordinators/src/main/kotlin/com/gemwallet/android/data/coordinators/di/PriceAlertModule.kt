@@ -20,7 +20,7 @@ import com.gemwallet.android.data.coordinators.pricealerts.PriceAlertsEnabledCoo
 import com.gemwallet.android.data.coordinators.pricealerts.SyncAssetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.UpdatePriceAlertsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
+import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.Module
 import dagger.Provides
@@ -49,11 +49,11 @@ object PriceAlertModule {
     @Provides
     @Singleton
     fun provideGetPriceAlerts(
-        priceAlertRepository: PriceAlertRepository,
+        priceAlertsDao: PriceAlertsDao,
         assetsRepository: AssetsRepository,
     ): GetPriceAlerts {
         return GetPriceAlertsImpl(
-            priceAlertRepository = priceAlertRepository,
+            priceAlertsDao = priceAlertsDao,
             assetsRepository = assetsRepository,
         )
     }
@@ -97,12 +97,8 @@ object PriceAlertModule {
     @Provides
     @Singleton
     fun provideAssetPriceAlertState(
-        priceAlertRepository: PriceAlertRepository,
-    ): GetAssetPriceAlertState {
-        return GetAssetPriceAlertStateImpl(
-            priceAlertRepository = priceAlertRepository,
-        )
-    }
+        priceAlertsDao: PriceAlertsDao,
+    ): GetAssetPriceAlertState = GetAssetPriceAlertStateImpl(priceAlertsDao)
 
     @Provides
     fun provideUpdatePriceAlerts(
@@ -116,8 +112,8 @@ object PriceAlertModule {
     @Provides
     @Singleton
     fun provideHasAssetPriceAlerts(
-        priceAlertRepository: PriceAlertRepository,
-    ): HasAssetPriceAlerts = HasAssetPriceAlertsImpl(priceAlertRepository)
+        priceAlertsDao: PriceAlertsDao,
+    ): HasAssetPriceAlerts = HasAssetPriceAlertsImpl(priceAlertsDao)
 
     @Provides
     fun provideSyncAssetPriceAlerts(

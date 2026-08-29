@@ -360,7 +360,6 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 | Repository | Callers | What it holds today | Target |
 | --- | --- | --- | --- |
-| `PriceAlertRepository` (+`Impl`) | 6 | four observed reads over `PriceAlertsDao` | the matching cases already exist (`GetPriceAlerts`, `GetAssetPriceAlertState`, `HasAssetPriceAlerts`) — give them the DAO |
 | `TransactionRepository` (+`Impl`) | 6 | `getTransactions(filters)`, `getTransaction(id)` | `GetTransactions`/`GetTransaction` cases over `TransactionsDao` |
 | `AddressesRepository` | 5 | address-name flow plus `saveWalletAddresses` over `GemNameService` | `GetAddressName`/`SaveWalletAddresses` cases |
 | `NftRepository` | 2 | two observed reads plus `GemNftService` and `nftCollectionStatus` | `GetNftList`/`GetNftAsset` cases; the `fetch*` names go with it |
