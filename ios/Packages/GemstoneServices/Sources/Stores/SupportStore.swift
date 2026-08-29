@@ -8,22 +8,13 @@ import GemstonePrimitives
 import Primitives
 import Store
 
-@Observable
-public final class GemstoneSupportStore: GemSupportStore, @unchecked Sendable {
-    @ObservationIgnored
+public final class GemstoneSupportStore: GemSupportStore, Sendable {
     private let store: SupportChatStore
-    @ObservationIgnored
-    private let lock = NSLock()
-    @ObservationIgnored
-    private var storedAgent: SupportAgent?
+
+    public let typing = SupportTypingState()
 
     public init(store: SupportChatStore) {
         self.store = store
-    }
-
-    public var typingAgent: SupportAgent? {
-        access(keyPath: \.typingAgent)
-        return lock.withLock { storedAgent }
     }
 
     public func saveMessages(messages: [Gemstone.SupportMessage]) async throws {
@@ -35,24 +26,10 @@ public final class GemstoneSupportStore: GemSupportStore, @unchecked Sendable {
     }
 
     public func updateTyping(typing: Gemstone.SupportTyping) throws {
-        let typing = try Primitives.SupportTyping(typing)
-        switch typing.status {
-        case .on: setTypingAgent(typing.agent)
-        case .off: setTypingAgent(.none)
-        }
+        self.typing.update(try Primitives.SupportTyping(typing))
     }
 
     public func clearTyping() throws {
-        setTypingAgent(.none)
-    }
-
-    public func clearTypingAgent() {
-        setTypingAgent(.none)
-    }
-
-    private func setTypingAgent(_ agent: SupportAgent?) {
-        withMutation(keyPath: \.typingAgent) {
-            lock.withLock { storedAgent = agent }
-        }
+        typing.clear()
     }
 }

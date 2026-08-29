@@ -14,13 +14,13 @@ import SwiftUI
 @MainActor
 public final class SupportChatSceneViewModel {
     private let service: any GemSupportServiceProtocol
-    private let store: GemstoneSupportStore
+    private let typing: SupportTypingState
     public let query: ObservableQuery<SupportMessagesRequest>
     var previewURL: URL?
 
-    public init(service: any GemSupportServiceProtocol, store: GemstoneSupportStore) {
+    public init(service: any GemSupportServiceProtocol, typing: SupportTypingState) {
         self.service = service
-        self.store = store
+        self.typing = typing
         query = ObservableQuery(SupportMessagesRequest(), initialValue: [])
     }
 
@@ -28,7 +28,7 @@ public final class SupportChatSceneViewModel {
     var emptyTitle: String { Localized.Support.stateEmptyTitle }
     var emptyDescription: String { Localized.Support.stateEmptyDescription }
     var isEmpty: Bool { query.value.isEmpty }
-    var typingAgentName: String? { store.typingAgent?.name }
+    var typingAgentName: String? { typing.agent?.name }
 
     @ObservationIgnored
     private(set) lazy var inputBarModel = SupportMessageInputBarViewModel(
@@ -60,7 +60,7 @@ public final class SupportChatSceneViewModel {
     }
 
     func onDisappear() {
-        store.clearTypingAgent()
+        typing.clear()
     }
 
     func sendText(_ content: String) {

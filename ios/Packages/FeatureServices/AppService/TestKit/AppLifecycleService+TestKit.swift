@@ -4,8 +4,8 @@
 import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstonePrimitivesTestKit
 import protocol Gemstone.GemStreamSubscriptionServiceProtocol
-import ConnectionsService
-import ConnectionsServiceTestKit
+import WalletConnectorService
+import WalletConnectorServiceTestKit
 import ConnectionStatusService
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -16,7 +16,7 @@ import StreamServiceTestKit
 
 public extension AppLifecycleService {
     static func mock(
-        connectionsService: ConnectionsService = .mock(),
+        walletConnector: any WalletConnectorServiceable = WalletConnectorServiceMock(),
         connectionStatusObserver: ConnectionStatusObserver = ConnectionStatusObserver(monitors: []),
         deviceObserverService: DeviceObserverService = .mock(),
         streamObserverService: StreamObserverService = .mock(),
@@ -26,7 +26,7 @@ public extension AppLifecycleService {
         walletSessionService: any WalletSessionManageable = WalletSessionService.mock(),
     ) -> AppLifecycleService {
         AppLifecycleService(
-            connectionsService: connectionsService,
+            walletConnector: walletConnector,
             connectionStatusObserver: connectionStatusObserver,
             deviceObserverService: deviceObserverService,
             streamObserverService: streamObserverService,

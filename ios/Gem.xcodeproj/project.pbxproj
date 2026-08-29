@@ -37,7 +37,6 @@
 		83E0415A2D0AFCB80031D4BC /* RootSceneViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E041592D0AFCB80031D4BC /* RootSceneViewModel.swift */; };
 		83EB5E302D2ECF00006A7CFB /* Onboarding in Frameworks */ = {isa = PBXBuildFile; productRef = 83EB5E2F2D2ECF00006A7CFB /* Onboarding */; };
 		83EF67E52E005F48009C690F /* Formatters in Frameworks */ = {isa = PBXBuildFile; productRef = 83EF67E42E005F48009C690F /* Formatters */; };
-		AA0000032F26000000000002 /* ConnectionsService in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000022F26000000000002 /* ConnectionsService */; };
 		B604C2E82F3F538000CBAFDC /* Contacts in Frameworks */ = {isa = PBXBuildFile; productRef = B604C2E92F3F538100CBAFDC /* Contacts */; };
 		B60C6C352E68848900899BAC /* Support in Frameworks */ = {isa = PBXBuildFile; productRef = B60C6C342E68848900899BAC /* Support */; };
 		B62F6B9D2DE61ADF00AF56AB /* Onboarding in Frameworks */ = {isa = PBXBuildFile; productRef = B62F6B9C2DE61ADF00AF56AB /* Onboarding */; };
@@ -290,7 +289,6 @@
 				833809D12D273E450055D91F /* WalletConnector in Frameworks */,
 				833809D02D273E450055D91F /* WalletConnectorService in Frameworks */,
 				D85AD2A62CD7017E0010DEF8 /* NativeProviderService in Frameworks */,
-				AA0000032F26000000000002 /* ConnectionsService in Frameworks */,
 				D8D83C842CECFA610083AA53 /* Swap in Frameworks */,
 				B6STREAM02F5000000000001 /* StreamService in Frameworks */,
 				839C794B2D1C42A500E32072 /* PrimitivesComponents in Frameworks */,
@@ -777,7 +775,6 @@
 				83EF67E42E005F48009C690F /* Formatters */,
 				D896B57D2E2EE2D300ADE083 /* Perpetuals */,
 				B60C6C342E68848900899BAC /* Support */,
-				AA0000022F26000000000002 /* ConnectionsService */,
 			);
 			productName = wallet;
 			productReference = C30952B0299C39D70004C0F9 /* Gem.app */;
@@ -1752,10 +1749,6 @@
 		83FE37B32D273CC80048D54C /* WalletConnector */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WalletConnector;
-		};
-		AA0000022F26000000000002 /* ConnectionsService */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = ConnectionsService;
 		};
 		B604C2E92F3F538100CBAFDC /* Contacts */ = {
 			isa = XCSwiftPackageProductDependency;

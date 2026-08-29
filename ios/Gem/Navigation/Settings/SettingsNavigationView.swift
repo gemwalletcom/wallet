@@ -27,7 +27,7 @@ struct SettingsNavigationView: View {
     @Environment(\.explorerService) private var explorerService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.bannerStore) private var bannerStore
-    @Environment(\.connectionsService) private var connectionsService
+    @Environment(\.walletConnector) private var walletConnector
     @Environment(\.balanceService) private var balanceService
     @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.priceAlertService) private var priceAlertService
@@ -145,7 +145,7 @@ struct SettingsNavigationView: View {
         .navigationDestination(for: Scenes.WalletConnect.self) { _ in
             ConnectionsScene(
                 model: ConnectionsViewModel(
-                    service: connectionsService,
+                    connector: walletConnector,
                     walletConnectorPresenter: walletConnectorManager.presenter,
                 ),
             )
@@ -219,7 +219,7 @@ struct SettingsNavigationView: View {
         }
         .sheet(isPresented: $isPresentingSupport) {
             NavigationStack {
-                SupportChatScene(model: SupportChatSceneViewModel(service: supportService, store: supportStore))
+                SupportChatScene(model: SupportChatSceneViewModel(service: supportService, typing: supportStore.typing))
                     .toolbarDismissItem(type: .close, placement: .topBarLeading)
             }
             .environment(\.openURL, OpenURLAction { url in

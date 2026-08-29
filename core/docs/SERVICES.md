@@ -349,7 +349,6 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 | Class | What it is today | Target |
 | --- | --- | --- |
-| [`ConnectionsService`](../../ios/Packages/FeatureServices/ConnectionsService/ConnectionsService.swift) | `setup`/`pair`/`disconnect`/`updateSessions` over `WalletConnectorServiceable`, plus an `NSLock` around setup | the scenes hold `any GemWalletConnectServiceProtocol`; pairing and setup stay with the Reown adapter. Delete the package, move its two tests onto the protocol |
 | [`WalletConnectorManager`](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorManager.swift) | two roles in one class: it implements Core's `GemWalletConnectSigner` (an adapter, keep) and drives sheet presentation (`presentSheet`, `sessionApproval`, `isPresentingError`) | split and rename: `WalletConnectSigner` for the trait, and let the presenter own presentation. Nothing outside should hold "manager" |
 
 - Confirm view models still assemble `GemSendInput` from app aggregates. See **The confirm seam** below — it is the last migration item before the `TransactionInputType` collapse.

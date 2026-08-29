@@ -8,7 +8,7 @@ import protocol Gemstone.GemFiatServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
 import AppService
-import ConnectionsService
+import WalletConnectorService
 import ConnectionStatusService
 import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
@@ -218,7 +218,7 @@ struct ServicesFactory {
 
         let presenter = WalletConnectorPresenter()
         let walletConnectorManager = WalletConnectorManager(presenter: presenter)
-        let connectionsService = Self.makeConnectionsService(
+        let walletConnector = Self.makeWalletConnector(
             connectionsStore: storeManager.connectionsStore,
             walletSessionService: walletSessionService,
             interactor: walletConnectorManager,
@@ -279,7 +279,7 @@ struct ServicesFactory {
             presenter: navigationPresenter,
             assetsService: gemAssetsService,
             assetStore: storeManager.assetStore,
-            connectionsService: connectionsService,
+            walletConnector: walletConnector,
             toastPresenter: toastPresenter,
             paymentService: paymentService,
             transactionStore: storeManager.transactionStore,
@@ -307,7 +307,7 @@ struct ServicesFactory {
         )
 
         let appLifecycleService = AppLifecycleService(
-            connectionsService: connectionsService,
+            walletConnector: walletConnector,
             connectionStatusObserver: connectionStatusObserver,
             deviceObserverService: deviceObserverService,
             streamObserverService: streamObserverService,
@@ -353,7 +353,7 @@ struct ServicesFactory {
         return AppResolver.Services(
             balanceService: balanceService,
             bannerService: bannerService,
-            connectionsService: connectionsService,
+            walletConnector: walletConnector,
             connectionStatusObserver: connectionStatusObserver,
             deviceService: deviceService,
             nodeService: nodeService,
@@ -440,23 +440,21 @@ extension ServicesFactory {
         )
     }
 
-    private static func makeConnectionsService(
+    private static func makeWalletConnector(
         connectionsStore: ConnectionsStore,
         walletSessionService: WalletSessionService,
         interactor: WalletConnectorManager,
         transactionSimulationService: TransactionSimulationService,
         gemWalletSessionService: GemWalletSessionService,
-    ) -> ConnectionsService {
-        return ConnectionsService(
-            connector: WalletConnectorService(
-                walletSessionService: walletSessionService,
-                interactor: interactor,
-                service: GemWalletConnectService(
-                    simulation: transactionSimulationService,
-                    store: GemstoneConnectionStore(store: connectionsStore),
-                    signer: interactor,
-                    session: gemWalletSessionService,
-                ),
+    ) -> WalletConnectorService {
+        WalletConnectorService(
+            walletSessionService: walletSessionService,
+            interactor: interactor,
+            service: GemWalletConnectService(
+                simulation: transactionSimulationService,
+                store: GemstoneConnectionStore(store: connectionsStore),
+                signer: interactor,
+                session: gemWalletSessionService,
             ),
         )
     }

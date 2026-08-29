@@ -3,7 +3,7 @@
 import Store
 import GemstoneServices
 import Components
-import ConnectionsService
+import WalletConnectorService
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
@@ -23,7 +23,7 @@ final class NavigationHandler: Sendable {
 
     private let assetsService: any GemAssetsServiceProtocol
     private let assetStore: AssetStore
-    private let connectionsService: ConnectionsService
+    private let walletConnector: any WalletConnectorServiceable
     private let toastPresenter: ToastPresenter
     private let paymentService: PaymentService
     private let transactionStore: TransactionStore
@@ -36,7 +36,7 @@ final class NavigationHandler: Sendable {
         presenter: NavigationPresenter,
         assetsService: any GemAssetsServiceProtocol,
         assetStore: AssetStore,
-        connectionsService: ConnectionsService,
+        walletConnector: any WalletConnectorServiceable,
         toastPresenter: ToastPresenter,
         paymentService: PaymentService,
         transactionStore: TransactionStore,
@@ -48,7 +48,7 @@ final class NavigationHandler: Sendable {
         self.presenter = presenter
         self.assetsService = assetsService
         self.assetStore = assetStore
-        self.connectionsService = connectionsService
+        self.walletConnector = walletConnector
         self.toastPresenter = toastPresenter
         self.paymentService = paymentService
         self.transactionStore = transactionStore
@@ -171,11 +171,11 @@ extension NavigationHandler {
         do {
             switch action {
             case let .connect(uri):
-                try await connectionsService.pair(uri: uri)
+                try await walletConnector.pair(uri: uri)
             case .request:
                 break
             case .session:
-                connectionsService.updateSessions()
+                walletConnector.updateSessions()
             }
         } catch {
             debugLog("NavigationHandler walletConnect error: \(error)")

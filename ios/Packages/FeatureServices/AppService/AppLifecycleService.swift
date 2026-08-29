@@ -3,7 +3,7 @@
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemStreamSubscriptionServiceProtocol
 import GemstonePrimitives
-import ConnectionsService
+import WalletConnectorService
 import ConnectionStatusService
 import GemstoneServices
 import Foundation
@@ -12,7 +12,7 @@ import StreamService
 import SwiftUI
 
 public actor AppLifecycleService: Sendable {
-    private let connectionsService: ConnectionsService
+    private let walletConnector: any WalletConnectorServiceable
     private let connectionStatusObserver: ConnectionStatusObserver
     private let deviceObserverService: DeviceObserverService
     private let streamObserverService: StreamObserverService
@@ -22,7 +22,7 @@ public actor AppLifecycleService: Sendable {
     private let walletSessionService: any WalletSessionManageable
 
     public init(
-        connectionsService: ConnectionsService,
+        walletConnector: any WalletConnectorServiceable,
         connectionStatusObserver: ConnectionStatusObserver,
         deviceObserverService: DeviceObserverService,
         streamObserverService: StreamObserverService,
@@ -31,7 +31,7 @@ public actor AppLifecycleService: Sendable {
         perpetualObserver: any PerpetualObservable,
         walletSessionService: any WalletSessionManageable,
     ) {
-        self.connectionsService = connectionsService
+        self.walletConnector = walletConnector
         self.connectionStatusObserver = connectionStatusObserver
         self.deviceObserverService = deviceObserverService
         self.streamObserverService = streamObserverService
@@ -87,7 +87,10 @@ public actor AppLifecycleService: Sendable {
 extension AppLifecycleService {
     private func setupWalletConnect() async {
         do {
-            try await connectionsService.setup()
+            try walletConnector.configure()
+            if try await walletConnector.hasSessions() {
+                await walletConnector.setup()
+            }
         } catch {
             debugLog("AppLifecycleService setupWalletConnect error: \(error)")
         }

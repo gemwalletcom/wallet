@@ -25,7 +25,7 @@ import protocol Gemstone.GemNftServiceProtocol
 import class Gemstone.GemNodeService
 import GemstoneServices
 import AppService
-import ConnectionsService
+import WalletConnectorService
 import ConnectionStatusService
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
@@ -48,7 +48,7 @@ extension AppResolver {
         // Environment-level services
         let balanceService: any GemBalanceServiceProtocol
         let bannerService: any GemBannerServiceProtocol
-        let connectionsService: ConnectionsService
+        let walletConnector: WalletConnectorService
         let connectionStatusObserver: ConnectionStatusObserver
         let deviceService: any GemDeviceServiceProtocol
         let nodeService: GemNodeService

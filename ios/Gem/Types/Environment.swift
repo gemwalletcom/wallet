@@ -23,7 +23,7 @@ import protocol Gemstone.GemNftServiceProtocol
 import class Gemstone.GemNodeService
 import GemstoneServices
 import AppService
-import ConnectionsService
+import WalletConnectorService
 import ConnectionStatusService
 import Foundation
 import Preferences
@@ -72,7 +72,7 @@ extension EnvironmentValues {
     @Entry var stakeStore: StakeStore = AppResolver.main.storages.storeManager.stakeStore
     @Entry var explorerService: any GemExplorerServiceProtocol = AppResolver.main.services.explorerService
     @Entry var gatewayService: GatewayService = AppResolver.main.services.gatewayService
-    @Entry var connectionsService: ConnectionsService = AppResolver.main.services.connectionsService
+    @Entry var walletConnector: WalletConnectorService = AppResolver.main.services.walletConnector
     @Entry var connectionStatus: ConnectionStatusObserver = AppResolver.main.services.connectionStatusObserver
     @Entry var walletConnectorManager: WalletConnectorManager = AppResolver.main.services.walletConnectorManager
     @Entry var nftService: any GemNftServiceProtocol = AppResolver.main.services.nftService

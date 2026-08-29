@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import ConnectionsService
+import WalletConnectorService
 import Foundation
 import GemstonePrimitives
 import Localization
@@ -13,7 +13,7 @@ import UIKit
 @Observable
 @MainActor
 public final class ConnectionsViewModel {
-    let service: ConnectionsService
+    let connector: any WalletConnectorServiceable
     let walletConnectorPresenter: WalletConnectorPresenter?
 
     public let query: ObservableQuery<ConnectionsRequest>
@@ -26,10 +26,10 @@ public final class ConnectionsViewModel {
     var isPresentingConnectorBar: Bool = false
 
     public init(
-        service: ConnectionsService,
+        connector: any WalletConnectorServiceable,
         walletConnectorPresenter: WalletConnectorPresenter? = nil,
     ) {
-        self.service = service
+        self.connector = connector
         self.walletConnectorPresenter = walletConnectorPresenter
         query = ObservableQuery(ConnectionsRequest(), initialValue: [])
     }
@@ -75,20 +75,20 @@ public final class ConnectionsViewModel {
     func connectionSceneModel(connection: WalletConnection) -> ConnectionSceneViewModel {
         ConnectionSceneViewModel(
             model: WalletConnectionViewModel(connection: connection),
-            service: service,
+            connector: connector,
         )
     }
 
     func pair(uri: String) async throws {
-        try await service.pair(uri: uri)
+        try await connector.pair(uri: uri)
     }
 
     func disconnect(connection: WalletConnection) async throws {
-        try await service.disconnect(session: connection.session)
+        try await connector.disconnect(sessionId: connection.session.sessionId)
     }
 
     func load() {
-        service.updateSessions()
+        connector.updateSessions()
     }
 
     func hideConnectionBar() {

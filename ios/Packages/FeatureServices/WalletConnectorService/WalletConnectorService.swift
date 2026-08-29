@@ -15,6 +15,7 @@ public final class WalletConnectorService {
     private let walletConnectorInteractor: any WalletConnectorInteractable
     private let service: any GemWalletConnectServiceProtocol
     private let messageTracker = MessageTracker()
+    private let setupState = SetupState()
 
     public init(
         walletSessionService: any WalletSessionManageable,
@@ -53,6 +54,9 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func setup() async {
+        guard await setupState.start() else {
+            return
+        }
         Events.instance.setTelemetryEnabled(false)
         await withTaskGroup(of: Void.self) { group in
             group.addTask {
@@ -74,6 +78,7 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func pair(uri: String) async throws {
+        await setup()
         let uri = try WalletConnectURI(uriString: uri)
         try await Pair.instance.pair(uri: uri)
     }
