@@ -20,8 +20,6 @@ import Style
 import SwiftUI
 import UIKit
 
-private let swapSelectionService = GemSwapSelectionService()
-
 @Observable
 @MainActor
 public final class AssetSceneViewModel: Sendable {
@@ -30,6 +28,7 @@ public final class AssetSceneViewModel: Sendable {
     private let transactionsService: any GemTransactionsServiceProtocol
     private let priceUpdater: any PriceUpdater
     private let bannerService: any GemBannerServiceProtocol
+    private let swapSelectionService: GemSwapSelectionService
 
     private let preferences: ObservablePreferences
 
@@ -53,6 +52,7 @@ public final class AssetSceneViewModel: Sendable {
         priceUpdater: any PriceUpdater,
         priceAlertService: any GemPriceAlertServiceProtocol,
         bannerService: any GemBannerServiceProtocol,
+        swapSelectionService: GemSwapSelectionService,
         explorerService: any GemExplorerServiceProtocol,
         preferences: ObservablePreferences,
         input: AssetSceneInput,
@@ -64,6 +64,7 @@ public final class AssetSceneViewModel: Sendable {
         self.priceUpdater = priceUpdater
         self.priceAlertService = priceAlertService
         self.bannerService = bannerService
+        self.swapSelectionService = swapSelectionService
         self.explorerService = explorerService
         self.preferences = preferences
 

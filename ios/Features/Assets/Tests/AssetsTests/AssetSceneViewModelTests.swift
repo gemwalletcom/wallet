@@ -11,6 +11,7 @@ import PrimitivesTestKit
 import SwiftUI
 import PreferencesTestKit
 import Testing
+import class Gemstone.GemSwapSelectionService
 
 @MainActor
 struct AssetSceneViewModelTests {
@@ -110,6 +111,7 @@ extension AssetSceneViewModel {
             priceUpdater: .mock(),
             priceAlertService: GemPriceAlertServiceMock(),
             bannerService: GemBannerServiceMock(),
+            swapSelectionService: GemSwapSelectionService(),
             explorerService: GemExplorerServiceMock(),
             preferences: .mock(),
             input: AssetSceneInput(

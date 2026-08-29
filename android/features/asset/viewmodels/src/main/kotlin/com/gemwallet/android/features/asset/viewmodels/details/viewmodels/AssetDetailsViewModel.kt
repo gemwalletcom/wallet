@@ -55,6 +55,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val explorerService: GemExplorerService,
     private val hasMultiSign: HasMultiSign,
     private val syncAssetTransactions: SyncAssetTransactions,
+    private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
 ) : ViewModel() {
     private var syncJob: Job? = null
 
@@ -94,7 +95,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     val uiModel = combine(model, session) { current, session ->
         val wallet = session?.wallet ?: return@combine null
-        current?.let { AssetInfoUIModelFactory.create(it.chainAssetInfo, it.explorerName, wallet.type) }
+        current?.let { assetInfoUIModelFactory.create(it.chainAssetInfo, it.explorerName, wallet.type) }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

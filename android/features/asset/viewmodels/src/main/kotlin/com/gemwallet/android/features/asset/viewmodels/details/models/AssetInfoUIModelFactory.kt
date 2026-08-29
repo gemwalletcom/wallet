@@ -24,11 +24,12 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import uniffi.gemstone.Explorer
 import uniffi.gemstone.GemSwapSelectionService
+import javax.inject.Inject
 import java.math.BigInteger
 
-private val swapSelectionService = GemSwapSelectionService()
-
-object AssetInfoUIModelFactory {
+class AssetInfoUIModelFactory @Inject constructor(
+    private val swapSelectionService: GemSwapSelectionService,
+) {
 
     fun create(chainAssetInfo: ChainAssetInfo, explorerName: String, walletType: WalletType): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
