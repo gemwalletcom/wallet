@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
-import uniffi.gemstone.urlAction
 
 internal sealed interface PendingNavigation {
 
@@ -36,6 +36,7 @@ internal sealed interface PendingNavigation {
 class PendingNavigationCoordinator @Inject constructor(
     private val notificationNavigation: NotificationNavigation,
     private val paymentNavigation: PaymentNavigation,
+    private val deeplinkService: GemDeeplinkService,
 ) {
 
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)
@@ -57,7 +58,7 @@ class PendingNavigationCoordinator @Inject constructor(
 
     suspend fun buildRoutes(walletConnect: WalletConnectHandler): Boolean {
         val pending = _pendingNavigation.value as? PendingNavigation.Input ?: return true
-        val action = pending.code?.let(::urlAction)
+        val action = pending.code?.let(deeplinkService::urlAction)
         val loading = if (action is UrlAction.Payment && action.payment.decodeJson<Payment>() is Payment.Link) {
             PendingNavigation.Loading(pending).also { replace(pending, it) }
         } else {

@@ -375,7 +375,8 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 | ~~`GemPerpetualService`~~ → `GemPerpetual` (done) | funding APR and the two order builders joined the provider-scoped formatter object (renamed `Perpetual` → `GemPerpetual`), which also let `provider` leave both order inputs; `collateral_asset_id` stayed on `GemPerpetualService` — its one caller injects it |
 | ~~`GemWalletService`~~ (done) | ordering and display account stayed on `GemWalletService` (both callers hold it); the keystore id moved to `GemKeystore`, which every caller already had open, and the wallet total and PnL rule to `BalanceCalculator` |
 | `GemConfirmService` | `confirm_input_encode`, `confirm_input_decode`, `acquire_asset_flow`, `default_fee_priority`, `is_insufficient_network_fee`, `custom_gas_price`, `custom_fee_estimate`, `calculate_transfer_amount` |
-| `GemPaymentService` | `payment_decode_url`, `payment_destination`, `payment_transfer_destination`, `payment_decoded_transfer`, `deeplink_build_url`, `deeplink_build_gem_url`, `url_action` |
+| `GemPaymentService` | `payment_decode_url`, `payment_destination`, `payment_transfer_destination`, `payment_decoded_transfer` |
+| ~~`GemDeeplinkService`~~ (done) | `build_url`, `build_gem_url` and `url_action`; every caller is a value extension, a Compose menu or a navigation object, so the service is constructible |
 | `GemWalletConnectService` (partly done) | the CAIP-2 lookups are `GemChainService.caip2_namespace/caip2_reference/chain_from_caip2` and the dapp short name is `GemApplicationMetadataService.short_name` (both are read from Compose scenes and value extensions); `siwe_try_parse`, `siwe_validate` and `permit2_data_to_eip712_json` still to fold in |
 | ~~`GemTransactionStateService`~~ (done) | neither app called these four: they are internal Core functions now, and the unused `transaction_timeout_ms` is deleted |
 | `GemSupportService` | `parse_support_message_display_content` |

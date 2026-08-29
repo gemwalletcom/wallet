@@ -4,13 +4,15 @@ import Foundation
 import Gemstone
 import Primitives
 
+private let deeplinkService = GemDeeplinkService()
+
 public extension Primitives.DeepLink {
     var url: URL {
-        Gemstone.deeplinkBuildUrl(deeplink: map()).asURL!
+        deeplinkService.buildUrl(deeplink: map()).asURL!
     }
 
     var gemUrl: URL {
-        Gemstone.deeplinkBuildGemUrl(deeplink: map()).asURL!
+        deeplinkService.buildGemUrl(deeplink: map()).asURL!
     }
 
     func map() -> Gemstone.Deeplink {

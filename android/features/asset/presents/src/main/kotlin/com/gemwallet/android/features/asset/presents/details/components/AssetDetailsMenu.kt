@@ -27,7 +27,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
 import uniffi.gemstone.Deeplink
-import uniffi.gemstone.deeplinkBuildUrl
+import uniffi.gemstone.GemDeeplinkService
 
 @Composable
 fun RowScope.AssetDetailsMenu(
@@ -49,7 +49,7 @@ fun RowScope.AssetDetailsMenu(
     val onShare = fun () {
         val subject = "${uiState.assetInfo.owner?.chain}\n${uiState.assetInfo.asset.symbol}"
         val assetId = uiState.asset.id
-        val shareUrl = deeplinkBuildUrl(Deeplink.Asset(assetId = assetId.toIdentifier()))
+        val shareUrl = GemDeeplinkService().buildUrl(Deeplink.Asset(assetId = assetId.toIdentifier()))
 
         context.shareText(subject = subject, text = shareUrl, chooserTitle = shareTitle)
     }

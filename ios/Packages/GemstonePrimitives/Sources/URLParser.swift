@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemDeeplinkService
 import enum Gemstone.UrlAction
-import func Gemstone.urlAction
 import Primitives
 
 enum URLParserError: Error {
@@ -15,7 +15,7 @@ public enum URLParser {
     }
 
     public static func from(code: String) throws -> URLAction {
-        guard let action = urlAction(url: code) else {
+        guard let action = GemDeeplinkService().urlAction(url: code) else {
             throw URLParserError.invalidURL(code)
         }
         return try action.map()
