@@ -11,6 +11,7 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import struct Gemstone.GemSendInput
 import protocol Gemstone.GemTransactionSigner
+import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -22,7 +23,7 @@ public struct ConfirmService: Sendable {
     private let gemConfirmService: any GemConfirmServiceProtocol
     private let signer: any GemTransactionSigner
     private let preferencesService: any GemPreferencesServiceProtocol
-    private let transactionStateTracker: TransactionStateTracker
+    private let transactionStateService: any GemTransactionStateServiceProtocol
     private let recentActivityStore: RecentActivityStore
     private let toastPresenter: ToastPresenter
     private let keystore: any Keystore
@@ -36,7 +37,7 @@ public struct ConfirmService: Sendable {
         gemConfirmService: any GemConfirmServiceProtocol,
         signer: any GemTransactionSigner,
         preferencesService: any GemPreferencesServiceProtocol,
-        transactionStateTracker: TransactionStateTracker,
+        transactionStateService: any GemTransactionStateServiceProtocol,
         recentActivityStore: RecentActivityStore,
         toastPresenter: ToastPresenter,
         keystore: any Keystore,
@@ -49,7 +50,7 @@ public struct ConfirmService: Sendable {
         self.gemConfirmService = gemConfirmService
         self.signer = signer
         self.preferencesService = preferencesService
-        self.transactionStateTracker = transactionStateTracker
+        self.transactionStateService = transactionStateService
         self.recentActivityStore = recentActivityStore
         self.toastPresenter = toastPresenter
         self.keystore = keystore
@@ -101,7 +102,7 @@ public struct ConfirmService: Sendable {
             result = try await gemConfirmService.execute(input: input, signer: signer)
         } catch let GemConfirmError.Broadcast(hashes, msg) {
             hashes.forEach { request.delegate?(.success($0)) }
-            transactionStateTracker.trackPending()
+            trackPending()
             throw GemConfirmError.Broadcast(hashes: hashes, msg: msg)
         }
         switch result {
@@ -109,11 +110,31 @@ public struct ConfirmService: Sendable {
             data.forEach { request.delegate?(.success($0)) }
         case let .sent(hashes, transactions):
             hashes.forEach { request.delegate?(.success($0)) }
-            transactionStateTracker.track(wallet: request.wallet, transactions: try transactions.map { try Transaction($0) })
+            track(wallet: request.wallet, transactions: try transactions.map { try Transaction($0) })
         }
         await toastPresenter.present(.transfer(for: request.data.type))
         if let recent = request.data.type.recentActivityData {
             updateRecent(data: recent, walletId: request.wallet.id)
+        }
+    }
+
+    private func trackPending() {
+        Task {
+            do {
+                try await transactionStateService.trackPending()
+            } catch {
+                debugLog("confirm: pending tracking failed \(error)")
+            }
+        }
+    }
+
+    private func track(wallet: Wallet, transactions: [Transaction]) {
+        Task {
+            do {
+                try await transactionStateService.track(walletId: wallet.id.id, transactions: transactions.map { try $0.json() })
+            } catch {
+                debugLog("confirm: transaction tracking failed \(error)")
+            }
         }
     }
 

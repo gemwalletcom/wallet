@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemTransactionStateServiceProtocol
 import struct Gemstone.GemConfirmData
 import GemstonePrimitivesTestKit
 import GemstoneServices
@@ -15,7 +16,7 @@ extension ConfirmService {
     static func mock(
         transaction: Result<GemConfirmData, Error> = .success(.mock()),
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
-        transactionStateTracker: TransactionStateTracker = .mock(),
+        transactionStateService: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
     ) -> ConfirmService {
         ConfirmService(
             metadataProvider: TransferMetadataProviderMock(metadataResult: .success(.mock())),
@@ -27,7 +28,7 @@ extension ConfirmService {
             gemConfirmService: gemConfirmService,
             signer: GemTransactionSignerMock(),
             preferencesService: GemPreferencesServiceMock(),
-            transactionStateTracker: transactionStateTracker,
+            transactionStateService: transactionStateService,
             recentActivityStore: .mock(),
             toastPresenter: ToastPresenter(),
             keystore: KeystoreMock(),

@@ -6,6 +6,7 @@ import Components
 import ConnectionsService
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
 import class Gemstone.PaymentService
 import GemstonePrimitives
 import Localization
@@ -26,7 +27,7 @@ final class NavigationHandler: Sendable {
     private let toastPresenter: ToastPresenter
     private let paymentService: PaymentService
     private let transactionStore: TransactionStore
-    private let transactionStateTracker: TransactionStateTracker
+    private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
 
@@ -39,7 +40,7 @@ final class NavigationHandler: Sendable {
         toastPresenter: ToastPresenter,
         paymentService: PaymentService,
         transactionStore: TransactionStore,
-        transactionStateTracker: TransactionStateTracker,
+        transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
     ) {
@@ -51,7 +52,7 @@ final class NavigationHandler: Sendable {
         self.toastPresenter = toastPresenter
         self.paymentService = paymentService
         self.transactionStore = transactionStore
-        self.transactionStateTracker = transactionStateTracker
+        self.transactionStateService = transactionStateService
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
     }
@@ -248,16 +249,27 @@ extension NavigationHandler {
         navigationState.openAsset(asset)
     }
 
+    private func trackNotificationTransaction(walletId: WalletId, transaction: Primitives.Transaction) {
+        Task {
+            do {
+                try await transactionStateService.track(walletId: walletId.id, transactions: [transaction.json()])
+            } catch {
+                debugLog("navigation: transaction tracking failed \(error)")
+            }
+        }
+    }
+
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
         guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
-              let asset = try await transactionStateTracker.addNotificationTransaction(
-                  wallet: wallet,
-                  assetId: assetId,
-                  transaction: transaction,
-              )
+              let asset = try await transactionStateService.addNotificationTransaction(
+                  wallet: wallet.json(),
+                  assetId: assetId.identifier,
+                  transaction: transaction.json(),
+              ).map({ try Asset($0) })
         else {
             return
         }
+        trackNotificationTransaction(walletId: walletId, transaction: transaction)
         let transaction = try transactionStore.getTransaction(walletId: walletId, transactionId: transaction.id)
 
         await selectWalletIfNeeded(walletId)

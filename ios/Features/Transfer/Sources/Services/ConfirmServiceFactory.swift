@@ -4,6 +4,7 @@ import protocol Gemstone.GemPreferencesServiceProtocol
 import Store
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
@@ -22,7 +23,7 @@ public enum ConfirmServiceFactory {
         assetStore: AssetStore,
         assetsService: any GemAssetsServiceProtocol,
         priceStore: PriceStore,
-        transactionStateTracker: TransactionStateTracker,
+        transactionStateService: any GemTransactionStateServiceProtocol,
         nameService: any GemNameServiceProtocol,
         addressStore: AddressStore,
         recentActivityStore: RecentActivityStore,
@@ -47,7 +48,7 @@ public enum ConfirmServiceFactory {
             gemConfirmService: gemConfirmService,
             signer: KeystoreTransactionSigner(keystore: keystore),
             preferencesService: preferencesService,
-            transactionStateTracker: transactionStateTracker,
+            transactionStateService: transactionStateService,
             recentActivityStore: recentActivityStore,
             toastPresenter: toastPresenter,
             keystore: keystore,

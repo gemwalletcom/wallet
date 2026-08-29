@@ -3,6 +3,7 @@
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemAvatarServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstonePrimitives
 import protocol Gemstone.GemAppStartServiceProtocol
 import AppService
@@ -25,7 +26,7 @@ final class RootSceneViewModel {
     private let onstartService: OnstartService
     private let appStartService: any GemAppStartServiceProtocol
     private let pushNotificationEnablerService: PushNotificationEnablerService
-    private let transactionStateTracker: TransactionStateTracker
+    private let transactionStateService: any GemTransactionStateServiceProtocol
     private let appLifecycleService: AppLifecycleService
     private let navigationHandler: NavigationHandler
     private let appUpdateService: any GemAppUpdateServiceProtocol
@@ -79,7 +80,7 @@ final class RootSceneViewModel {
         onstartService: OnstartService,
         appStartService: any GemAppStartServiceProtocol,
         pushNotificationEnablerService: PushNotificationEnablerService,
-        transactionStateTracker: TransactionStateTracker,
+        transactionStateService: any GemTransactionStateServiceProtocol,
         appLifecycleService: AppLifecycleService,
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
@@ -97,7 +98,7 @@ final class RootSceneViewModel {
         self.onstartService = onstartService
         self.appStartService = appStartService
         self.pushNotificationEnablerService = pushNotificationEnablerService
-        self.transactionStateTracker = transactionStateTracker
+        self.transactionStateService = transactionStateService
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
         lockManager = lockWindowManager
@@ -119,7 +120,13 @@ extension RootSceneViewModel {
         rateService.perform()
         Task { await checkForUpdate() }
         Task { _ = try await deviceService.synchronize() }
-        transactionStateTracker.trackPending()
+        Task {
+            do {
+                try await transactionStateService.trackPending()
+            } catch {
+                debugLog("root: pending tracking failed \(error)")
+            }
+        }
         Task { await appLifecycleService.setup() }
         Task { await setupWallets() }
     }

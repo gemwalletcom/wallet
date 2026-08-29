@@ -28,7 +28,7 @@ struct GemApp: App {
                     onstartService: resolver.services.onstartService,
                     appStartService: resolver.services.appStartService,
                     pushNotificationEnablerService: resolver.services.pushNotificationEnablerService,
-                    transactionStateTracker: resolver.services.transactionStateTracker,
+                    transactionStateService: resolver.services.transactionStateService,
                     appLifecycleService: resolver.services.appLifecycleService,
                     navigationHandler: resolver.services.navigationHandler,
                     lockWindowManager: LockWindowManager(lockModel: LockSceneViewModel()),

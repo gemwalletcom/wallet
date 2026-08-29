@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
@@ -45,7 +46,7 @@ public struct ViewModelFactory: Sendable {
     let addressStore: AddressStore
     let priceService: any GemPriceServiceProtocol
     let priceStore: PriceStore
-    let transactionStateTracker: TransactionStateTracker
+    let transactionStateService: any GemTransactionStateServiceProtocol
     let gemNameService: any GemNameServiceProtocol
     let recentActivityStore: RecentActivityStore
     let toastPresenter: ToastPresenter
@@ -120,7 +121,7 @@ public struct ViewModelFactory: Sendable {
                 assetStore: assetStore,
                 assetsService: assetsService,
                 priceStore: priceStore,
-                transactionStateTracker: transactionStateTracker,
+                transactionStateService: transactionStateService,
                 nameService: gemNameService,
                 addressStore: addressStore,
                 recentActivityStore: recentActivityStore,
