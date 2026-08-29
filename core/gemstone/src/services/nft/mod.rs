@@ -61,26 +61,6 @@ where
     Ok(data)
 }
 
-#[uniffi::export]
-pub fn nft_sorted_collections(data: Vec<NFTData>) -> Vec<NFTData> {
-    rules::sorted_collections(data)
-}
-
-#[uniffi::export]
-pub fn nft_collection_status(status: Option<VerificationStatus>) -> VerificationStatus {
-    rules::collection_status(status)
-}
-
-#[uniffi::export]
-pub fn nft_verified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
-    rules::verified_collections(data)
-}
-
-#[uniffi::export]
-pub fn nft_unverified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
-    rules::unverified_collections(data)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -175,5 +155,32 @@ mod tests {
 
         assert_eq!(data.collection.name, "remote");
         assert_eq!(store.added.lock().unwrap().len(), 1);
+    }
+}
+
+#[derive(Default, uniffi::Object)]
+pub struct GemNftRulesService {}
+
+#[uniffi::export]
+impl GemNftRulesService {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn sorted_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
+        rules::sorted_collections(data)
+    }
+
+    pub fn collection_status(&self, status: Option<VerificationStatus>) -> VerificationStatus {
+        rules::collection_status(status)
+    }
+
+    pub fn verified_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
+        rules::verified_collections(data)
+    }
+
+    pub fn unverified_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
+        rules::unverified_collections(data)
     }
 }

@@ -368,7 +368,7 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 | `GemAssetService` (new) | `asset_default_rank`, `default_token_rank`, `wallet_default_assets`, `chain_fee_asset_ids`, `asset_ids_enabled_by_default`, `wallet_asset_is_enabled`, `asset_is_swapable`, `chain_asset_wrapper`, `asset_action_filters`, `popular_asset_ids`, `default_token_chain`, `search_matching_assets` |
 | `GemAddressService` (new) | `validate_address`, `checksum_address`, `short_address`, `format_address` |
 | ~~`GemStakeService`~~ → `GemStakeRulesService` (done) | the seven stake rules moved to a **stateless** service, not the I/O one: `GemStakeService` needs a gateway, a static API client and two stores, so rules hung off it can only be reached through a mock — which silently emptied four iOS view-model tests. A pure-rule service with a `new()` constructor keeps those tests exercising the real rule. Apply the same split to the groups below. |
-| `GemNftService` | `nft_sorted_collections`, `nft_collection_status`, `nft_verified_collections`, `nft_unverified_collections` |
+| ~~`GemNftService`~~ → `GemNftRulesService` (done) | the four collection rules, on a stateless service for the same reason as the stake ones |
 | `GemPriceAlertService` | `price_alert_id`, `price_alerts_sorted`, `price_alert_notification_type`, `price_alert_should_display` |
 | `GemPerpetualService` | `perpetual_collateral_asset_id`, `perpetual_funding_apr`, `perpetual_order`, `perpetual_close_order` |
 | `GemWalletService` | `sorted_wallets`, `wallet_display_account`, `keystore_id_for_wallet`, `wallet_total_fiat_value`, `wallet_shows_pnl` |
@@ -438,5 +438,5 @@ Both apps carry the same five-file perpetual streaming stack — iOS `Hyperliqui
 
 - Identifiers cross the FFI typed: `WalletId`, `AssetId`, `Chain`, `NFTAssetId`, `Currency`; store row ids stay `String`.
 - Store methods: `get_*` reads, `is_*` boolean reads, `set_*` preferences and stored flags or sets (`set_buyable_assets`, `set_assets_enabled`, `search::set_assets`), `save_*` upserts, `add_*` inserts that must not overwrite existing rows, `update_<items>(…, items, delete_ids)` for reconcile writes, `delete_*` removals, and `clear*` for wiping a whole scope (`preferences::clear`, `support::clear_typing`).
-- Rules live in `rules.rs` with unit tests; `primitives` types stay policy-free.
+- Rules live in `rules.rs` with unit tests built from the `testkit` mocks (`NFTData::mock_with`, `Asset::mock`, …), not hand-written literals; add the mock to `crates/primitives/src/testkit/` when one is missing. `primitives` types stay policy-free.
 - Chain icons come from the chain config, never an app-side list: `icon_chain` (an Ethereum layer 2 draws the Ethereum icon, SeiEvm draws Sei's) and `badge_chain` (the layer 2's own icon as the badge), both following `EVMChain::is_ethereum_layer2`.

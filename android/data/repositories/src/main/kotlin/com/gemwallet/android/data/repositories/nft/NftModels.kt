@@ -9,7 +9,7 @@ import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.NFTImages
 import com.wallet.core.primitives.NFTResource
-import uniffi.gemstone.nftCollectionStatus
+import uniffi.gemstone.GemNftRulesService
 
 fun DbNFTAsset.toNftData(collection: DbNFTCollection) = NFTData(
     collection = collection.toCollectionModel(),
@@ -18,14 +18,14 @@ fun DbNFTAsset.toNftData(collection: DbNFTCollection) = NFTData(
 
 fun List<DbNFTCollection>.toCollectionModels() = map { it.toCollectionModel() }
 
-internal fun DbNFTCollection.toCollectionModel() = NFTCollection(
+internal fun DbNFTCollection.toCollectionModel(nftRules: GemNftRulesService = GemNftRulesService()) = NFTCollection(
     id = id,
     name = name,
     description = description,
     chain = chain,
     contractAddress = contractAddress,
     images = NFTImages(NFTResource(imageUrl, "")),
-    status = nftCollectionStatus(status?.toJson()).decodeJson(),
+    status = nftRules.collectionStatus(status?.toJson()).decodeJson(),
     links = links ?: emptyList(),
 )
 

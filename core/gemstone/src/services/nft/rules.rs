@@ -33,13 +33,13 @@ fn collections(data: Vec<NFTData>, verified: bool) -> Vec<NFTData> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Chain, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTImages, NFTResource, NFTType};
+    use primitives::NFTData;
 
     #[test]
     fn test_collections_split_by_verification_and_skip_empty_ones() {
-        let verified = data("verified", VerificationStatus::Verified, 1);
-        let unverified = data("unverified", VerificationStatus::Unverified, 2);
-        let empty = data("empty", VerificationStatus::Verified, 0);
+        let verified = NFTData::mock_with("verified", VerificationStatus::Verified, 1);
+        let unverified = NFTData::mock_with("unverified", VerificationStatus::Unverified, 2);
+        let empty = NFTData::mock_with("empty", VerificationStatus::Verified, 0);
         let items = vec![verified, unverified, empty];
 
         assert_eq!(names(verified_collections(items.clone())), vec!["verified"]);
@@ -50,50 +50,6 @@ mod tests {
         data.into_iter().map(|item| item.collection.name).collect()
     }
 
-    fn images() -> NFTImages {
-        NFTImages {
-            preview: NFTResource {
-                url: String::new(),
-                mime_type: String::new(),
-            },
-        }
-    }
-
-    fn data(name: &str, status: VerificationStatus, assets: usize) -> NFTData {
-        NFTData {
-            collection: NFTCollection {
-                id: NFTCollectionId::new(Chain::Ethereum, "0xcollection"),
-                name: name.to_string(),
-                symbol: None,
-                description: None,
-                chain: Chain::Ethereum,
-                contract_address: "0xcollection".to_string(),
-                images: images(),
-                is_verified: status == VerificationStatus::Verified,
-                status,
-                links: vec![],
-            },
-            assets: (0..assets)
-                .map(|index| NFTAsset {
-                    id: NFTAssetId::new(Chain::Ethereum, "0xcollection", &index.to_string()),
-                    collection_id: NFTCollectionId::new(Chain::Ethereum, "0xcollection"),
-                    contract_address: Some("0xcollection".to_string()),
-                    token_id: index.to_string(),
-                    token_type: NFTType::ERC721,
-                    name: name.to_string(),
-                    description: None,
-                    chain: Chain::Ethereum,
-                    resource: NFTResource {
-                        url: String::new(),
-                        mime_type: String::new(),
-                    },
-                    images: images(),
-                    attributes: vec![],
-                })
-                .collect(),
-        }
-    }
-
     #[test]
     fn test_an_unknown_collection_status_is_not_verified() {
         assert_eq!(collection_status(None), VerificationStatus::Unverified);
@@ -102,9 +58,9 @@ mod tests {
 
     #[test]
     fn test_collections_sort_by_size_then_name() {
-        let big = data("zebra", VerificationStatus::Verified, 3);
-        let small_a = data("alpha", VerificationStatus::Verified, 1);
-        let small_b = data("beta", VerificationStatus::Verified, 1);
+        let big = NFTData::mock_with("zebra", VerificationStatus::Verified, 3);
+        let small_a = NFTData::mock_with("alpha", VerificationStatus::Verified, 1);
+        let small_b = NFTData::mock_with("beta", VerificationStatus::Verified, 1);
 
         let sorted = sorted_collections(vec![small_b, big, small_a]);
 

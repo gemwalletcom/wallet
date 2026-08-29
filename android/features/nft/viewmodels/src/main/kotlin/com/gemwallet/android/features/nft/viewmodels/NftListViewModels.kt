@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.nft.viewmodels
 
+import uniffi.gemstone.GemNftRulesService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,9 +13,6 @@ import com.gemwallet.android.ui.models.NftItemUIModel
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.nftSortedCollections
-import uniffi.gemstone.nftUnverifiedCollections
-import uniffi.gemstone.nftVerifiedCollections
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,6 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NftListViewModels @Inject constructor(
     private val syncNftCollections: SyncNftCollections,
+    private val nftRules: GemNftRulesService,
     getNftCollections: GetNftCollections,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
@@ -54,10 +53,10 @@ class NftListViewModels @Inject constructor(
         .map { data ->
             val filtered = when (mode) {
                 is NftListMode.Collection -> data.filter { it.assets.isNotEmpty() }
-                NftListMode.Unverified -> nftUnverifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
-                NftListMode.Collections -> nftVerifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
+                NftListMode.Unverified -> nftRules.unverifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
+                NftListMode.Collections -> nftRules.verifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
             }
-            nftSortedCollections(filtered.map { it.toJson() }).map { it.decodeJson<NFTData>() }.flatMap { nftData ->
+            nftRules.sortedCollections(filtered.map { it.toJson() }).map { it.decodeJson<NFTData>() }.flatMap { nftData ->
                 val isSingleAsset = nftData.assets.size == 1
                 if (mode is NftListMode.Collection || isSingleAsset) {
                     nftData.assets.map { NftItemUIModel(nftData.collection, it) }
@@ -69,7 +68,7 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unverifiedCount = nftData
-        .map { data -> nftUnverifiedCollections(data.map { it.toJson() }).size }
+        .map { data -> nftRules.unverifiedCollections(data.map { it.toJson() }).size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     fun syncIfNeeded() {

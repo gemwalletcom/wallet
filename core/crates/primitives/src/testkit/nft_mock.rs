@@ -1,7 +1,7 @@
 use crate::{
-    Chain, NFTType,
+    Chain, NFTType, VerificationStatus,
     asset_constants::ETHEREUM_USDT_TOKEN_ID,
-    nft::{NFTAsset, NFTAssetId, NFTImages, NFTResource},
+    nft::{NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource},
 };
 
 const TON_NFT_COLLECTION_ADDRESS: &str = "EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi";
@@ -58,6 +58,48 @@ impl NFTAsset {
                 preview: NFTResource::new(String::new(), String::new()),
             },
             attributes: vec![],
+        }
+    }
+}
+
+impl NFTCollection {
+    pub fn mock() -> Self {
+        Self::mock_with(ETHEREUM_USDT_TOKEN_ID, VerificationStatus::Verified)
+    }
+
+    pub fn mock_with(name: &str, status: VerificationStatus) -> Self {
+        NFTCollection {
+            id: NFTCollectionId::new(Chain::Ethereum, ETHEREUM_USDT_TOKEN_ID),
+            name: name.to_string(),
+            symbol: None,
+            description: None,
+            chain: Chain::Ethereum,
+            contract_address: ETHEREUM_USDT_TOKEN_ID.to_string(),
+            images: NFTImages {
+                preview: NFTResource::new(String::new(), String::new()),
+            },
+            is_verified: status == VerificationStatus::Verified,
+            status,
+            links: vec![],
+        }
+    }
+}
+
+impl NFTData {
+    pub fn mock() -> Self {
+        Self::mock_with(ETHEREUM_USDT_TOKEN_ID, VerificationStatus::Verified, 1)
+    }
+
+    pub fn mock_with(name: &str, status: VerificationStatus, assets: usize) -> Self {
+        NFTData {
+            collection: NFTCollection::mock_with(name, status),
+            assets: (0..assets)
+                .map(|index| NFTAsset {
+                    token_id: index.to_string(),
+                    name: name.to_string(),
+                    ..NFTAsset::mock()
+                })
+                .collect(),
         }
     }
 }
