@@ -13,6 +13,8 @@ pub enum GatewayError {
     /// Non-network errors from platform code (Kotlin/Swift), allowing clients to
     /// distinguish and map back to original error types (e.g., BlockchainError.DustError).
     PlatformError { msg: String },
+    /// The node answered for a different network than the chain it was offered for.
+    NetworkIdMismatch { chain: String, network_id: String },
 }
 
 impl Display for GatewayError {
@@ -21,6 +23,7 @@ impl Display for GatewayError {
             Self::Offline => write!(f, "Network offline"),
             Self::NetworkError { msg } => write!(f, "Network error: {}", msg),
             Self::PlatformError { msg } => write!(f, "Platform error: {}", msg),
+            Self::NetworkIdMismatch { chain, network_id } => write!(f, "Node reports network {} for {}", network_id, chain),
         }
     }
 }

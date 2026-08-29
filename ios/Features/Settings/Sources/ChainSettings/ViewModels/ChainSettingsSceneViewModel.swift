@@ -16,7 +16,6 @@ public final class ChainSettingsSceneViewModel {
 
     let nodeService: GemNodeService
     let gatewayService: GatewayService
-    let addNodeService: AddNodeService
     let chain: Chain
 
     var selectedExplorer: String?
@@ -33,12 +32,10 @@ public final class ChainSettingsSceneViewModel {
     public init(
         nodeService: GemNodeService,
         gatewayService: GatewayService,
-        addNodeService: AddNodeService,
         explorerService: any GemExplorerServiceProtocol,
         chain: Chain,
     ) {
         self.nodeService = nodeService
-        self.addNodeService = addNodeService
         self.gatewayService = gatewayService
         self.explorerService = explorerService
 

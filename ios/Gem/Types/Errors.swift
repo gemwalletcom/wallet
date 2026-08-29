@@ -35,6 +35,7 @@ extension Gemstone.GatewayError: @retroactive LocalizedError {
         case .Offline: Localized.Errors.networkOffline
         case let .NetworkError(string): string
         case let .PlatformError(string): string
+        case .NetworkIdMismatch: Localized.Errors.invalidNetworkId
         }
     }
 }

@@ -9,6 +9,7 @@ pub(crate) use error::map_network_error;
 pub use preferences::EmptyPreferences;
 pub(crate) use preferences::{PreferencesWrapper, SecureStoreWrapper};
 
+use crate::services::chain::rules as chain_rules;
 use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 
 use crate::alien::{AlienProvider, AlienProviderWrapper, coalescing_provider};
@@ -192,6 +193,17 @@ impl GemGateway {
     pub async fn get_node_status(&self, chain: Chain, url: &str) -> Result<GemNodeStatus, GatewayError> {
         let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
         provider.get_nodes_status().await.map_err(map_network_error)
+    }
+
+    pub async fn check_node(&self, chain: Chain, url: &str) -> Result<GemNodeStatus, GatewayError> {
+        let status = self.get_node_status(chain, url).await?;
+        if !chain_rules::is_valid_network_id(chain, &status.chain_id) {
+            return Err(GatewayError::NetworkIdMismatch {
+                chain: chain.to_string(),
+                network_id: status.chain_id,
+            });
+        }
+        Ok(status)
     }
 }
 

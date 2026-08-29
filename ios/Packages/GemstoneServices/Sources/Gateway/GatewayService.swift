@@ -125,6 +125,10 @@ public extension GatewayService {
     func nodeStatus(chain: Primitives.Chain, url: String) async throws -> Primitives.NodeStatus {
         try await gateway.getNodeStatus(chain: chain.rawValue, url: url).map()
     }
+
+    public func checkNode(chain: Primitives.Chain, url: String) async throws -> Primitives.NodeStatus {
+        try await gateway.checkNode(chain: chain.rawValue, url: url).map()
+    }
 }
 
 // MARK: - Token

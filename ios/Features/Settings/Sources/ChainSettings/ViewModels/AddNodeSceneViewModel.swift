@@ -9,11 +9,13 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 import Validators
+import class Gemstone.GemNodeService
 
 @MainActor
 @Observable
 final class AddNodeSceneViewModel {
-    private let service: AddNodeService
+    private let nodeService: GemNodeService
+    private let gatewayService: GatewayService
 
     let chain: Chain
 
@@ -23,9 +25,10 @@ final class AddNodeSceneViewModel {
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
 
-    init(chain: Chain, service: AddNodeService) {
+    init(chain: Chain, nodeService: GemNodeService, gatewayService: GatewayService) {
         self.chain = chain
-        self.service = service
+        self.nodeService = nodeService
+        self.gatewayService = gatewayService
     }
 
     var title: String {
@@ -93,7 +96,7 @@ extension AddNodeSceneViewModel {
         }
 
         // TODO: - implement disable after user selects "import node button", we can't use state: StateViewType<ImportNodeResult> progress
-        try await service.add(chain: chain, url: model.url)
+        try await nodeService.addNode(chain: chain.rawValue, url: model.url.absoluteString)
 
         // TODO: - implement correct way of selection node
         /*
@@ -111,7 +114,14 @@ extension AddNodeSceneViewModel {
         state = .loading
 
         do {
-            state = .data(AddNodeResultViewModel(addNodeResult: try await service.check(chain: chain, url: url)))
+            let status = try await gatewayService.checkNode(chain: chain, url: url.absoluteString)
+            state = .data(AddNodeResultViewModel(addNodeResult: AddNodeResult(
+                url: url,
+                chainID: status.chainId,
+                blockNumber: status.latestBlockNumber,
+                isInSync: true,
+                latency: status.latency,
+            )))
         } catch {
             state.setError(error)
         }
