@@ -5,12 +5,11 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
 
 interface IncludePriceAlert {
-
-    suspend operator fun invoke(
+    suspend fun includePriceAlert(
         assetId: AssetId,
         currency: Currency? = null,
         price: Double? = null,
         percentage: Double? = null,
-        direction: PriceAlertDirection? = null
+        direction: PriceAlertDirection? = null,
     )
 }

@@ -6,10 +6,9 @@ import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 
 interface ExcludePriceAlert {
+    suspend fun excludePriceAlert(priceAlert: PriceAlert)
 
-    suspend operator fun invoke(priceAlert: PriceAlert)
-
-    suspend operator fun invoke(
+    suspend fun excludePriceAlert(
         assetId: AssetId,
         currency: Currency? = null,
         price: Double? = null,

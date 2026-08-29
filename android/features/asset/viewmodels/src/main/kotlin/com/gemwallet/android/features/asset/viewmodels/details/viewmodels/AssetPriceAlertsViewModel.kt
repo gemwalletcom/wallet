@@ -48,7 +48,7 @@ class AssetPriceAlertsViewModel @Inject constructor(
 
     fun toggle(assetId: AssetId) = viewModelScope.launch {
         val enabled = isEnabled.value ?: return@launch
-        setAssetPriceAlertEnabled(assetId, !enabled)
+        setAssetPriceAlertEnabled.setAssetPriceAlertEnabled(assetId, !enabled)
     }
 
     fun onPushNotificationGranted() = viewModelScope.launch(Dispatchers.IO) {

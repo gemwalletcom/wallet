@@ -108,7 +108,7 @@ class PriceAlertViewModel @Inject constructor(
 
     fun togglePriceAlerts(enable: Boolean) {
         viewModelScope.launch {
-            setPriceAlertsEnabled(enable)
+            setPriceAlertsEnabled.setPriceAlertsEnabled(enable)
         }
     }
 
@@ -119,20 +119,20 @@ class PriceAlertViewModel @Inject constructor(
     fun toggleAutoAlert(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
         val assetId = assetId.value ?: return@launch
         if (enabled) {
-            includePriceAlert(assetId)
+            includePriceAlert.includePriceAlert(assetId)
         } else {
             val autoAlert = data.value[null]?.firstOrNull() ?: return@launch
-            excludePriceAlert(autoAlert.priceAlert)
+            excludePriceAlert.excludePriceAlert(autoAlert.priceAlert)
         }
     }
 
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(Dispatchers.IO) {
         val alert = data.value.values.flatten().firstOrNull { it.id == priceAlertId } ?: return@launch
-        excludePriceAlert(alert.priceAlert)
+        excludePriceAlert.excludePriceAlert(alert.priceAlert)
     }
 
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
-        includePriceAlert(assetId)
+        includePriceAlert.includePriceAlert(assetId)
 
         val assetInfo = getAssetTokenInfo(assetId).firstOrNull() ?: return@launch
         withContext(Dispatchers.Main) { callback(assetInfo.asset) }

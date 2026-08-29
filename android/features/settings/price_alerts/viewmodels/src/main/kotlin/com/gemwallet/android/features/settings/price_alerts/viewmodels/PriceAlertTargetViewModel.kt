@@ -135,7 +135,7 @@ class PriceAlertTargetViewModel @Inject constructor(
         val price = if (type == PriceAlertNotificationType.Price) inputValue else null
         val percentage = if (type == PriceAlertNotificationType.PricePercentChange) inputValue else null
         viewModelScope.launch(Dispatchers.IO) {
-            includePriceAlert(
+            includePriceAlert.includePriceAlert(
                 assetId = assetId,
                 currency = currency.value,
                 price = price,
