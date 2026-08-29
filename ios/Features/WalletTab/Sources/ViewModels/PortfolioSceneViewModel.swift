@@ -4,6 +4,7 @@ import Components
 import Formatters
 import Foundation
 import enum Gemstone.GemPortfolioDataInput
+import protocol Gemstone.GemPortfolioServiceProtocol
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -15,7 +16,7 @@ import Style
 @MainActor
 public final class PortfolioSceneViewModel: ChartListViewable {
     private let wallet: Wallet
-    private let service: PortfolioDataService
+    private let portfolioService: any GemPortfolioServiceProtocol
     private let preferences: ObservablePreferences
 
     private let currencyFormatter: CurrencyFormatter
@@ -37,13 +38,13 @@ public final class PortfolioSceneViewModel: ChartListViewable {
 
     public init(
         wallet: Wallet,
-        service: PortfolioDataService,
+        portfolioService: any GemPortfolioServiceProtocol,
         preferences: ObservablePreferences,
         defaultType: PortfolioType = .wallet,
         perpetualFormatter: CurrencyFormatter = .usd,
     ) {
         self.wallet = wallet
-        self.service = service
+        self.portfolioService = portfolioService
         self.preferences = preferences
         self.perpetualFormatter = perpetualFormatter
         let currencyCode = preferences.currency
@@ -92,7 +93,7 @@ extension PortfolioSceneViewModel {
     public func load() async {
         selectedState = .loading
         do {
-            let data = try await service.portfolioData(input: getDataInput())
+            let data = try await PortfolioData(portfolioService.portfolioData(input: getDataInput()))
             if data.availablePeriods.isNotEmpty, !data.availablePeriods.contains(selectedPeriod) {
                 selectedPeriod = data.availablePeriods.first ?? selectedPeriod
             }
