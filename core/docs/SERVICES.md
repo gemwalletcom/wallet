@@ -403,7 +403,7 @@ The websocket URL rule went with it: `GemNodeService.websocket_node_url(chain)` 
 
 ### Android
 
-- Case naming: fold the legacy `com.gemwallet.android.cases.<area>/` (39 interfaces, 133 importers) into `application/<area>/cases/` and drop the `Case` suffix the package already implies (`SearchTokensCase` → `SearchTokens`, `GetListNftCase` → `GetListNft`, `AddNodeCase` → `AddNode`). Needs a judgement call per area where the two trees disagree (`cases/banners` vs `application/banner`; `cases/nodes` and `cases/wallet` have no `application` counterpart). Do it before the repository work so converted code lands in the right package.
+- Case naming: the legacy `com.gemwallet.android.cases.<area>/` tree is down to `cases/nodes/` (seven `*Case` interfaces, owned by the nodes work in flight); everything else lives in `application/<area>/cases/` with the `Case` suffix dropped. New areas came out of the fold: `addresses`, `contacts`, `tokens`, `security`. `bridge` merged into `wallet_connect` — one area, matching iOS.
 
 - Repositories to retire, in this order — each becomes cases (interface in `gemcore` `application/<area>/cases/`, one implementation in `data/coordinators/<area>/` holding the Core service, or the DAO when the screen needs an observed read). Callers move to the case; the repository is deleted in the same commit:
 

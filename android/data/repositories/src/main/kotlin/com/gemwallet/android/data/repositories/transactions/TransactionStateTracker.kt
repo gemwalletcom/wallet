@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.transactions
 
 import android.util.Log
-import com.gemwallet.android.cases.transactions.CreateTransaction
+import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson

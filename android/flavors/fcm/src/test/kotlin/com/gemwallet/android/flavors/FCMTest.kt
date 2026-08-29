@@ -1,6 +1,6 @@
 package com.gemwallet.android.flavors
 
-import com.gemwallet.android.cases.parseNotificationData
+import com.gemwallet.android.application.notifications.parseNotificationData
 import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAssetId

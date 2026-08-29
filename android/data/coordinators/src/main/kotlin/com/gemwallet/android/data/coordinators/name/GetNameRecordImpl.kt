@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.name
 
-import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 import uniffi.gemstone.GemNameService

@@ -6,8 +6,8 @@ import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.application.wallet_import.cases.SetupWallet
-import com.gemwallet.android.cases.device.GetPushEnabled
-import com.gemwallet.android.cases.device.SwitchPushEnabled
+import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.AppUpdateOffer

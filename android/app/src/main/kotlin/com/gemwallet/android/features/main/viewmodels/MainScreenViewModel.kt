@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
-import com.gemwallet.android.application.bridge.cases.IsWalletConnectEnabled
+import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.session.cases.GetSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi

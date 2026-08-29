@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.wallet
 
 import com.gemwallet.android.application.wallet.cases.SetWalletName
-import com.gemwallet.android.cases.addresses.RenameWalletAddresses
+import com.gemwallet.android.application.addresses.cases.RenameWalletAddresses
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemWalletService
 

@@ -10,7 +10,7 @@ import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.SyncTransactionsImpl
 import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
-import com.gemwallet.android.cases.transactions.ClearPendingTransactions
+import com.gemwallet.android.application.transactions.cases.ClearPendingTransactions
 import com.gemwallet.android.data.coordinators.transaction.ClearPendingTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetPendingTransactionsCountImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionImpl

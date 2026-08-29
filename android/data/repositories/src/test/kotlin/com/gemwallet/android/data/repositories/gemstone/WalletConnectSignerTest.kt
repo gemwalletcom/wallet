@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.gemstone
 
-import com.gemwallet.android.application.bridge.WalletConnectPendingRequest
-import com.gemwallet.android.application.bridge.WalletConnectPendingRequests
+import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount

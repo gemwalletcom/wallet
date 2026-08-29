@@ -14,8 +14,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.cases.security.AuthRequester
-import com.gemwallet.android.application.bridge.ActiveWalletConnectRequest
+import com.gemwallet.android.application.security.cases.AuthRequester
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.data.repositories.connection.ConnectionStatusObserver
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.AppViewModel

@@ -3,8 +3,8 @@ package com.gemwallet.android.features.bridge.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.bridge.cases.DisconnectWalletConnection
-import com.gemwallet.android.application.bridge.cases.GetWalletConnections
+import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
+import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

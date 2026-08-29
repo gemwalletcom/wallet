@@ -2,7 +2,7 @@ package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.cases.SyncAssets
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession

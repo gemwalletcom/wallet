@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.nft
 
-import com.gemwallet.android.cases.nft.GetAssetNft
-import com.gemwallet.android.cases.nft.GetListNftCase
+import com.gemwallet.android.application.nft.cases.GetAssetNft
+import com.gemwallet.android.application.nft.cases.GetListNft
 import com.gemwallet.android.data.repositories.gemstone.GemstoneNftStore
 import com.gemwallet.android.data.repositories.nft.toNftData
 import com.gemwallet.android.ext.toIdentifier
@@ -21,7 +21,7 @@ import uniffi.gemstone.GemNftService
 
 class GetListNftImpl(
     private val nftStore: GemstoneNftStore,
-) : GetListNftCase {
+) : GetListNft {
 
     override fun getListNft(walletId: WalletId, collectionId: String?): Flow<List<NFTData>> =
         nftStore.observeNftData(walletId.id).map { items ->

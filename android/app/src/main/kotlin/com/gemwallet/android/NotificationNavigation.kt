@@ -3,8 +3,8 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
-import com.gemwallet.android.cases.parseNotificationData
-import com.gemwallet.android.cases.transactions.CreateTransaction
+import com.gemwallet.android.application.notifications.parseNotificationData
+import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.application.wallet.cases.GetWallet

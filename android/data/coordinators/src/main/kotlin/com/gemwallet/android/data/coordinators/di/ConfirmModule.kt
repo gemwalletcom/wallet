@@ -7,7 +7,7 @@ import com.gemwallet.android.application.confirm.cases.CalculateTransferAmount
 import com.gemwallet.android.application.confirm.cases.GetFeeAssets
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemTransactionSigner
-import com.gemwallet.android.cases.transactions.CreateTransaction
+import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImpl
 import com.gemwallet.android.data.coordinators.confirm.ConfirmTransactionImpl
 import com.gemwallet.android.data.coordinators.confirm.CalculateTransferAmountImpl

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.nft
 
-import com.gemwallet.android.cases.nft.GetListNftCase
+import com.gemwallet.android.application.nft.cases.GetListNft
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockSession
@@ -17,7 +17,7 @@ import org.junit.Test
 
 class GetNftCollectionsImplTest {
 
-    private val getListNftCase = mockk<GetListNftCase>()
+    private val getListNftCase = mockk<GetListNft>()
     private val getSession = mockk<GetSession>()
 
     @Test

@@ -1,16 +1,16 @@
 package com.gemwallet.android.data.service.walletconnect.noop
 
-import com.gemwallet.android.application.bridge.WalletConnectAuthObject
-import com.gemwallet.android.application.bridge.WalletConnectAuthPayloadParams
-import com.gemwallet.android.application.bridge.WalletConnectAuthenticationRequest
-import com.gemwallet.android.application.bridge.WalletConnectClient
-import com.gemwallet.android.application.bridge.WalletConnectEvent
-import com.gemwallet.android.application.bridge.WalletConnectJsonRpcResponse
-import com.gemwallet.android.application.bridge.WalletConnectSession
-import com.gemwallet.android.application.bridge.WalletConnectSessionNamespace
-import com.gemwallet.android.application.bridge.WalletConnectSessionProposal
-import com.gemwallet.android.application.bridge.WalletConnectSessionRequest
-import com.gemwallet.android.application.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthObject
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectClient
+import com.gemwallet.android.application.wallet_connect.WalletConnectEvent
+import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
+import com.gemwallet.android.application.wallet_connect.WalletConnectSession
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionNamespace
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import javax.inject.Inject

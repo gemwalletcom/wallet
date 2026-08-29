@@ -4,7 +4,7 @@ import com.gemwallet.android.ext.toAssetId
 import uniffi.gemstone.GemPerpetualService
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.cases.banners.HasMultiSign
+import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.repositories.config.UserConfig
 import uniffi.gemstone.GemWalletPreferencesService

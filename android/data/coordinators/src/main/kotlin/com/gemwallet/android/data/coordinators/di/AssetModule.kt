@@ -27,7 +27,7 @@ import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.assets.cases.SetAssetPinned
 import com.gemwallet.android.application.assets.cases.ToggleHideBalances
 import com.gemwallet.android.application.wallet_import.cases.GetImportWalletState
-import com.gemwallet.android.cases.banners.HasMultiSign
+import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
@@ -85,7 +85,7 @@ import com.gemwallet.android.data.coordinators.asset.SyncBalancesImpl
 import com.gemwallet.android.application.assets.cases.SyncBalances
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.coordinators.asset.GetWidgetAssetsImpl
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.application.assets.cases.GetWidgetAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
@@ -238,7 +238,7 @@ object AssetModule {
 
     @Provides
     @Singleton
-    fun provideGetWidgetAssets(searchTokensCase: SearchTokensCase, getWalletAssets: GetWalletAssets): GetWidgetAssets =
+    fun provideGetWidgetAssets(searchTokensCase: SearchTokens, getWalletAssets: GetWalletAssets): GetWidgetAssets =
         GetWidgetAssetsImpl(searchTokensCase, getWalletAssets)
 
     @Provides

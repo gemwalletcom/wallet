@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.assets.cases.GetWidgetAssets
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AssetId
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 
 class GetWidgetAssetsImpl(
-    private val searchTokensCase: SearchTokensCase,
+    private val searchTokensCase: SearchTokens,
     private val getWalletAssets: GetWalletAssets,
 ) : GetWidgetAssets {
 

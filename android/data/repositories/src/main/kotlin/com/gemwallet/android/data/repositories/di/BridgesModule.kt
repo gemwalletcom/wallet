@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.application.bridge.WalletConnectPendingRequests
-import com.gemwallet.android.application.bridge.WalletConnectRequestHandler
+import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
+import com.gemwallet.android.application.wallet_connect.WalletConnectRequestHandler
 import com.gemwallet.android.data.repositories.gemstone.GemstoneConnectionStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.service.store.database.ConnectionsDao

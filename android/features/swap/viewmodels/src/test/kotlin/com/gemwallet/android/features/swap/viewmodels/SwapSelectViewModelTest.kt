@@ -9,7 +9,7 @@ import com.gemwallet.android.application.assets.cases.SetAssetPinned
 import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.swap.cases.SearchSwapAssets
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
@@ -39,7 +39,7 @@ class SwapSelectViewModelTest {
     private val updateRecentAsset = mockk<UpdateRecentAsset>(relaxed = true)
     private val switchAssetVisibility = mockk<SwitchAssetVisibility>(relaxed = true)
     private val setAssetPinned = mockk<SetAssetPinned>(relaxed = true)
-    private val searchTokensCase = mockk<SearchTokensCase>()
+    private val searchTokensCase = mockk<SearchTokens>()
     private val searchSwapAssets = mockk<SearchSwapAssets>()
 
     @Before

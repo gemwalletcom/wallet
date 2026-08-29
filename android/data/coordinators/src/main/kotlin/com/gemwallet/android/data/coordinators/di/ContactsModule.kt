@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.cases.contacts.AddContact
-import com.gemwallet.android.cases.contacts.DeleteContact
-import com.gemwallet.android.cases.contacts.GetContacts
-import com.gemwallet.android.cases.contacts.UpdateContact
+import com.gemwallet.android.application.contacts.cases.AddContact
+import com.gemwallet.android.application.contacts.cases.DeleteContact
+import com.gemwallet.android.application.contacts.cases.GetContacts
+import com.gemwallet.android.application.contacts.cases.UpdateContact
 import com.gemwallet.android.data.coordinators.contacts.AddContactImpl
 import com.gemwallet.android.data.coordinators.contacts.DeleteContactImpl
 import com.gemwallet.android.data.coordinators.contacts.GetContactsImpl

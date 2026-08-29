@@ -5,10 +5,10 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
-import com.gemwallet.android.application.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.application.bridge.cases.ApproveWalletConnection
-import com.gemwallet.android.application.bridge.WalletConnectSessionProposal
-import com.gemwallet.android.application.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier

@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
-import com.gemwallet.android.cases.nft.GetListNftCase
+import com.gemwallet.android.application.nft.cases.GetListNft
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.theme.AvatarEmoji
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +21,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 @HiltViewModel
 class WalletImageViewModel @Inject constructor(
     getWalletDetails: GetWalletDetails,
-    getListNftCase: GetListNftCase,
+    getListNftCase: GetListNft,
     private val avatarService: WalletAvatarService,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {

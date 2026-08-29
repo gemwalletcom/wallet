@@ -2,8 +2,8 @@ package com.gemwallet.android.features.bridge.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.bridge.cases.GetWalletConnections
-import com.gemwallet.android.application.bridge.cases.PairWalletConnect
+import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
+import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted

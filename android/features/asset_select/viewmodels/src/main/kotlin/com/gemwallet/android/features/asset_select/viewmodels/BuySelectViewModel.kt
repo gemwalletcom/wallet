@@ -10,7 +10,7 @@ import com.gemwallet.android.domains.asset.eligible
 import com.gemwallet.android.domains.asset.recentFilters
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
@@ -27,7 +27,7 @@ class BuySelectViewModel @Inject constructor(
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
     setAssetPinned: SetAssetPinned,
-    searchTokensCase: SearchTokensCase,
+    searchTokensCase: SearchTokens,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,

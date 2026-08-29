@@ -13,8 +13,8 @@ import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.cases.tokens.WalletSearchScopeCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
+import com.gemwallet.android.application.tokens.cases.WalletSearchScope
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.config.showPerpetuals
 import com.gemwallet.android.data.repositories.tokens.WalletSearch
@@ -60,8 +60,8 @@ class AssetsResultsViewModel @Inject constructor(
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
     setAssetPinned: SetAssetPinned,
-    @WalletSearch searchTokensCase: SearchTokensCase,
-    private val searchScopeCase: WalletSearchScopeCase,
+    @WalletSearch searchTokensCase: SearchTokens,
+    private val searchScopeCase: WalletSearchScope,
     getPerpetuals: GetPerpetuals,
     userConfig: UserConfig,
     private val setPerpetualPinned: SetPerpetualPinned,

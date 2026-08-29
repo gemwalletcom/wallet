@@ -5,7 +5,7 @@ import com.gemwallet.android.data.service.store.database.entities.toModel
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.cases.contacts.ContactRecipient
+import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Contact
 import com.wallet.core.primitives.ContactData

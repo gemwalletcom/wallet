@@ -2,8 +2,8 @@ package com.gemwallet.android.features.settings.develop.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.cases.device.GetPushToken
-import com.gemwallet.android.cases.transactions.ClearPendingTransactions
+import com.gemwallet.android.application.device.cases.GetPushToken
+import com.gemwallet.android.application.transactions.cases.ClearPendingTransactions
 import com.gemwallet.android.model.NotificationsAvailable
 import com.wallet.core.primitives.PlatformStore
 import dagger.hilt.android.lifecycle.HiltViewModel

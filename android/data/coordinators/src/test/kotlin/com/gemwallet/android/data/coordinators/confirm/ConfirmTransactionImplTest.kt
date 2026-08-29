@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.confirm
 
-import com.gemwallet.android.cases.transactions.CreateTransaction
+import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.model.ConfirmParams

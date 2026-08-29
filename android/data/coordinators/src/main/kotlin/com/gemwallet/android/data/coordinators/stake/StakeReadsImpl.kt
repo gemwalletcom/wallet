@@ -6,7 +6,7 @@ import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidatorIds
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
-import com.gemwallet.android.cases.stake.SyncStakeDelegations
+import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.data.repositories.gemstone.GemstoneStakeStore
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson

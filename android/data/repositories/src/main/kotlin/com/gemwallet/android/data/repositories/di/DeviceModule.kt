@@ -1,11 +1,11 @@
 package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
-import com.gemwallet.android.cases.device.GetPushEnabled
-import com.gemwallet.android.cases.device.GetPushToken
-import com.gemwallet.android.cases.device.IsDeviceRegistered
-import com.gemwallet.android.cases.device.SetPushToken
-import com.gemwallet.android.cases.device.SwitchPushEnabled
+import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.GetPushToken
+import com.gemwallet.android.application.device.cases.IsDeviceRegistered
+import com.gemwallet.android.application.device.cases.SetPushToken
+import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.device.DeviceObserverService
 import com.gemwallet.android.data.repositories.gemstone.GemstoneDevicePlatform
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore

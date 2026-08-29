@@ -1,7 +1,7 @@
 package com.gemwallet.android
 
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
-import com.gemwallet.android.cases.transactions.CreateTransaction
+import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.application.wallet.cases.GetWallet

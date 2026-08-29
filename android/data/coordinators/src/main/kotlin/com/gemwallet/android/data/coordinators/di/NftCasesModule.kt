@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.cases.nft.GetAssetNft
-import com.gemwallet.android.cases.nft.GetListNftCase
+import com.gemwallet.android.application.nft.cases.GetAssetNft
+import com.gemwallet.android.application.nft.cases.GetListNft
 import com.gemwallet.android.data.coordinators.nft.GetAssetNftImpl
 import com.gemwallet.android.data.coordinators.nft.GetListNftImpl
 import com.gemwallet.android.data.repositories.gemstone.GemstoneNftStore
@@ -18,7 +18,7 @@ object NftCasesModule {
 
     @Provides
     @Singleton
-    fun provideGetListNft(nftStore: GemstoneNftStore): GetListNftCase = GetListNftImpl(nftStore)
+    fun provideGetListNft(nftStore: GemstoneNftStore): GetListNft = GetListNftImpl(nftStore)
 
     @Provides
     @Singleton

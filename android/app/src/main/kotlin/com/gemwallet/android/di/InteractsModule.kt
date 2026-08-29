@@ -17,7 +17,7 @@ import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOper
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.blockchain.services.KeystoreTransactionSigner
 import uniffi.gemstone.GemTransactionSigner
-import com.gemwallet.android.cases.wallet.ImportWalletService
+import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
 import com.gemwallet.android.data.password.TinkPasswordStore
 import com.gemwallet.android.data.password.TinkSecurityStore
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet

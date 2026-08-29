@@ -4,10 +4,10 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.cases.contacts.AddContact
-import com.gemwallet.android.cases.contacts.GetContacts
-import com.gemwallet.android.cases.contacts.UpdateContact
-import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.application.contacts.cases.AddContact
+import com.gemwallet.android.application.contacts.cases.GetContacts
+import com.gemwallet.android.application.contacts.cases.UpdateContact
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.gemwallet.android.ext.decodePayment
 import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.request

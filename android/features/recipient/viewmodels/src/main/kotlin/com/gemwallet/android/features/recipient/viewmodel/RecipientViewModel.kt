@@ -6,10 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.cases.contacts.ContactRecipient
-import com.gemwallet.android.cases.contacts.GetContacts
-import com.gemwallet.android.cases.name.GetNameRecord
-import com.gemwallet.android.cases.nft.GetAssetNft
+import com.gemwallet.android.application.contacts.values.ContactRecipient
+import com.gemwallet.android.application.contacts.cases.GetContacts
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
+import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.checksumAddress

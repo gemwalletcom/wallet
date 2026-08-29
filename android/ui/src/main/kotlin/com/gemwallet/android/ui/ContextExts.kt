@@ -8,7 +8,7 @@ import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
-import com.gemwallet.android.cases.security.AuthRequester
+import com.gemwallet.android.application.security.cases.AuthRequester
 import com.gemwallet.android.model.AuthRequest
 
 fun Context.findActivity(): Activity? {

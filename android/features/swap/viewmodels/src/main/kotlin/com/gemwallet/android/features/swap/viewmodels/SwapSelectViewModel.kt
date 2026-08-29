@@ -9,7 +9,7 @@ import com.gemwallet.android.application.assets.cases.SetAssetPinned
 import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.swap.cases.SearchSwapAssets
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
@@ -42,7 +42,7 @@ class SwapSelectViewModel @Inject constructor(
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
     setAssetPinned: SetAssetPinned,
-    searchTokensCase: SearchTokensCase,
+    searchTokensCase: SearchTokens,
     searchSwapAssets: SearchSwapAssets,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(

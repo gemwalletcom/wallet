@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.di
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.banner.cases.ApplyBannerAction
 import com.gemwallet.android.application.banner.cases.GetActiveBanners
-import com.gemwallet.android.cases.banners.HasMultiSign
+import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.data.coordinators.banner.ApplyBannerActionImpl
 import com.gemwallet.android.data.coordinators.banner.GetActiveBannersImpl
 import com.gemwallet.android.data.coordinators.banner.HasMultiSignImpl

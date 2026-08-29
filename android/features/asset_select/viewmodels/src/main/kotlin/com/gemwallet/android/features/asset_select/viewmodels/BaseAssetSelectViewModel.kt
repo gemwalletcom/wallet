@@ -12,7 +12,7 @@ import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -63,7 +63,7 @@ open class BaseAssetSelectViewModel(
     private val updateRecentAsset: UpdateRecentAsset,
     private val switchAssetVisibility: SwitchAssetVisibility,
     private val setAssetPinned: SetAssetPinned,
-    private val searchTokensCase: SearchTokensCase,
+    private val searchTokensCase: SearchTokens,
     val search: SelectSearch,
     private val remoteSearch: Boolean = true,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {

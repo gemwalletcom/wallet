@@ -10,7 +10,7 @@ import com.gemwallet.android.data.coordinators.stake.GetRecommendedValidatorImpl
 import com.gemwallet.android.data.coordinators.stake.GetStakeValidatorImpl
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidatorIds
 import com.gemwallet.android.application.stake.cases.GetValidators
-import com.gemwallet.android.cases.stake.SyncStakeDelegations
+import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.data.coordinators.stake.GetRecommendedValidatorIdsImpl
 import com.gemwallet.android.data.coordinators.stake.GetValidatorsImpl
 import com.gemwallet.android.data.coordinators.stake.SyncStakeDelegationsImpl

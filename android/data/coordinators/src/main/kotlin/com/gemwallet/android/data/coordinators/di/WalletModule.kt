@@ -11,7 +11,7 @@ import com.gemwallet.android.application.wallet.cases.SetWalletName
 import com.gemwallet.android.application.wallet.cases.SetWalletPinned
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
-import com.gemwallet.android.cases.addresses.RenameWalletAddresses
+import com.gemwallet.android.application.addresses.cases.RenameWalletAddresses
 import com.gemwallet.android.data.coordinators.wallet.DeleteWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletsImpl

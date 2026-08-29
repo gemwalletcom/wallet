@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.data.service.store.database.AssetListDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
@@ -62,7 +62,7 @@ class AssetsAvailabilityServiceTest {
     private val pricesDao = mockk<PricesDao>(relaxed = true)
     private val priceService = mockk<GemPriceService>(relaxed = true)
     private val getCurrentWalletId = mockk<GetCurrentWalletId>()
-    private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
+    private val searchTokensCase = mockk<SearchTokens>(relaxed = true)
     private val balanceService = mockk<GemBalanceService>(relaxed = true)
     private val scope = CoroutineScope(Job())
     private val sessionFlow = MutableStateFlow<com.gemwallet.android.model.Session?>(null)

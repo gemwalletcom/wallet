@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.service.walletconnect.noop
 
-import com.gemwallet.android.application.bridge.WalletConnectClient
+import com.gemwallet.android.application.wallet_connect.WalletConnectClient
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

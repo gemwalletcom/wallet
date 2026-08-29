@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.gemwallet.android.data.coordinators.name.GetNameRecordImpl
 import dagger.Module
 import dagger.Provides

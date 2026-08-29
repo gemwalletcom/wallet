@@ -3,10 +3,10 @@ package com.gemwallet.android.features.import_wallet.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
-import com.gemwallet.android.cases.wallet.ImportError
-import com.gemwallet.android.cases.wallet.ImportWalletService
-import com.gemwallet.android.cases.wallet.WalletImportResult
-import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.application.wallet_import.values.ImportError
+import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
+import com.gemwallet.android.application.wallet_import.values.WalletImportResult
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import uniffi.gemstone.GemWalletService
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType

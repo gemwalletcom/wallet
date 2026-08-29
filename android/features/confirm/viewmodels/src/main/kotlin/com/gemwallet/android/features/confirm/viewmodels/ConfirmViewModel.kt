@@ -18,8 +18,8 @@ import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.cases.ConfirmTransaction
 import com.gemwallet.android.application.confirm.cases.CalculateTransferAmount
 import com.gemwallet.android.application.confirm.cases.GetFeeAssets
-import com.gemwallet.android.cases.addresses.GetAddressName
-import com.gemwallet.android.cases.addresses.GetAddressNames
+import com.gemwallet.android.application.addresses.cases.GetAddressName
+import com.gemwallet.android.application.addresses.cases.GetAddressNames
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession

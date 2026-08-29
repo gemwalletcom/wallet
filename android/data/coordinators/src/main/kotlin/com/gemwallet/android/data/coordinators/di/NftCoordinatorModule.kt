@@ -6,8 +6,8 @@ import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.nft.cases.RefreshNftAsset
 import com.gemwallet.android.application.nft.cases.SyncNftCollections
-import com.gemwallet.android.cases.nft.GetAssetNft
-import com.gemwallet.android.cases.nft.GetListNftCase
+import com.gemwallet.android.application.nft.cases.GetAssetNft
+import com.gemwallet.android.application.nft.cases.GetListNft
 import com.gemwallet.android.data.coordinators.nft.GetNftAssetDetailsImpl
 import com.gemwallet.android.data.coordinators.nft.GetNftCollectionsImpl
 import com.gemwallet.android.data.coordinators.nft.RefreshNftAssetImpl
@@ -37,7 +37,7 @@ object NftCoordinatorModule {
     @Singleton
     fun provideGetNftCollections(
         getSession: GetSession,
-        getListNftCase: GetListNftCase,
+        getListNftCase: GetListNft,
     ): GetNftCollections {
         return GetNftCollectionsImpl(getSession, getListNftCase)
     }

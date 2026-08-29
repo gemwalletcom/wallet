@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.contacts
 
-import com.gemwallet.android.cases.contacts.AddContact
-import com.gemwallet.android.cases.contacts.DeleteContact
-import com.gemwallet.android.cases.contacts.UpdateContact
+import com.gemwallet.android.application.contacts.cases.AddContact
+import com.gemwallet.android.application.contacts.cases.DeleteContact
+import com.gemwallet.android.application.contacts.cases.UpdateContact
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Contact
 import com.wallet.core.primitives.ContactAddress

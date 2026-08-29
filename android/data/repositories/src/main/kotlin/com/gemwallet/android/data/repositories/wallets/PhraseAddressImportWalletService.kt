@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.repositories.wallets
 
 import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
-import com.gemwallet.android.cases.wallet.ImportError
-import com.gemwallet.android.cases.wallet.ImportWalletService
-import com.gemwallet.android.cases.wallet.WalletImportResult
+import com.gemwallet.android.application.wallet_import.values.ImportError
+import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
+import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.words

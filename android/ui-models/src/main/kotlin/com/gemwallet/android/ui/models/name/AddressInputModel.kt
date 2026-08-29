@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord

@@ -1,11 +1,11 @@
 package com.gemwallet.android
 
 import android.text.format.DateUtils
-import com.gemwallet.android.application.bridge.WalletConnectEvent
-import com.gemwallet.android.application.bridge.WalletConnectSessionProposal
-import com.gemwallet.android.application.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.application.bridge.WalletConnectValidation
-import com.gemwallet.android.application.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.WalletConnectEvent
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.data.repositories.config.UserConfig
 import io.mockk.every
 import io.mockk.mockk

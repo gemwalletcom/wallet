@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.cases.addresses.GetAddressName
-import com.gemwallet.android.cases.addresses.GetAddressNames
-import com.gemwallet.android.cases.addresses.RenameWalletAddresses
-import com.gemwallet.android.cases.addresses.SaveWalletAddresses
+import com.gemwallet.android.application.addresses.cases.GetAddressName
+import com.gemwallet.android.application.addresses.cases.GetAddressNames
+import com.gemwallet.android.application.addresses.cases.RenameWalletAddresses
+import com.gemwallet.android.application.addresses.cases.SaveWalletAddresses
 import com.gemwallet.android.data.coordinators.addresses.GetAddressNameImpl
 import com.gemwallet.android.data.coordinators.addresses.GetAddressNamesImpl
 import com.gemwallet.android.data.coordinators.addresses.RenameWalletAddressesImpl

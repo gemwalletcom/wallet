@@ -1,8 +1,8 @@
 package com.gemwallet.android.flavors
 
-import com.gemwallet.android.cases.device.GetPushEnabled
-import com.gemwallet.android.cases.device.SetPushToken
-import com.gemwallet.android.cases.pushes.ShowSystemNotification
+import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.SetPushToken
+import com.gemwallet.android.application.notifications.cases.ShowSystemNotification
 import com.gemwallet.android.model.PushNotificationField
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage

@@ -9,7 +9,7 @@ import com.gemwallet.android.data.coordinators.add_asset.AddCustomTokenImpl
 import com.gemwallet.android.data.coordinators.add_asset.GetAvailableTokenChainsImpl
 import com.gemwallet.android.data.coordinators.add_asset.ObserveTokenImpl
 import com.gemwallet.android.data.coordinators.add_asset.SearchCustomTokenImpl
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
@@ -36,7 +36,7 @@ object AddAssetModule {
     @Singleton
     fun provideSearchCustomToken(
         getCurrentCurrency: GetCurrentCurrency,
-        searchTokensCase: SearchTokensCase,
+        searchTokensCase: SearchTokens,
     ): SearchCustomToken = SearchCustomTokenImpl(getCurrentCurrency, searchTokensCase)
 
     @Provides

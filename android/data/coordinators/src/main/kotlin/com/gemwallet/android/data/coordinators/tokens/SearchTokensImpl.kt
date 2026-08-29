@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.tokens
 
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.application.session.cases.GetSession
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -18,7 +18,7 @@ class SearchTokensImpl(
     private val getSession: GetSession,
     private val searchService: GemSearchService,
     private val assetsService: GemAssetsService,
-) : SearchTokensCase {
+) : SearchTokens {
 
     override suspend fun search(query: String, currency: Currency, chains: List<Chain>): Boolean = withContext(Dispatchers.IO) {
         if (query.isEmpty()) {

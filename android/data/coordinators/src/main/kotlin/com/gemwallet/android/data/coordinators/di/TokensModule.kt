@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.cases.tokens.WalletSearchScopeCase
+import com.gemwallet.android.application.tokens.cases.SearchTokens
+import com.gemwallet.android.application.tokens.cases.WalletSearchScope
 import com.gemwallet.android.data.coordinators.tokens.SearchTokensImpl
 import com.gemwallet.android.data.coordinators.tokens.WalletSearchTokens
 import com.gemwallet.android.application.session.cases.GetSession
@@ -20,7 +20,7 @@ object TokensCasesModule {
 
     @Provides
     @Singleton
-    fun provideSearchTokens(
+    fun provideSearchTokensImpl(
         getSession: GetSession,
         searchService: GemSearchService,
         assetsService: GemAssetsService,
@@ -28,7 +28,7 @@ object TokensCasesModule {
 
     @Provides
     @Singleton
-    fun provideSearchTokensCase(searchTokens: SearchTokensImpl): SearchTokensCase = searchTokens
+    fun provideSearchTokens(searchTokens: SearchTokensImpl): SearchTokens = searchTokens
 
     @Provides
     @Singleton
@@ -41,9 +41,9 @@ object TokensCasesModule {
     @Provides
     @Singleton
     @WalletSearch
-    fun provideWalletSearchTokensCase(walletSearchTokens: WalletSearchTokens): SearchTokensCase = walletSearchTokens
+    fun provideWalletSearchTokensCase(walletSearchTokens: WalletSearchTokens): SearchTokens = walletSearchTokens
 
     @Provides
     @Singleton
-    fun provideWalletSearchScopeCase(walletSearchTokens: WalletSearchTokens): WalletSearchScopeCase = walletSearchTokens
+    fun provideWalletSearchScope(walletSearchTokens: WalletSearchTokens): WalletSearchScope = walletSearchTokens
 }

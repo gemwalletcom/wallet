@@ -40,8 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
-import com.gemwallet.android.cases.wallet.ImportError
-import com.gemwallet.android.cases.wallet.WalletImportResult
+import com.gemwallet.android.application.wallet_import.values.ImportError
+import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.WalletTypeTab
 import com.gemwallet.android.features.import_wallet.components.importTypeTabIndex
