@@ -6,7 +6,7 @@ import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.cases.parseNotificationData
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWallet
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.model.PushNotificationField
@@ -31,7 +31,7 @@ import javax.inject.Inject
 
 class NotificationNavigation @Inject constructor(
     private val sessionRepository: SessionRepository,
-    private val walletsRepository: WalletsRepository,
+    private val getWallet: GetWallet,
     private val createTransaction: CreateTransaction,
     private val syncMissingAssets: SyncMissingAssets,
     private val assetsService: GemAssetsService,
@@ -72,14 +72,14 @@ class NotificationNavigation @Inject constructor(
     }
 
     private suspend fun prepareAssetRoutes(walletId: WalletId, assetId: AssetId): List<NavKey> {
-        val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return emptyList()
+        val wallet = getWallet(walletId).firstOrNull() ?: return emptyList()
         val asset = assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier())?.decodeJson<Asset>() ?: return emptyList()
         selectWallet(wallet)
         return listOf(AssetRoute(asset.id))
     }
 
     private suspend fun prepareTransactionRoutes(data: PushNotificationData.Transaction): List<NavKey> {
-        val wallet = walletsRepository.getWallet(data.walletId).firstOrNull() ?: return emptyList()
+        val wallet = getWallet(data.walletId).firstOrNull() ?: return emptyList()
         val asset = createTransaction.createNotificationTransaction(
             wallet = wallet,
             assetId = data.assetId,

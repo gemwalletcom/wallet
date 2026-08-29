@@ -1,4 +1,4 @@
-package com.gemwallet.android.application.recipient.cases
+package com.gemwallet.android.application.wallet.cases
 
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.flow.Flow

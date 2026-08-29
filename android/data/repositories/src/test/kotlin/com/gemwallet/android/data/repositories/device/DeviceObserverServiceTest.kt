@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.device
 
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
@@ -20,8 +20,8 @@ class DeviceObserverServiceTest {
 
     private val wallet = mockWallet(id = "wallet-1", accounts = listOf(mockAccount(chain = Chain.Ethereum)))
     private val wallets = MutableStateFlow(listOf(wallet))
-    private val walletsRepository = mockk<WalletsRepository> {
-        every { getAll() } returns wallets
+    private val getWallets = mockk<GetWallets> {
+        every { this@mockk() } returns wallets
     }
     private val deviceService = mockk<GemDeviceService>(relaxed = true)
 
@@ -39,7 +39,7 @@ class DeviceObserverServiceTest {
     }
 
     private fun TestScope.service() = DeviceObserverService(
-        walletsRepository = walletsRepository,
+        getWallets = getWallets,
         deviceService = deviceService,
         scope = this,
     )

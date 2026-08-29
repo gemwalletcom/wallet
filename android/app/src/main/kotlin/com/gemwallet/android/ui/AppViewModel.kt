@@ -12,7 +12,7 @@ import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.model.Session
@@ -42,7 +42,7 @@ class AppViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val getPushEnabled: GetPushEnabled,
     private val switchPushEnabled: SwitchPushEnabled,
-    private val walletsRepository: WalletsRepository,
+    private val getWallets: GetWallets,
     private val syncAppUpdate: SyncAppUpdate,
     private val skipAppUpdate: SkipAppUpdate,
     private val notificationsAvailable: NotificationsAvailable,
@@ -165,7 +165,7 @@ class AppViewModel @Inject constructor(
         if (sessionRepository.getCurrentWallet() != null) {
             WalletRootRoute
         } else {
-            val wallet = walletsRepository.getAll().firstOrNull()
+            val wallet = getWallets().firstOrNull()
                 ?.filter { it.accounts.isNotEmpty() }
                 ?.sortedWith(compareBy({ it.index }, { it.id.id }))
                 ?.firstOrNull()

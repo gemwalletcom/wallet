@@ -3,7 +3,7 @@ package com.gemwallet.android
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWallet
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.serializer.toJson
@@ -41,14 +41,14 @@ class NotificationNavigationTest {
     private val currentWallet = mockWallet(id = "current-wallet")
     private val session = MutableStateFlow(mockSession(wallet = currentWallet))
     private val sessionRepository = mockk<SessionRepository>()
-    private val walletsRepository = mockk<WalletsRepository>()
+    private val getWallet = mockk<GetWallet>()
     private val createTransaction = mockk<CreateTransaction>()
     private val syncMissingAssets = mockk<SyncMissingAssets>()
     private val assetsService = mockk<GemAssetsService>()
 
     private val subject = NotificationNavigation(
         sessionRepository = sessionRepository,
-        walletsRepository = walletsRepository,
+        getWallet = getWallet,
         createTransaction = createTransaction,
         syncMissingAssets = syncMissingAssets,
         assetsService = assetsService,
@@ -74,7 +74,7 @@ class NotificationNavigationTest {
             id = walletId.id,
             accounts = listOf(mockAccount(chain = assetId.chain)),
         )
-        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        every { getWallet(wallet.id) } returns flowOf(wallet)
         coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction) } returns asset
 
         val route = subject.prepareNavigation(
@@ -96,7 +96,7 @@ class NotificationNavigationTest {
         val walletId = mockWalletId()
         val transaction = mockTransaction(assetId = assetId)
         val wallet = mockWallet(id = walletId.id)
-        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        every { getWallet(wallet.id) } returns flowOf(wallet)
         coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction) } returns null
 
         val route = subject.prepareNavigation(
@@ -131,7 +131,7 @@ class NotificationNavigationTest {
             id = walletId.id,
             accounts = listOf(mockAccount(chain = assetId.chain)),
         )
-        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        every { getWallet(wallet.id) } returns flowOf(wallet)
         coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction) } returns asset
 
         val route = subject.prepareNavigation(
@@ -162,7 +162,7 @@ class NotificationNavigationTest {
             id = walletId.id,
             accounts = listOf(mockAccount(chain = assetId.chain)),
         )
-        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        every { getWallet(wallet.id) } returns flowOf(wallet)
         coEvery { assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier()) } returns asset.toJson()
 
         val route = subject.prepareNavigation(
@@ -178,7 +178,7 @@ class NotificationNavigationTest {
     fun walletNotification_isRejectedWhenWalletDoesNotExist() = runBlocking {
         val assetId = mockAssetId(Chain.Solana)
         val walletId = mockWalletId("missing-wallet")
-        every { walletsRepository.getWallet(walletId) } returns flowOf(null)
+        every { getWallet(walletId) } returns flowOf(null)
 
         val route = subject.prepareNavigation(
             type = PushNotificationTypes.Stake.string,

@@ -5,7 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.gemstone.GemMigrateKeystoreOperator
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.ext.v4KeystorePasswordBytes
 import com.gemwallet.android.testkit.KEYSTORE_TEST_ETH_ADDRESS
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD
@@ -34,8 +34,8 @@ class MigrateV3KeystoreServiceTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val baseDir = context.dataDir
     private val passwordStore = mockk<PasswordStore>()
-    private val walletsRepository = mockk<WalletsRepository>()
-    private val service = MigrateV3KeystoreService(context, walletsRepository, passwordStore, GemMigrateKeystoreOperator(baseDir.toString()))
+    private val getWallets = mockk<GetWallets>()
+    private val service = MigrateV3KeystoreService(context, getWallets, passwordStore, GemMigrateKeystoreOperator(baseDir.toString()))
 
     private fun loadKey(wallet: Wallet, chain: Chain, password: String): String =
         uniffi.gemstone.GemKeystore(baseDir.toString()).use {
@@ -52,7 +52,7 @@ class MigrateV3KeystoreServiceTest {
     fun migrateMnemonicWallet_createsV4AtDeterministicIdAndIsIdempotent() = runBlocking {
         val walletId = WalletId("multicoin_$KEYSTORE_TEST_ETH_ADDRESS")
         val current = mockWallet(id = walletId.id, type = WalletType.Multicoin, source = WalletSource.Import)
-        every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
+        every { getWallets() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId, "v3_android_mnemonic.json")
 
         service()
@@ -70,7 +70,7 @@ class MigrateV3KeystoreServiceTest {
     fun migratePrivateKeyWallet_createsV4AtDeterministicIdAndIsIdempotent() = runBlocking {
         val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
         val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
-        every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
+        every { getWallets() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId, "v3_android_private_key.json")
 
         service()
@@ -88,7 +88,7 @@ class MigrateV3KeystoreServiceTest {
     fun migrateV3WithEmptyScryptSalt_createsV4AndRecoversKey() = runBlocking {
         val walletId = WalletId("multicoin_$KEYSTORE_TEST_ETH_ADDRESS")
         val current = mockWallet(id = walletId.id, type = WalletType.Multicoin, source = WalletSource.Import)
-        every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
+        every { getWallets() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId, "v3_android_empty_salt_mnemonic.json")
 
         service()

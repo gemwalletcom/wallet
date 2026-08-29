@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.wallet.cases.GetWalletSecretData
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.domains.wallet.values.WalletSecretDataValue
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
@@ -16,13 +16,13 @@ import kotlinx.coroutines.flow.mapLatest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetWalletSecretDataImpl(
-    private val walletsRepository: WalletsRepository,
+    private val walletStore: GemstoneWalletStore,
     private val passwordStore: PasswordStore,
     private val loadPrivateDataOperator: LoadPrivateDataOperator,
 ) : GetWalletSecretData {
 
     override fun getSecretData(walletId: WalletId): Flow<WalletSecretDataValue> {
-        return walletsRepository.getWallet(walletId).mapLatest { wallet ->
+        return walletStore.observeWallet(walletId).mapLatest { wallet ->
             wallet ?: return@mapLatest WalletSecretDataValueImpl(emptyList())
             try {
                 val password = passwordStore.getPassword(wallet.id.id)

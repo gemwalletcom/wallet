@@ -5,7 +5,6 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletSessionStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.session.SessionRepositoryImpl
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.SessionDao
 import dagger.Module
 import dagger.Provides

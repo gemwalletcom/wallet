@@ -5,8 +5,6 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneKeystorePassword
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.cases.addresses.SaveWalletAddresses
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepositoryImpl
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAddressStore
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
@@ -34,9 +32,6 @@ import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletPreference
 @InstallIn(SingletonComponent::class)
 @Module
 object WalletsModule {
-
-    @Provides
-    fun provideWalletsRepository(walletStore: GemstoneWalletStore): WalletsRepository = WalletsRepositoryImpl(walletStore)
 
     @Provides
     @Singleton

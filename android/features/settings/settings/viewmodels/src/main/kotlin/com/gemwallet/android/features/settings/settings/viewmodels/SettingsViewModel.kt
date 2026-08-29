@@ -6,7 +6,7 @@ import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.model.NotificationsAvailable
 import com.wallet.core.primitives.Appearance
@@ -27,7 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userConfig: UserConfig,
-    private val walletsRepository: WalletsRepository,
+    private val getWallets: GetWallets,
     private val sessionRepository: SessionRepository,
     private val switchPushEnabled: SwitchPushEnabled,
     private val getPushEnabled: GetPushEnabled,
@@ -35,7 +35,7 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val session = sessionRepository.session()
-    private val wallets = walletsRepository.getAll()
+    private val wallets = getWallets()
     private val state = MutableStateFlow(SettingsViewModelState())
     val uiState = state.asStateFlow()
 

@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.application.recipient.cases.GetWallets
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.cases.contacts.ContactRecipient
 import com.gemwallet.android.cases.contacts.GetContacts

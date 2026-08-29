@@ -9,7 +9,7 @@ import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.device.DeviceObserverService
 import com.gemwallet.android.data.repositories.gemstone.GemstoneDevicePlatform
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.model.NotificationsAvailable
@@ -90,10 +90,10 @@ object DeviceModule {
     @Provides
     @Singleton
     fun provideDeviceObserverService(
-        walletsRepository: WalletsRepository,
+        getWallets: GetWallets,
         deviceService: GemDeviceService,
     ): DeviceObserverService = DeviceObserverService(
-        walletsRepository = walletsRepository,
+        getWallets = getWallets,
         deviceService = deviceService,
     )
 }

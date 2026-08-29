@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.device
 
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemDeviceService
 
 class DeviceObserverService(
-    private val walletsRepository: WalletsRepository,
+    private val getWallets: GetWallets,
     private val deviceService: GemDeviceService,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) {
@@ -20,7 +20,7 @@ class DeviceObserverService(
         if (observeJob != null) return
 
         observeJob = scope.launch {
-            walletsRepository.getAll().collectLatest {
+            getWallets().collectLatest {
                 runCatching { deviceService.synchronizeIfNeeded() }
             }
         }
