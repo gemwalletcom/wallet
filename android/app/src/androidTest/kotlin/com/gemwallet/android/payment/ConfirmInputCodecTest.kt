@@ -12,6 +12,8 @@ import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.TransferDataOutputAction
+import com.wallet.core.primitives.TransferDataOutputType
 import com.wallet.core.primitives.swap.ApprovalData
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

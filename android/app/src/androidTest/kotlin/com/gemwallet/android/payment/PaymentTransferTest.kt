@@ -1,6 +1,7 @@
 package com.gemwallet.android.payment
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.ext.decodePayment
 import com.gemwallet.android.ext.request
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -19,7 +20,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
-import uniffi.gemstone.paymentDecodeUrl
 import java.math.BigInteger
 
 private const val BITCOIN_ADDRESS = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
@@ -43,7 +43,7 @@ class PaymentTransferTest {
     private val usdc = mockAssetInfo(asset = mockAssetSolanaUSDC())
 
     private fun decode(url: String): PaymentRequest =
-        requireNotNull(paymentDecodeUrl(url).toPayment().request) { "not a payment request: $url" }
+        requireNotNull(decodePayment(url)?.request) { "not a payment request: $url" }
 
     private fun destination(assetInfo: AssetInfo, url: String): PaymentDestination.Transfer =
         PaymentDestination.transfer(decode(url), assetInfo)

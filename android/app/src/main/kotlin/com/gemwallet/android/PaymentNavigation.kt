@@ -20,12 +20,13 @@ import java.math.BigInteger
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import com.wallet.core.primitives.ChainAddress
-import uniffi.gemstone.PaymentServiceInterface
-import uniffi.gemstone.paymentDecodedTransfer
+import uniffi.gemstone.GemPaymentLinkServiceInterface
+import uniffi.gemstone.GemPaymentService
 
 class PaymentNavigation @Inject constructor(
     private val getSelectAssetsInfo: GetSelectAssetsInfo,
-    private val paymentService: PaymentServiceInterface,
+    private val paymentLinkService: GemPaymentLinkServiceInterface,
+    private val paymentService: GemPaymentService,
 ) {
 
     suspend fun routes(payment: Payment): List<NavKey> = when (payment) {
@@ -46,7 +47,7 @@ class PaymentNavigation @Inject constructor(
     private suspend fun linkRoutes(link: PaymentLink): List<NavKey> {
         val assets = getSelectAssetsInfo().first()
         val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
-        val payment = paymentService.load(
+        val payment = paymentLinkService.load(
             link.toJson(),
             accounts.map { ChainAddress(chain = it.chain, address = it.address).toJson() },
         )
@@ -57,7 +58,7 @@ class PaymentNavigation @Inject constructor(
         val transfer = payment.request?.let { request ->
             val decoded = request.decodeJson<PaymentRequest>()
             assets.firstOrNull { it.asset.id == decoded.assetId }
-                ?.let { paymentDecodedTransfer(request, it.toPaymentWalletAsset())?.toTransferParams(assets) }
+                ?.let { paymentService.decodedTransfer(request, it.toPaymentWalletAsset())?.toTransferParams(assets) }
         } ?: ConfirmParams.Builder(account.chain.asset(), account, BigInteger.ZERO)
             .transfer(DestinationAddress(""), payment.memo)
         val params = ConfirmParams.TransferParams.Generic(

@@ -7,7 +7,7 @@ import WalletConnectorService
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
-import class Gemstone.PaymentService
+import class Gemstone.GemPaymentLinkService
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -25,7 +25,7 @@ final class NavigationHandler: Sendable {
     private let assetStore: AssetStore
     private let walletConnector: any WalletConnectorServiceable
     private let toastPresenter: ToastPresenter
-    private let paymentService: PaymentService
+    private let paymentService: GemPaymentLinkService
     private let transactionStore: TransactionStore
     private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
@@ -38,7 +38,7 @@ final class NavigationHandler: Sendable {
         assetStore: AssetStore,
         walletConnector: any WalletConnectorServiceable,
         toastPresenter: ToastPresenter,
-        paymentService: PaymentService,
+        paymentService: GemPaymentLinkService,
         transactionStore: TransactionStore,
         transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,

@@ -7,6 +7,8 @@ import GemstonePrimitives
 import Localization
 import Primitives
 
+private let paymentService = GemPaymentService()
+
 public enum PaymentDestinationBuilder {
     public enum TransferDestination: Sendable {
         case confirm(TransferData)
@@ -14,7 +16,7 @@ public enum PaymentDestinationBuilder {
     }
 
     public static func transfer(payment: Primitives.PaymentRequest, asset: Primitives.Asset) throws -> TransferDestination {
-        switch try Gemstone.paymentTransferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
+        switch try paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
             return try .confirm(transferData(transfer: transfer, asset: asset))
         case .recipient:
@@ -25,7 +27,7 @@ public enum PaymentDestinationBuilder {
     }
 
     public static func build(payment: Primitives.PaymentRequest, assets: [AssetData]) throws -> PaymentDestination {
-        switch try Gemstone.paymentDestination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
+        switch try paymentService.destination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
         case let .confirm(transfer):
             guard let assetData = assetData(for: transfer.assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)
@@ -64,7 +66,7 @@ public enum PaymentDestinationBuilder {
             ),
         )
         let transfer = transaction.request.flatMap {
-            Gemstone.paymentDecodedTransfer(request: $0, asset: asset.paymentWalletAsset)
+            paymentService.decodedTransfer(request: $0, asset: asset.paymentWalletAsset)
         }
         guard let transfer else {
             return .confirm(

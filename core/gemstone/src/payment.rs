@@ -18,9 +18,31 @@ pub enum GemPaymentError {
     Network { reason: String },
 }
 
+#[derive(Default, uniffi::Object)]
+pub struct GemPaymentService {}
+
 #[uniffi::export]
-pub fn payment_decode_url(string: &str) -> Result<GemPayment, GemstoneError> {
-    Ok(PaymentURLDecoder::decode(string)?)
+impl GemPaymentService {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn decode_url(&self, string: String) -> Result<GemPayment, GemstoneError> {
+        Ok(PaymentURLDecoder::decode(&string)?)
+    }
+
+    pub fn destination(&self, request: GemPaymentRequest, assets: Vec<GemPaymentWalletAsset>) -> GemPaymentDestination {
+        payment_destination(&request, assets)
+    }
+
+    pub fn transfer_destination(&self, request: GemPaymentRequest, asset: GemPaymentWalletAsset) -> GemPaymentDestination {
+        payment_transfer_destination(&request, asset)
+    }
+
+    pub fn decoded_transfer(&self, request: GemPaymentRequest, asset: GemPaymentWalletAsset) -> Option<GemPaymentConfirmTransfer> {
+        payment_decoded_transfer(&request, asset)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -46,8 +68,7 @@ pub enum GemPaymentDestination {
     Unsupported,
 }
 
-#[uniffi::export]
-pub fn payment_destination(request: &GemPaymentRequest, assets: Vec<GemPaymentWalletAsset>) -> GemPaymentDestination {
+fn payment_destination(request: &GemPaymentRequest, assets: Vec<GemPaymentWalletAsset>) -> GemPaymentDestination {
     let payable: Vec<&GemPaymentWalletAsset> = match &request.asset_id {
         Some(asset_id) => assets.iter().filter(|asset| &asset.asset_id == asset_id).collect(),
         None => assets.iter().filter(|asset| validate_address(&request.address, asset.asset_id.chain)).collect(),
@@ -67,16 +88,14 @@ pub fn payment_destination(request: &GemPaymentRequest, assets: Vec<GemPaymentWa
     }
 }
 
-#[uniffi::export]
-pub fn payment_transfer_destination(request: &GemPaymentRequest, asset: GemPaymentWalletAsset) -> GemPaymentDestination {
+fn payment_transfer_destination(request: &GemPaymentRequest, asset: GemPaymentWalletAsset) -> GemPaymentDestination {
     match &request.asset_id {
         Some(asset_id) if asset_id != &asset.asset_id => GemPaymentDestination::Unsupported,
         _ => transfer_destination(&asset, request),
     }
 }
 
-#[uniffi::export]
-pub fn payment_decoded_transfer(request: &GemPaymentRequest, asset: GemPaymentWalletAsset) -> Option<GemPaymentConfirmTransfer> {
+fn payment_decoded_transfer(request: &GemPaymentRequest, asset: GemPaymentWalletAsset) -> Option<GemPaymentConfirmTransfer> {
     match &request.asset_id {
         Some(asset_id) if asset_id != &asset.asset_id => None,
         _ => confirm_transfer(&asset, request),
@@ -137,12 +156,12 @@ fn transfer_value(request: &GemPaymentRequest, decimals: i32) -> Option<BigUint>
 }
 
 #[derive(uniffi::Object)]
-pub struct PaymentService {
+pub struct GemPaymentLinkService {
     service: CorePaymentService,
 }
 
 #[uniffi::export]
-impl PaymentService {
+impl GemPaymentLinkService {
     #[uniffi::constructor]
     pub fn new(provider: Arc<dyn AlienProvider>) -> Self {
         Self {
@@ -302,8 +321,9 @@ mod tests {
 
     #[test]
     fn test_request() {
+        let decode_url = |url: &str| GemPaymentService::new().decode_url(url.to_string());
         assert_eq!(
-            payment_decode_url("solana:3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw?amount=0.42301").unwrap(),
+            decode_url("solana:3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw?amount=0.42301").unwrap(),
             GemPayment::Request(GemPaymentRequest {
                 address: "3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw".to_string(),
                 amount: Some(GemPaymentAmount::ExactValue("0.42301".to_string())),
@@ -316,20 +336,21 @@ mod tests {
 
     #[test]
     fn test_link() {
+        let decode_url = |url: &str| GemPaymentService::new().decode_url(url.to_string());
         const CONSTANT_K: &str = "https://www.constant-k.com/ck-txreq/?tok=MjYyfG9wZXJhdG9yfGFubnVhbHx8MTc4NzUyOTMxOXw3M2FiNDFhZmIwNTAxZWNjNjE2Y2E4NmIxZGE5N2FlOWZjM2Y1OGMzZWZhMGYxMjNiOGI4ZGYzZmU2YzQ3ZmM4";
 
         assert_eq!(
-            payment_decode_url("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1").unwrap(),
+            decode_url("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1").unwrap(),
             GemPayment::Link(GemPaymentLink::SolanaPay {
                 url: "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1".to_string(),
             })
         );
         assert_eq!(
-            payment_decode_url("solana:https%3A%2F%2Fwww.constant-k.com%2Fck-txreq%2F%3Ftok%3DMjYyfG9wZXJhdG9yfGFubnVhbHx8MTc4NzUyOTMxOXw3M2FiNDFhZmIwNTAxZWNjNjE2Y2E4NmIxZGE5N2FlOWZjM2Y1OGMzZWZhMGYxMjNiOGI4ZGYzZmU2YzQ3ZmM4").unwrap(),
+            decode_url("solana:https%3A%2F%2Fwww.constant-k.com%2Fck-txreq%2F%3Ftok%3DMjYyfG9wZXJhdG9yfGFubnVhbHx8MTc4NzUyOTMxOXw3M2FiNDFhZmIwNTAxZWNjNjE2Y2E4NmIxZGE5N2FlOWZjM2Y1OGMzZWZhMGYxMjNiOGI4ZGYzZmU2YzQ3ZmM4").unwrap(),
             GemPayment::Link(GemPaymentLink::SolanaPay {
                 url: CONSTANT_K.to_string(),
             })
         );
-        assert!(payment_decode_url("https://pay.walletconnect.com/?pid=pay_123").is_err());
+        assert!(decode_url("https://pay.walletconnect.com/?pid=pay_123").is_err());
     }
 }

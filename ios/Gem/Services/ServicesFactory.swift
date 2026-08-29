@@ -97,7 +97,7 @@ struct ServicesFactory {
             preferences: walletPreferencesService,
         )
         let gemScanService = Gemstone.GemScanService(api: gemDeviceApiClient)
-        let paymentService = PaymentService(provider: nativeProvider)
+        let paymentService = GemPaymentLinkService(provider: nativeProvider)
         let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
         let serviceStatusConfiguration = URLSessionConfiguration.default
         serviceStatusConfiguration.timeoutIntervalForRequest = TimeInterval(serviceStatusTimeoutSeconds())

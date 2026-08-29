@@ -9,8 +9,9 @@ import com.wallet.core.primitives.PaymentRequest
 import uniffi.gemstone.GemPaymentConfirmTransfer
 import uniffi.gemstone.GemPaymentDestination
 import uniffi.gemstone.GemPaymentWalletAsset
-import uniffi.gemstone.paymentDestination
-import uniffi.gemstone.paymentTransferDestination
+import uniffi.gemstone.GemPaymentService
+
+private val paymentService = GemPaymentService()
 
 sealed interface PaymentDestination {
 
@@ -26,7 +27,7 @@ sealed interface PaymentDestination {
 
     companion object {
         fun from(request: PaymentRequest, assets: List<AssetInfo>): PaymentDestination =
-            when (val destination = paymentDestination(request.toJson(), assets.map { it.toPaymentWalletAsset() })) {
+            when (val destination = paymentService.destination(request.toJson(), assets.map { it.toPaymentWalletAsset() })) {
                 is GemPaymentDestination.Confirm -> destination.transfer.toTransferParams(assets)?.let(::Confirm) ?: Unsupported
                 is GemPaymentDestination.Recipient -> destination.assetId.toAssetId()?.let { Recipient(it, request) } ?: Unsupported
                 is GemPaymentDestination.SelectAsset -> SelectAsset(request, destination.chains.mapNotNull { chain -> Chain.entries.firstOrNull { it.string == chain } })
@@ -34,7 +35,7 @@ sealed interface PaymentDestination {
             }
 
         fun transfer(request: PaymentRequest, assetInfo: AssetInfo): Transfer =
-            when (val destination = paymentTransferDestination(request.toJson(), assetInfo.toPaymentWalletAsset())) {
+            when (val destination = paymentService.transferDestination(request.toJson(), assetInfo.toPaymentWalletAsset())) {
                 is GemPaymentDestination.Confirm -> destination.transfer.toTransferParams(listOf(assetInfo))?.let(::Confirm) ?: Unsupported
                 is GemPaymentDestination.Recipient -> Recipient(assetInfo.asset.id, request)
                 is GemPaymentDestination.SelectAsset -> Unsupported

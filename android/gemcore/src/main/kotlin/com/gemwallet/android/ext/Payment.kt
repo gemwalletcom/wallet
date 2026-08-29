@@ -4,7 +4,9 @@ import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Payment
 import com.wallet.core.primitives.PaymentAmount
 import com.wallet.core.primitives.PaymentRequest
-import uniffi.gemstone.paymentDecodeUrl
+import uniffi.gemstone.GemPaymentService
+
+private val paymentService = GemPaymentService()
 
 val Payment.request: PaymentRequest?
     get() = when (this) {
@@ -19,4 +21,4 @@ val PaymentRequest.exactAmount: String?
     }
 
 fun decodePayment(url: String): Payment? =
-    runCatching { paymentDecodeUrl(url) }.getOrNull()?.decodeJson()
+    runCatching { paymentService.decodeUrl(url) }.getOrNull()?.decodeJson()
