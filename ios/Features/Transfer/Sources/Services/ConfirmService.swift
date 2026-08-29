@@ -16,8 +16,6 @@ import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 
-private let feeService = GemFeeService()
-
 public struct ConfirmService: Sendable {
     private let metadataProvider: any TransferMetadataProvidable
     private let inputProvider: ConfirmTransferInputProvider
@@ -32,6 +30,8 @@ public struct ConfirmService: Sendable {
     private let explorerService: any GemExplorerServiceProtocol
     private let addressStore: AddressStore
 
+    private let feeService: GemFeeService
+
     public init(
         metadataProvider: any TransferMetadataProvidable,
         inputProvider: ConfirmTransferInputProvider,
@@ -45,6 +45,7 @@ public struct ConfirmService: Sendable {
         keystore: any Keystore,
         explorerService: any GemExplorerServiceProtocol,
         addressStore: AddressStore,
+        feeService: GemFeeService,
     ) {
         self.metadataProvider = metadataProvider
         self.inputProvider = inputProvider
@@ -58,6 +59,7 @@ public struct ConfirmService: Sendable {
         self.keystore = keystore
         self.explorerService = explorerService
         self.addressStore = addressStore
+        self.feeService = feeService
     }
 
     func simulationState(request: ConfirmTransferRequest) -> ConfirmSimulationState {

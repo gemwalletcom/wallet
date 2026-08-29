@@ -18,6 +18,10 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
+import class Gemstone.GemRecipientService
+import class Gemstone.GemAssetConfigService
+import class Gemstone.GemSimulationFormatter
+import class Gemstone.GemFeeService
 import Preferences
 import Primitives
 import PrimitivesComponents
@@ -56,6 +60,10 @@ public struct ViewModelFactory: Sendable {
     let priceAlertService: any GemPriceAlertServiceProtocol
     let searchService: any GemSearchServiceProtocol
     let perpetualService: any GemPerpetualServiceProtocol
+    let feeService: GemFeeService
+    let simulationFormatter: GemSimulationFormatter
+    let assetConfig: GemAssetConfigService
+    let recipientService: GemRecipientService
 
     @MainActor
     public func selectAssetScene(
@@ -126,8 +134,11 @@ public struct ViewModelFactory: Sendable {
                 addressStore: addressStore,
                 recentActivityStore: recentActivityStore,
                 toastPresenter: toastPresenter,
+                feeService: feeService,
+                simulationFormatter: simulationFormatter,
             ),
             onComplete: onComplete,
+            assetConfig: assetConfig,
         )
     }
 
@@ -149,6 +160,7 @@ public struct ViewModelFactory: Sendable {
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
+            recipientService: recipientService,
         )
     }
 

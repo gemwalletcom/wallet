@@ -354,6 +354,10 @@ struct ServicesFactory {
             priceAlertService: priceAlertService,
             searchService: searchService,
             perpetualService: perpetualService,
+            feeService: Gemstone.GemFeeService(),
+            simulationFormatter: Gemstone.GemSimulationFormatter(),
+            assetConfig: Gemstone.GemAssetConfigService(),
+            recipientService: Gemstone.GemRecipientService(),
         )
 
         return AppResolver.Services(

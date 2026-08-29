@@ -9,21 +9,23 @@ import Primitives
 import PrimitivesComponents
 import Store
 
-private let simulationFormatter = GemSimulationFormatter()
-
 public struct ConfirmSimulationService: Sendable {
     private let nameService: any GemNameServiceProtocol
     private let assetsService: any GemAssetsServiceProtocol
     private let assetStore: AssetStore
 
+    private let simulationFormatter: GemSimulationFormatter
+
     public init(
         nameService: any GemNameServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
         assetStore: AssetStore,
+        simulationFormatter: GemSimulationFormatter,
     ) {
         self.nameService = nameService
         self.assetsService = assetsService
         self.assetStore = assetStore
+        self.simulationFormatter = simulationFormatter
     }
 
     func makeState(data: TransferData, simulation: SimulationResult?) -> ConfirmSimulationState {

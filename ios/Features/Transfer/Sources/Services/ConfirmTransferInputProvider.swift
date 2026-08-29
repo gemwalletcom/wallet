@@ -8,18 +8,20 @@ import Primitives
 import PrimitivesComponents
 import Validators
 
-private let feeService = GemFeeService()
-
 public struct ConfirmTransferInputProvider: Sendable {
     private let transferTransactionProvider: any TransferTransactionProvidable
     private let feeAssetProvider: any FeeAssetProvidable
 
+    private let feeService: GemFeeService
+
     public init(
         transferTransactionProvider: any TransferTransactionProvidable,
         feeAssetProvider: any FeeAssetProvidable,
+        feeService: GemFeeService,
     ) {
         self.transferTransactionProvider = transferTransactionProvider
         self.feeAssetProvider = feeAssetProvider
+        self.feeService = feeService
     }
 
     func load(

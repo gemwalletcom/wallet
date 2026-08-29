@@ -10,6 +10,7 @@ import Testing
 @testable import Transfer
 import TransferTestKit
 import Validators
+import class Gemstone.GemFeeService
 
 struct ConfirmTransferInputProviderTests {
     @Test
@@ -34,6 +35,7 @@ struct ConfirmTransferInputProviderTests {
                 .mock(fee: .mock(feeAsset: feeAsset.id.identifier)),
             )),
             feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance, price: feeAssetPrice),
+            feeService: GemFeeService(),
         )
 
         let result = try await provider.load()
@@ -57,6 +59,7 @@ struct ConfirmTransferInputProviderTests {
                 balance: .mock(available: 42),
                 price: .mock(price: 1),
             ),
+            feeService: GemFeeService(),
         )
 
         let result = try await provider.load(
@@ -117,6 +120,7 @@ struct ConfirmTransferInputProviderTests {
                 .mock(),
             )),
             feeAssetProvider: FeeAssetProviderMock(error: "fee asset"),
+            feeService: GemFeeService(),
         )
         let metadata = TransferDataMetadata.mock(
             feeAssetId: AssetId(chain: .ethereum, tokenId: nil),
@@ -143,6 +147,7 @@ private extension ConfirmTransferInputProvider {
         ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
             feeAssetProvider: FeeAssetProviderMock(),
+            feeService: GemFeeService(),
         )
     }
 }

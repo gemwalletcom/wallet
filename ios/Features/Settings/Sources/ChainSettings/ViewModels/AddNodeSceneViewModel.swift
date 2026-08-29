@@ -12,8 +12,6 @@ import Style
 import SwiftUI
 import Validators
 
-private let chainService = GemChainService()
-
 @MainActor
 @Observable
 final class AddNodeSceneViewModel {
@@ -28,7 +26,10 @@ final class AddNodeSceneViewModel {
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
 
-    init(chain: Chain, nodeService: GemNodeService, gatewayService: GatewayService) {
+    private let chainService: GemChainService
+
+    init(chain: Chain, nodeService: GemNodeService, gatewayService: GatewayService, chainService: GemChainService) {
+        self.chainService = chainService
         self.chain = chain
         self.nodeService = nodeService
         self.gatewayService = gatewayService

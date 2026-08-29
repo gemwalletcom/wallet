@@ -13,8 +13,6 @@ import Store
 import Style
 import SwiftUI
 
-private let recipientService = GemRecipientService()
-
 public typealias RecipientDataAction = ((RecipientData) -> Void)?
 
 @Observable
@@ -40,6 +38,8 @@ public final class RecipientSceneViewModel {
         contactsQuery.value
     }
 
+    private let recipientService: GemRecipientService
+
     public init(
         wallet: Wallet,
         asset: Asset,
@@ -50,6 +50,7 @@ public final class RecipientSceneViewModel {
         recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
+        recipientService: GemRecipientService,
     ) {
         self.wallet = wallet
         self.asset = asset
@@ -58,6 +59,7 @@ public final class RecipientSceneViewModel {
         self.type = type
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
+        self.recipientService = recipientService
 
         addressInputModel = AddressInputViewModel(
             chain: asset.chain,

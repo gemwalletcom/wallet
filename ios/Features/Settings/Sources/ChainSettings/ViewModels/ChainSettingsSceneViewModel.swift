@@ -8,6 +8,7 @@ import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
+import class Gemstone.GemChainService
 
 @Observable
 @MainActor
@@ -16,6 +17,7 @@ public final class ChainSettingsSceneViewModel {
 
     let nodeService: GemNodeService
     let gatewayService: GatewayService
+    let chainService: GemChainService
     let chain: Chain
 
     var selectedExplorer: String?
@@ -32,10 +34,12 @@ public final class ChainSettingsSceneViewModel {
     public init(
         nodeService: GemNodeService,
         gatewayService: GatewayService,
+        chainService: GemChainService,
         explorerService: any GemExplorerServiceProtocol,
         chain: Chain,
     ) {
         self.nodeService = nodeService
+        self.chainService = chainService
         self.gatewayService = gatewayService
         self.explorerService = explorerService
 

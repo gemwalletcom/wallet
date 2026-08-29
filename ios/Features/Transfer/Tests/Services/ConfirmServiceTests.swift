@@ -13,6 +13,7 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
+import class Gemstone.GemSimulationFormatter
 @testable import Transfer
 
 struct ConfirmServiceTests {
@@ -71,6 +72,7 @@ struct ConfirmServiceTests {
             nameService: GemNameServiceMock(),
             assetsService: GemAssetsServiceMock(),
             assetStore: .mock(),
+            simulationFormatter: GemSimulationFormatter(),
         )
 
         let state = service.makeState(
@@ -94,6 +96,7 @@ struct ConfirmServiceTests {
             nameService: GemNameServiceMock(),
             assetsService: GemAssetsServiceMock(),
             assetStore: assetStore,
+            simulationFormatter: GemSimulationFormatter(),
         )
 
         let state = await service.updateState(
@@ -113,6 +116,7 @@ struct ConfirmServiceTests {
             nameService: GemNameServiceMock(),
             assetsService: GemAssetsServiceMock(),
             assetStore: assetStore,
+            simulationFormatter: GemSimulationFormatter(),
         )
 
         let state = service.makeState(
@@ -144,6 +148,7 @@ struct ConfirmServiceTests {
             nameService: GemNameServiceMock(),
             assetsService: GemAssetsServiceMock(),
             assetStore: assetStore,
+            simulationFormatter: GemSimulationFormatter(),
         )
 
         let state = service.makeState(
@@ -185,6 +190,7 @@ struct ConfirmServiceTests {
                 store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock()),
             ),
             assetStore: assetStore,
+            simulationFormatter: GemSimulationFormatter(),
         ).updateState(
             data: TransferData.mock(type: .transfer(.mock())),
             simulation: simulation,
@@ -199,6 +205,7 @@ struct ConfirmServiceTests {
             nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
             assetsService: GemAssetsServiceMock(),
             assetStore: .mock(),
+            simulationFormatter: GemSimulationFormatter(),
         )
 
         let state = await service.updateState(

@@ -9,6 +9,7 @@ import Testing
 @testable import Transfer
 import GemstoneServices
 import GemstoneServicesTestKit
+import class Gemstone.GemRecipientService
 
 @MainActor
 struct RecipientSceneViewModelTests {
@@ -158,6 +159,7 @@ extension RecipientSceneViewModel {
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
+            recipientService: GemRecipientService(),
         )
     }
 }

@@ -19,6 +19,9 @@ import Testing
 @testable import Transfer
 import TransferTestKit
 import Validators
+import class Gemstone.GemFeeService
+import class Gemstone.GemSimulationFormatter
+import class Gemstone.GemAssetConfigService
 
 @MainActor
 struct ConfirmTransferSceneViewModelTests {
@@ -688,6 +691,7 @@ private extension ConfirmTransferSceneViewModel {
             ),
             confirmService: confirmService,
             onComplete: {},
+            assetConfig: GemAssetConfigService(),
         )
     }
 
@@ -717,8 +721,11 @@ private extension ConfirmTransferSceneViewModel {
                 addressStore: addressStore,
                 recentActivityStore: .mock(),
                 toastPresenter: ToastPresenter(),
+                feeService: GemFeeService(),
+                simulationFormatter: GemSimulationFormatter(),
             ),
             onComplete: {},
+            assetConfig: GemAssetConfigService(),
         )
     }
 }

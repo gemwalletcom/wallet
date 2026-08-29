@@ -9,6 +9,8 @@ import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import class Gemstone.GemConfirmService
+import class Gemstone.GemSimulationFormatter
+import class Gemstone.GemFeeService
 import Preferences
 import Primitives
 import PrimitivesComponents
@@ -28,6 +30,8 @@ public enum ConfirmServiceFactory {
         addressStore: AddressStore,
         recentActivityStore: RecentActivityStore,
         toastPresenter: ToastPresenter,
+        feeService: GemFeeService,
+        simulationFormatter: GemSimulationFormatter,
     ) -> ConfirmService {
         return ConfirmService(
             metadataProvider: TransferMetadataProvider(
@@ -39,11 +43,13 @@ public enum ConfirmServiceFactory {
                     confirmService: gemConfirmService,
                 ),
                 feeAssetProvider: FeeAssetProvider(assetStore: assetStore),
+                feeService: feeService,
             ),
             simulationService: ConfirmSimulationService(
                 nameService: nameService,
                 assetsService: assetsService,
                 assetStore: assetStore,
+                simulationFormatter: simulationFormatter,
             ),
             gemConfirmService: gemConfirmService,
             signer: KeystoreTransactionSigner(keystore: keystore),
@@ -54,6 +60,7 @@ public enum ConfirmServiceFactory {
             keystore: keystore,
             explorerService: explorerService,
             addressStore: addressStore,
+            feeService: feeService,
         )
     }
 }

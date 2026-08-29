@@ -11,6 +11,8 @@ import Store
 import StoreTestKit
 @testable import Transfer
 import TransferTestKit
+import class Gemstone.GemFeeService
+import class Gemstone.GemSimulationFormatter
 
 extension ConfirmService {
     static func mock(
@@ -23,8 +25,14 @@ extension ConfirmService {
             inputProvider: ConfirmTransferInputProvider(
                 transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
                 feeAssetProvider: FeeAssetProviderMock(),
+                feeService: GemFeeService(),
             ),
-            simulationService: ConfirmSimulationService(nameService: GemNameServiceMock(), assetsService: GemAssetsServiceMock(), assetStore: .mock()),
+            simulationService: ConfirmSimulationService(
+                nameService: GemNameServiceMock(),
+                assetsService: GemAssetsServiceMock(),
+                assetStore: .mock(),
+                simulationFormatter: GemSimulationFormatter(),
+            ),
             gemConfirmService: gemConfirmService,
             signer: GemTransactionSignerMock(),
             preferencesService: GemPreferencesServiceMock(),
@@ -34,6 +42,7 @@ extension ConfirmService {
             keystore: KeystoreMock(),
             explorerService: GemExplorerServiceMock(),
             addressStore: .mock(),
+            feeService: GemFeeService(),
         )
     }
 }

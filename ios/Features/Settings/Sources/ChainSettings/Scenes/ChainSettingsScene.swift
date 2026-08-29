@@ -91,6 +91,7 @@ public struct ChainSettingsScene: View {
                         chain: model.chain,
                         nodeService: model.nodeService,
                         gatewayService: model.gatewayService,
+                        chainService: model.chainService,
                     ),
                     onDismiss: model.onDismissImportNode,
                 )

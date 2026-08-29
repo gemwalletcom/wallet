@@ -17,8 +17,6 @@ import SwiftUI
 import Validators
 import WalletConnector
 
-private let assetConfig = GemAssetConfigService()
-
 @Observable
 @MainActor
 public final class ConfirmTransferSceneViewModel {
@@ -51,10 +49,13 @@ public final class ConfirmTransferSceneViewModel {
     private let currency: Currency
     private let onComplete: VoidAction
 
+    private let assetConfig: GemAssetConfigService
+
     public init(
         request: ConfirmTransferRequest,
         confirmService: ConfirmService,
         onComplete: VoidAction,
+        assetConfig: GemAssetConfigService,
     ) {
         self.request = request
         self.confirmService = confirmService
@@ -77,6 +78,7 @@ public final class ConfirmTransferSceneViewModel {
             feeAsset: request.data.type.feeAsset,
             transaction: .loading,
         )
+        self.assetConfig = assetConfig
     }
 
     var preloadSelection: ConfirmPreloadSelection {
