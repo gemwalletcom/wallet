@@ -381,7 +381,6 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 | Repository | Callers | What it holds today | Target |
 | --- | --- | --- | --- |
-| `DeviceRepository` | 2 | push token and push-enabled over DataStore, device info for `GemDeviceService` | push token and flag are preferences — move the values into Core (`GemPreferencesService`) and keep a `GetPushEnabled`/`SetPushToken` case |
 | `PerpetualRepository` (+`Impl`) | 18 | six observed reads over the perpetual DAOs | one case per read (`GetPerpetuals`, `GetPerpetual`, `GetPositions`, `GetPosition`, `GetPerpetualBalance`) |
 | `StakeRepository` | 12 | DAO reads plus `GemStakeService` and the validator free functions | stake cases; the recommended/selectable validator calls go straight to Core |
 | `TokensRepository` | 4 | three search strategies over `GemSearchService`/`GemAssetsService` | the query strategy becomes `SearchTokensCase` holding `GemSearchService`; the Android-only "retry as a text query" fallback is decided against iOS first |

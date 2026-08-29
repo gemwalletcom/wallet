@@ -1,6 +1,6 @@
 package wallet.android.app
 
-import com.gemwallet.android.data.repositories.device.DeviceRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstoneDevicePlatform
 import com.wallet.core.primitives.DeviceLocale
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -27,9 +27,9 @@ class TestSyncDeviceLocale {
         )
 
         locales.forEach { (languageTag, expected) ->
-            assertEquals(expected, DeviceRepository.getDeviceLocale(Locale.forLanguageTag(languageTag)))
+            assertEquals(expected, GemstoneDevicePlatform.getDeviceLocale(Locale.forLanguageTag(languageTag)))
         }
 
-        assertEquals(DeviceLocale.EN, DeviceRepository.getDeviceLocale(Locale.forLanguageTag("af-ZA")))
+        assertEquals(DeviceLocale.EN, GemstoneDevicePlatform.getDeviceLocale(Locale.forLanguageTag("af-ZA")))
     }
 }

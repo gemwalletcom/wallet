@@ -7,7 +7,7 @@ import com.gemwallet.android.cases.device.IsDeviceRegistered
 import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.device.DeviceObserverService
-import com.gemwallet.android.data.repositories.device.DeviceRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstoneDevicePlatform
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
@@ -38,7 +38,7 @@ object DeviceModule {
         @Named("registration") apiClient: GemDeviceApiClient,
         subscriptionService: GemSubscriptionService,
         walletStore: GemstoneWalletStore,
-        platform: DeviceRepository,
+        platform: GemstoneDevicePlatform,
         preferencesService: GemPreferencesService,
     ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, walletStore, platform, preferencesService)
 
@@ -51,15 +51,15 @@ object DeviceModule {
 
     @Provides
     @Singleton
-    fun provideDeviceRepository(
+    fun provideDevicePlatform(
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
         deviceService: Lazy<GemDeviceService>,
         deviceKeyService: GemDeviceKeyService,
         preferencesService: GemPreferencesService,
         notificationsAvailable: NotificationsAvailable,
-    ): DeviceRepository {
-        return DeviceRepository(
+    ): GemstoneDevicePlatform {
+        return GemstoneDevicePlatform(
             context = context,
             deviceService = deviceService,
             deviceKeyService = deviceKeyService,
@@ -73,19 +73,19 @@ object DeviceModule {
     }
 
     @Provides
-    fun provideSwitchPushEnabledCase(repository: DeviceRepository): SwitchPushEnabled = repository
+    fun provideSwitchPushEnabledCase(repository: GemstoneDevicePlatform): SwitchPushEnabled = repository
 
     @Provides
-    fun provideGetPushEnabledCase(repository: DeviceRepository): GetPushEnabled = repository
+    fun provideGetPushEnabledCase(repository: GemstoneDevicePlatform): GetPushEnabled = repository
 
     @Provides
-    fun provideSetPushTokenCase(repository: DeviceRepository): SetPushToken = repository
+    fun provideSetPushTokenCase(repository: GemstoneDevicePlatform): SetPushToken = repository
 
     @Provides
-    fun provideGetPushTokenCase(repository: DeviceRepository): GetPushToken = repository
+    fun provideGetPushTokenCase(repository: GemstoneDevicePlatform): GetPushToken = repository
 
     @Provides
-    fun provideIsDeviceRegisteredCase(repository: DeviceRepository): IsDeviceRegistered = repository
+    fun provideIsDeviceRegisteredCase(repository: GemstoneDevicePlatform): IsDeviceRegistered = repository
 
     @Provides
     @Singleton

@@ -1,9 +1,8 @@
-package com.gemwallet.android.data.repositories.device
+package com.gemwallet.android.data.repositories.gemstone
 
 import android.content.Context
 import android.icu.util.ULocale
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.GetPushToken
@@ -25,7 +24,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemDeviceInfo
 import uniffi.gemstone.GemDevicePlatform
@@ -34,7 +35,7 @@ import uniffi.gemstone.GemDeviceService
 import java.util.Locale
 import uniffi.gemstone.GemPreferencesService
 
-class DeviceRepository(
+class GemstoneDevicePlatform(
     private val context: Context,
     private val deviceService: Lazy<GemDeviceService>,
     private val configStore: ConfigStore,
@@ -54,17 +55,31 @@ class DeviceRepository(
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
 
+    private val pushEnabledState = MutableStateFlow(notificationsAvailable && preferencesService.isPushNotificationsEnabled())
+
     override suspend fun switchPushEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[Key.PushEnabled] = enabled && notificationsAvailable
-        }
+        setPushEnabled(enabled && notificationsAvailable)
         try {
             deviceService.get().synchronizeIfNeeded()
         } catch (_: Throwable) {}
     }
 
-    override fun getPushEnabled(): Flow<Boolean> = context.dataStore.data
-        .map { preferences -> notificationsAvailable && preferences[Key.PushEnabled] == true }
+    override fun getPushEnabled(): Flow<Boolean> = pushEnabledState.onStart { migratePushEnabled() }
+
+    private fun setPushEnabled(enabled: Boolean) {
+        preferencesService.setPushNotificationsEnabled(enabled)
+        pushEnabledState.value = enabled
+    }
+
+    private suspend fun migratePushEnabled() {
+        if (preferencesService.isPushNotificationsEnabled()) {
+            return
+        }
+        val stored = context.dataStore.data.map { it[Key.PushEnabled] == true }.firstOrNull() ?: return
+        if (stored) {
+            setPushEnabled(notificationsAvailable)
+        }
+    }
 
     override fun setPushToken(token: String) {
         configStore.putString(ConfigKey.PushToken.string, if (notificationsAvailable) token else "")
