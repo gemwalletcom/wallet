@@ -31,3 +31,21 @@ pub enum GemTransactionSubtitle {
     FromResource { resource: Resource },
     Price { value: f64 },
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAmountSign {
+    None,
+    Incoming,
+    Outgoing,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemTransactionValue {
+    None,
+    AssetSymbol,
+    Amount { sign: GemAmountSign },
+    SwapReceived,
+    SwapSpent,
+    PerpetualNotional,
+    PerpetualPnl { value: f64 },
+}

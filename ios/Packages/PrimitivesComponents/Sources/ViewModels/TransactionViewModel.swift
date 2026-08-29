@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAmountSign
 import class Gemstone.GemTransactionFormatter
+import enum Gemstone.GemTransactionValue
 import protocol Gemstone.GemExplorerServiceProtocol
 import BigInt
 import Components
@@ -75,13 +77,16 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var infoModel: TransactionInfoViewModel {
-        let direction: TransactionDirection? = switch transaction.transaction.type {
-        case .transfer: transaction.transaction.direction
-        case .stakeRewards, .stakeWithdraw: .incoming
-        default: nil
-        }
+        infoModel(sign: amountSign)
+    }
 
-        return TransactionInfoViewModel(
+    private var amountSign: GemAmountSign {
+        guard case let .amount(sign) = transactionFormatter.value(for: transaction.transaction) else { return .none }
+        return sign
+    }
+
+    private func infoModel(sign: GemAmountSign) -> TransactionInfoViewModel {
+        TransactionInfoViewModel(
             currency: currency,
             asset: transaction.asset,
             assetPrice: transaction.price,
@@ -89,7 +94,7 @@ public struct TransactionViewModel: Sendable {
             feeAssetPrice: transaction.feePrice,
             value: transaction.transaction.valueBigInt,
             feeValue: transaction.transaction.feeBigInt,
-            direction: direction,
+            direction: sign.direction,
         )
     }
 
@@ -142,26 +147,26 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var subtitleTextValue: TextValue? {
-        switch transaction.transaction.type {
-        case .transfer,
-             .smartContractCall,
-             .stakeRewards,
-             .stakeWithdraw,
-             .stakeDelegate,
-             .stakeUndelegate,
-             .stakeRedelegate,
-             .assetActivation,
-             .stakeFreeze,
-             .stakeUnfreeze,
-             .earnDeposit,
-             .earnWithdraw:
-            return infoModel.amountDisplay(formatter: formatter).amount
-        case .perpetualClosePosition:
-            guard let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self), metadata.pnl != 0 else {
-                return .none
-            }
-            return AmountDisplay.currency(value: metadata.pnl, currencyCode: Currency.usd.rawValue)
-        case .perpetualOpenPosition:
+        amountTextValue(transactionFormatter.value(for: transaction.transaction), textStyle: nil)
+    }
+
+    public var subtitleExtraTextValue: TextValue? {
+        amountTextValue(transactionFormatter.equivalentValue(for: transaction.transaction), textStyle: .footnote)
+    }
+
+    private func amountTextValue(_ value: GemTransactionValue, textStyle: TextStyle?) -> TextValue? {
+        switch value {
+        case .none:
+            return .none
+        case .assetSymbol:
+            return AmountDisplay.symbol(asset: transaction.asset).amount
+        case let .amount(sign):
+            return infoModel(sign: sign).amountDisplay(formatter: formatter).amount
+        case .swapReceived:
+            return swapAmount(assetId: swapMetadata?.toAsset, value: swapMetadata?.toValue, sign: .incoming, textStyle: textStyle)
+        case .swapSpent:
+            return swapAmount(assetId: swapMetadata?.fromAsset, value: swapMetadata?.fromValue, sign: .outgoing, textStyle: textStyle)
+        case .perpetualNotional:
             return AmountDisplay.numeric(
                 asset: Chain.hyperCore.defaultAsset(type: .perpetual),
                 price: Price(price: 1, priceChangePercentage24h: .zero, updatedAt: .now),
@@ -170,57 +175,27 @@ public struct TransactionViewModel: Sendable {
                 formatter: formatter,
                 textStyle: TextStyle(font: .body, color: Colors.black, fontWeight: .medium),
             ).fiat
-        case .tokenApproval:
-            return AmountDisplay.symbol(asset: transaction.asset).amount
-        case .swap:
-            guard let metadata = transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), let asset = transaction.assets.first(where: { $0.id == metadata.toAsset }) else {
-                return .none
-            }
-            return AmountDisplay.numeric(
-                data: AssetValuePrice(asset: asset, value: BigInt.fromString(metadata.toValue), price: nil),
-                style: AmountDisplayStyle(sign: .incoming, formatter: formatter, currencyCode: currency),
-            ).amount
-        case .transferNFT:
-            return nil
-        case .perpetualModifyPosition:
-            return nil
+        case let .perpetualPnl(pnl):
+            return AmountDisplay.currency(value: pnl, currencyCode: Currency.usd.rawValue)
         }
     }
 
-    public var subtitleExtraTextValue: TextValue? {
-        switch transaction.transaction.type {
-        case .transfer,
-             .transferNFT,
-             .tokenApproval,
-             .stakeDelegate,
-             .stakeUndelegate,
-             .stakeRedelegate,
-             .stakeRewards,
-             .stakeWithdraw,
-             .assetActivation,
-             .smartContractCall,
-             .perpetualOpenPosition,
-             .perpetualClosePosition,
-             .perpetualModifyPosition,
-             .stakeFreeze,
-             .stakeUnfreeze,
-             .earnDeposit,
-             .earnWithdraw:
+    private func swapAmount(assetId: AssetId?, value: String?, sign: AmountDisplaySign, textStyle: TextStyle?) -> TextValue? {
+        guard
+            let assetId,
+            let value,
+            let asset = transaction.assets.first(where: { $0.id == assetId })
+        else {
             return .none
-        case .swap:
-            guard let metadata = transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), let asset = transaction.assets.first(where: { $0.id == metadata.fromAsset }) else {
-                return .none
-            }
-            return AmountDisplay.numeric(
-                data: AssetValuePrice(asset: asset, value: BigInt(stringLiteral: metadata.fromValue), price: nil),
-                style: AmountDisplayStyle(
-                    sign: .outgoing,
-                    formatter: formatter,
-                    currencyCode: currency,
-                    textStyle: .footnote,
-                ),
-            ).amount
         }
+        return AmountDisplay.numeric(
+            data: AssetValuePrice(asset: asset, value: BigInt.fromString(value), price: nil),
+            style: AmountDisplayStyle(sign: sign, formatter: formatter, currencyCode: currency, textStyle: textStyle),
+        ).amount
+    }
+
+    private var swapMetadata: TransactionSwapMetadata? {
+        transaction.transaction.metadata?.decode(TransactionSwapMetadata.self)
     }
 
     public var participant: String {

@@ -15,12 +15,12 @@ import com.gemwallet.android.ui.components.titleRes
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.decodeJsonOrNull
+import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemTransactionSubtitle
 import uniffi.gemstone.GemTransactionTitle
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.Resource
-import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionType
 
 private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
@@ -85,17 +85,13 @@ private fun prefixed(@StringRes prefix: Int, value: String): String? =
     value.takeIf { it.isNotEmpty() }?.let { "${stringResource(prefix)} $it" }
 
 @Composable
-fun TransactionDataAggregate.getValueColor(): Color = when (type) {
-    TransactionType.Swap -> MaterialTheme.colorScheme.tertiary
-    TransactionType.PerpetualClosePosition -> when {
+fun TransactionDataAggregate.getValueColor(): Color = when {
+    type == TransactionType.PerpetualClosePosition -> when {
         (pnl ?: 0.0) > 0 -> MaterialTheme.colorScheme.tertiary
         (pnl ?: 0.0) < 0 -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.onSurface
     }
-    else -> when (direction) {
-        TransactionDirection.SelfTransfer,
-        TransactionDirection.Outgoing -> MaterialTheme.colorScheme.onSurface
-        TransactionDirection.Incoming -> MaterialTheme.colorScheme.tertiary
-    }
+    valueSign == GemAmountSign.INCOMING -> MaterialTheme.colorScheme.tertiary
+    else -> MaterialTheme.colorScheme.onSurface
 }
 

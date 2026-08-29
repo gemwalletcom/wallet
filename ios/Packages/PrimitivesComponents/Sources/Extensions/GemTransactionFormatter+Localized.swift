@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemTransactionFormatter
+import enum Gemstone.GemAmountSign
 import enum Gemstone.GemTransactionSubtitle
+import enum Gemstone.GemTransactionValue
 import enum Gemstone.GemTransactionTitle
 import GemstonePrimitives
 import Localization
@@ -16,6 +18,16 @@ extension GemTransactionFormatter {
     public func subtitle(for transaction: Primitives.Transaction) -> GemTransactionSubtitle {
         guard let json = try? transaction.json() else { return .none }
         return subtitle(transaction: json)
+    }
+
+    public func value(for transaction: Primitives.Transaction) -> GemTransactionValue {
+        guard let json = try? transaction.json() else { return .none }
+        return value(transaction: json)
+    }
+
+    public func equivalentValue(for transaction: Primitives.Transaction) -> GemTransactionValue {
+        guard let json = try? transaction.json() else { return .none }
+        return equivalentValue(transaction: json)
     }
 }
 
@@ -52,5 +64,15 @@ extension GemTransactionTitle {
     ) -> String {
         guard let direction, let value = try? Primitives.PerpetualDirection(direction) else { return fallback }
         return directionTitle(PerpetualDirectionViewModel(direction: value).title)
+    }
+}
+
+extension GemAmountSign {
+    public var direction: Primitives.TransactionDirection? {
+        switch self {
+        case .incoming: .incoming
+        case .outgoing: .outgoing
+        case .none: .none
+        }
     }
 }

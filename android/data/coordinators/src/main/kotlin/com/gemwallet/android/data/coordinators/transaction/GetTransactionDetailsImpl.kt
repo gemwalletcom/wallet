@@ -10,7 +10,8 @@ import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.domains.swap.buildAssetRatePair
-import com.gemwallet.android.domains.transaction.AmountSign
+import com.gemwallet.android.domains.transaction.format
+import com.gemwallet.android.domains.transaction.sign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
@@ -167,7 +168,7 @@ class TransactionDetailsAggregateImpl(
                         TransactionType.StakeFreeze,
                         TransactionType.StakeUnfreeze -> Pair(formatter.string(value.atomicValue, asset), fiat)
                         TransactionType.Transfer -> Pair(
-                            AmountSign(data.transaction.direction).format(formatter.string(value.atomicValue, asset)),
+                            transactionFormatter.value(data.transaction.toJson()).sign().format(formatter.string(value.atomicValue, asset)),
                             fiat,
                         )
                         TransactionType.TransferNFT,

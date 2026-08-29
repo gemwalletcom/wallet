@@ -6,7 +6,6 @@ import com.gemwallet.android.application.transactions.cases.TransactionsRequestF
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.asset.getImageUrl
 import com.gemwallet.android.ext.AddressFormatter
@@ -28,7 +27,11 @@ import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemTransactionFormatter
+import com.gemwallet.android.domains.transaction.format
+import com.gemwallet.android.domains.transaction.sign
+import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemTransactionSubtitle
+import uniffi.gemstone.GemTransactionValue
 import uniffi.gemstone.GemTransactionTitle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -81,42 +84,28 @@ class TransactionDataAggregateImpl(
         ?.let { AddressFormatter(it, chain = data.transaction.assetId.chain).value() }
         .orEmpty()
 
-    override val value: String get() = when (data.transaction.type) {
-        TransactionType.Swap -> {
-            getSwapValue(true)?.let { (value, asset) ->
-                AmountSign.Incoming.format(formatter.string(value, asset))
-            } ?: ""
-        }
-        TransactionType.PerpetualOpenPosition -> usdFiatFormatter.string(
+    private val coreValue: GemTransactionValue = transactionFormatter.value(data.transaction.toJson())
+
+    override val valueSign: GemAmountSign = coreValue.sign()
+
+    override val value: String = amount(coreValue).orEmpty()
+
+    override val equivalentValue: String? = amount(transactionFormatter.equivalentValue(data.transaction.toJson()))
+
+    private fun amount(value: GemTransactionValue): String? = when (value) {
+        GemTransactionValue.None -> null
+        GemTransactionValue.AssetSymbol -> data.asset.symbol
+        is GemTransactionValue.Amount -> value.sign.format(getFormattedValue())
+        GemTransactionValue.SwapReceived -> swapAmount(toAsset = true, sign = GemAmountSign.INCOMING)
+        GemTransactionValue.SwapSpent -> swapAmount(toAsset = false, sign = GemAmountSign.OUTGOING)
+        GemTransactionValue.PerpetualNotional -> usdFiatFormatter.string(
             CryptoFiatConverter.toFiat(Crypto(data.transaction.value), HypercoreUSDC.decimals, price = 1.0).atomicValue,
         )
-        TransactionType.PerpetualClosePosition -> pnl?.let {
-            PriceChangeFormatter(usdFiatFormatter).string(it)
-        } ?: ""
-        TransactionType.StakeUndelegate,
-        TransactionType.StakeRewards,
-        TransactionType.StakeRedelegate,
-        TransactionType.StakeWithdraw,
-        TransactionType.EarnWithdraw,
-        TransactionType.StakeDelegate,
-        TransactionType.EarnDeposit,
-        TransactionType.StakeFreeze,
-        TransactionType.StakeUnfreeze -> getFormattedValue()
-        TransactionType.Transfer -> AmountSign(data.transaction.direction).format(getFormattedValue())
-        TransactionType.TokenApproval -> data.asset.symbol
-        TransactionType.TransferNFT,
-        TransactionType.AssetActivation,
-        TransactionType.SmartContractCall,
-        TransactionType.PerpetualModifyPosition
-            -> ""
+        is GemTransactionValue.PerpetualPnl -> PriceChangeFormatter(usdFiatFormatter).string(value.value)
     }
 
-    override val equivalentValue: String? get() = when (data.transaction.type) {
-        TransactionType.Swap -> getSwapValue(false)?.let { (value, asset) ->
-            AmountSign.Outgoing.format(formatter.string(value, asset))
-        }
-        else -> null
-    }
+    private fun swapAmount(toAsset: Boolean, sign: GemAmountSign): String? =
+        getSwapValue(toAsset)?.let { (value, asset) -> sign.format(formatter.string(value, asset)) }
 
     override val nftImageUrl: String? = data.transaction.getNftMetadata()?.getImageUrl()
 

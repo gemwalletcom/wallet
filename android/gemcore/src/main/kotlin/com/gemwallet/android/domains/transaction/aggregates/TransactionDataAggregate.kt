@@ -5,6 +5,7 @@ import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemTransactionSubtitle
 import uniffi.gemstone.GemTransactionTitle
 
@@ -18,6 +19,7 @@ interface TransactionDataAggregate {
     val equivalentValue: String?
     val title: GemTransactionTitle
     val subtitle: GemTransactionSubtitle
+    val valueSign: GemAmountSign
 
     val type: TransactionType
     val direction: TransactionDirection

@@ -2,7 +2,7 @@ use primitives::{
     AssetId, PerpetualDirection, Transaction, TransactionDirection, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionType,
 };
 
-use super::model::{GemTransactionSubtitle, GemTransactionTitle};
+use super::model::{GemAmountSign, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue};
 use crate::services::collections::unique;
 
 pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
@@ -63,6 +63,47 @@ pub fn transaction_subtitle(transaction: &Transaction) -> GemTransactionSubtitle
             }
         }
         TransactionType::Swap | TransactionType::StakeRewards | TransactionType::StakeWithdraw | TransactionType::AssetActivation => GemTransactionSubtitle::None,
+    }
+}
+
+pub fn transaction_value(transaction: &Transaction) -> GemTransactionValue {
+    match transaction.transaction_type {
+        TransactionType::Swap => GemTransactionValue::SwapReceived,
+        TransactionType::TokenApproval => GemTransactionValue::AssetSymbol,
+        TransactionType::PerpetualOpenPosition => GemTransactionValue::PerpetualNotional,
+        TransactionType::PerpetualClosePosition => match perpetual_metadata(transaction).map(|metadata| metadata.pnl).filter(|pnl| *pnl != 0.0) {
+            Some(value) => GemTransactionValue::PerpetualPnl { value },
+            None => GemTransactionValue::None,
+        },
+        TransactionType::StakeRewards | TransactionType::StakeWithdraw => GemTransactionValue::Amount { sign: GemAmountSign::Incoming },
+        TransactionType::Transfer => GemTransactionValue::Amount {
+            sign: amount_sign(&transaction.direction),
+        },
+        TransactionType::StakeDelegate
+        | TransactionType::StakeUndelegate
+        | TransactionType::StakeRedelegate
+        | TransactionType::StakeFreeze
+        | TransactionType::StakeUnfreeze
+        | TransactionType::EarnDeposit
+        | TransactionType::EarnWithdraw
+        | TransactionType::AssetActivation
+        | TransactionType::SmartContractCall => GemTransactionValue::Amount { sign: GemAmountSign::None },
+        TransactionType::TransferNFT | TransactionType::PerpetualModifyPosition => GemTransactionValue::None,
+    }
+}
+
+pub fn transaction_equivalent_value(transaction: &Transaction) -> GemTransactionValue {
+    match transaction.transaction_type {
+        TransactionType::Swap => GemTransactionValue::SwapSpent,
+        _ => GemTransactionValue::None,
+    }
+}
+
+fn amount_sign(direction: &TransactionDirection) -> GemAmountSign {
+    match direction {
+        TransactionDirection::Incoming => GemAmountSign::Incoming,
+        TransactionDirection::Outgoing => GemAmountSign::Outgoing,
+        TransactionDirection::SelfTransfer => GemAmountSign::None,
     }
 }
 
@@ -223,6 +264,67 @@ mod tests {
             .unwrap(),
         );
         assert_eq!(transaction_subtitle(&open), GemTransactionSubtitle::Price { value: 12.5 });
+    }
+
+    #[test]
+    fn test_transaction_value_signs_what_the_row_shows() {
+        use TransactionDirection::{Incoming, Outgoing, SelfTransfer};
+
+        let confirmed = |transaction_type, direction| typed(transaction_type, TransactionState::Confirmed, direction);
+
+        assert_eq!(
+            transaction_value(&confirmed(TransactionType::Transfer, Incoming)),
+            GemTransactionValue::Amount { sign: GemAmountSign::Incoming }
+        );
+        assert_eq!(
+            transaction_value(&confirmed(TransactionType::Transfer, Outgoing)),
+            GemTransactionValue::Amount { sign: GemAmountSign::Outgoing }
+        );
+        assert_eq!(
+            transaction_value(&confirmed(TransactionType::Transfer, SelfTransfer)),
+            GemTransactionValue::Amount { sign: GemAmountSign::None }
+        );
+        assert_eq!(
+            transaction_value(&confirmed(TransactionType::StakeRewards, Outgoing)),
+            GemTransactionValue::Amount { sign: GemAmountSign::Incoming }
+        );
+        assert_eq!(
+            transaction_value(&confirmed(TransactionType::StakeWithdraw, Outgoing)),
+            GemTransactionValue::Amount { sign: GemAmountSign::Incoming }
+        );
+        assert_eq!(
+            transaction_value(&confirmed(TransactionType::StakeDelegate, Outgoing)),
+            GemTransactionValue::Amount { sign: GemAmountSign::None }
+        );
+        assert_eq!(transaction_value(&confirmed(TransactionType::TokenApproval, Outgoing)), GemTransactionValue::AssetSymbol);
+        assert_eq!(transaction_value(&confirmed(TransactionType::TransferNFT, Incoming)), GemTransactionValue::None);
+    }
+
+    #[test]
+    fn test_transaction_value_gives_a_swap_both_legs_and_a_perpetual_close_only_a_real_pnl() {
+        let mut swap = typed(TransactionType::Swap, TransactionState::Confirmed, TransactionDirection::Outgoing);
+        assert_eq!(transaction_value(&swap), GemTransactionValue::SwapReceived);
+        assert_eq!(transaction_equivalent_value(&swap), GemTransactionValue::SwapSpent);
+
+        swap.transaction_type = TransactionType::Transfer;
+        assert_eq!(transaction_equivalent_value(&swap), GemTransactionValue::None);
+
+        let mut close = typed(TransactionType::PerpetualClosePosition, TransactionState::Confirmed, TransactionDirection::Outgoing);
+        assert_eq!(transaction_value(&close), GemTransactionValue::None);
+
+        let metadata = |pnl| TransactionPerpetualMetadata {
+            pnl,
+            price: 1.0,
+            direction: PerpetualDirection::Long,
+            is_liquidation: None,
+            provider: None,
+        };
+
+        close.metadata = Some(serde_json::to_value(metadata(0.0)).unwrap());
+        assert_eq!(transaction_value(&close), GemTransactionValue::None);
+
+        close.metadata = Some(serde_json::to_value(metadata(-4.5)).unwrap());
+        assert_eq!(transaction_value(&close), GemTransactionValue::PerpetualPnl { value: -4.5 });
     }
 
     #[test]

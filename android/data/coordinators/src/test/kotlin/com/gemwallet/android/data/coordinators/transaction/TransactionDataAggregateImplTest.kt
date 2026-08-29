@@ -319,7 +319,7 @@ class TransactionDataAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = ethAsset)
         val aggregate = createAggregate(extended)
 
-        assertEquals("0.5 ETH", aggregate.value)
+        assertEquals("+0.5 ETH", aggregate.value)
         assertNull(aggregate.equivalentValue)
     }
 
@@ -347,7 +347,7 @@ class TransactionDataAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = ethAsset)
         val aggregate = createAggregate(extended)
 
-        assertEquals("", aggregate.value)
+        assertEquals("1 ETH", aggregate.value)
         assertNull(aggregate.equivalentValue)
     }
 
