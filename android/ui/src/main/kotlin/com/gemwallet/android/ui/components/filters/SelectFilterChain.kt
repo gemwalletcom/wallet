@@ -16,6 +16,8 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemChainService
 
+private val chainService = GemChainService()
+
 fun LazyListScope.selectFilterChain(
     availableChains: List<Chain>,
     chainFilter: List<Chain>,
@@ -28,7 +30,6 @@ fun LazyListScope.selectFilterChain(
     item {
         SubheaderItem(R.string.settings_networks_title)
     }
-    val chainService = GemChainService()
     val chains = chainService.getMatchingChains(availableChains.map { it.string }, query).mapNotNull { it.toChain() }
     val items = availableChains.map { it.asset() }.filter { asset ->
         chains.contains(asset.id.chain) ||

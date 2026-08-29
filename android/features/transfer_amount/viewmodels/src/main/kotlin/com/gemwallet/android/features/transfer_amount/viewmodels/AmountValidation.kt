@@ -9,6 +9,8 @@ import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemAmountService
 import java.math.BigInteger
 
+private val amountService = GemAmountService()
+
 object AmountValidation {
     fun parseAmount(asset: Asset, amount: String): Crypto {
         if (amount.isEmpty()) {
@@ -24,7 +26,7 @@ object AmountValidation {
 
     fun validate(asset: Asset, amount: Crypto, availableBalance: BigInteger, minimumValue: BigInteger) {
         try {
-            GemAmountService().validate(amount.atomicValue.toString(), availableBalance.toString(), minimumValue.toString())
+            amountService.validate(amount.atomicValue.toString(), availableBalance.toString(), minimumValue.toString())
         } catch (error: GemAmountException) {
             throw when (error) {
                 is GemAmountException.InvalidValue -> AmountError.IncorrectAmount

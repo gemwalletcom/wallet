@@ -29,6 +29,8 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.Deeplink
 import uniffi.gemstone.GemDeeplinkService
 
+private val deeplinkService = GemDeeplinkService()
+
 @Composable
 fun RowScope.AssetDetailsMenu(
     uiState: AssetInfoUIModel,
@@ -49,7 +51,7 @@ fun RowScope.AssetDetailsMenu(
     val onShare = fun () {
         val subject = "${uiState.assetInfo.owner?.chain}\n${uiState.assetInfo.asset.symbol}"
         val assetId = uiState.asset.id
-        val shareUrl = GemDeeplinkService().buildUrl(Deeplink.Asset(assetId = assetId.toIdentifier()))
+        val shareUrl = deeplinkService.buildUrl(Deeplink.Asset(assetId = assetId.toIdentifier()))
 
         context.shareText(subject = subject, text = shareUrl, chooserTitle = shareTitle)
     }

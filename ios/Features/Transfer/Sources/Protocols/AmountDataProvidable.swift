@@ -11,6 +11,8 @@ import enum Gemstone.GemAmountType
 import GemstonePrimitives
 import Primitives
 
+private let amountService = GemAmountService()
+
 protocol AmountDataProvidable {
     var asset: Asset { get }
     var title: String { get }
@@ -23,7 +25,7 @@ protocol AmountDataProvidable {
 extension AmountDataProvidable {
     var rules: GemAmountRules {
         do {
-            return try GemAmountService().rules(amountType: gemAmountType, asset: asset.json())
+            return try amountService.rules(amountType: gemAmountType, asset: asset.json())
         } catch {
             preconditionFailure("Unencodable amount asset: \(error)")
         }
@@ -47,7 +49,7 @@ extension AmountDataProvidable {
 
     func limits(from assetData: AssetData) -> GemAmountLimits {
         do {
-            return try GemAmountService().limits(amountType: gemAmountType, asset: asset.json(), balance: GemTransferBalance(assetData.balance))
+            return try amountService.limits(amountType: gemAmountType, asset: asset.json(), balance: GemTransferBalance(assetData.balance))
         } catch let error as GemAmountError {
             debugLog("amount limits unavailable: \(error)")
             return GemAmountLimits(availableValue: "0", maxValue: "0", reservesFee: false)

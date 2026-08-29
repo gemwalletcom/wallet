@@ -9,6 +9,8 @@ import Primitives
 import PrimitivesComponents
 import Store
 
+private let assetConfig = GemAssetConfigService()
+
 public struct SelectAssetFlow: Sendable {
     public enum RowSelection: Sendable, Equatable {
         case navigate
@@ -67,7 +69,7 @@ public struct SelectAssetFlow: Sendable {
 
 private extension [AssetsRequestFilter] {
     static func filters(for action: GemAssetAction) -> [AssetsRequestFilter] {
-        GemAssetConfigService().actionFilters(action: action).map { filter in
+        assetConfig.actionFilters(action: action).map { filter in
             switch filter {
             case .enabled: .enabled
             case .buyable: .buyable

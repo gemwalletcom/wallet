@@ -12,6 +12,8 @@ import Style
 import SwiftUI
 import Validators
 
+private let chainService = GemChainService()
+
 @MainActor
 @Observable
 final class AddNodeSceneViewModel {
@@ -116,7 +118,7 @@ extension AddNodeSceneViewModel {
 
         do {
             let nodeStatus = try await gatewayService.nodeStatus(chain: chain, url: url.absoluteString)
-            guard GemChainService().isValidNetworkId(chain: chain.rawValue, networkId: nodeStatus.chainId) else {
+            guard chainService.isValidNetworkId(chain: chain.rawValue, networkId: nodeStatus.chainId) else {
                 throw AddNodeError.invalidNetworkId
             }
 

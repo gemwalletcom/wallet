@@ -8,6 +8,8 @@ import Primitives
 import PrimitivesComponents
 import Validators
 
+private let feeService = GemFeeService()
+
 public struct ConfirmTransferInputProvider: Sendable {
     private let transferTransactionProvider: any TransferTransactionProvidable
     private let feeAssetProvider: any FeeAssetProvidable
@@ -77,7 +79,7 @@ public struct ConfirmTransferInputProvider: Sendable {
     }
 
     private func preloadFailureError(metadata: TransferDataMetadata) -> TransferAmountCalculatorError? {
-        guard GemFeeService().isInsufficientNetworkFee(feeAssetId: metadata.feeAssetId.identifier, feeAvailable: metadata.feeAvailable.description) else {
+        guard feeService.isInsufficientNetworkFee(feeAssetId: metadata.feeAssetId.identifier, feeAvailable: metadata.feeAvailable.description) else {
             return nil
         }
         return .insufficientNetworkFee(metadata.feeAssetId.chain.asset, requirement: nil)

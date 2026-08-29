@@ -16,6 +16,8 @@ import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 
+private let feeService = GemFeeService()
+
 public struct ConfirmService: Sendable {
     private let metadataProvider: any TransferMetadataProvidable
     private let inputProvider: ConfirmTransferInputProvider
@@ -155,7 +157,7 @@ public struct ConfirmService: Sendable {
     }
 
     public func defaultPriority(for type: TransferDataType) -> FeePriority {
-        (try? type.map()).flatMap { FeePriority(rawValue: GemFeeService().defaultPriority(inputType: $0)) } ?? .normal
+        (try? type.map()).flatMap { FeePriority(rawValue: feeService.defaultPriority(inputType: $0)) } ?? .normal
     }
 }
 

@@ -13,6 +13,8 @@ import Store
 import Style
 import SwiftUI
 
+private let recipientService = GemRecipientService()
+
 public typealias RecipientDataAction = ((RecipientData) -> Void)?
 
 @Observable
@@ -168,7 +170,7 @@ extension RecipientSceneViewModel {
 
     func onSelectRecipient(_ recipient: Recipient) {
         do {
-            let validated = try Recipient(GemRecipientService().recipient(
+            let validated = try Recipient(recipientService.recipient(
                 chain: asset.chain.rawValue,
                 input: recipient.address,
                 nameRecord: nil,

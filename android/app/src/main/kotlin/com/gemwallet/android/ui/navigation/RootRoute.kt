@@ -93,6 +93,8 @@ import kotlinx.serialization.Serializable
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.GemDeeplinkService
 
+private val deeplinkService = GemDeeplinkService()
+
 @Serializable
 data object WalletRootRoute : NavKey
 
@@ -222,7 +224,7 @@ class WalletNavigator(
     fun openDeveloperPayments() = push(DevelopPaymentsRoute)
     fun openInAppNotifications() = push(InAppNotificationsRoute)
     fun openNotificationUrl(url: String): Boolean {
-        val action = runCatching { GemDeeplinkService().urlAction(url) }.getOrNull() as? UrlAction.Deeplink ?: return false
+        val action = runCatching { deeplinkService.urlAction(url) }.getOrNull() as? UrlAction.Deeplink ?: return false
         return when (val route = action.deeplink.toRoute() ?: return false) {
             is AssetRoute -> openAssetRoute(route)
             else -> push(route)

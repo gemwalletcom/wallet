@@ -17,6 +17,8 @@ import SwiftUI
 import Validators
 import WalletConnector
 
+private let assetConfig = GemAssetConfigService()
+
 @Observable
 @MainActor
 public final class ConfirmTransferSceneViewModel {
@@ -326,7 +328,7 @@ extension ConfirmTransferSceneViewModel {
 
 extension ConfirmTransferSceneViewModel {
     private func onSelectGetAsset(_ asset: Asset, buyAmount: Int? = nil) {
-        switch GemAssetConfigService().acquireFlow(chain: asset.chain.rawValue) {
+        switch assetConfig.acquireFlow(chain: asset.chain.rawValue) {
         case .options:
             isPresentingSheet = .getAsset(asset, buyAmount: buyAmount)
         case .fiat:

@@ -3,6 +3,8 @@
 import class Gemstone.GemAssetConfigService
 import Primitives
 
+private let assetConfig = GemAssetConfigService()
+
 struct AddAssetInput {
     let chains: [Chain]
 
@@ -15,6 +17,6 @@ struct AddAssetInput {
 
     init(chains: [Chain]) {
         self.chains = chains
-        chain = GemAssetConfigService().defaultTokenChain(chains: chains.map(\.rawValue)).flatMap { Chain(rawValue: $0) }
+        chain = assetConfig.defaultTokenChain(chains: chains.map(\.rawValue)).flatMap { Chain(rawValue: $0) }
     }
 }

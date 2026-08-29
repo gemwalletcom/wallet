@@ -66,6 +66,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private val recipientService = GemRecipientService()
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecipientViewModel @Inject constructor(
@@ -186,7 +188,7 @@ class RecipientViewModel @Inject constructor(
     ) {
         val chain = type.assetInfo.asset.chain
         val recipient = try {
-            GemRecipientService().recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
+            recipientService.recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
         } catch (_: GemRecipientException) {
             if (!getNameRecord.isNameSupported(input)) {
                 addressInput.markInvalid()
