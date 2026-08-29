@@ -4,7 +4,7 @@ import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.repositories.gemstone.GemstoneKeystorePassword
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
-import com.gemwallet.android.data.repositories.addresses.AddressesRepository
+import com.gemwallet.android.cases.addresses.SaveWalletAddresses
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepositoryImpl
 import com.gemwallet.android.data.service.store.database.AccountsDao
@@ -38,14 +38,14 @@ object WalletsModule {
     fun provideWalletsRepository(
         walletsDao: WalletsDao,
         accountsDao: AccountsDao,
-        addressesRepository: AddressesRepository,
+        saveWalletAddresses: SaveWalletAddresses,
         assetsDao: AssetsDao,
         transactionRunner: StoreTransactionRunner,
     ): WalletsRepository {
         return WalletsRepositoryImpl(
             walletsDao = walletsDao,
             accountsDao = accountsDao,
-            addressesRepository = addressesRepository,
+            saveWalletAddresses = saveWalletAddresses,
             assetsDao = assetsDao,
             transactionRunner = transactionRunner,
         )

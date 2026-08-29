@@ -1,9 +1,5 @@
 package com.gemwallet.android.data.repositories.di
 
-import com.gemwallet.android.cases.addresses.GetAddressName
-import com.gemwallet.android.cases.addresses.GetAddressNames
-import com.gemwallet.android.cases.addresses.RenameWalletAddresses
-import com.gemwallet.android.data.repositories.addresses.AddressesRepository
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAddressStore
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import dagger.Module
@@ -27,26 +23,4 @@ object AddressesModule {
     @Provides
     fun provideGemNameService(apiClient: GemDeviceApiClient, store: GemAddressStore): GemNameService = GemNameService(apiClient, store)
 
-    @Singleton
-    @Provides
-    fun provideAddressesRepository(
-        addressesDao: AddressesDao,
-        nameService: GemNameService,
-    ): AddressesRepository =
-        AddressesRepository(addressesDao, nameService)
-
-    @Singleton
-    @Provides
-    fun provideGetAddressName(addressesRepository: AddressesRepository): GetAddressName =
-        addressesRepository
-
-    @Singleton
-    @Provides
-    fun provideGetAddressNames(addressesRepository: AddressesRepository): GetAddressNames =
-        addressesRepository
-
-    @Singleton
-    @Provides
-    fun provideRenameWalletAddresses(addressesRepository: AddressesRepository): RenameWalletAddresses =
-        addressesRepository
 }

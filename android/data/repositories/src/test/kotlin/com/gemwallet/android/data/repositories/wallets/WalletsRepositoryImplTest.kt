@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.wallets
 
-import com.gemwallet.android.data.repositories.addresses.AddressesRepository
+import com.gemwallet.android.cases.addresses.SaveWalletAddresses
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
@@ -34,14 +34,14 @@ class WalletsRepositoryImplTest {
 
     private val walletsDao = mockk<WalletsDao>(relaxed = true)
     private val accountsDao = mockk<AccountsDao>(relaxed = true)
-    private val addressesRepository = mockk<AddressesRepository>(relaxed = true)
+    private val saveWalletAddresses = mockk<SaveWalletAddresses>(relaxed = true)
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
     private val transactionRunner = RecordingStoreTransactionRunner()
 
     private val subject = WalletsRepositoryImpl(
         walletsDao = walletsDao,
         accountsDao = accountsDao,
-        addressesRepository = addressesRepository,
+        saveWalletAddresses = saveWalletAddresses,
         assetsDao = assetsDao,
         transactionRunner = transactionRunner,
     )

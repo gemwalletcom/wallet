@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.repositories.wallets
 
-import com.gemwallet.android.data.repositories.addresses.AddressesRepository
+import com.gemwallet.android.cases.addresses.SaveWalletAddresses
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
@@ -25,7 +25,7 @@ import javax.inject.Singleton
 class WalletsRepositoryImpl @Inject constructor(
     private val walletsDao: WalletsDao,
     private val accountsDao: AccountsDao,
-    private val addressesRepository: AddressesRepository,
+    private val saveWalletAddresses: SaveWalletAddresses,
     private val assetsDao: AssetsDao,
     private val transactionRunner: StoreTransactionRunner,
 ) : WalletsRepository {
@@ -72,7 +72,7 @@ class WalletsRepositoryImpl @Inject constructor(
         transactionRunner.run {
             walletsDao.insert(wallet.toRecord())
             insertAccountsWithNativeAssets(wallet)
-            addressesRepository.saveWalletAddresses(wallet)
+            saveWalletAddresses(wallet)
             wallet
         }
     }
