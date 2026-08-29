@@ -62,14 +62,12 @@ object AssetsModule {
         assetStore: GemstoneAssetStore,
         sessionRepository: SessionRepository,
         searchTokensCase: SearchTokensCase,
-        streamSubscriptionService: GemStreamSubscriptionService,
         balanceService: GemBalanceService,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
         assetStore = assetStore,
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,
-        streamSubscriptionService = streamSubscriptionService,
         balanceService = balanceService,
     )
 

@@ -5,15 +5,10 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.entities.DbAsset
-import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinksModel
 import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
@@ -49,7 +44,6 @@ import kotlinx.coroutines.withContext
 import com.gemwallet.android.serializer.toJson
 import javax.inject.Inject
 import javax.inject.Singleton
-import uniffi.gemstone.GemStreamSubscriptionService
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.runCatchingCancellable
 import uniffi.gemstone.GemBalanceService
@@ -63,7 +57,6 @@ class AssetsRepository @Inject constructor(
     private val assetStore: GemstoneAssetStore,
     private val sessionRepository: SessionRepository,
     private val searchTokensCase: SearchTokensCase,
-    private val streamSubscriptionService: GemStreamSubscriptionService,
     private val balanceService: GemBalanceService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
@@ -141,65 +134,6 @@ class AssetsRepository @Inject constructor(
         assetInfos.refreshBalances().awaitAll()
     }
 
-    suspend fun add(walletId: String, asset: Asset, visible: Boolean) {
-        insertLocalAsset(walletId, asset, visible)
-        if (visible) {
-            streamSubscriptionService.addPrices(listOf(asset.id.toIdentifier()))
-        }
-    }
-
-    suspend fun add(walletId: String, asset: AssetBasic, visible: Boolean) {
-        insertAssetRecord(
-            walletId = walletId,
-            assetId = asset.asset.id,
-            record = asset.toRecord(),
-            visible = visible,
-        )
-        if (visible) {
-            streamSubscriptionService.addPrices(listOf(asset.asset.id.toIdentifier()))
-        }
-    }
-
-    suspend fun add(assets: List<AssetBasic>) = withContext(Dispatchers.IO) {
-        if (assets.isEmpty()) {
-            return@withContext
-        }
-        runCatching {
-            assetsDao.insert(assets.map { it.toRecord() })
-            assetsDao.updateBasicAssets(assets.map { it.toUpdateRecord() })
-        }
-            .onFailure { Log.e(TAG, "Failed to insert ${assets.size} assets", it) }
-    }
-
-    suspend fun linkAssetToWallet(
-        walletId: String,
-        assetId: AssetId,
-        visible: Boolean,
-    ) = withContext(Dispatchers.IO) {
-        assetsDao.setWalletAssetVisibility(walletId, assetId.toIdentifier(), visible)
-        if (visible) {
-            streamSubscriptionService.addPrices(listOf(assetId.toIdentifier()))
-        }
-    }
-
-    private suspend fun insertLocalAsset(walletId: String, asset: Asset, visible: Boolean) {
-        assetsDao.insert(asset.defaultBasic.toRecord())
-        assetsDao.setWalletAssetVisibility(walletId, asset.id.toIdentifier(), visible)
-    }
-
-    private suspend fun insertAssetRecord(
-        walletId: String,
-        assetId: AssetId,
-        record: DbAsset,
-        visible: Boolean,
-    ) {
-        val assetIdIdentifier = assetId.toIdentifier()
-        // REPLACE would cascade-delete balances/accounts; insert-or-update keeps the asset row stable.
-        assetsDao.insert(record)
-        assetsDao.updateBasicAssets(listOf(record.toBasicUpdateRecord()))
-        assetsDao.setWalletAssetVisibility(walletId, assetIdIdentifier, visible)
-    }
-
     fun getAssetLinks(id: AssetId): Flow<List<AssetLink>> = assetStore.observeAssetLinks(id).flowOn(Dispatchers.IO)
 
     fun getAssetMarket(id: AssetId): Flow<AssetMarket?> = assetStore.observeAssetMarket(id).flowOn(Dispatchers.IO)
@@ -221,19 +155,3 @@ class AssetsRepository @Inject constructor(
     }
 
 }
-
-private fun DbAsset.toBasicUpdateRecord() = DbAssetBasicUpdate(
-    id = id,
-    name = name,
-    symbol = symbol,
-    decimals = decimals,
-    type = type,
-    chain = chain,
-    isEnabled = isEnabled,
-    isBuyEnabled = isBuyEnabled,
-    isSellEnabled = isSellEnabled,
-    isSwapEnabled = isSwapEnabled,
-    isStakeEnabled = isStakeEnabled,
-    stakingApr = stakingApr,
-    rank = rank,
-)

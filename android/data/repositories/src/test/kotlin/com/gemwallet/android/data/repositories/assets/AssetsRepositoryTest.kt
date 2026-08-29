@@ -52,7 +52,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemAssetConfigService
-import uniffi.gemstone.GemStreamSubscriptionService
 import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.repositories.gemstone.GemstoneAssetStore
 
@@ -64,7 +63,6 @@ class AssetsRepositoryTest {
     private val priceService = mockk<GemPriceService>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>()
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
-    private val streamSubscriptionService = mockk<GemStreamSubscriptionService>(relaxed = true)
     private val balanceService = mockk<GemBalanceService>(relaxed = true)
     private val scope = CoroutineScope(Job())
     private val sessionFlow = MutableStateFlow<com.gemwallet.android.model.Session?>(null)
@@ -76,7 +74,6 @@ class AssetsRepositoryTest {
         assetStore = GemstoneAssetStore(assetsDao, AssetsAvailabilityService(assetsDao)),
         sessionRepository = sessionRepository,
         searchTokensCase = searchTokensCase,
-        streamSubscriptionService = streamSubscriptionService,
         balanceService = balanceService,
         scope = scope,
     )
@@ -107,135 +104,6 @@ class AssetsRepositoryTest {
 
         coVerify { assetsDao.setSellAvailable(listOf("bitcoin"), false) }
         coVerify { assetsDao.setSellAvailable(listOf("solana"), true) }
-    }
-
-    @Test
-    fun addApiAsset_insertsApiRank() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-        val asset = mockAssetSolana()
-        val assetBasic = AssetBasic(
-            asset = asset,
-            properties = mockAssetProperties(
-                isSwapable = false,
-                isStakeable = true,
-                stakingApr = 4.2,
-            ),
-            score = AssetScore(rank = 321),
-        )
-
-        val subject = createSubject()
-        subject.add(
-            walletId = "wallet-1",
-            asset = assetBasic,
-            visible = true,
-        )
-
-        val assetSlot = slot<DbAsset>()
-        val updateSlot = slot<List<DbAssetBasicUpdate>>()
-
-        coVerify { assetsDao.insert(capture(assetSlot)) }
-        coVerify {
-            assetsDao.setWalletAssetVisibility(
-                walletId = "wallet-1",
-                assetId = "solana",
-                isVisible = true,
-            )
-        }
-        coVerify { assetsDao.updateBasicAssets(capture(updateSlot)) }
-        val update = updateSlot.captured.single()
-
-        assertEquals(321, assetSlot.captured.rank)
-        assertEquals(false, assetSlot.captured.isSwapEnabled)
-        assertEquals(321, update.rank)
-        assertEquals(false, update.isSwapEnabled)
-        assertEquals(true, update.isStakeEnabled)
-        assertEquals(4.2, update.stakingApr ?: 0.0, 0.0)
-    }
-
-    @Test
-    fun addApiAssets_updatesExistingRowsWithApiRank() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-
-        val asset = mockAssetSolanaUSDC()
-        val assetBasic = AssetBasic(
-            asset = asset,
-            properties = mockAssetProperties(),
-            score = AssetScore(rank = 100),
-        )
-
-        val subject = createSubject()
-        subject.add(listOf(assetBasic))
-
-        val updates = slot<List<DbAssetBasicUpdate>>()
-        coVerify { assetsDao.insert(match<List<DbAsset>> { it.single().rank == 100 }) }
-        coVerify { assetsDao.updateBasicAssets(capture(updates)) }
-        assertEquals(100, updates.captured.single().rank)
-    }
-
-    @Test
-    fun linkAssetToWallet_visibleAssetSubscribesToPriceStream() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-
-        val asset = mockAssetSolanaUSDC()
-
-        val subject = createSubject()
-        subject.linkAssetToWallet("wallet-1", asset.id, true)
-
-        coVerify {
-            assetsDao.setWalletAssetVisibility(
-                walletId = "wallet-1",
-                assetId = asset.id.toIdentifier(),
-                isVisible = true,
-            )
-        }
-        coVerify { streamSubscriptionService.addPrices(listOf(asset.id.toIdentifier())) }
-    }
-
-    @Test
-    fun linkAssetToWallet_hiddenAssetDoesNotSubscribeToPriceStream() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-
-        val asset = mockAssetSolanaUSDC()
-
-        val subject = createSubject()
-        subject.linkAssetToWallet("wallet-1", asset.id, false)
-
-        coVerify {
-            assetsDao.setWalletAssetVisibility(
-                walletId = "wallet-1",
-                assetId = asset.id.toIdentifier(),
-                isVisible = false,
-            )
-        }
-        coVerify(exactly = 0) { streamSubscriptionService.addPrices(any()) }
-    }
-
-    @Test
-    fun addLocalAsset_insertsDefaultTokenRank() = runBlocking {
-        every { sessionRepository.session() } returns sessionFlow
-
-        val asset = mockAssetSolanaUSDC()
-
-        val subject = createSubject()
-        subject.add(
-            walletId = "wallet-1",
-            asset = asset,
-            visible = true,
-        )
-
-        val assetSlot = slot<DbAsset>()
-        coVerify { assetsDao.insert(capture(assetSlot)) }
-        coVerify(exactly = 0) { assetsDao.updateBasicAssets(any()) }
-        coVerify {
-            assetsDao.setWalletAssetVisibility(
-                walletId = "wallet-1",
-                assetId = asset.id.toIdentifier(),
-                isVisible = true,
-            )
-        }
-
-        assertTrue(assetSlot.captured.rank > GemAssetConfigService().defaultTokenRank())
-        assertEquals(asset.defaultBasic.score.rank, assetSlot.captured.rank)
     }
 
     @Test
