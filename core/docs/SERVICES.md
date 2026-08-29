@@ -360,8 +360,6 @@ Defects found in this path (fixed ones are removed from this list): the WalletCo
 
 | Repository | Callers | What it holds today | Target |
 | --- | --- | --- | --- |
-| `ChainInfoRepository` | 2 | ten lines: `Chain.available().sortedByDescending { it.defaultAssetRank }` | delete — the ordering is a Core rule (`GemSearchService`/chain config), the callers take it from there |
-| `InAppNotificationsRepository` | 2 | one `NotificationsDao` flow | `GetInAppNotifications` case over the DAO |
 | `ContactsRepository` | 1 | two DAO flows plus `GemContactService` writes | `GetContacts`/`GetContactRecipients` cases; writes already go to the service |
 | `BannersRepository` | 1 | `GemBannerService` plus `BannersDao` | its case interfaces already exist (`GetActiveBanners`, `ApplyBannerAction`, `HasMultiSign`) — move the bodies into their `*Impl` and drop the repository |
 | `PriceAlertRepository` (+`Impl`) | 6 | four observed reads over `PriceAlertsDao` | the matching cases already exist (`GetPriceAlerts`, `GetAssetPriceAlertState`, `HasAssetPriceAlerts`) — give them the DAO |

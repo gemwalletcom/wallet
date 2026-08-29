@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.data.repositories.gemstone.GemstoneNotificationStore
-import com.gemwallet.android.data.repositories.notifications.InAppNotificationsRepository
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import dagger.Module
 import dagger.Provides
@@ -30,10 +29,4 @@ object InAppNotificationsModule {
         store: GemNotificationStore,
         walletPreferencesService: GemWalletPreferencesService,
     ): GemNotificationService = GemNotificationService(apiClient, store, walletPreferencesService)
-
-    @Provides
-    @Singleton
-    fun provideInAppNotificationsRepository(
-        notificationsDao: InAppNotificationsDao,
-    ): InAppNotificationsRepository = InAppNotificationsRepository(notificationsDao)
 }

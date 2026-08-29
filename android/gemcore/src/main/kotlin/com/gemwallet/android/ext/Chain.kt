@@ -1,5 +1,6 @@
 package com.gemwallet.android.ext
 
+import com.gemwallet.android.domains.asset.defaultAssetRank
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
@@ -55,6 +56,8 @@ fun Chain.networkName(): String {
 }
 
 fun Chain.Companion.available() = Chain.entries.toSet()
+
+fun Chain.Companion.availableByRank() = available().sortedByDescending { it.defaultAssetRank }
 
 fun List<Chain>.filter(query: String): List<Chain> =
     searchMatchingChains(map { it.string }, query).mapNotNull { chainString -> Chain.entries.firstOrNull { it.string == chainString } }
