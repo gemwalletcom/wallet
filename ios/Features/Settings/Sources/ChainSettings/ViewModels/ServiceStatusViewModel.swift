@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemServiceEndpoint
 import protocol Gemstone.GemServiceStatusProtocol
-import GemstonePrimitives
 import Localization
 import Primitives
 
@@ -10,12 +10,12 @@ import Primitives
 @MainActor
 public final class ServiceStatusViewModel {
     private let serviceStatusService: any GemServiceStatusProtocol
-    private let endpoints: [ServiceEndpoint]
+    private let endpoints: [GemServiceEndpoint]
     private var statusStates: [ServiceStatusState]
 
     public init(serviceStatusService: any GemServiceStatusProtocol) {
         self.serviceStatusService = serviceStatusService
-        endpoints = serviceStatusService.getEndpoints().map { $0.map() }
+        endpoints = serviceStatusService.getEndpoints()
         statusStates = Array(repeating: .loading, count: endpoints.count)
     }
 
