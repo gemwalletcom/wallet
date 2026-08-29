@@ -1,15 +1,11 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.ext.toAssetId
-import uniffi.gemstone.GemPerpetualService
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.banner.cases.HasMultiSign
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.adapters.config.UserConfig
-import uniffi.gemstone.GemWalletPreferencesService
-import com.gemwallet.android.data.adapters.perpetual.ObservePerpetualWallet
-import com.gemwallet.android.data.adapters.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
@@ -19,11 +15,8 @@ import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.model.CurrencyFormatter
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualAccountMode
-import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,33 +36,19 @@ import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 class GetWalletSummaryImpl(
     private val getSession: GetSession,
     private val getWalletAssets: GetWalletAssets,
-    private val perpetualStore: GemstonePerpetualStore,
-    private val observePerpetualWallet: ObservePerpetualWallet,
+    private val getPerpetualBalance: GetPerpetualBalance,
     private val hasMultiSign: HasMultiSign,
     private val userConfig: UserConfig,
-    private val walletPreferencesService: GemWalletPreferencesService,
-    private val perpetualService: GemPerpetualService,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetWalletSummary {
     private val balanceCalculator = GemBalanceCalculator()
-
-    private val perpetualCollateral: Flow<PerpetualBalance?> =
-        observePerpetualWallet().flatMapLatest { wallet ->
-            wallet ?: return@flatMapLatest flowOf(null)
-            val collateralAssetId = perpetualService.collateralAssetId(Chain.HyperCore.string)?.toAssetId()
-            if (collateralAssetId != null && walletPreferencesService.includesPerpetualCollateral(wallet.id.id)) {
-                perpetualStore.observeBalance(wallet.id, collateralAssetId)
-            } else {
-                flowOf(null)
-            }
-        }
 
     private val walletSummary = getSession().flatMapLatest { session ->
         val wallet = session?.wallet ?: return@flatMapLatest flowOf(null)
 
         combine(
             getWalletAssets(),
-            perpetualCollateral,
+            getPerpetualBalance.getCollateralIncludedInTotal(),
             hasMultiSign.hasMultiSign(wallet),
             userConfig.isHideBalances(),
         ) { assets, perpetualBalance, hasMultiSign, hideBalances ->

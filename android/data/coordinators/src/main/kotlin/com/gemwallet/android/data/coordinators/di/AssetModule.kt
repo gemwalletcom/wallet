@@ -28,6 +28,7 @@ import com.gemwallet.android.application.assets.cases.SetAssetPinned
 import com.gemwallet.android.application.assets.cases.ToggleHideBalances
 import com.gemwallet.android.application.wallet_import.cases.GetImportWalletState
 import com.gemwallet.android.application.banner.cases.HasMultiSign
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
@@ -57,8 +58,6 @@ import com.gemwallet.android.data.coordinators.asset.ToggleHideBalancesImpl
 import com.gemwallet.android.data.adapters.assets.AssetsSearchService
 import com.gemwallet.android.data.adapters.assets.CurrencyRatesService
 import com.gemwallet.android.data.adapters.config.UserConfig
-import com.gemwallet.android.data.adapters.perpetual.ObservePerpetualWallet
-import com.gemwallet.android.data.adapters.gemstone.GemstonePerpetualStore
 import com.gemwallet.android.data.adapters.gemstone.GemstoneBannerStore
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.adapters.gemstone.GemstoneWalletStore
@@ -68,16 +67,15 @@ import uniffi.gemstone.GemNftService
 import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemDeviceApiClient
 import dagger.Module
-import uniffi.gemstone.GemPerpetualService
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemPortfolioService
 import javax.inject.Singleton
 import uniffi.gemstone.GemStreamSubscriptionService
-import uniffi.gemstone.GemWalletPreferencesService
 import com.gemwallet.android.data.adapters.gemstone.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.coordinators.asset.WalletAssetsCoordinator
@@ -135,21 +133,15 @@ object AssetModule {
     fun provideGetWalletSummary(
         getSession: GetSession,
         getWalletAssets: GetWalletAssets,
-        perpetualStore: GemstonePerpetualStore,
-        observePerpetualWallet: ObservePerpetualWallet,
+        getPerpetualBalance: GetPerpetualBalance,
         hasMultiSign: HasMultiSign,
         userConfig: UserConfig,
-        walletPreferencesService: GemWalletPreferencesService,
-        perpetualService: GemPerpetualService,
     ): GetWalletSummary = GetWalletSummaryImpl(
         getSession = getSession,
         getWalletAssets = getWalletAssets,
-        perpetualStore = perpetualStore,
-        observePerpetualWallet = observePerpetualWallet,
+        getPerpetualBalance = getPerpetualBalance,
         hasMultiSign = hasMultiSign,
         userConfig = userConfig,
-        walletPreferencesService = walletPreferencesService,
-        perpetualService = perpetualService,
     )
 
     @Provides
