@@ -4,7 +4,6 @@ use crate::{
     fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz, thorchain, uniswap,
 };
 use num_bigint::BigInt;
-use num_integer::Integer;
 use num_traits::ToPrimitive;
 use primitives::{AssetId, Chain, EVMChain};
 use std::{
@@ -12,8 +11,6 @@ use std::{
     fmt::Debug,
     sync::Arc,
 };
-
-const MIN_AMOUNT_SIGNIFICANT_DIGITS: usize = 3;
 
 #[derive(Debug)]
 pub struct GemSwapper {
@@ -164,23 +161,14 @@ impl GemSwapper {
     }
 
     pub async fn get_quote(&self, request: &QuoteRequest) -> Result<Vec<Quote>, SwapperError> {
-        let (quotes, errors) = self.fetch_quotes(request).await?;
+        let SwapQuotes { quotes, errors } = self.get_quotes(request).await?;
         if quotes.is_empty() {
-            return Err(Self::aggregate_quote_error(errors));
+            return Err(Self::quote_error(errors));
         }
         Ok(quotes)
     }
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<SwapQuotes, SwapperError> {
-        let (quotes, errors) = self.fetch_quotes(request).await?;
-        let errors = errors
-            .into_iter()
-            .map(|(provider_id, error)| SwapQuoteError::new(Some(provider_id), error.to_string()))
-            .collect();
-        Ok(SwapQuotes { quotes, errors })
-    }
-
-    async fn fetch_quotes(&self, request: &QuoteRequest) -> Result<(Vec<Quote>, Vec<(String, SwapperError)>), SwapperError> {
         let provider_ids: BTreeSet<_> = self.get_providers_for_request(request)?.into_iter().map(|p| p.id).collect();
         let providers = self.swappers.iter().filter(|x| provider_ids.contains(&x.provider().id)).collect::<Vec<_>>();
 
@@ -199,18 +187,18 @@ impl GemSwapper {
         for result in quote_results {
             match result {
                 Ok(quote) => quotes.push(quote),
-                Err(error) => errors.push(error),
+                Err((provider_id, error)) => errors.push(SwapQuoteError::new(Some(provider_id), error)),
             }
         }
 
         Self::sort_quotes_by_output_amount(&mut quotes);
-        Ok((quotes, errors))
+        Ok(SwapQuotes { quotes, errors })
     }
 
-    fn aggregate_quote_error(errors: Vec<(String, SwapperError)>) -> SwapperError {
+    fn quote_error(errors: Vec<SwapQuoteError>) -> SwapperError {
         let min_amounts: Vec<Option<BigInt>> = errors
             .into_iter()
-            .filter_map(|(_, error)| match error {
+            .filter_map(|error| match error.error {
                 SwapperError::InputAmountError { min_amount } => Some(min_amount.and_then(|amount| amount.parse().ok())),
                 _ => None,
             })
@@ -222,32 +210,14 @@ impl GemSwapper {
             .into_iter()
             .collect::<Option<Vec<BigInt>>>()
             .and_then(|amounts| amounts.into_iter().min())
-            .map(|amount| Self::round_up_min_amount(amount).to_string());
+            .map(|amount| amount.to_string());
         SwapperError::InputAmountError { min_amount }
-    }
-
-    fn round_up_input_amount_error(error: SwapperError) -> SwapperError {
-        match error {
-            SwapperError::InputAmountError { min_amount: Some(amount) } => SwapperError::InputAmountError {
-                min_amount: Some(amount.parse::<BigInt>().map(Self::round_up_min_amount).map_or(amount, |amount| amount.to_string())),
-            },
-            other => other,
-        }
-    }
-
-    fn round_up_min_amount(amount: BigInt) -> BigInt {
-        let digits = amount.to_string().len();
-        if digits <= MIN_AMOUNT_SIGNIFICANT_DIGITS {
-            return amount;
-        }
-        let scale = BigInt::from(10).pow((digits - MIN_AMOUNT_SIGNIFICANT_DIGITS) as u32);
-        amount.div_ceil(&scale) * scale
     }
 
     pub async fn get_quote_by_provider(&self, provider: SwapperProvider, request: QuoteRequest) -> Result<Quote, SwapperError> {
         let provider = self.get_swapper_by_provider(&provider)?;
         let request = Self::quote_request_for_mode(provider.amount_mode(&request), &request)?;
-        provider.get_quote(&request).await.map_err(Self::round_up_input_amount_error)
+        provider.get_quote(&request).await
     }
 
     fn quote_request_for_mode(mode: SwapAmountMode, request: &QuoteRequest) -> Result<QuoteRequest, SwapperError> {
@@ -470,19 +440,7 @@ mod tests {
             ])
         );
         let pancake_error = result.errors.iter().find(|e| e.provider.as_deref() == Some(SwapperProvider::PancakeswapV3.id())).unwrap();
-        assert!(pancake_error.error.contains("1264000"));
-    }
-
-    #[test]
-    fn test_round_up_min_amount() {
-        assert_eq!(
-            GemSwapper::round_up_min_amount(BigInt::from(1_885_412_345_678_901u64)),
-            BigInt::from(1_890_000_000_000_000u64)
-        );
-        assert_eq!(GemSwapper::round_up_min_amount(BigInt::from(1_264_000)), BigInt::from(1_270_000));
-        assert_eq!(GemSwapper::round_up_min_amount(BigInt::from(4_000_000)), BigInt::from(4_000_000));
-        assert_eq!(GemSwapper::round_up_min_amount(BigInt::from(999)), BigInt::from(999));
-        assert_eq!(GemSwapper::round_up_min_amount(BigInt::from(1001)), BigInt::from(1010));
+        assert!(pancake_error.error.to_string().contains("1264000"));
     }
 
     #[tokio::test]
@@ -512,7 +470,7 @@ mod tests {
         assert_eq!(
             known_minimums.get_quote(&request).await.unwrap_err(),
             SwapperError::InputAmountError {
-                min_amount: Some("1270000".into())
+                min_amount: Some("1264000".into())
             }
         );
 

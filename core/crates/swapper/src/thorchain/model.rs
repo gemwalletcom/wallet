@@ -316,13 +316,14 @@ mod tests {
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, THORCHAIN_TCY_ASSET_ID, TRON_USDT_ASSET_ID, TRON_USDT_TOKEN_ID};
 
     #[test]
-    fn test_map_client_error() {
-        let error = ErrorResponse::map_client_error(ClientError::Http {
+    fn test_input_amount_error() {
+        let error = ClientError::Http {
             status: 400,
             body: br#"{"code":3,"message":"amount less than min swap amount, recommended_min_amount_in: 100000","details":[]}"#.to_vec(),
-        });
+        }
+        .decode_body::<ErrorResponse>();
         assert_eq!(
-            error,
+            SwapperError::from(error),
             SwapperError::InputAmountError {
                 min_amount: Some("100000".to_string())
             }

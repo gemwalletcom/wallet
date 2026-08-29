@@ -2,7 +2,7 @@ use super::{
     constants::{MAYAN_FORWARDER, SDK_VERSION},
     wormhole_chain,
 };
-use crate::{SwapperError, amount_to_value, fees::default_referral_address};
+use crate::{SwapperError, error::ProviderErrorResponse, fees::default_referral_address};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use serde::{Deserialize, Serialize};
@@ -507,30 +507,31 @@ impl ErrorResponse {
         }
     }
 
-    pub fn min_amount_in(&self, decimals: u32) -> Option<String> {
+    pub fn min_amount(&self) -> Option<String> {
         self.data
             .as_ref()
             .and_then(|data| data.min_amount_in.as_ref())
-            .and_then(|amount| amount_value(amount, decimals))
-            .or_else(|| self.message().and_then(|message| extract_min_amount(message, decimals)))
+            .and_then(|amount| amount.as_str().map(str::to_string).or_else(|| amount.as_number().map(ToString::to_string)))
+            .or_else(|| self.message().and_then(get_min_amount))
     }
 }
 
-fn amount_value(value: &Value, decimals: u32) -> Option<String> {
-    match value {
-        Value::Number(number) => amount_to_value(&number.to_string(), decimals),
-        Value::String(value) => amount_to_value(value, decimals),
-        Value::Null | Value::Bool(_) | Value::Array(_) | Value::Object(_) => None,
+impl ProviderErrorResponse for ErrorResponse {
+    fn into_swapper_error(self) -> Option<SwapperError> {
+        if self.is_input_amount_error() {
+            return Some(SwapperError::InputAmountError { min_amount: self.min_amount() });
+        }
+        Some(SwapperError::compute_quote_error(self.message().unwrap_or("Unknown Mayan error")))
     }
 }
 
-fn extract_min_amount(message: &str, decimals: u32) -> Option<String> {
+fn get_min_amount(message: &str) -> Option<String> {
     let lowercased = message.to_ascii_lowercase();
     let start = lowercased.find("min")?;
-    let amount = message[start + "min".len()..]
+    message[start + "min".len()..]
         .split(|c: char| !(c.is_ascii_digit() || c == '.' || c == ',' || c == '_'))
-        .find(|part| part.chars().any(|c| c.is_ascii_digit()))?;
-    amount_to_value(amount, decimals)
+        .find(|part| part.chars().any(|c| c.is_ascii_digit()))
+        .map(str::to_string)
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -589,6 +590,49 @@ impl MayanChain {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_error_response_into_swapper_error() {
+        let response = ErrorResponse {
+            msg: Some("Amount too small (min ~0.0004349 ETH)".to_string()),
+            message: None,
+            data: Some(ErrorData {
+                min_amount_in: Some(serde_json::json!(0.0004349)),
+            }),
+        };
+        assert_eq!(
+            response.into_swapper_error(),
+            Some(SwapperError::InputAmountError {
+                min_amount: Some("0.0004349".to_string())
+            })
+        );
+
+        let response = ErrorResponse {
+            msg: Some("Amount too small (min ~1,234.5 USDC)".to_string()),
+            message: None,
+            data: None,
+        };
+        assert_eq!(
+            response.into_swapper_error(),
+            Some(SwapperError::InputAmountError {
+                min_amount: Some("1,234.5".to_string())
+            })
+        );
+
+        let response = ErrorResponse {
+            msg: Some("Amount too small".to_string()),
+            message: None,
+            data: None,
+        };
+        assert_eq!(response.into_swapper_error(), Some(SwapperError::InputAmountError { min_amount: None }));
+
+        let response = ErrorResponse {
+            msg: None,
+            message: Some("Route not found".to_string()),
+            data: None,
+        };
+        assert_eq!(response.into_swapper_error(), Some(SwapperError::ComputeQuoteError("Route not found".to_string())));
+    }
 
     #[test]
     fn test_decode_quote_response() {

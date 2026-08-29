@@ -6,7 +6,7 @@ use crate::{
         model::{ErrorResponse, MayanQuote, QuoteParams, QuoteResponse},
     },
 };
-use gem_client::{Client, ClientError, ClientExt};
+use gem_client::{Client, ClientExt};
 use primitives::swap::SlippageMode;
 use serde::Serialize;
 use std::fmt::Debug;
@@ -63,9 +63,9 @@ impl<C> MayanClient<C>
 where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
-    pub async fn get_quotes(&self, params: QuoteParams, input_decimals: u32) -> Result<Vec<MayanQuote>, SwapperError> {
+    pub async fn get_quotes(&self, params: QuoteParams) -> Result<Vec<MayanQuote>, SwapperError> {
         let path = quote_path(params)?;
-        let response = self.client.get::<QuoteResponse>(&path).await.map_err(|err| map_quote_error(err, input_decimals))?;
+        let response = self.client.get_or_error::<QuoteResponse, ErrorResponse>(&path).await.map_err(SwapperError::from)?;
         Ok(response.quotes)
     }
 }
@@ -76,27 +76,9 @@ fn quote_path(params: QuoteParams) -> Result<String, SwapperError> {
     Ok(format!("/quote?{defaults}&{query}"))
 }
 
-fn map_quote_error(error: ClientError, decimals: u32) -> SwapperError {
-    match error.decode_body::<ErrorResponse>() {
-        Some(response) => map_response_error(&response, decimals),
-        None => SwapperError::from(error),
-    }
-}
-
-fn map_response_error(response: &ErrorResponse, decimals: u32) -> SwapperError {
-    if response.is_input_amount_error() {
-        return SwapperError::InputAmountError {
-            min_amount: response.min_amount_in(decimals),
-        };
-    }
-
-    SwapperError::compute_quote_error(response.message().unwrap_or("Unknown Mayan error"))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::mayan::model::ErrorData;
 
     #[test]
     fn test_quote_path() {
@@ -117,48 +99,5 @@ mod tests {
             path,
             "/quote?wormhole=false&swift=true&mctp=true&shuttle=false&fastMctp=true&gasless=false&onlyDirect=false&fullList=false&monoChain=true&solanaProgram=FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf&forwarderAddress=0x337685fdaB40D39bd02028545a4FfA7D287cC3E2&amountIn64=1000000&fromToken=0x0000000000000000000000000000000000000000&fromChain=ethereum&toToken=So11111111111111111111111111111111111111112&toChain=solana&referrer=0x1111111111111111111111111111111111111111&referrerBps=50&sdkVersion=14_1_0&slippageBps=auto"
         );
-    }
-
-    #[test]
-    fn test_map_response_error() {
-        let response = ErrorResponse {
-            msg: Some("Amount too small (min ~0.0004349 ETH)".to_string()),
-            message: None,
-            data: Some(ErrorData {
-                min_amount_in: Some(serde_json::json!(0.0004349)),
-            }),
-        };
-        assert_eq!(
-            map_response_error(&response, 18),
-            SwapperError::InputAmountError {
-                min_amount: Some("434900000000000".to_string())
-            }
-        );
-
-        let response = ErrorResponse {
-            msg: Some("Amount too small (min ~1,234.5 USDC)".to_string()),
-            message: None,
-            data: None,
-        };
-        assert_eq!(
-            map_response_error(&response, 6),
-            SwapperError::InputAmountError {
-                min_amount: Some("1234500000".to_string())
-            }
-        );
-
-        let response = ErrorResponse {
-            msg: Some("Amount too small".to_string()),
-            message: None,
-            data: None,
-        };
-        assert_eq!(map_response_error(&response, 6), SwapperError::InputAmountError { min_amount: None });
-
-        let response = ErrorResponse {
-            msg: None,
-            message: Some("Route not found".to_string()),
-            data: None,
-        };
-        assert_eq!(map_response_error(&response, 6), SwapperError::ComputeQuoteError("Route not found".to_string()));
     }
 }

@@ -55,9 +55,21 @@ impl SwapperError {
 
 pub trait ProviderErrorResponse: DeserializeOwned {
     fn into_swapper_error(self) -> Option<SwapperError>;
+}
 
-    fn map_client_error(error: ClientError) -> SwapperError {
-        error.decode_body::<Self>().and_then(Self::into_swapper_error).unwrap_or_else(|| SwapperError::from(error))
+trait HttpErrorBody {
+    fn into_swapper_error(self, status: u16) -> SwapperError;
+}
+
+impl HttpErrorBody for Vec<u8> {
+    fn into_swapper_error(self, status: u16) -> SwapperError {
+        SwapperError::ComputeQuoteError(format!("HTTP error: status {status}"))
+    }
+}
+
+impl<E: ProviderErrorResponse> HttpErrorBody for Option<E> {
+    fn into_swapper_error(self, status: u16) -> SwapperError {
+        self.and_then(E::into_swapper_error).unwrap_or_else(|| Vec::new().into_swapper_error(status))
     }
 }
 
@@ -78,13 +90,12 @@ impl From<JsonRpcError> for SwapperError {
     }
 }
 
-impl From<ClientError> for SwapperError {
-    fn from(err: ClientError) -> Self {
-        match err {
-            ClientError::Network(msg) => Self::ComputeQuoteError(msg),
+impl<B: HttpErrorBody> From<ClientError<B>> for SwapperError {
+    fn from(error: ClientError<B>) -> Self {
+        match error {
+            ClientError::Network(message) | ClientError::Serialization(message) => Self::ComputeQuoteError(message),
             ClientError::Timeout => Self::ComputeQuoteError("Request timed out".into()),
-            ClientError::Http { status, .. } => Self::ComputeQuoteError(format!("HTTP error: status {}", status)),
-            ClientError::Serialization(msg) => Self::ComputeQuoteError(msg),
+            ClientError::Http { status, body } => body.into_swapper_error(status),
         }
     }
 }

@@ -122,7 +122,7 @@ mod tests {
     fn test_map_network_error_keeps_offline_kind() {
         assert!(matches!(map_network_error(Box::new(AlienError::Offline)), GatewayError::Offline));
         assert!(matches!(
-            map_network_error(Box::new(gem_client::ClientError::Network(AlienError::Offline.to_string()))),
+            map_network_error(Box::<gem_client::ClientError>::new(gem_client::ClientError::Network(AlienError::Offline.to_string()))),
             GatewayError::Offline
         ));
         assert!(matches!(
