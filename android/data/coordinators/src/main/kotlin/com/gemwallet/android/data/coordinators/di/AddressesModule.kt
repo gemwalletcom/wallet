@@ -8,7 +8,7 @@ import com.gemwallet.android.data.coordinators.addresses.GetAddressNameImpl
 import com.gemwallet.android.data.coordinators.addresses.GetAddressNamesImpl
 import com.gemwallet.android.data.coordinators.addresses.RenameWalletAddressesImpl
 import com.gemwallet.android.data.coordinators.addresses.SaveWalletAddressesImpl
-import com.gemwallet.android.data.service.store.database.AddressesDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAddressStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,7 +22,7 @@ object AddressesCasesModule {
 
     @Singleton
     @Provides
-    fun provideGetAddressName(addressesDao: AddressesDao): GetAddressName = GetAddressNameImpl(addressesDao)
+    fun provideGetAddressName(addressStore: GemstoneAddressStore): GetAddressName = GetAddressNameImpl(addressStore)
 
     @Singleton
     @Provides
@@ -30,9 +30,9 @@ object AddressesCasesModule {
 
     @Singleton
     @Provides
-    fun provideRenameWalletAddresses(addressesDao: AddressesDao): RenameWalletAddresses = RenameWalletAddressesImpl(addressesDao)
+    fun provideRenameWalletAddresses(addressStore: GemstoneAddressStore): RenameWalletAddresses = RenameWalletAddressesImpl(addressStore)
 
     @Singleton
     @Provides
-    fun provideSaveWalletAddresses(addressesDao: AddressesDao): SaveWalletAddresses = SaveWalletAddressesImpl(addressesDao)
+    fun provideSaveWalletAddresses(addressStore: GemstoneAddressStore): SaveWalletAddresses = SaveWalletAddressesImpl(addressStore)
 }

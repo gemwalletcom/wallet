@@ -4,7 +4,7 @@ import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.cases.nft.GetListNftCase
 import com.gemwallet.android.data.coordinators.nft.GetAssetNftImpl
 import com.gemwallet.android.data.coordinators.nft.GetListNftImpl
-import com.gemwallet.android.data.service.store.database.NftDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneNftStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,9 +18,9 @@ object NftCasesModule {
 
     @Provides
     @Singleton
-    fun provideGetListNft(nftDao: NftDao): GetListNftCase = GetListNftImpl(nftDao)
+    fun provideGetListNft(nftStore: GemstoneNftStore): GetListNftCase = GetListNftImpl(nftStore)
 
     @Provides
     @Singleton
-    fun provideGetAssetNft(nftService: GemNftService, nftDao: NftDao): GetAssetNft = GetAssetNftImpl(nftService, nftDao)
+    fun provideGetAssetNft(nftService: GemNftService, nftStore: GemstoneNftStore): GetAssetNft = GetAssetNftImpl(nftService, nftStore)
 }

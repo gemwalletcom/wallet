@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.asset
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.service.store.database.BannersDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.Wallet
@@ -15,12 +15,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemBannerService
-import uniffi.gemstone.bannerIdentifier
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetShowWelcomeBannerImpl(
     private val sessionRepository: SessionRepository,
-    private val bannersDao: BannersDao,
+    private val bannerStore: GemstoneBannerStore,
     private val bannerService: GemBannerService,
     private val getActiveAssetsInfo: GetActiveAssetsInfo,
 ) : GetShowWelcomeBanner {
@@ -32,13 +31,12 @@ class GetShowWelcomeBannerImpl(
                 val isWalletEmpty = getActiveAssetsInfo
                     .getAssetsInfo(hideBalance = false)
                     .map { items -> items.all { it.isZeroBalance } }
-                combine(isWalletEmpty, bannersDao.observeBanner(onboardingBannerId(session.wallet))) { isEmpty, banner ->
+                combine(isWalletEmpty, bannerStore.observeBanner(onboardingBannerKey(session.wallet))) { isEmpty, banner ->
                     banner != null && bannerService.showsOnboarding(banner.state.toJson(), isEmpty)
                 }
             }
     }
 }
 
-internal fun onboardingBannerId(wallet: Wallet): String = bannerIdentifier(
+internal fun onboardingBannerKey(wallet: Wallet): GemBannerKey =
     GemBannerKey(walletId = wallet.id.id, assetId = null, event = BannerEvent.Onboarding.toJson())
-)

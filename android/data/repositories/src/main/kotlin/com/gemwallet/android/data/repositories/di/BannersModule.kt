@@ -21,7 +21,11 @@ import javax.inject.Singleton
 object BannersModule {
     @Singleton
     @Provides
-    fun provideGemBannerStore(bannersDao: BannersDao): GemBannerStore = GemstoneBannerStore(bannersDao)
+    fun provideGemstoneBannerStore(bannersDao: BannersDao): GemstoneBannerStore = GemstoneBannerStore(bannersDao)
+
+    @Singleton
+    @Provides
+    fun provideGemBannerStore(store: GemstoneBannerStore): GemBannerStore = store
 
     @Provides
     @Singleton

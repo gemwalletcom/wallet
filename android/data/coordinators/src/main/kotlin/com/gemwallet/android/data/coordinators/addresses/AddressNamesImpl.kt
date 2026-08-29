@@ -4,9 +4,7 @@ import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.cases.addresses.GetAddressNames
 import com.gemwallet.android.cases.addresses.RenameWalletAddresses
 import com.gemwallet.android.cases.addresses.SaveWalletAddresses
-import com.gemwallet.android.data.service.store.database.AddressesDao
-import com.gemwallet.android.data.service.store.database.entities.toAddressRecords
-import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.repositories.gemstone.GemstoneAddressStore
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AddressName
@@ -19,11 +17,10 @@ import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemNameService
 
 class GetAddressNameImpl(
-    private val addressesDao: AddressesDao,
+    private val addressStore: GemstoneAddressStore,
 ) : GetAddressName {
 
-    override fun getAddressNameFlow(chain: Chain, address: String): Flow<AddressName?> =
-        addressesDao.getFlow(chain, address).map { it?.toDTO() }
+    override fun getAddressNameFlow(chain: Chain, address: String): Flow<AddressName?> = addressStore.observeAddressName(chain, address)
 }
 
 class GetAddressNamesImpl(
@@ -35,19 +32,19 @@ class GetAddressNamesImpl(
 }
 
 class RenameWalletAddressesImpl(
-    private val addressesDao: AddressesDao,
+    private val addressStore: GemstoneAddressStore,
 ) : RenameWalletAddresses {
 
     override suspend fun rename(walletId: WalletId, name: String) {
-        addressesDao.updateName(walletId.id, name)
+        addressStore.renameWalletAddresses(walletId.id, name)
     }
 }
 
 class SaveWalletAddressesImpl(
-    private val addressesDao: AddressesDao,
+    private val addressStore: GemstoneAddressStore,
 ) : SaveWalletAddresses {
 
     override suspend fun invoke(wallet: Wallet) {
-        addressesDao.insert(wallet.toAddressRecords())
+        addressStore.saveWalletAddresses(wallet)
     }
 }

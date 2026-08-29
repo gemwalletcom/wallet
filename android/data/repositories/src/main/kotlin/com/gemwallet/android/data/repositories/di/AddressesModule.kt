@@ -17,7 +17,11 @@ object AddressesModule {
 
     @Singleton
     @Provides
-    fun provideGemAddressStore(addressesDao: AddressesDao): GemAddressStore = GemstoneAddressStore(addressesDao)
+    fun provideGemstoneAddressStore(addressesDao: AddressesDao): GemstoneAddressStore = GemstoneAddressStore(addressesDao)
+
+    @Singleton
+    @Provides
+    fun provideGemAddressStore(store: GemstoneAddressStore): GemAddressStore = store
 
     @Singleton
     @Provides

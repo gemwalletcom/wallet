@@ -16,7 +16,6 @@ import com.gemwallet.android.application.assets.cases.GetSearchLists
 import com.gemwallet.android.application.assets.cases.GetPortfolioData
 import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import uniffi.gemstone.GemBannerService
-import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.application.banner.cases.ApplyBannerAction
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.assets.cases.HideAsset
@@ -61,6 +60,7 @@ import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.gemstone.GemstoneWalletStore
 import uniffi.gemstone.GemAssetDiscoveryService
@@ -243,10 +243,10 @@ object AssetModule {
     @Singleton
     fun provideGetShowWelcomeBanner(
         sessionRepository: SessionRepository,
-        bannersDao: BannersDao,
+        bannerStore: GemstoneBannerStore,
         bannerService: GemBannerService,
         getActiveAssetsInfo: GetActiveAssetsInfo,
-    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(sessionRepository, bannersDao, bannerService, getActiveAssetsInfo)
+    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(sessionRepository, bannerStore, bannerService, getActiveAssetsInfo)
 
     @Provides
     @Singleton

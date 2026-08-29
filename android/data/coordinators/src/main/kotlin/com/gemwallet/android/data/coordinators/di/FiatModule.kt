@@ -15,7 +15,7 @@ import com.gemwallet.android.data.coordinators.fiat.SyncFiatTransactionsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
-import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.repositories.gemstone.GemstonePriceStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,15 +36,19 @@ object FiatModule {
     @Singleton
     fun provideObserveFiatTransactions(
         sessionRepository: SessionRepository,
-        fiatTransactionsDao: FiatTransactionsDao,
+        fiatStore: GemstoneFiatStore,
     ): ObserveFiatTransactions {
-        return ObserveFiatTransactionsImpl(sessionRepository, fiatTransactionsDao)
+        return ObserveFiatTransactionsImpl(sessionRepository, fiatStore)
     }
 
 
     @Provides
     @Singleton
-    fun provideGemFiatStore(fiatTransactionsDao: FiatTransactionsDao): GemFiatStore = GemstoneFiatStore(fiatTransactionsDao)
+    fun provideGemstoneFiatStore(fiatTransactionsDao: FiatTransactionsDao): GemstoneFiatStore = GemstoneFiatStore(fiatTransactionsDao)
+
+    @Provides
+    @Singleton
+    fun provideGemFiatStore(store: GemstoneFiatStore): GemFiatStore = store
 
     @Provides
     @Singleton
@@ -65,9 +69,9 @@ object FiatModule {
     @Provides
     @Singleton
     fun provideGetAssetPriceUsd(
-        pricesDao: PricesDao,
+        priceStore: GemstonePriceStore,
     ): GetAssetPriceUsd {
-        return GetAssetPriceUsdImpl(pricesDao)
+        return GetAssetPriceUsdImpl(priceStore)
     }
 
     @Provides

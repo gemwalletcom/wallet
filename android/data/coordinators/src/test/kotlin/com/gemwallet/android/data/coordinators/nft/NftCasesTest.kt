@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.nft
 
+import com.gemwallet.android.data.repositories.gemstone.GemstoneNftStore
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
@@ -30,8 +31,9 @@ class NftCasesTest {
 
     private val nftService = mockk<GemNftService>()
     private val nftDao = mockk<NftDao>()
-    private val getListNft = GetListNftImpl(nftDao)
-    private val getAssetNft = GetAssetNftImpl(nftService, nftDao)
+    private val nftStore = GemstoneNftStore(nftDao)
+    private val getListNft = GetListNftImpl(nftStore)
+    private val getAssetNft = GetAssetNftImpl(nftService, nftStore)
 
     private val collectionId = mockNftCollectionId()
     private val otherCollectionId = mockNftCollectionId(contractAddress = "0xother")

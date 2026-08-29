@@ -10,6 +10,8 @@ import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemBannerStore
 import uniffi.gemstone.bannerIdentifier
 import com.gemwallet.android.ext.requireChain
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class GemstoneBannerStore(
     private val bannersDao: BannersDao,
@@ -28,6 +30,14 @@ class GemstoneBannerStore(
     override suspend fun addBanners(keys: List<GemBannerKey>, state: BannerState) {
         bannersDao.addBanners(keys.map { it.toRecord(state) })
     }
+
+    suspend fun getAssetBanners(walletId: String?, assetId: String): List<DbBanner> = bannersDao.getAssetBanners(walletId, assetId)
+
+    suspend fun getWalletBanners(walletId: String, events: List<BannerEvent>): List<DbBanner> = bannersDao.getWalletBanners(walletId, events)
+
+    fun observeBanner(key: GemBannerKey): Flow<DbBanner?> = bannersDao.observeBanner(bannerIdentifier(key))
+
+    fun observeMultiSign(walletId: String): Flow<Boolean> = bannersDao.getMultisign(walletId).map { it.isNotEmpty() }
 
     private fun GemBannerKey.toRecord(state: BannerState) = DbBanner(
         id = bannerIdentifier(this),

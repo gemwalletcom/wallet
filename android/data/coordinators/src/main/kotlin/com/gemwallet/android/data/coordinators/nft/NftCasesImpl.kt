@@ -2,9 +2,7 @@ package com.gemwallet.android.data.coordinators.nft
 
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.cases.nft.GetListNftCase
-import com.gemwallet.android.data.service.store.database.NftDao
-import com.gemwallet.android.data.repositories.nft.toAssetModels
-import com.gemwallet.android.data.repositories.nft.toCollectionModels
+import com.gemwallet.android.data.repositories.gemstone.GemstoneNftStore
 import com.gemwallet.android.data.repositories.nft.toNftData
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
@@ -18,36 +16,30 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemNftService
 
 class GetListNftImpl(
-    private val nftDao: NftDao,
+    private val nftStore: GemstoneNftStore,
 ) : GetListNftCase {
 
-    override fun getListNft(walletId: WalletId, collectionId: String?): Flow<List<NFTData>> {
-        return combine(
-            nftDao.getCollections(walletId.id),
-            nftDao.getAssets(walletId.id),
-        ) { collectionEntities, assetEntities ->
-            val assets = assetEntities.toAssetModels().groupBy { it.collectionId }
-            val collections = collectionEntities.toCollectionModels()
-            collections.map { collection -> NFTData(collection, assets[collection.id] ?: emptyList()) }
-                .filter { collectionId == null || it.collection.id.toIdentifier() == collectionId }
+    override fun getListNft(walletId: WalletId, collectionId: String?): Flow<List<NFTData>> =
+        nftStore.observeNftData(walletId.id).map { items ->
+            items.filter { collectionId == null || it.collection.id.toIdentifier() == collectionId }
         }
-    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetAssetNftImpl(
     private val nftService: GemNftService,
-    private val nftDao: NftDao,
+    private val nftStore: GemstoneNftStore,
 ) : GetAssetNft {
 
     override fun getAssetNft(assetId: NFTAssetId): Flow<NFTData> {
-        return nftDao.getAsset(assetId).flatMapLatest { asset ->
+        return nftStore.observeAsset(assetId).flatMapLatest { asset ->
             if (asset == null) return@flatMapLatest storedAsset(assetId)
 
-            nftDao.getCollection(asset.collectionId).flatMapLatest { collection ->
+            nftStore.observeCollection(asset.collectionId).flatMapLatest { collection ->
                 collection
                     ?.let { flowOf(asset.toNftData(it)) }
                     ?: storedAsset(assetId)

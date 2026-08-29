@@ -16,6 +16,10 @@ class NftModule {
 
     @Provides
     @Singleton
-    fun provideGemNftService(apiClient: GemDeviceApiClient, nftDao: NftDao): GemNftService =
-        GemNftService(apiClient, GemstoneNftStore(nftDao))
+    fun provideGemstoneNftStore(nftDao: NftDao): GemstoneNftStore = GemstoneNftStore(nftDao)
+
+    @Provides
+    @Singleton
+    fun provideGemNftService(apiClient: GemDeviceApiClient, nftStore: GemstoneNftStore): GemNftService =
+        GemNftService(apiClient, nftStore)
 }

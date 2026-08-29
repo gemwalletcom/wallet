@@ -12,6 +12,7 @@ import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import com.gemwallet.android.ext.toIdentifier
 import uniffi.gemstone.GemPriceStore
@@ -54,4 +55,6 @@ class GemstonePriceStore(
     override suspend fun saveMarket(assetId: String, market: String) {
         assetsDao.setMarket(market.decodeJson<AssetMarket>().toRecord(AssetId(assetId)))
     }
+
+    fun observeUsdPrice(assetId: AssetId): Flow<Double?> = pricesDao.getUsdPrice(assetId.toIdentifier())
 }

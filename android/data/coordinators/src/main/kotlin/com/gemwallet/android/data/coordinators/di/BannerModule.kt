@@ -8,7 +8,7 @@ import com.gemwallet.android.data.coordinators.banner.ApplyBannerActionImpl
 import com.gemwallet.android.data.coordinators.banner.GetActiveBannersImpl
 import com.gemwallet.android.data.coordinators.banner.HasMultiSignImpl
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.service.store.database.BannersDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,9 +25,9 @@ object BannerModule {
     fun provideGetActiveBanners(
         sessionRepository: SessionRepository,
         getAssetInfo: GetAssetInfo,
-        bannersDao: BannersDao,
+        bannerStore: GemstoneBannerStore,
         bannerService: GemBannerService,
-    ): GetActiveBanners = GetActiveBannersImpl(sessionRepository, getAssetInfo, bannersDao, bannerService)
+    ): GetActiveBanners = GetActiveBannersImpl(sessionRepository, getAssetInfo, bannerStore, bannerService)
 
     @Provides
     @Singleton
@@ -35,5 +35,5 @@ object BannerModule {
 
     @Provides
     @Singleton
-    fun provideHasMultiSign(bannersDao: BannersDao): HasMultiSign = HasMultiSignImpl(bannersDao)
+    fun provideHasMultiSign(bannerStore: GemstoneBannerStore): HasMultiSign = HasMultiSignImpl(bannerStore)
 }

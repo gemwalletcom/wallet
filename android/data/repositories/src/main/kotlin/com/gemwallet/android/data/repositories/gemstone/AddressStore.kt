@@ -5,7 +5,12 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.data.service.store.database.entities.toAddressRecords
 import com.wallet.core.primitives.AddressName
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Wallet
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemAddressStore
 import com.gemwallet.android.ext.requireChain
 
@@ -25,4 +30,10 @@ class GemstoneAddressStore(
         if (names.isEmpty()) return
         addressesDao.deleteNames(names.map { it.decodeJson<AddressName>() }.toRecord())
     }
+
+    fun observeAddressName(chain: Chain, address: String): Flow<AddressName?> = addressesDao.getFlow(chain, address).map { it?.toDTO() }
+
+    suspend fun renameWalletAddresses(walletId: String, name: String) = addressesDao.updateName(walletId, name)
+
+    suspend fun saveWalletAddresses(wallet: Wallet) = addressesDao.insert(wallet.toAddressRecords())
 }

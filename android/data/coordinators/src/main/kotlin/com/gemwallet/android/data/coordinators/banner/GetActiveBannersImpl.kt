@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.banner
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.banner.cases.GetActiveBanners
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.service.store.database.BannersDao
+import com.gemwallet.android.data.repositories.gemstone.GemstoneBannerStore
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.domains.asset.isStakeable
 import com.gemwallet.android.ext.hasPerpetualsSupport
@@ -27,7 +27,7 @@ import java.math.BigInteger
 class GetActiveBannersImpl(
     private val sessionRepository: SessionRepository,
     private val getAssetInfo: GetAssetInfo,
-    private val bannersDao: BannersDao,
+    private val bannerStore: GemstoneBannerStore,
     private val bannerService: GemBannerService,
 ) : GetActiveBanners {
 
@@ -36,11 +36,11 @@ class GetActiveBannersImpl(
         val assetInfo = asset?.id?.let { getAssetInfo(it).firstOrNull() }
         val sceneWallet = wallet.takeUnless { isGlobal }
         val stored = when {
-            asset != null -> bannersDao.getAssetBanners(
+            asset != null -> bannerStore.getAssetBanners(
                 walletId = wallet?.id?.id,
                 assetId = asset.id.toIdentifier(),
             )
-            wallet != null -> bannersDao.getWalletBanners(wallet.id.id, listOf(BannerEvent.AccountBlockedMultiSignature))
+            wallet != null -> bannerStore.getWalletBanners(wallet.id.id, listOf(BannerEvent.AccountBlockedMultiSignature))
             else -> emptyList()
         }.map { it.toDTO(asset) }
         bannerService.visibleBanners(

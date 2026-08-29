@@ -36,13 +36,13 @@ object TransactionsModule {
         apiClient: GemDeviceApiClient,
         assetsService: GemAssetsService,
         transactionStore: GemstoneTransactionStore,
-        addressesDao: AddressesDao,
+        addressStore: GemstoneAddressStore,
         walletPreferencesService: GemWalletPreferencesService,
     ): GemTransactionsService = GemTransactionsService(
         apiClient,
         assetsService,
         transactionStore,
-        GemstoneAddressStore(addressesDao),
+        addressStore,
         walletPreferencesService,
     )
 

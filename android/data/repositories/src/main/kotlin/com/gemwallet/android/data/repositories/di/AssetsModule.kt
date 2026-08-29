@@ -199,9 +199,9 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideGemPriceService(
-        apiClient: GemApiClient,
-        pricesDao: PricesDao,
-        assetsDao: AssetsDao,
-    ): GemPriceService = GemPriceService(apiClient, GemstonePriceStore(pricesDao, assetsDao))
+    fun provideGemstonePriceStore(pricesDao: PricesDao, assetsDao: AssetsDao): GemstonePriceStore = GemstonePriceStore(pricesDao, assetsDao)
+
+    @Provides
+    @Singleton
+    fun provideGemPriceService(apiClient: GemApiClient, priceStore: GemstonePriceStore): GemPriceService = GemPriceService(apiClient, priceStore)
 }
