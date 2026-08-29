@@ -2,8 +2,8 @@ package com.gemwallet.android.data.coordinators.nft
 
 import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.application.nft.cases.GetListNft
-import com.gemwallet.android.data.adapters.gemstone.GemstoneNftStore
-import com.gemwallet.android.data.adapters.nft.toNftData
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
+import com.gemwallet.android.data.services.gemstone.nft.toNftData
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.NFTAssetData

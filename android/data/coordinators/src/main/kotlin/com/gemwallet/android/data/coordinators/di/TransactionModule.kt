@@ -14,7 +14,7 @@ import com.gemwallet.android.application.transactions.cases.ClearPendingTransact
 import com.gemwallet.android.data.coordinators.transaction.ClearPendingTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetPendingTransactionsCountImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionImpl
-import com.gemwallet.android.data.adapters.gemstone.GemstoneTransactionStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

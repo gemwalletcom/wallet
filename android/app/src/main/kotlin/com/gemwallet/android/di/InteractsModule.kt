@@ -21,7 +21,7 @@ import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
 import com.gemwallet.android.data.password.TinkPasswordStore
 import com.gemwallet.android.data.password.TinkSecurityStore
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
-import com.gemwallet.android.data.adapters.wallets.PhraseAddressImportWalletService
+import com.gemwallet.android.data.services.gemstone.wallets.PhraseAddressImportWalletService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

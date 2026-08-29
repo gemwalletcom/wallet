@@ -7,7 +7,7 @@ import com.gemwallet.android.application.support.cases.GetSupportTyping
 import com.gemwallet.android.data.coordinators.support.FailPendingSupportMessagesImpl
 import com.gemwallet.android.data.coordinators.support.GetSupportMessagesImpl
 import com.gemwallet.android.data.coordinators.support.SupportTypingCoordinator
-import com.gemwallet.android.data.adapters.gemstone.GemstoneSupportStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneSupportStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -4,7 +4,7 @@ import com.gemwallet.android.application.addresses.cases.GetAddressName
 import com.gemwallet.android.application.addresses.cases.GetAddressNames
 import com.gemwallet.android.application.addresses.cases.RenameWalletAddresses
 import com.gemwallet.android.application.addresses.cases.SaveWalletAddresses
-import com.gemwallet.android.data.adapters.gemstone.GemstoneAddressStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneAddressStore
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AddressName

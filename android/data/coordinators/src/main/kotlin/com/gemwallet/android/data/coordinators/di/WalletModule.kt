@@ -20,8 +20,8 @@ import com.gemwallet.android.data.coordinators.wallet.GetWalletDetailsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletSecretDataImpl
 import com.gemwallet.android.data.coordinators.wallet.SetWalletNameImpl
 import com.gemwallet.android.data.coordinators.wallet.SetWalletPinnedImpl
-import com.gemwallet.android.data.adapters.config.UserConfig
-import com.gemwallet.android.data.adapters.gemstone.GemstoneWalletStore
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides

@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.notifications
 
 import com.gemwallet.android.application.notifications.cases.GetInAppNotifications
-import com.gemwallet.android.data.adapters.gemstone.GemstoneNotificationStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneNotificationStore
 import com.wallet.core.primitives.InAppNotification
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow

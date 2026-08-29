@@ -7,7 +7,7 @@ import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
-import com.gemwallet.android.data.adapters.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.DestinationAddress

@@ -55,12 +55,12 @@ import com.gemwallet.android.data.coordinators.asset.SyncAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.SetAssetPinnedImpl
 import com.gemwallet.android.data.coordinators.asset.ToggleHideBalancesImpl
-import com.gemwallet.android.data.adapters.assets.AssetsSearchService
-import com.gemwallet.android.data.adapters.assets.CurrencyRatesService
-import com.gemwallet.android.data.adapters.config.UserConfig
-import com.gemwallet.android.data.adapters.gemstone.GemstoneBannerStore
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.CurrencyRatesService
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.adapters.gemstone.GemstoneWalletStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemNftService
@@ -76,7 +76,7 @@ import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemPortfolioService
 import javax.inject.Singleton
 import uniffi.gemstone.GemStreamSubscriptionService
-import com.gemwallet.android.data.adapters.gemstone.GemstoneAssetStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.coordinators.asset.WalletAssetsCoordinator
 import com.gemwallet.android.data.coordinators.asset.SyncBalancesImpl

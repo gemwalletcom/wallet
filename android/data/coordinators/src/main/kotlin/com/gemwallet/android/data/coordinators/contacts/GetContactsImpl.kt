@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.contacts
 
 import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.application.contacts.cases.GetContacts
-import com.gemwallet.android.data.adapters.gemstone.GemstoneContactStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneContactStore
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ContactData
 import kotlinx.coroutines.flow.Flow

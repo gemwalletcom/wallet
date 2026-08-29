@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.nft
 
-import com.gemwallet.android.data.adapters.gemstone.GemstoneNftStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection

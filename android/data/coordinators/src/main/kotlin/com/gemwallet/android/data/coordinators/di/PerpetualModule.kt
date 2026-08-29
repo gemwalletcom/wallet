@@ -15,7 +15,7 @@ import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
 import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.data.coordinators.perpetuals.BuildPerpetualParamsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualAccountModeImpl
-import com.gemwallet.android.data.adapters.perpetual.ObservePerpetualWallet
+import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.coordinators.perpetuals.PerpetualBalanceCoordinator
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualChartDataImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualChartPeriodImpl
@@ -27,8 +27,8 @@ import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualChartPerio
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualPositionsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualPinnedImpl
-import com.gemwallet.android.data.adapters.config.UserConfig
-import com.gemwallet.android.data.adapters.gemstone.GemstonePerpetualStore
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemWalletPreferencesService

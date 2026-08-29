@@ -53,7 +53,7 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    api(project(":data:adapters"))
+    api(project(":data:services:gemstone"))
     implementation(project(":features:bridge:viewmodels"))
     implementation(project(":features:confirm:presents"))
 

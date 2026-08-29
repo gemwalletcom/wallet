@@ -8,7 +8,7 @@ import com.gemwallet.android.data.coordinators.addresses.GetAddressNameImpl
 import com.gemwallet.android.data.coordinators.addresses.GetAddressNamesImpl
 import com.gemwallet.android.data.coordinators.addresses.RenameWalletAddressesImpl
 import com.gemwallet.android.data.coordinators.addresses.SaveWalletAddressesImpl
-import com.gemwallet.android.data.adapters.gemstone.GemstoneAddressStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneAddressStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

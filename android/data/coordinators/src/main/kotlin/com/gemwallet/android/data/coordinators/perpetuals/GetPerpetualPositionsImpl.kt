@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
-import com.gemwallet.android.data.adapters.gemstone.GemstonePerpetualStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl

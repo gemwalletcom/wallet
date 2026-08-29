@@ -50,7 +50,7 @@ android {
 dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
-    implementation(project(":data:adapters"))
+    implementation(project(":data:services:gemstone"))
     implementation(project(":gemcore"))
 
     implementation(libs.hilt.android)

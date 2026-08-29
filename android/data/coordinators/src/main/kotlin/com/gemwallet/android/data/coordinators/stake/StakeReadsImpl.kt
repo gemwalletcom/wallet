@@ -7,7 +7,7 @@ import com.gemwallet.android.application.stake.cases.GetRecommendedValidatorIds
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
-import com.gemwallet.android.data.adapters.gemstone.GemstoneStakeStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneStakeStore
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId

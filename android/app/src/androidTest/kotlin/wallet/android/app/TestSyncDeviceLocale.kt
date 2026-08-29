@@ -1,6 +1,6 @@
 package wallet.android.app
 
-import com.gemwallet.android.data.adapters.gemstone.GemstoneDevicePlatform
+import com.gemwallet.android.data.services.gemstone.device.GemstoneDevicePlatform
 import com.wallet.core.primitives.DeviceLocale
 import org.junit.Assert.assertEquals
 import org.junit.Test

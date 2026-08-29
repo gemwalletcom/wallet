@@ -44,7 +44,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":data:adapters"))
+    implementation(project(":data:services:gemstone"))
     implementation(project(":gemcore"))
     implementation(project(":data:services:store"))
     api(project(":data:services:native-provider"))

@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
-import com.gemwallet.android.data.adapters.gemstone.GemstonePerpetualStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.WalletId

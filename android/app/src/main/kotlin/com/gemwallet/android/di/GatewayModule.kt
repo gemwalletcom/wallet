@@ -4,7 +4,7 @@ import android.content.Context
 import com.gemwallet.android.Constants
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
-import com.gemwallet.android.data.adapters.gemstone.GemstonePreferencesStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import com.gemwallet.android.services.DeviceSyncPreflight
 import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.runBlocking
@@ -23,12 +23,12 @@ import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.data.adapters.gemstone.GemstoneKeystorePassword
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemFiatStore
-import com.gemwallet.android.data.adapters.gemstone.GemstonePerpetualStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPriceService

@@ -19,7 +19,7 @@ import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.toConnectionSession
 import com.gemwallet.android.application.wallet_connect.toSupportedNamespaces
-import com.gemwallet.android.data.adapters.gemstone.GemstoneConnectionStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection

@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.data.adapters.gemstone.GemstoneAssetStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.domains.asset.defaultAssets
 import com.gemwallet.android.model.AssetBalance

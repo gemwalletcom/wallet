@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.banner
 
 import com.gemwallet.android.application.banner.cases.HasMultiSign
-import com.gemwallet.android.data.adapters.gemstone.GemstoneBannerStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.flow.Flow
 

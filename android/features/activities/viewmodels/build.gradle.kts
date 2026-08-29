@@ -49,7 +49,7 @@ android {
 
 dependencies {
     api(project(":ui-models"))
-    implementation(project(":data:adapters"))
+    implementation(project(":data:services:gemstone"))
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime.ktx)

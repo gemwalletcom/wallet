@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.wallet
 import android.util.Log
 import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
-import com.gemwallet.android.data.adapters.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.session.cases.ClearSession
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers

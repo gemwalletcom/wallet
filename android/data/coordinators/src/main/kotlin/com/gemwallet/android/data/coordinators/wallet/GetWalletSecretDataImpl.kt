@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.wallet.cases.GetWalletSecretData
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
-import com.gemwallet.android.data.adapters.gemstone.GemstoneWalletStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.domains.wallet.values.WalletSecretDataValue
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType

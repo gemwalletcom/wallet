@@ -8,7 +8,7 @@ import com.gemwallet.android.data.coordinators.contacts.AddContactImpl
 import com.gemwallet.android.data.coordinators.contacts.DeleteContactImpl
 import com.gemwallet.android.data.coordinators.contacts.GetContactsImpl
 import com.gemwallet.android.data.coordinators.contacts.UpdateContactImpl
-import com.gemwallet.android.data.adapters.gemstone.GemstoneContactStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneContactStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

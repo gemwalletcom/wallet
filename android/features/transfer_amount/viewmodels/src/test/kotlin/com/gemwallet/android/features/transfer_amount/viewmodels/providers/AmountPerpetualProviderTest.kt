@@ -3,7 +3,7 @@ package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
-import com.gemwallet.android.data.adapters.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle

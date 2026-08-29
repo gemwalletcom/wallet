@@ -12,7 +12,7 @@ import com.gemwallet.android.application.pricealerts.cases.SetPriceAlertsEnabled
 import com.gemwallet.android.application.pricealerts.cases.SyncAssetPriceAlerts
 import com.gemwallet.android.application.pricealerts.cases.UpdatePriceAlerts
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.data.adapters.gemstone.GemstonePriceAlertStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceAlertStore
 import com.gemwallet.android.data.coordinators.pricealerts.GetAssetPriceAlertStateImpl
 import com.gemwallet.android.data.coordinators.pricealerts.GetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.HasAssetPriceAlertsImpl
