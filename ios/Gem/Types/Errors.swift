@@ -5,6 +5,30 @@ import Gemstone
 import Localization
 import Primitives
 
+extension KeystoreError: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .missingPassword: Localized.Errors.keystoreAccess
+        }
+    }
+}
+
+extension Gemstone.GemServiceError: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case let .Api(message),
+             let .Gateway(message),
+             let .Store(message),
+             let .Core(message),
+             let .Platform(message),
+             let .InvalidInput(message),
+             let .NotFound(message),
+             let .Unsupported(message): message
+        case .Cancelled: Localized.Errors.cancelled
+        }
+    }
+}
+
 extension Gemstone.GatewayError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
