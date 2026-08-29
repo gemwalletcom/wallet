@@ -39,13 +39,7 @@ import com.gemwallet.android.features.asset.presents.details.components.network
 import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.presents.details.components.status
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toIdentifier
-import java.math.BigInteger
-import uniffi.gemstone.GemSwapQuoteService
 import com.wallet.core.primitives.WalletType
-
-private val swapQuoteService = GemSwapQuoteService()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,14 +65,10 @@ internal fun AssetDetailsScene(
     val addToastMessage = stringResource(R.string.asset_added_to_wallet)
     val swapAction: (() -> Unit)? = if (uiState.isSwapEnabled && uiState.accountInfoUIModel.walletType != WalletType.View) {
         {
-            val pair = swapQuoteService.pairForAsset(
-                assetId = uiState.asset.id.toIdentifier(),
-                hasBalance = (uiState.assetInfo.balance.balance.available.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO,
-            )
             onAction(
                 AssetDetailsAction.Swap(
-                    fromAssetId = pair.payAssetId.toAssetId() ?: uiState.asset.id,
-                    toAssetId = pair.receiveAssetId?.toAssetId(),
+                    fromAssetId = uiState.swapPayAssetId ?: uiState.asset.id,
+                    toAssetId = uiState.swapReceiveAssetId,
                 )
             )
         }

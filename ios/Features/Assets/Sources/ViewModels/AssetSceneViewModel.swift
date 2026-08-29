@@ -9,7 +9,7 @@ import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemSwapQuoteService
+import class Gemstone.GemSwapSelectionService
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -20,7 +20,7 @@ import Style
 import SwiftUI
 import UIKit
 
-private let swapQuoteService = GemSwapQuoteService()
+private let swapSelectionService = GemSwapSelectionService()
 
 @Observable
 @MainActor
@@ -312,7 +312,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var swapAssetType: SelectedAssetType {
-        let pair = swapQuoteService.pairForAsset(
+        let pair = swapSelectionService.pairForAsset(
             assetId: assetData.asset.id.identifier,
             hasBalance: assetData.balance.available > .zero,
         )

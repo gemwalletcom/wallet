@@ -1,6 +1,7 @@
 pub mod config;
 pub mod model;
 pub mod rules;
+pub mod selection;
 pub mod store;
 
 use crate::clock::unix_seconds;

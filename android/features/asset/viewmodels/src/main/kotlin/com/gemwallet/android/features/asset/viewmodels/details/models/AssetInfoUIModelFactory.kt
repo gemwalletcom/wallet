@@ -20,7 +20,13 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.StakeChain
 import com.wallet.core.primitives.WalletType
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toIdentifier
 import uniffi.gemstone.Explorer
+import uniffi.gemstone.GemSwapSelectionService
+import java.math.BigInteger
+
+private val swapSelectionService = GemSwapSelectionService()
 
 object AssetInfoUIModelFactory {
 
@@ -34,6 +40,10 @@ object AssetInfoUIModelFactory {
         val currencyFormatter = CurrencyFormatter(currency = currency)
         val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
         val fiatTotal = if (balances.fiatTotalAmount == 0.0) "" else currencyFormatter.string(balances.fiatTotalAmount)
+        val swapPair = swapSelectionService.pairForAsset(
+            assetId = asset.id.toIdentifier(),
+            hasBalance = (balances.balance.available.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO,
+        )
 
         return AssetInfoUIModel(
             assetInfo = assetInfo,
@@ -45,6 +55,8 @@ object AssetInfoUIModelFactory {
             tokenType = asset.type,
             isBuyEnabled = assetInfo.metadata?.isBuyEnabled == true,
             isSwapEnabled = assetInfo.metadata?.isSwapEnabled == true,
+            swapPayAssetId = swapPair.payAssetId.toAssetId(),
+            swapReceiveAssetId = swapPair.receiveAssetId?.toAssetId(),
             explorerName = explorerName,
             explorerAddressUrl = assetInfo.owner?.address?.let {
                 Explorer(asset.chain.string).getAddressUrl(explorerName, it)
