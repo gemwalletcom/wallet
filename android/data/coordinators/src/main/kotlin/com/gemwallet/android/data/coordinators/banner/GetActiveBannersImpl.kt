@@ -42,7 +42,7 @@ class GetActiveBannersImpl(
             )
             wallet != null -> bannerStore.getWalletBanners(wallet.id.id, listOf(BannerEvent.AccountBlockedMultiSignature))
             else -> emptyList()
-        }.map { it.toDTO(asset) }
+        }.map { it.toDTO(asset) }.distinctBy { it.event }
         bannerService.visibleBanners(
             stored = stored.map { GemBannerItem(event = it.event.toJson(), state = it.state.toJson()) },
             context = bannerContext(wallet, assetInfo),

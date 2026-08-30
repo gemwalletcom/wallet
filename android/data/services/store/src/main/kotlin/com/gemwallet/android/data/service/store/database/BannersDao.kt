@@ -36,7 +36,7 @@ interface BannersDao {
         SELECT * FROM
             banners
         WHERE
-            wallet_id = :walletId AND asset_id IS NULL AND event IN (:events) AND state IN (:states)
+            wallet_id = :walletId AND event IN (:events) AND state IN (:states)
     """)
     suspend fun getWalletBanners(
         walletId: String,
