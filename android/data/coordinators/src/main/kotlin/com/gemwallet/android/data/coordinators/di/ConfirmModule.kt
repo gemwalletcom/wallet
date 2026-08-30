@@ -23,6 +23,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import uniffi.gemstone.GemAmountService
 import uniffi.gemstone.GemAssetConfigService
 
 @InstallIn(SingletonComponent::class)
@@ -31,7 +32,7 @@ object ConfirmModule {
 
     @Provides
     @Singleton
-    fun provideCalculateTransferAmount(): CalculateTransferAmount = CalculateTransferAmountImpl()
+    fun provideCalculateTransferAmount(amountService: GemAmountService): CalculateTransferAmount = CalculateTransferAmountImpl(amountService)
 
     @Provides
     @Singleton

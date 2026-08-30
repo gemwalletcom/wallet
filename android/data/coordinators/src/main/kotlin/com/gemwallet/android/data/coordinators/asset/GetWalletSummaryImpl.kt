@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
-import uniffi.gemstone.BalanceCalculator as GemBalanceCalculator
+import uniffi.gemstone.BalanceCalculator
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,9 +39,9 @@ class GetWalletSummaryImpl(
     private val getPerpetualBalance: GetPerpetualBalance,
     private val hasMultiSign: HasMultiSign,
     private val userConfig: UserConfig,
+    private val balanceCalculator: BalanceCalculator,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetWalletSummary {
-    private val balanceCalculator = GemBalanceCalculator()
 
     private val walletSummary = getSession().flatMapLatest { session ->
         val wallet = session?.wallet ?: return@flatMapLatest flowOf(null)
@@ -85,7 +85,7 @@ class GetWalletSummaryImpl(
 internal fun buildWalletSummaryDisplayState(
     currency: Currency,
     total: GemTotalFiatValue,
-    balanceCalculator: GemBalanceCalculator = GemBalanceCalculator(),
+    balanceCalculator: BalanceCalculator,
 ): WalletSummaryDisplayState {
     val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
     val totalValue = total.value.toBigDecimal()

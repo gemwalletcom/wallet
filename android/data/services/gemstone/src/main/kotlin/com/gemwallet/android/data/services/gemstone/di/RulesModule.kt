@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAmountService
+import uniffi.gemstone.BalanceCalculator
 import uniffi.gemstone.GemApplicationMetadataService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemFeeService
@@ -29,6 +30,10 @@ object RulesModule {
     @Provides
     @Singleton
     fun provideGemAmountService(): GemAmountService = GemAmountService()
+
+    @Provides
+    @Singleton
+    fun provideBalanceCalculator(): BalanceCalculator = BalanceCalculator()
 
     @Provides
     @Singleton

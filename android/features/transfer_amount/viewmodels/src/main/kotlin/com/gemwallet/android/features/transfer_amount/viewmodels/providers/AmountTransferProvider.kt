@@ -10,6 +10,7 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.DestinationAddress
 import com.wallet.core.primitives.Asset
 import kotlinx.coroutines.CoroutineScope
+import uniffi.gemstone.GemAmountService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,8 @@ class AmountTransferProvider(
     private val params: AmountParams,
     getAssetInfo: GetAssetInfo,
     scope: CoroutineScope,
-) : AmountDataProvider(scope) {
+    amountService: GemAmountService,
+) : AmountDataProvider(scope, amountService) {
 
     override val title: AmountTitle = when (params) {
         is AmountParams.Deposit -> AmountTitle.Deposit

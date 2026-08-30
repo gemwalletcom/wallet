@@ -33,6 +33,7 @@ import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetChartDataImpl
+import uniffi.gemstone.BalanceCalculator
 import uniffi.gemstone.GemChartService
 import com.gemwallet.android.data.coordinators.asset.GetAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetLinksImpl
@@ -136,12 +137,14 @@ object AssetModule {
         getPerpetualBalance: GetPerpetualBalance,
         hasMultiSign: HasMultiSign,
         userConfig: UserConfig,
+        balanceCalculator: BalanceCalculator,
     ): GetWalletSummary = GetWalletSummaryImpl(
         getSession = getSession,
         getWalletAssets = getWalletAssets,
         getPerpetualBalance = getPerpetualBalance,
         hasMultiSign = hasMultiSign,
         userConfig = userConfig,
+        balanceCalculator = balanceCalculator,
     )
 
     @Provides

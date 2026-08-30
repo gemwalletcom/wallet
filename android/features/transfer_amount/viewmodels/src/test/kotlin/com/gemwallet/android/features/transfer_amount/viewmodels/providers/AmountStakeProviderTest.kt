@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import uniffi.gemstone.GemAmountService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -70,6 +71,7 @@ class AmountStakeProviderTest {
         getRecommendedValidator = getRecommendedValidator,
         getStakeValidator = getStakeValidator,
         scope = scope,
+        amountService = GemAmountService(),
     )
 
     @Test

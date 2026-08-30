@@ -13,7 +13,7 @@ import uniffi.gemstone.GemAmountService
 import java.math.BigInteger
 
 class CalculateTransferAmountImpl(
-    private val amountService: GemAmountService = GemAmountService(),
+    private val amountService: GemAmountService,
 ) : CalculateTransferAmount {
 
     override fun invoke(
