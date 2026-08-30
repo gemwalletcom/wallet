@@ -175,8 +175,8 @@ pub fn collateral_price(chain: Chain) -> Option<AssetPrice> {
 }
 
 pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> Result<PerpetualType, GemServiceError> {
-    let usdc_amount = BigInt::from_str(&input.usdc_amount).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
-    let usd_amount = usdc_amount.to_string().parse::<f64>().unwrap_or_default() / 10f64.powi(input.usdc_decimals);
+    let usdc_value = BigInt::from_str(&input.usdc_value).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
+    let usd_amount = usdc_value.to_string().parse::<f64>().unwrap_or_default() / 10f64.powi(input.usdc_decimals);
     let slippage = slippage_percent(input.slippage);
     let (size, fiat_value, margin_amount) = order_amounts(usd_amount, input.leverage, input.price);
     let price = slippage_price(input.price, input.direction.clone(), opens_position(&input.action), slippage);
@@ -463,7 +463,7 @@ mod tests {
             asset: Asset::mock(),
             asset_index: 1,
             price: 100.0,
-            usdc_amount: "50000000".to_string(),
+            usdc_value: "50000000".to_string(),
             usdc_decimals: 6,
             leverage: 4,
             slippage: None,

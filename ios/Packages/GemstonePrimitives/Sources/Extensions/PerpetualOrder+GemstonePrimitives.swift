@@ -10,7 +10,7 @@ import Primitives
 
 public extension PerpetualPositionAction {
     func order(
-        usdcAmount: BigInt,
+        usdcValue: BigInt,
         usdcDecimals: Int,
         leverage: UInt8,
         takeProfit: String? = .none,
@@ -25,7 +25,7 @@ public extension PerpetualPositionAction {
             asset: data.asset.json(),
             assetIndex: Int32(data.assetIndex),
             price: data.price,
-            usdcAmount: usdcAmount.description,
+            usdcValue: usdcValue.description,
             usdcDecimals: Int32(usdcDecimals),
             leverage: leverage,
             slippage: .none,

@@ -179,7 +179,7 @@ class AmountPerpetualProvider(
         val perpetualMarket = perpetual.value ?: error("perpetual not loaded")
         val perpetualType = PerpetualOrderFactory.makePerpetualOrder(
             positionAction = params.positionAction,
-            usdcAmount = amount.atomicValue,
+            usdcValue = amount.atomicValue,
             usdcDecimals = current.asset.decimals,
             leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.data.leverage,
             takeProfit = formatTriggerForOrder(takeProfit.value, perpetualMarket),

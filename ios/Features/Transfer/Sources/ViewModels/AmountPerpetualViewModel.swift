@@ -111,7 +111,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         let formatter = PerpetualFormatter(provider: .hypercore)
 
         let perpetualType = try data.positionAction.order(
-            usdcAmount: value,
+            usdcValue: value,
             usdcDecimals: asset.decimals.asInt,
             leverage: leverage,
             takeProfit: takeProfit

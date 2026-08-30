@@ -18,7 +18,7 @@ object PerpetualOrderFactory {
 
     fun makePerpetualOrder(
         positionAction: PerpetualPositionAction,
-        usdcAmount: BigInteger,
+        usdcValue: BigInteger,
         usdcDecimals: Int,
         leverage: UByte,
         takeProfit: String? = null,
@@ -33,7 +33,7 @@ object PerpetualOrderFactory {
             asset = data.asset.toJson(),
             assetIndex = data.assetIndex,
             price = data.price,
-            usdcAmount = usdcAmount.toString(),
+            usdcValue = usdcValue.toString(),
             usdcDecimals = usdcDecimals,
             leverage = leverage,
             slippage = null,
