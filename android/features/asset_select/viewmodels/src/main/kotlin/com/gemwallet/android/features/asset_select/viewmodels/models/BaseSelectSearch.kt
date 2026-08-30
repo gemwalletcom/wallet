@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset_select.viewmodels.models
 
+import uniffi.gemstone.GemAssetConfigService
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import com.gemwallet.android.domains.asset.queryFilters
 import com.gemwallet.android.model.AssetInfo
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 @OptIn(ExperimentalCoroutinesApi::class)
 open class BaseSelectSearch(
     private val searchSelectAssets: SearchSelectAssets,
+    private val assetConfig: GemAssetConfigService,
     private val action: GemAssetAction? = null,
 ) : SelectSearch {
 
@@ -20,7 +22,7 @@ open class BaseSelectSearch(
             searchSelectAssets(
                 filters?.query.orEmpty(),
                 filters?.limit ?: NO_QUERY_LIMIT,
-                action?.queryFilters().orEmpty(),
+                action?.queryFilters(assetConfig).orEmpty(),
             )
         }
     }

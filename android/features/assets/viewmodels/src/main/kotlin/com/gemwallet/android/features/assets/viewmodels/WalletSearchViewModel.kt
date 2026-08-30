@@ -68,7 +68,7 @@ class WalletSearchViewModel @Inject constructor(
     switchAssetVisibility,
     setAssetPinned,
     searchTokensCase,
-    BaseSelectSearch(searchSelectAssets),
+    BaseSelectSearch(searchSelectAssets, assetConfig),
     assetConfig,
 ) {
 

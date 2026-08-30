@@ -81,7 +81,7 @@ class SwapSelectViewModel @Inject constructor(
         }
     }
 
-    override fun assetFilters() = GemAssetAction.SWAP_PAY.recentFilters()
+    override fun assetFilters() = GemAssetAction.SWAP_PAY.recentFilters(assetConfig)
 
     override val recentTypes: List<RecentType> get() = listOf(RecentType.SwapSelect, RecentType.Swap)
 }

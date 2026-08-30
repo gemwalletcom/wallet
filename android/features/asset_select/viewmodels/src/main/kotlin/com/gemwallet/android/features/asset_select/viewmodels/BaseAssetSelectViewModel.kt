@@ -63,7 +63,7 @@ open class BaseAssetSelectViewModel(
     private val setAssetPinned: SetAssetPinned,
     private val searchTokensCase: SearchTokens,
     val search: SelectSearch,
-    private val assetConfig: GemAssetConfigService,
+    protected val assetConfig: GemAssetConfigService,
     private val remoteSearch: Boolean = true,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 

@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
+import uniffi.gemstone.GemAssetConfigService
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.swap.cases.BuildSwapConfirmParams
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
@@ -75,9 +76,11 @@ object SwapModule {
     fun provideSearchSwapAssets(
         searchService: AssetsSearchService,
         swapService: GemSwapServiceInterface,
+        assetConfig: GemAssetConfigService,
     ): SearchSwapAssets = SearchSwapAssetsImpl(
         searchService = searchService,
         swapService = swapService,
+        assetConfig = assetConfig,
     )
 
 
