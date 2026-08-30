@@ -1,35 +1,29 @@
 use num_bigint::BigInt;
 use primitives::{
     ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction, TransactionPreloadInput,
-    TransferDataOutputAction,
+    TransferDataOutputAction, Wallet,
 };
 
 use super::error::GemConfirmError;
-use super::model::{GemAcquireAssetFlow, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemSendInput};
+use super::model::{GemAcquireAssetFlow, GemConfirmFeeSelection, GemConfirmInput, GemSendInput};
 use crate::fee::custom_gas_price;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::transfer::{GemPendingTransactionInput, rules as transfer_rules};
 
 pub fn signer_input(input: &GemSendInput) -> Result<GemSignerInput, GemConfirmError> {
-    let chain = input.confirm.input.transfer.input_type.asset().chain();
-    let sender = input.wallet.account(chain).ok_or(GemConfirmError::AccountMissing { chain })?;
-    let priced_for = &input.confirm.input.from.address;
-    if &sender.address != priced_for {
-        return Err(GemConfirmError::SenderMismatch {
-            priced_for: priced_for.clone(),
-            signing_with: sender.address.clone(),
-        });
-    }
+    let GemConfirmInput { from, transfer } = &input.confirm.input;
+    let chain = transfer.input_type.asset().chain();
+    let sender_address = signing_address(&input.wallet, chain, &from.address)?;
     Ok(GemSignerInput {
         input: GemTransactionLoadInput {
-            input_type: input.confirm.input.transfer.input_type.clone(),
-            sender_address: sender.address.clone(),
-            destination_address: input.confirm.input.transfer.recipient.address.clone(),
+            input_type: transfer.input_type.clone(),
+            sender_address,
+            destination_address: transfer.recipient.address.clone(),
             value: input.value.to_string(),
             gas_price: input.confirm.fee.gas_price_type.clone(),
-            memo: input.confirm.input.transfer.recipient.memo.clone(),
-            is_max_value: input.confirm.input.transfer.use_max_amount,
+            memo: transfer.recipient.memo.clone(),
+            is_max_value: transfer.use_max_amount,
             metadata: input.confirm.metadata.clone(),
         },
         fee: GemTransactionLoadFee {
@@ -37,6 +31,17 @@ pub fn signer_input(input: &GemSendInput) -> Result<GemSignerInput, GemConfirmEr
             ..input.confirm.fee.clone()
         },
     })
+}
+
+fn signing_address(wallet: &Wallet, chain: Chain, priced_for: &str) -> Result<String, GemConfirmError> {
+    let sender = wallet.account(chain).ok_or(GemConfirmError::AccountMissing { chain })?;
+    if sender.address != priced_for {
+        return Err(GemConfirmError::SenderMismatch {
+            priced_for: priced_for.to_string(),
+            signing_with: sender.address.clone(),
+        });
+    }
+    Ok(sender.address.clone())
 }
 
 pub fn validate_approvals(input_type: &GemTransactionInputType, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError> {
@@ -201,6 +206,7 @@ pub(super) fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSel
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::model::GemConfirmData;
     use crate::models::custom_types::GemBigInt;
     use crate::models::gateway::GemGasPriceType;
     use crate::models::transaction::GemTransactionLoadMetadata;

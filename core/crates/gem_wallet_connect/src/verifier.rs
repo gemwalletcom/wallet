@@ -21,6 +21,10 @@ impl WalletConnectVerifier {
         let metadata_domain = host(&metadata_url);
         let origin_domain = host(&origin);
 
+        if metadata_domain.is_empty() || origin_domain.is_empty() {
+            return WalletConnectionVerificationStatus::Invalid;
+        }
+
         if metadata_domain == origin_domain {
             WalletConnectionVerificationStatus::Verified
         } else {
@@ -57,6 +61,21 @@ mod tests {
             WalletConnectionVerificationStatus::Verified,
         );
         assert!(matches!(result, WalletConnectionVerificationStatus::Verified));
+    }
+
+    #[test]
+    fn test_an_empty_domain_never_verifies_itself() {
+        for (metadata_url, origin) in [("", ""), ("", "https://app.uniswap.org"), ("https://app.uniswap.org", "")] {
+            let result = WalletConnectVerifier::validate_origin(
+                metadata_url.to_string(),
+                Some(origin.to_string()),
+                WalletConnectionVerificationStatus::Verified,
+            );
+            assert!(
+                matches!(result, WalletConnectionVerificationStatus::Invalid),
+                "empty domain verified: metadata={metadata_url:?} origin={origin:?}"
+            );
+        }
     }
 
     #[test]

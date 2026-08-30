@@ -4,7 +4,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::transfer::GemTransferData;
-use primitives::{Account, AssetId, ScanTransaction, SimulationResult, Transaction, Wallet};
+use primitives::{Account, AssetId, SimulationResult, Transaction, Wallet};
 
 pub type GemAccount = Account;
 
