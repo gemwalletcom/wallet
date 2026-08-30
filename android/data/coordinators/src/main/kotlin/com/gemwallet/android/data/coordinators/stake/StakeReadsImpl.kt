@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemStakeService
-import uniffi.gemstone.StakeConfig
+import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
 
 class SyncStakeDelegationsImpl(
@@ -34,29 +34,29 @@ class SyncStakeDelegationsImpl(
 
 class GetValidatorsImpl(
     private val stakeStore: GemstoneStakeStore,
-    private val stakeConfig: StakeConfig,
+    private val stakeService: GemStakeServiceInterface,
 ) : GetValidators {
 
     override fun invoke(assetId: AssetId): Flow<List<DelegationValidator>> =
         stakeStore.observeValidators(assetId, StakeProviderType.Stake)
-            .map { validators -> stakeConfig.selectableValidators(validators.map { it.toJson() }).map { it.decodeJson<DelegationValidator>() } }
+            .map { validators -> stakeService.selectableValidators(validators.map { it.toJson() }).map { it.decodeJson<DelegationValidator>() } }
 }
 
 class GetRecommendedValidatorIdsImpl(
-    private val stakeConfig: StakeConfig,
+    private val stakeService: GemStakeServiceInterface,
 ) : GetRecommendedValidatorIds {
 
-    override fun invoke(assetId: AssetId): List<String> = stakeConfig.recommendedValidatorIds(assetId.chain.string)
+    override fun invoke(assetId: AssetId): List<String> = stakeService.recommendedValidatorIds(assetId.chain.string)
 }
 
 class GetRecommendedValidatorImpl(
     private val getValidators: GetValidators,
-    private val stakeConfig: StakeConfig,
+    private val stakeService: GemStakeServiceInterface,
 ) : GetRecommendedValidator {
 
     override fun invoke(assetId: AssetId): Flow<DelegationValidator?> =
         getValidators(assetId).map { validators ->
-            stakeConfig.recommendedValidator(assetId.chain.string, validators.map { it.toJson() })?.decodeJson<DelegationValidator>()
+            stakeService.recommendedValidator(assetId.chain.string, validators.map { it.toJson() })?.decodeJson<DelegationValidator>()
         }
 }
 

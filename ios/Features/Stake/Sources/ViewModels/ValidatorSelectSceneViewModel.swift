@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.StakeConfig
+import protocol Gemstone.GemStakeServiceProtocol
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitives
@@ -19,11 +19,11 @@ public final class ValidatorSelectSceneViewModel {
     private let explorerService: any GemExplorerServiceProtocol
 
 
-    private let stakeConfig: StakeConfig
+    private let stakeService: any GemStakeServiceProtocol
 
     public init(
         explorerService: any GemExplorerServiceProtocol,
-        stakeConfig: StakeConfig,
+        stakeService: any GemStakeServiceProtocol,
         type: ValidatorSelectType,
         chain: Chain,
         currentValidator: DelegationValidator?,
@@ -31,7 +31,7 @@ public final class ValidatorSelectSceneViewModel {
         selectValidator: ((DelegationValidator) -> Void)? = nil,
     ) {
         self.explorerService = explorerService
-        self.stakeConfig = stakeConfig
+        self.stakeService = stakeService
         self.type = type
         self.chain = chain
         self.currentValidator = currentValidator
@@ -46,7 +46,7 @@ public final class ValidatorSelectSceneViewModel {
     public var list: [ListItemValueSection<DelegationValidator>] {
         switch type {
         case .stake:
-            let recommended = Set(stakeConfig.recommendedValidatorIds(chain: chain.rawValue))
+            let recommended = Set(stakeService.recommendedValidatorIds(chain: chain.rawValue))
             return [
                 listSection(
                     title: Localized.Common.recommended,

@@ -147,7 +147,6 @@ struct ServicesFactory {
             addressStore: gemAddressStore,
         )
         let stakeService = gemStakeService
-        let stakeConfig = Gemstone.StakeConfig()
         let gemNftService = Gemstone.GemNftService(api: gemDeviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
         let nftService = gemNftService
         let transactionsService = gemTransactionsService
@@ -344,7 +343,6 @@ struct ServicesFactory {
             priceUpdater: streamSubscriptionService,
             walletSessionService: walletSessionService,
             stakeService: stakeService,
-            stakeConfig: stakeConfig,
             explorerService: explorerService,
             preferencesService: preferencesService,
             amountService: AmountService(stakeService: stakeService),
@@ -386,7 +384,6 @@ struct ServicesFactory {
             chartService: chartService,
             marketService: marketService,
             stakeService: stakeService,
-            stakeConfig: stakeConfig,
             transactionsService: transactionsService,
             transactionStateService: gemTransactionStateService,
             walletService: walletService,

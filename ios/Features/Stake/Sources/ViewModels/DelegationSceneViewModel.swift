@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.StakeConfig
+import protocol Gemstone.GemStakeServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -18,13 +18,13 @@ public struct DelegationSceneViewModel {
 
     private let wallet: Wallet
     private let asset: Asset
-    private let stakeConfig: StakeConfig
+    private let stakeService: any GemStakeServiceProtocol
 
     public init(
         wallet: Wallet,
         model: DelegationViewModel,
         asset: Asset,
-        stakeConfig: StakeConfig,
+        stakeService: any GemStakeServiceProtocol,
         validators: [DelegationValidator],
         onAmountInputAction: AmountInputAction,
         onTransferAction: TransferDataAction,
@@ -32,7 +32,7 @@ public struct DelegationSceneViewModel {
         self.wallet = wallet
         self.model = model
         self.asset = asset
-        self.stakeConfig = stakeConfig
+        self.stakeService = stakeService
         self.validators = validators
         self.onAmountInputAction = onAmountInputAction
         self.onTransferAction = onTransferAction
@@ -103,7 +103,7 @@ public struct DelegationSceneViewModel {
     }
 
     public var availableActions: [DelegationActionType] {
-        return stakeConfig.delegationActions(
+        return stakeService.delegationActions(
             walletType: wallet.type.map(),
             chain: asset.chain.rawValue,
             provider: providerType.json(),
@@ -117,7 +117,7 @@ public struct DelegationSceneViewModel {
     }
 
     public var canClaimRewards: Bool {
-        return stakeConfig.canClaimDelegationRewards(
+        return stakeService.canClaimDelegationRewards(
             walletType: wallet.type.map(),
             chain: asset.chain.rawValue,
             state: model.state.json(),
@@ -205,7 +205,7 @@ extension DelegationSceneViewModel {
     }
 
     private var recommendedValidator: DelegationValidator? {
-        (try? stakeConfig.recommendedValidator(
+        (try? stakeService.recommendedValidator(
             chain: model.delegation.base.assetId.chain.rawValue,
             validators: validators.map { $0.json() },
         ).map { try DelegationValidator($0) }) ?? .none

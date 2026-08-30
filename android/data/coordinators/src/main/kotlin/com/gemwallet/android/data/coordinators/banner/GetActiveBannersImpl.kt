@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemBannerContext
 import uniffi.gemstone.GemBannerItem
 import uniffi.gemstone.GemBannerService
-import uniffi.gemstone.StakeConfig
+import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
 
 class GetActiveBannersImpl(
@@ -31,7 +31,7 @@ class GetActiveBannersImpl(
     private val getAssetInfo: GetAssetInfo,
     private val bannerStore: GemstoneBannerStore,
     private val bannerService: GemBannerService,
-    private val stakeConfig: StakeConfig,
+    private val stakeService: GemStakeServiceInterface,
 ) : GetActiveBanners {
 
     override suspend fun invoke(asset: Asset?, isGlobal: Boolean): List<Banner> = withContext(Dispatchers.IO) {
@@ -70,6 +70,6 @@ class GetActiveBannersImpl(
 
     private fun hasStakeBalance(assetInfo: AssetInfo?): Boolean {
         val balance = assetInfo?.balance?.balance ?: return false
-        return stakeConfig.stakedValue(assetInfo.asset.chain.string, balance.toStakeBalance()).toBigInteger() > BigInteger.ZERO
+        return stakeService.stakedValue(assetInfo.asset.chain.string, balance.toStakeBalance()).toBigInteger() > BigInteger.ZERO
     }
 }

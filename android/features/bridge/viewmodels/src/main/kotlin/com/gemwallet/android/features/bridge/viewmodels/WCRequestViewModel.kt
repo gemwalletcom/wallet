@@ -165,7 +165,7 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun toRequest(pending: WalletConnectPendingRequest): WCRequest = when (pending) {
-        is WalletConnectPendingRequest.SignMessage -> WCRequest.SignMessage(pending, explorerService.getExplorerName(pending.chain.string))
+        is WalletConnectPendingRequest.SignMessage -> WCRequest.SignMessage(pending, explorerService)
         is WalletConnectPendingRequest.Transaction -> WCRequest.Transaction(pending)
     }
 

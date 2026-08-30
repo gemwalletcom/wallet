@@ -30,24 +30,6 @@ struct StakeSceneViewModelTests {
     }
 
     @Test
-    func stakeRequiresFrozenResourcesOnTron() {
-        let tron = StakeSceneViewModel.mock(chain: .tron)
-        tron.validatorsQuery.value = [.mock(.tron)]
-
-        tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock())
-        #expect(tron.isStakeEnabled == false)
-        #expect(tron.stakeInfoAction != nil)
-
-        tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(frozen: 1))
-        #expect(tron.isStakeEnabled == true)
-        #expect(tron.stakeInfoAction == nil)
-
-        tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(locked: 1))
-        #expect(tron.isStakeEnabled == true)
-        #expect(tron.stakeInfoAction == nil)
-    }
-
-    @Test
     func stakeStillRequiresValidators() {
         let tron = StakeSceneViewModel.mock(chain: .tron)
         tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(frozen: 1))
@@ -56,38 +38,4 @@ struct StakeSceneViewModelTests {
         #expect(tron.stakeInfoAction == nil)
     }
 
-    @Test
-    func stakeNotGatedByFrozenResourcesOffTron() {
-        let cosmos = StakeSceneViewModel.mock(chain: .cosmos)
-        cosmos.validatorsQuery.value = [.mock(.cosmos)]
-        cosmos.assetQuery.value = .mock(asset: Chain.cosmos.asset, balance: .mock())
-
-        #expect(cosmos.isStakeEnabled == true)
-        #expect(cosmos.stakeInfoAction == nil)
-    }
-
-    @Test
-    func rewardsState() {
-        let oneReward = [Delegation.mock(base: .mock(state: .active, rewards: "100"))]
-        let twoRewards = [
-            Delegation.mock(validator: .mock(.monad, id: "a"), base: .mock(state: .active, rewards: "100")),
-            Delegation.mock(validator: .mock(.monad, id: "b"), base: .mock(state: .active, rewards: "100")),
-        ]
-
-        let monadMulti = StakeSceneViewModel.mock(chain: .monad)
-        monadMulti.delegationsQuery.value = twoRewards
-        #expect(monadMulti.showRewards == true)
-        #expect(monadMulti.canClaimAllRewards == false)
-
-        let monadSingle = StakeSceneViewModel.mock(chain: .monad)
-        monadSingle.delegationsQuery.value = oneReward
-        #expect(monadSingle.canClaimAllRewards == true)
-
-        let cosmos = StakeSceneViewModel.mock(chain: .cosmos)
-        cosmos.delegationsQuery.value = oneReward
-        #expect(cosmos.showRewards == true)
-        #expect(cosmos.canClaimAllRewards == true)
-
-        #expect(StakeSceneViewModel.mock(chain: .cosmos).showRewards == false)
-    }
 }

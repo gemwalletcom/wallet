@@ -376,9 +376,83 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
     private let earnData: String
+    private let stakeBalanceShown: Bool
+    private let stakedValue: Gemstone.GemBigInt
+    private let rewardsShown: Bool
+    private let completionDateShown: Bool
+    private let claimable: Bool
+    private let explorerAddress: String?
+    private let actions: [Gemstone.GemDelegationAction]
+    private let validators: [Gemstone.DelegationValidator]
 
-    public init(earnData: String = "{}") {
+    public init(
+        earnData: String = "{}",
+        stakeBalanceShown: Bool = false,
+        stakedValue: Gemstone.GemBigInt = "0",
+        rewardsShown: Bool = false,
+        completionDateShown: Bool = false,
+        claimable: Bool = false,
+        explorerAddress: String? = nil,
+        actions: [Gemstone.GemDelegationAction] = [],
+        validators: [Gemstone.DelegationValidator] = [],
+    ) {
         self.earnData = earnData
+        self.stakeBalanceShown = stakeBalanceShown
+        self.stakedValue = stakedValue
+        self.rewardsShown = rewardsShown
+        self.completionDateShown = completionDateShown
+        self.claimable = claimable
+        self.explorerAddress = explorerAddress
+        self.actions = actions
+        self.validators = validators
+    }
+
+    public func delegationActions(walletType _: Gemstone.GemWalletType, chain _: Gemstone.Chain, provider _: Gemstone.StakeProviderType, state _: Gemstone.DelegationState) -> [Gemstone.GemDelegationAction] {
+        actions
+    }
+
+    public func canClaimDelegationRewards(walletType _: Gemstone.GemWalletType, chain _: Gemstone.Chain, state _: Gemstone.DelegationState, rewards _: String) -> Bool {
+        claimable
+    }
+
+    public func validatorExplorerAddress(validator _: Gemstone.DelegationValidator) -> String? {
+        explorerAddress
+    }
+
+    public func showsCompletionDate(state _: Gemstone.DelegationState) -> Bool {
+        completionDateShown
+    }
+
+    public func showsRewards(state _: Gemstone.DelegationState, rewards _: String) -> Bool {
+        rewardsShown
+    }
+
+    public func canClaimStakeRewards(chain _: Gemstone.Chain, rewardsValue _: String) -> Bool {
+        claimable
+    }
+
+    public func requiresFrozenBalance(chain _: Gemstone.Chain, frozenValue _: String) -> Bool {
+        false
+    }
+
+    public func recommendedValidatorIds(chain _: Gemstone.Chain) -> [String] {
+        validators.map { $0 }
+    }
+
+    public func recommendedValidator(chain _: Gemstone.Chain, validators _: [Gemstone.DelegationValidator]) -> Gemstone.DelegationValidator? {
+        self.validators.first
+    }
+
+    public func selectableValidators(validators _: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
+        self.validators
+    }
+
+    public func stakedValue(chain _: Gemstone.Chain, balance _: Gemstone.GemStakeBalance) -> Gemstone.GemBigInt {
+        stakedValue
+    }
+
+    public func showsStakeBalance(chain _: Gemstone.Chain, isStakeEnabled _: Bool, balance _: Gemstone.GemStakeBalance) -> Bool {
+        stakeBalanceShown
     }
 
     public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}

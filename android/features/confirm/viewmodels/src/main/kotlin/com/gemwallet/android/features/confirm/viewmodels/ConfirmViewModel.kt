@@ -140,8 +140,7 @@ class ConfirmViewModel @Inject constructor(
 
     val simulation = combine(simulationResult, simulationAssets, approvalAssetId, request) { simulationResult, simulationAssets, approvalAssetId, params ->
         val chain = params?.assetId?.chain
-        val explorerName = chain?.let { explorerService.getExplorerName(it.string) }
-        val simulation = simulationResult?.toSimulation(simulationFormatter, simulationAssets, chain, explorerName, approvalAssetId != null) ?: Simulation()
+        val simulation = simulationResult?.toSimulation(simulationFormatter, simulationAssets, chain, explorerService, approvalAssetId != null) ?: Simulation()
         val headerAssetId = simulationResult?.header?.assetId
         val asset = when {
             headerAssetId == null || params == null -> null

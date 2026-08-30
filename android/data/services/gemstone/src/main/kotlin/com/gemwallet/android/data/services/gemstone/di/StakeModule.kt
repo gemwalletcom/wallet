@@ -10,6 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemStakeService
+import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemStakeStore
 import uniffi.gemstone.GemStaticApiClient
 import javax.inject.Singleton
@@ -30,5 +31,9 @@ object StakeModule {
     @Provides
     fun provideGemStakeService(gateway: GemGateway, staticApiClient: GemStaticApiClient, store: GemStakeStore, addressStore: GemAddressStore): GemStakeService =
         GemStakeService(gateway, staticApiClient, store, addressStore)
+
+    @Provides
+    @Singleton
+    fun provideGemStakeServiceInterface(service: GemStakeService): GemStakeServiceInterface = service
 
 }

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.StakeConfig
 import GemstonePrimitivesTestKit
 import Foundation
 import Primitives
@@ -19,15 +18,15 @@ struct DelegationViewModelTests {
 
     @Test
     func rewards() {
-        let model = DelegationViewModel.mock()
+        let shown = DelegationViewModel.mock(rewardsShown: true)
 
-        #expect(model.rewardsText == "500 TRX")
-        #expect(model.rewardsFiatValueText == "$1,000.00")
+        #expect(shown.rewardsText == "500 TRX")
+        #expect(shown.rewardsFiatValueText == "$1,000.00")
 
-        let deactivating = DelegationViewModel.mock(state: .deactivating)
+        let hidden = DelegationViewModel.mock(rewardsShown: false)
 
-        #expect(deactivating.rewardsText == nil)
-        #expect(deactivating.rewardsFiatValueText == nil)
+        #expect(hidden.rewardsText == nil)
+        #expect(hidden.rewardsFiatValueText == nil)
     }
 
     @Test
@@ -36,10 +35,10 @@ struct DelegationViewModelTests {
 
         #expect(
             DelegationViewModel
-                .mock(state: .deactivating, completionDate: completionDate)
+                .mock(completionDate: completionDate, completionDateShown: true)
                 .completionDateText == "23 hours, 59 minutes",
         )
-        #expect(DelegationViewModel.mock(state: .active, completionDate: completionDate).completionDateText == nil)
+        #expect(DelegationViewModel.mock(completionDate: completionDate, completionDateShown: false).completionDateText == nil)
     }
 }
 
@@ -47,10 +46,12 @@ extension DelegationViewModel {
     static func mock(
         state: DelegationState = .active,
         completionDate: Date? = nil,
+        rewardsShown: Bool = false,
+        completionDateShown: Bool = false,
     ) -> DelegationViewModel {
         DelegationViewModel(
             explorerService: GemExplorerServiceMock(),
-            stakeConfig: StakeConfig(),
+            stakeService: GemStakeServiceMock(rewardsShown: rewardsShown, completionDateShown: completionDateShown),
             delegation: .mock(
                 state: state,
                 price: Price.mock(price: 2.0),

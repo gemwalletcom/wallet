@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
-import uniffi.gemstone.StakeConfig
+import uniffi.gemstone.GemStakeServiceInterface
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.StakeProviderType
@@ -43,7 +43,7 @@ import javax.inject.Inject
 class DelegationViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
     private val getDelegation: GetDelegation,
-    private val stakeConfig: StakeConfig,
+    private val stakeService: GemStakeServiceInterface,
     private val explorerService: GemExplorerService,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
@@ -75,14 +75,14 @@ class DelegationViewModel @Inject constructor(
         }
         val availableIn = availableIn(delegation)
         val chain = delegation.validator.chain
-        val validatorUrl = stakeConfig.validatorExplorerAddress(delegation.validator.toJson())
+        val validatorUrl = stakeService.validatorExplorerAddress(delegation.validator.toJson())
             ?.let { explorerService.getValidatorUrl(chain.string, it)?.link }
         listOfNotNull(
             DelegationProperty.Name(delegation.validator.name, validatorUrl),
             delegation.validator.takeIf { it.apr != 0.0 }?.let { DelegationProperty.Apr(it) },
             DelegationProperty.TransactionStatus(delegation.base.state, delegation.validator.isActive),
             delegation.base.state
-                .takeIf { stakeConfig.showsCompletionDate(it.toJson()) && availableIn.isNotEmpty() }
+                .takeIf { stakeService.showsCompletionDate(it.toJson()) && availableIn.isNotEmpty() }
                 ?.let { DelegationProperty.State(it, availableIn) }
         )
     }
@@ -98,7 +98,7 @@ class DelegationViewModel @Inject constructor(
 
         listOfNotNull(
             delegation.base.rewards
-                .takeIf { stakeConfig.showsRewards(delegation.base.state.toJson(), it) }
+                .takeIf { stakeService.showsRewards(delegation.base.state.toJson(), it) }
                 ?.let { RewardsInfoUIModel(assetInfo, it) },
         )
     }
@@ -112,7 +112,7 @@ class DelegationViewModel @Inject constructor(
         if (delegation == null || assetInfo == null) {
             return@combine emptyList()
         }
-        stakeConfig.delegationActions(
+        stakeService.delegationActions(
             walletType = session.wallet.type.toGem(),
             chain = assetInfo.asset.id.chain.string,
             provider = StakeProviderType.Stake.toJson(),
@@ -129,7 +129,7 @@ class DelegationViewModel @Inject constructor(
         if (delegation == null || assetInfo == null) {
             return@combine false
         }
-        stakeConfig.canClaimDelegationRewards(
+        stakeService.canClaimDelegationRewards(
             walletType = session.wallet.type.toGem(),
             chain = assetInfo.asset.id.chain.string,
             state = delegation.base.state.toJson(),

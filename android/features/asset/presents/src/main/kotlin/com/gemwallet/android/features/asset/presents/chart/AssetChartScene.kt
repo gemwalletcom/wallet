@@ -57,7 +57,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Currency
-import uniffi.gemstone.Explorer
 import java.text.DateFormat
 import java.util.Date
 
@@ -108,7 +107,7 @@ fun AssetChartScene(
                 }
                 marketModel?.let {
                     assetMarket(it.currency, it.asset, it.marketInfo)
-                    assetContract(it.asset, it.explorerName)
+                    assetContract(it.asset, it.tokenExplorerLink)
                     assetSupply(it.asset, it.marketInfo)
                     assetAllTime(it.currency, it.marketInfo)
                     links(it.assetLinks, uriHandler, context)
@@ -169,8 +168,8 @@ private fun LazyListScope.links(links: List<AssetMarketUIModel.Link>, uriHandler
     }
 }
 
-private fun LazyListScope.assetContract(asset: Asset, explorerName: String) {
-    val contract = contractMarketInfo(asset, explorerName) ?: return
+private fun LazyListScope.assetContract(asset: Asset, explorerLink: BlockExplorerLink?) {
+    val contract = contractMarketInfo(asset, explorerLink) ?: return
     marketProperties(asset, listOf(contract))
 }
 
@@ -259,22 +258,13 @@ internal fun buildSupplyItems(
     },
 )
 
-internal fun contractMarketInfo(
-    asset: Asset,
-    explorerName: String,
-    tokenExplorerUrl: (Asset, String, String) -> String? = ::defaultTokenExplorerUrl,
-): MarketInfoUIModel? {
+internal fun contractMarketInfo(asset: Asset, explorerLink: BlockExplorerLink?): MarketInfoUIModel? {
     val tokenId = asset.id.tokenId ?: return null
     return MarketInfoUIModel(
         type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
         value = tokenId,
-        explorerLink = tokenExplorerUrl(asset, explorerName, tokenId)
-            ?.let { BlockExplorerLink(name = explorerName, link = it) },
+        explorerLink = explorerLink,
     )
-}
-
-private fun defaultTokenExplorerUrl(asset: Asset, explorerName: String, tokenId: String): String? {
-    return Explorer(asset.chain.string).getTokenUrl(explorerName, tokenId)
 }
 
 private fun LazyListScope.marketProperties(asset: Asset, items: List<MarketInfoUIModel>) {

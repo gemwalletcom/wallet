@@ -13,6 +13,7 @@ import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketU
 import com.gemwallet.android.features.asset.viewmodels.chart.models.toModel
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.BlockExplorerLink
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -26,7 +27,7 @@ class AssetChartViewModel internal constructor(
     getAssetById: GetAssetById,
     getAssetLinks: GetAssetLinks,
     getAssetMarket: GetAssetMarket,
-    explorerService: GemExplorerService,
+    private val explorerService: GemExplorerService,
     getPriceAlerts: GetPriceAlerts,
     getCurrentCurrency: GetCurrentCurrency,
     val assetId: AssetId,
@@ -63,6 +64,9 @@ class AssetChartViewModel internal constructor(
                 currency = currency,
                 marketInfo = market,
                 explorerName = explorerName,
+                tokenExplorerLink = it.id.tokenId?.let { tokenId ->
+                    explorerService.getTokenUrl(it.id.chain.string, tokenId)?.let { url -> BlockExplorerLink(url.name, url.link) }
+                },
             )
         }
     }

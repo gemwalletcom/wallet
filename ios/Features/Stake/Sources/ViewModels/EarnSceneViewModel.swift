@@ -6,7 +6,6 @@ import GemstoneServices
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
-import class Gemstone.StakeConfig
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -17,7 +16,6 @@ import Store
 @Observable
 public final class EarnSceneViewModel {
     private let stakeService: any GemStakeServiceProtocol
-    private let stakeConfig: StakeConfig
     private let explorerService: any GemExplorerServiceProtocol
     private var viewState: StateViewType<Bool> = .loading
 
@@ -46,14 +44,12 @@ public final class EarnSceneViewModel {
         asset: Asset,
         currencyCode: String,
         stakeService: any GemStakeServiceProtocol,
-        stakeConfig: StakeConfig,
         explorerService: any GemExplorerServiceProtocol,
     ) {
         self.wallet = wallet
         self.asset = asset
         self.currencyCode = currencyCode
         self.stakeService = stakeService
-        self.stakeConfig = stakeConfig
         self.explorerService = explorerService
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: asset.id), initialValue: .with(asset: asset))
         positionsQuery = ObservableQuery(
@@ -71,7 +67,7 @@ public final class EarnSceneViewModel {
     }
 
     private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        (try? stakeConfig.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
+        (try? stakeService.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var assetModel: AssetViewModel {
@@ -106,7 +102,7 @@ public final class EarnSceneViewModel {
     var positionModels: [DelegationViewModel] {
         positions
             .filter { (BigInt($0.base.balance) ?? .zero) > 0 }
-            .map { DelegationViewModel(explorerService: explorerService, stakeConfig: stakeConfig, delegation: $0, asset: asset, currencyCode: currencyCode) }
+            .map { DelegationViewModel(explorerService: explorerService, stakeService: stakeService, delegation: $0, asset: asset, currencyCode: currencyCode) }
     }
 
     var hasPositions: Bool {

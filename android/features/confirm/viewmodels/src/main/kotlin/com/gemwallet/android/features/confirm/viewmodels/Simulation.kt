@@ -5,6 +5,7 @@ import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
+import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemSimulationFormatter
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
@@ -39,7 +40,7 @@ fun SimulationResult.toSimulation(
     simulationFormatter: GemSimulationFormatter,
     assets: Map<AssetId, Asset>,
     chain: Chain? = null,
-    explorerName: String? = null,
+    explorerService: GemExplorerService? = null,
     isApproval: Boolean = false,
 ): Simulation {
     val showsHeader = simulationFormatter.showsHeader(toJson(), isApproval)
@@ -49,9 +50,9 @@ fun SimulationResult.toSimulation(
     return Simulation(
         warnings = warnings,
         primaryPayloadFields = filtered.filter { it.display == SimulationPayloadFieldDisplay.Primary }
-            .withExplorerLinks(chain, explorerName),
+            .withExplorerLinks(chain, explorerService),
         secondaryPayloadFields = filtered.filter { it.display == SimulationPayloadFieldDisplay.Secondary }
-            .withExplorerLinks(chain, explorerName),
+            .withExplorerLinks(chain, explorerService),
         headerValue = header?.value,
         headerIsUnlimited = header?.isUnlimited == true,
         balanceChanges = simulationFormatter.balanceChanges(toJson(), assets.keys.map { it.toIdentifier() })

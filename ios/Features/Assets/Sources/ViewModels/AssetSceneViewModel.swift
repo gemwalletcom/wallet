@@ -14,7 +14,7 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import class Gemstone.GemTransactionFormatter
 import protocol Gemstone.GemSwapServiceProtocol
 import struct Gemstone.GemStakeBalance
-import class Gemstone.StakeConfig
+import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -34,7 +34,7 @@ public final class AssetSceneViewModel: Sendable {
     private let priceUpdater: any PriceUpdater
     private let bannerService: any GemBannerServiceProtocol
     private let swapService: any GemSwapServiceProtocol
-    private let stakeConfig: StakeConfig
+    private let stakeService: any GemStakeServiceProtocol
 
     private let preferences: ObservablePreferences
 
@@ -61,7 +61,7 @@ public final class AssetSceneViewModel: Sendable {
         priceAlertService: any GemPriceAlertServiceProtocol,
         bannerService: any GemBannerServiceProtocol,
         swapService: any GemSwapServiceProtocol,
-        stakeConfig: StakeConfig,
+        stakeService: any GemStakeServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         transactionFormatter: GemTransactionFormatter,
         preferences: ObservablePreferences,
@@ -75,7 +75,7 @@ public final class AssetSceneViewModel: Sendable {
         self.priceAlertService = priceAlertService
         self.bannerService = bannerService
         self.swapService = swapService
-        self.stakeConfig = stakeConfig
+        self.stakeService = stakeService
         self.explorerService = explorerService
         self.transactionFormatter = transactionFormatter
         self.preferences = preferences
@@ -339,7 +339,7 @@ public final class AssetSceneViewModel: Sendable {
 
     func showProviderBalance(for type: StakeProviderType) -> Bool {
         switch type {
-        case .stake: stakeConfig.showsStakeBalance(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled, balance: stakeBalance)
+        case .stake: stakeService.showsStakeBalance(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled, balance: stakeBalance)
         #if DEBUG
             case .earn: assetData.balance.earn > .zero
         #else
@@ -558,7 +558,7 @@ extension AssetSceneViewModel {
     }
 
     private var stakedValue: BigInt {
-        BigInt(stringLiteral: stakeConfig.stakedValue(chain: asset.chain.rawValue, balance: stakeBalance))
+        BigInt(stringLiteral: stakeService.stakedValue(chain: asset.chain.rawValue, balance: stakeBalance))
     }
 
     private var feeAssetDataModel: AssetDataViewModel {

@@ -20,18 +20,23 @@ import com.wallet.core.primitives.StakeChain
 import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.Explorer
-import uniffi.gemstone.StakeConfig
+import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemSwapServiceInterface
 import javax.inject.Inject
 import java.math.BigInteger
 
 class AssetInfoUIModelFactory @Inject constructor(
     private val swapService: GemSwapServiceInterface,
-    private val stakeConfig: StakeConfig,
+    private val stakeService: GemStakeServiceInterface,
 ) {
 
-    fun create(chainAssetInfo: ChainAssetInfo, explorerName: String, walletType: WalletType): AssetInfoUIModel {
+    fun create(
+        chainAssetInfo: ChainAssetInfo,
+        explorerName: String,
+        walletType: WalletType,
+        explorerAddressUrl: String?,
+        explorerTokenUrl: String?,
+    ): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
         val asset = assetInfo.asset
@@ -59,12 +64,8 @@ class AssetInfoUIModelFactory @Inject constructor(
             swapPayAssetId = swapPair.payAssetId.toAssetId(),
             swapReceiveAssetId = swapPair.receiveAssetId?.toAssetId(),
             explorerName = explorerName,
-            explorerAddressUrl = assetInfo.owner?.address?.let {
-                Explorer(asset.chain.string).getAddressUrl(explorerName, it)
-            },
-            explorerTokenUrl = asset.id.tokenId?.let {
-                Explorer(asset.chain.string).getTokenUrl(explorerName, it)
-            },
+            explorerAddressUrl = explorerAddressUrl,
+            explorerTokenUrl = explorerTokenUrl,
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 walletType = walletType,
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
@@ -95,10 +96,10 @@ class AssetInfoUIModelFactory @Inject constructor(
         val balances = assetInfo.balance
         val stakeBalance = balances.balance.toStakeBalance()
         val chain = assetInfo.asset.chain.string
-        if (!stakeConfig.showsStakeBalance(chain, assetInfo.metadata?.isStakeEnabled == true, stakeBalance)) {
+        if (!stakeService.showsStakeBalance(chain, assetInfo.metadata?.isStakeEnabled == true, stakeBalance)) {
             return ""
         }
-        val staked = stakeConfig.stakedValue(chain, stakeBalance).toBigInteger()
+        val staked = stakeService.stakedValue(chain, stakeBalance).toBigInteger()
         return if (staked == BigInteger.ZERO) {
             "APR ${(assetInfo.metadata?.stakingApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
         } else {

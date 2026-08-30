@@ -9,6 +9,7 @@ import com.gemwallet.android.serializer.decodeJsonOrNull
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
+import uniffi.gemstone.GemExplorerService
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
@@ -39,7 +40,7 @@ sealed class WCRequest(
 
     class SignMessage(
         private val request: WalletConnectPendingRequest.SignMessage,
-        private val explorerName: String?,
+        private val explorerService: GemExplorerService?,
     ) : WCRequest(request), WalletConnectReviewModel {
         val signer: MessageSigner by lazy { MessageSigner(request.message) }
 
@@ -57,14 +58,14 @@ sealed class WCRequest(
             payloadPreview?.primary
                 ?.mapNotNull { it.decodeJsonOrNull<SimulationPayloadField>() }
                 .orEmpty()
-                .withExplorerLinks(chain, explorerName)
+                .withExplorerLinks(chain, explorerService)
         }
 
         override val secondaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.secondary
                 ?.mapNotNull { it.decodeJsonOrNull<SimulationPayloadField>() }
                 .orEmpty()
-                .withExplorerLinks(chain, explorerName)
+                .withExplorerLinks(chain, explorerService)
         }
     }
 

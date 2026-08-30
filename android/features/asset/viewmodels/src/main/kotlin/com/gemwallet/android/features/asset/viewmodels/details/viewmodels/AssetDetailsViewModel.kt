@@ -95,7 +95,20 @@ class AssetDetailsViewModel @Inject constructor(
 
     val uiModel = combine(model, session) { current, session ->
         val wallet = session?.wallet ?: return@combine null
-        current?.let { assetInfoUIModelFactory.create(it.chainAssetInfo, it.explorerName, wallet.type) }
+        current?.let {
+            val asset = it.chainAssetInfo.assetInfo.asset
+            assetInfoUIModelFactory.create(
+                chainAssetInfo = it.chainAssetInfo,
+                explorerName = it.explorerName,
+                walletType = wallet.type,
+                explorerAddressUrl = it.chainAssetInfo.assetInfo.owner?.address?.let { address ->
+                    explorerService.getAddressUrl(asset.chain.string, address).link
+                },
+                explorerTokenUrl = asset.id.tokenId?.let { tokenId ->
+                    explorerService.getTokenUrl(asset.chain.string, tokenId)?.link
+                },
+            )
+        }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
