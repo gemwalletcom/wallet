@@ -36,7 +36,7 @@ extension TransactionSwapProgressViewModel {
             let metadata = transaction.transaction.metadata?.decode(TransactionSwapMetadata.self),
             let providerId = metadata.provider,
             let swapProvider = swapperProviderFromStr(s: providerId),
-            let fromAsset = transaction.assets.first(where: { $0.id == metadata.fromAsset }),
+            let fromAsset = (transaction.assets + [transaction.asset]).first(where: { $0.id == metadata.fromAsset }),
             let fromValue = try? BigInt.from(string: metadata.fromValue)
         else {
             return nil
