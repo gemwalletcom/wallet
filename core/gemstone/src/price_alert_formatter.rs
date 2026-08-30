@@ -1,7 +1,7 @@
 use number_formatter::price_suggestion;
-use primitives::{PriceAlert, PriceAlertNotificationType};
+use primitives::{PriceAlert, PriceAlertDirection, PriceAlertNotificationType};
 
-use crate::services::price_alert::rules::sorted_price_alerts;
+use crate::services::price_alert::rules;
 
 #[derive(Default, uniffi::Object)]
 pub struct PriceAlertFormatter {}
@@ -29,11 +29,17 @@ impl PriceAlertFormatter {
         alert.notification_type()
     }
 
-    pub fn should_display(&self, alert: PriceAlert) -> bool {
-        alert.should_display()
+    pub fn displayed_alert_ids(&self, alerts: Vec<PriceAlert>) -> Vec<String> {
+        rules::displayed_price_alert_ids(alerts)
     }
 
-    pub fn sorted_alerts(&self, alerts: Vec<PriceAlert>) -> Vec<PriceAlert> {
-        sorted_price_alerts(alerts)
+    pub fn alert_direction(
+        &self,
+        notification_type: PriceAlertNotificationType,
+        input_value: Option<f64>,
+        current_price: Option<f64>,
+        selected_direction: PriceAlertDirection,
+    ) -> Option<PriceAlertDirection> {
+        rules::alert_direction(notification_type, input_value, current_price, selected_direction)
     }
 }

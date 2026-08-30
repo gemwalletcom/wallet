@@ -8,11 +8,7 @@ private let priceAlertFormatter = PriceAlertFormatter()
 
 extension PriceAlert: @retroactive Identifiable {
     public var id: String {
-        do {
-            return try priceAlertFormatter.alertId(alert: json())
-        } catch {
-            preconditionFailure("Unencodable price alert: \(error)")
-        }
+        priceAlertFormatter.alertId(alert: json())
     }
 }
 
@@ -24,17 +20,26 @@ extension PriceAlertData: @retroactive Identifiable {
 
 public extension PriceAlert {
     var type: PriceAlertNotificationType {
-        guard let alert = try? json(),
-              let type = try? PriceAlertNotificationType(priceAlertFormatter.notificationType(alert: alert))
-        else {
+        guard let type = try? PriceAlertNotificationType(priceAlertFormatter.notificationType(alert: json())) else {
             return .auto
         }
         return type
     }
+}
 
-    var shouldDisplay: Bool {
-        guard let alert = try? json() else { return true }
-        return priceAlertFormatter.shouldDisplay(alert: alert)
+public extension [PriceAlert] {
+    var displayedAlerts: [PriceAlert] {
+        priceAlertFormatter
+            .displayedAlertIds(alerts: map { $0.json() })
+            .compactMap { id in first { $0.id == id } }
+    }
+}
+
+public extension [PriceAlertData] {
+    var displayedAlerts: [PriceAlertData] {
+        priceAlertFormatter
+            .displayedAlertIds(alerts: map { $0.priceAlert.json() })
+            .compactMap { id in first { $0.priceAlert.id == id } }
     }
 }
 

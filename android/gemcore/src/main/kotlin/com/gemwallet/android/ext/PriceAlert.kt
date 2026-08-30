@@ -13,6 +13,3 @@ val PriceAlert.id: String
 
 val PriceAlert.type: PriceAlertNotificationType
     get() = priceAlertFormatter.notificationType(toJson()).decodeJson()
-
-val PriceAlert.shouldDisplay: Boolean
-    get() = priceAlertFormatter.shouldDisplay(toJson())

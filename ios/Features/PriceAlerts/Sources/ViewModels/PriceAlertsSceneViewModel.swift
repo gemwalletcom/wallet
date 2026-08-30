@@ -2,8 +2,8 @@
 
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
-import Localization
 import GemstoneServices
+import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -49,12 +49,11 @@ public final class PriceAlertsSceneViewModel: Sendable {
     }
 
     func sections(for alerts: [PriceAlertData]) -> PriceAlertsSections {
-        let (autoAlerts, manualGroups) = alerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
+        let (autoAlerts, manualGroups) = alerts.displayedAlerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
             switch alert.priceAlert.type {
             case .auto:
                 result.0.append(alert)
             case .price, .pricePercentChange:
-                guard alert.priceAlert.lastNotifiedAt == nil else { return }
                 result.1[alert.asset, default: []].append(alert)
             }
         }

@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.pricealerts
 
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
-import com.gemwallet.android.ext.shouldDisplay
 import com.gemwallet.android.model.AssetPriceInfo
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -13,8 +12,6 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PriceAlertDataAggregateImplTest {
@@ -110,38 +107,6 @@ class PriceAlertDataAggregateImplTest {
         val aggregate = createAggregate(asset = solAsset)
 
         assertEquals("SOL", aggregate.titleBadge)
-    }
-
-    @Test
-    fun shouldDisplay_hidesManualNotifiedAlerts() {
-        val priceAlert = createPriceAlert(
-            price = 50000.0,
-            priceDirection = PriceAlertDirection.Up,
-            lastNotifiedAt = 1_000L,
-        )
-
-        assertFalse(priceAlert.shouldDisplay)
-    }
-
-    @Test
-    fun shouldDisplay_keepsAutoAlertsVisible() {
-        val priceAlert = createPriceAlert(
-            lastNotifiedAt = 1_000L,
-        )
-
-        assertTrue(priceAlert.shouldDisplay)
-    }
-
-    @Test
-    fun shouldDisplay_keepsMixedAlertsVisible() {
-        val priceAlert = createPriceAlert(
-            price = 50000.0,
-            pricePercentChange = 5.0,
-            priceDirection = PriceAlertDirection.Up,
-            lastNotifiedAt = 1_000L,
-        )
-
-        assertTrue(priceAlert.shouldDisplay)
     }
 
     @Test

@@ -23,8 +23,9 @@ use primitives::{
 };
 use primitives::{
     AddressName, AuthNonce, AuthPayload, ChainAddress, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
-    PortfolioAsset, PortfolioAssets, PortfolioAssetsRequest, PortfolioData, PriceAlert, PriceAlertNotificationType, ReferralCode, Rewards, SupportMessage, SupportMessageInput,
-    TransactionsResponse, WalletConfigurationResult, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
+    PortfolioAsset, PortfolioAssets, PortfolioAssetsRequest, PortfolioData, PriceAlert, PriceAlertDirection, PriceAlertNotificationType, ReferralCode, Rewards, SupportMessage,
+    SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription,
+    WalletSubscriptionChains,
 };
 use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, VerificationStatus};
 use primitives::{
@@ -150,6 +151,7 @@ json_bridge!(
     Price,
     PriceAlert,
     VerificationStatus,
+    PriceAlertDirection,
     PriceAlertNotificationType,
     RedemptionRequest,
     RedemptionResult,
