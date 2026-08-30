@@ -16,6 +16,7 @@ struct CandlestickChartViewModel {
         static let labelOverlapSpacing: CGFloat = 115
         static let xAxisTickCount = 6
         static let yAxisTickCount = 4
+        static let minimumSpanFraction = 0.001
     }
 
     let candles: [ChartCandleStick]
@@ -47,7 +48,8 @@ struct CandlestickChartViewModel {
         let linePrices = visibleLines.map(\.price)
         let lowest = min(candleMin, linePrices.min() ?? candleMin)
         let highest = max(candleMax, linePrices.max() ?? candleMax)
-        let padding = (highest - lowest) * 0.05
+        let span = max(highest - lowest, abs(highest) * Constants.minimumSpanFraction)
+        let padding = span * 0.05
         let lowerBound = max(lowest - padding, lowest * 0.95)
         return lowerBound ... (highest + padding)
     }
@@ -84,7 +86,7 @@ struct CandlestickChartViewModel {
         return visible.indices.reduce(into: [CGFloat]()) { offsets, index in
             let previous = offsets.last ?? 0
             let overlapsPrevious = index > 0 && abs(visible[index].price - visible[index - 1].price) < threshold
-            offsets.append(overlapsPrevious ? previous + Constants.labelOverlapSpacing : previous)
+            offsets.append(overlapsPrevious ? previous + Constants.labelOverlapSpacing : 0)
         }
     }
 
