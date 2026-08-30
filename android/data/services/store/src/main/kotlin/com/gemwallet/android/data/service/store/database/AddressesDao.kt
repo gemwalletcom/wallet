@@ -47,10 +47,7 @@ interface AddressesDao {
     fun getFlow(chain: Chain, address: String): Flow<DbAddress?>
 
     @Query("SELECT * FROM addresses WHERE chain = :chain AND address = :address LIMIT 1")
-    suspend fun get(chain: Chain, address: String): DbAddress?
-
-    @Query("SELECT * FROM addresses WHERE chain = :chain AND address = :address LIMIT 1")
-    fun getNow(chain: Chain, address: String): DbAddress?
+    fun get(chain: Chain, address: String): DbAddress?
 
     @Query("DELETE FROM addresses WHERE chain = :chain AND address = :address AND type = :type")
     suspend fun delete(chain: Chain, address: String, type: AddressType)
