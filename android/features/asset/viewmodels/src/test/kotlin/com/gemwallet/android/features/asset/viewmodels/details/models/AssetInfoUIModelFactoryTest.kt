@@ -113,7 +113,7 @@ class AssetInfoUIModelFactoryTest {
         pending: String = "0",
         rewards: String = "0",
         reserved: String = "0",
-        metadata: AssetMetaData? = null,
+        metadata: AssetMetaData = mockAssetMetaData(),
         showsStake: Boolean = false,
         stakedValue: String = "0",
     ): AssetInfoUIModel {

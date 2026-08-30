@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.asset.aggregates
 
+import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
@@ -309,17 +310,6 @@ class AssetInfoDataAggregateTest {
     }
 
     @Test
-    fun assetInfoDataAggregate_pinned_noMetadata_returnsFalse() {
-        val assetInfo = createAssetInfo(
-            asset = btcAsset,
-            metadata = null
-        )
-        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
-
-        assertFalse(aggregate.pinned)
-    }
-
-    @Test
     fun assetInfoDataAggregate_accountAddress_withOwner_returnsAddress() {
         val assetInfo = createAssetInfo(
             asset = btcAsset,
@@ -388,7 +378,7 @@ class AssetInfoDataAggregateTest {
         balance: AssetBalance = AssetBalance.create(asset),
         walletId: String? = "wallet1",
         price: AssetPriceInfo? = null,
-        metadata: AssetMetaData? = null,
+        metadata: AssetMetaData = mockAssetMetaData(),
     ): AssetInfo {
         return AssetInfo(
             owner = owner,

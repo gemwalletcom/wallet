@@ -257,5 +257,4 @@ class FiatViewModel @Inject constructor(
 
 }
 
-private fun AssetData.showFiatTypePicker() =
-    metadata?.isSellEnabled == true
+private fun AssetData.showFiatTypePicker() = metadata.isSellEnabled

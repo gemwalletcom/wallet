@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.swap
 
+import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.application.swap.cases.matches
@@ -255,11 +256,10 @@ class RequestSwapQuotesImplTest {
             decimals = 18,
             type = AssetType.TOKEN,
         )
-        return AssetInfo(
-            owner = Account(chain = Chain.SmartChain, address = "address", derivationPath = "m/44'/60'/0'/0/0"),
+        return mockAssetInfo(
             asset = asset,
+            owner = Account(chain = Chain.SmartChain, address = "address", derivationPath = "m/44'/60'/0'/0/0"),
             balance = AssetBalance.create(asset, available = "100000000000000000000"),
-            walletId = mockWalletId(),
         )
     }
 

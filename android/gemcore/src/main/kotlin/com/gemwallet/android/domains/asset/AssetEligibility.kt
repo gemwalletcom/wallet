@@ -21,10 +21,10 @@ fun GemAssetAction.eligible(items: List<AssetInfo>): List<AssetInfo> {
 }
 
 private fun AssetInfo.matches(filter: GemAssetFilter): Boolean = when (filter) {
-    GemAssetFilter.ENABLED -> metadata?.isEnabled != false
-    GemAssetFilter.BUYABLE -> metadata?.isBuyEnabled == true
-    GemAssetFilter.SELLABLE -> metadata?.isSellEnabled == true
-    GemAssetFilter.SWAPPABLE -> metadata?.isSwapEnabled == true
+    GemAssetFilter.ENABLED -> metadata.isEnabled
+    GemAssetFilter.BUYABLE -> metadata.isBuyEnabled
+    GemAssetFilter.SELLABLE -> metadata.isSellEnabled
+    GemAssetFilter.SWAPPABLE -> metadata.isSwapEnabled
     GemAssetFilter.HAS_BALANCE -> balance.totalAmount != 0.0
     GemAssetFilter.HAS_AVAILABLE_BALANCE -> balance.balance.hasAvailable()
 }

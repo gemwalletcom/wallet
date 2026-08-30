@@ -78,8 +78,8 @@ fun AssetInfo.toAssetInfoDataAggregate(
                 changePercentage = changePercentage,
             )
         },
-        pinned = metadata?.isPinned == true,
-        balanceEnabled = metadata?.isBalanceEnabled == true,
+        pinned = metadata.isPinned,
+        balanceEnabled = metadata.isBalanceEnabled,
         accountAddress = owner?.address.orEmpty(),
     )
 }

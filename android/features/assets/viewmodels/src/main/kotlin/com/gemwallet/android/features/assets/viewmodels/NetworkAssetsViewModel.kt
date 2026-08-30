@@ -49,11 +49,11 @@ class NetworkAssetsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
 
     val pinned: StateFlow<List<AssetInfoDataAggregate>> = activeAssets
-        .map { assets -> assets.filter { it.metadata?.isPinned == true }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
+        .map { assets -> assets.filter { it.metadata.isPinned }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unpinned: StateFlow<List<AssetInfoDataAggregate>> = activeAssets
-        .map { assets -> assets.filter { it.metadata?.isPinned != true }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
+        .map { assets -> assets.filter { !it.metadata.isPinned }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val hidden: StateFlow<List<AssetInfoDataAggregate>> = getChainAssets.hidden(chain)

@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.transaction
 
+import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
@@ -120,12 +121,7 @@ class TransactionDetailsAggregateImplTest {
         confirmationEtaSeconds = confirmationEtaSeconds,
     )
 
-    private fun createAssetInfo(asset: Asset) = AssetInfo(
-        owner = null,
-        asset = asset,
-        balance = AssetBalance(asset),
-        walletId = null,
-    )
+    private fun createAssetInfo(asset: Asset) = mockAssetInfo(asset = asset, owner = null, walletId = null)
 
     private fun createAggregate(
         data: TransactionExtended,

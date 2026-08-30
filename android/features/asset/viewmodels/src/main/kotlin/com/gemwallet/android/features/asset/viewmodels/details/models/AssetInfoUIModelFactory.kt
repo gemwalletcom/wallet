@@ -59,8 +59,8 @@ class AssetInfoUIModelFactory @Inject constructor(
             priceDayChanges = assetInfo.price?.price?.priceChangePercentage24h.formatAsPercentage(),
             priceChangedType = assetInfo.price?.price?.priceChangePercentage24h.toValueDirection(),
             tokenType = asset.type,
-            isBuyEnabled = assetInfo.metadata?.isBuyEnabled == true,
-            isSwapEnabled = assetInfo.metadata?.isSwapEnabled == true,
+            isBuyEnabled = assetInfo.metadata.isBuyEnabled,
+            isSwapEnabled = assetInfo.metadata.isSwapEnabled,
             swapPayAssetId = swapPair.payAssetId.toAssetId(),
             swapReceiveAssetId = swapPair.receiveAssetId?.toAssetId(),
             explorerName = explorerName,
@@ -96,12 +96,12 @@ class AssetInfoUIModelFactory @Inject constructor(
         val balances = assetInfo.balance
         val stakeBalance = balances.balance.toStakeBalance()
         val chain = assetInfo.asset.chain.string
-        if (!stakeService.showsStakeBalance(chain, assetInfo.metadata?.isStakeEnabled == true, stakeBalance)) {
+        if (!stakeService.showsStakeBalance(chain, assetInfo.metadata.isStakeEnabled, stakeBalance)) {
             return ""
         }
         val staked = stakeService.stakedValue(chain, stakeBalance).toBigInteger()
         return if (staked == BigInteger.ZERO) {
-            "APR ${(assetInfo.metadata?.stakingApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
+            "APR ${(assetInfo.metadata.stakingApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
         } else {
             formatter.string(staked, balances.asset)
         }

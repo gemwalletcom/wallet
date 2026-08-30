@@ -153,7 +153,7 @@ class AssetDetailsViewModel @Inject constructor(
         val assetInfo = model.value?.chainAssetInfo?.assetInfo ?: return@launch
         val assetId = assetInfo.id()
         wallet.getAccount(assetId) ?: return@launch
-        setAssetPinned(assetId, assetInfo.metadata?.isPinned != true)
+        setAssetPinned(assetId, !assetInfo.metadata.isPinned)
     }
 
     fun add() = viewModelScope.launch(Dispatchers.IO) {

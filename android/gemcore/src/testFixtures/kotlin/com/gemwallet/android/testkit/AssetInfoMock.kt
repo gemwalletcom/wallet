@@ -13,7 +13,7 @@ fun mockAssetInfo(
     owner: Account? = mockAccount(asset.id.chain),
     balance: AssetBalance = AssetBalance.create(asset),
     walletId: WalletId? = mockWalletId(),
-    metadata: AssetMetaData? = null,
+    metadata: AssetMetaData = mockAssetMetaData(),
     associations: List<AssetAssociation> = emptyList(),
 ) = AssetInfo(
     owner = owner,
