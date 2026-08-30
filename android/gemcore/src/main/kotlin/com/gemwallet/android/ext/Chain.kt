@@ -12,11 +12,15 @@ import uniffi.gemstone.Config
 import uniffi.gemstone.supportsPrivateKeyImport
 import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemMemoWarning
 import java.math.BigInteger
 
 private val assetConfig = GemAssetConfigService()
 
 private val addressService = GemAddressService()
+
+private val chainService = GemChainService()
 
 private val chainAssetCache: Map<Chain, ChainAsset> by lazy {
     Chain.entries.associateWith { chain ->
@@ -74,6 +78,8 @@ fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
 }
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
+
+fun Chain.memoWarning(): GemMemoWarning = chainService.memoWarning(string)
 
 fun Chain.isValidAddress(address: String): Boolean = addressService.validate(checksumAddress(address), string)
 

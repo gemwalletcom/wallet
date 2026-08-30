@@ -1,6 +1,9 @@
+pub mod model;
 pub mod rules;
 
 use primitives::Chain;
+
+pub use model::GemMemoWarning;
 
 use crate::wallet_connect::{wallet_connect_chain, wallet_connect_namespace, wallet_connect_reference};
 
@@ -20,6 +23,10 @@ impl GemChainService {
 
     pub fn get_matching_chains(&self, chains: Vec<Chain>, query: String) -> Vec<Chain> {
         rules::matching_chains(chains, &query)
+    }
+
+    pub fn memo_warning(&self, chain: Chain) -> GemMemoWarning {
+        rules::memo_warning(chain)
     }
 
     pub fn is_valid_network_id(&self, chain: Chain, network_id: String) -> bool {

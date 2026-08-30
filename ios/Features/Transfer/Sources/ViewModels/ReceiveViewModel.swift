@@ -102,10 +102,10 @@ public final class ReceiveViewModel: Sendable {
     }
 
     private var memoWarningText: String? {
-        switch assetModel.asset.chain {
-        case .xrp where assetModel.asset.chain.isMemoSupported: Localized.Wallet.Receive.noDestinationTagRequired
-        case _ where assetModel.asset.chain.isMemoSupported: Localized.Wallet.Receive.noMemoRequired
-        default: nil
+        switch assetModel.asset.chain.memoWarning {
+        case .destinationTag: Localized.Wallet.Receive.noDestinationTagRequired
+        case .memo: Localized.Wallet.Receive.noMemoRequired
+        case .notSupported: nil
         }
     }
 

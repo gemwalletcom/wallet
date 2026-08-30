@@ -37,7 +37,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.networkFullName
 import com.gemwallet.android.ext.boldMarkdown
-import com.gemwallet.android.ext.isMemoSupport
+import com.gemwallet.android.ext.memoWarning
+import uniffi.gemstone.GemMemoWarning
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
 import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
@@ -227,12 +228,10 @@ private fun warningMessage(asset: Asset): String {
         asset.symbol.boldMarkdown(),
         asset.networkFullName.boldMarkdown(),
     )
-    val memoWarning = when {
-        asset.chain == Chain.Xrp && asset.chain.isMemoSupport() ->
-            stringResource(R.string.wallet_receive_no_destination_tag_required)
-        asset.chain.isMemoSupport() ->
-            stringResource(R.string.wallet_receive_no_memo_required)
-        else -> null
+    val memoWarning = when (asset.chain.memoWarning()) {
+        GemMemoWarning.DESTINATION_TAG -> stringResource(R.string.wallet_receive_no_destination_tag_required)
+        GemMemoWarning.MEMO -> stringResource(R.string.wallet_receive_no_memo_required)
+        GemMemoWarning.NOT_SUPPORTED -> null
     }
     return listOfNotNull(warning, memoWarning).joinToString(" ")
 }
