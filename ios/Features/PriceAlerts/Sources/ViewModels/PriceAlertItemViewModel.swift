@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Formatters
 import Foundation
 import Localization
 import Primitives
@@ -75,7 +76,7 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
         switch data.priceAlert.type {
         case .auto: priceModel.priceChangeText
         case .price: priceModel.fiatAmountText(amount: data.priceAlert.price ?? .zero)
-        case .pricePercentChange: "\(data.priceAlert.pricePercentChange ?? .zero)%"
+        case .pricePercentChange: PercentFormatter.unsigned.string(data.priceAlert.pricePercentChange ?? .zero)
         }
     }
 
