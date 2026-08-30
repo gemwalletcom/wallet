@@ -187,10 +187,7 @@ class SwapViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val toEquivalentFormatted = quote.mapLatest { quote ->
-            quote?.receive
-                ?.price?.takeIf { it.price.price > 0 }
-                ?.currency?.let { CurrencyFormatter(currency = it).string(quote.receiveEquivalent) }
-                ?: ""
+            quote?.receive?.formatFiat(quote.receiveEquivalent) ?: ""
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
