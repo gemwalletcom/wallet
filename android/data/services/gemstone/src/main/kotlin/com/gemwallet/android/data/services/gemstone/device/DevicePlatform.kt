@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.device
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.application.device.cases.GetPushEnabled
@@ -70,26 +71,18 @@ class GemstoneDevicePlatform(
     }
 
     private suspend fun migratePushEnabled() {
-        if (preferencesService.isPushNotificationsEnabled()) {
-            return
-        }
-        val stored = context.dataStore.data.map { it[Key.PushEnabled] == true }.firstOrNull() ?: return
-        if (stored) {
+        val stored = context.dataStore.data.map { it[Key.PushEnabled] }.firstOrNull() ?: return
+        if (stored && !preferencesService.isPushNotificationsEnabled()) {
             setPushEnabled(notificationsAvailable)
         }
+        context.dataStore.edit { it.remove(Key.PushEnabled) }
     }
 
     override fun setPushToken(token: String) {
         configStore.putString(ConfigKey.PushToken.string, if (notificationsAvailable) token else "")
     }
 
-    override suspend fun getPushToken(): String {
-        return if (getPushEnabled().firstOrNull() == true) {
-            configStore.getString(ConfigKey.PushToken.string)
-        } else {
-            ""
-        }
-    }
+    override suspend fun getPushToken(): String = configStore.getString(ConfigKey.PushToken.string)
 
     override suspend fun isDeviceRegistered(): Boolean = deviceService.get().isRegistered()
 
