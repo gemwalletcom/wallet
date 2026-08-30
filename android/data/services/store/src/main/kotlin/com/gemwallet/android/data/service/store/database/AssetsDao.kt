@@ -368,6 +368,12 @@ interface AssetsDao {
                     AND balances.wallet_id = :walletId
                     AND balances.total_amount > 0
             ))
+            AND (NOT :hasAvailableBalance OR EXISTS (
+                SELECT 1 FROM balances
+                WHERE balances.asset_id = asset.id
+                    AND balances.wallet_id = :walletId
+                    AND balances.available_amount > 0
+            ))
         GROUP BY asset.id
         ORDER BY added_at DESC, asset.id ASC
         LIMIT CASE WHEN :limit <= 0 THEN -1 ELSE :limit END
@@ -378,6 +384,7 @@ interface AssetsDao {
         buyable: Boolean,
         swappable: Boolean,
         hasBalance: Boolean,
+        hasAvailableBalance: Boolean,
         limit: Int,
     ): Flow<List<DbRecentAsset>>
 
@@ -391,7 +398,8 @@ interface AssetsDao {
         type = type,
         buyable = AssetFilter.Buyable in filters,
         swappable = AssetFilter.Swappable in filters,
-        hasBalance = AssetFilter.HasBalance in filters || AssetFilter.HasAvailableBalance in filters,
+        hasBalance = AssetFilter.HasBalance in filters,
+        hasAvailableBalance = AssetFilter.HasAvailableBalance in filters,
         limit = limit,
     )
 

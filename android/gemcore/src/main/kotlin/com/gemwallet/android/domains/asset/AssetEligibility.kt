@@ -39,6 +39,7 @@ private fun GemAssetFilter.queryFilter(): AssetFilter? = when (this) {
 private fun GemAssetFilter.recentFilter(): AssetFilter? = when (this) {
     GemAssetFilter.BUYABLE -> AssetFilter.Buyable
     GemAssetFilter.SWAPPABLE -> AssetFilter.Swappable
-    GemAssetFilter.HAS_BALANCE, GemAssetFilter.HAS_AVAILABLE_BALANCE -> AssetFilter.HasBalance
+    GemAssetFilter.HAS_BALANCE -> AssetFilter.HasBalance
+    GemAssetFilter.HAS_AVAILABLE_BALANCE -> AssetFilter.HasAvailableBalance
     GemAssetFilter.ENABLED, GemAssetFilter.SELLABLE -> null
 }
