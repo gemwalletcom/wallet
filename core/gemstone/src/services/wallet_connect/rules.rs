@@ -210,12 +210,12 @@ pub fn transfer_data(
     };
     let (extra, value) = match transaction {
         WalletConnectTransaction::Ethereum { data, kind } => {
-            let value = data.value.as_deref().map(hex_to_decimal).transpose()?.unwrap_or_else(|| "0".to_string());
-            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_to_decimal).transpose()?;
+            let value = data.value.as_deref().map(hex_value).transpose()?.unwrap_or(BigInt::ZERO).to_string();
+            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?.map(|gas| gas.to_string());
             let gas_price = match (data.max_fee_per_gas.as_deref(), data.max_priority_fee_per_gas.as_deref()) {
                 (Some(max_fee), Some(priority_fee)) => Some(GemGasPriceType::Eip1559 {
-                    gas_price: hex_to_decimal(max_fee)?,
-                    priority_fee: hex_to_decimal(priority_fee)?,
+                    gas_price: hex_value(max_fee)?,
+                    priority_fee: hex_value(priority_fee)?,
                 }),
                 _ => None,
             };
@@ -280,16 +280,14 @@ fn encoded_extra(encoded: String, output_type: TransferDataOutputType, output_ac
     }
 }
 
-fn hex_to_decimal(value: &str) -> Result<String, GemServiceError> {
+fn hex_value(value: &str) -> Result<BigInt, GemServiceError> {
     let digits = value.trim().trim_start_matches("0x").trim_start_matches("0X");
     if digits.is_empty() {
-        return Ok("0".to_string());
+        return Ok(BigInt::ZERO);
     }
-    BigInt::parse_bytes(digits.as_bytes(), 16)
-        .map(|value| value.to_string())
-        .ok_or_else(|| GemServiceError::InvalidInput {
-            msg: format!("invalid hex number {value}"),
-        })
+    BigInt::parse_bytes(digits.as_bytes(), 16).ok_or_else(|| GemServiceError::InvalidInput {
+        msg: format!("invalid hex number {value}"),
+    })
 }
 
 fn hex_to_bytes(value: &str) -> Result<Vec<u8>, GemServiceError> {
@@ -460,7 +458,9 @@ mod tests {
         };
         assert_eq!(asset.id, primitives::AssetId::from_chain(Chain::Ethereum));
         assert_eq!(extra.gas_limit.as_deref(), Some("21000"));
-        assert!(matches!(extra.gas_price, Some(GemGasPriceType::Eip1559 { ref gas_price, ref priority_fee }) if gas_price == "100" && priority_fee == "2"));
+        assert!(
+            matches!(extra.gas_price, Some(GemGasPriceType::Eip1559 { ref gas_price, ref priority_fee }) if *gas_price == BigInt::from(100) && *priority_fee == BigInt::from(2))
+        );
         assert_eq!(extra.data, Some(vec![0xde, 0xad, 0xbe, 0xef]));
         assert_eq!(extra.transaction_type, TransactionType::TokenApproval);
         assert!(extra.approval.is_some());

@@ -424,21 +424,16 @@ impl From<TransferDataExtra> for GemTransferDataExtra {
 impl From<GemGasPriceType> for GasPriceType {
     fn from(value: GemGasPriceType) -> Self {
         match value {
-            GemGasPriceType::Regular { gas_price } => GasPriceType::Regular {
-                gas_price: gas_price.parse().unwrap_or_default(),
-            },
-            GemGasPriceType::Eip1559 { gas_price, priority_fee } => GasPriceType::Eip1559 {
-                gas_price: gas_price.parse().unwrap_or_default(),
-                priority_fee: priority_fee.parse().unwrap_or_default(),
-            },
+            GemGasPriceType::Regular { gas_price } => GasPriceType::Regular { gas_price },
+            GemGasPriceType::Eip1559 { gas_price, priority_fee } => GasPriceType::Eip1559 { gas_price, priority_fee },
             GemGasPriceType::Solana {
                 gas_price,
                 priority_fee,
                 unit_price,
             } => GasPriceType::Solana {
-                gas_price: gas_price.parse().unwrap_or_default(),
-                priority_fee: priority_fee.parse().unwrap_or_default(),
-                unit_price: unit_price.parse().unwrap_or_default(),
+                gas_price,
+                priority_fee,
+                unit_price,
             },
         }
     }

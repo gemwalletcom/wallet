@@ -248,7 +248,7 @@ mod tests {
                 },
                 fee: GemTransactionLoadFee {
                     fee: BigInt::ZERO,
-                    gas_price_type: GemGasPriceType::Regular { gas_price: "5".to_string() },
+                    gas_price_type: GemGasPriceType::Regular { gas_price: BigInt::from(5) },
                     gas_limit: BigInt::from(21_000),
                     options: Default::default(),
                     fee_asset: AssetId::from_chain(Chain::Solana),
@@ -351,7 +351,9 @@ mod tests {
     fn rate(priority: &str, gas_price: &str) -> GemFeeRate {
         GemFeeRate {
             priority: priority.to_string(),
-            gas_price_type: GemGasPriceType::Regular { gas_price: gas_price.to_string() },
+            gas_price_type: GemGasPriceType::Regular {
+                gas_price: gas_price.parse().unwrap(),
+            },
         }
     }
 
@@ -368,7 +370,7 @@ mod tests {
         let custom = select_fee_rate(&rates, &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(33) }).unwrap();
         assert_eq!(custom.priority, "normal");
         match custom.gas_price_type {
-            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, "33"),
+            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(33)),
             gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
         }
 
@@ -383,8 +385,8 @@ mod tests {
         let eip1559 = GemFeeRate {
             priority: "normal".to_string(),
             gas_price_type: GemGasPriceType::Eip1559 {
-                gas_price: "20".to_string(),
-                priority_fee: "5".to_string(),
+                gas_price: BigInt::from(20),
+                priority_fee: BigInt::from(5),
             },
         };
         let rates = vec![rate("slow", "1"), eip1559];
@@ -392,20 +394,20 @@ mod tests {
         let raised = select_fee_rate(&rates, &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(30) }).unwrap();
         assert_eq!(raised.priority, "normal");
         match raised.gas_price_type {
-            GemGasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price.as_str(), priority_fee.as_str()), ("25", "5")),
+            GemGasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price, priority_fee), (BigInt::from(25), BigInt::from(5))),
             gas_price_type => panic!("expected an eip1559 custom gas price, got {gas_price_type:?}"),
         }
 
         let capped = select_fee_rate(&rates, &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(3) }).unwrap();
         match capped.gas_price_type {
-            GemGasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price.as_str(), priority_fee.as_str()), ("0", "3")),
+            GemGasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price, priority_fee), (BigInt::from(0), BigInt::from(3))),
             gas_price_type => panic!("expected a capped eip1559 gas price, got {gas_price_type:?}"),
         }
 
         let without_normal = select_fee_rate(&[rate("slow", "1"), rate("fast", "9")], &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(4) }).unwrap();
         assert_eq!(without_normal.priority, "slow");
         match without_normal.gas_price_type {
-            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, "4"),
+            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(4)),
             gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
         }
 
@@ -420,7 +422,7 @@ mod tests {
         let rates = vec![rate("normal", "10")];
         let selection = GemConfirmFeeSelection::Custom { gas_price: GemBigInt::from(33) };
         match select_fee_rate(&rates, &selection).unwrap().gas_price_type {
-            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, "33"),
+            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(33)),
             gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
         }
     }

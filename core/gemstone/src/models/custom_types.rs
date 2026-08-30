@@ -73,6 +73,21 @@ uniffi::custom_type!(DateTimeUtc, i64, {
     },
 });
 
+pub mod decimal_string {
+    use super::GemBigInt;
+    use serde::{Deserialize, Deserializer, Serializer};
+    use std::str::FromStr;
+
+    pub fn serialize<S: Serializer>(value: &GemBigInt, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&value.to_string())
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<GemBigInt, D::Error> {
+        let text = String::deserialize(deserializer)?;
+        GemBigInt::from_str(&text).map_err(serde::de::Error::custom)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

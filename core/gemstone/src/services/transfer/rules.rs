@@ -375,7 +375,7 @@ mod tests {
             hash: hash.into(),
             fee: GemTransactionLoadFee {
                 fee: BigInt::from(1),
-                gas_price_type: GemGasPriceType::Regular { gas_price: "1".into() },
+                gas_price_type: GemGasPriceType::Regular { gas_price: BigInt::from(1) },
                 gas_limit: BigInt::from(21_000),
                 options: GemFeeOptions { options: HashMap::new() },
                 fee_asset: AssetId::from_chain(Chain::Ethereum),
