@@ -39,7 +39,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import com.gemwallet.android.application.wallet_import.values.ImportError
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.features.import_wallet.components.ImportInput
@@ -121,6 +120,8 @@ fun ImportScreen(
         },
         onInput = viewModel::onInput,
         onTypeChange = viewModel::chainType,
+        invalidWords = viewModel::invalidPhraseWords,
+        phraseSuggestions = viewModel::phraseSuggestions,
         onCancel = onCancel,
     )
     if (uiState.loading) {
@@ -173,6 +174,8 @@ private fun ImportScene(
     onImport: (generatedName: String, value: String) -> Unit,
     onInput: (String) -> Unit,
     onTypeChange: (WalletType) -> Unit,
+    invalidWords: (String) -> Set<String>,
+    phraseSuggestions: (String) -> List<String>,
     onCancel: () -> Unit
 ) {
     val title = when (val sceneTitle = importSceneTitle(importType, chainName)) {
@@ -219,7 +222,7 @@ private fun ImportScene(
                         onTypeChange(walletType)
                         inputState.value = TextFieldValue()
                     }
-                    DataInput(importType, inputState, nameResolveState, onInput) {
+                    DataInput(importType, inputState, nameResolveState, invalidWords, phraseSuggestions, onInput) {
                         dataErrorState = null
                     }
                     ErrorMessage(dataErrorState)
@@ -247,12 +250,15 @@ private fun DataInput(
     importType: ImportType,
     inputState: MutableState<TextFieldValue>,
     nameResolveState: NameRecordState,
+    invalidWords: (String) -> Set<String>,
+    phraseSuggestions: (String) -> List<String>,
     onInput: (String) -> Unit,
     onChange: () -> Unit,
 ) {
     val suggestions = remember(importType.walletType) { mutableStateListOf<String>() }
 
     ImportInput(
+        invalidWords = invalidWords,
         inputState = inputState.value,
         importType = importType,
         uiState = nameResolveState,
@@ -276,7 +282,7 @@ private fun DataInput(
             if (word.isNullOrEmpty()) {
                 return@ImportInput
             }
-            val result = GemFindPhraseWord().invoke(word)
+            val result = phraseSuggestions(word)
             suggestions.addAll(result)
         },
     )
@@ -377,6 +383,8 @@ fun PreviewImportAddress() {
                 onImport = {_, _ -> },
                 onInput = {},
                 onTypeChange = {},
+                invalidWords = { emptySet() },
+                phraseSuggestions = { emptyList() },
                 onCancel = {},
             )
         }

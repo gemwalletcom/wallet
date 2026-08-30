@@ -1,5 +1,8 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
+import com.gemwallet.android.blockchain.operators.InvalidWords
+import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
@@ -30,8 +33,19 @@ class ImportViewModel @Inject constructor(
     private val walletService: GemWalletService,
     private val importWalletService: ImportWalletService,
     private val setCurrentWallet: SetCurrentWallet,
+    private val validatePhrase: ValidatePhraseOperator,
+    private val findPhraseWord: GemFindPhraseWord,
     getNameRecord: GetNameRecord,
 ) : ViewModel() {
+
+    fun invalidPhraseWords(text: String): Set<String> =
+        (validatePhrase(text).exceptionOrNull() as? InvalidWords)
+            ?.words
+            .orEmpty()
+            .filter { it.isNotBlank() }
+            .toSet()
+
+    fun phraseSuggestions(word: String): List<String> = findPhraseWord(word)
 
     private val state = MutableStateFlow(ImportViewModelState())
     val uiState = state.map { it.toUIState() }

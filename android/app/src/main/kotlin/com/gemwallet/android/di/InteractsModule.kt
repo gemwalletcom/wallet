@@ -11,6 +11,7 @@ import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemCreateWalletOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemLoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemMigrateKeystoreOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.blockchain.services.KeystoreTransactionSigner
@@ -38,6 +39,10 @@ object InteractsModule {
     @Singleton
     @Provides
     fun provideValidatePhraseInteract(): ValidatePhraseOperator = GemValidatePhraseOperator()
+
+    @Singleton
+    @Provides
+    fun provideFindPhraseWord(): GemFindPhraseWord = GemFindPhraseWord()
 
     @Singleton
     @Provides
