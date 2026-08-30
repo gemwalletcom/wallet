@@ -358,16 +358,13 @@ Found while landing the batches above, not yet fixed:
 |---|---|---|
 | Android silently re-enables push 30 days after a deliberate opt-out | `SettingsViewModel.kt:123-128` calls `stopAskNotifications()` on **disable**, restarting the 30-day timer; `AppViewModel.kt:83-89` then re-asks and `PushRequest.kt:25-29` finds `POST_NOTIFICATIONS` still granted, so it enables with no dialog | Reverses an explicit privacy choice. Needs somewhere to record "the user said no", which does not exist yet |
 | Android's `is_push_enabled` never consults runtime notification authorization | `DevicePlatform.kt:118` is preference AND flavour flag; iOS reads live `UNAuthorizationStatus` since `25a6a38bfa` | A user who revokes `POST_NOTIFICATIONS` keeps reporting enabled with a live token. The runtime check already exists in the same module (`NotificationPermissions.kt:13`), wired only to price-alert banners |
-| Android has a latent unbounded device-sync loop | `current_device` calls `push_token()` before `needs_sync`; FCM's failure path calls `callback("")` (`RequestrPushToken.kt:20-22`), which writes "" and launches another `synchronizeIfNeeded()`; `runCatching` swallows the failure | No backoff, no cap |
 | iOS's swap-pay recents query references an unjoined table | `RecentActivityRequest.swift` adds the balances join only for `.hasBalance`/`.enabledBalance`, but `AssetsRequest.applyFilter` emits `balances[availableAmount] > 0` for `.hasAvailableBalance` — swap-pay's set. `RecentActivityRequestTests.swift:49` exercises only `[.hasBalance]` | Must be fixed before iOS is used as the reference for V6 |
 | Pull-to-refresh on perpetual markets is a no-op for up to an hour, both platforms | `MARKETS_REFRESH_INTERVAL_SECONDS = 3600` throttles both the Android pull and iOS's 1-minute timer | An explicit user pull should arguably bypass the staleness gate |
-| Second name-resolution divergence | `NameRecordController.kt:28-30,51` short-circuits unchanged input and requires a non-empty address before Complete; `NameRecordViewModel.swift:20-43` has neither | An empty-address record is reported complete and feeds the recipient field on iOS |
 | Android's fiat/buy amount has no debounce | `FiatViewModel.kt:140-146` combines `amount` straight into `mapLatest`; iOS debounces 250 ms | Same class as the swap and name debounce drift; in no row |
 
 #### Tests that cannot fail
 
 - `SettingsViewModelTest.kt:72-75` asserts the `stateIn` seed under `StandardTestDispatcher` with no `advanceUntilIdle`, so it does not cover the clause it appears to protect.
-- `SwapSceneViewModelTests.swift:279-284` nils `model.loadTrigger` immediately before the retry action — which is exactly why the `SwapLoadTrigger` equality no-op is invisible to the suite.
 - `Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL`, the pre-`46889318bc` contract.
 
 Pure duplication, no divergence found (lower priority, still one rule each): swap slippage bounds, min-receive BPS math, swap ETA truncation, the critical-warning gate, collections availability, and the custom-fee minimum check — each written once per platform on top of a Core call that already exists.

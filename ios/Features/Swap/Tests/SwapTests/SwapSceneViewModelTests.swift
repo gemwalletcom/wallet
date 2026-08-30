@@ -291,6 +291,18 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
+    func retryQuoteUpdatesLoadTrigger() {
+        let model = SwapSceneViewModel.mock()
+
+        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        model.buttonViewModel.action()
+        let firstRetry = model.loadTrigger
+        model.buttonViewModel.action()
+
+        #expect(model.loadTrigger != firstRetry)
+    }
+
+    @Test
     func refreshedQuotesKeepSelectedProvider() async {
         let swapService = GemSwapServiceMock(
             quotes: [

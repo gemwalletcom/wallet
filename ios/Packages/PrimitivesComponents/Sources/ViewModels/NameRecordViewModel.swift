@@ -18,6 +18,7 @@ public final class NameRecordViewModel {
     }
 
     public func getNameRecord(name: String, chain: Chain) {
+        guard name != state.result?.name else { return }
         nameRecordTask?.cancel()
 
         guard nameService.isNameSupported(name: name) else {
@@ -29,7 +30,10 @@ public final class NameRecordViewModel {
         nameRecordTask = Task {
             do {
                 try await Task.sleep(for: .debounce)
-                if let record = try await nameService.getNameRecord(name: name, chain: chain) {
+                if let record = try await nameService.getNameRecord(name: name, chain: chain),
+                   record.name.isNotEmpty,
+                   record.address.isNotEmpty
+                {
                     state = .complete(record)
                 } else {
                     state = .error

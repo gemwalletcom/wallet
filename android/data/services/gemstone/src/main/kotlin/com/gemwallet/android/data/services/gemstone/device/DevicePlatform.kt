@@ -101,8 +101,10 @@ class GemstoneDevicePlatform(
         val token = getPushToken()
         if (token.isEmpty()) {
             requestPushToken.requestToken { requested ->
-                setPushToken(requested)
-                scope.launch { runCatching { deviceService.get().synchronizeIfNeeded() } }
+                if (requested.isNotEmpty()) {
+                    setPushToken(requested)
+                    scope.launch { runCatching { deviceService.get().synchronizeIfNeeded() } }
+                }
             }
         }
         return token
