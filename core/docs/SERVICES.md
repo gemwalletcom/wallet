@@ -410,6 +410,12 @@ App types in the seam, with their Core home:
 
 Android converts the same payload seven times per confirm screen: `pack` → `unpack` → view model re-pack → `SignerPreloaderProxy.toConfirmInput` → `CalculateTransferAmount` → `availableValue` → `toSendInput`.
 
+**iOS's remaining duplicates are a module-boundary problem, not a sweep.** `Recipient`, `TransferData`, `TransferDataType`, `FeeRate` and `GasPriceType` all live in `Primitives`, which depends on `BigInt` and nothing else and never imports `Gemstone` — deliberately, since it also carries the typeshare backend contract. They therefore cannot hold `GemRecipient`/`GemTransferData`/`GemFeeRate` where they are. Android has no equivalent problem because `gemcore` depends on the generated bindings, which is why every one of these consolidations has been possible there first and blocked here.
+
+There are two ways through and they are not equivalent. Either `Primitives` gains a dependency on `Gemstone`, which inverts the layering for every type in the module including the generated ones; or the hand-written app-flow types move up into `GemstonePrimitives`, which already depends on both, leaving `Primitives` as the backend contract plus `BigInt` value types. The second is the one that matches what those types are, but it is a module reorganisation across 50+ files and wants deciding before it is started, not during.
+
+Separately, `TransferData.value` is a `BigInt` and `GemTransferData.value` reaches Swift as a `String` typealias, so even after the move that field cannot be carried directly — this is the same `GemBigInt` boundary that keeps `Fee`, `FeeOptionMap` and `TransferAmount` alive.
+
 Blockers, in the order they have to be solved:
 
 1. **Typed reads over JSON strings.** Every Core primitive crosses UniFFI as a JSON `String` typealias (`Asset`, `AssetId`, `Account`, `Wallet`, `ApplicationMetadata`, `ApprovalData`, `StakeType`, `PerpetualType`, `TransactionType`, `SimulationResult`, `ScanTransaction`). The UI reads `asset.decimals`, `asset.symbol`, `assetId.chain` everywhere, so carrying `GemConfirmInput` end to end means decoding at each read site or keeping one decoded shadow per screen. This is the largest blocker and it applies to both apps.
