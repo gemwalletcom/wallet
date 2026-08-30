@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.confirm
 
+import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolana
@@ -34,7 +34,7 @@ class CalculateTransferAmountImplTest {
 
         val transfer = transferAmountInput(
             params = ConfirmParams.Builder(asset, account, amount, useMaxAmount = true)
-                .transfer(DestinationAddress("recipient")),
+                .transfer(GemRecipient("recipient")),
             availableValue = amount,
             feeAssetInfo = feeAssetInfo,
             fee = fee,

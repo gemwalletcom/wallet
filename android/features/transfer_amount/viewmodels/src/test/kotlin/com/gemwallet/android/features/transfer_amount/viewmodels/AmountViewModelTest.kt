@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels
 
+import uniffi.gemstone.GemRecipient
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -10,7 +11,6 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
@@ -180,7 +180,7 @@ class AmountViewModelTest {
     }
 
     private fun viewModelTest(block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
-        val params = AmountParams.Transfer(asset.id, DestinationAddress(address = "to", name = null))
+        val params = AmountParams.Transfer(asset.id, GemRecipient(address = "to", name = null))
         val viewModel = AmountViewModel(factory, SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())), GemAmountService())
         try {
             runCurrent()

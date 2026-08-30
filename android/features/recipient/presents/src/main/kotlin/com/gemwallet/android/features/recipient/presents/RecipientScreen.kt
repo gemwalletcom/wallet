@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.recipient.presents
 
+import uniffi.gemstone.GemRecipient
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
@@ -31,7 +32,6 @@ import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -165,7 +165,7 @@ internal fun RecipientScreen(
                 onAction(RecipientAction.SetMemo(contact.memo ?: ""))
                 onAction(
                     RecipientAction.Select(
-                        DestinationAddress(
+                        GemRecipient(
                             address = contact.address,
                             name = contact.name,
                         )
@@ -175,7 +175,7 @@ internal fun RecipientScreen(
             walletsDestination(toChain = type.assetInfo.asset.chain, items = wallets) { wallet, account ->
                 onAction(
                     RecipientAction.Select(
-                        DestinationAddress(
+                        GemRecipient(
                             address = account.address,
                             name = wallet.name,
                         )

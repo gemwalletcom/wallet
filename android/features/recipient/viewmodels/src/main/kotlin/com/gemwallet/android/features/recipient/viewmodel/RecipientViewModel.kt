@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.recipient.viewmodel
 
+import uniffi.gemstone.GemRecipient
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,7 +25,6 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
@@ -171,7 +171,7 @@ class RecipientViewModel @Inject constructor(
 
     fun onDestination(
         type: RecipientType,
-        destination: DestinationAddress,
+        destination: GemRecipient,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
@@ -195,7 +195,7 @@ class RecipientViewModel @Inject constructor(
             }
             return
         }
-        val destination = DestinationAddress(address = recipient.address, name = recipient.name ?: selectedName)
+        val destination = GemRecipient(address = recipient.address, name = recipient.name ?: selectedName)
         when (type) {
             is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
             is RecipientType.Asset -> amountAction(
@@ -248,7 +248,7 @@ class RecipientViewModel @Inject constructor(
         requestedAmount = request.exactAmount
     }
 
-    private fun onNftConfirm(nftAsset: NFTAsset, destination: DestinationAddress, confirmAction: ConfirmTransactionAction) {
+    private fun onNftConfirm(nftAsset: NFTAsset, destination: GemRecipient, confirmAction: ConfirmTransactionAction) {
         val params = ConfirmParams.NftParams(
             asset = nftAsset.chain.asset(),
             from = session.value?.wallet?.getAccount(nftAsset.chain) ?: return,

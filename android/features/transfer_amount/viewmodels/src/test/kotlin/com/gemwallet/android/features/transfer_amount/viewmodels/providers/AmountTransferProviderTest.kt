@@ -1,12 +1,12 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
+import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import io.mockk.coEvery
@@ -35,7 +35,7 @@ class AmountTransferProviderTest {
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
     private val params = AmountParams.Transfer(
         assetId = asset.id,
-        destination = DestinationAddress(address = "to", name = null),
+        destination = GemRecipient(address = "to", name = null),
         memo = "memo",
     )
 

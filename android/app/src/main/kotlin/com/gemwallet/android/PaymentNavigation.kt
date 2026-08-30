@@ -1,10 +1,10 @@
 package com.gemwallet.android
 
+import uniffi.gemstone.GemRecipient
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.model.toPaymentWalletAsset
 import com.gemwallet.android.model.toTransferParams
@@ -60,7 +60,7 @@ class PaymentNavigation @Inject constructor(
             assets.firstOrNull { it.asset.id == decoded.assetId }
                 ?.let { paymentService.decodedTransfer(request, it.toPaymentWalletAsset())?.toTransferParams(assets) }
         } ?: ConfirmParams.Builder(account.chain.asset(), account, BigInteger.ZERO)
-            .transfer(DestinationAddress(""), payment.memo)
+            .transfer(GemRecipient(""), payment.memo)
         val params = ConfirmParams.TransferParams.Generic(
             asset = transfer.asset,
             from = transfer.from,

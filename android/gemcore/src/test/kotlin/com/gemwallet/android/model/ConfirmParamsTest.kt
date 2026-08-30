@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -37,7 +38,7 @@ class ConfirmParamsTest {
             asset = mockAssetEthereum(),
             from = mockAccount(chain = Chain.Ethereum),
             amount = BigInteger.ONE,
-            destination = DestinationAddress("destination"),
+            destination = GemRecipient("destination"),
             memo = "memo",
             metadata = applicationMetadata(),
             data = "0x01",
@@ -57,7 +58,7 @@ class ConfirmParamsTest {
 
     @Test
     fun packUnpackRoundTripsEveryVariant() {
-        val destination = DestinationAddress("destination")
+        val destination = GemRecipient("destination")
         val nativeAsset = mockAsset()
         val nativeAccount = mockAccount()
         val tokenAsset = mockAssetSolanaUSDC()
@@ -123,7 +124,7 @@ class ConfirmParamsTest {
     @Test
     fun depositAndWithdrawalKeepMemoAndReferences() {
         val builder = ConfirmParams.Builder(mockAsset(), mockAccount(), BigInteger.ONE)
-        val destination = DestinationAddress("destination")
+        val destination = GemRecipient("destination")
         val variants = listOf(
             builder.deposit(destination, memo = "memo", references = listOf("reference")),
             builder.withdrawal(destination, memo = "memo", references = listOf("reference")),

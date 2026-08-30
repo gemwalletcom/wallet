@@ -7,8 +7,11 @@ use primitives::{SimulationResult, TransactionType, TransferDataOutputAction, Tr
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Record)]
 pub struct GemRecipient {
     pub address: String,
+    #[uniffi(default = None)]
     pub name: Option<String>,
+    #[uniffi(default = None)]
     pub memo: Option<String>,
+    #[uniffi(default = [])]
     pub references: Vec<String>,
 }
 

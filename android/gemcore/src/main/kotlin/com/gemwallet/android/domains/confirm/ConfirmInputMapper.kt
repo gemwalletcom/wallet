@@ -6,7 +6,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.hex
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.toModel
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.ext.toChainType
@@ -43,21 +42,20 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
     val from = from.toPrimitives() ?: return null
     val value = transfer.value.toBigIntegerOrNull() ?: return null
     val recipient = transfer.recipient
-    val destination = DestinationAddress(recipient.address, recipient.name)
     val inputType = transfer.inputType
     val asset = inputType.asset().toPrimitives() ?: return null
     val builder = ConfirmParams.Builder(asset, from, value, transfer.useMaxAmount)
     return when (inputType) {
-        is GemTransactionInputType.Transfer -> builder.transfer(destination, recipient.memo, recipient.references)
-        is GemTransactionInputType.Deposit -> builder.deposit(destination, recipient.memo, recipient.references)
-        is GemTransactionInputType.Withdrawal -> builder.withdrawal(destination, recipient.memo, recipient.references)
+        is GemTransactionInputType.Transfer -> builder.transfer(recipient, recipient.memo, recipient.references)
+        is GemTransactionInputType.Deposit -> builder.deposit(recipient, recipient.memo, recipient.references)
+        is GemTransactionInputType.Withdrawal -> builder.withdrawal(recipient, recipient.memo, recipient.references)
         is GemTransactionInputType.Generic -> {
             val extra = inputType.extra
             ConfirmParams.TransferParams.Generic(
                 asset = asset,
                 from = from,
                 amount = value,
-                destination = destination,
+                destination = recipient,
                 memo = recipient.memo,
                 useMaxAmount = transfer.useMaxAmount,
                 outputType = extra.outputType.decodeJson(),
@@ -89,7 +87,7 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
         is GemTransactionInputType.TransferNft -> ConfirmParams.NftParams(
             asset = asset,
             from = from,
-            destination = destination,
+            destination = recipient,
             nftAsset = inputType.nftAsset.decodeJson(),
         )
         is GemTransactionInputType.Account -> builder.activate(inputType.accountType.decodeJson())
@@ -132,7 +130,7 @@ fun GemTransferData.toGenericParams(account: Account): ConfirmParams.TransferPar
         asset = asset,
         from = account,
         amount = value.toBigInteger(),
-        destination = DestinationAddress(recipient.address, recipient.name),
+        destination = recipient,
         outputType = input.extra.outputType.decodeJson(),
         outputAction = input.extra.outputAction.decodeJson(),
         metadata = input.metadata.decodeJson(),

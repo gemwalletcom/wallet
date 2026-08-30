@@ -1,11 +1,11 @@
 package com.gemwallet.android.data.coordinators.confirm
 
+import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.domains.confirm.toConfirmInput
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.serializer.toJson
@@ -145,7 +145,7 @@ class ConfirmTransactionImplTest {
     }
 
     private fun signerParams(asset: com.wallet.core.primitives.Asset, account: com.wallet.core.primitives.Account) = signerParams(
-        ConfirmParams.Builder(asset, account, BigInteger.TEN).transfer(DestinationAddress("0x0000000000000000000000000000000000000001")),
+        ConfirmParams.Builder(asset, account, BigInteger.TEN).transfer(GemRecipient("0x0000000000000000000000000000000000000001")),
         asset,
     )
 

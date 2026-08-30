@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
@@ -55,5 +56,5 @@ fun GemPaymentConfirmTransfer.toTransferParams(assets: List<AssetInfo>): Confirm
     val value = value.toBigIntegerOrNull() ?: return null
 
     return ConfirmParams.Builder(assetInfo.asset, owner, value)
-        .transfer(DestinationAddress(address), memo, references)
+        .transfer(GemRecipient(address), memo, references)
 }

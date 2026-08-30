@@ -1,7 +1,7 @@
 package com.gemwallet.android.blockchain.services
 
+import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.testkit.mockAccount
@@ -55,7 +55,7 @@ class SignerPreloaderProxyTest {
             asset = asset,
             from = mockAccount(chain = Chain.Ethereum),
             amount = BigInteger("1000000000000000"),
-        ).transfer(destination = DestinationAddress("0xrecipient"))
+        ).transfer(destination = GemRecipient("0xrecipient"))
         val options = slot<GemConfirmLoadOptions>()
         val confirmInput = slot<GemConfirmInput>()
         val feeRates = listOf(
