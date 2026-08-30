@@ -377,7 +377,6 @@ Found by reading both platforms side by side. Ranked within each group by value:
 
 | # | What | iOS | Android | The difference |
 |---|---|---|---|---|
-| T1 | WebSocket reconnect | `ExponentialReconnection.swift:9-23`, cap **60 s** | `ExponentialReconnection.kt:7-13`, same formula, both call sites override to **30 s** | Identical curve implemented twice, already drifted at the cap. |
 | T2 | Socket keepalive | none | `WebSocketConnection.kt:42,45,113` — 30 s OkHttp ping | iOS sits on a half-open socket until a read fails, so price and candle streams can stall silently. |
 | T3 | Swap quote refresh | `SwapScene.swift:89` 30 s, debounce 250 ms, keeps retrying after an error | `RequestSwapQuotes.kt:15-16` 30 s / 500 ms, **breaks the loop on error** | Two hardcoded cadences, a debounce that has already drifted (also 250 vs 500 ms for name resolution), and different behaviour after a failed quote. |
 | T4 | Widget refresh | `PriceWidgetProvider.swift:26-37` — 1 minute | `WidgetPriceSyncWorker.kt:30` — 15 minutes | 15× difference, two unrelated constants. |
@@ -386,7 +385,6 @@ Found by reading both platforms side by side. Ranked within each group by value:
 | T7 | Live price subscription | `PriceUpdater.swift` called from the asset screen **and both swap legs** | `SyncAssetInfoImpl.kt:35` only | Swap-screen fiat values only move on Android if something else subscribed the asset. Core should decide when prices are subscribed; then `PriceUpdater.swift` goes. |
 | T8 | Perpetual connect gate | Core `shouldConnectPerpetuals` / `syncEnablement` | `ObservePerpetualWallet.kt:18-23` re-implements it over Android's own `UserConfig` | Android never gets `clear_markets`/`sync_markets_if_stale` from the connect path. |
 | T9 | Candle interval + merge | `PerpetualChartModel.swift:117-148` | `PerpetualChart.kt:6-23` (the only tested copy) | Same mapping and merge rule twice; subscription lifetime also differs (Android holds a 5 s grace, iOS cancels on disappear). |
-| T10 | Connectivity debounce | `ConnectivityService.swift:6` 500 ms + recovery reset | `InternetConnectionMonitor.kt:38-43` + `ConnectionStatusObserver.kt:52-60` | Aggregation is already in Core; only the constant and the recovery transition were left behind — the pair most likely to drift. |
 | T11 | Stream registration gate | reads `isRegistered()`, syncs only if unregistered | syncs unconditionally on every foreground | Same intent, two preconditions. |
 | T12 | App-start ordering | `OnstartService` + `RootSceneViewModel`, device sync raced, wallet setup gated on unlock | `SyncService.kt:16-24` sequential, no unlock gate | `GemAppStartService.run()` covers only config/banners/assets; everything else is bolted on per platform in a different order. |
 
@@ -401,14 +399,16 @@ Found by reading both platforms side by side. Ranked within each group by value:
 | V5 | Popular section | only for buy and price-alert flows | every picker | Send/swap/manage pickers show a Popular section on Android only, and de-duplicate the main list differently. |
 | V6 | Recents filters | Core's full `actionFilters` | `HasBalance` only, or a downgraded set | Android's swap/send recents include hidden assets and fully-staked balances. |
 | V7 | Rewards row | `hasMulticoinWallet()` | `isEmpty() \|\| any multicoin` | With no wallets, Android shows Rewards and iOS hides it. |
-| V8 | Price-alert direction | `amount > price → up`, zero price still confirms | rejects zero price and negative input | For an asset with no price, iOS saves an alert Android refuses. |
-| V9 | Price-alert list | Core `shouldDisplay` + `sortedAlerts`, drops notified manual alerts | partition on `hasTarget` only | Triggered alerts stay visible on Android; the order differs entirely. |
 | V10 | Stake row | `isStakeEnabled \|\| staked balance > 0` | `type == NATIVE && StakeChain.isStaked(chain)` | An asset with staking disabled still shows a Stake row on Android, with an APR string iOS never shows. |
-| V11 | Banner copy | symbol, and asset name for multi-sig | name, and chain for multi-sig | "Stake ETH" vs "Stake Ethereum"; the multi-sig warning names different things. |
-| V12 | Activation fee in banners | `chain.accountActivationFee`, whole description nil when missing | `chain.getReserveBalance()`, empty string when zero | Two different numbers, and the missing case degrades differently. |
-| V13 | Banner icon | full switch per event | only stake and warning branch; everything else falls back | Onboarding and perpetuals banners show a brandmark on Android. |
 | V14 | Reserved-fee hint | shown when the typed amount equals max | only when the Max button was pressed | Typing the max by hand shows the note on iOS only. |
 | V15 | Pinned section | `metadata.isPinned` | `pinned && balanceEnabled` in the picker, plain `pinned` on home — inconsistent with itself | A pinned-but-hidden asset lands in different sections. |
+
+Found while landing the batches above, not yet fixed:
+
+- **Multi-signature banner never reaches Android's wallet scene.** `BannersDao.getWalletBanners` filters `asset_id IS NULL`, but `multi_signature_banners` writes the row with `asset_id = AssetId::from_chain(chain)`, so the banner only ever appears on that asset's own screen. iOS's `BannersRequest` joins each banner's asset and shows it in the wallet scene. A visibility divergence, not a copy one.
+- **Android's `hasTarget` and `PriceAlertType` mapping disagreed with Core** for an alert carrying both a price and a percent; they read Core's `notification_type` now, matching iOS.
+- **The reconnect cap was a real decision, not a default.** Android's 30 s was set deliberately (`d1cdb74`, "Cap stream reconnect backoff at 30s") so the price stream resumes within half a minute; iOS's 60 s was the untouched default from the initial import. Core took 30 s. Worth knowing before "restoring" 60 s.
+- **Core's `ValueFormatter` is not locale-aware.** Formatting the activation-fee amount in Core would have regressed non-`en` locales, so Core hands over `{ value, decimals, symbol }` and each app keeps its own formatter. Applies to any future amount rule.
 
 Pure duplication, no divergence found (lower priority, still one rule each): swap slippage bounds, min-receive BPS math, swap ETA truncation, the critical-warning gate, collections availability, and the custom-fee minimum check — each written once per platform on top of a Core call that already exists.
 
