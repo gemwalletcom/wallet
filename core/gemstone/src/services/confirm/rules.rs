@@ -144,10 +144,10 @@ pub(super) fn validate_scan(scan: Option<&ScanTransaction>, memo: Option<&str>, 
     let Some(scan) = scan else {
         return Ok(());
     };
-    if scan.is_malicious {
+    if scan.is_malicious == Some(true) {
         return Err(GemConfirmError::ScanMalicious);
     }
-    if scan.is_memo_required && memo.unwrap_or_default().trim().is_empty() {
+    if scan.is_memo_required == Some(true) && memo.unwrap_or_default().trim().is_empty() {
         return Err(GemConfirmError::ScanMemoRequired { symbol: symbol.to_string() });
     }
     Ok(())
@@ -602,24 +602,24 @@ mod tests {
     #[test]
     fn test_validate_scan() {
         let safe = ScanTransaction {
-            is_malicious: false,
-            is_memo_required: false,
+            is_malicious: Some(false),
+            is_memo_required: Some(false),
             is_scan_complete: false,
             malicious_addresses: None,
             malicious_assets: None,
             malicious_website: None,
         };
         let malicious = ScanTransaction {
-            is_malicious: true,
-            is_memo_required: false,
+            is_malicious: Some(true),
+            is_memo_required: Some(false),
             is_scan_complete: false,
             malicious_addresses: None,
             malicious_assets: None,
             malicious_website: None,
         };
         let memo_required = ScanTransaction {
-            is_malicious: false,
-            is_memo_required: true,
+            is_malicious: Some(false),
+            is_memo_required: Some(true),
             is_scan_complete: false,
             malicious_addresses: None,
             malicious_assets: None,

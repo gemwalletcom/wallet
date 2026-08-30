@@ -1,7 +1,7 @@
 use cacher::{AccessTokenCacherClient, CacherClient};
 use gem_client::ReqwestClient;
 use gem_tracing::{error_with_fields, info_with_fields};
-use primitives::{ScanTransaction, ScanTransactionPayload};
+use primitives::{AssetId, ChainAddress, ScanTransaction, ScanTransactionPayload};
 use rocket::futures::future;
 use security_provider::providers::goplus::GoPlusProvider;
 use security_provider::providers::hashdit::HashDitProvider;
@@ -47,7 +47,7 @@ impl ScanClient {
 
     pub async fn get_scan_transaction(&self, payload: ScanTransactionPayload) -> Result<ScanTransaction, Box<dyn Error + Send + Sync>> {
         let local_scan = self.get_scan_transaction_local(payload.clone())?;
-        if local_scan.is_malicious {
+        if local_scan.is_malicious == Some(true) {
             return Ok(local_scan);
         }
 
@@ -62,9 +62,32 @@ impl ScanClient {
         )
         .await;
 
+        let malicious_addresses = address_scans
+            .iter()
+            .flatten()
+            .any(|scan| scan.is_malicious)
+            .then_some(ChainAddress::new(payload.origin.asset_id.chain, payload.origin.address))
+            .into_iter()
+            .collect::<Vec<_>>();
+        let malicious_assets = token_scans
+            .iter()
+            .filter_map(|scans| {
+                scans
+                    .iter()
+                    .flatten()
+                    .find(|scan| scan.is_malicious)
+                    .map(|scan| AssetId::from_token(scan.target.chain, &scan.target.token_id))
+            })
+            .collect::<Vec<_>>();
+        let is_scan_complete = address_scans.iter().all(Option::is_some) && token_scans.iter().flatten().all(Option::is_some);
+
         Ok(ScanTransaction {
-            is_malicious: address_scans.iter().any(|scan| scan.is_malicious) || token_scans.iter().flatten().any(|scan| scan.is_malicious),
+            is_malicious: Some(!malicious_addresses.is_empty() || !malicious_assets.is_empty()),
             is_memo_required: local_scan.is_memo_required,
+            is_scan_complete,
+            malicious_addresses: Some(malicious_addresses),
+            malicious_assets: Some(malicious_assets),
+            malicious_website: None,
         })
     }
 
@@ -74,10 +97,21 @@ impl ScanClient {
             (payload.target.asset_id.chain, payload.target.address.as_str()),
         ];
         let addresses = self.database.scan_addresses()?.get_scan_addresses(&queries)?;
-        let is_malicious = addresses.iter().any(|address| address.is_fraudulent);
+        let malicious_addresses = addresses
+            .iter()
+            .filter(|address| address.is_fraudulent)
+            .map(|address| ChainAddress::new(address.chain.0, address.address.clone()))
+            .collect::<Vec<_>>();
         let is_memo_required = addresses.iter().any(|address| address.is_memo_required);
 
-        Ok(ScanTransaction { is_malicious, is_memo_required })
+        Ok(ScanTransaction {
+            is_malicious: Some(!malicious_addresses.is_empty()),
+            is_memo_required: Some(is_memo_required),
+            is_scan_complete: true,
+            malicious_addresses: Some(malicious_addresses),
+            malicious_assets: Some(vec![]),
+            malicious_website: None,
+        })
     }
 
     fn token_targets(payload: &ScanTransactionPayload) -> Vec<TokenTarget> {
@@ -97,7 +131,7 @@ impl ScanClient {
         targets
     }
 
-    pub async fn scan_address_providers(&self, target: AddressTarget) -> Vec<ScanResult<AddressTarget>> {
+    pub async fn scan_address_providers(&self, target: AddressTarget) -> Vec<Option<ScanResult<AddressTarget>>> {
         future::join_all(
             self.security_providers
                 .iter()
@@ -106,7 +140,7 @@ impl ScanClient {
         )
         .await
         .into_iter()
-        .filter_map(|(provider, result)| match result {
+        .map(|(provider, result)| match result {
             Ok(result) => {
                 info_with_fields!(
                     "security scan result",
@@ -126,7 +160,7 @@ impl ScanClient {
         .collect()
     }
 
-    async fn scan_token_providers(&self, target: TokenTarget) -> Vec<ScanResult<TokenTarget>> {
+    async fn scan_token_providers(&self, target: TokenTarget) -> Vec<Option<ScanResult<TokenTarget>>> {
         future::join_all(
             self.security_providers
                 .iter()
@@ -135,7 +169,7 @@ impl ScanClient {
         )
         .await
         .into_iter()
-        .filter_map(|(provider, result)| match result {
+        .map(|(provider, result)| match result {
             Ok(result) => {
                 info_with_fields!(
                     "security scan result",
