@@ -9,6 +9,7 @@ public struct AutocloseValidator: TextValidator {
     private let type: TpslType
     private let direction: PerpetualDirection
     private let marketPrice: Double
+    private let formatter = NumericFormatter()
 
     public init(
         type: TpslType,
@@ -23,11 +24,7 @@ public struct AutocloseValidator: TextValidator {
     public func validate(_ text: String) throws {
         guard !text.isEmpty else { return }
 
-        let formatter = NumberFormatter()
-        formatter.locale = Locale.current
-        formatter.numberStyle = .decimal
-
-        guard let price = formatter.number(from: text)?.doubleValue else {
+        guard let price = formatter.double(from: text) else {
             throw TransferError.invalidAmount
         }
 
