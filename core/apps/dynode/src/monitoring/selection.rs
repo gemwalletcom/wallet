@@ -50,7 +50,8 @@ mod tests {
 
     use super::*;
     use crate::monitoring::switch_reason::NodeMonitorError;
-    use crate::testkit::sync::{healthy_observation, not_in_sync_observation, url};
+    use crate::testkit::config::url;
+    use crate::testkit::sync::{healthy_observation, not_in_sync_observation};
 
     fn error_observation(host: &str, message: &str) -> NodeStatusObservation {
         NodeStatusObservation::new(url(host), NodeStatusState::error(message), Duration::from_millis(10))

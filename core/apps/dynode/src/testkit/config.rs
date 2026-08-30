@@ -1,5 +1,39 @@
-use crate::config::{ErrorMatcherConfig, FailureTriggerConfig, NodeMonitoringConfig, RetryConfig};
-use primitives::{MINUTE, NodeCheckProfile};
+use crate::config::{ChainConfig, ErrorMatcherConfig, FailureTriggerConfig, NodeMonitoringConfig, RetryConfig, Url};
+use crate::jsonrpc_types::RequestType;
+use primitives::{Chain, MINUTE, NodeCheckProfile};
+use serde_json::json;
+
+pub fn url(url: &str) -> Url {
+    Url {
+        url: url.to_string(),
+        headers: None,
+    }
+}
+
+pub fn chain_config(chain: Chain, node_url: &str) -> ChainConfig {
+    ChainConfig {
+        chain,
+        poll_interval_seconds: None,
+        latency: None,
+        overrides: None,
+        allowlist: None,
+        urls: vec![url(node_url)],
+    }
+}
+
+pub fn jsonrpc(method: &str) -> RequestType {
+    RequestType::from_request(
+        "POST",
+        "/".to_string(),
+        serde_json::to_vec(&json!({
+            "jsonrpc": "2.0",
+            "method": method,
+            "params": [],
+            "id": 1
+        }))
+        .unwrap(),
+    )
+}
 
 pub fn monitoring_config() -> NodeMonitoringConfig {
     NodeMonitoringConfig {

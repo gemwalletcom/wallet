@@ -9,28 +9,9 @@ pub fn auth_account(wallet: &Wallet) -> Option<&Account> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{WalletId, WalletSource, WalletType};
 
     fn wallet(chains: &[Chain]) -> Wallet {
-        Wallet {
-            id: WalletId::Multicoin("0x1".to_string()),
-            external_id: None,
-            name: "wallet".to_string(),
-            index: 0,
-            wallet_type: WalletType::Multicoin,
-            accounts: chains
-                .iter()
-                .map(|chain| Account {
-                    chain: *chain,
-                    address: format!("{chain}-address"),
-                    derivation_path: String::new(),
-                    extended_public_key: None,
-                })
-                .collect(),
-            is_pinned: false,
-            image_url: None,
-            source: WalletSource::Import,
-        }
+        Wallet::mock_with_accounts(chains.iter().map(|chain| Account::mock(*chain, &format!("{chain}-address"))).collect())
     }
 
     #[test]

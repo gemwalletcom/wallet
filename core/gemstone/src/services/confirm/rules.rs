@@ -200,26 +200,13 @@ mod tests {
     use crate::services::transfer::{GemRecipient, GemTransferData};
     use primitives::{
         Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, StakeType, TransactionType, TransferDataExtra, Wallet, WalletId,
-        WalletSource, WalletType,
         swap::{ApprovalData, SwapData},
     };
 
     fn wallet(chain: Chain) -> Wallet {
         Wallet {
             id: WalletId::Multicoin("wallet".to_string()),
-            external_id: None,
-            name: "wallet".to_string(),
-            index: 0,
-            wallet_type: WalletType::Multicoin,
-            accounts: vec![Account {
-                chain,
-                address: "sender".to_string(),
-                derivation_path: String::new(),
-                extended_public_key: None,
-            }],
-            is_pinned: false,
-            image_url: None,
-            source: WalletSource::Import,
+            ..Wallet::mock_with_accounts(vec![Account::mock(chain, "sender")])
         }
     }
 

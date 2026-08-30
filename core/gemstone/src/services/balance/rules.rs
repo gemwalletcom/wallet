@@ -112,15 +112,6 @@ mod tests {
     use super::*;
     use primitives::{AssetType, Balance};
 
-    fn account(chain: Chain, address: &str) -> Account {
-        Account {
-            chain,
-            address: address.into(),
-            derivation_path: "".into(),
-            extended_public_key: None,
-        }
-    }
-
     #[test]
     fn test_balance_requests_match_tokens_by_typed_chain() {
         let sei = AssetId::from_chain(Chain::Sei);
@@ -128,7 +119,7 @@ mod tests {
         let ethereum_token = AssetId::from_token(Chain::Ethereum, "0xusdc");
 
         let requests = balance_requests(
-            &[account(Chain::Sei, "sei-address"), account(Chain::Ethereum, "0xaddress")],
+            &[Account::mock(Chain::Sei, "sei-address"), Account::mock(Chain::Ethereum, "0xaddress")],
             &[sei.clone(), sei_evm_token, ethereum_token.clone()],
         );
 

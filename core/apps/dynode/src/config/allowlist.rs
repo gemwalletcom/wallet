@@ -62,6 +62,7 @@ impl AllowlistRule {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testkit::config::jsonrpc;
     use serde_json::json;
 
     fn config() -> AllowlistConfig {
@@ -72,20 +73,6 @@ mod tests {
             { "path": "/api/v2/sendtx/", "method": "POST" }
         ]))
         .unwrap()
-    }
-
-    fn jsonrpc(method: &str) -> RequestType {
-        RequestType::from_request(
-            "POST",
-            "/".to_string(),
-            serde_json::to_vec(&json!({
-                "jsonrpc": "2.0",
-                "method": method,
-                "params": [],
-                "id": 1
-            }))
-            .unwrap(),
-        )
     }
 
     #[test]

@@ -68,13 +68,6 @@ mod tests {
         }
     }
 
-    fn make_url(url: &str) -> Url {
-        Url {
-            url: url.to_string(),
-            headers: None,
-        }
-    }
-
     fn make_chain_config_with_overrides(overrides: Vec<Override>) -> ChainConfig {
         ChainConfig {
             chain: primitives::Chain::Ethereum,
@@ -82,7 +75,7 @@ mod tests {
             latency: None,
             overrides: Some(overrides),
             allowlist: None,
-            urls: vec![make_url("https://example.com")],
+            urls: vec![testkit::url("https://example.com")],
         }
     }
 
@@ -129,7 +122,7 @@ mod tests {
     #[test]
     fn resolve_url_without_override() {
         let chain_config = make_chain_config(None);
-        let base_url = make_url("https://example.com/rpc");
+        let base_url = testkit::url("https://example.com/rpc");
         assert_eq!(chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url, "https://example.com/rpc");
     }
 
@@ -140,7 +133,7 @@ mod tests {
             path: None,
             url: "https://tx-relay.example.com".to_string(),
         }]);
-        let base_url = make_url("https://example.com/rpc");
+        let base_url = testkit::url("https://example.com/rpc");
         assert_eq!(chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url, "https://tx-relay.example.com");
     }
 
@@ -151,7 +144,7 @@ mod tests {
             path: None,
             url: "https://tx-relay.example.com/tx/submit".to_string(),
         }]);
-        let base_url = make_url("https://example.com/rpc");
+        let base_url = testkit::url("https://example.com/rpc");
         assert_eq!(
             chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url,
             "https://tx-relay.example.com/tx/submit"
@@ -165,7 +158,7 @@ mod tests {
             path: None,
             url: "https://tx-relay.example.com".to_string(),
         }]);
-        let base_url = make_url("https://example.com/rpc");
+        let base_url = testkit::url("https://example.com/rpc");
         assert_eq!(chain_config.resolve_url(&base_url, Some("eth_blockNumber"), None).url, "https://example.com/rpc");
     }
 
@@ -176,7 +169,7 @@ mod tests {
             path: None,
             url: "https://fallback.example.com/v2/rpc".to_string(),
         }]);
-        let base_url = make_url("https://example.com/rpc");
+        let base_url = testkit::url("https://example.com/rpc");
         assert_eq!(
             chain_config.resolve_url(&base_url, Some("eth_blockNumber"), None).url,
             "https://fallback.example.com/v2/rpc"
@@ -190,7 +183,7 @@ mod tests {
             path: Some("/api/v1/block".to_string()),
             url: "https://api.example.com/v2/block".to_string(),
         }]);
-        let base_url = make_url("https://example.com");
+        let base_url = testkit::url("https://example.com");
         assert_eq!(chain_config.resolve_url(&base_url, None, Some("/api/v1/block")).url, "https://api.example.com/v2/block");
     }
 

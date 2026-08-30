@@ -101,7 +101,7 @@ pub async fn poll(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Account, AssetId, Chain, TransactionState, Wallet, WalletSource, WalletType};
+    use primitives::{AssetId, Chain, TransactionState, Wallet};
 
     use crate::services::transaction_state::model::{GemPendingTransaction, GemTransactionStateUpdate};
 
@@ -169,19 +169,7 @@ mod tests {
     fn wallet() -> Wallet {
         Wallet {
             id: WalletId::Multicoin("wallet".into()),
-            external_id: None,
-            name: "wallet".to_string(),
-            index: 0,
-            wallet_type: WalletType::Multicoin,
-            accounts: vec![Account {
-                chain: Chain::Ethereum,
-                address: "address".to_string(),
-                derivation_path: String::new(),
-                extended_public_key: None,
-            }],
-            is_pinned: false,
-            image_url: None,
-            source: WalletSource::Import,
+            ..Wallet::mock()
         }
     }
 

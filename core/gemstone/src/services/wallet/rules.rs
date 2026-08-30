@@ -191,22 +191,8 @@ mod tests {
     fn wallet(id: WalletId, wallet_type: WalletType, chains: &[Chain]) -> Wallet {
         Wallet {
             id,
-            external_id: None,
-            name: "wallet".to_string(),
-            index: 0,
             wallet_type,
-            accounts: chains
-                .iter()
-                .map(|chain| Account {
-                    chain: *chain,
-                    address: "address".to_string(),
-                    derivation_path: String::new(),
-                    extended_public_key: None,
-                })
-                .collect(),
-            is_pinned: false,
-            image_url: None,
-            source: WalletSource::Import,
+            ..Wallet::mock_with_accounts(Account::mock_chains(chains, "address"))
         }
     }
 
