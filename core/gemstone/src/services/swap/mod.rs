@@ -19,7 +19,7 @@ use crate::message::signer::MessageSigner;
 use crate::models::swap::GemSwapQuoteData;
 use crate::services::error::GemServiceError;
 use crate::services::wallet::GemKeystorePassword;
-pub use model::{GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
+pub use model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
 use primitives::{AssetId, WalletId};
 pub use store::GemSwapStore;
 

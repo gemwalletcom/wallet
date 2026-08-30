@@ -4,6 +4,8 @@ import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import BigInt
 import protocol Gemstone.GemSwapServiceProtocol
+import enum Gemstone.GemSwapButtonAction
+import class Gemstone.GemSwapQuoteService
 import enum Gemstone.SwapperError
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.SwapperQuote
@@ -80,22 +82,22 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock()
 
         model.swapState.quotes = .data([])
-        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.swap)
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.swap)
         #expect(model.buttonViewModel.isVisible)
 
-        model.swapState.quotes = .error(TestError())
-        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.retryQuotes)
+        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.retryQuote)
 
         model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "1000"))
-        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.useMinAmount(amount: "1000", asset: .mockEthereum()))
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.useMinimumAmount(amount: "1000"))
 
         model.swapState.quotes = .data([])
-        model.swapState.swapTransferData = .error(TestError())
-        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.retrySwap)
+        model.swapState.swapTransferData = .error(SwapperError.NoQuoteAvailable)
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.retryTransfer)
 
-        model.swapState.quotes = .error(TestError())
-        model.swapState.swapTransferData = .error(TestError())
-        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.retrySwap)
+        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        model.swapState.swapTransferData = .error(SwapperError.NoQuoteAvailable)
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.retryTransfer)
     }
 
     @Test
@@ -388,6 +390,48 @@ struct SwapSceneViewModelTests {
         #expect(SwapSceneViewModel.mock(preferencesService: preferencesService).selectedSlippage == .manual(bps: 150))
     }
 
+    @Test
+    func minimumAmountIsOfferedOnlyWhenTheBalanceCoversIt() async {
+        let model = SwapSceneViewModel.mock()
+
+        model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "900000000000000000"))
+        #expect(model.buttonViewModel.buttonAction == .useMinimumAmount(amount: "900000000000000000"))
+
+        model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "2000000000000000000"))
+        #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
+    }
+
+    @Test
+    func unaffordableAmountBlocksTheButtonBeforeAnyQuote() {
+        let model = SwapSceneViewModel.mock()
+
+        model.amountInputModel.text = "2"
+
+        #expect(model.swapState.quotes.isNoData)
+        #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
+
+        model.amountInputModel.text = "1"
+
+        #expect(model.buttonViewModel.buttonAction == .swap)
+    }
+
+    @Test
+    func onlyRetryableFailuresOfferARetry() {
+        let model = SwapSceneViewModel.mock()
+
+        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        #expect(model.buttonViewModel.buttonAction == .retryQuote)
+
+        model.swapState.quotes = .error(SwapperError.NoAvailableProvider)
+        #expect(model.buttonViewModel.buttonAction == .swap)
+
+        model.swapState.swapTransferData = .error(SwapperError.TransactionError("nonce"))
+        #expect(model.buttonViewModel.buttonAction == .retryTransfer)
+
+        model.swapState.swapTransferData = .error(SwapperError.NotSupportedAsset)
+        #expect(model.buttonViewModel.buttonAction == .swap)
+    }
+
     // MARK: - Private methods
 
     private func model(
@@ -415,6 +459,7 @@ extension SwapSceneViewModel {
             balanceService: GemBalanceServiceMock(),
             priceUpdater: .mock(),
             swapService: swapService,
+            swapQuoteService: GemSwapQuoteService(),
         )
         model.fromAssetQuery.value = .mock(asset: .mockEthereum(), balance: .mock())
         model.toAssetQuery.value = .mock(asset: .mockEthereumUSDT())
@@ -424,9 +469,7 @@ extension SwapSceneViewModel {
     }
 }
 
-private struct TestError: Error, RetryableError {
-    var isRetryAvailable: Bool = true
-}
+private struct TestError: Error {}
 
 private let quotesByAmount: @Sendable (BigInt) -> [SwapperQuote] = { amount in
     guard amount > BigInt(stringLiteral: "2000000000000000000") else {

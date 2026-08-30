@@ -1,5 +1,6 @@
 use primitives::AssetId;
 use primitives::swap::{SwapQuote, SwapQuoteData};
+use swapper::SwapperError;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapTransfer {
@@ -20,4 +21,21 @@ pub struct GemSwapPair {
 pub struct GemSwapPairSuggestion {
     pub pay_asset_id: AssetId,
     pub receive_asset_id: Option<AssetId>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapButtonInput {
+    pub value: String,
+    pub available_balance: String,
+    pub quote_error: Option<SwapperError>,
+    pub transfer_error: Option<SwapperError>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemSwapButtonAction {
+    Swap,
+    RetryQuote,
+    RetryTransfer,
+    UseMinimumAmount { amount: String },
+    InsufficientBalance,
 }

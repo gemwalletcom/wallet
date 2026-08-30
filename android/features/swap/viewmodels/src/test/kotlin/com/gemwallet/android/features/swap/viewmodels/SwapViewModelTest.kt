@@ -18,6 +18,7 @@ import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -80,7 +81,9 @@ import uniffi.gemstone.SwapperQuoteRequest
 import uniffi.gemstone.SwapperRoute
 import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.SwapperSlippageMode
+import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapQuoteService
+import uniffi.gemstone.SwapperException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapViewModelTest {
@@ -553,6 +556,80 @@ class SwapViewModelTest {
         assertEquals(0, swapCalls)
         assertEquals(0, confirmCalls)
         assertEquals(SwapActionState.Ready, viewModel.uiState.value.action)
+    }
+
+    @Test
+    fun `amount above the balance blocks the button before any quote`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        viewModel.payValue.setTextAndPlaceCursorAtEnd("2")
+        Snapshot.sendApplyNotifications()
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.InsufficientBalance }
+
+        assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
+
+        viewModel.payValue.setTextAndPlaceCursorAtEnd("1")
+        Snapshot.sendApplyNotifications()
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.Swap }
+    }
+
+    @Test
+    fun `minimum amount is offered only when the balance covers it`() = runTest(testDispatcher) {
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        failQuote(viewModel, quotesFlow, SwapperException.InputAmountException("2000000000"))
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.InsufficientBalance }
+        assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
+
+        failQuote(viewModel, quotesFlow, SwapperException.InputAmountException("500000000"))
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.UseMinimumAmount("500000000") }
+        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
+
+        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {})
+        advanceUntilIdle()
+
+        assertEquals("0.5", viewModel.payValue.text.toString())
+    }
+
+    @Test
+    fun `only retryable quote failures offer a retry`() = runTest(testDispatcher) {
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        failQuote(viewModel, quotesFlow, SwapperException.NoQuoteAvailable())
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.RetryQuote }
+        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
+
+        failQuote(viewModel, quotesFlow, SwapperException.NoAvailableProvider())
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.Swap }
+        assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
+    }
+
+    private suspend fun failQuote(
+        viewModel: SwapViewModel,
+        quotesFlow: MutableSharedFlow<SwapQuotesResult?>,
+        error: Throwable,
+    ) {
+        viewModel.payValue.setTextAndPlaceCursorAtEnd("1")
+        Snapshot.sendApplyNotifications()
+        testDispatcher.scheduler.advanceUntilIdle()
+        quotesFlow.emit(
+            SwapQuotesResult(
+                requestKey = SwapQuoteRequestParams(BigDecimal.ONE, solInfo, usdcInfo).key,
+                pay = solInfo,
+                receive = usdcInfo,
+                err = error,
+            )
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
     }
 
     private fun stubBuildConfirmParams(beforeReturn: suspend () -> Unit = {}) {

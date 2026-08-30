@@ -2,6 +2,7 @@ use primitives::Chain;
 use primitives::swap::{SwapPriceImpact, SwapQuote};
 use swapper::{Quote, SwapperSlippage};
 
+use super::model::{GemSwapButtonAction, GemSwapButtonInput};
 use super::rules;
 use crate::config::swap_config::get_default_slippage;
 use crate::models::swap::calculate_swap_price_impact;
@@ -26,5 +27,9 @@ impl GemSwapQuoteService {
 
     pub fn default_slippage(&self, chain: Chain) -> SwapperSlippage {
         get_default_slippage(&chain)
+    }
+
+    pub fn button_action(&self, input: GemSwapButtonInput) -> GemSwapButtonAction {
+        rules::button_action(&input)
     }
 }

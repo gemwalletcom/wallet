@@ -25,8 +25,6 @@ import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
-import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.features.swap.viewmodels.models.SwapQuoteSession
 import com.gemwallet.android.features.swap.viewmodels.models.SwapTransferPhase
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
@@ -45,9 +43,11 @@ import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
 import com.gemwallet.android.features.swap.viewmodels.models.startTransfer
 import com.gemwallet.android.math.multiplyByPercent
 import com.gemwallet.android.math.parseInputNumberOrNull
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
@@ -76,10 +76,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.Config
+import uniffi.gemstone.GemSwapButtonAction
+import uniffi.gemstone.GemSwapButtonInput
 import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperProvider
 import java.math.BigDecimal
+import java.math.BigInteger
 import javax.inject.Inject
 import com.gemwallet.android.ext.runCatchingCancellable
 
@@ -222,7 +226,9 @@ class SwapViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val uiState = session.map(::createSwapUiState)
+    val uiState = combine(session, payValueFlow, payAsset) { quoteSession, value, pay ->
+            createSwapUiState(quoteSession, buttonAction(quoteSession, value, pay))
+        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUiState())
 
     init {
@@ -309,26 +315,22 @@ class SwapViewModel @Inject constructor(
         onConfirm: (ConfirmParams) -> Unit,
         onShowPriceImpactWarning: () -> Unit,
     ) {
-        when (val action = uiState.value.action) {
-            SwapActionState.Ready -> {
+        val state = uiState.value
+        if (state.buttonState != ButtonState.Enabled) {
+            return
+        }
+        when (val action = state.buttonAction) {
+            GemSwapButtonAction.Swap -> {
                 if (swapDetails.value?.shouldShowPriceImpactWarning == true) {
                     onShowPriceImpactWarning()
                 } else {
                     swap(onConfirm)
                 }
             }
-            is SwapActionState.TransferError -> swap(onConfirm)
-            is SwapActionState.QuoteError -> {
-                val error = action.error
-                if (error is SwapError.InputAmountTooSmall) {
-                    applyMinimumAmount(error)
-                } else {
-                    refresh()
-                }
-            }
-            SwapActionState.None,
-            SwapActionState.QuoteLoading,
-            SwapActionState.TransferLoading -> Unit
+            GemSwapButtonAction.RetryTransfer -> swap(onConfirm)
+            GemSwapButtonAction.RetryQuote -> refresh()
+            is GemSwapButtonAction.UseMinimumAmount -> applyMinimumAmount(action.amount)
+            GemSwapButtonAction.InsufficientBalance -> Unit
         }
     }
 
@@ -363,10 +365,10 @@ class SwapViewModel @Inject constructor(
                 onConfirm(params)
             }
             session.update { it.onTransferHandedOff(transfer) }
-        } catch (_: SwapNoQuoteException) {
-            session.update { it.onTransferFailed(transfer, SwapError.NoQuote) }
+        } catch (err: SwapNoQuoteException) {
+            session.update { it.onTransferFailed(transfer, err.cause ?: SwapperException.NoQuoteAvailable()) }
         } catch (err: Throwable) {
-            session.update { it.onTransferFailed(transfer, SwapError.Unknown(err.message ?: "")) }
+            session.update { it.onTransferFailed(transfer, err) }
         }
     }
 
@@ -389,10 +391,20 @@ class SwapViewModel @Inject constructor(
         session.update { it.onQuoteResults(results) }
     }
 
-    private fun applyMinimumAmount(error: SwapError.InputAmountTooSmall) {
+    private fun buttonAction(quoteSession: SwapQuoteSession, value: BigDecimal, pay: AssetInfo?): GemSwapButtonAction =
+        swapQuoteService.buttonAction(
+            GemSwapButtonInput(
+                value = pay?.let { Crypto(value, it.asset.decimals).atomicValue.toString() } ?: "0",
+                availableBalance = pay?.balance?.balance?.available ?: "0",
+                quoteError = quoteSession.quoteError,
+                transferError = quoteSession.transferError,
+            )
+        )
+
+    private fun applyMinimumAmount(amount: String) {
         val asset = payAsset.value?.asset ?: return
         payValue.clearText()
-        payValue.setTextAndPlaceCursorAtEnd(error.getValue(asset).toString())
+        payValue.setTextAndPlaceCursorAtEnd(Crypto(BigInteger(amount)).value(asset.decimals).toString())
     }
 
     private suspend fun setReceive(amount: String) = withContext(Dispatchers.Main) {

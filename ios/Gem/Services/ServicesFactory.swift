@@ -337,6 +337,7 @@ struct ServicesFactory {
             keystore: storages.keystore,
             gemConfirmService: gemConfirmService,
             swapService: swapService,
+            swapQuoteService: Gemstone.GemSwapQuoteService(),
             priceUpdater: streamSubscriptionService,
             walletSessionService: walletSessionService,
             stakeService: stakeService,

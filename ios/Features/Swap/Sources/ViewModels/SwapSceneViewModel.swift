@@ -8,6 +8,9 @@ import Foundation
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
+import enum Gemstone.GemSwapButtonAction
+import struct Gemstone.GemSwapButtonInput
+import class Gemstone.GemSwapQuoteService
 import enum Gemstone.SwapperError
 import enum Gemstone.SwapperProvider
 import struct Gemstone.SwapperQuote
@@ -18,7 +21,6 @@ import Primitives
 import PrimitivesComponents
 import Store
 import Style
-import Validators
 
 @MainActor
 @Observable
@@ -57,6 +59,7 @@ public final class SwapSceneViewModel {
 
     private let onSwap: TransferDataAction
     private let swapService: any GemSwapServiceProtocol
+    private let swapQuoteService: GemSwapQuoteService
     private let preferencesService: any GemPreferencesServiceProtocol
     private let formatter = SwapValueFormatter(valueFormatter: .full)
     private let toValueFormatter = SwapValueFormatter(valueFormatter: ValueFormatter(style: .auto))
@@ -67,6 +70,7 @@ public final class SwapSceneViewModel {
         balanceService: any GemBalanceServiceProtocol,
         priceUpdater: any PriceUpdater,
         swapService: any GemSwapServiceProtocol,
+        swapQuoteService: GemSwapQuoteService,
         onSwap: TransferDataAction = nil,
     ) {
         let pairSelectorModel = input.pairSelector
@@ -79,6 +83,7 @@ public final class SwapSceneViewModel {
         fromAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
         toAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.toAssetId), initialValue: nil)
         self.swapService = swapService
+        self.swapQuoteService = swapQuoteService
         self.onSwap = onSwap
         selectedSlippage = preferencesService.swapSlippage
     }
@@ -131,7 +136,7 @@ public final class SwapSceneViewModel {
     var buttonViewModel: SwapButtonViewModel {
         SwapButtonViewModel(
             swapState: swapState,
-            isAmountValid: amountInputModel.isValid,
+            buttonAction: buttonAction,
             fromAsset: fromAsset,
             onAction: onSelectActionButton,
         )
@@ -245,7 +250,6 @@ extension SwapSceneViewModel {
         resetTransferDataState()
         resetValues()
         resetQuoteSelection()
-        updateValidators(for: new)
         setLoadTrigger(isImmediate: true)
     }
 
@@ -334,6 +338,17 @@ extension SwapSceneViewModel {
 // MARK: - Private
 
 extension SwapSceneViewModel {
+    private var buttonAction: GemSwapButtonAction {
+        swapQuoteService.buttonAction(
+            input: GemSwapButtonInput(
+                value: currentInput?.value.description ?? .zero,
+                availableBalance: fromAsset?.balance.available.description ?? .zero,
+                quoteError: swapState.quotes.swapperError,
+                transferError: swapState.swapTransferData.swapperError,
+            ),
+        )
+    }
+
     private var currentInput: SwapQuoteInput? {
         try? SwapQuoteInput.create(
             fromAsset: fromAsset,
@@ -371,10 +386,10 @@ extension SwapSceneViewModel {
         )
     }
 
-    private func applyMinAmount(_ amount: String, asset: Asset) {
-        guard let value = BigInt(amount) else { return }
+    private func applyMinAmount(_ amount: String) {
+        guard let fromAsset, let value = BigInt(amount) else { return }
         resetTransferDataState()
-        amountInputModel.text = formatter.format(value: value, decimals: asset.decimals.asInt)
+        amountInputModel.text = formatter.format(value: value, decimals: fromAsset.asset.decimals.asInt)
         setLoadTrigger(isImmediate: true)
     }
 
@@ -445,7 +460,6 @@ extension SwapSceneViewModel {
                 guard !isTransferDataLoading, currentInput == input else { return }
                 swapState.quotes = .error(error)
                 selectedSwapQuote = nil
-                amountInputModel.update(error: nil)
                 debugLog("SwapScene get quotes error: \(error)")
             }
         }
@@ -459,19 +473,6 @@ extension SwapSceneViewModel {
         }
     }
 
-    private func updateValidators(for assetData: AssetData?) {
-        guard let assetData else { return }
-        amountInputModel.update(
-            validators: [AmountValidator.amount(
-                source: .asset,
-                decimals: assetData.asset.decimals.asInt,
-                validators: [
-                    BalanceValueValidator(available: assetData.balance.available, asset: assetData.asset),
-                ],
-            )],
-        )
-    }
-
     private func resetQuoteSelection() {
         selectedSwapQuote = nil
         preferredProvider = nil
@@ -482,11 +483,11 @@ extension SwapSceneViewModel {
     }
 
     private func onSelectActionButton() {
-        switch buttonViewModel.buttonAction {
-        case .retryQuotes: setLoadTrigger(isImmediate: true)
-        case .retrySwap: swap()
+        switch buttonAction {
+        case .retryQuote: setLoadTrigger(isImmediate: true)
+        case .retryTransfer: swap()
         case .insufficientBalance: break
-        case let .useMinAmount(amount, asset): applyMinAmount(amount, asset: asset)
+        case let .useMinimumAmount(amount): applyMinAmount(amount)
         case .swap:
             if let priceImpactModel = swapDetailsViewModel?.priceImpactModel,
                let warningText = priceImpactModel.highImpactWarningDescription,
@@ -503,5 +504,12 @@ extension SwapSceneViewModel {
 extension Error {
     var swapperError: Gemstone.SwapperError? {
         self as? Gemstone.SwapperError
+    }
+}
+
+extension StateViewType {
+    var swapperError: Gemstone.SwapperError? {
+        guard case let .error(error) = self else { return nil }
+        return error.swapperError
     }
 }

@@ -5,7 +5,7 @@ use swapper::permit2_data::{Permit2Detail, PermitSingle};
 use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
-use crate::services::swap::model::{GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
+use crate::services::swap::model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
 use std::collections::HashMap;
 
 pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, value: String, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<QuoteRequest, SwapperError> {
@@ -128,6 +128,52 @@ fn most_frequent_asset(asset_ids: &[AssetId]) -> Option<AssetId> {
 
 pub fn first_other_asset(asset_ids: Vec<AssetId>, pay_asset_id: &AssetId) -> Option<AssetId> {
     asset_ids.into_iter().find(|asset_id| asset_id != pay_asset_id)
+}
+
+pub fn button_action(input: &GemSwapButtonInput) -> GemSwapButtonAction {
+    let available_balance = base_units(&input.available_balance);
+    if let Some(minimum) = minimum_amount(input.quote_error.as_ref()) {
+        if minimum > available_balance {
+            return GemSwapButtonAction::InsufficientBalance;
+        }
+        return GemSwapButtonAction::UseMinimumAmount { amount: minimum.to_string() };
+    }
+    if is_retryable(input.transfer_error.as_ref()) {
+        return GemSwapButtonAction::RetryTransfer;
+    }
+    if is_retryable(input.quote_error.as_ref()) {
+        return GemSwapButtonAction::RetryQuote;
+    }
+    if base_units(&input.value) > available_balance {
+        return GemSwapButtonAction::InsufficientBalance;
+    }
+    GemSwapButtonAction::Swap
+}
+
+pub fn is_retryable(error: Option<&SwapperError>) -> bool {
+    match error {
+        Some(SwapperError::NoQuoteAvailable | SwapperError::ComputeQuoteError(_) | SwapperError::TransactionError(_)) => true,
+        Some(
+            SwapperError::NotSupportedChain
+            | SwapperError::NotSupportedAsset
+            | SwapperError::NoAvailableProvider
+            | SwapperError::InvalidRoute
+            | SwapperError::InputAmountError { .. },
+        )
+        | None => false,
+    }
+}
+
+fn minimum_amount(error: Option<&SwapperError>) -> Option<BigInt> {
+    let SwapperError::InputAmountError { min_amount } = error? else {
+        return None;
+    };
+    let minimum = min_amount.as_ref()?.parse::<BigInt>().ok()?;
+    (minimum > BigInt::from(0)).then_some(minimum)
+}
+
+fn base_units(value: &str) -> BigInt {
+    value.parse().unwrap_or_default()
 }
 
 pub fn pair_for_asset(asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
@@ -379,6 +425,93 @@ mod tests {
     #[test]
     fn test_most_swapped_receive_asset_is_none_without_history() {
         assert_eq!(most_swapped_receive_asset(&[], &AssetId::from_chain(Chain::Ethereum)), None);
+    }
+
+    fn button_input(value: &str, available_balance: &str) -> GemSwapButtonInput {
+        GemSwapButtonInput {
+            value: value.to_string(),
+            available_balance: available_balance.to_string(),
+            quote_error: None,
+            transfer_error: None,
+        }
+    }
+
+    #[test]
+    fn test_button_action_offers_the_minimum_amount_only_when_the_balance_covers_it() {
+        let too_small = |min_amount: Option<&str>| GemSwapButtonInput {
+            quote_error: Some(SwapperError::InputAmountError {
+                min_amount: min_amount.map(str::to_string),
+            }),
+            ..button_input("100", "18900023")
+        };
+
+        assert_eq!(
+            button_action(&too_small(Some("18900023"))),
+            GemSwapButtonAction::UseMinimumAmount { amount: "18900023".to_string() }
+        );
+        assert_eq!(button_action(&too_small(Some("22000000"))), GemSwapButtonAction::InsufficientBalance);
+        assert_eq!(button_action(&too_small(Some("0"))), GemSwapButtonAction::Swap);
+        assert_eq!(button_action(&too_small(None)), GemSwapButtonAction::Swap);
+    }
+
+    #[test]
+    fn test_button_action_blocks_an_unaffordable_amount_before_any_quote() {
+        assert_eq!(button_action(&button_input("101", "100")), GemSwapButtonAction::InsufficientBalance);
+        assert_eq!(button_action(&button_input("100", "100")), GemSwapButtonAction::Swap);
+        assert_eq!(button_action(&button_input("", "100")), GemSwapButtonAction::Swap);
+    }
+
+    #[test]
+    fn test_button_action_retries_only_a_retryable_error() {
+        let quote_failed = |error: SwapperError| GemSwapButtonInput {
+            quote_error: Some(error),
+            ..button_input("100", "100")
+        };
+        let transfer_failed = |error: SwapperError| GemSwapButtonInput {
+            transfer_error: Some(error),
+            ..button_input("100", "100")
+        };
+
+        assert_eq!(button_action(&quote_failed(SwapperError::NoQuoteAvailable)), GemSwapButtonAction::RetryQuote);
+        assert_eq!(button_action(&quote_failed(SwapperError::NotSupportedAsset)), GemSwapButtonAction::Swap);
+        assert_eq!(button_action(&quote_failed(SwapperError::NoAvailableProvider)), GemSwapButtonAction::Swap);
+        assert_eq!(button_action(&quote_failed(SwapperError::InvalidRoute)), GemSwapButtonAction::Swap);
+        assert_eq!(
+            button_action(&transfer_failed(SwapperError::TransactionError("nonce".to_string()))),
+            GemSwapButtonAction::RetryTransfer
+        );
+        assert_eq!(button_action(&transfer_failed(SwapperError::NotSupportedChain)), GemSwapButtonAction::Swap);
+    }
+
+    #[test]
+    fn test_button_action_prefers_the_minimum_amount_then_the_transfer_retry() {
+        let input = GemSwapButtonInput {
+            quote_error: Some(SwapperError::NoQuoteAvailable),
+            transfer_error: Some(SwapperError::NoQuoteAvailable),
+            ..button_input("101", "100")
+        };
+        assert_eq!(button_action(&input), GemSwapButtonAction::RetryTransfer);
+
+        let with_minimum = GemSwapButtonInput {
+            quote_error: Some(SwapperError::InputAmountError {
+                min_amount: Some("50".to_string()),
+            }),
+            ..input
+        };
+        assert_eq!(button_action(&with_minimum), GemSwapButtonAction::UseMinimumAmount { amount: "50".to_string() });
+    }
+
+    #[test]
+    fn test_is_retryable_covers_every_error() {
+        assert!(is_retryable(Some(&SwapperError::NoQuoteAvailable)));
+        assert!(is_retryable(Some(&SwapperError::ComputeQuoteError("boom".to_string()))));
+        assert!(is_retryable(Some(&SwapperError::TransactionError("boom".to_string()))));
+        assert!(!is_retryable(Some(&SwapperError::NotSupportedChain)));
+        assert!(!is_retryable(Some(&SwapperError::NotSupportedAsset)));
+        assert!(!is_retryable(Some(&SwapperError::NoAvailableProvider)));
+        assert!(!is_retryable(Some(&SwapperError::InvalidRoute)));
+        assert!(!is_retryable(Some(&SwapperError::InputAmountError { min_amount: None })));
+        assert!(!is_retryable(None));
     }
 
     #[test]

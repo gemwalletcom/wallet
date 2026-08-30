@@ -19,6 +19,7 @@ import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
 import class Gemstone.GemAssetConfigService
+import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemFeeService
 import Preferences
@@ -37,6 +38,7 @@ public struct ViewModelFactory: Sendable {
     let keystore: any Keystore
     let gemConfirmService: GemConfirmService
     let swapService: any GemSwapServiceProtocol
+    let swapQuoteService: GemSwapQuoteService
     let priceUpdater: any PriceUpdater
     let walletSessionService: any WalletSessionManageable
     let stakeService: any GemStakeServiceProtocol
@@ -205,6 +207,7 @@ public struct ViewModelFactory: Sendable {
             balanceService: balanceService,
             priceUpdater: priceUpdater,
             swapService: swapService,
+            swapQuoteService: swapQuoteService,
             onSwap: onSwap,
         )
     }
