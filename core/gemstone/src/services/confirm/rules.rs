@@ -33,15 +33,15 @@ pub fn signer_input(input: &GemSendInput) -> Result<GemSignerInput, GemConfirmEr
     })
 }
 
-fn signing_address(wallet: &Wallet, chain: Chain, priced_for: &str) -> Result<String, GemConfirmError> {
-    let sender = wallet.account(chain).ok_or(GemConfirmError::AccountMissing { chain })?;
-    if sender.address != priced_for {
+fn signing_address(wallet: &Wallet, chain: Chain, from: &str) -> Result<String, GemConfirmError> {
+    let signer = wallet.account(chain).ok_or(GemConfirmError::AccountMissing { chain })?;
+    if signer.address != from {
         return Err(GemConfirmError::SenderMismatch {
-            priced_for: priced_for.to_string(),
-            signing_with: sender.address.clone(),
+            from: from.to_string(),
+            signer: signer.address.clone(),
         });
     }
-    Ok(sender.address.clone())
+    Ok(signer.address.clone())
 }
 
 pub fn validate_approvals(input_type: &GemTransactionInputType, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError> {
@@ -205,8 +205,8 @@ pub(super) fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSel
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::model::GemConfirmData;
+    use super::*;
     use crate::models::custom_types::GemBigInt;
     use crate::models::gateway::GemGasPriceType;
     use crate::models::transaction::GemTransactionLoadMetadata;
@@ -288,7 +288,7 @@ mod tests {
 
         assert!(matches!(
             signer_input(&switched).unwrap_err(),
-            GemConfirmError::SenderMismatch { priced_for, signing_with } if priced_for == "other" && signing_with == "sender"
+            GemConfirmError::SenderMismatch { from, signer } if from == "other" && signer == "sender"
         ));
     }
 
