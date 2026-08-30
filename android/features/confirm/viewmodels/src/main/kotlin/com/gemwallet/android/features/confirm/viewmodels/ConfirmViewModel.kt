@@ -98,7 +98,7 @@ class ConfirmViewModel @Inject constructor(
     private val getAddressName: GetAddressName,
     private val getAddressNames: GetAddressNames,
     private val savedStateHandle: SavedStateHandle,
-    private val feeService: GemFeeService,
+    val feeService: GemFeeService,
     private val transferService: GemTransferService,
     private val simulationFormatter: GemSimulationFormatter,
     private val perpetualService: GemPerpetualService,

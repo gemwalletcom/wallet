@@ -9,6 +9,7 @@ import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.math.NumberSanitizer
 import com.gemwallet.android.model.FeeSelection
 import uniffi.gemstone.GemFeeRate
+import uniffi.gemstone.GemFeeService
 import java.math.BigInteger
 
 class NetworkFeeCustomViewModel(
@@ -19,12 +20,13 @@ class NetworkFeeCustomViewModel(
     private val maxMultiplier: Int,
     private val minimumCustomFeeRate: BigInteger?,
     initialRate: BigInteger?,
+    private val feeService: GemFeeService,
 ) {
     var input by mutableStateOf(initialRate?.let { CustomFee.format(it, decimals) } ?: "")
         private set
 
     private val custom by derivedStateOf {
-        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier, minimumCustomFeeRate)
+        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier, minimumCustomFeeRate, feeService)
     }
 
     val placeholder: String get() = custom.placeholder

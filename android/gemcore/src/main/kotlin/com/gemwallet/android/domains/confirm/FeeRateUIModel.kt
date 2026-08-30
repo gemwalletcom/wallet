@@ -8,17 +8,15 @@ import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.GemFeeService
 import java.math.BigInteger
-
-private val feeService = GemFeeService()
 
 data class FeeRateUIModel(
     val feeRate: GemFeeRate,
     val feeAsset: AssetInfo,
     val feeUnitType: FeeUnitType?,
     val feeRateDecimals: Int,
-    val selectedRate: GemFeeRate? = null,
+    val totalFee: BigInteger,
+    val selectedTotalFee: BigInteger? = null,
     val selectedFeeAmount: BigInteger? = null,
     val unitSymbol: String? = null,
 ) {
@@ -42,10 +40,9 @@ data class FeeRateUIModel(
 
     private val feeAmount: BigInteger?
         get() {
-            if (selectedFeeAmount != null && selectedRate != null) {
-                val selectedTotal = feeService.totalFee(selectedRate.gasPriceType).toBigInteger()
-                if (selectedTotal == BigInteger.ZERO) return null
-                return selectedFeeAmount.multiply(feeService.totalFee(feeRate.gasPriceType).toBigInteger()).divide(selectedTotal)
+            if (selectedFeeAmount != null && selectedTotalFee != null) {
+                if (selectedTotalFee == BigInteger.ZERO) return null
+                return selectedFeeAmount.multiply(totalFee).divide(selectedTotalFee)
             }
             return null
         }
@@ -61,11 +58,11 @@ data class FeeRateUIModel(
         feeUnitType ?: return ""
         val symbol = unitSymbol ?: return ""
         return ValueFormatter(style = ValueFormatter.Style.Auto)
-            .string(feeService.totalFee(feeRate.gasPriceType).toBigInteger(), feeRateDecimals, symbol)
+            .string(totalFee, feeRateDecimals, symbol)
     }
 
     private fun nativeAmountText(): String {
-        val amount = feeAmount ?: feeService.totalFee(feeRate.gasPriceType).toBigInteger()
+        val amount = feeAmount ?: totalFee
         return ValueFormatter(style = ValueFormatter.Style.Auto)
             .string(amount, feeAsset.asset.decimals, feeAsset.asset.symbol)
     }

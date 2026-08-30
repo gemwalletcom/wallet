@@ -9,8 +9,6 @@ import uniffi.gemstone.GemFeeRate
 import uniffi.gemstone.GemFeeService
 import java.math.BigInteger
 
-private val feeService = GemFeeService()
-
 data class CustomFee(
     val rate: BigInteger?,
     val placeholder: String,
@@ -30,9 +28,10 @@ data class CustomFee(
             decimals: Int,
             maxMultiplier: Int,
             minimumCustomFeeRate: BigInteger?,
+            feeService: GemFeeService,
         ): CustomFee {
-            val baseTotal = baseTotal(selection, feeRates, currentFee.priority)
-            val normalTotal = normalTotal(feeRates) ?: baseTotal
+            val baseTotal = baseTotal(selection, feeRates, currentFee.priority, feeService)
+            val normalTotal = normalTotal(feeRates, feeService) ?: baseTotal
             val rate = input.parseInputNumberOrNull()?.movePointRight(decimals)?.toBigInteger()?.takeIf { it > BigInteger.ZERO }
             val isBelowMinimum = rate != null && minimumCustomFeeRate != null && rate < minimumCustomFeeRate
 
@@ -62,14 +61,14 @@ data class CustomFee(
         fun formatRate(value: BigInteger, decimals: Int, unitSymbol: String): String =
             ValueFormatter(style = ValueFormatter.Style.Auto).string(value, decimals, unitSymbol)
 
-        private fun baseTotal(selection: FeeSelection, feeRates: List<GemFeeRate>, loadedPriority: FeePriority): BigInteger =
+        private fun baseTotal(selection: FeeSelection, feeRates: List<GemFeeRate>, loadedPriority: FeePriority, feeService: GemFeeService): BigInteger =
             when (selection) {
                 is FeeSelection.Custom -> selection.gasPrice
                 is FeeSelection.Preset -> feeRates.firstOrNull { it.priority.toFeePriority() == loadedPriority }
                     ?.let { feeService.totalFee(it.gasPriceType).toBigInteger() } ?: BigInteger.ZERO
             }
 
-        private fun normalTotal(feeRates: List<GemFeeRate>): BigInteger? =
+        private fun normalTotal(feeRates: List<GemFeeRate>, feeService: GemFeeService): BigInteger? =
             (feeRates.firstOrNull { it.priority.toFeePriority() == FeePriority.Normal } ?: feeRates.firstOrNull())
                 ?.let { feeService.totalFee(it.gasPriceType).toBigInteger() }
     }

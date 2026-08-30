@@ -9,6 +9,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemFeeRate
+import uniffi.gemstone.GemFeeService
 import uniffi.gemstone.GemGasPriceType
 import java.math.BigInteger
 
@@ -28,7 +29,7 @@ class CustomFeeTest {
     )
 
     private fun custom(input: String, decimals: Int = 0, minimumCustomFeeRate: BigInteger? = null, selection: FeeSelection = FeeSelection.Preset(FeePriority.Normal)) =
-        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier = 10, minimumCustomFeeRate)
+        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier = 10, minimumCustomFeeRate, GemFeeService())
 
     @Test
     fun customFeeFrom() {
