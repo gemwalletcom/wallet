@@ -107,9 +107,8 @@ class GemstoneDevicePlatform(
     )
 
     override suspend fun pushToken(): String {
-        val enabled = getPushEnabled().firstOrNull() ?: false
-        val token = if (enabled) getPushToken() else ""
-        if (enabled && token.isEmpty()) {
+        val token = getPushToken()
+        if (token.isEmpty()) {
             requestPushToken.requestToken { requested ->
                 setPushToken(requested)
                 scope.launch { runCatching { deviceService.get().synchronizeIfNeeded() } }

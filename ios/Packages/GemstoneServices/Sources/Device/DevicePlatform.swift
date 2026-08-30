@@ -9,6 +9,7 @@ import GemstonePrimitives
 import Preferences
 import Primitives
 import UIKit
+import UserNotifications
 
 public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendable {
     private let preferencesService: any GemPreferencesServiceProtocol
@@ -50,7 +51,10 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
     }
 
     public func isPushEnabled() async throws -> Bool {
-        preferencesService.isPushNotificationsEnabled()
+        guard preferencesService.isPushNotificationsEnabled() else {
+            return false
+        }
+        return await UNUserNotificationCenter.current().notificationSettings().authorizationStatus.isAuthorized
     }
 
     public func currency() async throws -> String {

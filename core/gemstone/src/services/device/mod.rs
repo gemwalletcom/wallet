@@ -70,17 +70,22 @@ impl GemDeviceService {
 impl GemDeviceService {
     async fn current_device(&self) -> Result<Device, GemServiceError> {
         let info = self.platform.device_info().await?;
+        let is_push_enabled = self.platform.is_push_enabled().await?;
+        let token = match is_push_enabled {
+            true => self.platform.push_token().await?,
+            false => String::new(),
+        };
         Ok(Device {
             id: self.platform.device_id().await?,
             platform: info.platform,
             platform_store: info.platform_store,
             os: info.os,
             model: info.model,
-            token: self.platform.push_token().await?,
+            token,
             locale: info.locale,
             version: info.version,
             currency: self.platform.currency().await?,
-            is_push_enabled: self.platform.is_push_enabled().await?,
+            is_push_enabled,
             is_price_alerts_enabled: Some(self.preferences.is_price_alerts_enabled()),
             subscriptions_version: 0,
         })
