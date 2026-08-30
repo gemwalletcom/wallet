@@ -12,7 +12,6 @@ use primitives::{
 use super::model::{GemPendingTransactionInput, GemTransferBalance, GemTransferData, GemTransferOutput};
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
-use crate::services::amount::rules::parse_value;
 
 pub fn transaction_type(input_type: &GemTransactionInputType) -> TransactionType {
     TransactionInputType::from(input_type.clone()).transaction_type()
@@ -149,7 +148,7 @@ pub fn available_value(transfer: &GemTransferData, balance: &GemTransferBalance)
         GemTransactionInputType::Stake { stake_type, .. } => match stake_type {
             StakeType::Unstake(delegation) | StakeType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
             StakeType::Redelegate(data) => BigInt::from(data.delegation.base.balance.clone()),
-            StakeType::Rewards(_) => parse_value(&transfer.value)?,
+            StakeType::Rewards(_) => transfer.value.clone(),
             StakeType::Unfreeze(resource) => unfreeze_available(resource, balance),
             StakeType::Stake(_) if asset.chain() == Chain::Tron => tron_stake_available(asset, balance),
             StakeType::Stake(_) | StakeType::Freeze(_) => balance.available.clone(),
@@ -299,7 +298,7 @@ mod tests {
                 data: SwapQuoteData {
                     to: "0xrouter".into(),
                     data_type: SwapQuoteDataType::Contract,
-                    value: "100".into(),
+                    value: "100".to_string(),
                     data: "0x".into(),
                     memo: None,
                     approval,
@@ -350,7 +349,7 @@ mod tests {
                 memo: Some("memo".into()),
                 references: vec![],
             },
-            value: value.into(),
+            value: value.parse().unwrap(),
             use_max_amount: false,
             minimum_value: None,
         }
@@ -563,7 +562,7 @@ mod tests {
             Some(ApprovalData {
                 token: "0xusdc".into(),
                 spender: "0xspender".into(),
-                value: "100".into(),
+                value: "100".to_string(),
                 is_unlimited: false,
             }),
         );
@@ -601,7 +600,7 @@ mod tests {
             payload: vec![],
             header: Some(primitives::SimulationHeader {
                 asset_id: AssetId::from(Chain::Solana, Some("usdc".into())),
-                value: "19000000".into(),
+                value: "19000000".to_string(),
                 is_unlimited: false,
             }),
         });

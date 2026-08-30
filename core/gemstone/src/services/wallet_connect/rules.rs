@@ -210,7 +210,7 @@ pub fn transfer_data(
     };
     let (extra, value) = match transaction {
         WalletConnectTransaction::Ethereum { data, kind } => {
-            let value = data.value.as_deref().map(hex_value).transpose()?.unwrap_or(BigInt::ZERO).to_string();
+            let value = data.value.as_deref().map(hex_value).transpose()?.unwrap_or(BigInt::ZERO);
             let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?.map(|gas| gas.to_string());
             let gas_price = match (data.max_fee_per_gas.as_deref(), data.max_priority_fee_per_gas.as_deref()) {
                 (Some(max_fee), Some(priority_fee)) => Some(GemGasPriceType::Eip1559 {
@@ -240,13 +240,13 @@ pub fn transfer_data(
             data,
             output_type,
             transaction_type,
-        } => (encoded_extra(data.transaction, output_type, output_action, transaction_type), "0".to_string()),
+        } => (encoded_extra(data.transaction, output_type, output_action, transaction_type), BigInt::ZERO),
         WalletConnectTransaction::Sui { data, output_type } => (
             encoded_extra(data.transaction, output_type, output_action, TransactionType::SmartContractCall),
-            "0".to_string(),
+            BigInt::ZERO,
         ),
         WalletConnectTransaction::Ton { data, output_type } | WalletConnectTransaction::Tron { data, output_type } => {
-            (encoded_extra(data, output_type, output_action, TransactionType::SmartContractCall), "0".to_string())
+            (encoded_extra(data, output_type, output_action, TransactionType::SmartContractCall), BigInt::ZERO)
         }
     };
     Ok(GemTransferData {
@@ -451,7 +451,7 @@ mod tests {
 
         let transfer = transfer_data(Chain::Ethereum, metadata.clone(), evm, GemWalletConnectTransactionAction::Send).unwrap();
 
-        assert_eq!(transfer.value, "16");
+        assert_eq!(transfer.value, BigInt::from(16));
         assert_eq!(transfer.recipient.address, "0xto");
         let GemTransactionInputType::Generic { asset, extra, .. } = transfer.input_type else {
             panic!("expected a generic input");
@@ -472,7 +472,7 @@ mod tests {
             transaction_type: TransactionType::Swap,
         };
         let transfer = transfer_data(Chain::Solana, metadata, solana, GemWalletConnectTransactionAction::Sign).unwrap();
-        assert_eq!(transfer.value, "0");
+        assert_eq!(transfer.value, BigInt::from(0));
         assert_eq!(transfer.recipient.address, "");
         let GemTransactionInputType::Generic { extra, .. } = transfer.input_type else {
             panic!("expected a generic input");

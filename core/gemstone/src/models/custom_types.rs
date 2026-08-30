@@ -86,6 +86,25 @@ pub mod decimal_string {
         let text = String::deserialize(deserializer)?;
         GemBigInt::from_str(&text).map_err(serde::de::Error::custom)
     }
+
+    pub mod optional {
+        use super::super::GemBigInt;
+        use serde::{Deserialize, Deserializer, Serializer};
+        use std::str::FromStr;
+
+        pub fn serialize<S: Serializer>(value: &Option<GemBigInt>, serializer: S) -> Result<S::Ok, S::Error> {
+            match value {
+                Some(value) => serializer.serialize_some(&value.to_string()),
+                None => serializer.serialize_none(),
+            }
+        }
+
+        pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<GemBigInt>, D::Error> {
+            Option::<String>::deserialize(deserializer)?
+                .map(|text| GemBigInt::from_str(&text).map_err(serde::de::Error::custom))
+                .transpose()
+        }
+    }
 }
 
 #[cfg(test)]
