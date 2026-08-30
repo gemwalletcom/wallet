@@ -10,6 +10,7 @@ import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConne
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.wallet.core.primitives.WalletConnectionSessionProposal
+import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
@@ -63,8 +64,7 @@ class ProposalSceneViewModel @Inject constructor(
         verifyContext: WalletConnectVerifyContext,
         onNotify: (BridgeRequestError) -> Unit,
     ) {
-        val verification = originVerifier.verify(proposal.url, verifyContext)
-        if (verification.isScam) {
+        if (originVerifier.isRejected(proposal.url, verifyContext)) {
             onNotify(BridgeRequestError.MaliciousSession)
             reject(proposal)
             return
@@ -79,7 +79,7 @@ class ProposalSceneViewModel @Inject constructor(
                     requiredChainIds = proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() },
                     optionalChainIds = proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() },
                     origin = verifyContext.origin,
-                    validation = verification.status,
+                    validation = verifyContext.map(),
                 )
             }.getOrElse { error ->
                 Log.e(TAG, "session proposal rejected: ${error.message}")

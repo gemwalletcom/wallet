@@ -14,7 +14,6 @@ public final class WalletConnectorService {
     private let walletSessionService: any WalletSessionManageable
     private let walletConnectorInteractor: any WalletConnectorInteractable
     private let service: any GemWalletConnectServiceProtocol
-    private let messageTracker = MessageTracker()
     private let setupState = SetupState()
 
     public init(
@@ -150,15 +149,8 @@ extension WalletConnectorService {
             }
 
             do {
-                let status = service.validateOrigin(metadataUrl: session.peer.url, origin: verifyContext.origin, validation: verifyContext.validation.map()).map()
-
-                debugLog("Verification status for request: \(status)")
-
-                switch status {
-                case .verified, .unknown: break
-                case .invalid, .malicious:
-                    // show toast with an error
-                    debugLog("Warning: Request status error (\(status)")
+                if service.isOriginRejected(metadataUrl: session.peer.url, origin: verifyContext.origin, validation: verifyContext.validation.map()) {
+                    debugLog("Warning: rejected request origin for \(session.peer.url)")
                     try await rejectRequest(request)
                     continue
                 }
@@ -201,7 +193,7 @@ extension WalletConnectorService {
     private func handleRequest(request: WalletConnectSign.Request, session: Session) async throws {
         let messageId = request.messageId
 
-        guard await messageTracker.shouldProcess(messageId) else {
+        guard service.shouldProcessMessage(messageId: messageId) else {
             debugLog("Ignoring duplicate request with ID: \(messageId)")
             try await rejectRequest(request)
             return
@@ -245,7 +237,7 @@ extension WalletConnectorService {
     private func processSession(proposal: Session.Proposal, verifyContext: VerifyContext) async throws {
         let messageId = proposal.messageId
 
-        guard await messageTracker.shouldProcess(messageId) else {
+        guard service.shouldProcessMessage(messageId: messageId) else {
             debugLog("Ignoring duplicate proposal with ID: \(messageId)")
             return
         }

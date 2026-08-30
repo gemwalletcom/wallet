@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemWalletConnectService
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,6 +46,7 @@ class WCRequestViewModel @Inject constructor(
     private val explorerService: GemExplorerService,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
+    private val walletConnectService: GemWalletConnectService,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(RequestViewModelState())
@@ -68,6 +70,11 @@ class WCRequestViewModel @Inject constructor(
         onNotify: (BridgeRequestError) -> Unit,
         onError: (String) -> Unit,
     ) {
+        if (!walletConnectService.shouldProcessMessage("${sessionRequest.topic}_${sessionRequest.request.id}")) {
+            Log.d(TAG, "Ignoring duplicate request id=${sessionRequest.request.id}")
+            viewModelScope.launch(Dispatchers.IO) { rejectRequest(sessionRequest) }
+            return
+        }
         requestJob?.cancel()
         pendingRequests.current.value?.takeIf { it.sessionId == sessionRequest.topic }?.reject()
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
@@ -79,7 +86,7 @@ class WCRequestViewModel @Inject constructor(
                 return@launch
             }
             val appMetadata = connection.session.metadata
-            if (originVerifier.verify(appMetadata.url, verifyContext).isScam) {
+            if (originVerifier.isRejected(appMetadata.url, verifyContext)) {
                 Log.e(TAG, "Request rejected method=${sessionRequest.request.method} id=${sessionRequest.request.id}: malicious session")
                 onNotify(BridgeRequestError.MaliciousSession)
                 rejectRequest(sessionRequest)

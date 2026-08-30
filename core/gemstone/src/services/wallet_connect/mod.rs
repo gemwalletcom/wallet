@@ -5,7 +5,7 @@ pub mod signer;
 pub mod store;
 
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
 use primitives::{
@@ -32,7 +32,10 @@ pub struct GemWalletConnectService {
     store: Arc<dyn GemConnectionStore>,
     signer: Arc<dyn GemWalletConnectSigner>,
     session: Arc<GemWalletSessionService>,
+    seen_messages: Mutex<Vec<String>>,
 }
+
+const SEEN_MESSAGES_LIMIT: usize = 512;
 
 #[uniffi::export]
 impl GemWalletConnectService {
@@ -49,7 +52,17 @@ impl GemWalletConnectService {
             store,
             signer,
             session,
+            seen_messages: Mutex::new(Vec::new()),
         }
+    }
+
+    pub fn should_process_message(&self, message_id: String) -> bool {
+        let mut seen = self.seen_messages.lock().expect("wallet connect seen messages lock");
+        rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
+    }
+
+    pub fn is_origin_rejected(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> bool {
+        rules::is_origin_rejected(&self.wallet_connect.validate_origin(metadata_url, origin, validation))
     }
 
     pub async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
@@ -101,10 +114,7 @@ impl GemWalletConnectService {
         let required = rules::parse_chains(&required_chain_ids).ok_or(GemWalletConnectError::UnsupportedChains)?;
         let optional = rules::parse_known_chains(&optional_chain_ids);
         let verification_status = self.wallet_connect.validate_origin(metadata.url.clone(), origin, validation);
-        if matches!(
-            verification_status,
-            WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious
-        ) {
+        if rules::is_origin_rejected(&verification_status) {
             return Err(GemWalletConnectError::InvalidOrigin);
         }
         let session_wallets = self

@@ -16,6 +16,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticat
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.fromWalletConnectChainId
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
@@ -73,8 +74,7 @@ class WCAuthViewModel @Inject constructor(
         authRequest = request
         hasResponded = false
         _state.update { AuthSceneState.Loading }
-        val verification = originVerifier.verify(request.metadata?.url, verifyContext)
-        if (verification.isScam) {
+        if (originVerifier.isRejected(request.metadata?.url, verifyContext)) {
             onNotify(BridgeRequestError.MaliciousSession)
             hasResponded = true
             approveWalletConnectAuthentication.rejectAuthentication(request)
@@ -91,7 +91,7 @@ class WCAuthViewModel @Inject constructor(
                     requiredChainIds = emptyList(),
                     optionalChainIds = request.ethereumChainIds(),
                     origin = verifyContext.origin,
-                    validation = verification.status,
+                    validation = verifyContext.map(),
                 )
 
                 if (!isActiveRequest(request)) {

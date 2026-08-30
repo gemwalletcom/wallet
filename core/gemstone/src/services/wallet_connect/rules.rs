@@ -5,6 +5,7 @@ use crate::services::collections::{stale, unique};
 
 use chrono::{DateTime, Utc};
 use primitives::ChainType;
+use primitives::WalletConnectionVerificationStatus;
 use primitives::{
     Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession,
     WalletConnectionState, WalletId, WalletType,
@@ -493,5 +494,56 @@ mod tests {
         assert_eq!(extra.output_type, TransferDataOutputType::Signature);
         assert_eq!(extra.output_action, TransferDataOutputAction::Sign);
         assert_eq!(extra.transaction_type, TransactionType::Swap);
+    }
+}
+
+pub fn is_origin_rejected(status: &WalletConnectionVerificationStatus) -> bool {
+    match status {
+        WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious => true,
+        WalletConnectionVerificationStatus::Unknown | WalletConnectionVerificationStatus::Verified => false,
+    }
+}
+
+pub fn record_seen_message(seen: &mut Vec<String>, message_id: String, limit: usize) -> bool {
+    if seen.contains(&message_id) {
+        return false;
+    }
+    if seen.len() >= limit {
+        seen.remove(0);
+    }
+    seen.push(message_id);
+    true
+}
+
+#[cfg(test)]
+mod message_tests {
+    use super::*;
+
+    #[test]
+    fn test_a_repeated_message_is_only_processed_once() {
+        let mut seen = Vec::new();
+
+        assert!(record_seen_message(&mut seen, "a".to_string(), 3));
+        assert!(!record_seen_message(&mut seen, "a".to_string(), 3), "a relay retry must not reach the signer twice");
+        assert!(record_seen_message(&mut seen, "b".to_string(), 3));
+    }
+
+    #[test]
+    fn test_the_seen_list_evicts_oldest_first_and_stays_bounded() {
+        let mut seen = Vec::new();
+        for id in ["a", "b", "c", "d"] {
+            record_seen_message(&mut seen, id.to_string(), 3);
+        }
+
+        assert_eq!(seen, vec!["b".to_string(), "c".to_string(), "d".to_string()]);
+        assert!(record_seen_message(&mut seen, "a".to_string(), 3), "an evicted id is no longer remembered");
+    }
+
+    #[test]
+    fn test_only_invalid_and_malicious_origins_are_rejected() {
+        assert!(is_origin_rejected(&WalletConnectionVerificationStatus::Invalid));
+        assert!(is_origin_rejected(&WalletConnectionVerificationStatus::Malicious));
+        assert!(!is_origin_rejected(&WalletConnectionVerificationStatus::Verified));
+        assert!(!is_origin_rejected(&WalletConnectionVerificationStatus::Unknown));
     }
 }
