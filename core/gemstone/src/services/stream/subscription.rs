@@ -86,6 +86,7 @@ mod tests {
     use super::*;
     use crate::alien::{AlienError, AlienProvider, AlienResponse, AlienTarget};
     use crate::api::GemApiClient;
+    use crate::services::price::GemAssetPrice;
     use crate::services::price::{GemPriceStore, GemPriceUpdate};
     use async_trait::async_trait;
     use primitives::currency::Currency;
@@ -110,6 +111,9 @@ mod tests {
 
     #[async_trait]
     impl GemPriceStore for EnabledStore {
+        fn get_prices(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
+            Ok(vec![])
+        }
         async fn get_rate(&self, _currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {
             Ok(None)
         }

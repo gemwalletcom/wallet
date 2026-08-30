@@ -89,8 +89,10 @@ public actor GatewayService: Sendable {
         simulation: TransactionSimulationService,
         scanner: GemScanService,
         transactionState: GemTransactionStateService,
+        balance: GemBalanceService,
+        price: GemPriceService,
     ) -> GemConfirmService {
-        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner, transactionState: transactionState)
+        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner, transactionState: transactionState, balance: balance, price: price)
     }
 }
 

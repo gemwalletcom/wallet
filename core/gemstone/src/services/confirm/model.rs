@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use crate::models::custom_types::GemBigInt;
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
+use crate::services::balance::GemAssetBalance;
+use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
 use primitives::FeePriority;
 use primitives::{Account, AssetId, SimulationResult, Transaction, Wallet};
@@ -62,4 +64,11 @@ pub struct GemSendInput {
 pub enum GemAcquireAssetFlow {
     Options,
     Fiat,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemConfirmMetadata {
+    pub asset_balance: GemAssetBalance,
+    pub fee_asset_balance: GemAssetBalance,
+    pub prices: Vec<GemAssetPrice>,
 }

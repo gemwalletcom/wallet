@@ -495,15 +495,22 @@ public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked 
     private let onUpdate: @Sendable (String, [Gemstone.AssetId]) async -> Void
     private let onSetAssetsEnabled: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)?
     private let onSetAssetPinned: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)?
+    private let assetBalances: [GemAssetBalance]
 
     public init(
         onUpdate: @escaping @Sendable (String, [Gemstone.AssetId]) async -> Void = { _, _ in },
         onSetAssetsEnabled: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)? = nil,
         onSetAssetPinned: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)? = nil,
+        assetBalances: [GemAssetBalance] = [],
     ) {
         self.onUpdate = onUpdate
         self.onSetAssetsEnabled = onSetAssetsEnabled
         self.onSetAssetPinned = onSetAssetPinned
+        self.assetBalances = assetBalances
+    }
+
+    public func balances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [GemAssetBalance] {
+        assetBalances.filter { assetIds.contains($0.assetId) }
     }
 
     public func update(walletId: String, assetIds: [Gemstone.AssetId]) async throws {

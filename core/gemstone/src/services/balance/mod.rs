@@ -8,7 +8,7 @@ use std::sync::Arc;
 use futures::future::join_all;
 use primitives::{AssetBalance, AssetId, WalletId};
 
-pub use model::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
+pub use model::{GemAssetBalance, GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 pub use store::GemBalanceStore;
 
 use crate::gateway::GemGateway;
@@ -33,6 +33,10 @@ pub struct GemBalanceService {
 
 #[uniffi::export]
 impl GemBalanceService {
+    pub fn balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
+        self.store.get_available_balances(wallet_id, asset_ids)
+    }
+
     #[uniffi::constructor]
     pub fn new(
         gateway: Arc<GemGateway>,

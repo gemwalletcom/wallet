@@ -1,7 +1,7 @@
 use crate::GemstoneError;
 use crate::gateway::GatewayError;
 use crate::signer::GemSignerError;
-use primitives::Chain;
+use primitives::{AssetId, Chain};
 
 #[derive(Debug, uniffi::Error)]
 pub enum GemConfirmError {
@@ -14,6 +14,7 @@ pub enum GemConfirmError {
     Broadcast { hashes: Vec<String>, msg: String },
     Record { msg: String },
     AccountMissing { chain: Chain },
+    BalanceMissing { asset_id: AssetId },
     SenderMismatch { from: String, signer: String },
     Sign { error: GemSignerError, msg: String },
     ApprovalInvalid { msg: String },
@@ -27,6 +28,7 @@ impl std::fmt::Display for GemConfirmError {
             Self::FeeRatesMissing => write!(f, "fee rates not found"),
             Self::Offline => write!(f, "network offline"),
             Self::AccountMissing { chain } => write!(f, "wallet has no {chain} account"),
+            Self::BalanceMissing { asset_id } => write!(f, "no stored balance for {asset_id}"),
             Self::SenderMismatch { from, signer } => write!(f, "transaction was built for {from} but would be signed by {signer}"),
             Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
                 write!(f, "{msg}")

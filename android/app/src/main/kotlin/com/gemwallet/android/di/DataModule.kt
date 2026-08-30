@@ -7,10 +7,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.TransactionSimulationService
@@ -28,7 +30,9 @@ object DataModule {
         simulationService: TransactionSimulationService,
         scanService: GemScanService,
         transactionStateService: GemTransactionStateService,
-    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService)
+        balanceService: GemBalanceService,
+        priceService: GemPriceService,
+    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService, balanceService, priceService)
 
     @Provides
     @Singleton

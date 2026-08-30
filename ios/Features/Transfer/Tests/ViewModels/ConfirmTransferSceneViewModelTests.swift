@@ -8,7 +8,6 @@ import BigInt
 import Components
 import Foundation
 import struct Gemstone.GemFeeRate
-import class Gemstone.GemConfirmService
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -709,12 +708,10 @@ private extension ConfirmTransferSceneViewModel {
             confirmService: ConfirmServiceFactory.create(
                 explorerService: GemExplorerServiceMock(),
                 keystore: KeystoreMock(),
-                gemConfirmService: GemConfirmService(noHandle: .init()),
+                gemConfirmService: GemConfirmServiceMock(),
                 preferencesService: GemPreferencesServiceMock(),
-                balanceStore: .mock(),
                 assetStore: .mock(),
                 assetsService: GemAssetsServiceMock(),
-                priceStore: .mock(),
                 transactionStateService: GemTransactionStateServiceMock(),
                 nameService: nameService,
                 recentActivityStore: .mock(),

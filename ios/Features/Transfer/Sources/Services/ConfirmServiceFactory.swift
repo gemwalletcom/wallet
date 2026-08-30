@@ -9,7 +9,7 @@ import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import Foundation
-import class Gemstone.GemConfirmService
+import protocol Gemstone.GemConfirmServiceProtocol
 import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemFeeService
 import Preferences
@@ -20,12 +20,10 @@ public enum ConfirmServiceFactory {
     public static func create(
         explorerService: any GemExplorerServiceProtocol,
         keystore: any Keystore,
-        gemConfirmService: GemConfirmService,
+        gemConfirmService: any GemConfirmServiceProtocol,
         preferencesService: any GemPreferencesServiceProtocol,
-        balanceStore: BalanceStore,
         assetStore: AssetStore,
         assetsService: any GemAssetsServiceProtocol,
-        priceStore: PriceStore,
         transactionStateService: any GemTransactionStateServiceProtocol,
         nameService: any GemNameServiceProtocol,
         recentActivityStore: RecentActivityStore,
@@ -35,10 +33,7 @@ public enum ConfirmServiceFactory {
         perpetualService: any GemPerpetualServiceProtocol,
     ) -> ConfirmService {
         return ConfirmService(
-            metadataProvider: TransferMetadataProvider(
-                balanceStore: balanceStore,
-                priceStore: priceStore,
-            ),
+            metadataProvider: TransferMetadataProvider(confirmService: gemConfirmService),
             inputProvider: ConfirmTransferInputProvider(
                 transferTransactionProvider: TransferTransactionProvider(
                     confirmService: gemConfirmService,

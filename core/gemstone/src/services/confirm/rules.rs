@@ -5,10 +5,12 @@ use primitives::{
 };
 
 use super::error::GemConfirmError;
-use super::model::{GemAcquireAssetFlow, GemConfirmFeeSelection, GemConfirmInput, GemSendInput};
+use super::model::{GemAcquireAssetFlow, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemSendInput};
 use crate::fee::custom_gas_price;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
+use crate::services::balance::GemAssetBalance;
+use crate::services::price::GemAssetPrice;
 use crate::services::transfer::{GemPendingTransactionInput, rules as transfer_rules};
 
 pub fn signer_input(input: &GemSendInput) -> Result<GemSignerInput, GemConfirmError> {
@@ -42,6 +44,32 @@ fn signing_address(wallet: &Wallet, chain: Chain, from: &str) -> Result<String, 
         });
     }
     Ok(signer.address.clone())
+}
+
+pub fn metadata_asset_ids(asset_id: &AssetId, fee_asset_id: &AssetId, extra_asset_ids: Vec<AssetId>) -> Vec<AssetId> {
+    let mut asset_ids: Vec<AssetId> = Vec::new();
+    for asset_id in [asset_id.clone(), fee_asset_id.clone()].into_iter().chain(extra_asset_ids) {
+        if !asset_ids.contains(&asset_id) {
+            asset_ids.push(asset_id);
+        }
+    }
+    asset_ids
+}
+
+pub fn build_metadata(asset_id: AssetId, fee_asset_id: AssetId, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Result<GemConfirmMetadata, GemConfirmError> {
+    Ok(GemConfirmMetadata {
+        asset_balance: asset_balance(&balances, &asset_id)?,
+        fee_asset_balance: asset_balance(&balances, &fee_asset_id)?,
+        prices,
+    })
+}
+
+fn asset_balance(balances: &[GemAssetBalance], asset_id: &AssetId) -> Result<GemAssetBalance, GemConfirmError> {
+    balances
+        .iter()
+        .find(|balance| balance.asset_id == *asset_id)
+        .cloned()
+        .ok_or_else(|| GemConfirmError::BalanceMissing { asset_id: asset_id.clone() })
 }
 
 pub fn validate_approvals(input_type: &GemTransactionInputType, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError> {
@@ -207,6 +235,7 @@ mod tests {
     use super::super::model::GemConfirmData;
     use super::*;
     use crate::models::custom_types::GemBigInt;
+    use crate::models::custom_types::GemBigUint;
     use crate::models::gateway::GemGasPriceType;
     use crate::models::transaction::GemTransactionLoadMetadata;
     use crate::services::transfer::{GemRecipient, GemTransferData};
@@ -684,6 +713,61 @@ mod tests {
         match validate_scan(Some(&memo_required), Some("  "), "USDT") {
             Err(GemConfirmError::ScanMemoRequired { symbol }) => assert_eq!(symbol, "USDT"),
             result => panic!("expected a required memo, got {result:?}"),
+        }
+    }
+
+    fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {
+        GemAssetBalance {
+            asset_id: asset_id.clone(),
+            available: GemBigUint::from(available),
+            frozen: GemBigUint::ZERO,
+            locked: GemBigUint::ZERO,
+            staked: GemBigUint::ZERO,
+            pending: GemBigUint::ZERO,
+            pending_unconfirmed: GemBigUint::ZERO,
+            rewards: GemBigUint::ZERO,
+            reserved: GemBigUint::ZERO,
+            withdrawable: GemBigUint::ZERO,
+            earn: GemBigUint::ZERO,
+            metadata: None,
+        }
+    }
+
+    #[test]
+    fn test_metadata_asset_ids_keeps_one_entry_per_asset() {
+        let asset_id = AssetId::from_chain(Chain::Ethereum);
+        let fee_asset_id = AssetId::from_chain(Chain::Ethereum);
+        let extra = AssetId::from_chain(Chain::Bitcoin);
+
+        let asset_ids = metadata_asset_ids(&asset_id, &fee_asset_id, vec![extra.clone(), extra.clone(), asset_id.clone()]);
+
+        assert_eq!(asset_ids, vec![asset_id, extra]);
+    }
+
+    #[test]
+    fn test_build_metadata_reads_each_balance_from_its_own_asset() {
+        let asset_id = AssetId::from_chain(Chain::Bitcoin);
+        let fee_asset_id = AssetId::from_chain(Chain::Ethereum);
+        let balances = vec![balance(&fee_asset_id, 7), balance(&asset_id, 3)];
+
+        let metadata = build_metadata(asset_id.clone(), fee_asset_id.clone(), balances, vec![]).unwrap();
+
+        assert_eq!(metadata.asset_balance.available, GemBigUint::from(3u32));
+        assert_eq!(metadata.fee_asset_balance.available, GemBigUint::from(7u32));
+    }
+
+    #[test]
+    fn test_build_metadata_rejects_a_missing_balance() {
+        let asset_id = AssetId::from_chain(Chain::Bitcoin);
+        let fee_asset_id = AssetId::from_chain(Chain::Ethereum);
+
+        match build_metadata(asset_id.clone(), fee_asset_id.clone(), vec![balance(&fee_asset_id, 7)], vec![]) {
+            Err(GemConfirmError::BalanceMissing { asset_id: missing }) => assert_eq!(missing, asset_id),
+            result => panic!("expected the asset balance to be required, got {result:?}"),
+        }
+        match build_metadata(asset_id.clone(), fee_asset_id.clone(), vec![balance(&asset_id, 3)], vec![]) {
+            Err(GemConfirmError::BalanceMissing { asset_id: missing }) => assert_eq!(missing, fee_asset_id),
+            result => panic!("expected the fee balance to be required, got {result:?}"),
         }
     }
 }

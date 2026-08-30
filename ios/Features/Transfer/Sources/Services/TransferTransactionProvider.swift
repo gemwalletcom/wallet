@@ -16,9 +16,9 @@ public protocol TransferTransactionProvidable: Sendable {
 }
 
 public struct TransferTransactionProvider: TransferTransactionProvidable {
-    private let confirmService: GemConfirmService
+    private let confirmService: any GemConfirmServiceProtocol
 
-    public init(confirmService: GemConfirmService) {
+    public init(confirmService: any GemConfirmServiceProtocol) {
         self.confirmService = confirmService
     }
 
@@ -46,7 +46,7 @@ private extension GemConfirmError {
         case .ScanMalicious: ScanTransactionError.malicious
         case .ScanMemoRequired: ScanTransactionError.memoRequired(symbol: symbol)
         case .FeeRatesMissing: ChainCoreError.feeRateMissed
-        case .Load, .Broadcast, .Network, .Offline, .Record, .AccountMissing, .SenderMismatch, .Sign, .ApprovalInvalid: self
+        case .Load, .Broadcast, .Network, .Offline, .Record, .AccountMissing, .BalanceMissing, .SenderMismatch, .Sign, .ApprovalInvalid: self
         }
     }
 }

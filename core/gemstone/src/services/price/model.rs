@@ -9,3 +9,11 @@ pub struct GemPriceUpdate {
     pub price_change_percentage_24h: f64,
     pub updated_at: DateTime<Utc>,
 }
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetPrice {
+    pub asset_id: AssetId,
+    pub price: f64,
+    pub price_change_percentage_24h: f64,
+    pub updated_at: DateTime<Utc>,
+}

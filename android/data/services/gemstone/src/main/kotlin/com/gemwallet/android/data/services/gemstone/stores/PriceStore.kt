@@ -15,6 +15,7 @@ import com.wallet.core.primitives.FiatRate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import com.gemwallet.android.ext.toIdentifier
+import uniffi.gemstone.GemAssetPrice
 import uniffi.gemstone.GemPriceStore
 import uniffi.gemstone.GemPriceUpdate
 import com.wallet.core.primitives.AssetId
@@ -23,6 +24,9 @@ class GemstonePriceStore(
     private val pricesDao: PricesDao,
     private val assetsDao: AssetsDao,
 ) : GemPriceStore {
+
+    override fun getPrices(assetIds: List<String>): List<GemAssetPrice> =
+        pricesDao.getByAssets(assetIds).map { it.toGemAssetPrice() }
 
     override suspend fun getEnabledPriceAssetIds(walletId: String): List<String> =
         assetsDao.getAssetsPriceUpdate(walletId).mapNotNull { it.toAssetId()?.toIdentifier() }

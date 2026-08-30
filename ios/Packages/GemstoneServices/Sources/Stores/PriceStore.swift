@@ -6,6 +6,7 @@ import typealias Gemstone.AssetId
 import typealias Gemstone.AssetMarket
 import typealias Gemstone.Currency
 import typealias Gemstone.FiatRate
+import struct Gemstone.GemAssetPrice
 import protocol Gemstone.GemPriceStore
 import struct Gemstone.GemPriceUpdate
 import GemstonePrimitives
@@ -19,6 +20,10 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
     public init(priceStore: PriceStore, fiatRateStore: FiatRateStore) {
         self.priceStore = priceStore
         self.fiatRateStore = fiatRateStore
+    }
+
+    public func getPrices(assetIds: [Gemstone.AssetId]) throws -> [GemAssetPrice] {
+        try priceStore.getPrices(for: assetIds).map(\.gem)
     }
 
     public func getEnabledPriceAssetIds(walletId: Gemstone.WalletId) async throws -> [Gemstone.AssetId] {
@@ -52,5 +57,16 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
 
     public func saveMarket(assetId: Gemstone.AssetId, market: Gemstone.AssetMarket) async throws {
         try priceStore.updateMarket(assetId: assetId, market: Primitives.AssetMarket(market))
+    }
+}
+
+private extension Primitives.AssetPrice {
+    var gem: GemAssetPrice {
+        GemAssetPrice(
+            assetId: assetId.identifier,
+            price: price,
+            priceChangePercentage24h: priceChangePercentage24h,
+            updatedAt: Int64(updatedAt.timeIntervalSince1970),
+        )
     }
 }

@@ -334,6 +334,8 @@ struct ServicesFactory {
             simulation: transactionSimulationService,
             scanner: gemScanService,
             transactionState: gemTransactionStateService,
+            balance: gemBalanceService,
+            price: gemPriceService,
         )
         let viewModelFactory = ViewModelFactory(
             keystore: storages.keystore,
@@ -348,10 +350,8 @@ struct ServicesFactory {
             amountService: AmountService(stakeService: stakeService),
             nameService: gemNameService,
             balanceService: balanceService,
-            balanceStore: storeManager.balanceStore,
             addressStore: storeManager.addressStore,
             priceService: priceService,
-            priceStore: storeManager.priceStore,
             transactionStateService: gemTransactionStateService,
             gemNameService: gemNameService,
             recentActivityStore: storeManager.recentActivityStore,

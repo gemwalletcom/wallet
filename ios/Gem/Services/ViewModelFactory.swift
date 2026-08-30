@@ -47,10 +47,8 @@ public struct ViewModelFactory: Sendable {
     let amountService: AmountService
     let nameService: any GemNameServiceProtocol
     let balanceService: any GemBalanceServiceProtocol
-    let balanceStore: BalanceStore
     let addressStore: AddressStore
     let priceService: any GemPriceServiceProtocol
-    let priceStore: PriceStore
     let transactionStateService: any GemTransactionStateServiceProtocol
     let gemNameService: any GemNameServiceProtocol
     let recentActivityStore: RecentActivityStore
@@ -125,10 +123,8 @@ public struct ViewModelFactory: Sendable {
                 keystore: keystore,
                 gemConfirmService: gemConfirmService,
                 preferencesService: preferencesService,
-                balanceStore: balanceStore,
                 assetStore: assetStore,
                 assetsService: assetsService,
-                priceStore: priceStore,
                 transactionStateService: transactionStateService,
                 nameService: gemNameService,
                 recentActivityStore: recentActivityStore,

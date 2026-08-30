@@ -15,11 +15,13 @@ use crate::gateway::GemGateway;
 use crate::models::gateway::GemTransactionPreloadInput;
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadInput};
 use crate::services::GemScanService;
+use crate::services::balance::GemBalanceService;
 use crate::services::clock::sleep;
+use crate::services::price::GemPriceService;
 use crate::services::transaction_state::GemTransactionStateService;
 use crate::signer::GemSignerError;
 use crate::transaction_simulation::TransactionSimulationService;
-use primitives::{Chain, SimulationResult, Transaction, TransferDataOutputAction};
+use primitives::{AssetId, Chain, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -27,18 +29,39 @@ pub struct GemConfirmService {
     simulation: Arc<TransactionSimulationService>,
     scanner: Arc<GemScanService>,
     transaction_state: Arc<GemTransactionStateService>,
+    balance: Arc<GemBalanceService>,
+    price: Arc<GemPriceService>,
 }
 
 #[uniffi::export]
 impl GemConfirmService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, simulation: Arc<TransactionSimulationService>, scanner: Arc<GemScanService>, transaction_state: Arc<GemTransactionStateService>) -> Self {
+    pub fn new(
+        gateway: Arc<GemGateway>,
+        simulation: Arc<TransactionSimulationService>,
+        scanner: Arc<GemScanService>,
+        transaction_state: Arc<GemTransactionStateService>,
+        balance: Arc<GemBalanceService>,
+        price: Arc<GemPriceService>,
+    ) -> Self {
         Self {
             gateway,
             simulation,
             scanner,
             transaction_state,
+            balance,
+            price,
         }
+    }
+
+    pub fn metadata(&self, wallet_id: WalletId, asset_id: AssetId, fee_asset_id: AssetId, extra_asset_ids: Vec<AssetId>) -> Result<GemConfirmMetadata, GemConfirmError> {
+        let asset_ids = rules::metadata_asset_ids(&asset_id, &fee_asset_id, extra_asset_ids);
+        let balances = self
+            .balance
+            .balances(wallet_id, asset_ids.clone())
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let prices = self.price.prices(asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        rules::build_metadata(asset_id, fee_asset_id, balances, prices)
     }
 
     pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {

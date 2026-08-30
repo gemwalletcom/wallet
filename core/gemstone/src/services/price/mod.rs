@@ -10,7 +10,7 @@ use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate, WalletId};
 
 use crate::models::asset::asset_ids_enabled_by_default;
 
-pub use model::GemPriceUpdate;
+pub use model::{GemAssetPrice, GemPriceUpdate};
 pub use store::GemPriceStore;
 
 use crate::api::{GemApiClient, GemApiError};
@@ -26,6 +26,10 @@ impl GemPriceService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemApiClient>, store: Arc<dyn GemPriceStore>) -> Self {
         Self { api, store }
+    }
+
+    pub fn prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
+        self.store.get_prices(asset_ids)
     }
 
     pub async fn get_prices(&self, currency: Option<Currency>, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemApiError> {
@@ -115,6 +119,9 @@ mod tests {
 
     #[async_trait::async_trait]
     impl GemPriceStore for MemoryStore {
+        fn get_prices(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
+            Ok(vec![])
+        }
         async fn get_enabled_price_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
             Ok(vec![])
         }
