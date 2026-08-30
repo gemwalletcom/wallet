@@ -11,6 +11,7 @@ import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,6 +25,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemMemoWarning
+import uniffi.gemstone.GemReceiveService
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -32,6 +35,7 @@ class ReceiveViewModel @Inject constructor(
     private val getReceiveAssetInfo: GetReceiveAssetInfo,
     private val setAssetVisible: SetAssetVisible,
     private val syncAssetInfo: SyncAssetInfo,
+    private val receiveService: GemReceiveService,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -60,6 +64,8 @@ class ReceiveViewModel @Inject constructor(
             syncAssetInfo.syncAssetInfo(sourceAssetId, session.filterNotNull().first().wallet)
         }
     }
+
+    fun memoWarning(chain: Chain): GemMemoWarning = receiveService.memoWarning(chain.string)
 
     fun selectAsset(assetId: AssetId) {
         selectedAssetId.value = assetId

@@ -29,6 +29,7 @@ pub mod portfolio;
 pub mod preferences;
 pub mod price;
 pub mod price_alert;
+pub mod receive;
 pub mod recipient;
 pub mod rewards;
 pub mod scan;

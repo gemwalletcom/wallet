@@ -2,7 +2,6 @@
 
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemAddressService
-import class Gemstone.GemChainService
 import BigInt
 import Foundation
 import Gemstone
@@ -11,8 +10,6 @@ import Primitives
 private let assetConfig = GemAssetConfigService()
 
 private let addressService = GemAddressService()
-
-private let chainService = GemChainService()
 
 private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
     guard let chainAsset = try? Primitives.ChainAsset(assetConfig.chainAsset(chain: chain.rawValue)) else {
@@ -57,10 +54,6 @@ public extension Primitives.Chain {
 
     var isMemoSupported: Bool {
         ChainConfig.config(chain: self).isMemoSupported
-    }
-
-    var memoWarning: GemMemoWarning {
-        chainService.memoWarning(chain: rawValue)
     }
 
     var isSwapSupported: Bool {

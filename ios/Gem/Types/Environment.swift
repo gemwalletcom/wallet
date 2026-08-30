@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemChainService
+import class Gemstone.GemReceiveService
 import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemDeviceKeyService
 import protocol Gemstone.GemPerpetualServiceProtocol
@@ -78,6 +79,7 @@ extension EnvironmentValues {
     @Entry var connectionStatus: ConnectionStatusObserver = AppResolver.main.services.connectionStatusObserver
     @Entry var walletConnectorPresenter: WalletConnectorPresenter = AppResolver.main.services.walletConnectorPresenter
     @Entry var chainService: GemChainService = AppResolver.main.services.chainService
+    @Entry var receiveService: GemReceiveService = AppResolver.main.services.receiveService
     @Entry var swapService: any GemSwapServiceProtocol = AppResolver.main.services.swapService
     @Entry var nftService: any GemNftServiceProtocol = AppResolver.main.services.nftService
     @Entry var avatarService: any GemAvatarServiceProtocol = AppResolver.main.services.avatarService

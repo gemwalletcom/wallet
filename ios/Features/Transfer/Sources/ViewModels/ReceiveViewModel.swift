@@ -2,6 +2,7 @@ import protocol Gemstone.GemBalanceServiceProtocol
 import Components
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
+import class Gemstone.GemReceiveService
 import GemstoneServices
 import GemstonePrimitives
 import Localization
@@ -25,6 +26,7 @@ public final class ReceiveViewModel: Sendable {
     private let wallet: Wallet
     private let balanceService: any GemBalanceServiceProtocol
     private let assetsService: any GemAssetsServiceProtocol
+    private let receiveService: GemReceiveService
     private let generator = QRCodeGenerator()
     let networkAssetIds: [AssetId]
 
@@ -35,12 +37,14 @@ public final class ReceiveViewModel: Sendable {
         address: String,
         balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
+        receiveService: GemReceiveService,
     ) {
         assetModel = AssetViewModel(asset: asset)
         self.wallet = wallet
         self.address = address
         self.balanceService = balanceService
         self.assetsService = assetsService
+        self.receiveService = receiveService
 
         networkAssetIds = ([asset.id] + associations.map(\.assetId))
             .filter { assetId in wallet.accounts.contains { $0.chain == assetId.chain } }
@@ -52,6 +56,7 @@ public final class ReceiveViewModel: Sendable {
         wallet: Wallet,
         balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
+        receiveService: GemReceiveService,
     ) {
         self.init(
             asset: assetData.asset,
@@ -60,6 +65,7 @@ public final class ReceiveViewModel: Sendable {
             address: assetData.account.address,
             balanceService: balanceService,
             assetsService: assetsService,
+            receiveService: receiveService,
         )
     }
 
@@ -68,6 +74,7 @@ public final class ReceiveViewModel: Sendable {
         wallet: Wallet,
         balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
+        receiveService: GemReceiveService,
     ) {
         self.init(
             asset: assetAddress.asset,
@@ -76,6 +83,7 @@ public final class ReceiveViewModel: Sendable {
             address: assetAddress.address,
             balanceService: balanceService,
             assetsService: assetsService,
+            receiveService: receiveService,
         )
     }
 
@@ -102,7 +110,7 @@ public final class ReceiveViewModel: Sendable {
     }
 
     private var memoWarningText: String? {
-        switch assetModel.asset.chain.memoWarning {
+        switch receiveService.memoWarning(chain: assetModel.asset.chain.rawValue) {
         case .destinationTag: Localized.Wallet.Receive.noDestinationTagRequired
         case .memo: Localized.Wallet.Receive.noMemoRequired
         case .notSupported: nil

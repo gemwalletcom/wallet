@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import class Gemstone.GemChainService
+import class Gemstone.GemReceiveService
 import class Gemstone.GemDeviceKeyService
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
@@ -86,6 +87,7 @@ extension AppResolver {
         let pushNotificationEnablerService: PushNotificationEnablerService
         let walletConnectorPresenter: WalletConnectorPresenter
         let chainService: GemChainService
+        let receiveService: GemReceiveService
         let perpetualService: any GemPerpetualServiceProtocol
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: any GemNameServiceProtocol

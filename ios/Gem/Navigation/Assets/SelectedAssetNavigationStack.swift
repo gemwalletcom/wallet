@@ -11,6 +11,7 @@ struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.balanceService) private var balanceService
     @Environment(\.assetsService) private var assetsService
+    @Environment(\.receiveService) private var receiveService
     @Environment(\.recentActivityStore) private var recentActivityStore
 
     @State private var navigationPath = NavigationPath()
@@ -55,6 +56,7 @@ struct SelectedAssetNavigationStack: View {
                             wallet: wallet,
                             balanceService: balanceService,
                             assetsService: assetsService,
+                            receiveService: receiveService,
                         ),
                     )
                 case let .buy(_, amount):

@@ -2,9 +2,6 @@ use std::cmp::Reverse;
 
 use primitives::{AssetId, Chain, ChainAsset};
 
-use super::model::GemMemoWarning;
-use crate::config::chain::is_memo_supported;
-
 pub fn chains_by_rank() -> Vec<Chain> {
     let mut chains = Chain::all();
     chains.sort_by_key(|chain| Reverse(AssetId::from_chain(*chain).default_rank()));
@@ -35,16 +32,6 @@ pub fn is_valid_network_id(chain: Chain, network_id: &str) -> bool {
     chain.network_id() == network_id
 }
 
-pub fn memo_warning(chain: Chain) -> GemMemoWarning {
-    if !is_memo_supported(chain) {
-        return GemMemoWarning::NotSupported;
-    }
-    match chain {
-        Chain::Xrp => GemMemoWarning::DestinationTag,
-        _ => GemMemoWarning::Memo,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -58,15 +45,6 @@ mod tests {
         assert!(ranks.windows(2).all(|pair| pair[0] >= pair[1]));
         assert_eq!(matching_chains(chains.clone(), "bitcoin").first(), Some(&Chain::Bitcoin));
         assert_eq!(matching_chains(chains, ""), chains_by_rank());
-    }
-
-    #[test]
-    fn test_memo_warning_names_the_field_each_chain_uses() {
-        assert_eq!(memo_warning(Chain::Xrp), GemMemoWarning::DestinationTag);
-        assert_eq!(memo_warning(Chain::Cosmos), GemMemoWarning::Memo);
-        assert_eq!(memo_warning(Chain::Ton), GemMemoWarning::Memo);
-        assert_eq!(memo_warning(Chain::Ethereum), GemMemoWarning::NotSupported);
-        assert_eq!(memo_warning(Chain::Bitcoin), GemMemoWarning::NotSupported);
     }
 
     #[test]
