@@ -371,9 +371,14 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
     private let earnData: String
+    private let stakeConfig = GemStakeConfigService()
 
     public init(earnData: String = "{}") {
         self.earnData = earnData
+    }
+
+    public func config() -> GemStakeConfigService {
+        stakeConfig
     }
 
     public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}

@@ -19,7 +19,7 @@ public struct DelegationSceneViewModel {
 
     private let wallet: Wallet
     private let asset: Asset
-    private let stakeConfig = GemStakeConfigService()
+    private var stakeConfig: GemStakeConfigService { stakeService.config() }
     private let stakeService: any GemStakeServiceProtocol
 
     public init(

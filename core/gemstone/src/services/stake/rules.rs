@@ -48,6 +48,24 @@ pub fn can_claim_rewards(wallet_type: WalletType, chain: Chain, state: Delegatio
     wallet_type != WalletType::View && config.can_claim_rewards && state == DelegationState::Active && BigUint::from_str(rewards).is_ok_and(|rewards| rewards > BigUint::ZERO)
 }
 
+pub fn validator_explorer_address(validator: &DelegationValidator) -> Option<String> {
+    match validator.provider_type {
+        StakeProviderType::Stake if !SYSTEM_VALIDATOR_IDS.contains(&validator.id.as_str()) => Some(validator.id.clone()),
+        StakeProviderType::Stake | StakeProviderType::Earn => None,
+    }
+}
+
+pub fn shows_completion_date(state: DelegationState) -> bool {
+    match state {
+        DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => true,
+        DelegationState::Active | DelegationState::Inactive => false,
+    }
+}
+
+pub fn shows_rewards(state: DelegationState, rewards: &str) -> bool {
+    state == DelegationState::Active && is_positive(rewards)
+}
+
 pub fn requires_frozen_balance(chain: Chain, frozen_amount: &str) -> bool {
     let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config) else {
         return false;
@@ -188,6 +206,39 @@ mod tests {
             apr: 1.0,
             provider_type: StakeProviderType::Stake,
         }
+    }
+
+    #[test]
+    fn test_validator_explorer_address_skips_system_and_earn_validators() {
+        assert_eq!(validator_explorer_address(&validator("cosmosvaloper1")), Some("cosmosvaloper1".to_string()));
+        assert_eq!(validator_explorer_address(&validator(DelegationValidator::SYSTEM_ID)), None);
+        assert_eq!(validator_explorer_address(&validator("unstaking")), None);
+        assert_eq!(
+            validator_explorer_address(&DelegationValidator {
+                provider_type: StakeProviderType::Earn,
+                ..validator("cosmosvaloper1")
+            }),
+            None
+        );
+    }
+
+    #[test]
+    fn test_delegation_rows_follow_state() {
+        for state in [
+            DelegationState::Pending,
+            DelegationState::Activating,
+            DelegationState::Deactivating,
+            DelegationState::AwaitingWithdrawal,
+        ] {
+            assert!(shows_completion_date(state));
+            assert!(!shows_rewards(state, "100"));
+        }
+        for state in [DelegationState::Active, DelegationState::Inactive] {
+            assert!(!shows_completion_date(state));
+        }
+        assert!(shows_rewards(DelegationState::Active, "100"));
+        assert!(!shows_rewards(DelegationState::Active, "0"));
+        assert!(!shows_rewards(DelegationState::Inactive, "100"));
     }
 
     #[test]

@@ -19,7 +19,7 @@ public final class ValidatorSelectSceneViewModel {
     public var selectValidator: ((DelegationValidator) -> Void)?
     private let explorerService: any GemExplorerServiceProtocol
 
-    private let stakeConfig = GemStakeConfigService()
+    private var stakeConfig: GemStakeConfigService { stakeService.config() }
 
     private let stakeService: any GemStakeServiceProtocol
 

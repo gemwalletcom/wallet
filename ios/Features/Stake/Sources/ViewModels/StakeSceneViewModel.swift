@@ -19,7 +19,7 @@ import SwiftUI
 @MainActor
 @Observable
 public final class StakeSceneViewModel {
-    private let stakeConfig = GemStakeConfigService()
+    private var stakeConfig: GemStakeConfigService { stakeService.config() }
     private let stakeService: any GemStakeServiceProtocol
     private let explorerService: any GemExplorerServiceProtocol
 
@@ -167,7 +167,7 @@ public final class StakeSceneViewModel {
     }
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
-        let delegationModels = delegations.map { DelegationViewModel(explorerService: explorerService, delegation: $0, asset: asset, currencyCode: currencyCode) }
+        let delegationModels = delegations.map { DelegationViewModel(explorerService: explorerService, stakeConfig: stakeConfig, delegation: $0, asset: asset, currencyCode: currencyCode) }
 
         switch delegationsState {
         case .noData: return .noData

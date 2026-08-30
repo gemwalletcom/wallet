@@ -22,15 +22,23 @@ struct DelegationViewModelTests {
 
         #expect(model.rewardsText == "500 TRX")
         #expect(model.rewardsFiatValueText == "$1,000.00")
+
+        let deactivating = DelegationViewModel.mock(state: .deactivating)
+
+        #expect(deactivating.rewardsText == nil)
+        #expect(deactivating.rewardsFiatValueText == nil)
     }
 
     @Test
     func completionDate() {
+        let completionDate = Date.now.addingTimeInterval(86400)
+
         #expect(
             DelegationViewModel
-                .mock(state: .deactivating, completionDate: Date.now.addingTimeInterval(86400))
+                .mock(state: .deactivating, completionDate: completionDate)
                 .completionDateText == "23 hours, 59 minutes",
         )
+        #expect(DelegationViewModel.mock(state: .active, completionDate: completionDate).completionDateText == nil)
     }
 }
 
@@ -41,6 +49,7 @@ extension DelegationViewModel {
     ) -> DelegationViewModel {
         DelegationViewModel(
             explorerService: GemExplorerServiceMock(),
+            stakeConfig: GemStakeServiceMock().config(),
             delegation: .mock(
                 state: state,
                 price: Price.mock(price: 2.0),

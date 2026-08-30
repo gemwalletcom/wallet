@@ -400,6 +400,7 @@ One divergence the comparison surfaced and did not fix: Android syncs the perpet
 
 ### Rust (core/gemstone)
 
+- A service reaches its own rules. `GemStakeService.config()` hands back the `GemStakeConfigService` it already holds, so nothing that has the stake service needs a second one registered beside it. Prefer this over adding a sibling service to the resolver or the Hilt graph when the rules belong to a domain that already has a service.
 - Free functions become services. A `#[uniffi::export] pub fn` is a rule with no home: each app reaches it through its own extension (`Chain.matches(query:)`, `List<Chain>.filter(query)`), and those extensions are where app-side variants creep back in. `GemChainService` (`get_chains`, `get_matching_chains`, `is_valid_network_id`) is the shape: a `uniffi::Object` with a `new()` constructor, held like any other service. This started at 82 exports; 10 are left and all are deliberate: `create_auth_message`, `generate_device_key_pair`, `decode_private_key`, `encode_private_key` and `supports_private_key_import` are the key-material boundary calls, and `connection_status`, `service_status_timeout_seconds`, `banner_identifier` and `parse_support_message_display_content` are the singles at the bottom of the table. The record of where each group went:
 
 | Target service | Functions to fold in |

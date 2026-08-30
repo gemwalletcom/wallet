@@ -29,7 +29,7 @@ object StakeModule {
 
     @Provides
     @Singleton
-    fun provideGemStakeConfigService(): GemStakeConfigService = GemStakeConfigService()
+    fun provideGemStakeConfigService(stakeService: GemStakeService): GemStakeConfigService = stakeService.config()
 
     @Provides
     @Singleton

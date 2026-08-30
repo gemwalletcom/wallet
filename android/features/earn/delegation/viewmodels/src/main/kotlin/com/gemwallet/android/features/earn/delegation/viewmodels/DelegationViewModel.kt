@@ -12,7 +12,6 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.ext.byChain
 import com.gemwallet.android.ext.changeAmountOnUnstake
@@ -28,7 +27,6 @@ import com.gemwallet.android.features.earn.delegation.models.DelegationActions
 import com.gemwallet.android.features.earn.delegation.models.toDelegationAction
 import com.gemwallet.android.features.earn.delegation.models.DelegationProperty
 import com.gemwallet.android.features.earn.delegation.models.HeadDelegationInfo
-import com.wallet.core.primitives.DelegationState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,18 +75,14 @@ class DelegationViewModel @Inject constructor(
         }
         val availableIn = availableIn(delegation)
         val chain = delegation.validator.chain
-        val validatorUrl = explorerService.getValidatorUrl(chain.string, delegation.validator.id)?.link
+        val validatorUrl = stakeConfig.validatorExplorerAddress(delegation.validator.toJson())
+            ?.let { explorerService.getValidatorUrl(chain.string, it)?.link }
         listOfNotNull(
             DelegationProperty.Name(delegation.validator.name, validatorUrl),
             delegation.validator.takeIf { it.apr != 0.0 }?.let { DelegationProperty.Apr(it) },
             DelegationProperty.TransactionStatus(delegation.base.state, delegation.validator.isActive),
             delegation.base.state
-                .takeIf {
-                    (it == DelegationState.Pending
-                        || it == DelegationState.Activating
-                        || it == DelegationState.Deactivating)
-                        && availableIn.isNotEmpty()
-                }
+                .takeIf { stakeConfig.showsCompletionDate(it.toJson()) && availableIn.isNotEmpty() }
                 ?.let { DelegationProperty.State(it, availableIn) }
         )
     }
@@ -104,7 +98,7 @@ class DelegationViewModel @Inject constructor(
 
         listOfNotNull(
             delegation.base.rewards
-                .takeIf { it.toBigInteger() > BigInteger.ZERO }
+                .takeIf { stakeConfig.showsRewards(delegation.base.state.toJson(), it) }
                 ?.let { RewardsInfoUIModel(assetInfo, it) },
         )
     }

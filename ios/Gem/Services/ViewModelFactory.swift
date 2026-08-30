@@ -250,7 +250,7 @@ public struct ViewModelFactory: Sendable {
     ) -> DelegationSceneViewModel {
         DelegationSceneViewModel(
             wallet: wallet,
-            model: DelegationViewModel(explorerService: explorerService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: preferencesService.currencyCode),
+            model: DelegationViewModel(explorerService: explorerService, stakeConfig: stakeService.config(), delegation: delegation, asset: asset, formatter: .auto, currencyCode: preferencesService.currencyCode),
             asset: asset,
             stakeService: stakeService,
             validators: validators,

@@ -21,6 +21,18 @@ impl GemStakeConfigService {
         rules::can_claim_rewards(wallet_type, chain, state, &rewards)
     }
 
+    pub fn validator_explorer_address(&self, validator: DelegationValidator) -> Option<String> {
+        rules::validator_explorer_address(&validator)
+    }
+
+    pub fn shows_completion_date(&self, state: DelegationState) -> bool {
+        rules::shows_completion_date(state)
+    }
+
+    pub fn shows_rewards(&self, state: DelegationState, rewards: String) -> bool {
+        rules::shows_rewards(state, &rewards)
+    }
+
     pub fn can_claim_stake_rewards(&self, chain: Chain, rewards_amount: String) -> bool {
         rules::can_claim_stake_rewards(chain, &rewards_amount)
     }

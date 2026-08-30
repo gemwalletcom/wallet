@@ -16,7 +16,7 @@ import Store
 @MainActor
 @Observable
 public final class EarnSceneViewModel {
-    private let stakeConfig = GemStakeConfigService()
+    private var stakeConfig: GemStakeConfigService { stakeService.config() }
     private let stakeService: any GemStakeServiceProtocol
     private let explorerService: any GemExplorerServiceProtocol
     private var viewState: StateViewType<Bool> = .loading
@@ -104,7 +104,7 @@ public final class EarnSceneViewModel {
     var positionModels: [DelegationViewModel] {
         positions
             .filter { (BigInt($0.base.balance) ?? .zero) > 0 }
-            .map { DelegationViewModel(explorerService: explorerService, delegation: $0, asset: asset, currencyCode: currencyCode) }
+            .map { DelegationViewModel(explorerService: explorerService, stakeConfig: stakeConfig, delegation: $0, asset: asset, currencyCode: currencyCode) }
     }
 
     var hasPositions: Bool {

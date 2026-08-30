@@ -13,6 +13,7 @@ use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
 use crate::models::{GemContractCallData, GemEarnType};
 
+pub use config::GemStakeConfigService;
 pub use model::GemDelegationAction;
 pub use store::GemStakeStore;
 
@@ -24,6 +25,7 @@ pub struct GemStakeService {
     static_api: Arc<GemStaticApiClient>,
     store: Arc<dyn GemStakeStore>,
     address_store: Arc<dyn GemAddressStore>,
+    config: Arc<GemStakeConfigService>,
 }
 
 #[uniffi::export]
@@ -35,7 +37,12 @@ impl GemStakeService {
             static_api,
             store,
             address_store,
+            config: Arc::new(GemStakeConfigService::new()),
         }
+    }
+
+    pub fn config(&self) -> Arc<GemStakeConfigService> {
+        self.config.clone()
     }
 
     pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
