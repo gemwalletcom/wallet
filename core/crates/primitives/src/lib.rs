@@ -175,7 +175,10 @@ pub use self::wallet_configuration::{WalletConfiguration, WalletConfigurationRes
 pub mod utxo;
 pub use self::utxo::UTXO;
 pub mod push_notification;
-pub use self::push_notification::{PushNotification, PushNotificationAsset, PushNotificationReward, PushNotificationSupport, PushNotificationTransaction, PushNotificationTypes};
+pub use self::push_notification::{
+    PushNotification, PushNotificationAsset, PushNotificationReward, PushNotificationSupport, PushNotificationSwapAsset, PushNotificationTransaction, PushNotificationTypes,
+    PushNotificationWalletAsset,
+};
 pub mod gorush;
 pub use self::gorush::{FailedNotification, GorushNotification, GorushNotifications, PushErrorLog};
 pub mod admin;

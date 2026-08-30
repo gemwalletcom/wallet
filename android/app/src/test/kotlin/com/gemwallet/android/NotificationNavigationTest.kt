@@ -6,7 +6,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.application.wallet.cases.GetWallet
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -18,6 +17,7 @@ import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
+import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.wallet.core.primitives.AssetType
@@ -37,6 +37,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemPushNotification
+import uniffi.gemstone.GemPushNotificationService
 import com.wallet.core.primitives.WalletId
 
 class NotificationNavigationTest {
@@ -48,6 +50,7 @@ class NotificationNavigationTest {
     private val createTransaction = mockk<CreateTransaction>()
     private val syncMissingAssets = mockk<SyncMissingAssets>()
     private val assetsService = mockk<GemAssetsService>()
+    private val pushNotificationService = GemPushNotificationService()
 
     private val subject = NotificationNavigation(
         getSession = getSession,
@@ -56,6 +59,7 @@ class NotificationNavigationTest {
         createTransaction = createTransaction,
         syncMissingAssets = syncMissingAssets,
         assetsService = assetsService,
+        pushNotificationService = pushNotificationService,
     )
 
     @Before
@@ -81,12 +85,11 @@ class NotificationNavigationTest {
         coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction) } returns asset
 
         val route = subject.prepareNavigation(
-            type = PushNotificationTypes.Transaction.string,
-            data = PushNotificationData.Transaction(
-                walletId = walletId,
-                assetId = assetId,
-                transaction = transaction,
-            ),
+            GemPushNotification.Transaction(
+                walletId = walletId.id,
+                assetId = assetId.toIdentifier(),
+                transaction = transaction.toJson(),
+            )
         )
 
         assertEquals(listOf(AssetRoute(asset.id), TransactionDetailsRoute(transaction.id)), route)
@@ -103,12 +106,11 @@ class NotificationNavigationTest {
         coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction) } returns null
 
         val route = subject.prepareNavigation(
-            type = PushNotificationTypes.Transaction.string,
-            data = PushNotificationData.Transaction(
-                walletId = walletId,
-                assetId = assetId,
-                transaction = transaction,
-            ),
+            GemPushNotification.Transaction(
+                walletId = walletId.id,
+                assetId = assetId.toIdentifier(),
+                transaction = transaction.toJson(),
+            )
         )
 
         assertEquals(emptyList<Any>(), route)
@@ -138,12 +140,11 @@ class NotificationNavigationTest {
         coEvery { createTransaction.createNotificationTransaction(wallet, assetId, transaction) } returns asset
 
         val route = subject.prepareNavigation(
-            type = PushNotificationTypes.Transaction.string,
-            data = PushNotificationData.Transaction(
-                walletId = walletId,
-                assetId = assetId,
-                transaction = transaction,
-            ),
+            GemPushNotification.Transaction(
+                walletId = walletId.id,
+                assetId = assetId.toIdentifier(),
+                transaction = transaction.toJson(),
+            )
         )
 
         assertEquals(
@@ -169,8 +170,7 @@ class NotificationNavigationTest {
         coEvery { assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier()) } returns asset.toJson()
 
         val route = subject.prepareNavigation(
-            type = PushNotificationTypes.Stake.string,
-            data = PushNotificationData.Stake(assetId = assetId, walletId = walletId),
+            GemPushNotification.Stake(walletId = walletId.id, assetId = assetId.toIdentifier())
         )
 
         assertEquals(listOf(AssetRoute(asset.id)), route)
@@ -184,8 +184,7 @@ class NotificationNavigationTest {
         every { getWallet(walletId) } returns flowOf(null)
 
         val route = subject.prepareNavigation(
-            type = PushNotificationTypes.Stake.string,
-            data = PushNotificationData.Stake(assetId = assetId, walletId = walletId),
+            GemPushNotification.Stake(walletId = walletId.id, assetId = assetId.toIdentifier())
         )
 
         assertEquals(emptyList<Any>(), route)
@@ -196,7 +195,7 @@ class NotificationNavigationTest {
 
     @Test
     fun supportNotification_doesNotNeedPayloadData() = runBlocking {
-        val route = subject.prepareNavigation(type = null, data = PushNotificationData.Support)
+        val route = subject.prepareNavigation(GemPushNotification.Support)
 
         assertEquals(listOf(SupportRoute), route)
         coVerify(exactly = 0) { syncMissingAssets.syncMissingAssets(any()) }
@@ -207,13 +206,36 @@ class NotificationNavigationTest {
     fun assetNotification_prefetchesAssetAndReturnsAssetRoute() = runBlocking {
         val assetId = mockAssetId(Chain.Solana)
 
-        val route = subject.prepareNavigation(
-            type = PushNotificationTypes.Asset.string,
-            data = PushNotificationData.Asset(assetId),
-        )
+        val route = subject.prepareNavigation(GemPushNotification.Asset(assetId.toIdentifier()))
 
         assertEquals(listOf(AssetRoute(assetId)), route)
         coVerify { syncMissingAssets.syncMissingAssets(listOf(assetId)) }
         coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
+    }
+
+    @Test
+    fun priceAlertNotification_opensAssetRoute() = runBlocking {
+        val assetId = mockAssetId(Chain.Bitcoin)
+
+        val route = subject.prepareNavigation(GemPushNotification.PriceAlert(assetId.toIdentifier()))
+
+        assertEquals(listOf(AssetRoute(assetId)), route)
+        coVerify { syncMissingAssets.syncMissingAssets(listOf(assetId)) }
+    }
+
+    @Test
+    fun rewardsNotification_opensReferralWithoutPayloadData() = runBlocking {
+        val notification = pushNotificationService.parse(PushNotificationTypes.Rewards.string, null)
+
+        assertEquals(GemPushNotification.Rewards, notification)
+        assertEquals(listOf(ReferralRoute()), subject.prepareNavigation(notification!!))
+    }
+
+    @Test
+    fun testNotification_navigatesNowhere() = runBlocking {
+        val notification = pushNotificationService.parse(PushNotificationTypes.Test.string, null)
+
+        assertEquals(GemPushNotification.Test, notification)
+        assertEquals(emptyList<Any>(), subject.prepareNavigation(notification!!))
     }
 }

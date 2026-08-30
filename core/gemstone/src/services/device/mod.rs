@@ -6,7 +6,7 @@ pub mod signer;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::Device;
+use primitives::{Device, DeviceLocale};
 
 pub use keys::GemDeviceKeyService;
 pub use platform::{GemDeviceInfo, GemDevicePlatform};
@@ -82,7 +82,7 @@ impl GemDeviceService {
             os: info.os,
             model: info.model,
             token,
-            locale: info.locale,
+            locale: DeviceLocale::from_locale_identifier(&info.locale_identifier),
             version: info.version,
             currency: self.platform.currency().await?,
             is_push_enabled,

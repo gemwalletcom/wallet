@@ -1,5 +1,5 @@
 use primitives::currency::Currency;
-use primitives::{DeviceLocale, Platform, PlatformStore};
+use primitives::{Platform, PlatformStore};
 
 use crate::services::error::GemServiceError;
 use async_trait::async_trait;
@@ -11,7 +11,7 @@ pub struct GemDeviceInfo {
     pub os: String,
     pub model: String,
     pub version: String,
-    pub locale: DeviceLocale,
+    pub locale_identifier: String,
 }
 
 #[uniffi::export(rust, foreign)]

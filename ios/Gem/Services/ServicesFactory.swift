@@ -285,6 +285,7 @@ struct ServicesFactory {
             balance: gemBalanceService
         )
         let toastPresenter = ToastPresenter()
+        let pushNotificationService = Gemstone.GemPushNotificationService()
         let navigationHandler = NavigationHandler(
             navigationState: navigation,
             presenter: navigationPresenter,
@@ -293,6 +294,7 @@ struct ServicesFactory {
             walletConnector: walletConnector,
             toastPresenter: toastPresenter,
             paymentService: paymentService,
+            pushNotificationService: pushNotificationService,
             transactionStore: storeManager.transactionStore,
             transactionStateService: gemTransactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,

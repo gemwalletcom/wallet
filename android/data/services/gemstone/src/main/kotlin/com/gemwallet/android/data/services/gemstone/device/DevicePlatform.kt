@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.device
 
 import android.content.Context
-import android.icu.util.ULocale
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.application.device.cases.GetPushEnabled
@@ -16,7 +15,6 @@ import com.gemwallet.android.ext.os
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.serializer.toJson
 import dagger.Lazy
-import com.wallet.core.primitives.DeviceLocale
 import com.wallet.core.primitives.Platform
 import com.wallet.core.primitives.PlatformStore
 import kotlinx.coroutines.CoroutineScope
@@ -103,7 +101,7 @@ class GemstoneDevicePlatform(
         os = Platform.os,
         model = Platform.model,
         version = versionName,
-        locale = getDeviceLocale(Locale.getDefault()).toJson(),
+        localeIdentifier = Locale.getDefault().toLanguageTag(),
     )
 
     override suspend fun pushToken(): String {
@@ -128,17 +126,5 @@ class GemstoneDevicePlatform(
 
     private object Key {
         val PushEnabled = booleanPreferencesKey("push_enabled")
-    }
-
-    companion object {
-        fun getDeviceLocale(locale: Locale): DeviceLocale {
-            val canonicalLocale = ULocale.addLikelySubtags(ULocale.forLocale(locale))
-            val identifier = when (canonicalLocale.language) {
-                "pt" -> "pt-BR"
-                "zh" -> "${canonicalLocale.language}-${canonicalLocale.script}"
-                else -> canonicalLocale.language
-            }
-            return DeviceLocale.entries.firstOrNull { it.string == identifier } ?: DeviceLocale.EN
-        }
     }
 }

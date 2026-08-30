@@ -7,6 +7,8 @@ import WalletConnectorService
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
+import enum Gemstone.GemPushNotification
+import protocol Gemstone.GemPushNotificationServiceProtocol
 import class Gemstone.GemPaymentLinkService
 import GemstonePrimitives
 import Localization
@@ -26,6 +28,7 @@ final class NavigationHandler: Sendable {
     private let walletConnector: any WalletConnectorServiceable
     private let toastPresenter: ToastPresenter
     private let paymentService: GemPaymentLinkService
+    private let pushNotificationService: any GemPushNotificationServiceProtocol
     private let transactionStore: TransactionStore
     private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
@@ -39,6 +42,7 @@ final class NavigationHandler: Sendable {
         walletConnector: any WalletConnectorServiceable,
         toastPresenter: ToastPresenter,
         paymentService: GemPaymentLinkService,
+        pushNotificationService: any GemPushNotificationServiceProtocol,
         transactionStore: TransactionStore,
         transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
@@ -51,6 +55,7 @@ final class NavigationHandler: Sendable {
         self.walletConnector = walletConnector
         self.toastPresenter = toastPresenter
         self.paymentService = paymentService
+        self.pushNotificationService = pushNotificationService
         self.transactionStore = transactionStore
         self.transactionStateService = transactionStateService
         self.walletConnectorPresenter = walletConnectorPresenter
@@ -59,12 +64,25 @@ final class NavigationHandler: Sendable {
 
     @MainActor
     func handlePush(_ userInfo: [AnyHashable: Any]) async {
+        guard
+            let notificationType = userInfo["type"] as? String,
+            let notification = pushNotificationService.parse(
+                notificationType: notificationType,
+                data: Self.payload(userInfo["data"]),
+            )
+        else {
+            return
+        }
         do {
-            let notification = try PushNotification(from: userInfo)
             try await handle(notification)
         } catch {
             debugLog("NavigationHandler push error: \(error)")
         }
+    }
+
+    private static func payload(_ data: Any?) -> String? {
+        guard let data, JSONSerialization.isValidJSONObject(data) else { return .none }
+        return (try? JSONSerialization.data(withJSONObject: data)).map { String(decoding: $0, as: UTF8.self) }
     }
 
     @MainActor
@@ -188,27 +206,29 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
-    private func handle(_ notification: PushNotification) async throws {
+    private func handle(_ notification: GemPushNotification) async throws {
         switch notification {
-        case let .asset(assetId):
-            try await navigateToAsset(assetId)
-        case let .walletAsset(walletId, assetId):
-            try await navigateToAsset(walletId: walletId, assetId: assetId)
+        case let .asset(assetId), let .priceAlert(assetId):
+            try await navigateToAsset(Primitives.AssetId(id: assetId))
+        case let .fiatTransaction(walletId, assetId):
+            try await navigateToAsset(walletId: Primitives.WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId))
         case let .transaction(walletId, assetId, transaction):
-            try await navigateToTransaction(walletId: walletId, assetId: assetId, transaction: transaction)
-        case let .priceAlert(assetId):
-            try await navigateToAsset(assetId)
-        case let .buyAsset(assetId, amount):
-            try await presentFiat(type: .buy, assetId: assetId, amount: amount)
-        case let .swapAsset(fromId, toId):
-            try await presentSwap(from: fromId, to: toId)
+            try await navigateToTransaction(
+                walletId: Primitives.WalletId.from(id: walletId),
+                assetId: Primitives.AssetId(id: assetId),
+                transaction: Primitives.Transaction(transaction),
+            )
+        case let .buyAsset(assetId):
+            try await presentFiat(type: .buy, assetId: Primitives.AssetId(id: assetId), amount: .none)
+        case let .swapAsset(fromAssetId, toAssetId):
+            try await presentSwap(from: Primitives.AssetId(id: fromAssetId), to: Primitives.AssetId(id: toAssetId))
         case .support:
             presenter.isPresentingSupport.wrappedValue = true
         case .rewards:
-            navigationState.settings.append(Scenes.Referral(code: nil))
+            navigationState.settings.append(Scenes.Referral(code: .none))
         case .stake: break
         // TODO: Select wallet and open stake screen of an asset
-        case .test, .unknown: break
+        case .test: break
         }
 
         selectTab(for: notification.selectTab)
@@ -343,13 +363,13 @@ private extension DeepLink {
     }
 }
 
-private extension PushNotification {
+private extension GemPushNotification {
     var selectTab: TabItem? {
         switch self {
-        case .transaction, .asset, .walletAsset, .priceAlert, .stake: .wallet
+        case .transaction, .asset, .fiatTransaction, .priceAlert, .stake: .wallet
         case .buyAsset, .swapAsset: nil
         case .support, .rewards: .settings
-        case .test, .unknown: nil
+        case .test: nil
         }
     }
 }
