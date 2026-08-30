@@ -49,8 +49,11 @@ impl GemPriceAlertService {
         if self.is_enabled() == enabled {
             return Ok(());
         }
-        if enabled && !self.permissions.request_permissions_or_open_settings().await? {
-            return Ok(());
+        if enabled {
+            if !self.permissions.request_permissions_or_open_settings().await? {
+                return Ok(());
+            }
+            self.preferences.set_push_notifications_enabled(true)?;
         }
         self.preferences.set_price_alerts_enabled(enabled)?;
         self.device.synchronize().await.map(|_| ())
