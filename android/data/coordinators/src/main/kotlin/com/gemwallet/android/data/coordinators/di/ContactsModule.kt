@@ -1,13 +1,11 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.contacts.cases.AddContact
+import com.gemwallet.android.application.contacts.cases.AddContactAddress
 import com.gemwallet.android.application.contacts.cases.DeleteContact
 import com.gemwallet.android.application.contacts.cases.GetContacts
-import com.gemwallet.android.application.contacts.cases.UpdateContact
-import com.gemwallet.android.data.coordinators.contacts.AddContactImpl
-import com.gemwallet.android.data.coordinators.contacts.DeleteContactImpl
+import com.gemwallet.android.application.contacts.cases.SaveContact
+import com.gemwallet.android.data.coordinators.contacts.ContactsCoordinator
 import com.gemwallet.android.data.coordinators.contacts.GetContactsImpl
-import com.gemwallet.android.data.coordinators.contacts.UpdateContactImpl
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneContactStore
 import dagger.Module
 import dagger.Provides
@@ -26,13 +24,17 @@ object ContactsCasesModule {
 
     @Singleton
     @Provides
-    fun provideAddContact(contactService: GemContactService): AddContact = AddContactImpl(contactService)
+    fun provideContactsCoordinator(contactService: GemContactService): ContactsCoordinator = ContactsCoordinator(contactService)
 
     @Singleton
     @Provides
-    fun provideUpdateContact(contactService: GemContactService): UpdateContact = UpdateContactImpl(contactService)
+    fun provideSaveContact(coordinator: ContactsCoordinator): SaveContact = coordinator
 
     @Singleton
     @Provides
-    fun provideDeleteContact(contactService: GemContactService): DeleteContact = DeleteContactImpl(contactService)
+    fun provideAddContactAddress(coordinator: ContactsCoordinator): AddContactAddress = coordinator
+
+    @Singleton
+    @Provides
+    fun provideDeleteContact(coordinator: ContactsCoordinator): DeleteContact = coordinator
 }

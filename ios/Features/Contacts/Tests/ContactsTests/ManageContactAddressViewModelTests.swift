@@ -66,12 +66,12 @@ struct ManageContactAddressViewModelTests {
 
 extension ManageContactAddressViewModel {
     static func mock(
-        contactId: String = "contact-1",
+        defaultChain: Chain = .bitcoin,
         nameService: any GemNameServiceProtocol = GemNameServiceMock(nameRecord: .mock()),
         mode: Mode,
     ) -> ManageContactAddressViewModel {
         ManageContactAddressViewModel(
-            contactId: contactId,
+            defaultChain: defaultChain,
             nameService: nameService,
             mode: mode,
             onComplete: { _ in },

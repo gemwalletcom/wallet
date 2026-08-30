@@ -47,10 +47,17 @@ public final class ContactsViewModel {
 
     func add(to contact: ContactData) {
         guard case let .addAddress(recipient) = mode else { return }
-        let updated = contact.addAddress(from: recipient)
         Task {
             do {
-                try await service.updateContact(updated.contact, addresses: updated.addresses)
+                let addresses = try service.addAddress(
+                    contact.addresses,
+                    contactId: contact.contact.id,
+                    chain: recipient.chain,
+                    address: recipient.recipient.address,
+                    memo: recipient.recipient.memo,
+                    replacingId: nil,
+                )
+                try await service.updateContact(contact.contact, addresses: addresses)
             } catch {
                 debugLog("ContactsViewModel add error: \(error)")
             }

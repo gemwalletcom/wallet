@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import func Gemstone.defaultContactChain
 import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
@@ -34,26 +33,31 @@ public final class ManageContactAddressViewModel {
         }
     }
 
+    public struct Input: Sendable {
+        public let chain: Chain
+        public let address: String
+        public let memo: String?
+        public let replacingId: String?
+    }
+
     private let mode: Mode
-    private let contactId: String
-    private let onComplete: (ContactAddress) -> Void
+    private let onComplete: (Input) -> Void
 
     var addressInputModel: AddressInputViewModel
     var memo: String = ""
     var isPresentingScanner = false
 
     public init(
-        contactId: String,
+        defaultChain: Chain,
         nameService: any GemNameServiceProtocol,
         mode: Mode,
-        onComplete: @escaping (ContactAddress) -> Void,
+        onComplete: @escaping (Input) -> Void,
     ) {
-        self.contactId = contactId
         self.mode = mode
         self.onComplete = onComplete
         title = Localized.Common.address
 
-        let chain = mode.contactAddress?.chain ?? Chain(rawValue: defaultContactChain()) ?? .bitcoin
+        let chain = mode.contactAddress?.chain ?? defaultChain
         addressInputModel = AddressInputViewModel(
             chain: chain,
             nameService: nameService,
@@ -100,12 +104,12 @@ public final class ManageContactAddressViewModel {
         addressInputModel.isValid ? .normal : .disabled
     }
 
-    private var currentAddress: ContactAddress {
-        ContactAddress.new(
-            contactId: contactId,
+    private var input: Input {
+        Input(
             chain: chain,
             address: addressInputModel.resolvedAddress,
-            memo: memo.isEmpty ? nil : memo,
+            memo: memo,
+            replacingId: mode.contactAddress?.id,
         )
     }
 }
@@ -128,6 +132,6 @@ extension ManageContactAddressViewModel {
 
     func complete() {
         guard addressInputModel.validate() else { return }
-        onComplete(currentAddress)
+        onComplete(input)
     }
 }

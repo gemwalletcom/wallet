@@ -218,19 +218,69 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
 }
 
 public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked Sendable {
+    private let service = GemContactService(
+        store: GemContactStoreMock(),
+        addressStore: GemAddressStoreMock(),
+        files: GemFileStoreMock(),
+    )
+
     public init() {}
 
-    public func addContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress]) async throws {}
-
-    public func updateContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress]) async throws {}
-
-    public func deleteContact(contact _: Gemstone.Contact) async throws {}
-
-    public func saveAvatar(image _: Data) throws -> String {
-        ""
+    public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
+        try await service.saveContact(input: input)
     }
 
-    public func removeAvatar(fileName _: String) throws {}
+    public func updateContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress]) async throws {
+        try await service.updateContact(contact: contact, addresses: addresses)
+    }
+
+    public func deleteContact(contact: Gemstone.Contact) async throws {
+        try await service.deleteContact(contact: contact)
+    }
+
+    public func addAddress(addresses: [Gemstone.ContactAddress], input: GemContactAddressInput) -> [Gemstone.ContactAddress] {
+        service.addAddress(addresses: addresses, input: input)
+    }
+
+    public func defaultChain() -> Gemstone.Chain {
+        service.defaultChain()
+    }
+}
+
+public final class GemContactStoreMock: GemContactStore, @unchecked Sendable {
+    public init() {}
+
+    public func getAddresses(contactId _: String) async throws -> [Gemstone.ContactAddress] { [] }
+
+    public func saveContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress]) async throws {}
+
+    public func updateContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress], deleteAddressIds _: [String]) async throws {}
+
+    public func deleteContact(contactId _: String) async throws {}
+}
+
+public final class GemAddressStoreMock: GemAddressStore, @unchecked Sendable {
+    public init() {}
+
+    public func getAddressName(chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.AddressName? { nil }
+
+    public func saveAddressNames(names _: [Gemstone.AddressName]) async throws {}
+
+    public func deleteAddressNames(names _: [Gemstone.AddressName]) async throws {}
+}
+
+public final class GemFileStoreMock: GemFileStore, @unchecked Sendable {
+    public init() {}
+
+    public func saveFile(data _: Data, extension _: String) throws -> String { "" }
+
+    public func saveNamedFile(data _: Data, fileName: String) throws -> String { fileName }
+
+    public func exists(fileName _: String) -> Bool { false }
+
+    public func path(fileName: String) -> String { fileName }
+
+    public func remove(fileName _: String) throws {}
 }
 
 public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Sendable {
