@@ -210,7 +210,7 @@ extension NavigationHandler {
         switch notification {
         case let .asset(assetId), let .priceAlert(assetId):
             try await navigateToAsset(Primitives.AssetId(id: assetId))
-        case let .fiatTransaction(walletId, assetId):
+        case let .fiatTransaction(walletId, assetId), let .stake(walletId, assetId):
             try await navigateToAsset(walletId: Primitives.WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId))
         case let .transaction(walletId, assetId, transaction):
             try await navigateToTransaction(
@@ -226,8 +226,6 @@ extension NavigationHandler {
             presenter.isPresentingSupport.wrappedValue = true
         case .rewards:
             navigationState.settings.append(Scenes.Referral(code: .none))
-        case .stake: break
-        // TODO: Select wallet and open stake screen of an asset
         case .test: break
         }
 
