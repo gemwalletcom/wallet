@@ -194,6 +194,7 @@ pub(super) fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSel
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::custom_types::GemBigInt;
     use crate::models::gateway::GemGasPriceType;
     use crate::models::transaction::GemTransactionLoadMetadata;
     use crate::services::transfer::{GemRecipient, GemTransferData};
@@ -376,23 +377,14 @@ mod tests {
         }
     }
 
-    fn lift_custom_fee_selection(gas_price: &str) -> uniffi::Result<GemConfirmFeeSelection> {
-        let mut buffer = Vec::new();
-        <i32 as uniffi::Lower<crate::UniFfiTag>>::write(2, &mut buffer);
-        <String as uniffi::Lower<crate::UniFfiTag>>::write(gas_price.to_string(), &mut buffer);
-        <GemConfirmFeeSelection as uniffi::Lift<crate::UniFfiTag>>::try_read(&mut buffer.as_slice())
-    }
-
     #[test]
-    fn test_a_malformed_custom_gas_price_is_reported_instead_of_reading_as_zero() {
+    fn test_a_custom_gas_price_carries_a_big_integer_so_a_malformed_one_cannot_read_as_zero() {
         let rates = vec![rate("normal", "10")];
-        let lifted = lift_custom_fee_selection("33").unwrap();
-        match select_fee_rate(&rates, &lifted).unwrap().gas_price_type {
+        let selection = GemConfirmFeeSelection::Custom { gas_price: GemBigInt::from(33) };
+        match select_fee_rate(&rates, &selection).unwrap().gas_price_type {
             GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, "33"),
             gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
         }
-        assert!(lift_custom_fee_selection("abc").is_err());
-        assert!(lift_custom_fee_selection("").is_err());
     }
 
     #[test]
@@ -612,14 +604,26 @@ mod tests {
         let safe = ScanTransaction {
             is_malicious: false,
             is_memo_required: false,
+            is_scan_complete: false,
+            malicious_addresses: None,
+            malicious_assets: None,
+            malicious_website: None,
         };
         let malicious = ScanTransaction {
             is_malicious: true,
             is_memo_required: false,
+            is_scan_complete: false,
+            malicious_addresses: None,
+            malicious_assets: None,
+            malicious_website: None,
         };
         let memo_required = ScanTransaction {
             is_malicious: false,
             is_memo_required: true,
+            is_scan_complete: false,
+            malicious_addresses: None,
+            malicious_assets: None,
+            malicious_website: None,
         };
 
         assert!(validate_scan(None, None, "USDT").is_ok());

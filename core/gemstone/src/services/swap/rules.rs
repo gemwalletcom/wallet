@@ -216,6 +216,7 @@ mod tests {
     }
 
     use super::*;
+    use crate::models::custom_types::GemBigInt;
     use primitives::{Account, AssetId, AssetType, Chain};
 
     fn wallet(chains: &[Chain]) -> Wallet {
@@ -413,17 +414,6 @@ mod tests {
         }
     }
 
-    fn lift_button_input(value: &str, available_balance: &str) -> uniffi::Result<GemSwapButtonInput> {
-        let mut buffer = Vec::new();
-        for field in [value, available_balance] {
-            <String as uniffi::Lower<crate::UniFfiTag>>::write(field.to_string(), &mut buffer);
-        }
-        for _ in 0..2 {
-            <Option<SwapperError> as uniffi::Lower<crate::UniFfiTag>>::write(None, &mut buffer);
-        }
-        <GemSwapButtonInput as uniffi::Lift<crate::UniFfiTag>>::try_read(&mut buffer.as_slice())
-    }
-
     #[test]
     fn test_button_action_offers_the_minimum_amount_only_when_the_balance_covers_it() {
         let too_small = |min_amount: Option<&str>| GemSwapButtonInput {
@@ -450,10 +440,9 @@ mod tests {
     }
 
     #[test]
-    fn test_a_malformed_swap_value_is_reported_instead_of_reading_as_zero() {
-        assert_eq!(lift_button_input("101", "100").unwrap().value, BigInt::from(101));
-        assert!(lift_button_input("", "100").is_err());
-        assert!(lift_button_input("101", "not-a-number").is_err());
+    fn test_swap_button_input_carries_big_integers_so_a_malformed_value_cannot_read_as_zero() {
+        let _: fn(GemSwapButtonInput) -> (GemBigInt, GemBigInt) = |input| (input.value, input.available_balance);
+        assert_eq!(button_input(101, 100).value, BigInt::from(101));
     }
 
     #[test]

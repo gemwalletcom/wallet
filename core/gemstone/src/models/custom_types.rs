@@ -72,3 +72,35 @@ uniffi::custom_type!(DateTimeUtc, i64, {
             .ok_or_else(|| uniffi::deps::anyhow::Error::msg("Invalid timestamp"))
     },
 });
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn lift_big_int(value: &str) -> uniffi::Result<GemBigInt> {
+        let mut buffer = Vec::new();
+        <String as uniffi::Lower<crate::UniFfiTag>>::write(value.to_string(), &mut buffer);
+        <GemBigInt as uniffi::Lift<crate::UniFfiTag>>::try_read(&mut buffer.as_slice())
+    }
+
+    fn lift_big_uint(value: &str) -> uniffi::Result<GemBigUint> {
+        let mut buffer = Vec::new();
+        <String as uniffi::Lower<crate::UniFfiTag>>::write(value.to_string(), &mut buffer);
+        <GemBigUint as uniffi::Lift<crate::UniFfiTag>>::try_read(&mut buffer.as_slice())
+    }
+
+    #[test]
+    fn test_a_malformed_big_integer_is_rejected_at_the_boundary_instead_of_reading_as_zero() {
+        assert_eq!(lift_big_int("101").unwrap(), GemBigInt::from(101));
+        assert_eq!(lift_big_int("-101").unwrap(), GemBigInt::from(-101));
+        assert!(lift_big_int("").is_err());
+        assert!(lift_big_int("not-a-number").is_err());
+    }
+
+    #[test]
+    fn test_a_negative_or_malformed_unsigned_value_is_rejected_at_the_boundary() {
+        assert_eq!(lift_big_uint("101").unwrap(), GemBigUint::from(101u32));
+        assert!(lift_big_uint("-1").is_err());
+        assert!(lift_big_uint("").is_err());
+    }
+}

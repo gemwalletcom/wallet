@@ -219,14 +219,6 @@ mod tests {
         }
     }
 
-    fn lift_stake_balance(frozen: &str, locked: &str, staked: &str, pending: &str, rewards: &str) -> uniffi::Result<GemStakeBalance> {
-        let mut buffer = Vec::new();
-        for field in [frozen, locked, staked, pending, rewards] {
-            <String as uniffi::Lower<crate::UniFfiTag>>::write(field.to_string(), &mut buffer);
-        }
-        <GemStakeBalance as uniffi::Lift<crate::UniFfiTag>>::try_read(&mut buffer.as_slice())
-    }
-
     fn validator(id: &str) -> DelegationValidator {
         DelegationValidator {
             chain: Chain::Cosmos,
@@ -465,9 +457,9 @@ mod tests {
     }
 
     #[test]
-    fn test_a_malformed_amount_is_reported_instead_of_reading_as_zero() {
-        let lifted = lift_stake_balance("0", "0", "100", "20", "5").unwrap();
-        assert_eq!(staked_value(Chain::Cosmos, &lifted), GemBigInt::from(125));
-        assert!(lift_stake_balance("0", "0", "not-a-number", "0", "0").is_err());
+    fn test_stake_balance_carries_big_integers_so_a_malformed_value_cannot_read_as_zero() {
+        let _: fn(GemStakeBalance) -> (GemBigInt, GemBigInt, GemBigInt, GemBigInt, GemBigInt) =
+            |balance| (balance.frozen, balance.locked, balance.staked, balance.pending, balance.rewards);
+        assert_eq!(staked_value(Chain::Cosmos, &stake_balance(0, 0, 100, 20, 5)), GemBigInt::from(125));
     }
 }

@@ -149,6 +149,7 @@ fn stake_chain(chain: Chain) -> Option<StakeChain> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::custom_types::GemBigInt;
     use primitives::Resource;
     use primitives::{AssetId, AssetType, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
 
@@ -168,15 +169,6 @@ mod tests {
             withdrawable: BigInt::from(7),
             votes,
         }
-    }
-
-    fn lift_balance(available: &str, frozen: &str, locked: &str, withdrawable: &str) -> uniffi::Result<GemTransferBalance> {
-        let mut buffer = Vec::new();
-        for field in [available, frozen, locked, withdrawable] {
-            <String as uniffi::Lower<crate::UniFfiTag>>::write(field.to_string(), &mut buffer);
-        }
-        <u32 as uniffi::Lower<crate::UniFfiTag>>::write(0, &mut buffer);
-        <GemTransferBalance as uniffi::Lift<crate::UniFfiTag>>::try_read(&mut buffer.as_slice())
     }
 
     fn delegation(balance: u64, rewards: u64) -> Delegation {
@@ -397,10 +389,11 @@ mod tests {
     }
 
     #[test]
-    fn test_a_malformed_transfer_balance_is_reported_instead_of_reading_as_zero() {
-        let lifted = lift_balance("500", "0", "0", "7").unwrap();
-        assert_eq!(available_value(&GemAmountType::Transfer, &asset(Chain::Ethereum), &lifted).unwrap(), BigInt::from(500));
-        assert!(lift_balance("1.5", "0", "0", "7").is_err());
-        assert!(lift_balance("500", "0", "0", "").is_err());
+    fn test_transfer_balance_carries_big_integers_so_a_malformed_value_cannot_read_as_zero() {
+        let _: fn(GemTransferBalance) -> (GemBigInt, GemBigInt, GemBigInt, GemBigInt) = |balance| (balance.available, balance.frozen, balance.locked, balance.withdrawable);
+        assert_eq!(
+            available_value(&GemAmountType::Transfer, &asset(Chain::Ethereum), &balance(500, 0, 0, 0)).unwrap(),
+            BigInt::from(500)
+        );
     }
 }
