@@ -186,12 +186,13 @@ public struct TransactionViewModel: Sendable {
         guard
             let assetId,
             let value,
-            let asset = transaction.assets.first(where: { $0.id == assetId })
+            let asset = transaction.assets.first(where: { $0.id == assetId }),
+            let amount = try? BigInt.from(string: value)
         else {
             return .none
         }
         return AmountDisplay.numeric(
-            data: AssetValuePrice(asset: asset, value: BigInt.fromString(value), price: nil),
+            data: AssetValuePrice(asset: asset, value: amount, price: nil),
             style: AmountDisplayStyle(sign: sign, formatter: formatter, currencyCode: currency, textStyle: textStyle),
         ).amount
     }
