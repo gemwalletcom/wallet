@@ -77,6 +77,7 @@ import kotlinx.coroutines.launch
 import com.wallet.core.primitives.SimulationResult
 import java.math.BigInteger
 import javax.inject.Inject
+import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemSimulationFormatter
 import uniffi.gemstone.GemSwapQuoteService
 
@@ -100,6 +101,7 @@ class ConfirmViewModel @Inject constructor(
     private val feeService: GemFeeService,
     private val transferService: GemTransferService,
     private val simulationFormatter: GemSimulationFormatter,
+    private val perpetualService: GemPerpetualService,
     private val swapQuoteService: GemSwapQuoteService,
 ) : ViewModel() {
 
@@ -443,7 +445,7 @@ class ConfirmViewModel @Inject constructor(
         params: ConfirmParams.PerpetualParams?,
     ): ConfirmDetailElement? = when (val type = params?.perpetualType) {
         null -> null
-        is PerpetualType.Modify -> PerpetualModifyAutocloseFactory.create(type.content)
+        is PerpetualType.Modify -> PerpetualModifyAutocloseFactory.create(type.content, perpetualService)
         else -> PerpetualConfirmDetailsUIModelFactory.create(type)?.let(ConfirmDetailElement::PerpetualDetails)
     }
 

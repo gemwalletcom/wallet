@@ -43,6 +43,7 @@ extension ConfirmService {
             explorerService: GemExplorerServiceMock(),
             addressStore: .mock(),
             feeService: GemFeeService(),
+            perpetualService: GemPerpetualServiceMock(),
         )
     }
 }

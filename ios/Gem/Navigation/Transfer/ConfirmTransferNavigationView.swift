@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
+import class Gemstone.GemReceiveService
 import GemstoneServices
 import Components
 import FiatConnect
@@ -19,6 +20,7 @@ struct ConfirmTransferNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.balanceService) private var balanceService
     @Environment(\.assetsService) private var assetsService
+    @Environment(\.receiveService) private var receiveService
 
     @State var model: ConfirmTransferSceneViewModel
 
@@ -59,6 +61,7 @@ struct ConfirmTransferNavigationView: View {
                         viewModelFactory: viewModelFactory,
                         balanceService: balanceService,
                         assetsService: assetsService,
+                        receiveService: receiveService,
                     )
                 case let .selectedAsset(input, wallet):
                     SelectedAssetNavigationStack(
@@ -96,6 +99,7 @@ private struct GetAssetNavigationStack: View {
     let viewModelFactory: ViewModelFactory
     let balanceService: any GemBalanceServiceProtocol
     let assetsService: any GemAssetsServiceProtocol
+    let receiveService: GemReceiveService
 
     @State private var selectedAction: GetAssetAction?
     @State private var actionNavigationPath = NavigationPath()
@@ -164,6 +168,7 @@ private struct GetAssetNavigationStack: View {
                     wallet: model.assetAcquisitionWallet,
                     balanceService: balanceService,
                     assetsService: assetsService,
+                    receiveService: receiveService,
                 ),
             )
         }

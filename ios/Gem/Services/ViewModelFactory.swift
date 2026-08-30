@@ -134,6 +134,7 @@ public struct ViewModelFactory: Sendable {
                 toastPresenter: toastPresenter,
                 feeService: feeService,
                 simulationFormatter: simulationFormatter,
+                perpetualService: perpetualService,
             ),
             onComplete: onComplete,
             assetConfig: assetConfig,

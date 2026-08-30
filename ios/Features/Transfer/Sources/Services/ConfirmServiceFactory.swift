@@ -7,6 +7,7 @@ import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Foundation
 import class Gemstone.GemConfirmService
 import class Gemstone.GemSimulationFormatter
@@ -32,6 +33,7 @@ public enum ConfirmServiceFactory {
         toastPresenter: ToastPresenter,
         feeService: GemFeeService,
         simulationFormatter: GemSimulationFormatter,
+        perpetualService: any GemPerpetualServiceProtocol,
     ) -> ConfirmService {
         return ConfirmService(
             metadataProvider: TransferMetadataProvider(
@@ -61,6 +63,7 @@ public enum ConfirmServiceFactory {
             explorerService: explorerService,
             addressStore: addressStore,
             feeService: feeService,
+            perpetualService: perpetualService,
         )
     }
 }

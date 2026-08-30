@@ -8,6 +8,7 @@ import enum Gemstone.GemConfirmError
 import protocol Gemstone.GemConfirmServiceProtocol
 import enum Gemstone.GemExecuteResult
 import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import struct Gemstone.GemSendInput
 import protocol Gemstone.GemTransactionSigner
@@ -32,6 +33,8 @@ public struct ConfirmService: Sendable {
 
     private let feeService: GemFeeService
 
+    public let perpetualService: any GemPerpetualServiceProtocol
+
     public init(
         metadataProvider: any TransferMetadataProvidable,
         inputProvider: ConfirmTransferInputProvider,
@@ -46,7 +49,9 @@ public struct ConfirmService: Sendable {
         explorerService: any GemExplorerServiceProtocol,
         addressStore: AddressStore,
         feeService: GemFeeService,
+        perpetualService: any GemPerpetualServiceProtocol,
     ) {
+        self.perpetualService = perpetualService
         self.metadataProvider = metadataProvider
         self.inputProvider = inputProvider
         self.simulationService = simulationService

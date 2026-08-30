@@ -139,7 +139,7 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     public var detailsViewModel: ConfirmDetailsViewModel {
-        ConfirmDetailsViewModel(type: request.data.type, metadata: state.metadata, currency: currency.rawValue)
+        ConfirmDetailsViewModel(type: request.data.type, metadata: state.metadata, currency: currency.rawValue, perpetualService: confirmService.perpetualService)
     }
 
     var balanceChangeModels: [ConfirmBalanceChangeViewModel] {

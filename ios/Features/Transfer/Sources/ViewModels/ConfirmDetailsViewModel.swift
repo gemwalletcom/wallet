@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Primitives
 import PrimitivesComponents
 import Swap
@@ -9,11 +10,18 @@ public struct ConfirmDetailsViewModel {
     private let type: TransferDataType
     private let metadata: TransferDataMetadata?
     private let currency: String
+    private let perpetualService: any GemPerpetualServiceProtocol
 
-    init(type: TransferDataType, metadata: TransferDataMetadata?, currency: String) {
+    init(
+        type: TransferDataType,
+        metadata: TransferDataMetadata?,
+        currency: String,
+        perpetualService: any GemPerpetualServiceProtocol,
+    ) {
         self.type = type
         self.metadata = metadata
         self.currency = currency
+        self.perpetualService = perpetualService
     }
 }
 
@@ -37,7 +45,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
             case .open, .close, .increase, .reduce:
                 .perpetualDetails(PerpetualDetailsViewModel(type: PerpetualDetailsType(perpetualType)))
             case let .modify(data):
-                .perpetualModifyPosition(PerpetualModifyViewModel(data: data))
+                .perpetualModifyPosition(PerpetualModifyViewModel(data: data, perpetualService: perpetualService))
             }
         case .transfer,
              .deposit,

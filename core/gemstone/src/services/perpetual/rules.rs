@@ -7,11 +7,12 @@ use primitives::{
     WalletType,
 };
 
-use super::model::{GemPerpetualCloseInput, GemPerpetualOrderAction, GemPerpetualOrderInput};
+use super::model::{GemAutocloseSummary, GemPerpetualCloseInput, GemPerpetualOrderAction, GemPerpetualOrderInput};
 use crate::perpetual::GemPerpetual;
 use crate::services::error::GemServiceError;
 use num_bigint::BigInt;
-use primitives::{PerpetualConfirmData, PerpetualReduceData, PerpetualType};
+use primitives::{PerpetualConfirmData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, PerpetualType};
+use std::collections::HashSet;
 use std::str::FromStr;
 
 use crate::models::asset::wallet_default_assets;
@@ -44,6 +45,38 @@ pub fn perpetual_asset_basics(data: &[PerpetualData]) -> Vec<AssetBasic> {
             )
         })
         .collect()
+}
+
+pub fn autoclose_summary(data: &PerpetualModifyConfirmData) -> Option<GemAutocloseSummary> {
+    let orders = data.modify_types.iter().find_map(|modify| match modify {
+        PerpetualModifyPositionType::Tpsl(orders) => Some(orders),
+        PerpetualModifyPositionType::Cancel(_) => None,
+    });
+    let canceled: HashSet<u64> = data
+        .modify_types
+        .iter()
+        .filter_map(|modify| match modify {
+            PerpetualModifyPositionType::Cancel(orders) => Some(orders),
+            PerpetualModifyPositionType::Tpsl(_) => None,
+        })
+        .flatten()
+        .map(|order| order.order_id)
+        .collect();
+
+    let take_profit = orders.and_then(|orders| orders.take_profit.as_ref()).and_then(|value| value.parse::<f64>().ok());
+    let stop_loss = orders.and_then(|orders| orders.stop_loss.as_ref()).and_then(|value| value.parse::<f64>().ok());
+    let take_profit_cleared = take_profit.is_none() && data.take_profit_order_id.is_some_and(|id| canceled.contains(&id));
+    let stop_loss_cleared = stop_loss.is_none() && data.stop_loss_order_id.is_some_and(|id| canceled.contains(&id));
+
+    if take_profit.is_none() && stop_loss.is_none() && !take_profit_cleared && !stop_loss_cleared {
+        return None;
+    }
+    Some(GemAutocloseSummary {
+        take_profit,
+        stop_loss,
+        take_profit_cleared,
+        stop_loss_cleared,
+    })
 }
 
 pub fn funding_apr(funding: f64) -> f64 {
@@ -199,6 +232,57 @@ pub fn close_order(provider: PerpetualProvider, input: GemPerpetualCloseInput) -
 mod tests {
     use super::*;
     use primitives::{Asset, PerpetualDirection, PerpetualId, PerpetualMarginType};
+
+    fn modify_data(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> PerpetualModifyConfirmData {
+        PerpetualModifyConfirmData {
+            base_asset: Asset::mock(),
+            asset_index: 0,
+            modify_types,
+            take_profit_order_id,
+            stop_loss_order_id,
+        }
+    }
+
+    fn tpsl(take_profit: Option<&str>, stop_loss: Option<&str>) -> PerpetualModifyPositionType {
+        PerpetualModifyPositionType::Tpsl(primitives::perpetual::TPSLOrderData {
+            direction: PerpetualDirection::Long,
+            take_profit: take_profit.map(|value| value.to_string()),
+            stop_loss: stop_loss.map(|value| value.to_string()),
+            size: "1".to_string(),
+        })
+    }
+
+    fn cancel(order_ids: Vec<u64>) -> PerpetualModifyPositionType {
+        PerpetualModifyPositionType::Cancel(
+            order_ids
+                .into_iter()
+                .map(|order_id| primitives::perpetual::CancelOrderData { asset_index: 0, order_id })
+                .collect(),
+        )
+    }
+
+    #[test]
+    fn test_autoclose_summary_reads_new_prices_and_cleared_orders() {
+        let both = autoclose_summary(&modify_data(vec![tpsl(Some("65000"), Some("55000"))], None, None)).unwrap();
+        assert_eq!(both.take_profit, Some(65000.0));
+        assert_eq!(both.stop_loss, Some(55000.0));
+        assert!(!both.take_profit_cleared && !both.stop_loss_cleared);
+
+        let cleared = autoclose_summary(&modify_data(vec![cancel(vec![111, 222])], Some(111), Some(222))).unwrap();
+        assert_eq!(cleared.take_profit, None);
+        assert_eq!(cleared.stop_loss, None);
+        assert!(cleared.take_profit_cleared && cleared.stop_loss_cleared);
+
+        let replaced = autoclose_summary(&modify_data(vec![tpsl(Some("70000"), None), cancel(vec![111])], Some(111), None)).unwrap();
+        assert_eq!(replaced.take_profit, Some(70000.0));
+        assert!(!replaced.take_profit_cleared, "a replaced order is not a cleared one");
+
+        assert!(autoclose_summary(&modify_data(vec![], None, None)).is_none());
+        assert!(
+            autoclose_summary(&modify_data(vec![cancel(vec![999])], Some(111), None)).is_none(),
+            "cancelling an unrelated order leaves nothing to show"
+        );
+    }
 
     #[test]
     fn test_perpetual_collateral_counts_only_in_standard_mode() {

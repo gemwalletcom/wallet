@@ -723,6 +723,7 @@ private extension ConfirmTransferSceneViewModel {
                 toastPresenter: ToastPresenter(),
                 feeService: GemFeeService(),
                 simulationFormatter: GemSimulationFormatter(),
+                perpetualService: GemPerpetualServiceMock(),
             ),
             onComplete: {},
             assetConfig: GemAssetConfigService(),

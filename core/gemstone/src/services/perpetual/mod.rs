@@ -12,13 +12,13 @@ use gem_hypercore::models::websocket::HyperliquidSocketMessage;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
 use primitives::perpetual::PerpetualBalance;
 use primitives::portfolio::PerpetualPortfolio;
-use primitives::{AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualProvider, Wallet, WalletId};
+use primitives::{AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualModifyConfirmData, PerpetualProvider, Wallet, WalletId};
 use std::collections::HashMap;
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
 use crate::services::preferences::GemPreferencesService;
 
-pub use model::GemPerpetualSocketUpdate;
+pub use model::{GemAutocloseSummary, GemPerpetualSocketUpdate};
 pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;
@@ -70,6 +70,10 @@ impl GemPerpetualService {
             }
             Err(_) => self.wallet_preferences.get_perpetual_account_mode(wallet_id),
         }
+    }
+
+    pub fn autoclose_summary(&self, data: PerpetualModifyConfirmData) -> Option<GemAutocloseSummary> {
+        rules::autoclose_summary(&data)
     }
 
     pub fn markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {

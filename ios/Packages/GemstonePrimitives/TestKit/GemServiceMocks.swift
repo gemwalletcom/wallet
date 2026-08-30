@@ -456,6 +456,7 @@ public extension GemBalanceServiceProtocol where Self == GemBalanceServiceMock {
 }
 
 public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchecked Sendable {
+    public var autocloseSummary: GemAutocloseSummary?
     public var isPerpetualEnabled = true
     public private(set) var syncMarketsCount = 0
     public private(set) var clearMarketsCount = 0
@@ -467,6 +468,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     public func marketsUpdatedAt() throws -> Int64? {
         updatedAt
+    }
+
+    public func autocloseSummary(data _: Gemstone.PerpetualModifyConfirmData) -> GemAutocloseSummary? {
+        autocloseSummary
     }
 
     public func collateralAssetId(chain _: Gemstone.Chain) -> Gemstone.AssetId? {

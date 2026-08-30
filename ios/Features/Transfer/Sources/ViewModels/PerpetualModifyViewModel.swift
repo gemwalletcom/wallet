@@ -3,43 +3,33 @@
 import Components
 import Formatters
 import Foundation
+import protocol Gemstone.GemPerpetualServiceProtocol
+import GemstonePrimitives
 import Localization
 import Primitives
 
 public struct PerpetualModifyViewModel: Sendable {
     private let data: PerpetualModifyConfirmData
+    private let perpetualService: any GemPerpetualServiceProtocol
     private let autocloseFormatter = AutocloseFormatter(
         takeProfitLabel: Localized.Perpetual.takeProfit,
         stopLossLabel: Localized.Perpetual.stopLoss,
     )
 
-    public init(data: PerpetualModifyConfirmData) {
+    public init(data: PerpetualModifyConfirmData, perpetualService: any GemPerpetualServiceProtocol) {
         self.data = data
+        self.perpetualService = perpetualService
     }
 
-    public var listItemModel: ListItemModel {
-        let canceledOrderIds = Set(
-            data.modifyTypes
-                .compactMap { if case let .cancel(orders) = $0 { orders } else { nil } }
-                .flatMap { $0.map(\.orderId) },
-        )
-
-        let tpslOrderData = data.modifyTypes.compactMap {
-            if case let .tpsl(orderData) = $0 { return orderData }
+    public var listItemModel: ListItemModel? {
+        guard let summary = perpetualService.autocloseSummary(data: data.json()) else {
             return nil
-        }.first
-
-        let tpCanceled = data.takeProfitOrderId.map { canceledOrderIds.contains($0) } ?? false
-        let slCanceled = data.stopLossOrderId.map { canceledOrderIds.contains($0) } ?? false
-
-        let takeProfit = tpslOrderData?.takeProfit.flatMap(Double.init)
-        let stopLoss = tpslOrderData?.stopLoss.flatMap(Double.init)
-
+        }
         let autoclose = autocloseFormatter.format(
-            takeProfit: takeProfit,
-            stopLoss: stopLoss,
-            takeProfitCanceled: tpCanceled && takeProfit == nil,
-            stopLossCanceled: slCanceled && stopLoss == nil,
+            takeProfit: summary.takeProfit,
+            stopLoss: summary.stopLoss,
+            takeProfitCanceled: summary.takeProfitCleared,
+            stopLossCanceled: summary.stopLossCleared,
         )
 
         return ListItemModel(

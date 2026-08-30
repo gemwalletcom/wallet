@@ -55,3 +55,11 @@ pub struct GemPerpetualConnection {
     pub address: String,
     pub mode: PerpetualAccountMode,
 }
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAutocloseSummary {
+    pub take_profit: Option<f64>,
+    pub stop_loss: Option<f64>,
+    pub take_profit_cleared: bool,
+    pub stop_loss_cleared: bool,
+}
