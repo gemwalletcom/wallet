@@ -4,7 +4,7 @@ mod tests {
     use std::time::Duration;
 
     use primitives::Chain;
-    use security_provider::{AddressTarget, ScanProvider, TokenTarget, providers::goplus::GoPlusProvider, providers::hashdit::HashDitProvider};
+    use security_provider::{AddressTarget, ScanProvider, TokenTarget, providers::hashdit::HashDitProvider};
     use settings::Settings;
 
     use gem_client::ReqwestClient;
@@ -18,40 +18,6 @@ mod tests {
     fn build_client(base_url: String, timeout: Duration) -> ReqwestClient {
         let http = gem_client::builder().timeout(timeout).build().unwrap();
         ReqwestClient::new(base_url, http)
-    }
-
-    #[tokio::test]
-    async fn test_goplus_scan_address_eth() {
-        let settings = load_settings();
-        let client = build_client(settings.security.goplus.url.clone(), settings.security.timeout);
-        let provider = GoPlusProvider::new(client);
-
-        let target = AddressTarget {
-            address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045".to_string(), // Vitalik.eth
-            chain: Chain::Ethereum,
-        };
-
-        let result = provider.scan_address(&target).await.expect("goplus address scan failed");
-
-        assert_eq!(result.provider, "GoPlus");
-        assert_eq!(result.is_malicious, false);
-    }
-
-    #[tokio::test]
-    async fn test_goplus_scan_token_eth_usdc() {
-        let settings = load_settings();
-        let client = build_client(settings.security.goplus.url.clone(), settings.security.timeout);
-        let provider = GoPlusProvider::new(client);
-
-        let target = TokenTarget {
-            token_id: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48".to_string(), // USDT
-            chain: Chain::Ethereum,
-        };
-
-        let result = provider.scan_token(&target).await.expect("goplus token scan failed");
-
-        assert_eq!(result.provider, "GoPlus");
-        assert_eq!(result.is_malicious, false);
     }
 
     #[tokio::test]

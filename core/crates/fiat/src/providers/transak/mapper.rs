@@ -1,9 +1,12 @@
-use super::models::{Asset, FiatCurrency, TransakOrderResponse};
+use super::models::{Asset, FiatCurrency, TransakOrderResponse, TransakQuote};
 use crate::model::{FiatProviderAsset, filter_token_id};
+use primitives::FiatQuoteUrlData;
 use primitives::PaymentType;
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{Chain, FiatProviderName, FiatQuoteType, FiatTransactionStatus, FiatTransactionUpdate};
+use serde_json::{Value, json};
+use std::collections::HashMap;
 
 pub fn map_asset_chain(network: &str, coin_id: Option<&str>) -> Option<Chain> {
     match network {
@@ -78,6 +81,34 @@ pub fn map_order_from_response(payload: TransakOrderResponse) -> FiatTransaction
         fiat_currency: Some(payload.fiat_currency.to_ascii_uppercase()),
     }
 }
+
+pub(super) fn map_widget_params(api_key: &str, referrer_domain: &str, quote: TransakQuote, data: &FiatQuoteUrlData) -> HashMap<String, Value> {
+    let sell_crypto_amount = quote.sell_crypto_amount(data.quote.fiat_amount);
+    let mut params = HashMap::from([
+        ("apiKey".to_string(), json!(api_key)),
+        ("referrerDomain".to_string(), json!(referrer_domain)),
+        ("partnerOrderId".to_string(), json!(data.quote.id)),
+        ("fiatCurrency".to_string(), json!(quote.fiat_currency)),
+        ("cryptoCurrencyCode".to_string(), json!(quote.crypto_currency)),
+        ("network".to_string(), json!(quote.network)),
+        ("disableWalletAddressForm".to_string(), json!(true)),
+        ("walletAddress".to_string(), json!(data.wallet_address)),
+    ]);
+
+    match data.quote.quote_type {
+        FiatQuoteType::Buy => {
+            params.insert("productsAvailed".to_string(), json!("BUY"));
+            params.insert("fiatAmount".to_string(), json!(data.quote.fiat_amount));
+        }
+        FiatQuoteType::Sell => {
+            params.insert("productsAvailed".to_string(), json!("SELL"));
+            params.insert("cryptoAmount".to_string(), json!(sell_crypto_amount));
+        }
+    }
+
+    params
+}
+
 fn map_limits(fiat_currencies: &[FiatCurrency], quote_type: FiatQuoteType) -> Vec<FiatAssetLimits> {
     fiat_currencies
         .iter()
@@ -157,7 +188,7 @@ fn map_payment_type(payment_id: &str) -> Option<PaymentType> {
 mod tests {
     use super::*;
     use crate::providers::transak::models::{AssetNetwork, Data, FiatCurrency, Response, TransakOrderResponse};
-    use primitives::{FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
+    use primitives::{Asset as PrimitiveAsset, Chain, FiatAssetSymbol, FiatProvider, FiatQuote, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
 
     #[test]
     fn test_map_order_buy_failed() {
@@ -195,6 +226,45 @@ mod tests {
                 fiat_currency: Some("USD".to_string()),
             }
         );
+    }
+
+    #[test]
+    fn test_map_widget_params_uses_stored_quote_id() {
+        let data = FiatQuoteUrlData {
+            quote: FiatQuote {
+                id: "stored_quote_id".to_string(),
+                asset: PrimitiveAsset::from_chain(Chain::Ethereum),
+                provider: FiatProvider::mock(FiatProviderName::Transak),
+                quote_type: FiatQuoteType::Buy,
+                fiat_amount: 100.0,
+                fiat_currency: "USD".to_string(),
+                crypto_amount: 0.03,
+                value: "30000000000000000".to_string(),
+                latency: 0,
+                payment_methods: vec![],
+            },
+            asset_symbol: FiatAssetSymbol {
+                symbol: "ETH".to_string(),
+                network: Some("ethereum".to_string()),
+            },
+            wallet_address: "0x123".to_string(),
+            ip_address: "192.0.2.1".to_string(),
+            locale: "en".to_string(),
+        };
+        let quote = TransakQuote {
+            quote_id: "provider_quote_id".to_string(),
+            fiat_amount: 100.0,
+            fiat_currency: "USD".to_string(),
+            crypto_currency: "ETH".to_string(),
+            crypto_amount: 0.03,
+            network: "ethereum".to_string(),
+            conversion_price: 0.0003,
+            total_fee: 1.0,
+        };
+
+        let params = map_widget_params("", "", quote, &data);
+
+        assert_eq!(params.get("partnerOrderId"), Some(&json!("stored_quote_id")));
     }
 
     #[test]

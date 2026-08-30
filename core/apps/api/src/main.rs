@@ -33,7 +33,7 @@ use ::fiat::FiatProviderFactory;
 use ::nft::{NFTClient, NFTProviderClient, NFTProviderConfig};
 use api_connector::PusherClient;
 use assets::{AssetsClient, SearchClient};
-use cacher::CacherClient;
+use cacher::{AccessTokenCacherClient, CacherClient};
 use config::ConfigClient;
 use devices::DevicesClient;
 use devices::{
@@ -46,7 +46,7 @@ use model::APIService;
 use name_resolver::NameProviderFactory;
 use name_resolver::client::{Client as NameClient, NameConfig};
 use pricer::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
-use primitives::{ConfigKey, PriceConfig};
+use primitives::{ConfigKey, FiatProviderName, PriceConfig};
 use rocket::{Build, Rocket, catchers, routes};
 use search_index::{SearchIndexClient, SearchIndexConfig};
 use settings::Settings;
@@ -226,7 +226,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let stream_producer = StreamProducer::new(&rabbitmq_config, "api", streamer::no_shutdown()).await.unwrap();
     let wallets_client = WalletsClient::new(database.clone(), stream_producer.clone());
 
-    let security_providers = ScanProviderFactory::create_providers(&settings_clone);
+    let security_providers = ScanProviderFactory::create_providers(&settings_clone, cacher_client.clone());
     let scan_client = ScanClient::new(database.clone(), security_providers);
     let wallet_configuration_client = WalletConfigurationClient::new(database.clone(), ChainProviders::from_settings(&settings, &user_agent), cacher_client.clone());
     let assets_client = AssetsClient::new(database.clone(), price_config);
@@ -236,7 +236,10 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let search_index_client = SearchIndexClient::new(&settings_clone.meilisearch.url, &settings_clone.meilisearch.key, search_index_config);
     let search_client = SearchClient::new(&search_index_client, price_client.clone());
     let swap_client = SwapClient::new(database.clone());
-    let fiat_providers = FiatProviderFactory::new_providers(settings_clone.clone());
+    let fiat_providers = FiatProviderFactory::new_providers(
+        settings_clone.clone(),
+        Arc::new(AccessTokenCacherClient::new(cacher_client.clone(), FiatProviderName::Transak.id())),
+    );
     let fiat_ip_check_client = FiatProviderFactory::new_ip_check_client(settings_clone.clone());
     let fiat_client = FiatClient::new(
         database.clone(),

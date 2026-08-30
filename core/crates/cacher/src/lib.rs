@@ -2,9 +2,11 @@ use std::error::Error;
 
 use redis::{AsyncCommands, Client, aio::ConnectionManager};
 
+mod access_token;
 mod error;
 mod keys;
 mod rate_limiter;
+pub use access_token::*;
 pub use error::*;
 pub use keys::*;
 pub use rate_limiter::*;

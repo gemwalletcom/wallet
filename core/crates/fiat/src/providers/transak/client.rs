@@ -1,50 +1,43 @@
-use super::models::{Asset, CachedToken, Country, CreateWidgetUrlRequest, CreateWidgetUrlResponse, Data, FiatCurrency, Response, TokenResponse, TransakQuote, TransakResponse};
+use super::{
+    mapper::map_widget_params,
+    models::{Asset, Country, CreateWidgetUrlRequest, CreateWidgetUrlResponse, Data, FiatCurrency, Response, TokenResponse, TransakQuote, TransakResponse},
+};
 use gem_client::ReqwestClient;
-use primitives::{FiatProviderName, FiatQuoteType, FiatQuoteUrlData};
+use primitives::{AccessTokenCacher, FiatProviderName, FiatQuoteUrlData};
 use reqwest::Method;
-use serde_json::{Value, json};
+use serde_json::Value;
 use std::collections::HashMap;
+use std::error::Error;
 use std::sync::Arc;
-#[cfg(test)]
-use std::time::{Duration, SystemTime};
-use tokio::sync::Mutex;
+use std::time::{Duration, UNIX_EPOCH};
 
-#[derive(Debug, Clone)]
 pub struct TransakClient {
     client: ReqwestClient,
     gateway: ReqwestClient,
     api_key: String,
     api_secret: String,
     referrer_domain: String,
-    cached_token: Arc<Mutex<Option<CachedToken>>>,
+    access_token_cacher: Arc<dyn AccessTokenCacher>,
 }
 
 impl TransakClient {
     pub const NAME: FiatProviderName = FiatProviderName::Transak;
 
-    pub fn new(client: ReqwestClient, gateway: ReqwestClient, api_key: String, api_secret: String, referrer_domain: String) -> Self {
+    pub fn new(
+        client: ReqwestClient,
+        gateway: ReqwestClient,
+        api_key: String,
+        api_secret: String,
+        referrer_domain: String,
+        access_token_cacher: Arc<dyn AccessTokenCacher>,
+    ) -> Self {
         TransakClient {
             client,
             gateway,
             api_key,
             api_secret,
             referrer_domain,
-            cached_token: Arc::new(Mutex::new(None)),
-        }
-    }
-
-    #[cfg(test)]
-    pub(super) fn new_with_access_token(access_token: &str) -> Self {
-        Self {
-            client: ReqwestClient::new(String::new(), gem_client::reqwest_client()),
-            gateway: ReqwestClient::new(String::new(), gem_client::reqwest_client()),
-            api_key: String::new(),
-            api_secret: String::new(),
-            referrer_domain: String::new(),
-            cached_token: Arc::new(Mutex::new(Some(CachedToken {
-                access_token: access_token.to_string(),
-                expires_at: SystemTime::now() + Duration::from_secs(3600),
-            }))),
+            access_token_cacher,
         }
     }
 
@@ -104,7 +97,7 @@ impl TransakClient {
             .into()
     }
 
-    pub async fn create_widget_url(&self, params: HashMap<String, Value>, ip_address: &str) -> Result<String, reqwest::Error> {
+    pub async fn create_widget_url(&self, params: HashMap<String, Value>, ip_address: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
         let access_token = self.get_access_token().await?;
         let request_body = CreateWidgetUrlRequest { params };
 
@@ -123,35 +116,9 @@ impl TransakClient {
         Ok(response.data.widget_url)
     }
 
-    fn build_widget_params(&self, quote: TransakQuote, data: &FiatQuoteUrlData) -> HashMap<String, Value> {
-        let sell_crypto_amount = quote.sell_crypto_amount(data.quote.fiat_amount);
-
-        let mut params: HashMap<String, Value> = HashMap::new();
-        params.insert("apiKey".to_string(), json!(self.api_key));
-        params.insert("referrerDomain".to_string(), json!(self.referrer_domain));
-        params.insert("partnerOrderId".to_string(), json!(data.quote.id));
-        params.insert("fiatCurrency".to_string(), json!(quote.fiat_currency));
-        params.insert("cryptoCurrencyCode".to_string(), json!(quote.crypto_currency));
-        params.insert("network".to_string(), json!(quote.network));
-        params.insert("disableWalletAddressForm".to_string(), json!(true));
-        params.insert("walletAddress".to_string(), json!(data.wallet_address));
-
-        match &data.quote.quote_type {
-            FiatQuoteType::Buy => {
-                params.insert("productsAvailed".to_string(), json!("BUY"));
-                params.insert("fiatAmount".to_string(), json!(data.quote.fiat_amount));
-            }
-            FiatQuoteType::Sell => {
-                params.insert("productsAvailed".to_string(), json!("SELL"));
-                params.insert("cryptoAmount".to_string(), json!(sell_crypto_amount));
-            }
-        }
-
-        params
-    }
-
-    pub async fn redirect_url(&self, quote: TransakQuote, data: &FiatQuoteUrlData) -> Result<String, reqwest::Error> {
-        self.create_widget_url(self.build_widget_params(quote, data), &data.ip_address).await
+    pub async fn redirect_url(&self, quote: TransakQuote, data: &FiatQuoteUrlData) -> Result<String, Box<dyn Error + Send + Sync>> {
+        self.create_widget_url(map_widget_params(&self.api_key, &self.referrer_domain, quote, data), &data.ip_address)
+            .await
     }
 
     pub async fn get_supported_assets(&self) -> Result<Response<Vec<Asset>>, reqwest::Error> {
@@ -171,23 +138,11 @@ impl TransakClient {
         self.client.request(Method::GET, "/fiat/public/v1/currencies/fiat-currencies").send().await?.json().await
     }
 
-    pub(super) async fn get_access_token(&self) -> Result<String, reqwest::Error> {
-        let mut token_guard = self.cached_token.lock().await;
-
-        if let Some(cached) = token_guard.as_ref()
-            && cached.is_valid()
-        {
-            return Ok(cached.access_token.clone());
-        }
-
-        let token: CachedToken = self.refresh_token_internal().await?.into();
-        let access_token = token.access_token.clone();
-        *token_guard = Some(token);
-
-        Ok(access_token)
+    pub(super) async fn get_access_token(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
+        self.access_token_cacher.get_or_refresh(Box::pin(self.refresh_access_token())).await
     }
 
-    async fn refresh_token_internal(&self) -> Result<TokenResponse, reqwest::Error> {
+    async fn refresh_access_token(&self) -> Result<(String, Duration), Box<dyn Error + Send + Sync>> {
         let path = format!("/partners/api/v2/refresh-token?apiKey={}", self.api_key);
         let body = serde_json::json!({
             "apiKey": self.api_key
@@ -203,52 +158,7 @@ impl TransakClient {
             .await?
             .json()
             .await?;
-        Ok(response.data)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use primitives::{Asset, Chain, FiatAssetSymbol, FiatProvider, FiatQuote};
-
-    #[test]
-    fn test_build_widget_params_uses_stored_quote_id_as_partner_order_id() {
-        let client = TransakClient::new_with_access_token("access_token");
-        let data = FiatQuoteUrlData {
-            quote: FiatQuote {
-                id: "stored_quote_id".to_string(),
-                asset: Asset::from_chain(Chain::Ethereum),
-                provider: FiatProvider::mock(FiatProviderName::Transak),
-                quote_type: FiatQuoteType::Buy,
-                fiat_amount: 100.0,
-                fiat_currency: "USD".to_string(),
-                crypto_amount: 0.03,
-                value: "30000000000000000".to_string(),
-                latency: 0,
-                payment_methods: vec![],
-            },
-            asset_symbol: FiatAssetSymbol {
-                symbol: "ETH".to_string(),
-                network: Some("ethereum".to_string()),
-            },
-            wallet_address: "0x123".to_string(),
-            ip_address: "192.0.2.1".to_string(),
-            locale: "en".to_string(),
-        };
-        let quote = TransakQuote {
-            quote_id: "provider_quote_id".to_string(),
-            fiat_amount: 100.0,
-            fiat_currency: "USD".to_string(),
-            crypto_currency: "ETH".to_string(),
-            crypto_amount: 0.03,
-            network: "ethereum".to_string(),
-            conversion_price: 0.0003,
-            total_fee: 1.0,
-        };
-
-        let params = client.build_widget_params(quote, &data);
-
-        assert_eq!(params.get("partnerOrderId"), Some(&json!("stored_quote_id")));
+        let expires_in = Duration::from_secs(response.data.expires_at.saturating_sub(UNIX_EPOCH.elapsed()?.as_secs()));
+        Ok((response.data.access_token, expires_in))
     }
 }

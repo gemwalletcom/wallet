@@ -1597,6 +1597,7 @@ dependencies = [
 name = "cacher"
 version = "2.114.11"
 dependencies = [
+ "gem_tracing",
  "primitives",
  "redis",
  "serde",
@@ -5945,7 +5946,7 @@ dependencies = [
  "pkcs5",
  "rand 0.10.2",
  "rc2",
- "sha1",
+ "sha1 0.10.7",
  "sha2 0.10.9",
  "thiserror 2.0.19",
  "x509-parser",
@@ -7741,6 +7742,7 @@ dependencies = [
  "serde",
  "serde_json",
  "settings",
+ "sha1 0.11.0",
  "sha2 0.11.0",
  "tokio",
  "uuid",
@@ -7972,6 +7974,17 @@ dependencies = [
  "cfg-if",
  "cpufeatures 0.2.17",
  "digest 0.10.7",
+]
+
+[[package]]
+name = "sha1"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aacc4cc499359472b4abe1bf11d0b12e688af9a805fa5e3016f9a386dc2d0214"
+dependencies = [
+ "cfg-if",
+ "cpufeatures 0.3.0",
+ "digest 0.11.3",
 ]
 
 [[package]]
@@ -9123,7 +9136,7 @@ dependencies = [
  "httparse",
  "log",
  "rand 0.8.7",
- "sha1",
+ "sha1 0.10.7",
  "thiserror 1.0.69",
  "url",
  "utf-8",

@@ -15,7 +15,9 @@ pub use webhook::FiatWebhookRequest;
 
 use crate::providers::{BanxaClient, FlashnetClient, MercuryoClient, MoonPayClient, PaybisClient, TransakClient};
 use gem_client::ReqwestClient;
+use primitives::AccessTokenCacher;
 use settings::Settings;
+use std::sync::Arc;
 use std::time::Duration;
 
 pub use client::FiatClient;
@@ -32,7 +34,7 @@ pub mod testkit;
 
 pub struct FiatProviderFactory {}
 impl FiatProviderFactory {
-    pub fn new_providers(settings: Settings) -> Vec<Box<dyn FiatProvider + Send + Sync>> {
+    pub fn new_providers(settings: Settings, access_token_cacher: Arc<dyn AccessTokenCacher>) -> Vec<Box<dyn FiatProvider + Send + Sync>> {
         let request_client = request_client(settings.fiat.timeout);
 
         let moonpay = MoonPayClient::new(
@@ -53,6 +55,7 @@ impl FiatProviderFactory {
             settings.fiat.transak.key.public,
             settings.fiat.transak.key.secret,
             settings.fiat.transak.referrer.domain,
+            access_token_cacher,
         );
         let banxa = BanxaClient::new(
             ReqwestClient::new(settings.fiat.banxa.api.url, request_client.clone()),
