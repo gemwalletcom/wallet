@@ -67,26 +67,15 @@ sealed class ConfirmParams() {
         val useMaxAmount: Boolean = false,
     ) {
         fun transfer(destination: GemRecipient, memo: String? = null, references: List<String> = emptyList()): TransferParams {
-            return when (asset.id.type()) {
-                AssetSubtype.NATIVE -> TransferParams.Native(
-                    asset = asset,
-                    from = from,
-                    amount = amount,
-                    destination = destination,
-                    memo = memo,
-                    references = references,
-                    useMaxAmount = useMaxAmount
-                )
-                AssetSubtype.TOKEN -> TransferParams.Token(
-                    asset = asset,
-                    from = from,
-                    amount = amount,
-                    destination = destination,
-                    memo = memo,
-                    references = references,
-                    useMaxAmount = useMaxAmount
-                )
-            }
+            return TransferParams.Transfer(
+                asset = asset,
+                from = from,
+                amount = amount,
+                destination = destination,
+                memo = memo,
+                references = references,
+                useMaxAmount = useMaxAmount,
+            )
         }
 
         fun deposit(
@@ -233,7 +222,7 @@ sealed class ConfirmParams() {
             }
 
         }
-        class Native(
+        class Transfer(
             override val asset: Asset,
             override val from: Account,
             override val amount: BigInteger,
@@ -243,17 +232,6 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean = false,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType = GemTransactionInputType.Transfer(asset.toGem())
-        }
-        class Token(
-            override val asset: Asset,
-            override val from: Account,
-            override val amount: BigInteger,
-            override val destination: GemRecipient,
-            override val memo: String? = null,
-            override val references: List<String> = emptyList(),
-            override val useMaxAmount: Boolean = false,
-        ) : TransferParams() {
-            override fun toDto(): GemTransactionInputType = Transfer(asset.toGem())
         }
         class Deposit(
             override val asset: Asset,

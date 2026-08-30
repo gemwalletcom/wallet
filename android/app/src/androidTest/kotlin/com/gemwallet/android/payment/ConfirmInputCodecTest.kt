@@ -42,8 +42,8 @@ class ConfirmInputCodecTest {
 
         val unpacked = ConfirmParams.unpack(requireNotNull(original.pack()))
 
-        assertTrue(unpacked is ConfirmParams.TransferParams.Token)
-        val params = unpacked as ConfirmParams.TransferParams.Token
+        assertTrue(unpacked is ConfirmParams.TransferParams.Transfer)
+        val params = unpacked as ConfirmParams.TransferParams.Transfer
         assertEquals(original.asset, params.asset)
         assertEquals(account, params.from)
         assertEquals(BigInteger("19000000"), params.amount)
@@ -137,8 +137,8 @@ class ConfirmInputCodecTest {
 
         val unpacked = ConfirmParams.unpack(requireNotNull(original.pack()))
 
-        assertTrue(unpacked is ConfirmParams.TransferParams.Native)
-        val params = unpacked as ConfirmParams.TransferParams.Native
+        assertTrue(unpacked is ConfirmParams.TransferParams.Transfer)
+        val params = unpacked as ConfirmParams.TransferParams.Transfer
         assertEquals(original.asset, params.asset)
         assertEquals(BigInteger.ONE, params.amount)
         assertEquals(null, params.memo)

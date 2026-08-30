@@ -56,7 +56,7 @@ class PaymentTransferTest {
         val params = (confirm as PaymentDestination.Confirm).params
         assertEquals(BigInteger("10000"), params.amount)
         assertEquals(BITCOIN_ADDRESS, params.destination()?.address)
-        assertTrue(params is ConfirmParams.TransferParams.Native)
+        assertTrue(params is ConfirmParams.TransferParams.Transfer)
     }
 
     @Test
