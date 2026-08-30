@@ -23,8 +23,9 @@ public actor HyperliquidObserverService: PerpetualObservable {
     public init(
         webSocketURL: URL,
         perpetualService: GemPerpetualService,
+        reconnection: any Reconnectable,
     ) {
-        let webSocket = WebSocketConnection(url: webSocketURL)
+        let webSocket = WebSocketConnection(url: webSocketURL, reconnection: reconnection)
         self.webSocket = webSocket
         chartService = ChartObserverService()
         self.perpetualService = perpetualService

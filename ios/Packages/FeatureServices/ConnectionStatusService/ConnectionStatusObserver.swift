@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemConnectionService
 import GemstonePrimitives
 import Observation
 import Primitives
@@ -7,6 +8,7 @@ import Primitives
 @Observable
 @MainActor
 public final class ConnectionStatusObserver {
+    private let connectionService: GemConnectionService
     private let monitors: [any ConnectionComponentMonitoring]
 
     public private(set) var isHealthyByComponent: [ConnectionComponent: Bool] = [:] {
@@ -19,7 +21,11 @@ public final class ConnectionStatusObserver {
 
     @ObservationIgnored private var tasks: [Task<Void, Never>] = []
 
-    public nonisolated init(monitors: [any ConnectionComponentMonitoring] = [InternetConnectionMonitor()]) {
+    public nonisolated init(
+        connectionService: GemConnectionService,
+        monitors: [any ConnectionComponentMonitoring],
+    ) {
+        self.connectionService = connectionService
         self.monitors = monitors
     }
 
@@ -44,7 +50,7 @@ public final class ConnectionStatusObserver {
     }
 
     func update(component: ConnectionComponent, isHealthy: Bool) {
-        if component == .internet, isHealthy, isHealthyByComponent[.internet] == false {
+        if connectionService.resetsComponentHealth(component: component.json(), isHealthy: isHealthy, wasHealthy: isHealthyByComponent[component]) {
             isHealthyByComponent = [:]
         }
         isHealthyByComponent[component] = isHealthy

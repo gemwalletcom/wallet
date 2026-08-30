@@ -17,7 +17,8 @@ public struct ConnectivityMonitorMock: ConnectivityMonitoring {
 public extension ConnectivityService {
     static func mock(
         monitor: any ConnectivityMonitoring = ConnectivityMonitorMock(),
+        offlineDebounce: Duration = .zero,
     ) -> ConnectivityService {
-        ConnectivityService(monitor: monitor)
+        ConnectivityService(monitor: monitor, offlineDebounce: offlineDebounce)
     }
 }

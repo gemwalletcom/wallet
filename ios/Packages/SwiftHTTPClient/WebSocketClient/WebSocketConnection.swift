@@ -18,8 +18,8 @@ public actor WebSocketConnection: WebSocketConnectable {
         self.configuration = configuration
     }
 
-    public init(url: URL) {
-        self.init(configuration: WebSocketConfiguration(url: url))
+    public init(url: URL, reconnection: any Reconnectable) {
+        self.init(configuration: WebSocketConfiguration(url: url, reconnection: reconnection))
     }
 
     deinit {
@@ -234,11 +234,11 @@ public actor WebSocketConnection: WebSocketConnectable {
         state = .reconnecting
         continuation?.yield(.disconnected(error))
 
-        let delay = configuration.reconnection.reconnectAfter(attempt: reconnectAttempt)
+        let delay = configuration.reconnection.reconnectDelayMilliseconds(attempt: UInt32(clamping: reconnectAttempt))
         reconnectAttempt += 1
 
         reconnectTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(delay))
+            try? await Task.sleep(for: .milliseconds(delay))
             await self?.finishReconnect()
         }
     }

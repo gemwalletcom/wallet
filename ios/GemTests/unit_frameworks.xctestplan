@@ -212,13 +212,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Packages\/SwiftHTTPClient",
-        "identifier": "WebSocketClientTests",
-        "name": "WebSocketClientTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Packages\/PrimitivesComponents",
         "identifier": "PrimitivesComponentsTests",
         "name": "PrimitivesComponentsTests"

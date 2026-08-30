@@ -14,6 +14,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import uniffi.gemstone.GemConnectionService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
@@ -38,7 +39,7 @@ interface WebSocketConnectable {
 class WebSocketConnection(
     private val requestProvider: suspend () -> WebSocketRequest,
     client: OkHttpClient,
-    private val reconnection: ExponentialReconnection = ExponentialReconnection(),
+    private val connectionService: GemConnectionService,
     private val pingInterval: Long = PING_INTERVAL_MS,
 ) : WebSocketConnectable {
     private val client = client.newBuilder()
@@ -59,7 +60,7 @@ class WebSocketConnection(
                 }
             }.onFailure { Log.e(TAG, "Connection error", it) }
             send(WebSocketEvent.Disconnected)
-            delay(reconnection.reconnectAfterMs(reconnectAttempt))
+            delay(connectionService.reconnectDelayMilliseconds(reconnectAttempt.toUInt()).toLong())
             reconnectAttempt++
         }
     }

@@ -12,10 +12,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapLatest
+import uniffi.gemstone.GemConnectionService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class InternetConnectionMonitor(
     private val context: Context,
+    private val connectionService: GemConnectionService,
 ) : ConnectionComponentMonitor {
 
     override val component: ConnectionComponent = ConnectionComponent.Internet
@@ -37,7 +39,7 @@ class InternetConnectionMonitor(
     }
         .mapLatest { isHealthy ->
             if (!isHealthy) {
-                delay(OFFLINE_DEBOUNCE_MILLISECONDS)
+                delay(connectionService.offlineDebounceMilliseconds().toLong())
             }
             isHealthy
         }
@@ -50,9 +52,5 @@ class InternetConnectionMonitor(
     private fun NetworkCapabilities.isHealthy(): Boolean {
         return hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             && hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-    }
-
-    private companion object {
-        const val OFFLINE_DEBOUNCE_MILLISECONDS = 500L
     }
 }

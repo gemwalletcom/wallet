@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemConnectionService
 import javax.inject.Singleton
 
 @Module
@@ -18,9 +19,11 @@ object ConnectionModule {
     @Singleton
     fun provideConnectionStatusObserver(
         @ApplicationContext context: Context,
+        connectionService: GemConnectionService,
     ): ConnectionStatusObserver = ConnectionStatusObserver(
         monitors = listOf(
-            InternetConnectionMonitor(context),
+            InternetConnectionMonitor(context, connectionService),
         ),
+        connectionService = connectionService,
     )
 }

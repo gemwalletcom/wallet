@@ -64,9 +64,11 @@ struct ServicesFactory {
         )
 
         let nodeProvider: any NodeURLProvidable = nodeService
+        let connectionService = Gemstone.GemConnectionService()
         let connectionStatusObserver = ConnectionStatusObserver(
+            connectionService: connectionService,
             monitors: [
-                InternetConnectionMonitor(),
+                InternetConnectionMonitor(connectionService: connectionService),
             ],
         )
         let gemApiClient = Gemstone.GemApiClient(provider: nativeProvider, baseUrl: Constants.apiURL.absoluteString)
@@ -122,7 +124,7 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
             preferences: observablePreferences,
         )
-        let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService)
+        let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
         let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
         let streamSubscriptionService = Gemstone.GemStreamSubscriptionService(
             price: gemPriceService,
@@ -268,6 +270,7 @@ struct ServicesFactory {
         let hyperliquidObserverService = HyperliquidObserverService(
             webSocketURL: nodeService.webSocketNode(for: .hyperCore) ?? Chain.hyperCore.defaultBaseUrl,
             perpetualService: perpetualService,
+            reconnection: connectionService,
         )
 
         let gemNameService = Gemstone.GemNameService(api: gemDeviceApiClient, store: gemAddressStore)
@@ -473,9 +476,9 @@ extension ServicesFactory {
         )
     }
 
-    private static func makeWebSocket(deviceKeyService: GemDeviceKeyService) -> any WebSocketConnectable {
+    private static func makeWebSocket(deviceKeyService: GemDeviceKeyService, reconnection: any Reconnectable) -> any WebSocketConnectable {
         let requestProvider = AuthenticatedRequestProvider(deviceKeyService: deviceKeyService)
-        let configuration = WebSocketConfiguration(requestProvider: requestProvider)
+        let configuration = WebSocketConfiguration(requestProvider: requestProvider, reconnection: reconnection)
         return WebSocketConnection(configuration: configuration)
     }
 }

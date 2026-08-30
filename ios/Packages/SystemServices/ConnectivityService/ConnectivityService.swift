@@ -3,9 +3,8 @@
 import Foundation
 
 public actor ConnectivityService {
-    private static let offlineDebounce: Duration = .milliseconds(500)
-
     private let monitor: any ConnectivityMonitoring
+    private let offlineDebounce: Duration
     
     private var state: ConnectivityState = .unknown
 
@@ -13,8 +12,9 @@ public actor ConnectivityService {
     private var monitorTask: Task<Void, Never>?
     private var offlineTask: Task<Void, Never>?
 
-    public init(monitor: any ConnectivityMonitoring = ConnectivityMonitor()) {
+    public init(monitor: any ConnectivityMonitoring = ConnectivityMonitor(), offlineDebounce: Duration) {
         self.monitor = monitor
+        self.offlineDebounce = offlineDebounce
     }
 
     deinit {
@@ -57,9 +57,10 @@ public actor ConnectivityService {
             updateState(state)
             return
         }
+        let debounce = offlineDebounce
         offlineTask = Task { [weak self] in
             do {
-                try await Task.sleep(for: ConnectivityService.offlineDebounce)
+                try await Task.sleep(for: debounce)
                 await self?.updateState(state)
             } catch {}
         }

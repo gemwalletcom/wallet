@@ -9,6 +9,7 @@ import uniffi.gemstone.GemAmountService
 import uniffi.gemstone.BalanceCalculator
 import uniffi.gemstone.GemApplicationMetadataService
 import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemFeeService
 import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemReceiveService
@@ -18,6 +19,7 @@ import uniffi.gemstone.GemSimulationFormatter
 import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.GemTransactionFormatter
 import uniffi.gemstone.GemTransferService
+import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -43,6 +45,10 @@ object RulesModule {
     @Provides
     @Singleton
     fun provideGemAssetConfigService(): GemAssetConfigService = GemAssetConfigService()
+
+    @Provides
+    @Singleton
+    fun provideGemConnectionService(): GemConnectionService = GemConnectionService()
 
     @Provides
     @Singleton
@@ -75,4 +81,8 @@ object RulesModule {
     @Provides
     @Singleton
     fun provideGemTransferService(): GemTransferService = GemTransferService()
+
+    @Provides
+    @Singleton
+    fun providePriceAlertFormatter(): PriceAlertFormatter = PriceAlertFormatter()
 }

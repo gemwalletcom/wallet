@@ -6,7 +6,6 @@ import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.data.services.gemstone.assets.AssetsAvailabilityService
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.stream.ExponentialReconnection
 import com.gemwallet.android.data.services.gemstone.stream.StreamObserverService
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnection
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketRequest
@@ -19,6 +18,7 @@ import uniffi.gemstone.GemDeviceRequestSigner
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePortfolioStore
 import uniffi.gemstone.GemApiClient
+import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetsService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBalanceStore
@@ -111,6 +111,7 @@ object AssetsModule {
     fun provideStreamConnection(
         deviceRequestSigner: Lazy<GemDeviceRequestSigner>,
         okHttpClient: OkHttpClient,
+        connectionService: GemConnectionService,
     ): WebSocketConnectable = WebSocketConnection(
         client = okHttpClient,
         requestProvider = {
@@ -119,7 +120,7 @@ object AssetsModule {
                 headers = mapOf("Authorization" to deviceRequestSigner.get().sign("GET", Constants.DEVICE_STREAM_PATH, "", ByteArray(0))),
             )
         },
-        reconnection = ExponentialReconnection(maxDelay = 30.0),
+        connectionService = connectionService,
     )
 
     @Provides

@@ -77,6 +77,7 @@ let package = Package(
             dependencies: [
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "AppService",
+                "Gemstone",
                 "Primitives",
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
@@ -93,6 +94,7 @@ let package = Package(
             name: "ConnectionStatusService",
             dependencies: [
                 "Primitives",
+                "Gemstone",
                 "GemstonePrimitives",
                 .product(name: "ConnectivityService", package: "SystemServices"),
             ],
@@ -103,6 +105,7 @@ let package = Package(
             name: "ConnectionStatusServiceTests",
             dependencies: [
                 "ConnectionStatusService",
+                "Gemstone",
                 .product(name: "ConnectivityService", package: "SystemServices"),
             ],
             path: "ConnectionStatusService/Tests",

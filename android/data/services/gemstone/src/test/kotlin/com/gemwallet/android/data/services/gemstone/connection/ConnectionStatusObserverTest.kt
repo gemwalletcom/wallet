@@ -15,6 +15,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.connectionStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -37,7 +38,7 @@ class ConnectionStatusObserverTest {
 
     @Test
     fun testUpdateComponent() = runTest {
-        val observer = ConnectionStatusObserver(emptyList(), CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        val observer = ConnectionStatusObserver(emptyList(), GemConnectionService(), CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
 
         assertEquals(ConnectionStatus.Online, observer.status.value)
 
@@ -54,7 +55,7 @@ class ConnectionStatusObserverTest {
 
     @Test
     fun testInternetRecoveryResetsComponents() = runTest {
-        val observer = ConnectionStatusObserver(emptyList(), CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        val observer = ConnectionStatusObserver(emptyList(), GemConnectionService(), CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
 
         observer.update(ConnectionComponent.Internet, isHealthy = false)
         observer.update(ConnectionComponent.Api, isHealthy = false)
@@ -68,7 +69,7 @@ class ConnectionStatusObserverTest {
 
     @Test
     fun testInternetHealthyDoesNotResetComponents() = runTest {
-        val observer = ConnectionStatusObserver(emptyList(), CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        val observer = ConnectionStatusObserver(emptyList(), GemConnectionService(), CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
 
         observer.update(ConnectionComponent.Internet, isHealthy = true)
         observer.update(ConnectionComponent.Api, isHealthy = false)
