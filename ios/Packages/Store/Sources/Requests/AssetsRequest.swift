@@ -205,3 +205,26 @@ extension AssetsRequest {
 }
 
 extension AssetsRequest: Equatable {}
+
+extension AssetsRequestFilter {
+    var referencesBalances: Bool {
+        switch self {
+        case .hasBalance,
+             .hasAvailableBalance,
+             .enabledBalance,
+             .disabledBalance:
+            true
+        case let .search(_, hasPriorityAssets):
+            hasPriorityAssets
+        case .enabled,
+             .buyable,
+             .sellable,
+             .swappable,
+             .stakeable,
+             .chains,
+             .chainsOrAssets,
+             .priceAlerts:
+            false
+        }
+    }
+}

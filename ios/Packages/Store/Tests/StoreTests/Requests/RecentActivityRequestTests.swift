@@ -59,4 +59,36 @@ struct RecentActivityRequestTests {
             #expect(chains.first?.asset.id == eth)
         }
     }
+
+    @Test
+    func fetchRecentAssetsWithSwapPayFilters() throws {
+        let db = DB.mockAssets()
+        let store = RecentActivityStore(db: db)
+        let balanceStore = BalanceStore(db: db)
+        let btc = AssetId(chain: .bitcoin)
+        let bnb = AssetId(chain: .smartChain)
+        let eth = AssetId(chain: .ethereum)
+        let walletId = WalletId.mock()
+
+        try store.add(assetId: btc, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
+        try store.add(assetId: bnb, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
+        try store.add(assetId: eth, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
+        try balanceStore.setIsEnabled(walletId: walletId, assetIds: [eth], value: false)
+
+        try db.dbQueue.read { db in
+            let swapPay = try RecentActivityRequest(
+                walletId: walletId,
+                limit: 10,
+                filters: [.enabled, .swappable, .hasAvailableBalance],
+            ).fetch(db)
+            let disabledBalance = try RecentActivityRequest(
+                walletId: walletId,
+                limit: 10,
+                filters: [.disabledBalance],
+            ).fetch(db)
+
+            #expect(Set(swapPay.map(\.asset.id)) == Set([bnb, eth]))
+            #expect(disabledBalance.map(\.asset.id) == [eth])
+        }
+    }
 }
