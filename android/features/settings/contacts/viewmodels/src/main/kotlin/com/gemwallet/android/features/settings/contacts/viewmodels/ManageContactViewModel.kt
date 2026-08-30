@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemContactAvatar
+import uniffi.gemstone.GemRecipientService
 import java.util.UUID
 import javax.inject.Inject
 
@@ -43,6 +44,7 @@ class ManageContactViewModel @Inject constructor(
     private val saveContactCase: SaveContact,
     private val addContactAddress: AddContactAddress,
     @param:ApplicationContext private val context: Context,
+    private val recipientService: GemRecipientService,
     getNameRecord: GetNameRecord,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -61,6 +63,7 @@ class ManageContactViewModel @Inject constructor(
 
     private val addressInput = AddressInputModel(
         getNameRecord = getNameRecord,
+        recipientService = recipientService,
         scope = viewModelScope,
     )
 

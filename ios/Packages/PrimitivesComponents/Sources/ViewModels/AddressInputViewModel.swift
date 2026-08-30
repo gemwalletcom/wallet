@@ -17,7 +17,7 @@ import Validators
 public final class AddressInputViewModel {
     let placeholder: String
     public let nameRecordViewModel: NameRecordViewModel
-    private let recipientService = GemRecipientService()
+    private let recipientService: GemRecipientService
 
     public var chain: Chain {
         didSet { onChangeChain() }
@@ -34,6 +34,7 @@ public final class AddressInputViewModel {
         self.chain = chain
         self.placeholder = placeholder
         nameRecordViewModel = NameRecordViewModel(nameService: nameService)
+        recipientService = nameService.recipients()
         inputModel = InputValidationViewModel(
             mode: .manual,
             validators: validators,

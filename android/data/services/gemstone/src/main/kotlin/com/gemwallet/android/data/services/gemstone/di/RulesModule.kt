@@ -9,6 +9,7 @@ import uniffi.gemstone.GemAmountService
 import uniffi.gemstone.GemApplicationMetadataService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemFeeService
+import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemRecipientService
 import uniffi.gemstone.GemSimulationFormatter
 import uniffi.gemstone.GemSwapQuoteService
@@ -42,7 +43,7 @@ object RulesModule {
 
     @Provides
     @Singleton
-    fun provideGemRecipientService(): GemRecipientService = GemRecipientService()
+    fun provideGemRecipientService(nameService: GemNameService): GemRecipientService = nameService.recipients()
 
     @Provides
     @Singleton

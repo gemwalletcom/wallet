@@ -18,7 +18,6 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
-import class Gemstone.GemRecipientService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemFeeService
@@ -63,7 +62,6 @@ public struct ViewModelFactory: Sendable {
     let feeService: GemFeeService
     let simulationFormatter: GemSimulationFormatter
     let assetConfig: GemAssetConfigService
-    let recipientService: GemRecipientService
 
     @MainActor
     public func selectAssetScene(
@@ -160,7 +158,6 @@ public struct ViewModelFactory: Sendable {
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
-            recipientService: recipientService,
         )
     }
 

@@ -50,7 +50,6 @@ public final class RecipientSceneViewModel {
         recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
-        recipientService: GemRecipientService,
     ) {
         self.wallet = wallet
         self.asset = asset
@@ -59,7 +58,7 @@ public final class RecipientSceneViewModel {
         self.type = type
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
-        self.recipientService = recipientService
+        recipientService = nameService.recipients()
 
         addressInputModel = AddressInputViewModel(
             chain: asset.chain,

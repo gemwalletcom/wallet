@@ -8,6 +8,7 @@ use primitives::name::NameRecord;
 use primitives::{AddressName, Chain, ChainAddress};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::services::recipient::GemRecipientService;
 
 pub use store::GemAddressStore;
 
@@ -15,13 +16,22 @@ pub use store::GemAddressStore;
 pub struct GemNameService {
     api: Arc<GemDeviceApiClient>,
     store: Arc<dyn GemAddressStore>,
+    recipients: Arc<GemRecipientService>,
 }
 
 #[uniffi::export]
 impl GemNameService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemAddressStore>) -> Self {
-        Self { api, store }
+        Self {
+            api,
+            store,
+            recipients: Arc::new(GemRecipientService::new()),
+        }
+    }
+
+    pub fn recipients(&self) -> Arc<GemRecipientService> {
+        self.recipients.clone()
     }
 
     pub fn is_name_supported(&self, name: String) -> bool {

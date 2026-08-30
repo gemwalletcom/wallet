@@ -81,6 +81,7 @@ class RecipientViewModel @Inject constructor(
 
     private val addressInput = AddressInputModel(
         getNameRecord = getNameRecord,
+        recipientService = recipientService,
         scope = viewModelScope,
     )
 

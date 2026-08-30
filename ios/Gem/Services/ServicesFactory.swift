@@ -357,7 +357,6 @@ struct ServicesFactory {
             feeService: Gemstone.GemFeeService(),
             simulationFormatter: Gemstone.GemSimulationFormatter(),
             assetConfig: Gemstone.GemAssetConfigService(),
-            recipientService: Gemstone.GemRecipientService(),
         )
 
         return AppResolver.Services(

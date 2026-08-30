@@ -16,11 +16,11 @@ import uniffi.gemstone.GemRecipientValidation
 
 class AddressInputModel(
     private val getNameRecord: GetNameRecord,
+    private val recipientService: GemRecipientService,
     scope: CoroutineScope,
     initialChain: Chain? = null,
 ) {
     private val nameRecordController = NameRecordController(getNameRecord, scope)
-    private val recipientService = GemRecipientService()
     private val _text = MutableStateFlow("")
     private val _showError = MutableStateFlow(false)
     private val _chain = MutableStateFlow(initialChain)

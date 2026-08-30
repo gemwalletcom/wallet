@@ -309,6 +309,7 @@ public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendab
 }
 
 public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendable {
+    private let recipientService = GemRecipientService()
     private let addressNames: [Primitives.AddressName]
     private let nameRecord: Primitives.NameRecord?
     private let error: Error?
@@ -328,6 +329,10 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 
     public func isNameSupported(name: String) -> Bool {
         name.split(separator: ".").count >= 2
+    }
+
+    public func recipients() -> GemRecipientService {
+        recipientService
     }
 
     public func getAddressNames(requests: [Gemstone.ChainAddress]) async throws -> [Gemstone.AddressName] {
