@@ -4,6 +4,6 @@ mod keystore;
 mod tests;
 mod types;
 
-pub use keystore::GemKeystore;
 pub(crate) use keystore::keystore_id_for_wallet;
+pub use keystore::{GemKeystore, decode_password};
 pub use types::{GemImportType, GemKeystoreAccount, GemStoredSecretMigration, GemStoredWallet, GemWalletImport, GemWalletType};

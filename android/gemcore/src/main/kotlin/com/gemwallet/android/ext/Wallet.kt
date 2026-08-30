@@ -26,8 +26,6 @@ fun WalletType.toGem(): GemWalletType = when (this) {
     WalletType.View -> GemWalletType.VIEW
 }
 
-fun String.v4KeystorePasswordBytes(): ByteArray = fromHex()
-
 val Wallet.hyperliquidAccount: Account?
     get() = accounts.firstOrNull {
         it.chain == Chain.Arbitrum || it.chain == Chain.HyperCore || it.chain == Chain.Hyperliquid

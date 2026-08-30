@@ -28,7 +28,7 @@ class KeystorePasswordStoreTest {
 
         val password = GemstoneKeystorePassword(passwordStore).getPassword(LEGACY_WALLET_ID, false)
 
-        assertArrayEquals(byteArrayOf(1, 2), password)
+        assertEquals(LEGACY_WALLET_PASSWORD, password)
         assertEquals(0, passwordStore.createdPasswords)
     }
 
@@ -40,8 +40,8 @@ class KeystorePasswordStoreTest {
         val first = keystorePassword.getPassword(FIRST_NEW_WALLET_ID, true)
         val second = keystorePassword.getPassword(SECOND_NEW_WALLET_ID, true)
 
-        assertArrayEquals(byteArrayOf(3, 4), first)
-        assertArrayEquals(first, second)
+        assertEquals(APP_PASSWORD, first)
+        assertEquals(first, second)
         assertEquals(1, passwordStore.createdPasswords)
         assertEquals(APP_PASSWORD, passwordStore.getPassword(PasswordStore.Keys.Password.key))
         assertEquals(APP_PASSWORD, passwordStore.getPassword(FIRST_NEW_WALLET_ID))
@@ -56,7 +56,7 @@ class KeystorePasswordStoreTest {
 
         val password = GemstoneKeystorePassword(passwordStore).getPassword(FIRST_NEW_WALLET_ID, false)
 
-        assertArrayEquals(byteArrayOf(3, 4), password)
+        assertEquals(APP_PASSWORD, password)
         assertFalse(passwordStore.contains(FIRST_NEW_WALLET_ID))
     }
 

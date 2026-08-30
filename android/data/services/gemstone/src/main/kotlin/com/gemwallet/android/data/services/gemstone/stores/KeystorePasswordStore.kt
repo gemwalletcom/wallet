@@ -2,14 +2,13 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.application.PasswordNotFoundException
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.ext.v4KeystorePasswordBytes
 import uniffi.gemstone.GemKeystorePassword
 
 class GemstoneKeystorePassword(
     private val passwordStore: PasswordStore,
 ) : GemKeystorePassword {
 
-    override fun getPassword(walletId: String, createIfMissing: Boolean): ByteArray {
+    override fun getPassword(walletId: String, createIfMissing: Boolean): String {
         val password = try {
             passwordStore.getPassword(walletId)
         } catch (_: PasswordNotFoundException) {
@@ -24,6 +23,6 @@ class GemstoneKeystorePassword(
                 passwordStore.getPassword(passwordKey)
             }
         }
-        return password.v4KeystorePasswordBytes()
+        return password
     }
 }

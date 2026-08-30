@@ -4,6 +4,7 @@ pub mod rules;
 pub mod store;
 
 use crate::clock::unix_seconds;
+use crate::keystore::decode_password;
 use std::sync::Arc;
 
 use primitives::{Asset, Wallet};
@@ -120,6 +121,7 @@ impl GemSwapService {
         let password = self
             .password
             .get_password(wallet.id.clone(), false)
+            .map(|password| decode_password(&password))
             .map_err(|error| SwapperError::TransactionError(error.to_string()))?;
         let signature = signer
             .sign_with_keystore(self.keystore.clone(), keystore_id_for_wallet(wallet.id.id()), password)

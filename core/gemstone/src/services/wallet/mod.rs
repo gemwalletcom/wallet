@@ -9,6 +9,7 @@ use std::sync::Arc;
 use gem_keystore::Mnemonic;
 use primitives::{Account, Chain, Wallet, WalletId, WalletSource, WalletType};
 
+use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, GemWalletType, keystore_id_for_wallet};
 use crate::services::error::GemServiceError;
 use crate::services::file::GemFileStore;
@@ -86,7 +87,7 @@ impl GemWalletService {
                 ..rules::view_wallet(name, chain, address)
             },
             import => {
-                let password = self.password.get_password(wallet_id.clone(), !self.keystore.has_stored_wallets()?)?;
+                let password = decode_password(&self.password.get_password(wallet_id.clone(), !self.keystore.has_stored_wallets()?)?);
                 let stored = self.keystore.create_store(keystore_import(import), password)?;
                 Wallet {
                     id: wallet_id,
@@ -143,7 +144,7 @@ impl GemWalletService {
         }
         let mut updated = Vec::new();
         for (mut wallet, missing) in candidates {
-            let password = self.password.get_password(wallet.id.clone(), false)?;
+            let password = decode_password(&self.password.get_password(wallet.id.clone(), false)?);
             let accounts = self.keystore.add_accounts(keystore_id_for_wallet(wallet.id.id()), password, missing)?;
             wallet.accounts.extend(accounts.into_iter().map(rules::account));
             self.store.add_wallet(wallet.clone()).await?;

@@ -11,7 +11,7 @@ public final class GemstoneKeystorePassword: GemKeystorePassword, @unchecked Sen
         self.keystore = keystore
     }
 
-    public func getPassword(walletId _: Gemstone.WalletId, createIfMissing: Bool) throws -> Data {
+    public func getPassword(walletId _: Gemstone.WalletId, createIfMissing: Bool) throws -> String {
         try keystore.keystorePassword(createIfMissing: createIfMissing)
     }
 }

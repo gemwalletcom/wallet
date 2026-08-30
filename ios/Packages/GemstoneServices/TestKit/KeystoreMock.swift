@@ -12,8 +12,8 @@ import PrimitivesTestKit
 public struct KeystoreMock: Keystore {
     public init() {}
 
-    public func keystorePassword(createIfMissing _: Bool) throws -> Data {
-        Data()
+    public func keystorePassword(createIfMissing _: Bool) throws -> String {
+        ""
     }
 
     public func migrateV3Keystores(for _: [Primitives.Wallet]) throws -> [KeystoreMigrationFailure] {

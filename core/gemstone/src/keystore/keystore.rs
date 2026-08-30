@@ -139,6 +139,10 @@ impl GemKeystore {
         Ok(!self.inner.list()?.is_empty())
     }
 
+    pub fn decode_password(&self, password: String) -> Vec<u8> {
+        decode_password(&password)
+    }
+
     pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
         GemChainSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }
@@ -426,5 +430,25 @@ mod migration_tests {
         assert_eq!(keystore.export_recovery_phrase(keystore_id, NEW_PASSWORD.to_vec()).unwrap().join(" "), EXPECTED_PHRASE);
 
         let _ = std::fs::remove_dir_all(&base);
+    }
+}
+
+pub fn decode_password(password: &str) -> Vec<u8> {
+    hex::decode(password.strip_prefix("0x").unwrap_or(password)).unwrap_or_else(|_| password.as_bytes().to_vec())
+}
+
+#[cfg(test)]
+mod password_tests {
+    use super::decode_password;
+
+    #[test]
+    fn test_password_decodes_as_hex_and_falls_back_to_utf8_for_legacy_wallets() {
+        assert_eq!(decode_password("000102"), vec![0x00, 0x01, 0x02]);
+        assert_eq!(decode_password("0x000102"), vec![0x00, 0x01, 0x02]);
+
+        // Wallets created before the hex generator stored a UUID, which WalletCore consumed as raw utf8.
+        let legacy = "9B2D3F14-7C58-4A21-93E0-5D6F8A0C1E77";
+        assert_eq!(decode_password(legacy), legacy.as_bytes());
+        assert_eq!(decode_password("abc"), b"abc", "odd-length hex is not hex");
     }
 }

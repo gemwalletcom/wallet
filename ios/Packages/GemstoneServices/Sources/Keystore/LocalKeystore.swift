@@ -34,17 +34,17 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         self.keystorePassword = keystorePassword
     }
 
-    public func keystorePassword(createIfMissing: Bool) throws -> Data {
+    public func keystorePassword(createIfMissing: Bool) throws -> String {
         let password = try keystorePassword.getPassword()
         if password.isNotEmpty {
-            return try password.v4KeystorePasswordBytes()
+            return password
         }
         guard createIfMissing, try !gemKeystore.hasStoredWallets() else {
             throw KeystoreError.missingPassword
         }
         let newPassword = try SecureRandom.generateKey(length: 32).hex
         try keystorePassword.setPassword(newPassword, authentication: .none)
-        return try newPassword.v4KeystorePasswordBytes()
+        return newPassword
     }
 
     public func migrateV3Keystores(for wallets: [Primitives.Wallet]) async throws -> [KeystoreMigrationFailure] {
@@ -88,7 +88,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
         let chain = try Primitives.Asset(transferService.asset(inputType: input.input.inputType)).id.chain.rawValue
         return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(password) { passwordBytes in
+            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try gemKeystore.sign(keystoreId: keystoreId, chain: chain, input: input, password: passwordBytes)
             }
         }
@@ -98,7 +98,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         let password = try await getPassword()
         let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
         return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(password) { passwordBytes in
+            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try signer.signWithKeystore(keystore: gemKeystore, keystoreId: keystoreId, password: passwordBytes)
             }
         }
@@ -107,7 +107,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     public func getPrivateKeyEncoded(wallet: Primitives.Wallet, chain: Primitives.Chain) async throws -> String {
         let password = try await getPassword()
         return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(password) { passwordBytes in
+            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try gemKeystore.exportPrivateKey(
                     keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id),
                     chain: chain.rawValue,
@@ -120,7 +120,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     public func getMnemonic(wallet: Primitives.Wallet) async throws -> [String] {
         let password = try await getPassword()
         return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(password) { passwordBytes in
+            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try gemKeystore.exportRecoveryPhrase(
                     keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id),
                     password: passwordBytes,
@@ -162,7 +162,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     private func migrateV3Keystore(wallet: Primitives.Wallet, v3URL: URL, password: String) async throws {
         try await queue.asyncTask { [gemKeystore] in
             var v3Password = password.v3PasswordBytes()
-            var newPassword = try password.v4KeystorePasswordBytes()
+            var newPassword = gemKeystore.decodePassword(password: password)
             defer {
                 v3Password.zeroize()
                 newPassword.zeroize()
@@ -205,13 +205,14 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
 }
 
 func withV4Password<T>(
+    keystore: Gemstone.GemKeystore,
     _ password: String,
     _ operation: (Data) throws -> T,
 ) throws -> T {
     guard password.isNotEmpty else {
         throw KeystoreError.missingPassword
     }
-    var passwordBytes = try password.v4KeystorePasswordBytes()
+    var passwordBytes = keystore.decodePassword(password: password)
     defer { passwordBytes.zeroize() }
     return try operation(passwordBytes)
 }

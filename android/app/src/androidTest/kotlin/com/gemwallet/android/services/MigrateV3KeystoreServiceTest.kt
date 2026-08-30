@@ -6,7 +6,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.gemstone.GemMigrateKeystoreOperator
 import com.gemwallet.android.application.wallet.cases.GetWallets
-import com.gemwallet.android.ext.v4KeystorePasswordBytes
 import com.gemwallet.android.testkit.KEYSTORE_TEST_ETH_ADDRESS
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD
 import com.gemwallet.android.testkit.includeGemstoneLibs
@@ -39,7 +38,7 @@ class MigrateV3KeystoreServiceTest {
 
     private fun loadKey(wallet: Wallet, chain: Chain, password: String): String =
         uniffi.gemstone.GemKeystore(baseDir.toString()).use {
-            it.exportPrivateKey(it.keystoreId(wallet.id.id), chain.string, password.v4KeystorePasswordBytes()).removePrefix("0x")
+            it.exportPrivateKey(it.keystoreId(wallet.id.id), chain.string, it.decodePassword(password)).removePrefix("0x")
         }
 
     @Before
