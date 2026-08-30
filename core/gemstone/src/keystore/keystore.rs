@@ -5,7 +5,7 @@ use gem_derivation::{
     derive_account_from_private_key, derive_account_from_private_key_value, derive_accounts_from_mnemonic, derive_private_key_from_mnemonic, derive_wallet_id_from_account,
     import_account_from_private_key,
 };
-use gem_keystore::{FileKeystore, KeystoreError, KeystoreId, SecretKind};
+use gem_keystore::{FileKeystore, Keystore, KeystoreError, KeystoreId, SecretKind};
 use primitives::{Account, Chain, WalletId, WalletType};
 use signer::encode_private_key;
 use zeroize::Zeroizing;
@@ -79,8 +79,8 @@ impl GemKeystore {
 
     pub fn add_accounts(&self, keystore_id: String, password: Vec<u8>, chains: Vec<Chain>) -> Result<Vec<GemKeystoreAccount>, GemstoneError> {
         let password = Zeroizing::new(password);
-        let phrase = match self.inner.decrypt_mnemonic_with_meta(&keystore_id, &password) {
-            Ok((_meta, phrase)) => phrase,
+        let phrase = match self.inner.decrypt_mnemonic(&keystore_id, &password) {
+            Ok(phrase) => phrase,
             Err(KeystoreError::CorruptFile(message)) if message == "stored secret is not a mnemonic" => {
                 return Err(GemstoneError::from("add_accounts does not support private-key wallets"));
             }
