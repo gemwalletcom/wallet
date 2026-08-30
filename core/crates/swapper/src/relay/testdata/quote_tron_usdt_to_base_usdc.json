@@ -1,0 +1,64 @@
+{
+  "steps": [
+    {
+      "id": "approve",
+      "kind": "transaction",
+      "items": [
+        {
+          "data": {
+            "parameter": {
+              "owner_address": "41f70da97812cb96acdf810712aa562db8dfa3dbef",
+              "contract_address": "41a614f803b6fd780986a42c78ec9c7f77e6ded13c",
+              "call_value": 0,
+              "data": "095ea7b3000000000000000000000000f0623e1012177482912fb057e44e1a9769b1f58800000000000000000000000000000000000000000000000000000000000f4240"
+            },
+            "type": "TriggerSmartContract"
+          }
+        }
+      ]
+    },
+    {
+      "id": "deposit",
+      "kind": "transaction",
+      "items": [
+        {
+          "data": {
+            "parameter": {
+              "owner_address": "41f70da97812cb96acdf810712aa562db8dfa3dbef",
+              "contract_address": "41f0623e1012177482912fb057e44e1a9769b1f588",
+              "data": "e8017952000000000000000000000000f70da97812cb96acdf810712aa562db8dfa3dbef000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c00000000000000000000000000000000000000000000000000000000000f42407ea7c6b23ebd61b4a4b5802cfd9ca2ba44bf096a67858bb0efff82111cf096c0"
+            },
+            "type": "TriggerSmartContract"
+          }
+        }
+      ]
+    }
+  ],
+  "details": {
+    "currencyOut": {
+      "amount": "976767"
+    },
+    "timeEstimate": 3,
+    "slippageTolerance": {
+      "total": "409",
+      "origin": {
+        "usd": "0.000000",
+        "value": "0",
+        "percent": "0.00"
+      },
+      "destination": {
+        "usd": "0.039842",
+        "value": "39941",
+        "percent": "4.08"
+      }
+    },
+    "swapImpact": {
+      "percent": "-0.10"
+    }
+  },
+  "fees": {
+    "gas": {
+      "amount": "5530000"
+    }
+  }
+}

@@ -92,6 +92,23 @@ pub trait ClientExt: Client {
     {
         self.post_with(path, body, headers).await
     }
+
+    async fn get_or_error<R, E>(&self, path: &str) -> Result<R, ClientError<Option<E>>>
+    where
+        R: DeserializeOwned + Send,
+        E: DeserializeOwned + Send,
+    {
+        self.get(path).await.map_err(ClientError::decode_body)
+    }
+
+    async fn post_or_error<T, R, E>(&self, path: &str, body: &T) -> Result<R, ClientError<Option<E>>>
+    where
+        T: Serialize + Send + Sync,
+        R: DeserializeOwned + Send,
+        E: DeserializeOwned + Send,
+    {
+        self.post(path, body).await.map_err(ClientError::decode_body)
+    }
 }
 
 impl<T: Client + ?Sized> ClientExt for T {}

@@ -1,11 +1,12 @@
 use super::permit2_data::Permit2Data;
-use crate::{SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT_SLIPPAGE_BPS};
+use crate::{SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT_SLIPPAGE_BPS};
 pub use primitives::swap::SwapResult;
 use primitives::{
     AssetId, Chain,
     swap::{ApprovalData, SlippageMode, SwapProviderMode},
 };
 use serde::Serialize;
+use serde_serializers::serialize_display;
 use std::fmt::Debug;
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -56,7 +57,7 @@ impl ProviderType {
 
     pub fn slippage_mode(id: SwapperProvider) -> SlippageMode {
         match id {
-            SwapperProvider::Okx | SwapperProvider::Squid | SwapperProvider::Mayan => SlippageMode::Auto,
+            SwapperProvider::Okx | SwapperProvider::Squid | SwapperProvider::Mayan | SwapperProvider::Relay => SlippageMode::Auto,
             SwapperProvider::UniswapV3
             | SwapperProvider::UniswapV4
             | SwapperProvider::PancakeswapV3
@@ -73,7 +74,6 @@ impl ProviderType {
             | SwapperProvider::Chainflip
             | SwapperProvider::Thorchain
             | SwapperProvider::NearIntents
-            | SwapperProvider::Relay
             | SwapperProvider::Across
             | SwapperProvider::Hyperliquid
             | SwapperProvider::SwapsXyz => SlippageMode::Exact,
@@ -133,11 +133,12 @@ pub struct SwapQuotes {
 pub struct SwapQuoteError {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub provider: Option<String>,
-    pub error: String,
+    #[serde(serialize_with = "serialize_display")]
+    pub error: SwapperError,
 }
 
 impl SwapQuoteError {
-    pub fn new(provider: Option<String>, error: String) -> Self {
+    pub fn new(provider: Option<String>, error: SwapperError) -> Self {
         Self { provider, error }
     }
 }

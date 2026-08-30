@@ -9,11 +9,25 @@ pub struct Response {
 }
 
 #[derive(Clone)]
-pub enum ClientError {
+pub enum ClientError<E = Vec<u8>> {
     Network(String),
     Timeout,
-    Http { status: u16, body: Vec<u8> },
+    Http { status: u16, body: E },
     Serialization(String),
+}
+
+impl ClientError {
+    pub fn decode_body<E: DeserializeOwned>(self) -> ClientError<Option<E>> {
+        match self {
+            Self::Http { status, body } => ClientError::Http {
+                status,
+                body: serde_json::from_slice(&body).ok(),
+            },
+            Self::Network(message) => ClientError::Network(message),
+            Self::Timeout => ClientError::Timeout,
+            Self::Serialization(message) => ClientError::Serialization(message),
+        }
+    }
 }
 
 impl fmt::Debug for ClientError {
@@ -44,7 +58,7 @@ pub fn decode_json_byte_array(values: Vec<Value>) -> Result<Vec<u8>, ClientError
     Ok(bytes)
 }
 
-impl fmt::Display for ClientError {
+impl<E> fmt::Display for ClientError<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Network(msg) => write!(f, "Network error: {}", msg),
