@@ -314,6 +314,7 @@ class SwapViewModel @Inject constructor(
     fun onPrimaryAction(
         onConfirm: (ConfirmParams) -> Unit,
         onShowPriceImpactWarning: () -> Unit,
+        authorize: (() -> Unit) -> Unit,
     ) {
         val state = uiState.value
         if (state.buttonState != ButtonState.Enabled) {
@@ -324,10 +325,10 @@ class SwapViewModel @Inject constructor(
                 if (swapDetails.value?.shouldShowPriceImpactWarning == true) {
                     onShowPriceImpactWarning()
                 } else {
-                    swap(onConfirm)
+                    authorize { swap(onConfirm) }
                 }
             }
-            GemSwapButtonAction.RetryTransfer -> swap(onConfirm)
+            GemSwapButtonAction.RetryTransfer -> authorize { swap(onConfirm) }
             GemSwapButtonAction.RetryQuote -> refresh()
             is GemSwapButtonAction.UseMinimumAmount -> applyMinimumAmount(action.amount)
             GemSwapButtonAction.InsufficientBalance -> Unit

@@ -66,6 +66,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -506,6 +507,33 @@ class SwapViewModelTest {
     }
 
     @Test
+    fun `onPrimaryAction does not build swap params until authorize runs`() = runTest(testDispatcher) {
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+
+        val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
+        every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
+
+        var swapCalls = 0
+        stubBuildConfirmParams { swapCalls += 1 }
+
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+        seedReadyQuote(viewModel, quotesFlow)
+
+        var authorized: (() -> Unit)? = null
+        viewModel.onPrimaryAction(
+            onConfirm = {},
+            onShowPriceImpactWarning = {},
+            authorize = { action -> authorized = action },
+        )
+        advanceUntilIdle()
+
+        assertNotNull("the swap must be handed to authorize, not run directly", authorized)
+        assertEquals(0, swapCalls)
+    }
+
+    @Test
     fun `onPrimaryAction shows price impact warning before swap`() = runTest(testDispatcher) {
         every { SwapDetailsUIModelFactory.create(any(), any()) } returns SwapDetailsUIModel(
             provider = SwapProviderUIModel(
@@ -549,6 +577,7 @@ class SwapViewModelTest {
         viewModel.onPrimaryAction(
             onConfirm = { confirmCalls += 1 },
             onShowPriceImpactWarning = { showWarningCalls += 1 },
+            authorize = { it() },
         )
         advanceUntilIdle()
 
@@ -590,7 +619,7 @@ class SwapViewModelTest {
         awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.UseMinimumAmount("500000000") }
         assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
 
-        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {})
+        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {}, authorize = { it() })
         advanceUntilIdle()
 
         assertEquals("0.5", viewModel.payValue.text.toString())
