@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use ::simulation::evm::SimulationClient;
@@ -12,7 +13,7 @@ use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{
     SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
 };
-use primitives::{Chain, EVMChain, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult};
+use primitives::{AssetId, Chain, EVMChain, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult};
 
 use crate::{
     GemstoneError,
@@ -202,12 +203,43 @@ impl GemSimulationFormatter {
     pub fn payload_fields(&self, payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
         simulation_payload_fields(payload, shows_header)
     }
+
+    pub fn shows_header(&self, simulation: Option<SimulationResult>, is_approval: bool) -> bool {
+        is_approval || simulation_header(simulation).is_some()
+    }
+
+    pub fn balance_changes(&self, simulation: Option<SimulationResult>, known_asset_ids: Vec<AssetId>) -> Vec<GemSimulationChange> {
+        simulation_balance_changes(simulation, known_asset_ids)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, uniffi::Record)]
+pub struct GemSimulationChange {
+    pub asset_id: AssetId,
+    pub value: String,
 }
 
 fn simulation_header(simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
     let header = simulation?.header?;
     let has_value = header.is_unlimited || header.value.parse::<num_bigint::BigUint>().is_ok();
     has_value.then_some(header)
+}
+
+fn simulation_balance_changes(simulation: Option<SimulationResult>, known_asset_ids: Vec<AssetId>) -> Vec<GemSimulationChange> {
+    let known: HashSet<String> = known_asset_ids.into_iter().map(|asset_id| asset_id.to_string()).collect();
+    simulation
+        .map(|simulation| simulation.balance_changes)
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|change| known.contains(&change.asset_id.to_string()))
+        .filter_map(|change| {
+            let value = change.value.parse::<num_bigint::BigInt>().ok()?;
+            (value != num_bigint::BigInt::ZERO).then_some(GemSimulationChange {
+                asset_id: change.asset_id,
+                value: change.value,
+            })
+        })
+        .collect()
 }
 
 fn simulation_payload_fields(payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
@@ -223,6 +255,45 @@ mod tests {
     use crate::alien::{AlienError, AlienResponse, AlienTarget};
     use async_trait::async_trait;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
+
+    fn balance_change(asset_id: &str, value: &str) -> primitives::SimulationBalanceChange {
+        primitives::SimulationBalanceChange {
+            asset_id: AssetId::new(asset_id).unwrap(),
+            value: value.to_string(),
+            decimals: 18,
+            name: None,
+            symbol: None,
+        }
+    }
+
+    #[test]
+    fn test_balance_changes_drop_zero_unparseable_and_unknown_assets() {
+        let simulation = SimulationResult {
+            warnings: vec![],
+            balance_changes: vec![
+                balance_change("ethereum", "-1000"),
+                balance_change("ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", "2000"),
+                balance_change("solana", "0"),
+                balance_change("bitcoin", "not a number"),
+                balance_change("doge", "500"),
+            ],
+            payload: vec![],
+            header: None,
+        };
+        let known = ["ethereum", "ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", "solana", "bitcoin"]
+            .into_iter()
+            .map(|id| AssetId::new(id).unwrap())
+            .collect();
+
+        let changes = simulation_balance_changes(Some(simulation), known);
+
+        assert_eq!(
+            changes.iter().map(|change| change.value.as_str()).collect::<Vec<_>>(),
+            vec!["-1000", "2000"],
+            "keeps signed non-zero changes for known assets only"
+        );
+        assert!(simulation_balance_changes(None, vec![]).is_empty());
+    }
 
     #[derive(Debug)]
     struct TestProvider;
