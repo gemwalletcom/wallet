@@ -1,4 +1,4 @@
-use primitives::{AssetId, BannerEvent, BannerState, WalletId};
+use primitives::{AssetId, BannerEvent, BannerState, Chain, WalletId};
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemBannerContext {
@@ -24,6 +24,52 @@ pub struct GemBannerKey {
     pub wallet_id: Option<WalletId>,
     pub asset_id: Option<AssetId>,
     pub event: BannerEvent,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemBannerIcon {
+    MoneyBag,
+    Network { chain: Chain },
+    Warning,
+    Suspicious,
+    Bitcoin,
+    Perpetuals,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemBannerAmount {
+    pub value: String,
+    pub decimals: i32,
+    pub symbol: String,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemBannerTitle {
+    Stake { asset_name: String },
+    AccountActivation,
+    Warning,
+    ActivateAsset,
+    SuspiciousAsset,
+    Onboarding,
+    TradePerpetuals,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemBannerDescription {
+    Stake { asset_symbol: String },
+    AccountActivation { network_name: String, fee: GemBannerAmount },
+    MultiSignatureBlocked { network_name: String },
+    ActivateAsset { asset_symbol: String, network_name: String },
+    SuspiciousAsset,
+    Onboarding,
+    TradePerpetuals,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemBannerContent {
+    pub icon: Option<GemBannerIcon>,
+    pub title: Option<GemBannerTitle>,
+    pub description: Option<GemBannerDescription>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]

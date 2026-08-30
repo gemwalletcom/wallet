@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemBannerContent
 import Primitives
 import Style
 import SwiftUI
@@ -12,9 +13,10 @@ public struct BannerView: View {
 
     public init(
         banner: Banner,
+        content: GemBannerContent,
         action: @escaping (BannerAction) -> Void,
     ) {
-        model = BannerViewModel(banner: banner)
+        model = BannerViewModel(banner: banner, content: content)
         self.action = action
     }
 

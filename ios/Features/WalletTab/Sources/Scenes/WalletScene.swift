@@ -51,6 +51,7 @@ public struct WalletScene: View {
                 Section {
                     BannerView(
                         banner: banner,
+                        content: model.bannerContent(for: banner),
                         action: model.onBanner,
                     )
                 }

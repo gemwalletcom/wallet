@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
+import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
@@ -174,6 +175,10 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
     var visibleBanners: [Banner] {
         (try? bannerService.visibleBanners(banners, walletId: wallet.id, asset: .none, context: bannerContext)) ?? []
+    }
+
+    func bannerContent(for banner: Banner) -> GemBannerContent {
+        bannerService.content(for: banner)
     }
 
     private var bannerContext: GemBannerContext {

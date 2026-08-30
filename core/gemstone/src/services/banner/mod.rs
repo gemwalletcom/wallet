@@ -6,9 +6,9 @@ pub mod store;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::{BannerState, Wallet};
+use primitives::{Asset, BannerEvent, BannerState, Wallet};
 
-pub use model::{GemBannerAction, GemBannerContext, GemBannerItem, GemBannerKey};
+pub use model::{GemBannerAction, GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerTitle};
 pub use permissions::GemNotificationPermissions;
 pub use store::GemBannerStore;
 
@@ -49,5 +49,9 @@ impl GemBannerService {
 
     pub fn visible_banners(&self, stored: Vec<GemBannerItem>, context: GemBannerContext) -> Vec<GemBannerItem> {
         rules::visible_banners(stored, &context)
+    }
+
+    pub fn banner_content(&self, event: BannerEvent, asset: Option<Asset>) -> GemBannerContent {
+        rules::banner_content(event, asset.as_ref())
     }
 }

@@ -621,6 +621,10 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
     public func setup() async throws {}
 
     public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
+
+    public func bannerContent(event _: Gemstone.BannerEvent, asset _: Gemstone.Asset?) -> GemBannerContent {
+        GemBannerContent(icon: .none, title: .none, description: .none)
+    }
 }
 
 public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Sendable {

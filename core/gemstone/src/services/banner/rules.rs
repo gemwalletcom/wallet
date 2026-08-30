@@ -1,6 +1,6 @@
-use primitives::{AssetId, BannerEvent, BannerState, Chain, Wallet, WalletSource};
+use primitives::{Asset, AssetId, BannerEvent, BannerState, Chain, ChainAsset, Wallet, WalletSource};
 
-use super::model::{GemBannerContext, GemBannerItem, GemBannerKey};
+use super::model::{GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerTitle};
 
 const ACCOUNT_ACTIVATION_CHAINS: [Chain; 3] = [Chain::Xrp, Chain::Stellar, Chain::Algorand];
 const TRADE_PERPETUALS_CHAINS: [Chain; 2] = [Chain::HyperCore, Chain::Hyperliquid];
@@ -64,6 +64,73 @@ pub fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool 
         BannerEvent::TradePerpetuals => context.has_asset && context.has_perpetuals_support,
         BannerEvent::Onboarding => !context.has_asset && context.is_wallet_empty,
     }
+}
+
+pub fn banner_content(event: BannerEvent, asset: Option<&Asset>) -> GemBannerContent {
+    GemBannerContent {
+        icon: banner_icon(event, asset.map(|asset| asset.id.chain)),
+        title: banner_title(event, asset),
+        description: banner_description(event, asset),
+    }
+}
+
+fn banner_icon(event: BannerEvent, chain: Option<Chain>) -> Option<GemBannerIcon> {
+    match event {
+        BannerEvent::Stake => Some(GemBannerIcon::MoneyBag),
+        BannerEvent::AccountActivation | BannerEvent::ActivateAsset => chain.map(|chain| GemBannerIcon::Network { chain }),
+        BannerEvent::AccountBlockedMultiSignature => Some(GemBannerIcon::Warning),
+        BannerEvent::SuspiciousAsset => Some(GemBannerIcon::Suspicious),
+        BannerEvent::Onboarding => Some(GemBannerIcon::Bitcoin),
+        BannerEvent::TradePerpetuals => Some(GemBannerIcon::Perpetuals),
+    }
+}
+
+fn banner_title(event: BannerEvent, asset: Option<&Asset>) -> Option<GemBannerTitle> {
+    match event {
+        BannerEvent::Stake => Some(GemBannerTitle::Stake { asset_name: asset?.name.clone() }),
+        BannerEvent::AccountActivation => Some(GemBannerTitle::AccountActivation),
+        BannerEvent::AccountBlockedMultiSignature => Some(GemBannerTitle::Warning),
+        BannerEvent::ActivateAsset => Some(GemBannerTitle::ActivateAsset),
+        BannerEvent::SuspiciousAsset => Some(GemBannerTitle::SuspiciousAsset),
+        BannerEvent::Onboarding => Some(GemBannerTitle::Onboarding),
+        BannerEvent::TradePerpetuals => Some(GemBannerTitle::TradePerpetuals),
+    }
+}
+
+fn banner_description(event: BannerEvent, asset: Option<&Asset>) -> Option<GemBannerDescription> {
+    match event {
+        BannerEvent::Stake => Some(GemBannerDescription::Stake {
+            asset_symbol: asset?.symbol.clone(),
+        }),
+        BannerEvent::AccountActivation => {
+            let asset = asset?;
+            Some(GemBannerDescription::AccountActivation {
+                network_name: network_name(asset.id.chain),
+                fee: GemBannerAmount {
+                    value: asset.id.chain.account_activation_fee()?.to_string(),
+                    decimals: asset.decimals,
+                    symbol: asset.symbol.clone(),
+                },
+            })
+        }
+        BannerEvent::AccountBlockedMultiSignature => Some(GemBannerDescription::MultiSignatureBlocked {
+            network_name: network_name(asset?.id.chain),
+        }),
+        BannerEvent::ActivateAsset => {
+            let asset = asset?;
+            Some(GemBannerDescription::ActivateAsset {
+                asset_symbol: asset.symbol.clone(),
+                network_name: network_name(asset.id.chain),
+            })
+        }
+        BannerEvent::SuspiciousAsset => Some(GemBannerDescription::SuspiciousAsset),
+        BannerEvent::Onboarding => Some(GemBannerDescription::Onboarding),
+        BannerEvent::TradePerpetuals => Some(GemBannerDescription::TradePerpetuals),
+    }
+}
+
+fn network_name(chain: Chain) -> String {
+    ChainAsset::from_chain(chain).network_name
 }
 
 pub fn shows_onboarding(state: BannerState, is_wallet_empty: bool) -> bool {
@@ -258,6 +325,77 @@ mod tests {
         assert!(!is_visible(BannerState::Cancelled));
         assert_eq!(default_state(BannerEvent::ActivateAsset), BannerState::AlwaysActive);
         assert_eq!(default_state(BannerEvent::Stake), BannerState::Active);
+    }
+
+    #[test]
+    fn test_banner_content_names_the_asset_field_per_line() {
+        let ethereum = Asset::from_chain(Chain::Ethereum);
+        let stake = banner_content(BannerEvent::Stake, Some(&ethereum));
+        assert_eq!(
+            stake.title,
+            Some(GemBannerTitle::Stake {
+                asset_name: "Ethereum".to_string()
+            })
+        );
+        assert_eq!(stake.description, Some(GemBannerDescription::Stake { asset_symbol: "ETH".to_string() }));
+
+        let arbitrum = Asset::from_chain(Chain::Arbitrum);
+        assert_eq!(arbitrum.name, "Arbitrum ETH");
+        assert_eq!(
+            banner_content(BannerEvent::AccountBlockedMultiSignature, Some(&arbitrum)).description,
+            Some(GemBannerDescription::MultiSignatureBlocked {
+                network_name: "Arbitrum".to_string()
+            })
+        );
+
+        let usdc = Asset::mock_ethereum_usdc();
+        assert_eq!(
+            banner_content(BannerEvent::ActivateAsset, Some(&usdc)).description,
+            Some(GemBannerDescription::ActivateAsset {
+                asset_symbol: "USDC".to_string(),
+                network_name: "Ethereum".to_string(),
+            })
+        );
+
+        let without_asset = banner_content(BannerEvent::Stake, None);
+        assert_eq!(without_asset.title, None);
+        assert_eq!(without_asset.description, None);
+    }
+
+    #[test]
+    fn test_banner_content_drops_the_activation_description_without_a_fee() {
+        let xrp = Asset::from_chain(Chain::Xrp);
+        assert_eq!(
+            banner_content(BannerEvent::AccountActivation, Some(&xrp)).description,
+            Some(GemBannerDescription::AccountActivation {
+                network_name: "XRP".to_string(),
+                fee: GemBannerAmount {
+                    value: "1000000".to_string(),
+                    decimals: 6,
+                    symbol: "XRP".to_string(),
+                },
+            })
+        );
+
+        let ethereum = Asset::from_chain(Chain::Ethereum);
+        assert_eq!(ethereum.id.chain.account_activation_fee(), None);
+        let without_fee = banner_content(BannerEvent::AccountActivation, Some(&ethereum));
+        assert_eq!(without_fee.description, None);
+        assert_eq!(without_fee.title, Some(GemBannerTitle::AccountActivation));
+    }
+
+    #[test]
+    fn test_banner_icon_per_event() {
+        let stellar = Asset::from_chain(Chain::Stellar);
+        let icon = |event| banner_content(event, Some(&stellar)).icon;
+        assert_eq!(icon(BannerEvent::Stake), Some(GemBannerIcon::MoneyBag));
+        assert_eq!(icon(BannerEvent::AccountActivation), Some(GemBannerIcon::Network { chain: Chain::Stellar }));
+        assert_eq!(icon(BannerEvent::ActivateAsset), Some(GemBannerIcon::Network { chain: Chain::Stellar }));
+        assert_eq!(icon(BannerEvent::AccountBlockedMultiSignature), Some(GemBannerIcon::Warning));
+        assert_eq!(icon(BannerEvent::SuspiciousAsset), Some(GemBannerIcon::Suspicious));
+        assert_eq!(icon(BannerEvent::Onboarding), Some(GemBannerIcon::Bitcoin));
+        assert_eq!(icon(BannerEvent::TradePerpetuals), Some(GemBannerIcon::Perpetuals));
+        assert_eq!(banner_content(BannerEvent::AccountActivation, None).icon, None);
     }
 
     #[test]

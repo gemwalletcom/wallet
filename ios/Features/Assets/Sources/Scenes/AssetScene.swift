@@ -33,6 +33,7 @@ public struct AssetScene: View {
                 Section {
                     BannerView(
                         banner: banner,
+                        content: model.bannerContent(for: banner),
                         action: model.onSelectBanner,
                     )
                 }

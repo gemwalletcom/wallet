@@ -4,6 +4,7 @@ import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
+import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
@@ -247,6 +248,10 @@ public final class AssetSceneViewModel: Sendable {
             debugLog("asset scene: visible banners error \(error)")
             return []
         }
+    }
+
+    func bannerContent(for banner: Banner) -> GemBannerContent {
+        bannerService.content(for: banner)
     }
 
     private var bannerContext: GemBannerContext {

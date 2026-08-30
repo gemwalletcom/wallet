@@ -12,7 +12,6 @@ import uniffi.gemstone.Config
 import uniffi.gemstone.supportsPrivateKeyImport
 import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAssetConfigService
-import java.math.BigInteger
 
 private val assetConfig = GemAssetConfigService()
 
@@ -36,8 +35,6 @@ fun Chain.assetType(): AssetType? {
 fun Chain.toEVM(): EVMChain? {
     return EVMChain.entries.firstOrNull { it.string == string }
 }
-
-fun Chain.getReserveBalance(): BigInteger = Config().getChainConfig(this.string).accountActivationFee?.toBigInteger() ?: BigInteger.ZERO
 
 fun Chain.getReserveBalanceUrl(): String? = Config().getChainConfig(this.string).accountActivationFeeUrl
 
