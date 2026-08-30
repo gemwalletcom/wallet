@@ -41,7 +41,7 @@ extension ConfirmService {
             toastPresenter: ToastPresenter(),
             keystore: KeystoreMock(),
             explorerService: GemExplorerServiceMock(),
-            addressStore: .mock(),
+            nameService: GemNameServiceMock(),
             feeService: GemFeeService(),
             perpetualService: GemPerpetualServiceMock(),
         )

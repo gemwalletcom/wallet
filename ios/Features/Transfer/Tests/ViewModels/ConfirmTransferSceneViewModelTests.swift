@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import GemstoneServices
@@ -130,7 +131,10 @@ struct ConfirmTransferSceneViewModelTests {
                 type: .transfer(.mock()),
                 recipient: .mock(address: address),
             ),
-            addressStore: .mockAddresses(db: db),
+            nameService: GemNameServiceMock(addressNames: [
+                .mock(chain: .ethereum, address: "0x1234567890123456789012345678901234567890", name: "Ethereum"),
+                .mock(chain: .bitcoin, address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw", name: "Bitcoin"),
+            ]),
         )
         let recipientItem = model.itemModel(for: .recipient) as? ConfirmRecipientViewModel
 
@@ -145,21 +149,16 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func recipientNameItemModelUsesStoredAddress() throws {
         let db = DB.mockAssets()
-        let addressStore = AddressStore.mock(db: db)
         let checksummedAddress = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4"
-        try addressStore.addAddressNames([
-            .mock(
-                chain: .ethereum,
-                address: checksummedAddress,
-                name: "Uniswap",
-            ),
+        let nameService = GemNameServiceMock(addressNames: [
+            .mock(chain: .ethereum, address: checksummedAddress, name: "Uniswap"),
         ])
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(
                 type: .transfer(.mockEthereum()),
                 recipient: .mock(address: checksummedAddress),
             ),
-            addressStore: addressStore,
+            nameService: nameService,
         )
         let recipientItem = model.itemModel(for: .recipient) as? ConfirmRecipientViewModel
 
@@ -698,7 +697,7 @@ private extension ConfirmTransferSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         data: TransferData = .mock(),
-        addressStore: AddressStore = .mock(),
+        nameService: any GemNameServiceProtocol = GemNameServiceMock(),
         simulation: SimulationResult? = nil,
     ) -> ConfirmTransferSceneViewModel {
         ConfirmTransferSceneViewModel(
@@ -717,8 +716,7 @@ private extension ConfirmTransferSceneViewModel {
                 assetsService: GemAssetsServiceMock(),
                 priceStore: .mock(),
                 transactionStateService: GemTransactionStateServiceMock(),
-                nameService: GemNameServiceMock(),
-                addressStore: addressStore,
+                nameService: nameService,
                 recentActivityStore: .mock(),
                 toastPresenter: ToastPresenter(),
                 feeService: GemFeeService(),

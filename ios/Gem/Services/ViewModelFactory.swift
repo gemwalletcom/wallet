@@ -131,7 +131,6 @@ public struct ViewModelFactory: Sendable {
                 priceStore: priceStore,
                 transactionStateService: transactionStateService,
                 nameService: gemNameService,
-                addressStore: addressStore,
                 recentActivityStore: recentActivityStore,
                 toastPresenter: toastPresenter,
                 feeService: feeService,

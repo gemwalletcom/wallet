@@ -18,8 +18,8 @@ class GemstoneAddressStore(
     private val addressesDao: AddressesDao,
 ) : GemAddressStore {
 
-    override suspend fun getAddressName(chain: String, address: String): String? =
-        addressesDao.get(chain.requireChain(), address)?.toDTO()?.toJson()
+    override fun getAddressName(chain: String, address: String): String? =
+        addressesDao.getNow(chain.requireChain(), address)?.toDTO()?.toJson()
 
     override suspend fun saveAddressNames(names: List<String>) {
         if (names.isEmpty()) return

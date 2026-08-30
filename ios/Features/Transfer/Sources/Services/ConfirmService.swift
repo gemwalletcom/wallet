@@ -8,6 +8,7 @@ import enum Gemstone.GemConfirmError
 import protocol Gemstone.GemConfirmServiceProtocol
 import enum Gemstone.GemExecuteResult
 import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import struct Gemstone.GemSendInput
@@ -29,7 +30,7 @@ public struct ConfirmService: Sendable {
     private let toastPresenter: ToastPresenter
     private let keystore: any Keystore
     private let explorerService: any GemExplorerServiceProtocol
-    private let addressStore: AddressStore
+    private let nameService: any GemNameServiceProtocol
 
     private let feeService: GemFeeService
 
@@ -47,7 +48,7 @@ public struct ConfirmService: Sendable {
         toastPresenter: ToastPresenter,
         keystore: any Keystore,
         explorerService: any GemExplorerServiceProtocol,
-        addressStore: AddressStore,
+        nameService: any GemNameServiceProtocol,
         feeService: GemFeeService,
         perpetualService: any GemPerpetualServiceProtocol,
     ) {
@@ -63,7 +64,7 @@ public struct ConfirmService: Sendable {
         self.toastPresenter = toastPresenter
         self.keystore = keystore
         self.explorerService = explorerService
-        self.addressStore = addressStore
+        self.nameService = nameService
         self.feeService = feeService
     }
 
@@ -150,7 +151,7 @@ public struct ConfirmService: Sendable {
     }
 
     public func addressName(chain: Chain, address: String) throws -> AddressName? {
-        try addressStore.getAddressName(chain: chain, address: address)
+        try nameService.addressName(chain: chain.rawValue, address: address).map { try AddressName($0) }
     }
 
     public var currency: Currency {

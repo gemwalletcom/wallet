@@ -28,7 +28,6 @@ public enum ConfirmServiceFactory {
         priceStore: PriceStore,
         transactionStateService: any GemTransactionStateServiceProtocol,
         nameService: any GemNameServiceProtocol,
-        addressStore: AddressStore,
         recentActivityStore: RecentActivityStore,
         toastPresenter: ToastPresenter,
         feeService: GemFeeService,
@@ -61,7 +60,7 @@ public enum ConfirmServiceFactory {
             toastPresenter: toastPresenter,
             keystore: keystore,
             explorerService: explorerService,
-            addressStore: addressStore,
+            nameService: nameService,
             feeService: feeService,
             perpetualService: perpetualService,
         )

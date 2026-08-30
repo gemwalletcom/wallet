@@ -262,7 +262,7 @@ public final class GemContactStoreMock: GemContactStore, @unchecked Sendable {
 public final class GemAddressStoreMock: GemAddressStore, @unchecked Sendable {
     public init() {}
 
-    public func getAddressName(chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.AddressName? { nil }
+    public func getAddressName(chain _: Gemstone.Chain, address _: String) throws -> Gemstone.AddressName? { nil }
 
     public func saveAddressNames(names _: [Gemstone.AddressName]) async throws {}
 
@@ -329,6 +329,10 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 
     public func isNameSupported(name: String) -> Bool {
         name.split(separator: ".").count >= 2
+    }
+
+    public func addressName(chain: String, address: String) throws -> Gemstone.AddressName? {
+        try addressNames.first { $0.chain.rawValue == chain && $0.address == address }?.json()
     }
 
     public func recipients() -> GemRecipientService {
