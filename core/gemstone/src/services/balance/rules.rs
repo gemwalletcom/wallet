@@ -66,7 +66,7 @@ pub fn balance_updates(assets: &[Asset], balances: Vec<(BalanceKind, AssetBalanc
         .filter_map(|(kind, balance)| {
             let decimals = *decimals.get(&balance.asset_id)?;
             let value = |amount: &BigUint| GemBalanceValue {
-                value: amount.to_string(),
+                value: amount.clone(),
                 amount: BigNumberFormatter::value_as_f64(&amount.to_string(), decimals).unwrap_or_default(),
             };
             let update_type = match kind {
@@ -163,7 +163,7 @@ mod tests {
         assert_eq!(updates[0].asset_id, ethereum);
         match &updates[0].update_type {
             GemBalanceUpdateType::Coin { available, .. } => {
-                assert_eq!(available.value, "1500000000000000000");
+                assert_eq!(available.value, BigUint::from(1_500_000_000_000_000_000u64));
                 assert_eq!(available.amount, 1.5);
             }
             other => panic!("unexpected update {other:?}"),

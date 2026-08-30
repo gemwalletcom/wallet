@@ -3,6 +3,7 @@ use std::sync::Arc;
 use crate::GemstoneError;
 use crate::address::{checksum_address, validate_address};
 use crate::alien::{AlienProvider, AlienProviderWrapper};
+use crate::models::custom_types::GemBigUint;
 use crate::models::payment::{GemPayment, GemPaymentAmount, GemPaymentLink, GemPaymentRequest, GemPaymentTransaction};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
@@ -55,7 +56,7 @@ pub struct GemPaymentWalletAsset {
 pub struct GemPaymentConfirmTransfer {
     pub asset_id: AssetId,
     pub address: String,
-    pub value: String,
+    pub value: GemBigUint,
     pub memo: Option<String>,
     pub references: Vec<String>,
 }
@@ -122,7 +123,7 @@ fn confirm_transfer(asset: &GemPaymentWalletAsset, request: &GemPaymentRequest) 
     Some(GemPaymentConfirmTransfer {
         asset_id: asset.asset_id.clone(),
         address,
-        value: value.to_string(),
+        value,
         memo: request.memo.clone(),
         references: request.references.clone().unwrap_or_default(),
     })
@@ -211,7 +212,7 @@ mod tests {
         let exact_bitcoin = request(BITCOIN_ADDRESS, Some(GemPaymentAmount::ExactValue("0.0001".to_string())), None, None);
         match payment_destination(&exact_bitcoin, vec![bitcoin.clone()]) {
             GemPaymentDestination::Confirm { transfer } => {
-                assert_eq!(transfer.value, "10000");
+                assert_eq!(transfer.value, BigUint::from(10_000u32));
                 assert_eq!(transfer.address, BITCOIN_ADDRESS);
                 assert_eq!(transfer.asset_id, bitcoin.asset_id);
             }
@@ -239,7 +240,7 @@ mod tests {
         let tagged_xrp = request(XRP_ADDRESS, Some(GemPaymentAmount::ExactValue("10".to_string())), Some("12345"), Some(xrp.asset_id.clone()));
         match payment_destination(&tagged_xrp, vec![xrp.clone()]) {
             GemPaymentDestination::Confirm { transfer } => {
-                assert_eq!(transfer.value, "10000000");
+                assert_eq!(transfer.value, BigUint::from(10_000_000u32));
                 assert_eq!(transfer.memo.as_deref(), Some("12345"));
             }
             destination => panic!("expected confirm, got {destination:?}"),
@@ -259,7 +260,7 @@ mod tests {
         );
         match payment_destination(&solana_usdc_payment, vec![solana_usdc.clone()]) {
             GemPaymentDestination::Confirm { transfer } => {
-                assert_eq!(transfer.value, "1000000");
+                assert_eq!(transfer.value, BigUint::from(1_000_000u32));
                 assert_eq!(transfer.memo, None);
             }
             destination => panic!("expected confirm for a Solana payment without a memo, got {destination:?}"),
@@ -287,7 +288,7 @@ mod tests {
 
         let payable = request(ETHEREUM_ADDRESS, Some(GemPaymentAmount::ExactValue("1.5".to_string())), None, None);
         match payment_transfer_destination(&payable, ethereum) {
-            GemPaymentDestination::Confirm { transfer } => assert_eq!(transfer.value, "1500000000000000000"),
+            GemPaymentDestination::Confirm { transfer } => assert_eq!(transfer.value, BigUint::from(1_500_000_000_000_000_000u64)),
             destination => panic!("expected confirm, got {destination:?}"),
         }
     }
@@ -303,7 +304,7 @@ mod tests {
             Some(solana_usdc.asset_id.clone()),
         );
         let transfer = payment_decoded_transfer(&decoded, solana_usdc.clone()).expect("expected transfer without a memo");
-        assert_eq!(transfer.value, "19000000");
+        assert_eq!(transfer.value, BigUint::from(19_000_000u32));
         assert_eq!(transfer.address, SOLANA_ADDRESS);
         assert_eq!(transfer.memo, None);
 

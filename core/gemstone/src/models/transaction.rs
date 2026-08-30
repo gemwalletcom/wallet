@@ -1,6 +1,6 @@
 use crate::address::checksum_address;
+use crate::models::custom_types::GemBigInt;
 use crate::models::*;
-use num_bigint::BigInt;
 use primitives::ApplicationMetadata;
 use primitives::contract_call_data::ContractCallData;
 use primitives::nft::NFTAsset;
@@ -195,14 +195,14 @@ pub struct GemSignedTransaction {
 
 #[derive(Debug, Default, Clone, uniffi::Record)]
 pub struct GemFeeOptions {
-    pub options: HashMap<GemFeeOption, String>,
+    pub options: HashMap<GemFeeOption, GemBigInt>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemTransactionLoadFee {
-    pub fee: String,
+    pub fee: GemBigInt,
     pub gas_price_type: GemGasPriceType,
-    pub gas_limit: String,
+    pub gas_limit: GemBigInt,
     pub options: GemFeeOptions,
     pub fee_asset: AssetId,
 }
@@ -445,28 +445,22 @@ impl From<GemGasPriceType> for GasPriceType {
 }
 
 impl GemFeeOptions {
-    pub fn get(&self, option: &GemFeeOption) -> Option<&String> {
+    pub fn get(&self, option: &GemFeeOption) -> Option<&GemBigInt> {
         self.options.get(option)
     }
 
     pub fn is_empty(&self) -> bool {
         self.options.is_empty()
     }
-
-    pub fn from_primitives(options: HashMap<FeeOption, BigInt>) -> Self {
-        GemFeeOptions {
-            options: options.into_iter().map(|(key, value)| (key, value.to_string())).collect(),
-        }
-    }
 }
 
 impl From<GemTransactionLoadFee> for TransactionFee {
     fn from(value: GemTransactionLoadFee) -> Self {
         TransactionFee {
-            fee: value.fee.parse().unwrap_or_default(),
+            fee: value.fee,
             gas_price_type: value.gas_price_type.into(),
-            gas_limit: value.gas_limit.parse().unwrap_or_default(),
-            options: value.options.options.into_iter().map(|(key, value)| (key, value.parse().unwrap_or_default())).collect(),
+            gas_limit: value.gas_limit,
+            options: value.options.options,
             fee_asset: value.fee_asset,
         }
     }
@@ -475,10 +469,10 @@ impl From<GemTransactionLoadFee> for TransactionFee {
 impl From<TransactionFee> for GemTransactionLoadFee {
     fn from(value: TransactionFee) -> Self {
         GemTransactionLoadFee {
-            fee: value.fee.to_string(),
+            fee: value.fee,
             gas_price_type: value.gas_price_type.into(),
-            gas_limit: value.gas_limit.to_string(),
-            options: GemFeeOptions::from_primitives(value.options),
+            gas_limit: value.gas_limit,
+            options: GemFeeOptions { options: value.options },
             fee_asset: value.fee_asset,
         }
     }

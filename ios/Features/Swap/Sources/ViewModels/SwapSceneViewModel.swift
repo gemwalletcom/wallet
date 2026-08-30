@@ -487,7 +487,7 @@ extension SwapSceneViewModel {
         case .retryQuote: setLoadTrigger(isImmediate: true)
         case .retryTransfer: swap()
         case .insufficientBalance: break
-        case let .useMinimumAmount(amount): applyMinAmount(amount)
+        case let .useMinimumAmount(value): applyMinAmount(value)
         case .swap:
             if let priceImpactModel = swapDetailsViewModel?.priceImpactModel,
                let warningText = priceImpactModel.highImpactWarningDescription,

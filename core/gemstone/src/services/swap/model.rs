@@ -1,3 +1,4 @@
+use crate::models::custom_types::GemBigInt;
 use primitives::AssetId;
 use primitives::swap::{SwapQuote, SwapQuoteData};
 use swapper::SwapperError;
@@ -25,8 +26,8 @@ pub struct GemSwapPairSuggestion {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapButtonInput {
-    pub value: String,
-    pub available_balance: String,
+    pub value: GemBigInt,
+    pub available_balance: GemBigInt,
     pub quote_error: Option<SwapperError>,
     pub transfer_error: Option<SwapperError>,
 }
@@ -36,6 +37,6 @@ pub enum GemSwapButtonAction {
     Swap,
     RetryQuote,
     RetryTransfer,
-    UseMinimumAmount { amount: String },
+    UseMinimumAmount { value: GemBigInt },
     InsufficientBalance,
 }

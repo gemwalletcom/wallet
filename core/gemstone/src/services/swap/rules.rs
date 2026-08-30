@@ -131,12 +131,11 @@ pub fn first_other_asset(asset_ids: Vec<AssetId>, pay_asset_id: &AssetId) -> Opt
 }
 
 pub fn button_action(input: &GemSwapButtonInput) -> GemSwapButtonAction {
-    let available_balance = base_units(&input.available_balance);
     if let Some(minimum) = minimum_amount(input.quote_error.as_ref()) {
-        if minimum > available_balance {
+        if minimum > input.available_balance {
             return GemSwapButtonAction::InsufficientBalance;
         }
-        return GemSwapButtonAction::UseMinimumAmount { amount: minimum.to_string() };
+        return GemSwapButtonAction::UseMinimumAmount { value: minimum };
     }
     if is_retryable(input.transfer_error.as_ref()) {
         return GemSwapButtonAction::RetryTransfer;
@@ -144,7 +143,7 @@ pub fn button_action(input: &GemSwapButtonInput) -> GemSwapButtonAction {
     if is_retryable(input.quote_error.as_ref()) {
         return GemSwapButtonAction::RetryQuote;
     }
-    if base_units(&input.value) > available_balance {
+    if input.value > input.available_balance {
         return GemSwapButtonAction::InsufficientBalance;
     }
     GemSwapButtonAction::Swap
@@ -170,10 +169,6 @@ fn minimum_amount(error: Option<&SwapperError>) -> Option<BigInt> {
     };
     let minimum = min_amount.as_ref()?.parse::<BigInt>().ok()?;
     (minimum > BigInt::from(0)).then_some(minimum)
-}
-
-fn base_units(value: &str) -> BigInt {
-    value.parse().unwrap_or_default()
 }
 
 pub fn pair_for_asset(asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
@@ -409,13 +404,24 @@ mod tests {
         assert_eq!(most_swapped_receive_asset(&[], &AssetId::from_chain(Chain::Ethereum)), None);
     }
 
-    fn button_input(value: &str, available_balance: &str) -> GemSwapButtonInput {
+    fn button_input(value: u64, available_balance: u64) -> GemSwapButtonInput {
         GemSwapButtonInput {
-            value: value.to_string(),
-            available_balance: available_balance.to_string(),
+            value: BigInt::from(value),
+            available_balance: BigInt::from(available_balance),
             quote_error: None,
             transfer_error: None,
         }
+    }
+
+    fn lift_button_input(value: &str, available_balance: &str) -> uniffi::Result<GemSwapButtonInput> {
+        let mut buffer = Vec::new();
+        for field in [value, available_balance] {
+            <String as uniffi::Lower<crate::UniFfiTag>>::write(field.to_string(), &mut buffer);
+        }
+        for _ in 0..2 {
+            <Option<SwapperError> as uniffi::Lower<crate::UniFfiTag>>::write(None, &mut buffer);
+        }
+        <GemSwapButtonInput as uniffi::Lift<crate::UniFfiTag>>::try_read(&mut buffer.as_slice())
     }
 
     #[test]
@@ -424,12 +430,12 @@ mod tests {
             quote_error: Some(SwapperError::InputAmountError {
                 min_amount: min_amount.map(str::to_string),
             }),
-            ..button_input("100", "18900023")
+            ..button_input(100, 18_900_023)
         };
 
         assert_eq!(
             button_action(&too_small(Some("18900023"))),
-            GemSwapButtonAction::UseMinimumAmount { amount: "18900023".to_string() }
+            GemSwapButtonAction::UseMinimumAmount { value: BigInt::from(18_900_023) }
         );
         assert_eq!(button_action(&too_small(Some("22000000"))), GemSwapButtonAction::InsufficientBalance);
         assert_eq!(button_action(&too_small(Some("0"))), GemSwapButtonAction::Swap);
@@ -438,20 +444,27 @@ mod tests {
 
     #[test]
     fn test_button_action_blocks_an_unaffordable_amount_before_any_quote() {
-        assert_eq!(button_action(&button_input("101", "100")), GemSwapButtonAction::InsufficientBalance);
-        assert_eq!(button_action(&button_input("100", "100")), GemSwapButtonAction::Swap);
-        assert_eq!(button_action(&button_input("", "100")), GemSwapButtonAction::Swap);
+        assert_eq!(button_action(&button_input(101, 100)), GemSwapButtonAction::InsufficientBalance);
+        assert_eq!(button_action(&button_input(100, 100)), GemSwapButtonAction::Swap);
+        assert_eq!(button_action(&button_input(0, 100)), GemSwapButtonAction::Swap);
+    }
+
+    #[test]
+    fn test_a_malformed_swap_value_is_reported_instead_of_reading_as_zero() {
+        assert_eq!(lift_button_input("101", "100").unwrap().value, BigInt::from(101));
+        assert!(lift_button_input("", "100").is_err());
+        assert!(lift_button_input("101", "not-a-number").is_err());
     }
 
     #[test]
     fn test_button_action_retries_only_a_retryable_error() {
         let quote_failed = |error: SwapperError| GemSwapButtonInput {
             quote_error: Some(error),
-            ..button_input("100", "100")
+            ..button_input(100, 100)
         };
         let transfer_failed = |error: SwapperError| GemSwapButtonInput {
             transfer_error: Some(error),
-            ..button_input("100", "100")
+            ..button_input(100, 100)
         };
 
         assert_eq!(button_action(&quote_failed(SwapperError::NoQuoteAvailable)), GemSwapButtonAction::RetryQuote);
@@ -470,7 +483,7 @@ mod tests {
         let input = GemSwapButtonInput {
             quote_error: Some(SwapperError::NoQuoteAvailable),
             transfer_error: Some(SwapperError::NoQuoteAvailable),
-            ..button_input("101", "100")
+            ..button_input(101, 100)
         };
         assert_eq!(button_action(&input), GemSwapButtonAction::RetryTransfer);
 
@@ -480,7 +493,7 @@ mod tests {
             }),
             ..input
         };
-        assert_eq!(button_action(&with_minimum), GemSwapButtonAction::UseMinimumAmount { amount: "50".to_string() });
+        assert_eq!(button_action(&with_minimum), GemSwapButtonAction::UseMinimumAmount { value: BigInt::from(50) });
     }
 
     #[test]

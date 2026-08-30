@@ -1,3 +1,4 @@
+use crate::models::custom_types::GemBigInt;
 use primitives::{Delegation, Resource};
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -41,21 +42,21 @@ pub enum GemAmountEarnType {
 pub enum GemAmountPerpetualPosition {
     Open,
     Increase,
-    Reduce { available: String },
+    Reduce { available: GemBigInt },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountRules {
-    pub minimum_value: String,
-    pub reserve_for_fee: String,
+    pub minimum_value: GemBigInt,
+    pub reserve_for_fee: GemBigInt,
     pub can_change_value: bool,
     pub shows_asset_balance: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountLimits {
-    pub available_value: String,
-    pub max_value: String,
+    pub available_value: GemBigInt,
+    pub max_value: GemBigInt,
     pub reserves_fee: bool,
 }
 

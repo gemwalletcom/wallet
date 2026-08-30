@@ -1,3 +1,4 @@
+use crate::models::custom_types::GemBigInt;
 use primitives::{AssetId, BannerEvent, BannerState, Chain, WalletId};
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -38,7 +39,7 @@ pub enum GemBannerIcon {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemBannerAmount {
-    pub value: String,
+    pub value: GemBigInt,
     pub decimals: i32,
     pub symbol: String,
 }

@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::{GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use primitives::{SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
@@ -22,10 +23,10 @@ pub struct GemTransferData {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransferBalance {
-    pub available: String,
-    pub frozen: String,
-    pub locked: String,
-    pub withdrawable: String,
+    pub available: GemBigInt,
+    pub frozen: GemBigInt,
+    pub locked: GemBigInt,
+    pub withdrawable: GemBigInt,
     pub votes: u32,
 }
 
@@ -39,11 +40,11 @@ pub struct GemTransferOutput {
 pub struct GemPendingTransactionInput {
     pub sender: String,
     pub transfer: GemTransferData,
-    pub value: String,
+    pub value: GemBigInt,
     pub transaction_type: TransactionType,
     pub hash: String,
     pub fee: GemTransactionLoadFee,
-    pub network_fee: String,
+    pub network_fee: GemBigInt,
     pub metadata: GemTransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,
     pub transaction_index: u32,

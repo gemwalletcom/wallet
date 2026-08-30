@@ -15,6 +15,7 @@ use gem_wallet_connect::{
 };
 use primitives::{AssetId, Chain, EVMChain, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult};
 
+use crate::models::custom_types::GemBigInt;
 use crate::{
     GemstoneError,
     alien::{AlienClient, AlienProvider, AlienProviderWrapper, coalescing_provider, new_alien_client},
@@ -216,7 +217,7 @@ impl GemSimulationFormatter {
 #[derive(Clone, Debug, PartialEq, uniffi::Record)]
 pub struct GemSimulationChange {
     pub asset_id: AssetId,
-    pub value: String,
+    pub value: GemBigInt,
 }
 
 fn simulation_header(simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
@@ -233,11 +234,8 @@ fn simulation_balance_changes(simulation: Option<SimulationResult>, known_asset_
         .into_iter()
         .filter(|change| known.contains(&change.asset_id.to_string()))
         .filter_map(|change| {
-            let value = change.value.parse::<num_bigint::BigInt>().ok()?;
-            (value != num_bigint::BigInt::ZERO).then_some(GemSimulationChange {
-                asset_id: change.asset_id,
-                value: change.value,
-            })
+            let value = change.value.parse::<GemBigInt>().ok()?;
+            (value != GemBigInt::ZERO).then_some(GemSimulationChange { asset_id: change.asset_id, value })
         })
         .collect()
 }
@@ -288,7 +286,7 @@ mod tests {
         let changes = simulation_balance_changes(Some(simulation), known);
 
         assert_eq!(
-            changes.iter().map(|change| change.value.as_str()).collect::<Vec<_>>(),
+            changes.iter().map(|change| change.value.to_string()).collect::<Vec<_>>(),
             vec!["-1000", "2000"],
             "keeps signed non-zero changes for known assets only"
         );

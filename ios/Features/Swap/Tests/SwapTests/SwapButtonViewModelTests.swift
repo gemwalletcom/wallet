@@ -54,7 +54,7 @@ struct SwapButtonViewModelTests {
     func useMinimumAmountStaysEnabled() {
         let viewModel = SwapButtonViewModel.mock(
             swapState: SwapState(quotes: .error(TestError())),
-            buttonAction: .useMinimumAmount(amount: "100"),
+            buttonAction: .useMinimumAmount(value: "100"),
         )
 
         #expect(viewModel.title == Localized.Swap.useMinimumAmount)

@@ -133,7 +133,7 @@ pub fn balance_update(balance: &PerpetualBalance) -> Result<GemBalanceUpdate, Nu
     let asset = &*HYPERCORE_PERPETUAL_USDC;
     let value = |amount: f64| -> Result<GemBalanceValue, NumberFormatterError> {
         Ok(GemBalanceValue {
-            value: BigNumberFormatter::value_from_amount(&amount.to_string(), asset.decimals as u32)?,
+            value: BigNumberFormatter::value_from_amount_biguint(&amount.to_string(), asset.decimals as u32)?,
             amount,
         })
     };
@@ -254,6 +254,7 @@ pub fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) ->
 mod tests {
     use super::*;
     use chrono::DateTime;
+    use num_bigint::BigUint;
     use primitives::{Asset, ChartPeriod, PerpetualDirection, PerpetualId, PerpetualMarginType};
 
     fn modify_data(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> PerpetualModifyConfirmData {
@@ -378,10 +379,10 @@ mod tests {
                 reserved,
                 withdrawable,
             } => {
-                assert_eq!(available.value, "1234500000");
+                assert_eq!(available.value, BigUint::from(1_234_500_000u64));
                 assert_eq!(available.amount, 1234.5);
-                assert_eq!(reserved.value, "250000");
-                assert_eq!(withdrawable.value, "1000000000");
+                assert_eq!(reserved.value, BigUint::from(250_000u32));
+                assert_eq!(withdrawable.value, BigUint::from(1_000_000_000u64));
             }
             update_type => panic!("expected a perpetual update, got {update_type:?}"),
         }

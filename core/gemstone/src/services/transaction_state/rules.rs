@@ -63,7 +63,7 @@ pub fn state_update(state: TransactionState, changes: &[TransactionChange]) -> R
     let mut update = GemTransactionStateUpdate::new(state);
     for change in changes {
         match change {
-            TransactionChange::NetworkFee(fee) => update.fee = Some(fee.to_string()),
+            TransactionChange::NetworkFee(fee) => update.fee = Some(fee.clone()),
             TransactionChange::BlockNumber(number) => update.block_number = Some(number.clone()),
             TransactionChange::Metadata(metadata) => update.metadata = Some(metadata_json(metadata)?),
             TransactionChange::ConfirmationEtaSeconds(seconds) => update.confirmation_eta_seconds = Some(*seconds),

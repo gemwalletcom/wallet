@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::models::custom_types::GemBigInt;
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::transfer::GemTransferData;
@@ -16,7 +17,7 @@ pub struct GemConfirmInput {
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemConfirmFeeSelection {
     Priority { priority: String },
-    Custom { gas_price: String },
+    Custom { gas_price: GemBigInt },
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -51,9 +52,9 @@ pub struct GemSendResult {
 pub struct GemSendInput {
     pub wallet: Wallet,
     pub transfer: GemTransferData,
-    pub value: String,
+    pub value: GemBigInt,
     pub fee: GemTransactionLoadFee,
-    pub network_fee: String,
+    pub network_fee: GemBigInt,
     pub metadata: GemTransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,
 }

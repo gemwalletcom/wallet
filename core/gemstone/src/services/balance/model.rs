@@ -1,8 +1,9 @@
+use crate::models::custom_types::GemBigUint;
 use primitives::{AssetId, asset_balance::BalanceMetadata};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemBalanceValue {
-    pub value: String,
+    pub value: GemBigUint,
     pub amount: f64,
 }
 

@@ -1,3 +1,4 @@
+use crate::models::custom_types::GemBigInt;
 use primitives::{Asset, AssetId, BannerEvent, BannerState, Chain, ChainAsset, Wallet, WalletSource};
 
 use super::model::{GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerTitle};
@@ -107,7 +108,7 @@ fn banner_description(event: BannerEvent, asset: Option<&Asset>) -> Option<GemBa
             Some(GemBannerDescription::AccountActivation {
                 network_name: network_name(asset.id.chain),
                 fee: GemBannerAmount {
-                    value: asset.id.chain.account_activation_fee()?.to_string(),
+                    value: GemBigInt::from(asset.id.chain.account_activation_fee()?),
                     decimals: asset.decimals,
                     symbol: asset.symbol.clone(),
                 },
@@ -370,7 +371,7 @@ mod tests {
             Some(GemBannerDescription::AccountActivation {
                 network_name: "XRP".to_string(),
                 fee: GemBannerAmount {
-                    value: "1000000".to_string(),
+                    value: GemBigInt::from(1_000_000),
                     decimals: 6,
                     symbol: "XRP".to_string(),
                 },

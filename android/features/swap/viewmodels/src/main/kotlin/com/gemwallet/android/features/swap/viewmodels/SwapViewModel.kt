@@ -330,7 +330,7 @@ class SwapViewModel @Inject constructor(
             }
             GemSwapButtonAction.RetryTransfer -> authorize { swap(onConfirm) }
             GemSwapButtonAction.RetryQuote -> refresh()
-            is GemSwapButtonAction.UseMinimumAmount -> applyMinimumAmount(action.amount)
+            is GemSwapButtonAction.UseMinimumAmount -> applyMinimumAmount(action.value)
             GemSwapButtonAction.InsufficientBalance -> Unit
         }
     }

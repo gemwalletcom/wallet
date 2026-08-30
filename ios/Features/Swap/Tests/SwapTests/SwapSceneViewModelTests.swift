@@ -89,7 +89,7 @@ struct SwapSceneViewModelTests {
         #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.retryQuote)
 
         model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "1000"))
-        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.useMinimumAmount(amount: "1000"))
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.useMinimumAmount(value: "1000"))
 
         model.swapState.quotes = .data([])
         model.swapState.swapTransferData = .error(SwapperError.NoQuoteAvailable)
@@ -395,7 +395,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock()
 
         model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "900000000000000000"))
-        #expect(model.buttonViewModel.buttonAction == .useMinimumAmount(amount: "900000000000000000"))
+        #expect(model.buttonViewModel.buttonAction == .useMinimumAmount(value: "900000000000000000"))
 
         model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "2000000000000000000"))
         #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
