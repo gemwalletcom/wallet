@@ -3,6 +3,7 @@
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import class Gemstone.GemChainService
 import class Gemstone.GemReceiveService
+import class Gemstone.GemTransactionFormatter
 import class Gemstone.GemDeviceKeyService
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
@@ -88,6 +89,7 @@ extension AppResolver {
         let walletConnectorPresenter: WalletConnectorPresenter
         let chainService: GemChainService
         let receiveService: GemReceiveService
+        let transactionFormatter: GemTransactionFormatter
         let perpetualService: any GemPerpetualServiceProtocol
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: any GemNameServiceProtocol

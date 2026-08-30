@@ -4,6 +4,7 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import struct Gemstone.GemBlockExplorerLink
 import typealias Gemstone.Chain
 import Components
+import class Gemstone.GemTransactionFormatter
 import Primitives
 import Style
 import SwiftUI
@@ -78,6 +79,7 @@ private final class ExplorerMock: GemExplorerServiceProtocol {
 
     let transactionVMMock = TransactionViewModel(
         explorerService: ExplorerMock(),
+        transactionFormatter: GemTransactionFormatter(),
         transaction: pendingTransactionExtendedMock,
         currency: Currency.usd.rawValue,
     )

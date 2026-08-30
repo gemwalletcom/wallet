@@ -19,17 +19,19 @@ public struct TransactionViewModel: Sendable {
 
     private let explorerService: any GemExplorerServiceProtocol
     private let assetImageFormatter = AssetImageFormatter()
-    private let transactionFormatter = GemTransactionFormatter()
+    private let transactionFormatter: GemTransactionFormatter
     private let currency: String
     private let formatter: ValueFormatter = .short
 
     public init(
         explorerService: any GemExplorerServiceProtocol,
+        transactionFormatter: GemTransactionFormatter,
         transaction: TransactionExtended,
         currency: String,
     ) {
         self.transaction = transaction
         self.explorerService = explorerService
+        self.transactionFormatter = transactionFormatter
         self.currency = currency
     }
 

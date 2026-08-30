@@ -20,6 +20,7 @@ import WalletTab
 
 struct WalletNavigationView: View {
     @Environment(\.explorerService) private var explorerService
+    @Environment(\.transactionFormatter) private var transactionFormatter
     @Environment(\.balanceService) private var balanceService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
@@ -108,6 +109,7 @@ struct WalletNavigationView: View {
                     bannerService: bannerService,
                     swapService: swapService,
                     explorerService: explorerService,
+                    transactionFormatter: transactionFormatter,
                     preferences: preferences,
                     input: AssetSceneInput(
                         wallet: model.wallet,
@@ -135,6 +137,7 @@ struct WalletNavigationView: View {
                     walletId: model.wallet.id,
                     preferencesService: preferencesService,
                     explorerService: explorerService,
+                        transactionFormatter: transactionFormatter,
                     onHeaderAction: onSelectTransactionHeaderAction,
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
                 ),
@@ -222,6 +225,7 @@ struct WalletNavigationView: View {
                 transactionsService: transactionsService,
                 observerService: hyperliquidObserverService,
                 explorerService: explorerService,
+                transactionFormatter: transactionFormatter,
                 preferencesService: preferencesService,
                 isPresentingSheet: $model.isPresentingSheet,
             )

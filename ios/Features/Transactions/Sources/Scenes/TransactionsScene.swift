@@ -20,6 +20,7 @@ public struct TransactionsScene: View {
             List {
                 TransactionsList(
                     explorerService: model.explorerService,
+                    transactionFormatter: model.transactionFormatter,
                     model.transactions,
                     currency: model.currency,
                 )

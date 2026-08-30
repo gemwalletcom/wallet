@@ -14,6 +14,7 @@ import WalletTab
 struct MainTabView: View {
     @Environment(\.assetDiscoveryService) private var assetDiscoveryService
     @Environment(\.explorerService) private var explorerService
+    @Environment(\.transactionFormatter) private var transactionFormatter
     @Environment(\.balanceService) private var balanceService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.deviceService) private var deviceService
@@ -73,6 +74,7 @@ struct MainTabView: View {
                     model: TransactionsViewModel(
                         transactionsService: transactionsService,
                         explorerService: explorerService,
+                        transactionFormatter: transactionFormatter,
                         wallet: wallet,
                         type: .all,
                         preferencesService: preferencesService,

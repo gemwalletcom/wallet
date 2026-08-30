@@ -5,6 +5,7 @@ import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import BigInt
 import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemTransactionFormatter
 import Formatters
 import Foundation
 import GemstonePrimitives
@@ -30,6 +31,8 @@ public final class PerpetualSceneViewModel {
     public let asset: Asset
 
     public let explorerService: any GemExplorerServiceProtocol
+
+    let transactionFormatter: GemTransactionFormatter
 
     public let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     public let perpetualQuery: ObservableQuery<PerpetualRequest>
@@ -67,6 +70,7 @@ public final class PerpetualSceneViewModel {
         transactionsService: any GemTransactionsServiceProtocol,
         observerService: any PerpetualObservable,
         explorerService: any GemExplorerServiceProtocol,
+        transactionFormatter: GemTransactionFormatter,
         preferencesService: any GemPreferencesServiceProtocol,
         onTransferData: TransferDataAction = nil,
         onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)? = nil,
@@ -76,6 +80,7 @@ public final class PerpetualSceneViewModel {
         self.transactionsService = transactionsService
         self.observerService = observerService
         self.explorerService = explorerService
+        self.transactionFormatter = transactionFormatter
         self.preferencesService = preferencesService
         chart = PerpetualChartModel(
             perpetualService: perpetualService,

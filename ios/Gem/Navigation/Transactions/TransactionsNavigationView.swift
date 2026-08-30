@@ -14,6 +14,7 @@ import Transactions
 struct TransactionsNavigationView: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.explorerService) private var explorerService
+    @Environment(\.transactionFormatter) private var transactionFormatter
     @Environment(\.preferencesService) private var preferencesService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -47,6 +48,7 @@ struct TransactionsNavigationView: View {
                         walletId: model.wallet.id,
                         preferencesService: preferencesService,
                         explorerService: explorerService,
+                        transactionFormatter: transactionFormatter,
                         onHeaderAction: onSelectTransactionHeaderAction,
                         onAddContact: { model.isPresentingSheet = .addContact($0) },
                     ),

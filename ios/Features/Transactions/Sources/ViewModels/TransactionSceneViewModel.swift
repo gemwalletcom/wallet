@@ -3,6 +3,7 @@
 import BigInt
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemTransactionFormatter
 import Formatters
 import Foundation
 import protocol Gemstone.GemPreferencesServiceProtocol
@@ -17,6 +18,7 @@ import SwiftUI
 public final class TransactionSceneViewModel {
     private let preferencesService: any GemPreferencesServiceProtocol
     private let explorerService: any GemExplorerServiceProtocol
+    private let transactionFormatter: GemTransactionFormatter
     private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
 
@@ -33,11 +35,13 @@ public final class TransactionSceneViewModel {
         walletId: WalletId,
         preferencesService: any GemPreferencesServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
+        transactionFormatter: GemTransactionFormatter,
         onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
         self.preferencesService = preferencesService
         self.explorerService = explorerService
+        self.transactionFormatter = transactionFormatter
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
         query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.transaction.id), initialValue: transaction)
@@ -155,6 +159,7 @@ extension TransactionSceneViewModel {
     private var model: TransactionViewModel {
         TransactionViewModel(
             explorerService: explorerService,
+            transactionFormatter: transactionFormatter,
             transaction: transactionExtended,
             currency: preferencesService.currencyCode,
         )
