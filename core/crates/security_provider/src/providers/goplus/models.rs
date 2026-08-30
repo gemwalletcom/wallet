@@ -41,20 +41,11 @@ pub struct FakeToken {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct B20Token {
-    #[serde(default)]
-    pub is_b20: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecurityToken {
     #[serde(default)]
     pub is_honeypot: Option<String>,
     #[serde(default)]
     pub fake_token: Option<FakeToken>,
-    #[serde(default)]
-    pub b20_token: Option<B20Token>,
-    #[serde(default)]
     pub is_airdrop_scam: Option<String>,
     #[serde(default)]
     pub cannot_buy: Option<String>,
@@ -68,8 +59,6 @@ impl SecurityToken {
             Some("is_honeypot")
         } else if self.fake_token.as_ref().is_some_and(|token| token.value == 1) {
             Some("fake_token")
-        } else if self.b20_token.as_ref().is_some_and(|token| token.is_b20 == "1") {
-            Some("b20_token")
         } else if self.is_airdrop_scam.as_deref() == Some("1") {
             Some("is_airdrop_scam")
         } else if self.cannot_buy.as_deref() == Some("1") {
@@ -116,9 +105,9 @@ mod tests {
     }
 
     #[test]
-    fn test_b20_token_is_malicious() {
+    fn test_b20_token_capabilities_are_not_malicious() {
         let token: SecurityToken = serde_json::from_str(r#"{"b20_token":{"is_b20":"1"}}"#).unwrap();
 
-        assert_eq!(token.malicious_reason(), Some("b20_token"));
+        assert!(token.malicious_reason().is_none());
     }
 }
