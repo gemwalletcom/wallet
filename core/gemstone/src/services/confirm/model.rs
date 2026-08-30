@@ -4,6 +4,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::transfer::GemTransferData;
+use primitives::FeePriority;
 use primitives::{Account, AssetId, SimulationResult, Transaction, Wallet};
 
 pub type GemAccount = Account;
@@ -16,7 +17,7 @@ pub struct GemConfirmInput {
 
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemConfirmFeeSelection {
-    Priority { priority: String },
+    Priority { priority: FeePriority },
     Custom { gas_price: GemBigInt },
 }
 
@@ -30,7 +31,7 @@ pub struct GemConfirmLoadOptions {
 pub struct GemConfirmData {
     pub input: GemConfirmInput,
     pub fee: GemTransactionLoadFee,
-    pub selected_priority: String,
+    pub selected_priority: FeePriority,
     pub fee_rates: Vec<GemFeeRate>,
     pub metadata: GemTransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,

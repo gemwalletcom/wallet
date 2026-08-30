@@ -1,6 +1,7 @@
 package com.gemwallet.android.blockchain.services
 
 import uniffi.gemstone.GemRecipient
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
@@ -59,8 +60,8 @@ class SignerPreloaderProxyTest {
         val options = slot<GemConfirmLoadOptions>()
         val confirmInput = slot<GemConfirmInput>()
         val feeRates = listOf(
-            GemFeeRate(FeePriority.Normal.string, GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3")),
-            GemFeeRate("unsupported", GemGasPriceType.Eip1559(gasPrice = "1", priorityFee = "1")),
+            GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3")),
+            GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Eip1559(gasPrice = "1", priorityFee = "1")),
         )
         coEvery { confirmService.load(capture(confirmInput), capture(options)) } coAnswers {
             GemConfirmData(
@@ -71,7 +72,7 @@ class SignerPreloaderProxyTest {
                     options = GemFeeOptions(emptyMap()),
                     feeAsset = asset.id.chain.string,
                 ),
-                selectedPriority = FeePriority.Normal.string,
+                selectedPriority = FeePriority.Normal.toGem(),
                 feeRates = feeRates,
                 metadata = GemTransactionLoadMetadata.None,
                 simulation = null,
@@ -89,7 +90,7 @@ class SignerPreloaderProxyTest {
         assertEquals("tempo_0x20C000000000000000000000b9537d11c60E8b50", options.captured.feeAssetId)
         assertEquals(FeePriority.Normal, result.signerParams.fee.priority)
         assertEquals(BigInteger("21000"), result.signerParams.fee.amount)
-        assertEquals(listOf(feeRates[0]), result.signerParams.feeRates)
+        assertEquals(feeRates, result.signerParams.feeRates)
         assertEquals(GemTransactionLoadMetadata.None, result.signerParams.confirmData.metadata)
         assertEquals(null, result.simulation)
     }

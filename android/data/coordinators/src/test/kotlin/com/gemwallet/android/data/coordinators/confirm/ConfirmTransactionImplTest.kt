@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.confirm
 
+import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.domains.confirm.toConfirmInput
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
@@ -160,7 +161,7 @@ class ConfirmTransactionImplTest {
                 options = GemFeeOptions(emptyMap()),
                 feeAsset = asset.id.toIdentifier(),
             ),
-            selectedPriority = FeePriority.Normal.string,
+            selectedPriority = FeePriority.Normal.toGem(),
             feeRates = emptyList(),
             metadata = GemTransactionLoadMetadata.None,
             simulation = null,

@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
@@ -20,7 +21,7 @@ data class FeeRateUIModel(
     val selectedFeeAmount: BigInteger? = null,
     val unitSymbol: String? = null,
 ) {
-    val priority: FeePriority = FeePriority.entries.first { it.string == feeRate.priority }
+    val priority: FeePriority = feeRate.priority.toPrimitives()
 
     val price: String
         get() = if (feeUnitType == FeeUnitType.Native) {

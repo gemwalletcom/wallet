@@ -1,6 +1,14 @@
 use crate::address::checksum_address;
 use crate::models::GemTransactionInputType;
 use crate::models::custom_types::GemBigInt;
+use primitives::FeePriority;
+
+#[uniffi::remote(Enum)]
+pub enum FeePriority {
+    Normal,
+    Fast,
+}
+
 use primitives::{BroadcastOptions, FeeRate, GasPriceType, TransactionInputType, TransactionPreloadInput, UTXO};
 
 pub type GemUTXO = UTXO;
@@ -36,7 +44,7 @@ pub enum GemGasPriceType {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemFeeRate {
-    pub priority: String,
+    pub priority: FeePriority,
     pub gas_price_type: GemGasPriceType,
 }
 
@@ -69,7 +77,7 @@ impl From<GasPriceType> for GemGasPriceType {
 impl From<FeeRate> for GemFeeRate {
     fn from(fee: FeeRate) -> Self {
         Self {
-            priority: fee.priority.as_ref().to_string(),
+            priority: fee.priority,
             gas_price_type: fee.gas_price_type.into(),
         }
     }

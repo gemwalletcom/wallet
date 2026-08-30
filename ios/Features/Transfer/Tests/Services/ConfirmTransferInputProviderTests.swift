@@ -16,7 +16,7 @@ struct ConfirmTransferInputProviderTests {
     @Test
     func loadReturnsInputWithRatesAndFee() async throws {
         let provider = ConfirmTransferInputProvider.mock(transaction: .success(
-            .mock(input: TransferData.mock().confirmInput(from: .mock()), feeRates: [GemFeeRate(priority: "normal", gasPriceType: .regular(gasPrice: "1"))]),
+            .mock(input: TransferData.mock().confirmInput(from: .mock()), feeRates: [GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: "1"))]),
         ))
 
         let result = try await provider.load()

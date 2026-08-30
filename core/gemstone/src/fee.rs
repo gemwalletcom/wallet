@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use primitives::{AssetId, CustomFee, GasPriceType};
+use primitives::{AssetId, CustomFee, FeePriority, GasPriceType};
 
 use crate::models::gateway::GemGasPriceType;
 use crate::models::transaction::GemTransactionInputType;
@@ -40,7 +40,7 @@ impl GemFeeService {
         }
     }
 
-    pub fn default_priority(&self, input_type: GemTransactionInputType) -> String {
+    pub fn default_priority(&self, input_type: GemTransactionInputType) -> FeePriority {
         confirm_rules::default_fee_priority(input_type)
     }
 

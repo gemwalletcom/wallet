@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.presents.components
 
+import com.gemwallet.android.ext.toGem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -97,7 +98,7 @@ fun FeeDetails(
     val maxMultiplier = feeConfig.maxMultiplier.toInt()
     val minimumCustomFeeRate = feeConfig.minimumCustomFeeRate?.toLong()?.toBigInteger()
 
-    val selectedTotalFee = feeRates.firstOrNull { it.priority == currentFee.priority.string }
+    val selectedTotalFee = feeRates.firstOrNull { it.priority == currentFee.priority.toGem() }
         ?.let { feeService.totalFee(it.gasPriceType).toBigInteger() }
     val feeRateModels = feeRates.map { rate ->
         FeeRateUIModel(

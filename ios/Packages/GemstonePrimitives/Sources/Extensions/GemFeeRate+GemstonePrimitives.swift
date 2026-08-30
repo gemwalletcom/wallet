@@ -7,7 +7,7 @@ import Primitives
 public extension GemFeeRate {
     func map() throws -> FeeRate {
         try FeeRate(
-            priority: FeePriority(id: priority),
+            priority: priority.map(),
             gasPriceType: gasPriceType.map(),
         )
     }

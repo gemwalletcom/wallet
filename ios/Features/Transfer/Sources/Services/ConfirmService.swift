@@ -162,7 +162,7 @@ public struct ConfirmService: Sendable {
     }
 
     public func defaultPriority(for type: TransferDataType) -> FeePriority {
-        (try? type.map()).flatMap { FeePriority(rawValue: feeService.defaultPriority(inputType: $0)) } ?? .normal
+        (try? type.map()).map { feeService.defaultPriority(inputType: $0).map() } ?? .normal
     }
 }
 

@@ -69,12 +69,11 @@ pub fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {
     }
 }
 
-pub fn default_fee_priority(input_type: GemTransactionInputType) -> String {
-    let priority = match input_type {
+pub fn default_fee_priority(input_type: GemTransactionInputType) -> FeePriority {
+    match input_type {
         GemTransactionInputType::Swap { from_asset, .. } if from_asset.chain() == Chain::Bitcoin => FeePriority::Fast,
         _ => FeePriority::Normal,
-    };
-    priority.as_ref().to_string()
+    }
 }
 
 pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: &str) -> bool {
@@ -192,11 +191,11 @@ pub(super) fn select_fee_rate(rates: &[GemFeeRate], selection: &GemConfirmFeeSel
         GemConfirmFeeSelection::Custom { gas_price } => {
             let base = rates
                 .iter()
-                .find(|rate| rate.priority == FeePriority::Normal.as_ref())
+                .find(|rate| rate.priority == FeePriority::Normal)
                 .or_else(|| rates.first())
                 .ok_or(GemConfirmError::FeeRatesMissing)?;
             Ok(GemFeeRate {
-                priority: base.priority.clone(),
+                priority: base.priority,
                 gas_price_type: custom_gas_price(base.gas_price_type.clone(), gas_price.clone()),
             })
         }
@@ -253,7 +252,7 @@ mod tests {
                     options: Default::default(),
                     fee_asset: AssetId::from_chain(Chain::Solana),
                 },
-                selected_priority: "normal".to_string(),
+                selected_priority: FeePriority::Normal,
                 fee_rates: vec![],
                 metadata: GemTransactionLoadMetadata::None,
                 simulation: None,
@@ -348,9 +347,9 @@ mod tests {
             TransferDataOutputAction::Send
         );
     }
-    fn rate(priority: &str, gas_price: &str) -> GemFeeRate {
+    fn rate(priority: FeePriority, gas_price: &str) -> GemFeeRate {
         GemFeeRate {
-            priority: priority.to_string(),
+            priority,
             gas_price_type: GemGasPriceType::Regular {
                 gas_price: gas_price.parse().unwrap(),
             },
@@ -359,22 +358,22 @@ mod tests {
 
     #[test]
     fn test_select_fee_rate() {
-        let rates = vec![rate("normal", "10"), rate("fast", "20")];
+        let rates = vec![rate(FeePriority::Normal, "10"), rate(FeePriority::Fast, "20")];
 
-        let fast = select_fee_rate(&rates, &GemConfirmFeeSelection::Priority { priority: "fast".to_string() }).unwrap();
-        assert_eq!(fast.priority, "fast");
+        let fast = select_fee_rate(&rates, &GemConfirmFeeSelection::Priority { priority: FeePriority::Fast }).unwrap();
+        assert_eq!(fast.priority, FeePriority::Fast);
 
-        let fallback = select_fee_rate(&rates, &GemConfirmFeeSelection::Priority { priority: "slow".to_string() }).unwrap();
-        assert_eq!(fallback.priority, "normal");
+        let fallback = select_fee_rate(&[rate(FeePriority::Fast, "20")], &GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }).unwrap();
+        assert_eq!(fallback.priority, FeePriority::Fast);
 
         let custom = select_fee_rate(&rates, &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(33) }).unwrap();
-        assert_eq!(custom.priority, "normal");
+        assert_eq!(custom.priority, FeePriority::Normal);
         match custom.gas_price_type {
             GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(33)),
             gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
         }
 
-        match select_fee_rate(&[], &GemConfirmFeeSelection::Priority { priority: "normal".to_string() }) {
+        match select_fee_rate(&[], &GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }) {
             Err(GemConfirmError::FeeRatesMissing) => {}
             result => panic!("expected missing fee rates, got {result:?}"),
         }
@@ -383,16 +382,16 @@ mod tests {
     #[test]
     fn test_select_fee_rate_custom() {
         let eip1559 = GemFeeRate {
-            priority: "normal".to_string(),
+            priority: FeePriority::Normal,
             gas_price_type: GemGasPriceType::Eip1559 {
                 gas_price: BigInt::from(20),
                 priority_fee: BigInt::from(5),
             },
         };
-        let rates = vec![rate("slow", "1"), eip1559];
+        let rates = vec![rate(FeePriority::Fast, "1"), eip1559];
 
         let raised = select_fee_rate(&rates, &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(30) }).unwrap();
-        assert_eq!(raised.priority, "normal");
+        assert_eq!(raised.priority, FeePriority::Normal);
         match raised.gas_price_type {
             GemGasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price, priority_fee), (BigInt::from(25), BigInt::from(5))),
             gas_price_type => panic!("expected an eip1559 custom gas price, got {gas_price_type:?}"),
@@ -404,8 +403,8 @@ mod tests {
             gas_price_type => panic!("expected a capped eip1559 gas price, got {gas_price_type:?}"),
         }
 
-        let without_normal = select_fee_rate(&[rate("slow", "1"), rate("fast", "9")], &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(4) }).unwrap();
-        assert_eq!(without_normal.priority, "slow");
+        let without_normal = select_fee_rate(&[rate(FeePriority::Fast, "9")], &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(4) }).unwrap();
+        assert_eq!(without_normal.priority, FeePriority::Fast);
         match without_normal.gas_price_type {
             GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(4)),
             gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
@@ -419,7 +418,7 @@ mod tests {
 
     #[test]
     fn test_a_custom_gas_price_carries_a_big_integer_so_a_malformed_one_cannot_read_as_zero() {
-        let rates = vec![rate("normal", "10")];
+        let rates = vec![rate(FeePriority::Normal, "10")];
         let selection = GemConfirmFeeSelection::Custom { gas_price: GemBigInt::from(33) };
         match select_fee_rate(&rates, &selection).unwrap().gas_price_type {
             GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(33)),
@@ -580,7 +579,7 @@ mod tests {
                     },
                 },
                 fee: primitives::TransactionFee::new_from_fee(BigInt::from(1), AssetId::from_chain(Chain::Solana)).into(),
-                selected_priority: "normal".to_string(),
+                selected_priority: FeePriority::Normal,
                 fee_rates: vec![],
                 metadata: GemTransactionLoadMetadata::None,
                 simulation: None,
@@ -619,18 +618,18 @@ mod tests {
             to_asset: Asset::mock_sol(),
             swap_data: SwapData::mock(),
         };
-        assert_eq!(default_fee_priority(bitcoin_swap), FeePriority::Fast.as_ref());
+        assert_eq!(default_fee_priority(bitcoin_swap), FeePriority::Fast);
         let solana_swap = GemTransactionInputType::Swap {
             from_asset: Asset::mock_sol(),
             to_asset: Asset::mock_spl_token(),
             swap_data: SwapData::mock(),
         };
-        assert_eq!(default_fee_priority(solana_swap), FeePriority::Normal.as_ref());
+        assert_eq!(default_fee_priority(solana_swap), FeePriority::Normal);
         assert_eq!(
             default_fee_priority(GemTransactionInputType::Transfer {
                 asset: Asset::from_chain(Chain::Bitcoin)
             }),
-            FeePriority::Normal.as_ref()
+            FeePriority::Normal
         );
     }
 

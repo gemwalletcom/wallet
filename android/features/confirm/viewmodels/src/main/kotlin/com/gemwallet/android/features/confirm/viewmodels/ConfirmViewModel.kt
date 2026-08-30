@@ -26,7 +26,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.transactions.TransactionBalanceService
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toFeePriority
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -340,13 +340,7 @@ class ConfirmViewModel @Inject constructor(
 
     fun init(params: ConfirmParams, simulationResult: SimulationResult? = null) {
         this.simulationResult.value = simulationResult
-        val priority = feeService.defaultPriority(params.toTransferData().inputType)
-        feeSelection.value = FeeSelection.Preset(
-            priority.toFeePriority() ?: run {
-                Log.e(TAG, "unsupported default fee priority \"$priority\"")
-                FeePriority.Normal
-            }
-        )
+        feeSelection.value = FeeSelection.Preset(feeService.defaultPriority(params.toTransferData().inputType).toPrimitives())
         viewModelScope.launch(Dispatchers.IO) {
             val assetIds = simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(params.approvalAssetId(transferService))
             syncMissingAssets.syncMissingAssets(assetIds.distinct())

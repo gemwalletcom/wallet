@@ -3,7 +3,8 @@ package com.gemwallet.android.blockchain.services
 import android.util.Log
 import com.gemwallet.android.blockchain.gemstone.toFee
 import com.gemwallet.android.domains.confirm.toConfirmInput
-import com.gemwallet.android.ext.toFeePriority
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.FeeAssetSelection
@@ -41,7 +42,7 @@ class SignerPreloaderProxy(
             input = params.toConfirmInput(),
             options = GemConfirmLoadOptions(
                 feeSelection = when (selection) {
-                    is FeeSelection.Preset -> GemConfirmFeeSelection.Priority(selection.priority.string)
+                    is FeeSelection.Preset -> GemConfirmFeeSelection.Priority(selection.priority.toGem())
                     is FeeSelection.Custom -> GemConfirmFeeSelection.Custom(selection.gasPrice.toString())
                 },
                 feeAssetId = when (feeAssetSelection) {
@@ -50,15 +51,9 @@ class SignerPreloaderProxy(
                 },
             ),
         )
-        val selectedPriority = result.selectedPriority.toFeePriority() ?: run {
-            Log.e(TAG, "unsupported fee priority \"${result.selectedPriority}\"")
-            FeePriority.Normal
-        }
+        val selectedPriority = result.selectedPriority.toPrimitives()
         val fee = result.fee.toFee(selectedPriority, AssetId(result.fee.feeAsset))
-        val (rates, unsupported) = result.feeRates.partition { it.priority.toFeePriority() != null }
-        if (unsupported.isNotEmpty()) {
-            Log.e(TAG, "unsupported fee rates ${unsupported.joinToString { it.priority }}")
-        }
+        val rates = result.feeRates
 
         Preload(
             signerParams = SignerParams(

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import enum Gemstone.FeePriority
 public import struct Gemstone.GemConfirmData
 public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemFeeOptions
@@ -16,7 +17,7 @@ public extension GemConfirmData {
     static func mock(
         input: GemConfirmInput = TransferData.mock().confirmInput(from: .mock()),
         fee: GemTransactionLoadFee = .mock(),
-        selectedPriority: String = "normal",
+        selectedPriority: Gemstone.FeePriority = .normal,
         feeRates: [GemFeeRate] = [],
         metadata: GemTransactionLoadMetadata = .none,
         simulation: String? = .none,

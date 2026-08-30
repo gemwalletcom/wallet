@@ -1,7 +1,6 @@
 package com.gemwallet.android.blockchain.gemstone
 
 import com.gemwallet.android.ext.toChainType
-import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Fee
 import com.wallet.core.primitives.AssetId

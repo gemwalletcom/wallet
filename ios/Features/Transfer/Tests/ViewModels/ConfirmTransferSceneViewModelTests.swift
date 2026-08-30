@@ -264,8 +264,8 @@ struct ConfirmTransferSceneViewModelTests {
         ]
         let model = ConfirmTransferSceneViewModel.mock(
             confirmService: .mock(transaction: .success(.mock(feeRates: [
-                GemFeeRate(priority: "normal", gasPriceType: .regular(gasPrice: "20")),
-                GemFeeRate(priority: "fast", gasPriceType: .regular(gasPrice: "30")),
+                GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: "20")),
+                GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: "30")),
             ]))),
         )
 
