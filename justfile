@@ -1,5 +1,6 @@
 mod ios 'ios/justfile'
 mod android 'android/justfile'
+mod core 'core/justfile'
 
 default:
     @just --list
@@ -15,6 +16,14 @@ build:
     @just ios build
     @echo "==> Building Android app"
     @just android build
+
+clean:
+    @echo "==> Cleaning iOS build folders"
+    @just ios clean
+    @echo "==> Cleaning Android build folders"
+    @just android clean
+    @echo "==> Cleaning Rust build folders"
+    @just core clean
 
 run-ios:
     @just ios run

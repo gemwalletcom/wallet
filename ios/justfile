@@ -1,5 +1,5 @@
 XCBEAUTIFY_ARGS := "--quieter --is-ci"
-BUILD_THREADS := `sysctl -n hw.ncpu`
+BUILD_THREADS := `getconf _NPROCESSORS_ONLN`
 SIMULATOR_NAME := env("SIMULATOR_NAME", "iPhone 17")
 SIMULATOR_DEST := "platform=iOS Simulator,name=" + SIMULATOR_NAME
 XCODE_CONFIGURATION := env("CONFIGURATION", "Debug")
@@ -72,8 +72,14 @@ build: (_build "build" FAST_BUILD_FLAGS)
 build-for-testing: (_build "build-for-testing" GEMSTONE_LINKER_FLAGS)
 
 clean:
-    @rm -rf {{DERIVED_DATA}}
-    @echo "Build cache cleaned"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    rm -rf build .build
+    while IFS= read -r -d '' manifest; do
+        package_directory="${manifest%/Package.swift}"
+        rm -rf "$package_directory/build" "$package_directory/.build"
+    done < <(find . -name Package.swift -print0)
+    echo "iOS build folders cleaned"
 
 run: build
     @echo "==> Installing app on simulator..."

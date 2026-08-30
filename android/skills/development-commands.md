@@ -19,6 +19,7 @@ For local environment prerequisites, read `setup.md`.
 
 ```bash
 just build
+just clean
 just run
 just start-emulator
 just build-test
@@ -26,7 +27,6 @@ just test
 just test-integration
 ./gradlew assembleGoogleDebug
 just release
-./gradlew clean
 ```
 
 For release builds, read `release-and-verification.md`.
