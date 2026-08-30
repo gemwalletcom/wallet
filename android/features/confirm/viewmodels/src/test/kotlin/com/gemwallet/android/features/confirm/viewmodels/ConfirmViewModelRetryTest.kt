@@ -22,7 +22,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -36,7 +36,7 @@ import java.math.BigInteger
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelRetryTest {
 
-    private val testDispatcher = StandardTestDispatcher()
+    private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAssetHyperCoreUBTC()
     private val account = mockAccount(chain = Chain.HyperCore)
     private val preloader = mockk<SignerPreloaderProxy>()
@@ -58,6 +58,7 @@ class ConfirmViewModelRetryTest {
         )
         val viewModel = viewModel(params)
         runCurrent()
+        coVerify(timeout = 5_000, exactly = 1) { preloader.preload(any(), any(), any()) }
 
         assertTrue(viewModel.state.value is ConfirmState.Error)
 
