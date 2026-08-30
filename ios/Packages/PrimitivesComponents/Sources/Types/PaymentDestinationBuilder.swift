@@ -16,7 +16,7 @@ public enum PaymentDestinationBuilder {
     }
 
     public static func transfer(payment: Primitives.PaymentRequest, asset: Primitives.Asset) throws -> TransferDestination {
-        switch try paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
+        switch paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
             return try .confirm(transferData(transfer: transfer, asset: asset))
         case .recipient:
@@ -27,7 +27,7 @@ public enum PaymentDestinationBuilder {
     }
 
     public static func build(payment: Primitives.PaymentRequest, assets: [AssetData]) throws -> PaymentDestination {
-        switch try paymentService.destination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
+        switch paymentService.destination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
         case let .confirm(transfer):
             guard let assetData = assetData(for: transfer.assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)

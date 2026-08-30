@@ -26,7 +26,7 @@ public final class GemstoneNftStore: GemNftStore, @unchecked Sendable {
         else {
             return nil
         }
-        return try NFTAssetData(collection: collection, asset: asset).json()
+        return NFTAssetData(collection: collection, asset: asset).json()
     }
 
     public func saveAsset(data: Gemstone.NftAssetData) async throws {

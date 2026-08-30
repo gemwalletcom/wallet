@@ -49,13 +49,9 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     }
 
     var gemAmountType: GemAmountType {
-        do {
-            return switch action {
-            case .deposit: .earn(earnType: .deposit)
-            case let .withdraw(delegation): try .earn(earnType: .withdraw(delegation: delegation.json()))
-            }
-        } catch {
-            preconditionFailure("Unencodable delegation: \(error)")
+        switch action {
+        case .deposit: .earn(earnType: .deposit)
+        case let .withdraw(delegation): .earn(earnType: .withdraw(delegation: delegation.json()))
         }
     }
 

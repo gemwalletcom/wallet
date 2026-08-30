@@ -8,7 +8,7 @@ public struct AutocloseValidator: Sendable {
     private let validator: Gemstone.AutocloseValidator
 
     public init(type: Primitives.TpslType, direction: Primitives.PerpetualDirection, marketPrice: Double) throws {
-        validator = try Gemstone.AutocloseValidator(triggerType: type.map(), direction: direction.json(), marketPrice: marketPrice)
+        validator = Gemstone.AutocloseValidator(triggerType: type.map(), direction: direction.json(), marketPrice: marketPrice)
     }
 
     public func validate(_ price: Double) -> AutocloseValidation {

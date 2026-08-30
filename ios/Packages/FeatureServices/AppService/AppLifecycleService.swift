@@ -148,7 +148,7 @@ extension AppLifecycleService {
 
     private func connectPerpetual() async {
         let wallet = walletSessionService.currentWallet
-        let connect = (try? perpetualService.shouldConnectPerpetuals(wallet: wallet?.json())) ?? false
+        let connect = perpetualService.shouldConnectPerpetuals(wallet: wallet?.json())
         await updatePerpetualObserver(wallet: wallet, connect: connect)
     }
 

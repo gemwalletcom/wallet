@@ -46,7 +46,7 @@ public extension PerpetualPositionAction {
 
 public extension PerpetualPosition {
     func closeOrder(assetIndex: Int32, perpetual: Perpetual, asset: Asset, baseAsset: Asset) throws -> PerpetualConfirmData {
-        let input = try GemPerpetualCloseInput(
+        let input = GemPerpetualCloseInput(
             assetIndex: assetIndex,
             direction: direction.json(),
             marginType: marginType.json(),

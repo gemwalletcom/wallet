@@ -102,7 +102,7 @@ public final class ObservablePreferences: Sendable {
 
     public func showPerpetuals(for wallet: Wallet) -> Bool {
         access(keyPath: \.isPerpetualEnabled)
-        return (try? preferencesService.showPerpetuals(wallet: wallet.json())) ?? false
+        return preferencesService.showPerpetuals(wallet: wallet.json())
     }
 
     private func write(_ operation: () throws -> Void) {

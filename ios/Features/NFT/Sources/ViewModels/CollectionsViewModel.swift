@@ -59,7 +59,7 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     }
 
     private func collections(verified: Bool) -> [NFTData] {
-        guard let data = try? nftDataList.map({ $0.json() }) else { return [] }
+        let data = nftDataList.map { $0.json() }
         let collections = verified ? nftService.verifiedCollections(data: data) : nftService.unverifiedCollections(data: data)
         return nftService.sortedCollections(data: collections).compactMap { try? NFTData($0) }
     }

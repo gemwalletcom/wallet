@@ -56,6 +56,6 @@ public extension GemPreferencesServiceProtocol {
     }
 
     func showPerpetuals(for wallet: Wallet) -> Bool {
-        (try? showPerpetuals(wallet: wallet.json())) ?? false
+        showPerpetuals(wallet: wallet.json())
     }
 }

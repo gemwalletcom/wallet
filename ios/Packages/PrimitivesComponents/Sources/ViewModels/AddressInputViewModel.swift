@@ -73,11 +73,7 @@ public final class AddressInputViewModel {
     }
 
     private var validation: GemRecipientValidation {
-        do {
-            return try recipientService.validate(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.json())
-        } catch {
-            preconditionFailure("Unencodable name record: \(error)")
-        }
+        recipientService.validate(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.json())
     }
 
     @discardableResult

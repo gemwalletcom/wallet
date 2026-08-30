@@ -179,7 +179,7 @@ public extension [Primitives.Chain] {
 
 public extension [Primitives.Asset] {
     func matching(query: String) -> [Primitives.Asset] {
-        guard let assets = try? map({ $0.json() }) else { return self }
+        let assets = map { $0.json() }
         return assetConfig.matchingAssets(assets: assets, query: query).compactMap { try? Primitives.Asset($0) }
     }
 }

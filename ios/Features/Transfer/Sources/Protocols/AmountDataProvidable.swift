@@ -24,11 +24,7 @@ protocol AmountDataProvidable {
 
 extension AmountDataProvidable {
     var rules: GemAmountRules {
-        do {
-            return try amountService.rules(amountType: gemAmountType, asset: asset.json())
-        } catch {
-            preconditionFailure("Unencodable amount asset: \(error)")
-        }
+        amountService.rules(amountType: gemAmountType, asset: asset.json())
     }
 
     var minimumValue: BigInt {

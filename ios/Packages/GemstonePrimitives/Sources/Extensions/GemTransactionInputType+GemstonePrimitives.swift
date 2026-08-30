@@ -56,9 +56,9 @@ public extension TransferDataType {
     func map() throws -> GemTransactionInputType {
         switch self {
         case let .transfer(asset):
-            return try .transfer(asset: asset.json())
+            return .transfer(asset: asset.json())
         case let .deposit(asset):
-            return try .deposit(asset: asset.json())
+            return .deposit(asset: asset.json())
         case let .swap(fromAsset, toAsset, swapData):
             return try .swap(fromAsset: fromAsset.json(), toAsset: toAsset.json(), swapData: swapData.json())
         case let .transferNft(nftAsset):
@@ -70,7 +70,7 @@ public extension TransferDataType {
         case let .generic(asset, metadata, extra):
             return try .generic(asset: asset.json(), metadata: metadata.json(), extra: extra.map())
         case let .withdrawal(asset):
-            return try .withdrawal(asset: asset.json())
+            return .withdrawal(asset: asset.json())
         case let .account(asset, accountData):
             return try .account(asset: asset.json(), accountType: accountData.json())
         case let .perpetual(asset, perpetualType):

@@ -81,10 +81,9 @@ private extension ConfirmSimulationService {
 
         let payload = simulation?.payload ?? []
         let showsHeader = shouldHideValueField(for: transferType, simulation: simulation)
-        guard let fields = try? simulationFormatter.payloadFields(payload: payload.map { $0.json() }, showsHeader: showsHeader) else {
-            return payload
-        }
-        return fields.compactMap { try? SimulationPayloadField($0) }
+        return simulationFormatter
+            .payloadFields(payload: payload.map { $0.json() }, showsHeader: showsHeader)
+            .compactMap { try? SimulationPayloadField($0) }
     }
 
     func approvalHeaderData(for transferType: TransferDataType) -> AssetValueHeaderData? {
@@ -123,7 +122,7 @@ private extension ConfirmSimulationService {
         assets: [AssetId: Asset],
     ) -> [SimulationAssetChange] {
         simulationFormatter
-            .balanceChanges(simulation: try? simulation?.json(), knownAssetIds: assets.keys.map(\.identifier))
+            .balanceChanges(simulation: simulation?.json(), knownAssetIds: assets.keys.map(\.identifier))
             .compactMap { change in
                 guard let assetId = try? AssetId(id: change.assetId),
                       let asset = assets[assetId],
@@ -145,7 +144,7 @@ private extension ConfirmSimulationService {
 
     func shouldHideValueField(for transferType: TransferDataType, simulation: SimulationResult?) -> Bool {
         simulationFormatter.showsHeader(
-            simulation: try? simulation?.json(),
+            simulation: simulation?.json(),
             isApproval: approvalHeaderData(for: transferType) != nil,
         )
     }
