@@ -327,6 +327,21 @@ Every app service forwards to a Core service or is platform glue, and the rules 
 
 What is left is below, in priority order: the confirm seam is the last large migration, then the per-feature reads, then the platform-side gaps. Work it top to bottom inside each section; each item lands with the app-side code it replaces deleted, a Core test that would flip if the rule flipped, and its line removed from this file in the same commit. Presentation and localization work goes last. When the list is empty, audit again and write a new one.
 
+### Not yet migrated — flagged, one batch each
+
+App services that still own logic Core should own, or hold collaborators they should not. Work them one at a time, each with the app code it replaces deleted and a Core test that would flip if the rule flipped.
+
+- `WalletService` (iOS) — wallet creation, import and deletion still live app-side over `GemKeystore`.
+- `WalletSessionService` (iOS) — the current-wallet session; Android's `SessionCoordinator` is the shape to converge on.
+- `ConfirmService` (iOS) — partly migrated. Beyond the seam below, it holds `RecentActivityStore`, a table Core does not own and a confirm screen has no business reading; move the read behind the service that owns it.
+- `HyperliquidObserverService` (iOS) / `DeviceObserverService` (both) — stream observation that Core's `GemPerpetualStreamService` and device WebSocket already model.
+- `BiometryAuthenticationService` — the policy (when auth is required, the lock interval) is Core's; only the platform prompt is not.
+- `GemstoneDevicePlatform` — platform values the device service should read through one trait rather than an app class.
+
+### No service is constructed at a call site
+
+A `Gem*Service()` in a field initialiser or at file scope is a second instance of something the graph already owns, and it is where app-side variants creep back in. Every one is injected: iOS registers it in `ServicesFactory`, exposes it through `@Entry`, and passes it into the view model; Android provides it in `RulesModule` and injects it. A stateless Compose component or a value-type extension takes the *answer* as a parameter — it does not reach for the service. Done so far: the amount service, balance calculator and transaction formatter. Still open: the `GemAssetConfigService`, `GemAddressService`, `GemPaymentService`, `GemDeeplinkService`, `GemTransferService`, `GemFeeService`, `GemSwapQuoteService`, `GemChainService` and `GemApplicationMetadataService` holders in `gemcore/ext/*`, `GemstonePrimitives/Sources/Extensions/*` and the Compose components.
+
 ### Design decisions to apply everywhere
 
 - **One preferences owner.** `GemPreferencesService` (Core, over the key-value `GemPreferencesStore`) owns every product preference; iOS `GemstonePreferencesStore`/`ObservablePreferences` and Android `UserConfig`/`ConfigStore` are storage adapters plus SwiftUI/Compose observation, nothing else, and no service or view model injects both an app preferences object and `GemPreferencesServiceProtocol`. Two things to know when adding a key: iOS namespaces every key as `gemstone_*` except the handful whose pre-move values must carry over (`currency`, `appearance`, `is_perpetual_enabled`, `is_push_notifications_enabled`, `swap_slippage_bps`, the `perpetual_*` defaults, the per-chain `explorer_name_*` keys, and the four aliased ones — `current_wallet_id`, `price_alerts_enabled`, `is_hide_balance_enabled`, `is_accept_terms_completed`), and `currency` is mirrored into the `group.com.gemwallet.ios` app group for the price widget. The app lock is not a preference: `authRequired` and `getLockInterval` live in secure storage on both platforms (iOS `KeystorePassword`, Android `TinkGemPreferences` over `GemSecureStore`), each still falling back to its pre-move DataStore/`ConfigStore` value until the next write.
