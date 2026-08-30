@@ -112,12 +112,8 @@ class ConfirmViewModel @Inject constructor(
     private val simulationResult = MutableStateFlow<SimulationResult?>(null)
 
     private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
-        .combine(restart) { request, _ -> request }
         .filterNotNull()
-        .mapNotNull { paramsPack ->
-            state.update { ConfirmState.Prepare }
-            ConfirmParams.unpack(paramsPack)
-        }
+        .mapNotNull { paramsPack -> ConfirmParams.unpack(paramsPack) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val session = getSession()
@@ -200,7 +196,9 @@ class ConfirmViewModel @Inject constructor(
         request.filterNotNull(),
         feeSelection,
         feeAssetSelection,
-    ) { session, request, feeSelection, feeAssetSelection ->
+        restart,
+    ) { session, request, feeSelection, feeAssetSelection, _ ->
+        state.update { ConfirmState.Prepare }
         val owner = session?.wallet?.getAccount(request.assetId.chain)
         if (owner == null) {
             state.update { ConfirmState.FatalError(R.string.errors_wallet_account_missing) }
