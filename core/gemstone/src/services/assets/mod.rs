@@ -40,17 +40,17 @@ impl GemAssetsService {
     }
 
     pub async fn ensure_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
-        if let Some(asset) = self.stored_asset(&asset_id).await? {
+        if let Some(asset) = self.stored_asset(&asset_id)? {
             return Ok(asset);
         }
         self.sync_missing_assets(vec![asset_id.clone()]).await?;
-        self.stored_asset(&asset_id).await?.ok_or_else(|| GemServiceError::NotFound {
+        self.stored_asset(&asset_id)?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("asset not found: {asset_id}"),
         })
     }
 
     pub async fn ensure_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
-        if let Some(asset) = self.stored_asset(&asset_id).await? {
+        if let Some(asset) = self.stored_asset(&asset_id)? {
             return Ok(asset);
         }
         let Some(token_id) = asset_id.token_id.clone() else {
@@ -126,6 +126,10 @@ impl GemAssetsService {
         let (enabled, disabled) = rules::default_balances(&wallet);
         self.store.add_balances(wallet.id.clone(), enabled, true).await?;
         self.store.add_balances(wallet.id, disabled, false).await
+    }
+
+    pub fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
+        self.store.get_assets(asset_ids)
     }
 
     pub async fn get_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemApiError> {
@@ -217,8 +221,8 @@ impl GemAssetsService {
         Ok(self.api.client.get_swap_assets().await?)
     }
 
-    async fn stored_asset(&self, asset_id: &AssetId) -> Result<Option<Asset>, GemServiceError> {
-        Ok(self.store.get_assets(vec![asset_id.clone()]).await?.into_iter().next())
+    fn stored_asset(&self, asset_id: &AssetId) -> Result<Option<Asset>, GemServiceError> {
+        Ok(self.assets(vec![asset_id.clone()])?.into_iter().next())
     }
 }
 

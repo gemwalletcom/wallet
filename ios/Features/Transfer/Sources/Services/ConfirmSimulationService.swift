@@ -12,19 +12,16 @@ import Store
 public struct ConfirmSimulationService: Sendable {
     private let nameService: any GemNameServiceProtocol
     private let assetsService: any GemAssetsServiceProtocol
-    private let assetStore: AssetStore
 
     private let simulationFormatter: GemSimulationFormatter
 
     public init(
         nameService: any GemNameServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
-        assetStore: AssetStore,
         simulationFormatter: GemSimulationFormatter,
     ) {
         self.nameService = nameService
         self.assetsService = assetsService
-        self.assetStore = assetStore
         self.simulationFormatter = simulationFormatter
     }
 
@@ -138,7 +135,7 @@ private extension ConfirmSimulationService {
         guard let simulation else {
             return [:]
         }
-        let assets = (try? assetStore.getAssets(for: simulation.simulationAssetIds.ids)) ?? []
+        let assets = (try? assetsService.assets(assetIds: simulation.simulationAssetIds.ids).map { try Primitives.Asset($0) }) ?? []
         return Dictionary(uniqueKeysWithValues: assets.map { ($0.id, $0) })
     }
 

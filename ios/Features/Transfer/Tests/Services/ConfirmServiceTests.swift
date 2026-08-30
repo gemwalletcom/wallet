@@ -71,7 +71,6 @@ struct ConfirmServiceTests {
         let service = ConfirmSimulationService(
             nameService: GemNameServiceMock(),
             assetsService: GemAssetsServiceMock(),
-            assetStore: .mock(),
             simulationFormatter: GemSimulationFormatter(),
         )
 
@@ -94,8 +93,7 @@ struct ConfirmServiceTests {
 
         let service = ConfirmSimulationService(
             nameService: GemNameServiceMock(),
-            assetsService: GemAssetsServiceMock(),
-            assetStore: assetStore,
+            assetsService: GemAssetsServiceMock(store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock())),
             simulationFormatter: GemSimulationFormatter(),
         )
 
@@ -114,8 +112,7 @@ struct ConfirmServiceTests {
 
         let service = ConfirmSimulationService(
             nameService: GemNameServiceMock(),
-            assetsService: GemAssetsServiceMock(),
-            assetStore: assetStore,
+            assetsService: GemAssetsServiceMock(store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock())),
             simulationFormatter: GemSimulationFormatter(),
         )
 
@@ -146,8 +143,7 @@ struct ConfirmServiceTests {
 
         let service = ConfirmSimulationService(
             nameService: GemNameServiceMock(),
-            assetsService: GemAssetsServiceMock(),
-            assetStore: assetStore,
+            assetsService: GemAssetsServiceMock(store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock())),
             simulationFormatter: GemSimulationFormatter(),
         )
 
@@ -189,7 +185,6 @@ struct ConfirmServiceTests {
                 assetsResult: [.mock(asset: dust)],
                 store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock()),
             ),
-            assetStore: assetStore,
             simulationFormatter: GemSimulationFormatter(),
         ).updateState(
             data: TransferData.mock(type: .transfer(.mock())),
@@ -204,7 +199,6 @@ struct ConfirmServiceTests {
         let service = ConfirmSimulationService(
             nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
             assetsService: GemAssetsServiceMock(),
-            assetStore: .mock(),
             simulationFormatter: GemSimulationFormatter(),
         )
 

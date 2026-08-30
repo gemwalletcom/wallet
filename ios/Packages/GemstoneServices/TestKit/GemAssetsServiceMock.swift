@@ -32,6 +32,13 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         self.store = store
     }
 
+    public func assets(assetIds: [Gemstone.AssetId]) throws -> [Gemstone.Asset] {
+        if let store {
+            return try store.getAssets(assetIds: assetIds)
+        }
+        return assetsResult.filter { assetIds.contains($0.asset.id.identifier) }.map { $0.asset.json() }
+    }
+
     public func getAsset(assetId _: Gemstone.AssetId) async throws -> Gemstone.AssetFull {
         guard let assetResult else { throw AnyError("not stubbed") }
         return assetResult.json()

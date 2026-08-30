@@ -35,9 +35,8 @@ class GemstoneAssetStore(
         assetsDao.getAssetIds(assetIds)
     }
 
-    override suspend fun getAssets(assetIds: List<String>): List<String> = withContext(Dispatchers.IO) {
+    override fun getAssets(assetIds: List<String>): List<String> =
         assetsDao.getAssetsByIds(assetIds).toDTO().map { it.toJson() }
-    }
 
     override suspend fun saveAssets(assets: List<String>) = withContext(Dispatchers.IO) {
         val basics = assets.map { it.decodeJson<AssetBasic>() }

@@ -44,7 +44,6 @@ public enum ConfirmServiceFactory {
             simulationService: ConfirmSimulationService(
                 nameService: nameService,
                 assetsService: assetsService,
-                assetStore: assetStore,
                 simulationFormatter: simulationFormatter,
             ),
             gemConfirmService: gemConfirmService,

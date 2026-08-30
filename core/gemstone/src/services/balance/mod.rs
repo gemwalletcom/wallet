@@ -110,7 +110,6 @@ impl GemBalanceService {
             let assets = self
                 .asset_store
                 .get_assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect())
-                .await
                 .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
             let updates = rules::balance_updates(&assets, balances);
             self.update_balances(wallet_id, updates).await?;

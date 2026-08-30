@@ -199,7 +199,7 @@ interface AssetsDao {
     fun getAsset(id: String): Flow<DbAsset?>
 
     @Query("SELECT * FROM asset WHERE id IN (:ids)")
-    suspend fun getAssetsByIds(ids: List<String>): List<DbAsset>
+    fun getAssetsByIds(ids: List<String>): List<DbAsset>
 
     @Query("SELECT id FROM asset WHERE id IN (:ids)")
     suspend fun getAssetIds(ids: List<String>): List<String>

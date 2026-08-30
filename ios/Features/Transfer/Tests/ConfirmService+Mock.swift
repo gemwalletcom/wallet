@@ -30,7 +30,6 @@ extension ConfirmService {
             simulationService: ConfirmSimulationService(
                 nameService: GemNameServiceMock(),
                 assetsService: GemAssetsServiceMock(),
-                assetStore: .mock(),
                 simulationFormatter: GemSimulationFormatter(),
             ),
             gemConfirmService: gemConfirmService,
