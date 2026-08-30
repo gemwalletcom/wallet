@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartData
 import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemPerpetualService
 import com.gemwallet.android.ext.twoSubtokenIds
@@ -18,6 +19,6 @@ class GetPerpetualChartDataImpl(
         period: ChartPeriod
     ): List<ChartCandleStick> {
         val symbol = assetId.twoSubtokenIds()?.second ?: return emptyList()
-        return perpetualService.getCandlesticks(Chain.HyperCore.string, symbol, period.string).map { it.decodeJson() }
+        return perpetualService.getCandlesticks(Chain.HyperCore.string, symbol, period.toJson()).map { it.decodeJson() }
     }
 }

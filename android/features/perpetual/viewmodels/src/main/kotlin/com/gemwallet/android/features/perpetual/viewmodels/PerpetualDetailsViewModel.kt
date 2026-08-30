@@ -8,6 +8,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartData
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
+import com.gemwallet.android.application.perpetual.cases.PerpetualCandles
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 
 import com.gemwallet.android.application.perpetual.cases.SetPerpetualChartPeriod
@@ -62,6 +63,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val syncPerpetualPositions: SyncPerpetualPositions,
     private val buildPerpetualParams: BuildPerpetualParams,
     private val perpetualObserver: PerpetualObserver,
+    private val perpetualCandles: PerpetualCandles,
     getSession: GetSession,
     getPerpetualChartPeriod: GetPerpetualChartPeriod,
     private val setPerpetualChartPeriod: SetPerpetualChartPeriod,
@@ -123,13 +125,14 @@ class PerpetualDetailsViewModel @Inject constructor(
             flow {
                 emit(StateViewType.Loading)
                 try {
+                    val interval = perpetualCandles.candleInterval(period)
                     var candles = getPerpetualChartData.getPerpetualChartData(assetId, period)
                     refreshState.value = false
                     emit(candles.toChartState())
                     perpetualObserver.chartUpdates
-                        .filter { it.coin == perpetual.value?.coin && it.interval == period.hyperliquidInterval }
+                        .filter { it.coin == perpetual.value?.coin && it.interval == interval }
                         .collect { update ->
-                            candles = candles.mergeCandle(update.candle)
+                            candles = perpetualCandles.mergeCandle(candles, update.candle)
                             emit(candles.toChartState())
                         }
                 } catch (e: Exception) {
@@ -157,7 +160,7 @@ class PerpetualDetailsViewModel @Inject constructor(
                 .collectLatest { subscriptionKey ->
                     val (coin, period) = subscriptionKey ?: return@collectLatest
                     val subscriptions = listOf(
-                        GemPerpetualSubscription.Candle(symbol = coin, interval = period.hyperliquidInterval),
+                        GemPerpetualSubscription.Candle(symbol = coin, interval = perpetualCandles.candleInterval(period)),
                         GemPerpetualSubscription.MarketData(symbol = coin),
                     )
                     subscriptions.forEach(perpetualObserver::subscribe)

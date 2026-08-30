@@ -9,6 +9,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
+import com.gemwallet.android.application.perpetual.cases.PerpetualCandles
 import com.gemwallet.android.application.perpetual.cases.SetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
@@ -23,6 +24,7 @@ import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualsImpl
+import com.gemwallet.android.data.coordinators.perpetuals.PerpetualCandlesImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualChartPeriodImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualPositionsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
@@ -147,6 +149,16 @@ object PerpetualModule {
         perpetualService: GemPerpetualService,
     ): GetPerpetualChartData {
         return GetPerpetualChartDataImpl(
+            perpetualService = perpetualService,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun providePerpetualCandles(
+        perpetualService: GemPerpetualService,
+    ): PerpetualCandles {
+        return PerpetualCandlesImpl(
             perpetualService = perpetualService,
         )
     }

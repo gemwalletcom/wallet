@@ -1,5 +1,6 @@
 use chrono::Utc;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
+use primitives::chart::ChartCandleStick;
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{PerpetualBalance, PerpetualData};
 use primitives::{
@@ -12,12 +13,15 @@ use crate::perpetual::GemPerpetual;
 use crate::services::error::GemServiceError;
 use num_bigint::BigInt;
 use primitives::{PerpetualConfirmData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, PerpetualType};
+use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::str::FromStr;
 
 use crate::models::asset::wallet_default_assets;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 use crate::services::collections::stale;
+
+pub use gem_hypercore::provider::perpetual::candle_interval;
 
 const MARKETS_REFRESH_INTERVAL_SECONDS: i64 = 60 * 60;
 
@@ -228,10 +232,29 @@ pub fn close_order(provider: PerpetualProvider, input: GemPerpetualCloseInput) -
     }
 }
 
+pub fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) -> Vec<ChartCandleStick> {
+    let Some(last_date) = candles.last().map(|last| last.date) else {
+        return candles;
+    };
+    let mut merged = candles;
+    match candle.date.cmp(&last_date) {
+        Ordering::Less => return merged,
+        Ordering::Equal => {
+            merged.pop();
+        }
+        Ordering::Greater => {
+            merged.remove(0);
+        }
+    }
+    merged.push(candle);
+    merged
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Asset, PerpetualDirection, PerpetualId, PerpetualMarginType};
+    use chrono::DateTime;
+    use primitives::{Asset, ChartPeriod, PerpetualDirection, PerpetualId, PerpetualMarginType};
 
     fn modify_data(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> PerpetualModifyConfirmData {
         PerpetualModifyConfirmData {
@@ -493,5 +516,44 @@ mod tests {
         assert_eq!(data.pnl, Some(12.5));
         assert_eq!(data.entry_price, Some(90.0));
         assert_eq!(data.fiat_value, 196.0);
+    }
+
+    fn candle(date: i64, close: f64) -> ChartCandleStick {
+        ChartCandleStick {
+            date: DateTime::from_timestamp(date, 0).unwrap(),
+            open: close - 1.0,
+            high: close + 1.0,
+            low: close - 2.0,
+            close,
+            volume: 1000.0,
+        }
+    }
+
+    #[test]
+    fn test_merge_candle() {
+        let candles = vec![candle(1000, 100.0), candle(2000, 100.0)];
+
+        let replaced = merge_candle(candles.clone(), candle(2000, 105.0));
+        assert_eq!(replaced.len(), 2);
+        assert_eq!(replaced[0].date, candles[0].date);
+        assert_eq!(replaced[1].close, 105.0);
+
+        let appended = merge_candle(candles.clone(), candle(3000, 110.0));
+        assert_eq!(appended.len(), 2);
+        assert_eq!(appended[0].date, candles[1].date);
+        assert_eq!(appended[1].close, 110.0);
+
+        assert_eq!(merge_candle(candles.clone(), candle(500, 90.0)), candles);
+        assert_eq!(merge_candle(Vec::new(), candle(500, 90.0)), Vec::new());
+    }
+
+    #[test]
+    fn test_candle_interval() {
+        assert_eq!(candle_interval(&ChartPeriod::Hour), "1m");
+        assert_eq!(candle_interval(&ChartPeriod::Day), "30m");
+        assert_eq!(candle_interval(&ChartPeriod::Week), "4h");
+        assert_eq!(candle_interval(&ChartPeriod::Month), "12h");
+        assert_eq!(candle_interval(&ChartPeriod::Year), "1w");
+        assert_eq!(candle_interval(&ChartPeriod::All), "1M");
     }
 }

@@ -118,6 +118,14 @@ impl GemPerpetualService {
         Ok(self.gateway.get_perpetual_candlesticks(chain, symbol, period.as_ref().to_string()).await?)
     }
 
+    pub fn candle_interval(&self, period: ChartPeriod) -> String {
+        rules::candle_interval(&period).to_string()
+    }
+
+    pub fn merge_candle(&self, candles: Vec<GemChartCandleStick>, candle: GemChartCandleStick) -> Vec<GemChartCandleStick> {
+        rules::merge_candle(candles, candle)
+    }
+
     pub async fn get_portfolio(&self, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {
         Ok(self.gateway.get_perpetual_portfolio(chain, address).await?)
     }

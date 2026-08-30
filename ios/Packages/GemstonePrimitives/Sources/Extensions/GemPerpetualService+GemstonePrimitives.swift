@@ -14,6 +14,14 @@ public extension GemPerpetualServiceProtocol {
         try await getCandlesticks(chain: Chain.hyperCore.rawValue, symbol: symbol, period: period.json()).map { try ChartCandleStick($0) }
     }
 
+    func candleInterval(for period: ChartPeriod) -> String {
+        candleInterval(period: period.json())
+    }
+
+    func merge(candlesticks: [ChartCandleStick], candle: ChartCandleStick) throws -> [ChartCandleStick] {
+        try mergeCandle(candles: candlesticks.map { $0.json() }, candle: candle.json()).map { try ChartCandleStick($0) }
+    }
+
     func portfolio(address: String) async throws -> PerpetualPortfolio {
         try await PerpetualPortfolio(getPortfolio(chain: Chain.hyperCore.rawValue, address: address))
     }
