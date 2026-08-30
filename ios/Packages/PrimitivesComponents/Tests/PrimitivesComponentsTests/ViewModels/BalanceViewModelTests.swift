@@ -44,13 +44,10 @@ struct BalanceViewModelTests {
 
     @Test
     func balanceTextWithSymbol() {
-        let model = BalanceViewModel.mock(
-            asset: .mockEthereum(),
-            balance: .mock(staked: BigInt(1_000_000_000_000_000_000), earn: BigInt(2_000_000_000_000_000_000)),
-            formatter: .full,
-        )
-        #expect(model.balanceTextWithSymbol(for: .stake) == "1 ETH")
-        #expect(model.balanceTextWithSymbol(for: .earn) == "2 ETH")
+        let model = BalanceViewModel.mock(asset: .mockEthereum(), formatter: .full)
+
+        #expect(model.balanceTextWithSymbol(BigInt(1_000_000_000_000_000_000)) == "1 ETH")
+        #expect(model.balanceTextWithSymbol(.zero) == "0 ETH")
     }
 
     @Test

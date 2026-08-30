@@ -83,7 +83,7 @@ pub use push_notification::{GemPushNotification, GemPushNotificationService};
 pub use rewards::GemRewardsService;
 pub use scan::GemScanService;
 pub use search::{GemSearchScope, GemSearchService, GemSearchStore};
-pub use stake::config::GemStakeConfigService;
+pub use stake::config::StakeConfig;
 pub use stake::{GemStakeService, GemStakeStore};
 pub use stream::{GemStreamConnection, GemStreamService, GemStreamSubscriptionService};
 pub use subscription::GemSubscriptionService;

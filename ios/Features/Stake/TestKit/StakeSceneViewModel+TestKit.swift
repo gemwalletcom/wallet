@@ -4,6 +4,7 @@ import Primitives
 import PrimitivesTestKit
 @testable import Stake
 import protocol Gemstone.GemStakeServiceProtocol
+import class Gemstone.StakeConfig
 import GemstonePrimitivesTestKit
 
 public extension StakeSceneViewModel {
@@ -17,6 +18,7 @@ public extension StakeSceneViewModel {
             chain: chain,
             currencyCode: "USD",
             stakeService: stakeService,
+            stakeConfig: StakeConfig(),
             explorerService: GemExplorerServiceMock(),
         )
     }

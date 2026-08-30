@@ -2,6 +2,7 @@
 
 @testable import Assets
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import class Gemstone.StakeConfig
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import BigInt
@@ -72,11 +73,34 @@ struct AssetSceneViewModelTests {
 
     @Test
     func showProviderBalance() {
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isStakeEnabled: true))).showProviderBalance(for: .stake) == true)
-        #expect(AssetSceneViewModel.mock(.mock(balance: .mock(staked: BigInt(100)), metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == true)
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == false)
+        #expect(AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), metadata: .mock(isStakeEnabled: true))).showProviderBalance(for: .stake) == true)
+        #expect(AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), balance: .mock(staked: BigInt(100)), metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == true)
+        #expect(AssetSceneViewModel.mock(.mock(asset: .mockSolana(), balance: .mock(rewards: BigInt(100)), metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == true)
+        #expect(AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == false)
+        #expect(AssetSceneViewModel.mock(.mock(asset: .mock(), metadata: .mock(isStakeEnabled: true))).showProviderBalance(for: .stake) == false)
         #expect(AssetSceneViewModel.mock(.mock(balance: .mock(earn: BigInt(100)))).showProviderBalance(for: .earn) == true)
         #expect(AssetSceneViewModel.mock(.mock()).showProviderBalance(for: .earn) == false)
+    }
+
+    @Test
+    func balanceTextWithSymbol() {
+        let ethereum = AssetSceneViewModel.mock(.mock(
+            asset: .mockEthereum(),
+            balance: .mock(
+                staked: BigInt(1_000_000_000_000_000_000),
+                pending: BigInt(2_000_000_000_000_000_000),
+                rewards: BigInt(3_000_000_000_000_000_000),
+                earn: BigInt(4_000_000_000_000_000_000),
+            ),
+        ))
+        #expect(ethereum.balanceTextWithSymbol(for: .stake) == "6 ETH")
+        #expect(ethereum.balanceTextWithSymbol(for: .earn) == "4 ETH")
+
+        let tron = AssetSceneViewModel.mock(.mock(
+            asset: .mockTron(),
+            balance: .mock(frozen: BigInt(1_000_000), locked: BigInt(2_000_000), staked: BigInt(9_000_000), rewards: BigInt(3_000_000)),
+        ))
+        #expect(tron.balanceTextWithSymbol(for: .stake) == "6 TRX")
     }
 
     @Test
@@ -109,6 +133,7 @@ extension AssetSceneViewModel {
             priceAlertService: GemPriceAlertServiceMock(),
             bannerService: GemBannerServiceMock(),
             swapService: swapService,
+            stakeConfig: StakeConfig(),
             explorerService: GemExplorerServiceMock(),
             transactionFormatter: GemTransactionFormatter(),
             preferences: .mock(),

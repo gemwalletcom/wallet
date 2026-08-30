@@ -2,7 +2,7 @@
 
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemStakeConfigService
+import class Gemstone.StakeConfig
 import GemstonePrimitives
 import Formatters
 import Foundation
@@ -17,7 +17,7 @@ public struct DelegationViewModel: Sendable {
     private let asset: Asset
     private let formatter: ValueFormatter
     private let explorerService: any GemExplorerServiceProtocol
-    private let stakeConfig: GemStakeConfigService
+    private let stakeConfig: StakeConfig
     private let priceFormatter: CurrencyFormatter
 
     private static let dateFormatterDefault: DateComponentsFormatter = {
@@ -38,7 +38,7 @@ public struct DelegationViewModel: Sendable {
 
     public init(
         explorerService: any GemExplorerServiceProtocol,
-        stakeConfig: GemStakeConfigService,
+        stakeConfig: StakeConfig,
         delegation: Delegation,
         asset: Asset,
         formatter: ValueFormatter = .short,

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.StakeConfig
 import class Gemstone.GemChainService
 import class Gemstone.GemReceiveService
 import class Gemstone.GemTransactionFormatter
@@ -73,6 +74,7 @@ extension EnvironmentValues {
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
     @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler
     @Entry var stakeService: any GemStakeServiceProtocol = AppResolver.main.services.stakeService
+    @Entry var stakeConfig: StakeConfig = AppResolver.main.services.stakeConfig
     @Entry var stakeStore: StakeStore = AppResolver.main.storages.storeManager.stakeStore
     @Entry var explorerService: any GemExplorerServiceProtocol = AppResolver.main.services.explorerService
     @Entry var gatewayService: GatewayService = AppResolver.main.services.gatewayService

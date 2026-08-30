@@ -5,11 +5,12 @@ import com.gemwallet.android.application.banner.cases.GetActiveBanners
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.isStakeable
 import com.gemwallet.android.ext.hasPerpetualsSupport
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.getStakedAmount
+import com.gemwallet.android.model.toStakeBalance
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
@@ -22,6 +23,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemBannerContext
 import uniffi.gemstone.GemBannerItem
 import uniffi.gemstone.GemBannerService
+import uniffi.gemstone.StakeConfig
 import java.math.BigInteger
 
 class GetActiveBannersImpl(
@@ -29,6 +31,7 @@ class GetActiveBannersImpl(
     private val getAssetInfo: GetAssetInfo,
     private val bannerStore: GemstoneBannerStore,
     private val bannerService: GemBannerService,
+    private val stakeConfig: StakeConfig,
 ) : GetActiveBanners {
 
     override suspend fun invoke(asset: Asset?, isGlobal: Boolean): List<Banner> = withContext(Dispatchers.IO) {
@@ -57,11 +60,16 @@ class GetActiveBannersImpl(
         hasWallet = wallet != null,
         hasAsset = assetInfo != null,
         isStakeable = assetInfo?.asset?.isStakeable == true,
-        hasStakeBalance = (assetInfo?.balance?.balance?.getStakedAmount() ?: BigInteger.ZERO) > BigInteger.ZERO,
+        hasStakeBalance = hasStakeBalance(assetInfo),
         hasAvailableBalance = (assetInfo?.balance?.balance?.available?.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO,
         isAssetActivated = assetInfo?.balance?.isActive != false,
         assetRankScore = assetInfo?.metadata?.rankScore,
         hasPerpetualsSupport = wallet?.hasPerpetualsSupport == true,
         isWalletEmpty = false,
     )
+
+    private fun hasStakeBalance(assetInfo: AssetInfo?): Boolean {
+        val balance = assetInfo?.balance?.balance ?: return false
+        return stakeConfig.stakedValue(assetInfo.asset.chain.string, balance.toStakeBalance()).toBigInteger() > BigInteger.ZERO
+    }
 }

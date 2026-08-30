@@ -111,7 +111,7 @@ public struct AssetScene: View {
                         NavigationCustomLink(
                             with: ListItemView(
                                 title: model.balanceTitle(for: .stake),
-                                subtitle: model.assetDataModel.balanceTextWithSymbol(for: .stake),
+                                subtitle: model.balanceTextWithSymbol(for: .stake),
                             ),
                             action: { model.onSelectHeader(.stake) },
                         )
@@ -122,7 +122,7 @@ public struct AssetScene: View {
                         NavigationCustomLink(
                             with: ListItemView(
                                 title: model.balanceTitle(for: .earn),
-                                subtitle: model.assetDataModel.balanceTextWithSymbol(for: .earn),
+                                subtitle: model.balanceTextWithSymbol(for: .earn),
                             ),
                             action: { model.onSelectEarn() },
                         )

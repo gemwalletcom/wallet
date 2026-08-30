@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import BigInt
 import Components
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
@@ -12,6 +13,8 @@ import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import class Gemstone.GemTransactionFormatter
 import protocol Gemstone.GemSwapServiceProtocol
+import struct Gemstone.GemStakeBalance
+import class Gemstone.StakeConfig
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -31,6 +34,7 @@ public final class AssetSceneViewModel: Sendable {
     private let priceUpdater: any PriceUpdater
     private let bannerService: any GemBannerServiceProtocol
     private let swapService: any GemSwapServiceProtocol
+    private let stakeConfig: StakeConfig
 
     private let preferences: ObservablePreferences
 
@@ -57,6 +61,7 @@ public final class AssetSceneViewModel: Sendable {
         priceAlertService: any GemPriceAlertServiceProtocol,
         bannerService: any GemBannerServiceProtocol,
         swapService: any GemSwapServiceProtocol,
+        stakeConfig: StakeConfig,
         explorerService: any GemExplorerServiceProtocol,
         transactionFormatter: GemTransactionFormatter,
         preferences: ObservablePreferences,
@@ -70,6 +75,7 @@ public final class AssetSceneViewModel: Sendable {
         self.priceAlertService = priceAlertService
         self.bannerService = bannerService
         self.swapService = swapService
+        self.stakeConfig = stakeConfig
         self.explorerService = explorerService
         self.transactionFormatter = transactionFormatter
         self.preferences = preferences
@@ -259,7 +265,7 @@ public final class AssetSceneViewModel: Sendable {
             hasWallet: true,
             hasAsset: true,
             isStakeable: assetData.metadata.isStakeEnabled,
-            hasStakeBalance: !(assetData.balance.staked.isZero && assetData.balance.frozen.isZero),
+            hasStakeBalance: stakedValue > .zero,
             hasAvailableBalance: assetData.balance.available > 0,
             isAssetActivated: assetData.metadata.isActive,
             assetRankScore: assetData.metadata.rankScore,
@@ -333,13 +339,21 @@ public final class AssetSceneViewModel: Sendable {
 
     func showProviderBalance(for type: StakeProviderType) -> Bool {
         switch type {
-        case .stake: assetDataModel.isStakeEnabled || assetData.balances.contains(where: { Self.showStakedBalanceTypes.contains($0.key) && $0.value > 0 })
+        case .stake: stakeConfig.showsStakeBalance(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled, balance: stakeBalance)
         #if DEBUG
             case .earn: assetData.balance.earn > .zero
         #else
             case .earn: false
         #endif
         }
+    }
+
+    func balanceTextWithSymbol(for type: StakeProviderType) -> String {
+        let value = switch type {
+        case .stake: stakedValue
+        case .earn: assetData.balance.earn
+        }
+        return assetDataModel.balanceTextWithSymbol(value)
     }
 
     func balanceTitle(for type: StakeProviderType) -> String {
@@ -535,10 +549,16 @@ extension AssetSceneViewModel {
         return explorerService.getTokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { BlockExplorerLink($0) }
     }
 
-    private static let showStakedBalanceTypes: [Primitives.BalanceType] = [.staked, .pending, .rewards]
-
     private var addressLink: BlockExplorerLink {
         BlockExplorerLink(explorerService.getAddressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address))
+    }
+
+    private var stakeBalance: GemStakeBalance {
+        GemStakeBalance(assetData.balance)
+    }
+
+    private var stakedValue: BigInt {
+        BigInt(stringLiteral: stakeConfig.stakedValue(chain: asset.chain.rawValue, balance: stakeBalance))
     }
 
     private var feeAssetDataModel: AssetDataViewModel {

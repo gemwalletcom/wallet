@@ -2,6 +2,7 @@ package com.gemwallet.android.model
 
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BalanceMetadata
+import uniffi.gemstone.GemStakeBalance
 import java.math.BigInteger
 
 data class AssetBalance(
@@ -80,8 +81,6 @@ fun Balance<String>.rewardsBalance() = rewards.toBigIntegerOrNull() ?: BigIntege
 
 fun Balance<Double>.getTotalAmount() = available + frozen + locked + staked + pending + rewards + earn
 
-fun Balance<Double>.getStakedAmount() = frozen + staked + pending + rewards + locked
-
 fun Balance<String>.getTotalAmount() = BigInteger(available) +
         BigInteger(frozen) +
         BigInteger(locked) +
@@ -90,11 +89,12 @@ fun Balance<String>.getTotalAmount() = BigInteger(available) +
         BigInteger(rewards) +
         BigInteger(earn)
 
-fun Balance<String>.getStakedAmount() = BigInteger(frozen) +
-        BigInteger(staked) +
-        BigInteger(pending) +
-        BigInteger(rewards) +
-        BigInteger(locked)
-
+fun Balance<String>.toStakeBalance() = GemStakeBalance(
+    frozen = frozen,
+    locked = locked,
+    staked = staked,
+    pending = pending,
+    rewards = rewards,
+)
 
 fun Balance<String>.getFrozenResourceAmount() = BigInteger(frozen) + BigInteger(locked)

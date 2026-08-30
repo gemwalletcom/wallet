@@ -20,12 +20,9 @@ struct AssetDataViewModelTests {
 
     @Test
     func balanceTextWithSymbol() {
-        let model = AssetDataViewModel.mock(assetData: .mock(
-            asset: .mockEthereum(),
-            balance: .mock(staked: BigInt(1_000_000_000_000_000_000), earn: BigInt(2_000_000_000_000_000_000)),
-        ))
+        let model = AssetDataViewModel.mock(assetData: .mock(asset: .mockEthereum()))
 
-        #expect(model.balanceTextWithSymbol(for: .stake) == "1 ETH")
-        #expect(model.balanceTextWithSymbol(for: .earn) == "2 ETH")
+        #expect(model.balanceTextWithSymbol(BigInt(1_000_000_000_000_000_000)) == "1 ETH")
+        #expect(model.balanceTextWithSymbol(.zero) == "0 ETH")
     }
 }

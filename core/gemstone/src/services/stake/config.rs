@@ -1,13 +1,14 @@
 use primitives::{Chain, DelegationState, DelegationValidator, StakeProviderType, WalletType};
 
-use super::model::GemDelegationAction;
+use super::model::{GemDelegationAction, GemStakeBalance};
 use super::rules;
+use crate::models::custom_types::GemBigInt;
 
 #[derive(Default, uniffi::Object)]
-pub struct GemStakeConfigService {}
+pub struct StakeConfig {}
 
 #[uniffi::export]
-impl GemStakeConfigService {
+impl StakeConfig {
     #[uniffi::constructor]
     pub fn new() -> Self {
         Self {}
@@ -33,12 +34,12 @@ impl GemStakeConfigService {
         rules::shows_rewards(state, &rewards)
     }
 
-    pub fn can_claim_stake_rewards(&self, chain: Chain, rewards_amount: String) -> bool {
-        rules::can_claim_stake_rewards(chain, &rewards_amount)
+    pub fn can_claim_stake_rewards(&self, chain: Chain, rewards_value: String) -> bool {
+        rules::can_claim_stake_rewards(chain, &rewards_value)
     }
 
-    pub fn requires_frozen_balance(&self, chain: Chain, frozen_amount: String) -> bool {
-        rules::requires_frozen_balance(chain, &frozen_amount)
+    pub fn requires_frozen_balance(&self, chain: Chain, frozen_value: String) -> bool {
+        rules::requires_frozen_balance(chain, &frozen_value)
     }
 
     pub fn recommended_validator_ids(&self, chain: Chain) -> Vec<String> {
@@ -51,5 +52,13 @@ impl GemStakeConfigService {
 
     pub fn selectable_validators(&self, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
         rules::selectable_validators(validators)
+    }
+
+    pub fn staked_value(&self, chain: Chain, balance: GemStakeBalance) -> GemBigInt {
+        rules::staked_value(chain, &balance)
+    }
+
+    pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool, balance: GemStakeBalance) -> bool {
+        rules::shows_stake_balance(chain, is_stake_enabled, &balance)
     }
 }

@@ -7,15 +7,13 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.isStaked
-import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.getStakedAmount
 import com.gemwallet.android.model.getTotalAmount
+import com.gemwallet.android.model.toStakeBalance
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.StakeChain
@@ -23,12 +21,14 @@ import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import uniffi.gemstone.Explorer
+import uniffi.gemstone.StakeConfig
 import uniffi.gemstone.GemSwapServiceInterface
 import javax.inject.Inject
 import java.math.BigInteger
 
 class AssetInfoUIModelFactory @Inject constructor(
     private val swapService: GemSwapServiceInterface,
+    private val stakeConfig: StakeConfig,
 ) {
 
     fun create(chainAssetInfo: ChainAssetInfo, explorerName: String, walletType: WalletType): AssetInfoUIModel {
@@ -92,15 +92,17 @@ class AssetInfoUIModelFactory @Inject constructor(
     }
 
     private fun formatStake(assetInfo: AssetInfo, formatter: ValueFormatter): String {
-        val asset = assetInfo.asset
-        if (asset.id.type() != AssetSubtype.NATIVE || !StakeChain.isStaked(asset.id.chain)) {
+        val balances = assetInfo.balance
+        val stakeBalance = balances.balance.toStakeBalance()
+        val chain = assetInfo.asset.chain.string
+        if (!stakeConfig.showsStakeBalance(chain, assetInfo.metadata?.isStakeEnabled == true, stakeBalance)) {
             return ""
         }
-        val balances = assetInfo.balance
-        return if (balances.balanceAmount.getStakedAmount() == 0.0) {
+        val staked = stakeConfig.stakedValue(chain, stakeBalance).toBigInteger()
+        return if (staked == BigInteger.ZERO) {
             "APR ${(assetInfo.metadata?.stakingApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
         } else {
-            formatter.string(balances.balance.getStakedAmount(), balances.asset)
+            formatter.string(staked, balances.asset)
         }
     }
 

@@ -19,8 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemStakeConfigService
 import uniffi.gemstone.GemStakeService
+import uniffi.gemstone.StakeConfig
 import java.math.BigInteger
 
 class SyncStakeDelegationsImpl(
@@ -34,7 +34,7 @@ class SyncStakeDelegationsImpl(
 
 class GetValidatorsImpl(
     private val stakeStore: GemstoneStakeStore,
-    private val stakeConfig: GemStakeConfigService,
+    private val stakeConfig: StakeConfig,
 ) : GetValidators {
 
     override fun invoke(assetId: AssetId): Flow<List<DelegationValidator>> =
@@ -43,7 +43,7 @@ class GetValidatorsImpl(
 }
 
 class GetRecommendedValidatorIdsImpl(
-    private val stakeConfig: GemStakeConfigService,
+    private val stakeConfig: StakeConfig,
 ) : GetRecommendedValidatorIds {
 
     override fun invoke(assetId: AssetId): List<String> = stakeConfig.recommendedValidatorIds(assetId.chain.string)
@@ -51,7 +51,7 @@ class GetRecommendedValidatorIdsImpl(
 
 class GetRecommendedValidatorImpl(
     private val getValidators: GetValidators,
-    private val stakeConfig: GemStakeConfigService,
+    private val stakeConfig: StakeConfig,
 ) : GetRecommendedValidator {
 
     override fun invoke(assetId: AssetId): Flow<DelegationValidator?> =

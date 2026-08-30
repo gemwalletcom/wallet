@@ -16,6 +16,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemBannerService
+import uniffi.gemstone.StakeConfig
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -29,7 +30,8 @@ object BannerModule {
         getAssetInfo: GetAssetInfo,
         bannerStore: GemstoneBannerStore,
         bannerService: GemBannerService,
-    ): GetActiveBanners = GetActiveBannersImpl(getSession, getAssetInfo, bannerStore, bannerService)
+        stakeConfig: StakeConfig,
+    ): GetActiveBanners = GetActiveBannersImpl(getSession, getAssetInfo, bannerStore, bannerService, stakeConfig)
 
     @Provides
     @Singleton

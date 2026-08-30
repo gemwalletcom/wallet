@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemStakeConfigService
-import protocol Gemstone.GemStakeServiceProtocol
+import class Gemstone.StakeConfig
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitives
@@ -19,13 +18,12 @@ public final class ValidatorSelectSceneViewModel {
     public var selectValidator: ((DelegationValidator) -> Void)?
     private let explorerService: any GemExplorerServiceProtocol
 
-    private var stakeConfig: GemStakeConfigService { stakeService.config() }
 
-    private let stakeService: any GemStakeServiceProtocol
+    private let stakeConfig: StakeConfig
 
     public init(
         explorerService: any GemExplorerServiceProtocol,
-        stakeService: any GemStakeServiceProtocol,
+        stakeConfig: StakeConfig,
         type: ValidatorSelectType,
         chain: Chain,
         currentValidator: DelegationValidator?,
@@ -33,7 +31,7 @@ public final class ValidatorSelectSceneViewModel {
         selectValidator: ((DelegationValidator) -> Void)? = nil,
     ) {
         self.explorerService = explorerService
-        self.stakeService = stakeService
+        self.stakeConfig = stakeConfig
         self.type = type
         self.chain = chain
         self.currentValidator = currentValidator

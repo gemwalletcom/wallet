@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.StakeConfig
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
@@ -42,6 +43,7 @@ public struct ViewModelFactory: Sendable {
     let priceUpdater: any PriceUpdater
     let walletSessionService: any WalletSessionManageable
     let stakeService: any GemStakeServiceProtocol
+    let stakeConfig: StakeConfig
     let explorerService: any GemExplorerServiceProtocol
     let preferencesService: any GemPreferencesServiceProtocol
     let amountService: AmountService
@@ -222,6 +224,7 @@ public struct ViewModelFactory: Sendable {
             chain: StakeChain(rawValue: chain.rawValue)!, // Expected Only StakeChain accepted.
             currencyCode: preferencesService.currencyCode,
             stakeService: stakeService,
+            stakeConfig: stakeConfig,
             explorerService: explorerService,
         )
     }
@@ -236,6 +239,7 @@ public struct ViewModelFactory: Sendable {
             asset: asset,
             currencyCode: preferencesService.currencyCode,
             stakeService: stakeService,
+            stakeConfig: stakeConfig,
             explorerService: explorerService,
         )
     }
@@ -251,9 +255,9 @@ public struct ViewModelFactory: Sendable {
     ) -> DelegationSceneViewModel {
         DelegationSceneViewModel(
             wallet: wallet,
-            model: DelegationViewModel(explorerService: explorerService, stakeConfig: stakeService.config(), delegation: delegation, asset: asset, formatter: .auto, currencyCode: preferencesService.currencyCode),
+            model: DelegationViewModel(explorerService: explorerService, stakeConfig: stakeConfig, delegation: delegation, asset: asset, formatter: .auto, currencyCode: preferencesService.currencyCode),
             asset: asset,
-            stakeService: stakeService,
+            stakeConfig: stakeConfig,
             validators: validators,
             onAmountInputAction: onAmountInputAction,
             onTransferAction: onTransferAction,

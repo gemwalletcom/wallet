@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.stake.viewmodels
 
-import uniffi.gemstone.GemStakeConfigService
+import uniffi.gemstone.StakeConfig
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -61,7 +61,7 @@ class StakeViewModel @Inject constructor(
     private val getDelegations: GetDelegations,
     private val getValidators: GetValidators,
     private val syncStakeDelegations: SyncStakeDelegations,
-    private val stakeConfig: GemStakeConfigService,
+    private val stakeConfig: StakeConfig,
     getSession: GetSession,
     stateHandle: SavedStateHandle,
 ): ViewModel() {

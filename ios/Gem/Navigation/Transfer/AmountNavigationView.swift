@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.StakeConfig
 import Components
 import FiatConnect
 import InfoSheet
@@ -13,7 +14,7 @@ import Transfer
 struct AmountNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.explorerService) private var explorerService
-    @Environment(\.stakeService) private var stakeService
+    @Environment(\.stakeConfig) private var stakeConfig
     @State private var model: AmountSceneViewModel
 
     init(model: AmountSceneViewModel) {
@@ -69,7 +70,7 @@ struct AmountNavigationView: View {
                     ValidatorSelectScene(
                         model: ValidatorSelectSceneViewModel(
                             explorerService: explorerService,
-                            stakeService: stakeService,
+                            stakeConfig: stakeConfig,
                             type: stake.validatorSelectType,
                             chain: model.asset.chain,
                             currentValidator: validator,

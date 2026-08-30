@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.StakeConfig
 import Assets
 import GemstoneServices
 import Components
@@ -35,6 +36,7 @@ struct WalletNavigationView: View {
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.swapService) private var swapService
+    @Environment(\.stakeConfig) private var stakeConfig
     @Environment(\.streamSubscriptionService) private var streamSubscriptionService
     @Environment(\.perpetualService) private var perpetualService
     @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
@@ -108,6 +110,7 @@ struct WalletNavigationView: View {
                     priceAlertService: priceAlertService,
                     bannerService: bannerService,
                     swapService: swapService,
+                    stakeConfig: stakeConfig,
                     explorerService: explorerService,
                     transactionFormatter: transactionFormatter,
                     preferences: preferences,

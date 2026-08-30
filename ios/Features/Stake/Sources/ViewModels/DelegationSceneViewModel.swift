@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemStakeConfigService
-import protocol Gemstone.GemStakeServiceProtocol
+import class Gemstone.StakeConfig
 import Components
 import Foundation
 import GemstonePrimitives
@@ -19,14 +18,13 @@ public struct DelegationSceneViewModel {
 
     private let wallet: Wallet
     private let asset: Asset
-    private var stakeConfig: GemStakeConfigService { stakeService.config() }
-    private let stakeService: any GemStakeServiceProtocol
+    private let stakeConfig: StakeConfig
 
     public init(
         wallet: Wallet,
         model: DelegationViewModel,
         asset: Asset,
-        stakeService: any GemStakeServiceProtocol,
+        stakeConfig: StakeConfig,
         validators: [DelegationValidator],
         onAmountInputAction: AmountInputAction,
         onTransferAction: TransferDataAction,
@@ -34,7 +32,7 @@ public struct DelegationSceneViewModel {
         self.wallet = wallet
         self.model = model
         self.asset = asset
-        self.stakeService = stakeService
+        self.stakeConfig = stakeConfig
         self.validators = validators
         self.onAmountInputAction = onAmountInputAction
         self.onTransferAction = onTransferAction

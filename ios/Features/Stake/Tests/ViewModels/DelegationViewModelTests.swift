@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.StakeConfig
 import GemstonePrimitivesTestKit
 import Foundation
 import Primitives
@@ -49,7 +50,7 @@ extension DelegationViewModel {
     ) -> DelegationViewModel {
         DelegationViewModel(
             explorerService: GemExplorerServiceMock(),
-            stakeConfig: GemStakeServiceMock().config(),
+            stakeConfig: StakeConfig(),
             delegation: .mock(
                 state: state,
                 price: Price.mock(price: 2.0),

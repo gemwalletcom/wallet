@@ -5,8 +5,8 @@ import Components
 import GemstoneServices
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemStakeConfigService
 import protocol Gemstone.GemStakeServiceProtocol
+import class Gemstone.StakeConfig
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -16,8 +16,8 @@ import Store
 @MainActor
 @Observable
 public final class EarnSceneViewModel {
-    private var stakeConfig: GemStakeConfigService { stakeService.config() }
     private let stakeService: any GemStakeServiceProtocol
+    private let stakeConfig: StakeConfig
     private let explorerService: any GemExplorerServiceProtocol
     private var viewState: StateViewType<Bool> = .loading
 
@@ -46,12 +46,14 @@ public final class EarnSceneViewModel {
         asset: Asset,
         currencyCode: String,
         stakeService: any GemStakeServiceProtocol,
+        stakeConfig: StakeConfig,
         explorerService: any GemExplorerServiceProtocol,
     ) {
         self.wallet = wallet
         self.asset = asset
         self.currencyCode = currencyCode
         self.stakeService = stakeService
+        self.stakeConfig = stakeConfig
         self.explorerService = explorerService
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: asset.id), initialValue: .with(asset: asset))
         positionsQuery = ObservableQuery(

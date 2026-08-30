@@ -5,8 +5,8 @@ import Components
 import Formatters
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemStakeConfigService
 import protocol Gemstone.GemStakeServiceProtocol
+import class Gemstone.StakeConfig
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -19,8 +19,8 @@ import SwiftUI
 @MainActor
 @Observable
 public final class StakeSceneViewModel {
-    private var stakeConfig: GemStakeConfigService { stakeService.config() }
     private let stakeService: any GemStakeServiceProtocol
+    private let stakeConfig: StakeConfig
     private let explorerService: any GemExplorerServiceProtocol
 
     private var delegationsState: StateViewType<Bool> = .loading
@@ -53,12 +53,14 @@ public final class StakeSceneViewModel {
         chain: StakeChain,
         currencyCode: String,
         stakeService: any GemStakeServiceProtocol,
+        stakeConfig: StakeConfig,
         explorerService: any GemExplorerServiceProtocol,
     ) {
         self.wallet = wallet
         self.chain = chain
         self.currencyCode = currencyCode
         self.stakeService = stakeService
+        self.stakeConfig = stakeConfig
         self.explorerService = explorerService
         delegationsQuery = ObservableQuery(DelegationsRequest(walletId: wallet.id, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
         validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain.chain, providerType: .stake), initialValue: [])
@@ -182,7 +184,7 @@ public final class StakeSceneViewModel {
     }
 
     var showRewards: Bool {
-        stakeConfig.canClaimStakeRewards(chain: chain.chain.rawValue, rewardsAmount: rewardsValue.description)
+        stakeConfig.canClaimStakeRewards(chain: chain.chain.rawValue, rewardsValue: rewardsValue.description)
     }
 
     var canClaimAllRewards: Bool {
@@ -296,7 +298,7 @@ extension StakeSceneViewModel {
     }
 
     private var stakeFrozenRequired: Bool {
-        stakeConfig.requiresFrozenBalance(chain: chain.chain.rawValue, frozenAmount: balanceModel.frozenResources.description)
+        stakeConfig.requiresFrozenBalance(chain: chain.chain.rawValue, frozenValue: balanceModel.frozenResources.description)
     }
 
     private var balanceModel: BalanceViewModel {
