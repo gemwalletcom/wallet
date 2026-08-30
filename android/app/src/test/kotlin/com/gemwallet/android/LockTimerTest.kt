@@ -17,6 +17,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+import uniffi.gemstone.GemSecurityService
+
 class LockTimerTest {
 
     @Test
@@ -81,7 +83,7 @@ class LockTimerTest {
         val userConfig = mockk<UserConfig>()
         every { userConfig.authRequired() } returns authRequired
         every { userConfig.getLockInterval() } returns flowOf(lockIntervalMinutes)
-        return LockTimer(userConfig, activeRequest)
+        return LockTimer(userConfig, activeRequest, GemSecurityService())
     }
 
     private fun activeWalletConnectRequest(vararg events: WalletConnectEvent) = ActiveWalletConnectRequest(
