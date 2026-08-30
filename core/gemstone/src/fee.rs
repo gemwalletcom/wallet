@@ -26,6 +26,10 @@ impl GemFeeService {
         custom_gas_price(base, gas_price)
     }
 
+    pub fn total_fee(&self, gas_price_type: GemGasPriceType) -> BigInt {
+        GasPriceType::from(gas_price_type).total_fee()
+    }
+
     pub fn custom_fee_estimate(&self, rate: Option<BigInt>, loaded_fee: BigInt, base_total: BigInt, normal_total: BigInt, max_multiplier: u32) -> GemCustomFee {
         let fee = CustomFee::calculate(rate, loaded_fee, base_total, normal_total, max_multiplier);
 

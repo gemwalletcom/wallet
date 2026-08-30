@@ -1,7 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.toFeePriority
-import com.gemwallet.android.ext.totalFee
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.ValueFormatter
@@ -67,11 +66,11 @@ data class CustomFee(
             when (selection) {
                 is FeeSelection.Custom -> selection.gasPrice
                 is FeeSelection.Preset -> feeRates.firstOrNull { it.priority.toFeePriority() == loadedPriority }
-                    ?.gasPriceType?.totalFee() ?: BigInteger.ZERO
+                    ?.let { feeService.totalFee(it.gasPriceType).toBigInteger() } ?: BigInteger.ZERO
             }
 
         private fun normalTotal(feeRates: List<GemFeeRate>): BigInteger? =
             (feeRates.firstOrNull { it.priority.toFeePriority() == FeePriority.Normal } ?: feeRates.firstOrNull())
-                ?.gasPriceType?.totalFee()
+                ?.let { feeService.totalFee(it.gasPriceType).toBigInteger() }
     }
 }

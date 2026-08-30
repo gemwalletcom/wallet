@@ -6,10 +6,12 @@ import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
-import com.gemwallet.android.ext.totalFee
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.GemFeeRate
+import uniffi.gemstone.GemFeeService
 import java.math.BigInteger
+
+private val feeService = GemFeeService()
 
 data class FeeRateUIModel(
     val feeRate: GemFeeRate,
@@ -41,9 +43,9 @@ data class FeeRateUIModel(
     private val feeAmount: BigInteger?
         get() {
             if (selectedFeeAmount != null && selectedRate != null) {
-                val selectedTotal = selectedRate.gasPriceType.totalFee()
+                val selectedTotal = feeService.totalFee(selectedRate.gasPriceType).toBigInteger()
                 if (selectedTotal == BigInteger.ZERO) return null
-                return selectedFeeAmount.multiply(feeRate.gasPriceType.totalFee()).divide(selectedTotal)
+                return selectedFeeAmount.multiply(feeService.totalFee(feeRate.gasPriceType).toBigInteger()).divide(selectedTotal)
             }
             return null
         }
@@ -59,11 +61,11 @@ data class FeeRateUIModel(
         feeUnitType ?: return ""
         val symbol = unitSymbol ?: return ""
         return ValueFormatter(style = ValueFormatter.Style.Auto)
-            .string(feeRate.gasPriceType.totalFee(), feeRateDecimals, symbol)
+            .string(feeService.totalFee(feeRate.gasPriceType).toBigInteger(), feeRateDecimals, symbol)
     }
 
     private fun nativeAmountText(): String {
-        val amount = feeAmount ?: feeRate.gasPriceType.totalFee()
+        val amount = feeAmount ?: feeService.totalFee(feeRate.gasPriceType).toBigInteger()
         return ValueFormatter(style = ValueFormatter.Style.Auto)
             .string(amount, feeAsset.asset.decimals, feeAsset.asset.symbol)
     }
