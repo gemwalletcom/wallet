@@ -33,6 +33,7 @@ let package = Package(
                 "Gemstone",
                 "GemstonePrimitives",
                 "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "TestKit",
         ),

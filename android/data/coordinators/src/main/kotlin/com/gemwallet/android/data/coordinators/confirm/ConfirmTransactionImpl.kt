@@ -59,11 +59,9 @@ class ConfirmTransactionImpl(
 
     private fun SignerParams.toSendInput(wallet: Wallet, simulation: SimulationResult?): GemSendInput = GemSendInput(
         wallet = wallet.toJson(),
-        transfer = input.toTransferData(),
+        confirm = confirmData,
         value = finalAmount.toString(),
-        fee = confirmData.fee,
         networkFee = fee.amount.toString(),
-        metadata = confirmData.metadata,
         simulation = simulation?.toJson(),
     )
 

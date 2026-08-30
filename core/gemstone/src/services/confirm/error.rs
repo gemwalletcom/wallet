@@ -14,6 +14,7 @@ pub enum GemConfirmError {
     Broadcast { hashes: Vec<String>, msg: String },
     Record { msg: String },
     AccountMissing { chain: Chain },
+    SenderMismatch { priced_for: String, signing_with: String },
     Sign { error: GemSignerError, msg: String },
     ApprovalInvalid { msg: String },
 }
@@ -26,6 +27,7 @@ impl std::fmt::Display for GemConfirmError {
             Self::FeeRatesMissing => write!(f, "fee rates not found"),
             Self::Offline => write!(f, "network offline"),
             Self::AccountMissing { chain } => write!(f, "wallet has no {chain} account"),
+            Self::SenderMismatch { priced_for, signing_with } => write!(f, "transaction was prepared for {priced_for} but would be signed by {signing_with}"),
             Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
                 write!(f, "{msg}")
             }

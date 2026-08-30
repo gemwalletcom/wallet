@@ -16,7 +16,7 @@ import class Gemstone.GemSimulationFormatter
 
 extension ConfirmService {
     static func mock(
-        transaction: Result<GemConfirmData, Error> = .success(.mock()),
+        transaction: Result<GemConfirmData, Error> = .success(.mock(input: TransferData.mock().confirmInput(from: .mock()))),
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
         transactionStateService: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
     ) -> ConfirmService {

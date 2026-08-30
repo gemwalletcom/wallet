@@ -28,11 +28,11 @@ pub struct GemConfirmLoadOptions {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmData {
+    pub input: GemConfirmInput,
     pub fee: GemTransactionLoadFee,
     pub selected_priority: String,
     pub fee_rates: Vec<GemFeeRate>,
     pub metadata: GemTransactionLoadMetadata,
-    pub scan: Option<ScanTransaction>,
     pub simulation: Option<SimulationResult>,
 }
 
@@ -51,11 +51,9 @@ pub struct GemSendResult {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemSendInput {
     pub wallet: Wallet,
-    pub transfer: GemTransferData,
+    pub confirm: GemConfirmData,
     pub value: GemBigInt,
-    pub fee: GemTransactionLoadFee,
     pub network_fee: GemBigInt,
-    pub metadata: GemTransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,
 }
 

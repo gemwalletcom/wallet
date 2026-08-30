@@ -99,11 +99,9 @@ public struct ConfirmService: Sendable {
     func confirm(request: ConfirmTransferRequest, confirmData: GemConfirmData, amount: TransferAmount, simulation: SimulationResult?) async throws {
         let input = GemSendInput(
             wallet: request.wallet.json(),
-            transfer: request.data.gem,
+            confirm: confirmData,
             value: amount.value.description,
-            fee: confirmData.fee,
             networkFee: amount.networkFee.description,
-            metadata: confirmData.metadata,
             simulation: simulation?.json(),
         )
         let result: GemExecuteResult

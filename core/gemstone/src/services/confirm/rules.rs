@@ -5,29 +5,36 @@ use primitives::{
 };
 
 use super::error::GemConfirmError;
-use super::model::{GemAcquireAssetFlow, GemConfirmFeeSelection, GemSendInput};
+use super::model::{GemAcquireAssetFlow, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemSendInput};
 use crate::fee::custom_gas_price;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::transfer::{GemPendingTransactionInput, rules as transfer_rules};
 
 pub fn signer_input(input: &GemSendInput) -> Result<GemSignerInput, GemConfirmError> {
-    let chain = input.transfer.input_type.asset().chain();
+    let chain = input.confirm.input.transfer.input_type.asset().chain();
     let sender = input.wallet.account(chain).ok_or(GemConfirmError::AccountMissing { chain })?;
+    let priced_for = &input.confirm.input.from.address;
+    if &sender.address != priced_for {
+        return Err(GemConfirmError::SenderMismatch {
+            priced_for: priced_for.clone(),
+            signing_with: sender.address.clone(),
+        });
+    }
     Ok(GemSignerInput {
         input: GemTransactionLoadInput {
-            input_type: input.transfer.input_type.clone(),
+            input_type: input.confirm.input.transfer.input_type.clone(),
             sender_address: sender.address.clone(),
-            destination_address: input.transfer.recipient.address.clone(),
+            destination_address: input.confirm.input.transfer.recipient.address.clone(),
             value: input.value.to_string(),
-            gas_price: input.fee.gas_price_type.clone(),
-            memo: input.transfer.recipient.memo.clone(),
-            is_max_value: input.transfer.use_max_amount,
-            metadata: input.metadata.clone(),
+            gas_price: input.confirm.fee.gas_price_type.clone(),
+            memo: input.confirm.input.transfer.recipient.memo.clone(),
+            is_max_value: input.confirm.input.transfer.use_max_amount,
+            metadata: input.confirm.metadata.clone(),
         },
         fee: GemTransactionLoadFee {
             fee: input.network_fee.clone(),
-            ..input.fee.clone()
+            ..input.confirm.fee.clone()
         },
     })
 }
@@ -73,7 +80,7 @@ pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: &str) -
 }
 
 pub(super) fn pending_transactions(input: &GemSendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
-    let chain = input.transfer.input_type.asset().chain();
+    let chain = input.confirm.input.transfer.input_type.asset().chain();
     let sender = input.wallet.account(chain).map(|account| account.address.clone()).ok_or_else(|| GemConfirmError::Record {
         msg: format!("wallet has no {chain} account"),
     })?;
@@ -85,13 +92,13 @@ pub(super) fn pending_transactions(input: &GemSendInput, hashes: &[String], tran
             Some(
                 transfer_rules::pending_transaction(GemPendingTransactionInput {
                     sender: sender.clone(),
-                    transfer: input.transfer.clone(),
+                    transfer: input.confirm.input.transfer.clone(),
                     value: input.value.clone(),
                     transaction_type,
                     hash: hash.clone(),
-                    fee: input.fee.clone(),
+                    fee: input.confirm.fee.clone(),
                     network_fee: input.network_fee.clone(),
-                    metadata: input.metadata.clone(),
+                    metadata: input.confirm.metadata.clone(),
                     simulation: input.simulation.clone(),
                     transaction_index: index as u32,
                     transaction_count: transactions.len() as u32,
@@ -211,30 +218,42 @@ mod tests {
     }
 
     fn send_input(chain: Chain, input_type: GemTransactionInputType) -> GemSendInput {
+        send_input_from(chain, input_type, "sender")
+    }
+
+    fn send_input_from(chain: Chain, input_type: GemTransactionInputType, from: &str) -> GemSendInput {
         GemSendInput {
             wallet: wallet(chain),
-            transfer: GemTransferData {
-                input_type,
-                recipient: GemRecipient {
-                    address: "recipient".to_string(),
-                    name: None,
-                    memo: Some("memo".to_string()),
-                    references: vec![],
+            confirm: GemConfirmData {
+                input: GemConfirmInput {
+                    from: Account::mock(chain, from),
+                    transfer: GemTransferData {
+                        input_type,
+                        recipient: GemRecipient {
+                            address: "recipient".to_string(),
+                            name: None,
+                            memo: Some("memo".to_string()),
+                            references: vec![],
+                        },
+                        value: "10".to_string(),
+                        use_max_amount: true,
+                        minimum_value: None,
+                    },
                 },
-                value: "10".to_string(),
-                use_max_amount: true,
-                minimum_value: None,
+                fee: GemTransactionLoadFee {
+                    fee: BigInt::ZERO,
+                    gas_price_type: GemGasPriceType::Regular { gas_price: "5".to_string() },
+                    gas_limit: BigInt::from(21_000),
+                    options: Default::default(),
+                    fee_asset: AssetId::from_chain(Chain::Solana),
+                },
+                selected_priority: "normal".to_string(),
+                fee_rates: vec![],
+                metadata: GemTransactionLoadMetadata::None,
+                simulation: None,
             },
             value: BigInt::from(9),
-            fee: GemTransactionLoadFee {
-                fee: BigInt::ZERO,
-                gas_price_type: GemGasPriceType::Regular { gas_price: "5".to_string() },
-                gas_limit: BigInt::from(21_000),
-                options: Default::default(),
-                fee_asset: AssetId::from_chain(Chain::Solana),
-            },
             network_fee: BigInt::from(1),
-            metadata: GemTransactionLoadMetadata::None,
             simulation: None,
         }
     }
@@ -252,6 +271,19 @@ mod tests {
         assert!(signer_input.input.is_max_value);
         assert_eq!(signer_input.fee.fee, BigInt::from(1));
         assert_eq!(signer_input.fee.gas_limit, BigInt::from(21_000));
+    }
+
+    #[test]
+    fn test_signer_input_refuses_to_sign_for_an_address_the_transaction_was_not_priced_for() {
+        let matching = send_input_from(Chain::Solana, GemTransactionInputType::Transfer { asset: Asset::mock_sol() }, "sender");
+        assert!(signer_input(&matching).is_ok());
+
+        let switched = send_input_from(Chain::Solana, GemTransactionInputType::Transfer { asset: Asset::mock_sol() }, "other");
+
+        assert!(matches!(
+            signer_input(&switched).unwrap_err(),
+            GemConfirmError::SenderMismatch { priced_for, signing_with } if priced_for == "other" && signing_with == "sender"
+        ));
     }
 
     #[test]
@@ -523,22 +555,30 @@ mod tests {
         };
         let input = GemSendInput {
             wallet: wallet.clone(),
-            transfer: GemTransferData {
-                input_type: GemTransactionInputType::Transfer { asset: Asset::mock_sol() },
-                recipient: crate::services::transfer::GemRecipient {
-                    address: "recipient".to_string(),
-                    name: None,
-                    memo: None,
-                    references: vec![],
+            confirm: GemConfirmData {
+                input: GemConfirmInput {
+                    from: Account::mock(Chain::Solana, "sender"),
+                    transfer: GemTransferData {
+                        input_type: GemTransactionInputType::Transfer { asset: Asset::mock_sol() },
+                        recipient: crate::services::transfer::GemRecipient {
+                            address: "recipient".to_string(),
+                            name: None,
+                            memo: None,
+                            references: vec![],
+                        },
+                        value: "10".to_string(),
+                        use_max_amount: false,
+                        minimum_value: None,
+                    },
                 },
-                value: "10".to_string(),
-                use_max_amount: false,
-                minimum_value: None,
+                fee: primitives::TransactionFee::new_from_fee(BigInt::from(1), AssetId::from_chain(Chain::Solana)).into(),
+                selected_priority: "normal".to_string(),
+                fee_rates: vec![],
+                metadata: GemTransactionLoadMetadata::None,
+                simulation: None,
             },
             value: BigInt::from(10),
-            fee: primitives::TransactionFee::new_from_fee(BigInt::from(1), AssetId::from_chain(Chain::Solana)).into(),
             network_fee: BigInt::from(1),
-            metadata: GemTransactionLoadMetadata::None,
             simulation: None,
         };
         let signed = vec![GemSignedTransaction {

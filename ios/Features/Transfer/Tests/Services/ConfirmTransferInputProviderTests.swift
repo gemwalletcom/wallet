@@ -16,7 +16,7 @@ struct ConfirmTransferInputProviderTests {
     @Test
     func loadReturnsInputWithRatesAndFee() async throws {
         let provider = ConfirmTransferInputProvider.mock(transaction: .success(
-            .mock(feeRates: [GemFeeRate(priority: "normal", gasPriceType: .regular(gasPrice: "1"))]),
+            .mock(input: TransferData.mock().confirmInput(from: .mock()), feeRates: [GemFeeRate(priority: "normal", gasPriceType: .regular(gasPrice: "1"))]),
         ))
 
         let result = try await provider.load()
@@ -32,7 +32,7 @@ struct ConfirmTransferInputProviderTests {
         let feeAssetPrice = Price.mock(price: 1)
         let provider = ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: .success(
-                .mock(fee: .mock(feeAsset: feeAsset.id.identifier)),
+                .mock(input: TransferData.mock().confirmInput(from: .mock()), fee: .mock(feeAsset: feeAsset.id.identifier)),
             )),
             feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance, price: feeAssetPrice),
             feeService: GemFeeService(),
@@ -50,7 +50,7 @@ struct ConfirmTransferInputProviderTests {
     func loadUsesSelectedFeeAsset() async throws {
         let selectedAsset = Asset.mockTempoUSDC()
         let transferProvider = TransferTransactionProviderMock(result: .success(
-            .mock(fee: .mock(feeAsset: selectedAsset.id.identifier)),
+            .mock(input: TransferData.mock().confirmInput(from: .mock()), fee: .mock(feeAsset: selectedAsset.id.identifier)),
         ))
         let provider = ConfirmTransferInputProvider(
             transferTransactionProvider: transferProvider,
@@ -117,7 +117,7 @@ struct ConfirmTransferInputProviderTests {
     func loadRethrowsFeeAssetFailure() async {
         let provider = ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: .success(
-                .mock(),
+                .mock(input: TransferData.mock().confirmInput(from: .mock())),
             )),
             feeAssetProvider: FeeAssetProviderMock(error: "fee asset"),
             feeService: GemFeeService(),

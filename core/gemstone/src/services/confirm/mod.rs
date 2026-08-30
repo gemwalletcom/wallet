@@ -49,8 +49,8 @@ impl GemConfirmService {
                 msg: "no signed transactions".to_string(),
             });
         }
-        rules::validate_approvals(&input.transfer.input_type, &transactions)?;
-        match rules::output_action(&input.transfer.input_type) {
+        rules::validate_approvals(&input.confirm.input.transfer.input_type, &transactions)?;
+        match rules::output_action(&input.confirm.input.transfer.input_type) {
             TransferDataOutputAction::Sign => Ok(GemExecuteResult::Signed {
                 data: transactions.into_iter().map(|transaction| transaction.data).collect(),
             }),
@@ -116,11 +116,11 @@ impl GemConfirmService {
         }
 
         Ok(GemConfirmData {
+            input,
             fee,
             selected_priority: selected.priority,
             fee_rates,
             metadata: load.metadata,
-            scan,
             simulation,
         })
     }
@@ -128,7 +128,7 @@ impl GemConfirmService {
 
 impl GemConfirmService {
     async fn send(&self, input: GemSendInput, transactions: Vec<GemSignedTransaction>) -> Result<GemSendResult, GemConfirmError> {
-        let hashes = match self.broadcast(input.transfer.input_type.clone(), transactions.clone()).await {
+        let hashes = match self.broadcast(input.confirm.input.transfer.input_type.clone(), transactions.clone()).await {
             Ok(hashes) => hashes,
             Err(GemConfirmError::Broadcast { hashes, msg }) => {
                 self.record(&input, &hashes, &transactions).await?;
