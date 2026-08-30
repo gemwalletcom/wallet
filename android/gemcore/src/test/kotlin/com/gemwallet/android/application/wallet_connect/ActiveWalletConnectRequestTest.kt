@@ -55,6 +55,20 @@ class ActiveWalletConnectRequestTest {
     }
 
     @Test
+    fun aDeletedSessionClearsThePendingRequest() = runTest {
+        val activeRequest = ActiveWalletConnectRequest(events, backgroundScope)
+        testScheduler.runCurrent()
+        events.emit(WalletConnectEvent.SessionProposal(proposal("pinned"), verifyContext))
+        testScheduler.runCurrent()
+        checkNotNull(activeRequest.current.value)
+
+        events.emit(WalletConnectEvent.SessionDeleted("topic"))
+        testScheduler.runCurrent()
+
+        assertNull(activeRequest.current.value)
+    }
+
+    @Test
     fun finishWithoutPayloadClearsUnconditionally() = runTest {
         val activeRequest = ActiveWalletConnectRequest(events, backgroundScope)
         testScheduler.runCurrent()

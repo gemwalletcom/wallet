@@ -22,8 +22,10 @@ class ActiveWalletConnectRequest(
 
     init {
         events.onEach { event ->
-            val request = event.toUserRequest() ?: return@onEach
-            _current.update { request }
+            when (event) {
+                is WalletConnectEvent.SessionDeleted -> _current.update { null }
+                else -> event.toUserRequest()?.let { request -> _current.update { request } }
+            }
         }.launchIn(scope)
     }
 

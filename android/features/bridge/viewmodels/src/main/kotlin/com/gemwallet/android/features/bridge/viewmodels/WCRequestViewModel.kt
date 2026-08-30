@@ -176,6 +176,7 @@ class WCRequestViewModel @Inject constructor(
             response = response,
             onSuccess = { activeRequest.finish(sessionRequest) },
             onError = { error ->
+                activeRequest.finish(sessionRequest)
                 state.update { it.copy(responseState = RequestResponseState.Idle, approved = null) }
                 onError(error)
             },
@@ -188,7 +189,10 @@ class WCRequestViewModel @Inject constructor(
             id = sessionRequest.request.id,
             response = requestHandler.rejected(),
             onSuccess = { activeRequest.finish(sessionRequest) },
-            onError = { error -> Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $error") },
+            onError = { error ->
+                activeRequest.finish(sessionRequest)
+                Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $error")
+            },
         )
     }
 
