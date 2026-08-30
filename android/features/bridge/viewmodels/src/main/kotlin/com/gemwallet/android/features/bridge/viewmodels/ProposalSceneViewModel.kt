@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import javax.inject.Inject
 
@@ -35,6 +36,7 @@ class ProposalSceneViewModel @Inject constructor(
     private val prepareSessionProposal: PrepareSessionProposal,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
+    private val walletConnectService: GemWalletConnectService,
 ) : ViewModel() {
 
     val state = MutableStateFlow<ProposalSceneState>(ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN))
@@ -64,6 +66,10 @@ class ProposalSceneViewModel @Inject constructor(
         verifyContext: WalletConnectVerifyContext,
         onNotify: (BridgeRequestError) -> Unit,
     ) {
+        if (!walletConnectService.shouldProcessMessage("proposal_${proposal.proposerPublicKey}")) {
+            Log.d(TAG, "Ignoring duplicate proposal")
+            return
+        }
         if (originVerifier.isRejected(proposal.url, verifyContext)) {
             onNotify(BridgeRequestError.MaliciousSession)
             reject(proposal)
