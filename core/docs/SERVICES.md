@@ -343,6 +343,11 @@ Each entry is one batch. Work it end to end: put the rule in Core with a test th
 
 ### Surveyed divergences — the consolidation backlog
 
+**Every row below was re-verified against the code by an independent pass, and each security or user-visible verdict was then challenged by a second reader briefed to refute it.** That pass corrected or dropped nine rows and found six live defects nobody had claimed. Rows that survived carry an action that has been checked for the failure the naive reading would cause — read the action, not just the description.
+
+Dropped as WRONG: **V5** (Popular shows on the buy picker on both platforms and on neither's send/swap/manage — the row was backwards; acting on it would have pulled rows out of iOS's send picker), **N4** (iOS's `.notDetermined` branch already runs at most once per install, so the Core cooldown is a verified no-op there), **N6** (granularity half false — both observers watch account-level changes; sync-strength half already decided below), **V7** (the multicoin rule is identical; the difference is a `stateIn` seed, and its test asserts the seed without advancing the scheduler), **T4** (15 min is WorkManager's floor and 1 min is WidgetKit's budget — one shared number would be a lie on one platform).
+
+
 Found by reading both platforms side by side. Ranked within each group by value: a difference the **user or an attacker can observe** outranks pure duplication. Each row is a batch; delete the row when it lands.
 
 #### Security and key material — do these first
@@ -353,7 +358,6 @@ Found by reading both platforms side by side. Ranked within each group by value:
 | S3 | Biometric gate placement | Keychain ACL on the item itself (`LocalKeystorePassword.swift:100-107`), so every secret read prompts | A separate UI call at each call site (`ConfirmScreen.kt:150`, `WalletConnectReviewScene.kt:49`, `routes/Wallet.kt:51`); `PasswordStore` itself is unauthenticated | On Android the gate is advisory — any new caller reaching `PasswordStore` bypasses it. Core should mark which operations require authentication. |
 | S5 | WalletConnect replay suppression | `MessageTracker.swift:5-15` + `WalletConnectorService.swift:202-208` reject a repeated request id | none — `ActiveWalletConnectRequest.kt:23-39` overwrites, `WCRequestViewModel.kt:71-73` replaces | A relay retry re-presents the same signing prompt on Android. `handle_request` should own the seen-id set. |
 | S6 | Origin rejection | `WalletConnectorService.swift:153-164` switches in Swift, plus a nil-verify-context rejection at `:116-119` | `WalletConnectOriginVerifier.kt:16-34` re-implements `isScam`, applied at three call sites | Core already rejects `Invalid \| Malicious` for proposals (`wallet_connect/mod.rs:104-110`) but not requests, so both apps rebuilt it — three copies of one predicate. |
-| S7 | Relock while a dApp request is open | `BiometryAuthenticationService.swift` passes `hasPendingRequest: false` | `LockTimer.kt` passes the live value | Android holds the lock off indefinitely for an unresolved request; iOS relocks and can drop an in-progress signing sheet. Core should read its own pending state rather than take a caller's boolean. |
 | S8 | Privacy lock | Setting + `shouldCoverScreen` rule (`LockSceneViewModel.swift:79-87`), overlay window | none; nearest is an unrelated `FLAG_SECURE` toggle | A whole app-lock setting exists on one platform. The cover predicate is Core's; the overlay/`FLAG_SECURE` is platform. |
 | S9 | WalletConnect one-click auth (SIWE) | none | `WCAuthViewModel.kt:238-323` builds issuer, payload and message; method table hand-written in `Namespace.kt:9-75` | An entire signing surface — including *what the user is asked to sign* — exists on Android only, with its rules in UI code. |
 
@@ -362,13 +366,8 @@ Found by reading both platforms side by side. Ranked within each group by value:
 | # | What | iOS | Android | The difference |
 |---|---|---|---|---|
 | N1 | Permission prompt | `NotificationPermissions.swift:13-15` + `PushNotificationService.swift:25-40` — granted → register, undetermined → prompt, denied → Settings | `NotificationPermissions.kt:12-22` — anything but "already enabled" jumps to system Settings; the runtime prompt lives in the UI gate instead | Partly fixed: Core refuses to enable when permission is refused, and the Android gate asks before acting instead of after, so a fresh install no longer gets Settings and the prompt at once. Still open: the adapter opens Settings for a user who has never been asked, because it holds an application Context and cannot tell that from a denial — it needs an activity-scoped requester, and Core should own the three-state decision rather than a single boolean. |
-| N2 | Push token vs enabled flag | `DevicePlatform.swift:48-50` returns the APNs token regardless of the preference | `DevicePlatform.kt:84-119` blanks it unless enabled | With notifications off, iOS still uploads a live token. `current_device()` should blank it. |
-| N3 | `is_push_enabled` derivation | `DevicePlatform.swift:52-54` — stored preference only | `DevicePlatform.kt:58,121` — ANDs the build capability | Revoking notifications in iOS Settings keeps reporting `is_push_enabled: true` forever. |
-| N4 | "Ask for notifications" gate | `RootSceneViewModel.swift:167-175` — OS `notDetermined` only; Core's `should_ask_notifications` never called | `AppViewModel.kt:83-89` — uses the Core rule | Core already has a tested cooldown rule that iOS bypasses, and iOS never records `notifications_asked_at`. |
 | N5 | Lazy token recovery | none | `DevicePlatform.kt:109-119` re-requests a missing token from inside the trait call, then re-enters Core | Android self-heals a lost token, iOS registers with an empty one. Android's re-entry runs against Core's own `sync_lock`. |
-| N6 | Force vs conditional device sync | forced `synchronize()` on launch, token, account change, toggle | `synchronizeIfNeeded()` everywhere | Four identical triggers, two sync strengths — iOS hits `/devices` far more often. iOS also observes **accounts**, Android **wallets**, so enabling one asset re-syncs on iOS only. |
 | N9 | Build capability flag | none | `NotificationsAvailable.kt` per flavour, consumed in six places | Core cannot reason about "this build can never have a token". The dead `RequestPushToken.initRequester` should go with it. |
-| N10 | Push-enabled migration | none | `DevicePlatform.kt:74-82` back-fills a Core preference from legacy DataStore inside a `Flow.onStart` | A Core-owned preference mutated from outside Core, invisible to `device_changed`. |
 
 #### Timers, reconnects and refresh cadence — all silently drifting
 
@@ -376,7 +375,6 @@ Found by reading both platforms side by side. Ranked within each group by value:
 |---|---|---|---|---|
 | T2 | Socket keepalive | none | `WebSocketConnection.kt:42,45,113` — 30 s OkHttp ping | iOS sits on a half-open socket until a read fails, so price and candle streams can stall silently. |
 | T3 | Swap quote refresh | `SwapScene.swift:89` 30 s, debounce 250 ms, keeps retrying after an error | `RequestSwapQuotes.kt:15-16` 30 s / 500 ms, **breaks the loop on error** | Two hardcoded cadences, a debounce that has already drifted (also 250 vs 500 ms for name resolution), and different behaviour after a failed quote. |
-| T4 | Widget refresh | `PriceWidgetProvider.swift:26-37` — 1 minute | `WidgetPriceSyncWorker.kt:30` — 15 minutes | 15× difference, two unrelated constants. |
 | T5 | In-app polling | four hardcoded timers (positions 1 min, charts 1 min, asset 5 min, activity 5 min) | none — pull-to-refresh only | iOS polls on top of the live socket; Android trusts the stream. Core's own `PRICES_UPDATE_INTERVAL_SECONDS` is exposed to both and used by neither. |
 | T6 | Pending-transaction tracking | started twice, never stopped | `TransactionStateTracker.kt:27-33` start/stop on process lifecycle | iOS keeps polling while backgrounded. |
 | T7 | Live price subscription | `PriceUpdater.swift` called from the asset screen **and both swap legs** | `SyncAssetInfoImpl.kt:35` only | Swap-screen fiat values only move on Android if something else subscribed the asset. Core should decide when prices are subscribed; then `PriceUpdater.swift` goes. |
@@ -388,10 +386,7 @@ Found by reading both platforms side by side. Ranked within each group by value:
 
 | # | What | iOS | Android | The difference |
 |---|---|---|---|---|
-| V4 | Onboarding banner | queries `[.accountBlockedMultiSignature, .onboarding]`, real `isWalletEmpty` | queries multi-sig only, `isWalletEmpty = false` hardcoded | Core's `shows_onboarding` can never fire on Android; it substitutes a separate welcome banner. |
-| V5 | Popular section | only for buy and price-alert flows | every picker | Send/swap/manage pickers show a Popular section on Android only, and de-duplicate the main list differently. |
 | V6 | Recents filters | Core's full `actionFilters` | `HasBalance` only, or a downgraded set | Android's swap/send recents include hidden assets and fully-staked balances. |
-| V7 | Rewards row | `hasMulticoinWallet()` | `isEmpty() \|\| any multicoin` | With no wallets, Android shows Rewards and iOS hides it. |
 | V10 | Stake row | `isStakeEnabled \|\| staked balance > 0` | `type == NATIVE && StakeChain.isStaked(chain)` | An asset with staking disabled still shows a Stake row on Android, with an APR string iOS never shows. |
 | V14 | Reserved-fee hint | shown when the typed amount equals max | only when the Max button was pressed | Typing the max by hand shows the note on iOS only. |
 | V15 | Pinned section | `metadata.isPinned` | `pinned && balanceEnabled` in the picker, plain `pinned` on home — inconsistent with itself | A pinned-but-hidden asset lands in different sections. |
@@ -413,6 +408,24 @@ Found while landing the batches above, not yet fixed:
 - **iOS fires a quote for an unaffordable amount too.** The backlog said this was Android-only; it is not — iOS's `setLoadTrigger` guards only on "both assets present, value parses, value > 0". The real difference was *when the button blocks* (keystroke vs after the quote returns), which is what got fixed.
 - **Same button, two strings, and a product call to make.** iOS says "Use Minimum Amount" (`swap_use_minimum_amount`); Android says "Minimum amount" (`stake_minimum_amount`), borrowed from staking because there is no swap-specific key. Nobody has guessed at new copy.
 - **Core's `ValueFormatter` is not locale-aware.** Formatting the activation-fee amount in Core would have regressed non-`en` locales, so Core hands over `{ value, decimals, symbol }` and each app keeps its own formatter. Applies to any future amount rule.
+
+#### Live defects found by the verification pass, not yet fixed
+
+| What | Where | Why it matters |
+|---|---|---|
+| Android silently re-enables push 30 days after a deliberate opt-out | `SettingsViewModel.kt:123-128` calls `stopAskNotifications()` on **disable**, restarting the 30-day timer; `AppViewModel.kt:83-89` then re-asks and `PushRequest.kt:25-29` finds `POST_NOTIFICATIONS` still granted, so it enables with no dialog | Reverses an explicit privacy choice. Needs somewhere to record "the user said no", which does not exist yet |
+| Android's `is_push_enabled` never consults runtime notification authorization | `DevicePlatform.kt:118` is preference AND flavour flag; iOS reads live `UNAuthorizationStatus` since `25a6a38bfa` | A user who revokes `POST_NOTIFICATIONS` keeps reporting enabled with a live token. The runtime check already exists in the same module (`NotificationPermissions.kt:13`), wired only to price-alert banners |
+| Android has a latent unbounded device-sync loop | `current_device` calls `push_token()` before `needs_sync`; FCM's failure path calls `callback("")` (`RequestrPushToken.kt:20-22`), which writes "" and launches another `synchronizeIfNeeded()`; `runCatching` swallows the failure | No backoff, no cap |
+| iOS's swap-pay recents query references an unjoined table | `RecentActivityRequest.swift` adds the balances join only for `.hasBalance`/`.enabledBalance`, but `AssetsRequest.applyFilter` emits `balances[availableAmount] > 0` for `.hasAvailableBalance` — swap-pay's set. `RecentActivityRequestTests.swift:49` exercises only `[.hasBalance]` | Must be fixed before iOS is used as the reference for V6 |
+| Pull-to-refresh on perpetual markets is a no-op for up to an hour, both platforms | `MARKETS_REFRESH_INTERVAL_SECONDS = 3600` throttles both the Android pull and iOS's 1-minute timer | An explicit user pull should arguably bypass the staleness gate |
+| Second name-resolution divergence | `NameRecordController.kt:28-30,51` short-circuits unchanged input and requires a non-empty address before Complete; `NameRecordViewModel.swift:20-43` has neither | An empty-address record is reported complete and feeds the recipient field on iOS |
+| Android's fiat/buy amount has no debounce | `FiatViewModel.kt:140-146` combines `amount` straight into `mapLatest`; iOS debounces 250 ms | Same class as the swap and name debounce drift; in no row |
+
+#### Tests that cannot fail
+
+- `SettingsViewModelTest.kt:72-75` asserts the `stateIn` seed under `StandardTestDispatcher` with no `advanceUntilIdle`, so it does not cover the clause it appears to protect.
+- `SwapSceneViewModelTests.swift:279-284` nils `model.loadTrigger` immediately before the retry action — which is exactly why the `SwapLoadTrigger` equality no-op is invisible to the suite.
+- `Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL`, the pre-`46889318bc` contract.
 
 Pure duplication, no divergence found (lower priority, still one rule each): swap slippage bounds, min-receive BPS math, swap ETA truncation, the critical-warning gate, collections availability, and the custom-fee minimum check — each written once per platform on top of a Core call that already exists.
 
