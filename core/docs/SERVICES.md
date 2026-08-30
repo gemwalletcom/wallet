@@ -295,7 +295,7 @@ Each entry is one batch. Work it end to end: put the rule in Core with a test th
 
 ### Surveyed divergences — the consolidation backlog
 
-Rows were verified against the code and adversarially re-checked; **V5, N4, N6, V7 and T4 were examined and found wrong — do not re-add them**. Read each row's action, not just its description.
+Rows were verified against the code and adversarially re-checked; **V5, N4, N6, V7 and T4 were examined and found wrong — do not re-add them**; V6 was half wrong and is now closed (its "recents include hidden assets" claim is false — the recents query already applies `asset.rank >= 0`, which is exactly how Android derives `isEnabled`, so `recentFilter` leaving ENABLED unmapped is correct; the real half, fully-staked balances in swap recents, is fixed). Read each row's action, not just its description.
 
 Found by reading both platforms side by side. Ranked within each group by value: a difference the **user or an attacker can observe** outranks pure duplication. Each row is a batch; delete the row when it lands.
 
@@ -335,7 +335,6 @@ Found by reading both platforms side by side. Ranked within each group by value:
 
 | # | What | iOS | Android | The difference |
 |---|---|---|---|---|
-| V6 | Recents filters | Core's full `actionFilters` | `HasBalance` only, or a downgraded set | Android's swap/send recents include hidden assets and fully-staked balances. |
 | V10 | Stake row | `isStakeEnabled \|\| staked balance > 0` | `type == NATIVE && StakeChain.isStaked(chain)` | An asset with staking disabled still shows a Stake row on Android, with an APR string iOS never shows. |
 | V14 | Reserved-fee hint | shown when the typed amount equals max | only when the Max button was pressed | Typing the max by hand shows the note on iOS only. |
 | V15 | Pinned section | `metadata.isPinned` | `pinned && balanceEnabled` in the picker, plain `pinned` on home — inconsistent with itself | A pinned-but-hidden asset lands in different sections. |
