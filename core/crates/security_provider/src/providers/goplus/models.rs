@@ -60,19 +60,25 @@ pub struct SecurityToken {
     pub cannot_buy: Option<String>,
     #[serde(default)]
     pub cannot_sell_all: Option<String>,
-    #[serde(default)]
-    pub is_blacklisted: Option<String>,
 }
 
 impl SecurityToken {
-    pub fn is_malicious(&self) -> bool {
-        self.is_honeypot.as_deref() == Some("1")
-            || self.fake_token.as_ref().is_some_and(|token| token.value == 1)
-            || self.b20_token.as_ref().is_some_and(|token| token.is_b20 == "1")
-            || self.is_airdrop_scam.as_deref() == Some("1")
-            || self.cannot_buy.as_deref() == Some("1")
-            || self.cannot_sell_all.as_deref() == Some("1")
-            || self.is_blacklisted.as_deref() == Some("1")
+    pub fn malicious_reason(&self) -> Option<&'static str> {
+        if self.is_honeypot.as_deref() == Some("1") {
+            Some("is_honeypot")
+        } else if self.fake_token.as_ref().is_some_and(|token| token.value == 1) {
+            Some("fake_token")
+        } else if self.b20_token.as_ref().is_some_and(|token| token.is_b20 == "1") {
+            Some("b20_token")
+        } else if self.is_airdrop_scam.as_deref() == Some("1") {
+            Some("is_airdrop_scam")
+        } else if self.cannot_buy.as_deref() == Some("1") {
+            Some("cannot_buy")
+        } else if self.cannot_sell_all.as_deref() == Some("1") {
+            Some("cannot_sell_all")
+        } else {
+            None
+        }
     }
 }
 
@@ -99,20 +105,20 @@ mod tests {
         )
         .unwrap();
 
-        assert!(token.is_malicious());
+        assert_eq!(token.malicious_reason(), Some("fake_token"));
     }
 
     #[test]
     fn test_string_risk_flags_remain_supported() {
         let token: SecurityToken = serde_json::from_str(r#"{"is_honeypot":"1"}"#).unwrap();
 
-        assert!(token.is_malicious());
+        assert_eq!(token.malicious_reason(), Some("is_honeypot"));
     }
 
     #[test]
     fn test_b20_token_is_malicious() {
         let token: SecurityToken = serde_json::from_str(r#"{"b20_token":{"is_b20":"1"}}"#).unwrap();
 
-        assert!(token.is_malicious());
+        assert_eq!(token.malicious_reason(), Some("b20_token"));
     }
 }

@@ -125,15 +125,14 @@ impl<C: Client> ScanProvider for GoPlusProvider<C> {
         }
         let security_token = response.result.as_ref().and_then(|tokens| tokens.get(&token_id)).cloned();
         let is_partial = response.code == 2;
-        let is_malicious = security_token.as_ref().is_some_and(SecurityToken::is_malicious);
+        let malicious_reason = security_token.as_ref().and_then(SecurityToken::malicious_reason);
+        let is_malicious = malicious_reason.is_some();
         if is_partial && !is_malicious {
             return Err(response.message.into());
         }
 
-        let reason = if is_partial {
-            Some(response.message)
-        } else if is_malicious {
-            Some("Token security risk detected".to_string())
+        let reason = if let Some(reason) = malicious_reason {
+            Some(reason.to_string())
         } else {
             security_token.is_none().then(|| "No token data found".to_string())
         };
@@ -207,6 +206,7 @@ mod tests {
             .unwrap();
 
         assert!(result.is_malicious);
+        assert_eq!(result.reason.as_deref(), Some("is_honeypot"));
     }
 
     #[tokio::test]
@@ -218,6 +218,23 @@ mod tests {
             .scan_token(&TokenTarget {
                 token_id: "0xAbC".to_string(),
                 chain: Chain::SmartChain,
+            })
+            .await
+            .unwrap();
+
+        assert!(!result.is_malicious);
+        assert!(result.reason.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_scan_tron_usdt_blacklist_capability_is_safe() {
+        let client = MockClient::new().with_get(|_| Ok(br#"{"code":1,"message":"OK","result":{"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t":{"is_blacklisted":"1"}}}"#.to_vec()));
+        let provider = GoPlusProvider::mock(client);
+
+        let result = provider
+            .scan_token(&TokenTarget {
+                token_id: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                chain: Chain::Tron,
             })
             .await
             .unwrap();
