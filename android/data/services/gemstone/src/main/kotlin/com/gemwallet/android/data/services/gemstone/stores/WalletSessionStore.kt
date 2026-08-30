@@ -25,6 +25,4 @@ class GemstoneWalletSessionStore(
     fun observeSession(): Flow<DbSession?> = sessionDao.session()
 
     suspend fun storedCurrency(): Currency? = sessionDao.getCurrency()
-
-    suspend fun clear() = sessionDao.clear()
 }

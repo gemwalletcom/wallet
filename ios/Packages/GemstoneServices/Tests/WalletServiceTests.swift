@@ -185,7 +185,7 @@ struct WalletServiceTests {
         let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum, .solana]))
         let service = WalletService.mock(keystore: keystore, walletStore: walletStore)
         let wallet = try await service.importWallet(name: "ETH only", type: .phrase(words: LocalKeystore.words, chains: [.ethereum]), source: .import).wallet
-        try await keystore.deleteKey(for: wallet)
+        _ = try keystore.gemKeystore.delete(keystoreId: keystore.gemKeystore.keystoreId(walletId: wallet.id.id))
         let passwordReadsBefore = mockPassword.getPasswordCallsCount
 
         try await service.setup(chains: [.ethereum, .solana])

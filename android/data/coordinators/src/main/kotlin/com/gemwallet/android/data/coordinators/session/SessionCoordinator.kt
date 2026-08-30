@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.session
 
-import com.gemwallet.android.application.session.cases.ClearSession
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetSession
@@ -44,7 +43,7 @@ class SessionCoordinator(
     private val priceService: GemPriceService,
     private val deviceService: GemDeviceService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
-) : GetSession, GetCurrentWallet, GetCurrentCurrency, SetCurrentCurrency, SetCurrentWallet, ClearSession {
+) : GetSession, GetCurrentWallet, GetCurrentCurrency, SetCurrentCurrency, SetCurrentWallet {
 
     private val currencyState = MutableStateFlow(preferencesService.getCurrency().decodeJson<Currency>())
 
@@ -90,8 +89,6 @@ class SessionCoordinator(
     override suspend fun setCurrentWallet(walletId: WalletId) = withContext(Dispatchers.IO) {
         walletSessionService.setCurrentWalletId(walletId.id)
     }
-
-    override suspend fun clearSession() = withContext(Dispatchers.IO) { sessionStore.clear() }
 
     private suspend fun setCurrency(currency: Currency) = withContext(Dispatchers.IO) {
         preferencesService.setCurrency(currency.toJson())

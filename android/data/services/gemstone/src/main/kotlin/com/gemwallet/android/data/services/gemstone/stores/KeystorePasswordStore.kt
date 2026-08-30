@@ -25,4 +25,8 @@ class GemstoneKeystorePassword(
         }
         return password
     }
+
+    override fun deletePassword(walletId: String) {
+        passwordStore.removePassword(walletId)
+    }
 }

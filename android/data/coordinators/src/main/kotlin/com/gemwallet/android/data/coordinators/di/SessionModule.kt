@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.session.cases.ClearSession
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
@@ -62,10 +61,6 @@ object SessionModule {
     @Provides
     @Singleton
     fun provideSetCurrentWallet(coordinator: SessionCoordinator): SetCurrentWallet = coordinator
-
-    @Provides
-    @Singleton
-    fun provideClearSession(coordinator: SessionCoordinator): ClearSession = coordinator
 
     @Provides
     @Singleton

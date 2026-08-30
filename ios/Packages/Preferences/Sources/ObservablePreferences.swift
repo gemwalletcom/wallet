@@ -59,6 +59,15 @@ public final class ObservablePreferences: Sendable {
         return preferencesService.isAcceptTermsCompleted()
     }
 
+    public func reload() {
+        withMutation(keyPath: \.currency) {}
+        withMutation(keyPath: \.isHideBalanceEnabled) {}
+        withMutation(keyPath: \.isDeveloperEnabled) {}
+        withMutation(keyPath: \.isAcceptTermsCompleted) {}
+        withMutation(keyPath: \.isPerpetualEnabled) {}
+        withMutation(keyPath: \.appearance) {}
+    }
+
     public func acceptTerms() {
         withMutation(keyPath: \.isAcceptTermsCompleted) {
             write { try preferencesService.setAcceptTermsCompleted() }

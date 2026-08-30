@@ -5,12 +5,10 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.SecurityStore
 import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
 import com.gemwallet.android.blockchain.operators.CreateWalletOperator
-import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.MigrateKeystoreOperator
 import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemCreateWalletOperator
-import com.gemwallet.android.blockchain.operators.gemstone.GemDeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemLoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemMigrateKeystoreOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
@@ -72,13 +70,6 @@ object InteractsModule {
         @ApplicationContext context: Context,
     ): GemSignMessageOperator = GemSignMessageOperator(context.dataDir.toString())
 
-
-    @Singleton
-    @Provides
-    fun provideDeleteKeyStoreOperator(
-        @ApplicationContext context: Context,
-        passwordStore: PasswordStore,
-    ): DeleteKeyStoreOperator = GemDeleteKeyStoreOperator(context.dataDir.toString(), passwordStore)
 
     @Provides
     @Singleton

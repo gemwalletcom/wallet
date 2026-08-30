@@ -9,7 +9,6 @@ import com.gemwallet.android.application.wallet.cases.GetWalletDetails
 import com.gemwallet.android.application.wallet.cases.GetWalletSecretData
 import com.gemwallet.android.application.wallet.cases.SetWalletName
 import com.gemwallet.android.application.wallet.cases.SetWalletPinned
-import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.application.addresses.cases.RenameWalletAddresses
 import com.gemwallet.android.data.coordinators.wallet.DeleteWalletImpl
@@ -29,7 +28,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemWalletService
 import javax.inject.Singleton
-import com.gemwallet.android.application.session.cases.ClearSession
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -86,12 +84,10 @@ object WalletModule {
 
     @Provides
     fun provideDeleteWallet(
-        clearSession: ClearSession,
-        deleteKeyStoreOperator: DeleteKeyStoreOperator,
         walletService: GemWalletService,
         userConfig: UserConfig,
     ): DeleteWallet {
-        return DeleteWalletImpl(clearSession, deleteKeyStoreOperator, walletService, userConfig)
+        return DeleteWalletImpl(walletService, userConfig)
     }
 
     @Provides

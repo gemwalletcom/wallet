@@ -165,6 +165,12 @@ pub(crate) fn keystore_id_for_wallet(wallet_id: String) -> String {
 }
 
 impl GemKeystore {
+    pub(crate) fn delete_wallet_secrets(&self, wallet_id: String, legacy_id: String) -> Result<(), GemstoneError> {
+        self.inner.delete(&keystore_id_for_wallet(wallet_id))?;
+        self.inner.delete_v3(&legacy_id)?;
+        Ok(())
+    }
+
     pub(crate) fn signing_key(&self, keystore_id: &str, chain: Chain, password: Vec<u8>) -> Result<Zeroizing<Vec<u8>>, GemstoneError> {
         let password = Zeroizing::new(password);
         self.load_private_key(keystore_id, chain, &password)

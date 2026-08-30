@@ -13,6 +13,8 @@ pub(crate) struct ReaderV3;
 #[serde(rename_all = "camelCase")]
 pub(super) struct KeystoreV3 {
     pub(super) crypto: CryptoV3,
+    #[serde(default)]
+    pub(super) id: Option<String>,
     #[serde(rename = "type")]
     pub(super) kind: KindV3,
     pub(super) version: u8,

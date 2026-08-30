@@ -112,6 +112,10 @@ pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
         .map(|wallet| wallet.id.clone())
 }
 
+pub fn legacy_keystore_id(wallet: &Wallet) -> String {
+    wallet.external_id.clone().unwrap_or_else(|| wallet.id.id())
+}
+
 pub fn existing_wallet(wallets: &[Wallet], wallet_id: &WalletId, wallet_type: WalletType) -> Option<Wallet> {
     wallets.iter().find(|wallet| wallet.id == *wallet_id && wallet.wallet_type == wallet_type).cloned()
 }

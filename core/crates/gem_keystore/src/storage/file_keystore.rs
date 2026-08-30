@@ -103,6 +103,28 @@ impl FileKeystore {
         }
     }
 
+    #[cfg(feature = "v3")]
+    pub fn delete_v3(&self, legacy_id: &str) -> Result<bool, KeystoreError> {
+        if legacy_id.is_empty() {
+            return Err(KeystoreError::invalid_input("legacy keystore id"));
+        }
+        let _queue = queue::lock()?;
+        let legacy_id = legacy_id.to_lowercase();
+        let mut deleted = false;
+        for entry in fs::read_dir(&self.base_dir)? {
+            let path = entry?.path();
+            if !path.is_file() || !is_v3_file(&path, &legacy_id) {
+                continue;
+            }
+            fs::remove_file(&path)?;
+            deleted = true;
+        }
+        if deleted {
+            sync_directory(&self.base_dir)?;
+        }
+        Ok(deleted)
+    }
+
     pub fn get_meta(&self, keystore_id: &str) -> Result<Option<StoredSecretMeta>, KeystoreError> {
         let _queue = queue::lock()?;
         self.get_meta_unlocked(keystore_id)
@@ -300,6 +322,12 @@ fn decrypt_file(parsed: ParsedFile, expected_id: Option<&KeystoreId>, password: 
         return Err(error);
     }
     SecretPayload::from_bytes(header.kind, body)
+}
+
+#[cfg(feature = "v3")]
+fn is_v3_file(path: &Path, legacy_id: &str) -> bool {
+    let name = path.file_name().and_then(|name| name.to_str()).unwrap_or_default().to_lowercase();
+    name == legacy_id || name.ends_with(legacy_id) || ReaderV3::file_id(path).is_some_and(|id| id.to_lowercase() == legacy_id)
 }
 
 fn listed_meta(path: &Path) -> Result<StoredSecretMeta, KeystoreError> {

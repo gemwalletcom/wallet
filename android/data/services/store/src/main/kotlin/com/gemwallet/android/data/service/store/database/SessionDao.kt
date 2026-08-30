@@ -24,7 +24,4 @@ interface SessionDao {
 
     @Query("SELECT currency FROM session WHERE id = 1")
     suspend fun getCurrency(): Currency?
-
-    @Query("DELETE FROM session")
-    suspend fun clear()
 }

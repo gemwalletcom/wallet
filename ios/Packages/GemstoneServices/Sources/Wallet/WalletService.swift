@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemWalletDeletion
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 import Preferences
@@ -56,10 +57,11 @@ public struct WalletService: Sendable {
     }
 
     public func delete(_ wallet: Wallet) async throws {
-        try await keystore.deleteKey(for: wallet)
-        _ = try await service.deleteWallet(walletId: wallet.id.id)
+        switch try await service.deleteWallet(walletId: wallet.id.id) {
+        case .walletsRemaining: break
+        case .lastWalletDeleted: preferences.reload()
+        }
     }
-
 
     public func setup(chains: [Chain]) async throws {
         _ = try await service.setupChains(chains: chains.map(\.rawValue))

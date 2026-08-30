@@ -95,37 +95,6 @@ struct MigrateV3KeystoreTests {
         #expect(FileManager.default.fileExists(atPath: v3URL.path), "a failed migration must keep the v3 file for retry")
     }
 
-    @Test
-    func deleteAfterMigrationRemovesEveryCopy() async throws {
-        let directory = "migrate-test-\(UUID().uuidString)"
-        let baseDir = try FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appending(path: directory, directoryHint: .isDirectory)
-        defer { try? FileManager.default.removeItem(at: baseDir) }
-
-        let keystore = LocalKeystore(
-            directory: directory,
-            keystorePassword: MockKeystorePassword(memoryPassword: Self.password),
-        )
-        let legacy = Wallet.mock(
-            id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
-            type: .privateKey,
-            source: .import,
-        )
-        let fixtureURL = try #require(Bundle.module.url(forResource: "v3_ios_private_key", withExtension: "json"))
-        let v3URL = baseDir.appending(path: legacy.legacyV3Id, directoryHint: .notDirectory)
-        try FileManager.default.copyItem(at: fixtureURL, to: v3URL)
-
-        let failures = try await keystore.migrateV3Keystores(for: [legacy])
-        #expect(failures.isEmpty)
-        let v4URL = baseDir.appending(path: "\(try GemKeystore(baseDir: baseDir.path).keystoreId(walletId: legacy.id.id)).json")
-        #expect(FileManager.default.fileExists(atPath: v4URL.path))
-        #expect(!FileManager.default.fileExists(atPath: v3URL.path), "a verified migration deletes the v3 file")
-
-        try await keystore.deleteKey(for: legacy)
-        #expect(!FileManager.default.fileExists(atPath: v4URL.path))
-    }
-
     @discardableResult
     private func assertMigratesAndIsIdempotent(_ legacy: Wallet, fixture: String) async throws -> String {
         let directory = "migrate-test-\(UUID().uuidString)"

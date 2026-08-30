@@ -18,7 +18,7 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletImportResult, GemWalletImportType, GemWalletSource};
+pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSource};
 pub use password::GemKeystorePassword;
 pub use store::GemWalletStore;
 
@@ -110,27 +110,31 @@ impl GemWalletService {
         Ok(GemWalletImportResult::New { wallet })
     }
 
-    pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<bool, GemServiceError> {
+    pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<GemWalletDeletion, GemServiceError> {
         let wallet = self.store.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} not found", wallet_id.id()),
         })?;
         if wallet.wallet_type != WalletType::View {
-            self.keystore.delete(keystore_id_for_wallet(wallet.id.id()))?;
+            self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?;
         }
+        self.password.delete_password(wallet.id.clone())?;
         self.store.delete_wallet(wallet.id.clone()).await?;
         if let Some(image_url) = wallet.image_url.clone() {
             self.files.remove(image_url)?;
         }
         self.preferences.delete_preferences(wallet.id.clone())?;
         let remaining = self.store.get_wallets()?;
-        if self.session.get_current_wallet_id()? == Some(wallet.id) {
+        if remaining.is_empty() || self.session.get_current_wallet_id()? == Some(wallet.id) {
             self.session.set_current_wallet_id(rules::next_current_wallet(&remaining))?;
         }
         if remaining.is_empty() {
             self.app_preferences.clear()?;
         }
         self.invalidate_subscriptions().await?;
-        Ok(!remaining.is_empty())
+        Ok(match remaining.is_empty() {
+            true => GemWalletDeletion::LastWalletDeleted,
+            false => GemWalletDeletion::WalletsRemaining,
+        })
     }
 
     pub async fn setup_chains(&self, chains: Vec<Chain>) -> Result<Vec<Wallet>, GemServiceError> {
@@ -203,5 +207,232 @@ fn keystore_import(import: GemWalletImportType) -> GemImportType {
         GemWalletImportType::SinglePhrase { words, chain } => GemImportType::SinglePhrase { words, chain },
         GemWalletImportType::PrivateKey { value, chain } => GemImportType::PrivateKey { value, chain },
         GemWalletImportType::Address { address, chain } => GemImportType::PrivateKey { value: address, chain },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+    use std::fs;
+    use std::path::PathBuf;
+    use std::sync::Mutex;
+
+    use futures::executor::block_on;
+    use tempfile::TempDir;
+
+    use super::*;
+    use crate::services::file::GemFileStore;
+    use crate::services::preferences::GemPreferencesStore;
+    use crate::services::wallet_preferences::GemWalletPreferencesStore;
+    use crate::services::wallet_session::GemWalletSessionStore;
+
+    const PASSWORD: &str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
+    const PHRASE: [&str; 12] = [
+        "shoot", "island", "position", "soft", "burden", "budget", "tooth", "cruel", "issue", "economy", "destroy", "above",
+    ];
+    const OTHER_PHRASE: [&str; 12] = [
+        "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "about",
+    ];
+
+    #[derive(Default)]
+    struct MemoryStore {
+        wallets: Mutex<Vec<Wallet>>,
+        passwords: Mutex<HashMap<String, String>>,
+        session: Mutex<Option<WalletId>>,
+        preferences: Mutex<HashMap<String, String>>,
+        wallet_preferences: Mutex<HashMap<(String, String), String>>,
+    }
+
+    #[async_trait::async_trait]
+    impl GemWalletStore for MemoryStore {
+        fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+            Ok(self.wallets.lock().unwrap().clone())
+        }
+        fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
+            Ok(self.wallets.lock().unwrap().iter().find(|wallet| wallet.id == wallet_id).cloned())
+        }
+        async fn add_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
+            let mut wallets = self.wallets.lock().unwrap();
+            wallets.retain(|stored| stored.id != wallet.id);
+            wallets.push(wallet);
+            Ok(())
+        }
+        async fn delete_wallet(&self, wallet_id: WalletId) -> Result<bool, GemServiceError> {
+            let mut wallets = self.wallets.lock().unwrap();
+            let before = wallets.len();
+            wallets.retain(|wallet| wallet.id != wallet_id);
+            Ok(before != wallets.len())
+        }
+        async fn set_pinned(&self, _wallet_id: WalletId, _pinned: bool) -> Result<(), GemServiceError> {
+            Ok(())
+        }
+        async fn set_name(&self, _wallet_id: WalletId, _name: String) -> Result<(), GemServiceError> {
+            Ok(())
+        }
+        async fn set_image_url(&self, _wallet_id: WalletId, _image_url: Option<String>) -> Result<(), GemServiceError> {
+            Ok(())
+        }
+    }
+
+    impl GemKeystorePassword for MemoryStore {
+        fn get_password(&self, wallet_id: WalletId, _create_if_missing: bool) -> Result<String, GemServiceError> {
+            self.passwords.lock().unwrap().insert(wallet_id.id(), PASSWORD.to_string());
+            Ok(PASSWORD.to_string())
+        }
+        fn delete_password(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+            self.passwords.lock().unwrap().remove(&wallet_id.id());
+            Ok(())
+        }
+    }
+
+    impl GemWalletSessionStore for MemoryStore {
+        fn get_current_wallet_id(&self) -> Result<Option<WalletId>, GemServiceError> {
+            Ok(self.session.lock().unwrap().clone())
+        }
+        fn set_current_wallet_id(&self, wallet_id: Option<WalletId>) -> Result<(), GemServiceError> {
+            *self.session.lock().unwrap() = wallet_id;
+            Ok(())
+        }
+    }
+
+    impl GemPreferencesStore for MemoryStore {
+        fn get(&self, key: String) -> Option<String> {
+            self.preferences.lock().unwrap().get(&key).cloned()
+        }
+        fn set(&self, key: String, value: String) -> Result<(), GemServiceError> {
+            self.preferences.lock().unwrap().insert(key, value);
+            Ok(())
+        }
+        fn remove(&self, key: String) -> Result<(), GemServiceError> {
+            self.preferences.lock().unwrap().remove(&key);
+            Ok(())
+        }
+        fn clear(&self) -> Result<(), GemServiceError> {
+            self.preferences.lock().unwrap().clear();
+            Ok(())
+        }
+    }
+
+    impl GemWalletPreferencesStore for MemoryStore {
+        fn get(&self, wallet_id: WalletId, key: String) -> Option<String> {
+            self.wallet_preferences.lock().unwrap().get(&(wallet_id.id(), key)).cloned()
+        }
+        fn set(&self, wallet_id: WalletId, key: String, value: String) -> Result<(), GemServiceError> {
+            self.wallet_preferences.lock().unwrap().insert((wallet_id.id(), key), value);
+            Ok(())
+        }
+        fn delete_preferences(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+            self.wallet_preferences.lock().unwrap().retain(|(id, _), _| *id != wallet_id.id());
+            Ok(())
+        }
+    }
+
+    impl GemFileStore for MemoryStore {
+        fn save_file(&self, _data: Vec<u8>, _extension: String) -> Result<String, GemServiceError> {
+            Ok(String::new())
+        }
+        fn save_named_file(&self, _data: Vec<u8>, _file_name: String) -> Result<String, GemServiceError> {
+            Ok(String::new())
+        }
+        fn exists(&self, _file_name: String) -> bool {
+            false
+        }
+        fn path(&self, file_name: String) -> String {
+            file_name
+        }
+        fn remove(&self, _file_name: String) -> Result<(), GemServiceError> {
+            Ok(())
+        }
+    }
+
+    struct TestContext {
+        service: GemWalletService,
+        store: Arc<MemoryStore>,
+        directory: TempDir,
+    }
+
+    impl TestContext {
+        fn new() -> Self {
+            let directory = TempDir::new().unwrap();
+            let store = Arc::new(MemoryStore::default());
+            let keystore = GemKeystore::new(directory.path().to_string_lossy().to_string()).unwrap();
+            let session = Arc::new(GemWalletSessionService::new(store.clone(), store.clone()));
+            let service = GemWalletService::new(
+                keystore,
+                store.clone(),
+                store.clone(),
+                session,
+                Arc::new(GemPreferencesService::new(store.clone())),
+                store.clone(),
+                Arc::new(GemWalletPreferencesService::new(store.clone())),
+            );
+            Self { service, store, directory }
+        }
+
+        async fn import(&self, name: &str, words: [&str; 12]) -> Wallet {
+            let import = GemWalletImportType::MulticoinPhrase {
+                words: words.iter().map(|word| word.to_string()).collect(),
+                chains: vec![Chain::Ethereum],
+            };
+            match self.service.import_wallet(name.to_string(), import, WalletSource::Import).await.unwrap() {
+                GemWalletImportResult::New { wallet } => wallet,
+                GemWalletImportResult::Existing { wallet } => wallet,
+            }
+        }
+
+        fn keystore_path(&self, wallet: &Wallet) -> PathBuf {
+            self.directory.path().join(format!("{}.json", keystore_id_for_wallet(wallet.id.id())))
+        }
+
+        fn has_password(&self, wallet: &Wallet) -> bool {
+            self.store.passwords.lock().unwrap().contains_key(&wallet.id.id())
+        }
+    }
+
+    #[test]
+    fn test_delete_wallet_removes_every_secret_copy_and_reports_the_outcome() {
+        block_on(async {
+            let context = TestContext::new();
+            let kept = context.import("Kept", OTHER_PHRASE).await;
+            let deleted = context.import("Deleted", PHRASE).await;
+            let legacy_path = context.directory.path().join(rules::legacy_keystore_id(&deleted));
+            fs::write(&legacy_path, "{}").unwrap();
+            context.service.session.set_current_wallet_id(Some(deleted.id.clone())).unwrap();
+
+            let outcome = context.service.delete_wallet(deleted.id.clone()).await.unwrap();
+
+            assert_eq!(outcome, GemWalletDeletion::WalletsRemaining);
+            assert!(!context.keystore_path(&deleted).exists());
+            assert!(!legacy_path.exists());
+            assert!(!context.has_password(&deleted));
+            assert!(context.keystore_path(&kept).exists());
+            assert!(context.has_password(&kept));
+            assert_eq!(context.service.session.get_current_wallet_id().unwrap(), Some(kept.id.clone()));
+
+            context.store.preferences.lock().unwrap().insert("is_developer_enabled".to_string(), "true".to_string());
+
+            let outcome = context.service.delete_wallet(kept.id.clone()).await.unwrap();
+
+            assert_eq!(outcome, GemWalletDeletion::LastWalletDeleted);
+            assert!(!context.keystore_path(&kept).exists());
+            assert_eq!(context.service.session.get_current_wallet_id().unwrap(), None);
+            assert_eq!(context.store.preferences.lock().unwrap().get("is_developer_enabled"), None);
+        });
+    }
+
+    #[test]
+    fn test_delete_wallet_keeps_the_record_when_a_secret_copy_survives() {
+        block_on(async {
+            let context = TestContext::new();
+            let wallet = context.import("Blocked", PHRASE).await;
+            fs::remove_file(context.keystore_path(&wallet)).unwrap();
+            fs::create_dir(context.keystore_path(&wallet)).unwrap();
+
+            let error = context.service.delete_wallet(wallet.id.clone()).await.unwrap_err();
+
+            assert!(matches!(error, GemServiceError::Core { .. }), "{error:?}");
+            assert_eq!(context.store.get_wallets().unwrap().len(), 1);
+            assert!(context.has_password(&wallet));
+        });
     }
 }

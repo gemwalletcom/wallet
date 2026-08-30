@@ -20,8 +20,6 @@ public struct KeystoreMock: Keystore {
         []
     }
 
-    public func deleteKey(for _: Primitives.Wallet) throws {}
-
     public func sign(wallet _: Primitives.Wallet, input _: GemSignerInput) throws -> [GemSignedTransaction] {
         []
     }
