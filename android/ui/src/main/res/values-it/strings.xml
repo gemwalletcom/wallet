@@ -75,6 +75,8 @@
   <string name="wallet_manage_token_list">Gestisci token</string>
   <string name="wallet_scan_qr_code">Scansiona il codice QR</string>
   <string name="wallet_scan">Scansione</string>
+  <string name="wallet_scan_hint">Invia, paga o connettiti a una DApp</string>
+  <string name="wallet_scan_hint_address">Indirizzo del portafoglio</string>
   <string name="wallet_default_name">Portafoglio n.%1$d</string>
   <string name="wallet_default_name_chain">%1$s Portafoglio n.%2$d</string>
   <string name="wallet_copy_address">Copia indirizzo</string>

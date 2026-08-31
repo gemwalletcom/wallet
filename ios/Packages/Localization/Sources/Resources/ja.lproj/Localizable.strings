@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "トークンの管理";
 "wallet.scan_qr_code" = "QRコードをスキャン";
 "wallet.scan" = "スキャン";
+"wallet.scan_hint" = "送金、支払い、またはDAppに接続";
+"wallet.scan_hint_address" = "ウォレットアドレス";
 "wallet.default_name" = "ウォレット #%d";
 "wallet.default_name_chain" = "%@ ウォレット #%d";
 "wallet.copy_address" = "アドレスをコピー";

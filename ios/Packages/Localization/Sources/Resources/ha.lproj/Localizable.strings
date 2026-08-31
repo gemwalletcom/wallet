@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "Sarrafa Alamu";
 "wallet.scan_qr_code" = "Duba lambar QR";
 "wallet.scan" = "Duba";
+"wallet.scan_hint" = "Aika, biya ko haɗa da DApp";
+"wallet.scan_hint_address" = "Adireshin wallet";
 "wallet.default_name" = "Wallet #%d";
 "wallet.default_name_chain" = "%@ Wallet #%d";
 "wallet.copy_address" = "Kwafi Adireshin";

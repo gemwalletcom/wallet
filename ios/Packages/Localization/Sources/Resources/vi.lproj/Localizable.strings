@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "Quản lý mã thông báo";
 "wallet.scan_qr_code" = "Quét mã QR";
 "wallet.scan" = "Quét";
+"wallet.scan_hint" = "Gửi, thanh toán hoặc kết nối với DApp";
+"wallet.scan_hint_address" = "Địa chỉ ví";
 "wallet.default_name" = "Ví #%d";
 "wallet.default_name_chain" = "%@ Ví #%d";
 "wallet.copy_address" = "Sao chép địa chỉ";

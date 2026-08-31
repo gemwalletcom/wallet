@@ -19,7 +19,7 @@ struct RecipientNavigationView: View {
             model: model,
         )
         .sheet(item: $model.isPresentingScanner) { value in
-            ScanQRCodeNavigationStack {
+            ScanQRCodeNavigationStack(scanType: model.scanType(for: value)) {
                 model.onHandleScan($0, for: value)
             }
         }

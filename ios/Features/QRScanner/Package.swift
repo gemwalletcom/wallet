@@ -13,6 +13,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "Localization", path: "../../Packages/Localization"),
     ],
@@ -20,6 +21,7 @@ let package = Package(
         .target(
             name: "QRScanner",
             dependencies: [
+                "Primitives",
                 "Components",
                 "Localization",
             ],

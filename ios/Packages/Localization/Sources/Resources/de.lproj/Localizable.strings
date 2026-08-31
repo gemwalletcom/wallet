@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "Token verwalten";
 "wallet.scan_qr_code" = "QR-Code scannen";
 "wallet.scan" = "Scannen";
+"wallet.scan_hint" = "Senden, bezahlen oder mit einer DApp verbinden";
+"wallet.scan_hint_address" = "Wallet-Adresse";
 "wallet.default_name" = "Wallet #%d";
 "wallet.default_name_chain" = "%@ Wallet #%d";
 "wallet.copy_address" = "Adresse kopieren";

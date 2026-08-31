@@ -14,6 +14,7 @@ import com.gemwallet.android.ui.components.fields.MemoTextField
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeScannerModal
+import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -76,6 +77,7 @@ fun ManageContactAddressScene(
 
     QrCodeScannerModal(
         isVisible = scanning,
+        scanType = QRScanType.Address,
         onDismissRequest = { scanning = false },
         onResult = {
             onScan(it)

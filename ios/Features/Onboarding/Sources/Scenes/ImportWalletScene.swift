@@ -120,7 +120,7 @@ struct ImportWalletScene: View {
             )
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(action: model.onHandleScan)
+            ScanQRCodeNavigationStack(scanType: scanType, action: model.onHandleScan)
         }
         .onChange(of: model.input, model.onChangeInput)
         .onChange(of: model.importType, model.onChangeImportType)
@@ -129,6 +129,14 @@ struct ImportWalletScene: View {
         }
         .detectScreenshots(docsUrl: model.docsUrl)
         .protectFromScreenRecording()
+    }
+
+    private var scanType: QRScanType {
+        switch model.importType {
+        case .phrase: .secretPhrase
+        case .privateKey: .privateKey
+        case .address: .address
+        }
     }
 
     private func onSelectActionButton() {
