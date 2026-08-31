@@ -1,7 +1,7 @@
 use super::model::BuildResponse;
 use crate::SwapperError;
 use gem_encoding::encode_base64;
-use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, JUPITER_PROGRAM_ID, instruction_from_primitive, instructions_from_primitives};
+use gem_solana::{Base64InstructionData, DEFAULT_SWAP_GAS_LIMIT, JUPITER_PROGRAM_ID, instruction_from_primitive, instructions_from_primitives};
 use solana_primitives::{
     AddressLookupTableAccount, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder,
     compute_budget::{ensure_compute_unit_price, parse_compute_unit_limit_data, set_compute_unit_limit},
@@ -24,17 +24,17 @@ impl BuildResponse {
 
         let payer = Pubkey::from_base58(payer).map_err(SwapperError::transaction_error)?;
 
-        let mut compute_budget_instructions = instructions_from_primitives(self.compute_budget_instructions).map_err(SwapperError::transaction_error)?;
+        let mut compute_budget_instructions = instructions_from_primitives::<Base64InstructionData>(self.compute_budget_instructions).map_err(SwapperError::transaction_error)?;
         compute_budget_instructions.retain(|instruction| parse_compute_unit_limit_data(&instruction.data).is_none());
         let mut instructions = vec![set_compute_unit_limit(DEFAULT_SWAP_GAS_LIMIT)];
         instructions.extend(compute_budget_instructions);
         ensure_compute_unit_price(&mut instructions, 0);
-        instructions.extend(instructions_from_primitives(self.setup_instructions).map_err(SwapperError::transaction_error)?);
-        instructions.push(instruction_from_primitive(self.swap_instruction).map_err(SwapperError::transaction_error)?);
+        instructions.extend(instructions_from_primitives::<Base64InstructionData>(self.setup_instructions).map_err(SwapperError::transaction_error)?);
+        instructions.push(instruction_from_primitive::<Base64InstructionData>(self.swap_instruction).map_err(SwapperError::transaction_error)?);
         if let Some(cleanup_instruction) = self.cleanup_instruction {
-            instructions.push(instruction_from_primitive(cleanup_instruction).map_err(SwapperError::transaction_error)?);
+            instructions.push(instruction_from_primitive::<Base64InstructionData>(cleanup_instruction).map_err(SwapperError::transaction_error)?);
         }
-        instructions.extend(instructions_from_primitives(self.other_instructions).map_err(SwapperError::transaction_error)?);
+        instructions.extend(instructions_from_primitives::<Base64InstructionData>(self.other_instructions).map_err(SwapperError::transaction_error)?);
 
         let lookup_tables = self
             .addresses_by_lookup_table_address

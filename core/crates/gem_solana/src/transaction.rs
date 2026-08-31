@@ -179,7 +179,27 @@ pub fn encode_v0_transaction(payer: Pubkey, recent_blockhash: &str, instructions
     Ok(encode_base64(&bytes))
 }
 
-pub fn instruction_from_primitive(instruction: SolanaInstruction) -> Result<Instruction, String> {
+pub trait InstructionDataDecoder {
+    fn decode(data: &str) -> Result<Vec<u8>, String>;
+}
+
+pub struct Base64InstructionData;
+
+impl InstructionDataDecoder for Base64InstructionData {
+    fn decode(data: &str) -> Result<Vec<u8>, String> {
+        decode_base64(data).map_err(|err| err.to_string())
+    }
+}
+
+pub struct HexInstructionData;
+
+impl InstructionDataDecoder for HexInstructionData {
+    fn decode(data: &str) -> Result<Vec<u8>, String> {
+        hex::decode(data).map_err(|err| err.to_string())
+    }
+}
+
+pub fn instruction_from_primitive<D: InstructionDataDecoder>(instruction: SolanaInstruction) -> Result<Instruction, String> {
     let program_id = Pubkey::from_base58(&instruction.program_id).map_err(|err| format!("Invalid Solana address {}: {err}", instruction.program_id))?;
     let accounts = instruction
         .accounts
@@ -195,12 +215,12 @@ pub fn instruction_from_primitive(instruction: SolanaInstruction) -> Result<Inst
     Ok(Instruction {
         program_id,
         accounts,
-        data: decode_base64(&instruction.data).map_err(|err| err.to_string())?,
+        data: D::decode(&instruction.data)?,
     })
 }
 
-pub fn instructions_from_primitives(instructions: Vec<SolanaInstruction>) -> Result<Vec<Instruction>, String> {
-    instructions.into_iter().map(instruction_from_primitive).collect()
+pub fn instructions_from_primitives<D: InstructionDataDecoder>(instructions: Vec<SolanaInstruction>) -> Result<Vec<Instruction>, String> {
+    instructions.into_iter().map(instruction_from_primitive::<D>).collect()
 }
 
 #[cfg(test)]

@@ -2,14 +2,18 @@ use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
 
 use crate::{
-    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS,
-    TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
+    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, RELAY_DEPOSITORY_PROGRAM_ID, SYSTEM_PROGRAM_ID,
+    SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
     models::{BlockTransaction, BlockTransactions, Instruction},
 };
 use primitives::{AssetId, Chain, NFTAssetId, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType};
 
 const CHAIN: Chain = Chain::Solana;
-const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID)];
+const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[
+    (SwapProvider::Jupiter, JUPITER_PROGRAM_ID),
+    (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID),
+    (SwapProvider::Relay, RELAY_DEPOSITORY_PROGRAM_ID),
+];
 const MPL_CORE_TRANSFER_V1: u8 = 14;
 const MPL_TOKEN_METADATA_TRANSFER_V1: u8 = 49;
 const MPL_TOKEN_METADATA_MINT_ACCOUNT_INDEX: usize = 4;
@@ -121,6 +125,9 @@ fn map_swap_metadata(transaction: &BlockTransaction, owner: &str, provider: Swap
                 Sign::Minus => (change, &balance_changes),
                 Sign::NoSign => return None,
             };
+            if to.amount.sign() != Sign::Plus || from.amount.sign() != Sign::Minus {
+                return None;
+            }
             (from.asset_id.clone(), from.amount.magnitude().clone(), to.asset_id.clone(), to.amount.magnitude().clone())
         }
         [a, b] => {

@@ -3,6 +3,7 @@ use std::collections::BTreeSet;
 use gem_evm::{address::ethereum_address_checksum, provider::preload_mapper::calculate_gas_limit_with_increase};
 use gem_tron::models::{TriggerSmartContractData, TronContractType};
 use num_bigint::BigInt;
+use primitives::SolanaInstruction;
 use primitives::swap::SwapStatus;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_option_bigint_from_str, serialize_option_bigint};
@@ -25,6 +26,7 @@ pub struct RelayQuoteRequest {
     pub amount: String,
     pub recipient: String,
     pub trade_type: String,
+    pub include_compute_unit_limit: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub slippage_tolerance: Option<String>,
     pub refund_to: String,
@@ -74,14 +76,21 @@ impl RelayQuoteResponse {
     pub fn get_evm_step(&self) -> Option<&EvmStepData> {
         match self.step_data()? {
             StepData::Evm(evm) => Some(evm),
-            StepData::Tron(_) => None,
+            StepData::Tron(_) | StepData::Solana(_) => None,
         }
     }
 
     pub fn get_tron_step(&self) -> Option<&TronStepData> {
         match self.step_data()? {
-            StepData::Evm(_) => None,
             StepData::Tron(tron) => Some(tron),
+            StepData::Evm(_) | StepData::Solana(_) => None,
+        }
+    }
+
+    pub fn get_solana_step(&self) -> Option<&SolanaStepData> {
+        match self.step_data()? {
+            StepData::Solana(solana) => Some(solana),
+            StepData::Evm(_) | StepData::Tron(_) => None,
         }
     }
 
@@ -119,6 +128,7 @@ pub struct StepItem {
 pub enum StepData {
     Evm(EvmStepData),
     Tron(TronStepData),
+    Solana(SolanaStepData),
 }
 
 impl StepData {
@@ -126,6 +136,7 @@ impl StepData {
         match self {
             Self::Evm(evm) => Some(evm.to.clone()),
             Self::Tron(tron) => Some(tron.trigger_smart_contract()?.contract_address.clone()),
+            Self::Solana(_) => None,
         }
     }
 }
@@ -148,6 +159,14 @@ impl EvmStepData {
         }
         Some(calculate_gas_limit_with_increase(gas).to_string())
     }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SolanaStepData {
+    pub instructions: Vec<SolanaInstruction>,
+    #[serde(default)]
+    pub address_lookup_table_addresses: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -389,6 +408,13 @@ mod tests {
         let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
         let tron = response.get_tron_step().unwrap();
         assert_eq!(tron.trigger_smart_contract().unwrap().call_value, Some(10_000_000));
+
+        let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_sol_to_base_usdc.json")).unwrap();
+        let solana = response.get_solana_step().unwrap();
+        assert_eq!(solana.instructions.len(), 1);
+        assert_eq!(solana.instructions[0].accounts.len(), 5);
+        assert_eq!(solana.address_lookup_table_addresses, vec!["Hm9fUgcn7qwDaiNTFiGh6pNtVATgnaRcmK6Bbx6EMZfP".to_string()]);
+        assert!(response.get_evm_step().is_none());
     }
 
     #[test]

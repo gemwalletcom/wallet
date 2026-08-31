@@ -17,6 +17,7 @@ use super::{
     client::RelayClient,
     mapper,
     model::{RelayAppFee, RelayQuoteRequest, RelayQuoteResponse},
+    solana,
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
@@ -102,6 +103,7 @@ where
             amount: from_value.to_string(),
             recipient: request.destination_address.clone(),
             trade_type: "EXACT_INPUT".to_string(),
+            include_compute_unit_limit: true,
             slippage_tolerance,
             referrer: if app_fees.is_empty() { None } else { Some(DEFAULT_REFERRER.to_string()) },
             app_fees,
@@ -139,9 +141,16 @@ where
         let response: RelayQuoteResponse = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
 
         let from_asset_id = quote.request.from_asset.asset_id();
-        let approval = self.check_approval(quote, &response, &from_asset_id).await?;
         let from_chain = RelayChain::from_chain(&from_asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
-        mapper::map_quote_data(&response, approval, from_chain)
+        let approval = self.check_approval(quote, &response, &from_asset_id).await?;
+        match from_chain {
+            RelayChain::Evm(_) => mapper::map_evm_quote_data(&response, approval),
+            RelayChain::Tron => mapper::map_tron_quote_data(&response, approval),
+            RelayChain::Solana => {
+                let step = response.get_solana_step().ok_or(SwapperError::InvalidRoute)?;
+                solana::build_quote_data(&quote.request.wallet_address, step, self.rpc_provider.clone()).await
+            }
+        }
     }
 
     async fn get_swap_result(&self, _chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
@@ -166,12 +175,12 @@ where
     async fn check_approval(&self, quote: &Quote, quote_response: &RelayQuoteResponse, from_asset_id: &AssetId) -> Result<Option<ApprovalData>, SwapperError> {
         let chain = RelayChain::from_chain(&from_asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
         let token = match (chain, from_asset_id.token_id.clone()) {
+            (RelayChain::Solana, _) | (RelayChain::Tron, None) => return Ok(None),
             (_, Some(token)) => token,
             (RelayChain::Evm(chain), None) => match chain.native_asset_contract() {
                 Some(token) => token.to_string(),
                 None => return Ok(None),
             },
-            (RelayChain::Tron, None) => return Ok(None),
         };
 
         let spender = quote_response.router_address().ok_or(SwapperError::InvalidRoute)?;
@@ -192,6 +201,7 @@ where
                 let spender = TronAddress::parse_hex_or_base58(&spender).map_err(|_| SwapperError::InvalidRoute)?.to_string();
                 check_approval_trc20(quote.request.wallet_address.clone(), token, spender, amount, self.rpc_provider.clone()).await?
             }
+            RelayChain::Solana => return Ok(None),
         };
 
         Ok(approval.approval_data())
@@ -317,7 +327,9 @@ mod swap_integration_tests {
     use crate::{SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
     use primitives::{
         AssetId,
-        asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TRON_USDT_ASSET_ID},
+        asset_constants::{
+            BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TRON_USDT_ASSET_ID,
+        },
     };
     use std::collections::HashMap;
 
@@ -399,6 +411,60 @@ mod swap_integration_tests {
         };
         let quote = relay.get_quote(&reverse_request).await?;
 
+        assert_eq!(quote.from_value, reverse_request.value);
+        assert!(quote.to_value > BigUint::ZERO);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_relay_solana_live() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let provider = Arc::new(NativeProvider::default());
+        let relay = Relay::new(provider);
+
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
+            to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            wallet_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            value: BigUint::from(100000000u64),
+            options: Options::new_with_slippage(100.into()),
+        };
+
+        let quote = relay.get_quote(&request).await?;
+        assert_eq!(quote.from_value, request.value);
+        assert!(quote.to_value > BigUint::ZERO);
+
+        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        println!("solana transaction: {}", quote_data.data);
+        let transaction = gem_solana::decode_transaction(&quote_data.data)?;
+        assert_eq!(transaction.num_required_signatures(), 1);
+        assert!(quote_data.gas_limit.is_some());
+        assert!(quote_data.approval.is_none());
+
+        let usdt_request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(SOLANA_USDT_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            wallet_address: "A21o4asMbFHYadqXdLusT9Bvx9xaC5YV9gcaidjqtdXC".to_string(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            value: BigUint::from(20000000u64),
+            options: Options::new_with_slippage(100.into()),
+        };
+        let quote = relay.get_quote(&usdt_request).await?;
+        assert_eq!(quote.from_value, usdt_request.value);
+        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        assert!(gem_solana::decode_transaction(&quote_data.data).is_ok());
+        assert!(quote_data.approval.is_none());
+
+        let reverse_request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
+            wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            destination_address: request.wallet_address.clone(),
+            value: BigUint::from(10000000u64),
+            options: Options::new_with_slippage(100.into()),
+        };
+        let quote = relay.get_quote(&reverse_request).await?;
         assert_eq!(quote.from_value, reverse_request.value);
         assert!(quote.to_value > BigUint::ZERO);
 
