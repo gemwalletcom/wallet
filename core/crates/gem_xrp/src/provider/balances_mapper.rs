@@ -7,9 +7,12 @@ use number_formatter::BigNumberFormatter;
 use primitives::{AssetBalance, AssetId, Balance, Chain};
 use std::{collections::HashMap, error::Error};
 
-pub fn map_balance_coin(account: Option<AccountInfo>, asset_id: AssetId, reserved_amount: u64) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
+pub fn map_balance_coin(account: Option<AccountInfo>, asset_id: AssetId, base_reserve: u64, owner_reserve: u64) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
     let (available, reserved) = account
-        .map(|account| (account.balance.saturating_sub(reserved_amount), reserved_amount))
+        .map(|account| {
+            let reserved = base_reserve + u64::from(account.owner_count) * owner_reserve;
+            (account.balance.saturating_sub(reserved), reserved)
+        })
         .unwrap_or_default();
 
     Ok(AssetBalance::new_balance(
@@ -72,45 +75,23 @@ mod tests {
     use primitives::{AssetId, Chain};
 
     #[test]
-    fn test_map_native_balance() {
-        let account = AccountInfo {
-            balance: 10000000, // 10 XRP
-            sequence: 100,
-            owner_count: 2,
-            account: None,
-            flags: None,
-            ledger_entry_type: None,
-        };
-
+    fn test_map_balance_coin() {
         let asset_id = AssetId::from_chain(Chain::Xrp);
-        let reserved_amount = 1000000; // 1 XRP reserve
+        let base_reserve = 1_000_000;
+        let owner_reserve = 200_000;
 
-        let result = map_balance_coin(Some(account), asset_id.clone(), reserved_amount).unwrap();
+        let with_owned_objects = map_balance_coin(Some(AccountInfo::mock_with_balance(35_892_065, 2)), asset_id.clone(), base_reserve, owner_reserve).unwrap();
+        assert_eq!(with_owned_objects.asset_id, asset_id);
+        assert_eq!(with_owned_objects.balance.available, BigUint::from(34_492_065_u64));
+        assert_eq!(with_owned_objects.balance.reserved, BigUint::from(1_400_000_u64));
 
-        assert_eq!(result.asset_id, asset_id);
-        assert_eq!(result.balance.available, BigUint::from(9000000_u64)); // 10 - 1 = 9 XRP
-        assert_eq!(result.balance.reserved, BigUint::from(1000000_u64));
-    }
+        let without_owned_objects = map_balance_coin(Some(AccountInfo::mock_with_balance(10_000_000, 0)), asset_id.clone(), base_reserve, owner_reserve).unwrap();
+        assert_eq!(without_owned_objects.balance.available, BigUint::from(9_000_000_u64));
+        assert_eq!(without_owned_objects.balance.reserved, BigUint::from(1_000_000_u64));
 
-    #[test]
-    fn test_map_native_balance_insufficient() {
-        let account = AccountInfo {
-            balance: 500000, // 0.5 XRP
-            sequence: 100,
-            owner_count: 2,
-            account: None,
-            flags: None,
-            ledger_entry_type: None,
-        };
-
-        let asset_id = AssetId::from_chain(Chain::Xrp);
-        let reserved_amount = 1000000; // 1 XRP reserve
-
-        let result = map_balance_coin(Some(account), asset_id.clone(), reserved_amount).unwrap();
-
-        assert_eq!(result.asset_id, asset_id);
-        assert_eq!(result.balance.available, BigUint::from(0u32)); // Insufficient balance
-        assert_eq!(result.balance.reserved, BigUint::from(1000000_u64));
+        let balance_below_reserve = map_balance_coin(Some(AccountInfo::mock_with_balance(500_000, 2)), asset_id.clone(), base_reserve, owner_reserve).unwrap();
+        assert_eq!(balance_below_reserve.balance.available, BigUint::ZERO);
+        assert_eq!(balance_below_reserve.balance.reserved, BigUint::from(1_400_000_u64));
     }
 
     #[test]
