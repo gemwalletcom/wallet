@@ -101,36 +101,51 @@ impl GemContactService {
     }
 }
 
+/// Backs the contacts list.
+#[derive(uniffi::Object)]
+pub struct GemContactsService {
+    contacts: Arc<GemContactService>,
+}
+
+#[uniffi::export]
+impl GemContactsService {
+    #[uniffi::constructor]
+    pub fn new(contacts: Arc<GemContactService>) -> Self {
+        Self { contacts }
+    }
+
+    pub fn add_address(&self, addresses: Vec<ContactAddress>, input: GemContactAddressInput) -> Vec<ContactAddress> {
+        self.contacts.add_address(addresses, input)
+    }
+
+    pub async fn update_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemServiceError> {
+        self.contacts.update_contact(contact, addresses).await
+    }
+
+    pub async fn delete_contact(&self, contact: Contact) -> Result<(), GemServiceError> {
+        self.contacts.delete_contact(contact).await
+    }
+}
+
+/// Backs the add and edit contact screen.
 #[derive(uniffi::Object)]
 pub struct GemManageContactService {
     contacts: Arc<GemContactService>,
-    names: Arc<GemNameService>,
     addresses: Arc<GemAddressService>,
+    names: Arc<GemNameService>,
     chains: Arc<GemChainService>,
 }
 
 #[uniffi::export]
 impl GemManageContactService {
     #[uniffi::constructor]
-    pub fn new(contacts: Arc<GemContactService>, names: Arc<GemNameService>, addresses: Arc<GemAddressService>, chains: Arc<GemChainService>) -> Self {
+    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, names: Arc<GemNameService>, chains: Arc<GemChainService>) -> Self {
         Self {
             contacts,
-            names,
             addresses,
+            names,
             chains,
         }
-    }
-
-    pub fn names(&self) -> Arc<GemNameService> {
-        self.names.clone()
-    }
-
-    pub fn addresses(&self) -> Arc<GemAddressService> {
-        self.addresses.clone()
-    }
-
-    pub fn chains(&self) -> Arc<GemChainService> {
-        self.chains.clone()
     }
 
     pub fn default_chain(&self) -> Chain {
@@ -145,15 +160,19 @@ impl GemManageContactService {
         self.contacts.save_contact(input).await
     }
 
-    pub async fn update_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemServiceError> {
-        self.contacts.update_contact(contact, addresses).await
-    }
-
-    pub async fn delete_contact(&self, contact: Contact) -> Result<(), GemServiceError> {
-        self.contacts.delete_contact(contact).await
-    }
-
     pub fn format_address(&self, address: String, chain: Chain, style: GemAddressFormatStyle) -> String {
         self.addresses.format(address, Some(chain), style)
+    }
+
+    pub fn names(&self) -> Arc<GemNameService> {
+        self.names.clone()
+    }
+
+    pub fn addresses(&self) -> Arc<GemAddressService> {
+        self.addresses.clone()
+    }
+
+    pub fn chains(&self) -> Arc<GemChainService> {
+        self.chains.clone()
     }
 }

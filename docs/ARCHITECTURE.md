@@ -2,8 +2,6 @@
 
 The reference for how a feature is built across Core, iOS and Android. Every new feature follows this; every existing one converges on it. When code and this file disagree, the file is the target.
 
-The shape came out of the confirm migration — the largest thing moved into `gemstone` — so the examples below are real code from `services/confirm`, trimmed.
-
 ## The one rule
 
 **Core decides. The apps ask, render, and store.**
@@ -207,50 +205,42 @@ override fun getFeeAssets(): Flow<List<AssetInfo>> = getCurrentWalletId().flatMa
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
 
-## 6. One service per scene, always private
+## 6. One service per screen
 
-A scene's view model holds **exactly one** Core service, and it is **`private`**. A non-private service is a code smell: it means something outside the model — usually the view — is reaching through the model to get at a dependency.
+A view model holds **exactly one** service, named `service`, and it is **`private`**. A non-private service means something outside the model — usually the view — is reaching through it for a dependency.
 
-When a scene needs more than one Core service, **Core composes them**, in that feature's `services/<feature>/mod.rs`:
+The service is named for the screen it backs, not for the feature and not for the layer: `GemContactsService` backs the contacts list, `GemManageContactService` backs the add-and-edit screen. No `Scene` or `Facade` in the name. When a screen needs more than one thing from Core, Core composes them:
 
 ```rust
+/// Backs the add and edit contact screen.
 #[derive(uniffi::Object)]
 pub struct GemManageContactService {
     contacts: Arc<GemContactService>,
-    names: Arc<GemNameService>,
     addresses: Arc<GemAddressService>,
+    names: Arc<GemNameService>,
     chains: Arc<GemChainService>,
 }
 
 #[uniffi::export]
 impl GemManageContactService {
     #[uniffi::constructor]
-    pub fn new(contacts: Arc<GemContactService>, names: Arc<GemNameService>, addresses: Arc<GemAddressService>, chains: Arc<GemChainService>) -> Self { ... }
+    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, names: Arc<GemNameService>, chains: Arc<GemChainService>) -> Self { ... }
 
     pub fn default_chain(&self) -> Chain { self.contacts.default_chain() }
     pub fn add_address(&self, addresses: Vec<ContactAddress>, input: GemContactAddressInput) -> Vec<ContactAddress> { ... }
     pub fn format_address(&self, address: String, chain: Chain, style: GemAddressFormatStyle) -> String { ... }
-
-    pub fn names(&self) -> Arc<GemNameService> { self.names.clone() }
-    pub fn chains(&self) -> Arc<GemChainService> { self.chains.clone() }
 }
 ```
 
-The scene service exposes the scene's **operations** as flat methods. It vends a sub-service only where a *shared* component genuinely needs one — those are reusable across scenes and take a narrow Core protocol, which is fine.
+A sheet belongs to the screen that presents it and shares that screen's service. A screen you navigate *to* is a different screen with its own.
 
-A scene service is **built when the scene opens**, not held for the app's lifetime. It is a handful of `Arc` clones, so there is no reason to keep one alive from launch:
+### A service never hands out another service
 
-```swift
-public func manageContactScene(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
-    ManageContactViewModel(service: manageContactService(), mode: mode)
-}
+`service.manageContact()` is the same reach-through as `model.nameService`, one level down: the caller now depends on something it was not given. Every service is constructed in the composition root and injected.
 
-private func manageContactService() -> GemManageContactService {
-    GemManageContactService(contacts: contactService, names: gemNameService, addresses: addressService, chains: chainService)
-}
-```
+The exception is a **shared component** — `AddressInputViewModel`, `NetworkSelectorViewModel` — which is reusable across screens and takes a narrow Core protocol. A screen's service may vend one of those, because the component's dependency is genuinely narrower than the screen's.
 
-### The parent vends the child, the view never reaches in
+### The parent vends the child model, the view never reaches in
 
 ```swift
 // wrong — the view assembles the child from the parent's internals
@@ -259,13 +249,20 @@ ManageContactAddressScene(
         defaultChain: model.defaultChain,
         nameService: model.nameService,
         addressService: model.addressService,
-        chainService: model.chainService,
         onComplete: model.onAddressComplete,
     ),
 )
 
 // right — the parent owns the wiring, the view asks for a model
 ManageContactAddressScene(model: model.addressModel(mode: mode))
+```
+
+Where the child is a different screen with its own service, the parent cannot build it — feature modules cannot see the composition root. The app passes the builder in:
+
+```swift
+public func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {
+    ContactsViewModel(service: contactsService, manageContact: manageContactScene, mode: mode)
+}
 ```
 
 The same applies to state: a view switching on the model's `mode` forces `mode` to be non-private. Name the decision on the model instead — `var rowAction: RowAction` — and the view switches on the answer, not the input.
@@ -275,7 +272,7 @@ The same applies to state: a view switching on the model's `mode` forces `mode` 
 UniFFI generates a protocol for every exported object. `GemAddressServiceProtocol` exists; importing `class Gemstone.GemAddressService` at a consumer means that consumer cannot be substituted in a test.
 
 - **Consumers** (view models, components, validators) take `any GemFooServiceProtocol`.
-- **The composition root** (`ServicesFactory`, `ViewModelFactory`) holds the concrete type — a UniFFI constructor needs it, and the root is the one place allowed to construct.
+- **The composition root** (`ServicesFactory`, `ViewModelFactory`) holds the concrete type — a UniFFI constructor needs it, and the root is the one place allowed to construct. Its fields are grouped by what they are: Core services, platform services, stores.
 
 ## 7. Services are injected, never constructed at a call site
 
@@ -340,8 +337,6 @@ try store.addBanners([NewBanner(id: id, walletId: walletId, assetId: assetId, ev
 #expect(try store.getBanner(id: id)?.state == .active)
 ```
 
-Two more:
-
 - **Never mock a constructible service** (`GemChainService`, `GemAssetConfigService`, …). Construct the real one, or the test asserts the mock.
 - **Never fabricate I/O to reach a rule.** An offline provider, in-memory stores and empty rows stood up so a test can touch rules that use none of them is always the wrong answer. Pass the answer in from the caller, or mock the service and state the premise.
 
@@ -358,8 +353,4 @@ A mock's defaults should be the *usual* case. A mock that fails by default becom
 
 ### When the platforms disagree
 
-Check for a test pinning the difference before picking a side. Twice during this migration the "wrong" platform was right and the divergence was a deliberate decision — the Android stream reconnect cap, and rewards staying visible before wallets load. If a test pins it, adopt it into Core; if nothing does, take the better reading and say which in the commit message.
-
-### Sizing a change
-
-Grep counts on property names are useless. `.feeAsset` matched 381 lines and was twenty sites. Make the change, let the compiler count, and revert if it lands somewhere a dependency cannot go.
+Check for a test pinning the difference before picking a side — a divergence is sometimes a deliberate decision no one wrote down. If a test pins it, adopt that reading into Core; if nothing does, take the better one and say which in the commit message.

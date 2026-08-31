@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemManageContactServiceProtocol
+import protocol Gemstone.GemContactsServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
@@ -23,7 +23,8 @@ public final class ContactsViewModel {
         case select
     }
 
-    private let service: any GemManageContactServiceProtocol
+    private let service: any GemContactsServiceProtocol
+    private let manageContact: @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel
     private let mode: Mode
 
     public let query: ObservableQuery<ContactsRequest>
@@ -34,10 +35,12 @@ public final class ContactsViewModel {
     var isPresentingAddContact = false
 
     public init(
-        service: any GemManageContactServiceProtocol,
+        service: any GemContactsServiceProtocol,
+        manageContact: @escaping @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel,
         mode: Mode = .list,
     ) {
         self.service = service
+        self.manageContact = manageContact
         self.mode = mode
         query = ObservableQuery(ContactsRequest(), initialValue: [])
     }
@@ -54,7 +57,7 @@ public final class ContactsViewModel {
     }
 
     func manageContactModel(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
-        ManageContactViewModel(service: service, mode: mode)
+        manageContact(mode)
     }
 
     var addContactMode: ManageContactViewModel.Mode {

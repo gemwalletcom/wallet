@@ -237,16 +237,39 @@ public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
     }
 }
 
+private func contactService() -> GemContactService {
+    GemContactService(
+        store: GemContactStoreMock(),
+        addressStore: GemAddressStoreMock(),
+        files: GemFileStoreMock(),
+    )
+}
+
+public final class GemContactsServiceMock: GemContactsServiceProtocol, @unchecked Sendable {
+    private let service = GemContactsService(contacts: contactService())
+
+    public init() {}
+
+    public func addAddress(addresses: [Gemstone.ContactAddress], input: GemContactAddressInput) -> [Gemstone.ContactAddress] {
+        service.addAddress(addresses: addresses, input: input)
+    }
+
+    public func updateContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress]) async throws {
+        try await service.updateContact(contact: contact, addresses: addresses)
+    }
+
+    public func deleteContact(contact: Gemstone.Contact) async throws {
+        try await service.deleteContact(contact: contact)
+    }
+}
+
 public final class GemManageContactServiceMock: GemManageContactServiceProtocol, @unchecked Sendable {
     private let service: GemManageContactService
 
     public init() {
         service = GemManageContactService(
-            contacts: GemContactService(
-                store: GemContactStoreMock(),
-                addressStore: GemAddressStoreMock(),
-                files: GemFileStoreMock(),
-            ),
+            contacts: contactService(),
+            addresses: GemAddressService(),
             names: GemNameService(
                 api: GemDeviceApiClient(
                     provider: StubAlienProvider(),
@@ -255,7 +278,6 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
                 ),
                 store: GemAddressStoreMock(),
             ),
-            addresses: GemAddressService(),
             chains: GemChainService(),
         )
     }
@@ -282,14 +304,6 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
 
     public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
         try await service.saveContact(input: input)
-    }
-
-    public func updateContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress]) async throws {
-        try await service.updateContact(contact: contact, addresses: addresses)
-    }
-
-    public func deleteContact(contact: Gemstone.Contact) async throws {
-        try await service.deleteContact(contact: contact)
     }
 
     public func formatAddress(address: String, chain: Gemstone.Chain, style: GemAddressFormatStyle) -> String {
