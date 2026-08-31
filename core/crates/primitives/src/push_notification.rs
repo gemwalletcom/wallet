@@ -52,25 +52,21 @@ impl PushNotification {
 }
 
 // Only used to decode notification type
-#[typeshare(swift = "Equatable, Sendable")]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PushNotificationTransaction {
     pub wallet_id: WalletId,
     pub asset_id: AssetId,
-    #[typeshare(skip)]
     pub transaction_id: String,
     pub transaction: Transaction,
 }
 
-#[typeshare(swift = "Equatable, Sendable")]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PushNotificationAsset {
     pub asset_id: AssetId,
 }
 
-#[typeshare(swift = "Equatable, Sendable")]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PushNotificationSwapAsset {
@@ -82,14 +78,12 @@ pub struct PushNotificationSwapAsset {
 #[serde(rename_all = "camelCase")]
 pub struct PushNotificationSupport {}
 
-#[typeshare(swift = "Equatable, Sendable")]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PushNotificationReward {
     pub wallet_id: String,
 }
 
-#[typeshare(swift = "Equatable, Sendable")]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PushNotificationWalletAsset {
