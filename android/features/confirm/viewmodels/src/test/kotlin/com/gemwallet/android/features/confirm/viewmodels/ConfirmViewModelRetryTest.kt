@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import uniffi.gemstone.GemTransferAmount
+import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemTransferService
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
@@ -62,24 +64,29 @@ class ConfirmViewModelRetryTest {
         )
         val viewModel = viewModel(params)
         runCurrent()
-        coVerify(timeout = 5_000, exactly = 1) { preloader.preload(any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 1) { preloader.preload(any(), any(), any(), any()) }
 
         assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
 
         viewModel.send(FinishConfirmAction { _ -> })
         runCurrent()
 
-        coVerify(timeout = 5_000, exactly = 2) { preloader.preload(any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 2) { preloader.preload(any(), any(), any(), any()) }
     }
 
     private fun viewModel(params: ConfirmParams): ConfirmViewModel {
         var calls = 0
-        coEvery { preloader.preload(any(), any(), any()) } answers {
+        coEvery { preloader.preload(any(), any(), any(), any()) } answers {
             calls += 1
             if (calls == 1) {
                 throw IllegalStateException("preload failed")
             } else {
-                SignerPreloaderProxy.Preload(signerParams = mockk(relaxed = true), simulation = null)
+                SignerPreloaderProxy.Preload(
+                    signerParams = mockk(relaxed = true),
+                    simulation = null,
+                    amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
+                    feeAsset = asset,
+                )
             }
         }
         return ConfirmViewModel(
@@ -93,7 +100,6 @@ class ConfirmViewModelRetryTest {
             syncMissingAssets = mockk(relaxed = true),
             confirmLoader = ConfirmLoader(preloader),
             transactionBalanceService = mockk(relaxed = true),
-            calculateTransferAmount = mockk(relaxed = true),
             getFeeAssets = mockk(relaxed = true),
             confirmTransaction = mockk(relaxed = true),
             buildConfirmProperties = mockk(relaxed = true),

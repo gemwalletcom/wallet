@@ -3,14 +3,12 @@ package com.gemwallet.android.data.coordinators.di
 import uniffi.gemstone.GemExplorerService
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.cases.ConfirmTransaction
-import com.gemwallet.android.application.confirm.cases.CalculateTransferAmount
 import com.gemwallet.android.application.confirm.cases.GetFeeAssets
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemTransactionSigner
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImpl
 import com.gemwallet.android.data.coordinators.confirm.ConfirmTransactionImpl
-import com.gemwallet.android.data.coordinators.confirm.CalculateTransferAmountImpl
 import com.gemwallet.android.data.coordinators.confirm.GetFeeAssetsImpl
 import com.gemwallet.android.data.coordinators.confirm.ChainFeeAssetProvider
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
@@ -30,9 +28,6 @@ import uniffi.gemstone.GemAssetConfigService
 @Module
 object ConfirmModule {
 
-    @Provides
-    @Singleton
-    fun provideCalculateTransferAmount(amountService: GemAmountService): CalculateTransferAmount = CalculateTransferAmountImpl(amountService)
 
     @Provides
     @Singleton

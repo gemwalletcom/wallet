@@ -2,6 +2,7 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import android.util.Log
 import com.gemwallet.android.ui.R
+import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemTransferService
@@ -16,7 +17,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.cases.ConfirmTransaction
-import com.gemwallet.android.application.confirm.cases.CalculateTransferAmount
 import com.gemwallet.android.application.confirm.cases.GetFeeAssets
 import com.gemwallet.android.application.addresses.cases.GetAddressName
 import com.gemwallet.android.application.addresses.cases.GetAddressNames
@@ -48,6 +48,7 @@ import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.features.confirm.models.PerpetualModifyAutocloseFactory
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.ConfirmState
+import com.gemwallet.android.domains.confirm.toConfirmError
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
@@ -90,7 +91,6 @@ class ConfirmViewModel @Inject constructor(
     private val syncMissingAssets: SyncMissingAssets,
     private val confirmLoader: ConfirmLoader,
     private val transactionBalanceService: TransactionBalanceService,
-    private val calculateTransferAmount: CalculateTransferAmount,
     private val getFeeAssets: GetFeeAssets,
     private val confirmTransaction: ConfirmTransaction,
     private val buildConfirmProperties: BuildConfirmProperties,
@@ -207,6 +207,7 @@ class ConfirmViewModel @Inject constructor(
 
         val preload = try {
             val result = confirmLoader.load(
+                walletId = session.wallet.id.id,
                 params = request,
                 feeSelection = feeSelection,
                 feeAssetSelection = feeAssetSelection,
@@ -215,7 +216,7 @@ class ConfirmViewModel @Inject constructor(
                 simulationResult.value = it
                 syncMissingAssets.syncMissingAssets(it.simulationAssetIds())
             }
-            result.signerParams
+            result
         } catch (error: CancellationException) {
             throw error
         } catch (err: Throwable) {
@@ -232,28 +233,24 @@ class ConfirmViewModel @Inject constructor(
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val feeAssetInfo = preloadData.flatMapLatest { signerParams ->
-        if (signerParams == null) {
+    val feeAssetInfo = preloadData.flatMapLatest { preload ->
+        if (preload == null) {
             flowOf(null)
         } else {
-            getAssetInfo(signerParams.fee.feeAssetId)
+            getAssetInfo(preload.signerParams.fee.feeAssetId)
         }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val transferAmount = combine(preloadData, assetsInfo, feeAssetInfo) { signerParams, assetsInfo, feeAssetInfo ->
-        if (signerParams == null || feeAssetInfo == null) return@combine null
-        val assetInfo = assetsInfo?.getByAssetId(signerParams.input.assetId) ?: return@combine null
-        try {
-            calculateTransferAmount(
-                params = signerParams.input,
-                availableValue = getBalance(assetInfo, signerParams.input),
-                feeAssetInfo = feeAssetInfo,
-                fee = signerParams.fee.amount,
-            )
-        } catch (err: ConfirmError) {
-            state.update { ConfirmState.Error(err) }
-            null
+    private val transferAmount = combine(preloadData, assetsInfo) { preload, assetsInfo ->
+        if (preload == null) return@combine null
+        val assetInfo = assetsInfo?.getByAssetId(preload.signerParams.input.assetId) ?: return@combine null
+        when (val amount = preload.amount) {
+            is GemTransferAmountResult.Amount -> BigInteger(amount.amount.value)
+            is GemTransferAmountResult.Error -> {
+                state.update { ConfirmState.Error(amount.error.toConfirmError(assetInfo.asset, preload.feeAsset)) }
+                null
+            }
         }
     }
     .flowOn(Dispatchers.IO)
@@ -313,7 +310,8 @@ class ConfirmViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val feeUIModel = combine(preloadData, feeAssetInfo, state) { signerParams, feeAssetInfo, state ->
+    val feeUIModel = combine(preloadData, feeAssetInfo, state) { preload, feeAssetInfo, state ->
+        val signerParams = preload?.signerParams
         val amount = signerParams?.fee?.amount
         val result = if (state is ConfirmState.Prepare) {
             FeeUIModel.Calculating
@@ -335,7 +333,7 @@ class ConfirmViewModel @Inject constructor(
     val feeValue = feeUIModel.map { (it as? FeeUIModel.FeeInfo)?.cryptoAmountWithFiat.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val feeRates = preloadData.map { it?.feeRates.orEmpty() }
+    val feeRates = preloadData.map { it?.signerParams?.feeRates.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun init(params: ConfirmParams, simulationResult: SimulationResult? = null) {
@@ -376,7 +374,8 @@ class ConfirmViewModel @Inject constructor(
         }
         state.update { ConfirmState.Sending }
 
-        val signerParams = preloadData.value
+        val preload = preloadData.value
+        val signerParams = preload?.signerParams
         val assetInfo = assetsInfo.value?.getByAssetId(signerParams?.input?.assetId ?: return@launch)
         val feeAssetInfo = feeAssetInfo.value
         val session = session.value
@@ -385,12 +384,10 @@ class ConfirmViewModel @Inject constructor(
             if (assetInfo == null || assetInfo.owner == null || session == null || feeAssetInfo == null) {
                 throw ConfirmError.TransactionIncorrect
             }
-            val amount = calculateTransferAmount(
-                params = signerParams.input,
-                availableValue = getBalance(assetInfo, signerParams.input),
-                feeAssetInfo = feeAssetInfo,
-                fee = signerParams.fee.amount,
-            )
+            val amount = when (val calculated = preload.amount) {
+                is GemTransferAmountResult.Amount -> BigInteger(calculated.amount.value)
+                is GemTransferAmountResult.Error -> throw calculated.error.toConfirmError(assetInfo.asset, preload.feeAsset)
+            }
             val transactionHash = confirmTransaction(
                 signerParams.copy(finalAmount = amount),
                 session,
