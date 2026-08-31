@@ -141,6 +141,7 @@ public struct ViewModelFactory: Sendable {
             transferService: transferService,
             onComplete: onComplete,
             assetConfig: assetConfig,
+            feeService: feeService,
         )
     }
 

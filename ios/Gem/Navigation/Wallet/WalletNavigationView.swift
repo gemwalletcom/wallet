@@ -20,6 +20,7 @@ import WalletTab
 
 struct WalletNavigationView: View {
     @Environment(\.explorerService) private var explorerService
+    @Environment(\.feeService) private var feeService
     @Environment(\.transactionFormatter) private var transactionFormatter
     @Environment(\.balanceService) private var balanceService
     @Environment(\.navigationHandler) private var navigationHandler
@@ -139,7 +140,8 @@ struct WalletNavigationView: View {
                     walletId: model.wallet.id,
                     preferencesService: preferencesService,
                     explorerService: explorerService,
-                        transactionFormatter: transactionFormatter,
+                    transactionFormatter: transactionFormatter,
+                    feeService: feeService,
                     onHeaderAction: onSelectTransactionHeaderAction,
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
                 ),

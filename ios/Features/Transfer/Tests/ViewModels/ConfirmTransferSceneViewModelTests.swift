@@ -692,6 +692,7 @@ private extension ConfirmTransferSceneViewModel {
             transferService: GemTransferService(),
             onComplete: {},
             assetConfig: GemAssetConfigService(),
+            feeService: GemFeeService(),
         )
     }
 
@@ -726,6 +727,7 @@ private extension ConfirmTransferSceneViewModel {
             transferService: GemTransferService(),
             onComplete: {},
             assetConfig: GemAssetConfigService(),
+            feeService: GemFeeService(),
         )
     }
 }
