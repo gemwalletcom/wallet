@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemTransferService
 import struct Gemstone.GemConfirmData
 import class Gemstone.GemFeeService
 import GemstonePrimitives
@@ -13,15 +14,18 @@ public struct ConfirmTransferInputProvider: Sendable {
     private let feeAssetProvider: any FeeAssetProvidable
 
     private let feeService: GemFeeService
+    private let transferService: GemTransferService
 
     public init(
         transferTransactionProvider: any TransferTransactionProvidable,
         feeAssetProvider: any FeeAssetProvidable,
         feeService: GemFeeService,
+        transferService: GemTransferService,
     ) {
         self.transferTransactionProvider = transferTransactionProvider
         self.feeAssetProvider = feeAssetProvider
         self.feeService = feeService
+        self.transferService = transferService
     }
 
     func load(
@@ -61,7 +65,7 @@ public struct ConfirmTransferInputProvider: Sendable {
             fee: fee,
             transferAmount: TransferAmountCalculator().validate(
                 transferData: request.data,
-                availableValue: try request.data.availableValue(balance: metadata.assetBalance),
+                availableValue: try request.data.availableValue(balance: metadata.assetBalance, transferService: transferService),
                 feeAsset: feeAssetData.asset,
                 assetFeeBalance: metadata.feeAvailable,
                 fee: fee.fee,

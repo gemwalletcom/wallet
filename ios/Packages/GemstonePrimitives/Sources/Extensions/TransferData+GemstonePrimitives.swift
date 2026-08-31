@@ -8,8 +8,6 @@ import struct Gemstone.GemTransferData
 import class Gemstone.GemTransferService
 import Primitives
 
-private let transferService = GemTransferService()
-
 public extension TransferData {
     init(_ transfer: GemTransferData) throws {
         self.init(
@@ -31,7 +29,7 @@ public extension TransferData {
         )
     }
 
-    func availableValue(balance: Balance) throws -> BigInt {
+    func availableValue(balance: Balance, transferService: GemTransferService) throws -> BigInt {
         let transferBalance = GemTransferBalance(
             available: balance.available.description,
             frozen: balance.frozen.description,

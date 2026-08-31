@@ -6,6 +6,7 @@ import struct Gemstone.GemFeeRate
 import GemstonePrimitivesTestKit
 @testable import Primitives
 import PrimitivesTestKit
+import class Gemstone.GemTransferService
 import Testing
 @testable import Transfer
 import TransferTestKit
@@ -36,6 +37,7 @@ struct ConfirmTransferInputProviderTests {
             )),
             feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance, price: feeAssetPrice),
             feeService: GemFeeService(),
+            transferService: GemTransferService(),
         )
 
         let result = try await provider.load()
@@ -60,6 +62,7 @@ struct ConfirmTransferInputProviderTests {
                 price: .mock(price: 1),
             ),
             feeService: GemFeeService(),
+            transferService: GemTransferService(),
         )
 
         let result = try await provider.load(
@@ -121,6 +124,7 @@ struct ConfirmTransferInputProviderTests {
             )),
             feeAssetProvider: FeeAssetProviderMock(error: "fee asset"),
             feeService: GemFeeService(),
+            transferService: GemTransferService(),
         )
         let metadata = TransferDataMetadata.mock(
             feeAssetId: AssetId(chain: .ethereum, tokenId: nil),
@@ -148,6 +152,7 @@ private extension ConfirmTransferInputProvider {
             transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
             feeAssetProvider: FeeAssetProviderMock(),
             feeService: GemFeeService(),
+            transferService: GemTransferService(),
         )
     }
 }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemTransferService
 import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
@@ -717,6 +718,7 @@ private extension ConfirmTransferSceneViewModel {
                 recentAssetsService: RecentAssetsService(store: .mock()),
                 toastPresenter: ToastPresenter(),
                 feeService: GemFeeService(),
+                transferService: GemTransferService(),
                 simulationFormatter: GemSimulationFormatter(),
                 perpetualService: GemPerpetualServiceMock(),
             ),

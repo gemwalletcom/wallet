@@ -373,6 +373,7 @@ struct ServicesFactory {
             searchService: searchService,
             perpetualService: perpetualService,
             feeService: Gemstone.GemFeeService(),
+            transferService: Gemstone.GemTransferService(),
             simulationFormatter: Gemstone.GemSimulationFormatter(),
             assetConfig: Gemstone.GemAssetConfigService(),
         )
