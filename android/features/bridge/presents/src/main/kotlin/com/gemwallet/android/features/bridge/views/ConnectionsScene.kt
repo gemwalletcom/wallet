@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.views
 
+import com.gemwallet.android.ui.LocalApplicationMetadataService
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -144,13 +145,13 @@ fun ConnectionItem(
     ListItem(
         modifier = if (onClick == null) Modifier else Modifier.clickable { onClick(connection.session.id) },
         leading = {
-            val name = connection.session.metadata.shortName
+            val name = connection.session.metadata.shortName(LocalApplicationMetadataService.current)
             IconWithBadge(
                 connection.session.metadata.icon,
                 placeholder = if (name.isEmpty()) "WC" else name[0].toString()
             )
         },
-        title = { ListItemTitleText(connection.session.metadata.shortName) },
+        title = { ListItemTitleText(connection.session.metadata.shortName(LocalApplicationMetadataService.current)) },
         subtitle = { ListItemSupportText(connection.session.metadata.url.getShortUrl() ?: connection.session.metadata.url) },
         listPosition = listPosition
     )

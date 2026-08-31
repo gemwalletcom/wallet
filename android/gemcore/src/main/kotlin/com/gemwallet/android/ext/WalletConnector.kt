@@ -6,8 +6,6 @@ import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemApplicationMetadataService
 
-private val applicationMetadataService = GemApplicationMetadataService()
-
 fun Account.toGem() = uniffi.gemstone.Account(
     chain = chain.string,
     address = address,
@@ -25,5 +23,5 @@ fun uniffi.gemstone.Account.toPrimitives(): Account? {
     )
 }
 
-val ApplicationMetadata.shortName: String
-    get() = applicationMetadataService.shortName(toJson())
+fun ApplicationMetadata.shortName(applicationMetadataService: GemApplicationMetadataService): String =
+    applicationMetadataService.shortName(toJson())
