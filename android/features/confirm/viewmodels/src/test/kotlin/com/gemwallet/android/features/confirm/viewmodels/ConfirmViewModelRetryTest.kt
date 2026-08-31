@@ -22,6 +22,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
@@ -60,7 +61,7 @@ class ConfirmViewModelRetryTest {
         runCurrent()
         coVerify(timeout = 5_000, exactly = 1) { preloader.preload(any(), any(), any()) }
 
-        assertTrue(viewModel.state.value is ConfirmState.Error)
+        assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
 
         viewModel.send(FinishConfirmAction { _ -> })
         runCurrent()

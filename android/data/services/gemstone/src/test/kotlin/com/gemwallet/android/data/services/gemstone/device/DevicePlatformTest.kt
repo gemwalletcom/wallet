@@ -3,6 +3,8 @@ package com.gemwallet.android.data.services.gemstone.device
 import android.content.Context
 import androidx.core.app.NotificationManagerCompat
 import com.gemwallet.android.application.device.cases.RequestPushToken
+import com.gemwallet.android.application.device.cases.GetPushToken
+import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.wallet.core.primitives.PlatformStore
 import dagger.Lazy
@@ -45,7 +47,8 @@ class DevicePlatformTest {
         val subject = GemstoneDevicePlatform(
             context = mockk<Context>(relaxed = true),
             deviceService = lazyDeviceService,
-            configStore = configStore,
+            getPushToken = mockk<GetPushToken> { coEvery { getPushToken() } returns "" },
+            setPushToken = mockk<SetPushToken>(relaxed = true),
             requestPushToken = requestPushToken,
             platformStore = PlatformStore.GooglePlay,
             notificationsAvailable = true,
@@ -87,7 +90,8 @@ class DevicePlatformTest {
     private fun TestScope.platform(preferencesService: GemPreferencesService) = GemstoneDevicePlatform(
         context = mockk<Context>(relaxed = true),
         deviceService = mockk<Lazy<GemDeviceService>>(relaxed = true),
-        configStore = mockk<ConfigStore>(relaxed = true),
+        getPushToken = mockk<GetPushToken>(relaxed = true),
+        setPushToken = mockk<SetPushToken>(relaxed = true),
         requestPushToken = mockk<RequestPushToken>(relaxed = true),
         platformStore = PlatformStore.GooglePlay,
         notificationsAvailable = true,

@@ -2,15 +2,9 @@ package com.gemwallet.android.data.services.gemstone.device
 
 import android.content.Context
 import androidx.core.app.NotificationManagerCompat
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.GetPushToken
 import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
-import com.gemwallet.android.application.device.cases.SwitchPushEnabled
-import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
 import com.gemwallet.android.model.NotificationsAvailable
@@ -21,11 +15,6 @@ import com.wallet.core.primitives.PlatformStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemDeviceInfo
 import uniffi.gemstone.GemDevicePlatform
@@ -37,7 +26,8 @@ import uniffi.gemstone.GemPreferencesService
 class GemstoneDevicePlatform(
     private val context: Context,
     private val deviceService: Lazy<GemDeviceService>,
-    private val configStore: ConfigStore,
+    private val getPushToken: GetPushToken,
+    private val setPushToken: SetPushToken,
     private val requestPushToken: RequestPushToken,
     private val platformStore: PlatformStore,
     private val notificationsAvailable: NotificationsAvailable,
@@ -45,40 +35,7 @@ class GemstoneDevicePlatform(
     private val deviceKeyService: GemDeviceKeyService,
     private val preferencesService: GemPreferencesService,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
-) : SwitchPushEnabled,
-    GetPushEnabled,
-    GetPushToken,
-    SetPushToken,
-    GemDevicePlatform
-{
-    private val Context.dataStore by preferencesDataStore(name = "device_config")
-
-    private val pushEnabledState = MutableStateFlow(notificationsAvailable && preferencesService.isPushNotificationsEnabled())
-
-    override suspend fun switchPushEnabled(enabled: Boolean) {
-        val isEnabled = enabled && notificationsAvailable
-        pushEnabledState.value = isEnabled
-        try {
-            deviceService.get().setPushEnabled(isEnabled)
-        } catch (_: Throwable) {}
-    }
-
-    override fun getPushEnabled(): Flow<Boolean> = pushEnabledState.onStart { migratePushEnabled() }
-
-    private suspend fun migratePushEnabled() {
-        val stored = context.dataStore.data.map { it[Key.PushEnabled] }.firstOrNull() ?: return
-        if (stored && !preferencesService.isPushNotificationsEnabled()) {
-            preferencesService.setPushNotificationsEnabled(notificationsAvailable)
-            pushEnabledState.value = notificationsAvailable
-        }
-        context.dataStore.edit { it.remove(Key.PushEnabled) }
-    }
-
-    override fun setPushToken(token: String) {
-        configStore.putString(ConfigKey.PushToken.string, if (notificationsAvailable) token else "")
-    }
-
-    override suspend fun getPushToken(): String = configStore.getString(ConfigKey.PushToken.string)
+) : GemDevicePlatform {
 
     override suspend fun deviceId(): String = deviceKeyService.deviceId()
 
@@ -92,11 +49,11 @@ class GemstoneDevicePlatform(
     )
 
     override suspend fun pushToken(): String {
-        val token = getPushToken()
+        val token = getPushToken.getPushToken()
         if (token.isEmpty()) {
             requestPushToken.requestToken { requested ->
                 if (requested.isNotEmpty()) {
-                    setPushToken(requested)
+                    setPushToken.setPushToken(requested)
                     scope.launch { runCatching { deviceService.get().synchronizeIfNeeded() } }
                 }
             }
@@ -110,13 +67,4 @@ class GemstoneDevicePlatform(
             NotificationManagerCompat.from(context).areNotificationsEnabled()
 
     override suspend fun currency(): String = preferencesService.getCurrency()
-
-    internal enum class ConfigKey(val string: String) {
-        PushToken("push_token"),
-        ;
-    }
-
-    private object Key {
-        val PushEnabled = booleanPreferencesKey("push_enabled")
-    }
 }
