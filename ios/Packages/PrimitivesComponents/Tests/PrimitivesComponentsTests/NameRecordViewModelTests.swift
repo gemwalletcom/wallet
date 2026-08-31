@@ -9,7 +9,7 @@ import Testing
 @MainActor
 struct NameRecordViewModelTests {
     @Test
-    func acceptsOnlyCompleteRecords() async throws {
+    func acceptsOnlyCompleteRecords() async {
         let record = NameRecord.mock()
         let nameService = GemNameServiceMock(nameRecord: record)
         let valid = NameRecordViewModel(nameService: nameService)
@@ -19,7 +19,9 @@ struct NameRecordViewModelTests {
         valid.getNameRecord(name: record.name, chain: record.chain)
         emptyAddress.getNameRecord(name: record.name, chain: record.chain)
         emptyName.getNameRecord(name: record.name, chain: record.chain)
-        try await Task.sleep(for: .milliseconds(500))
+        await valid.nameRecordTask?.value
+        await emptyAddress.nameRecordTask?.value
+        await emptyName.nameRecordTask?.value
 
         #expect(valid.state == .complete(record))
         #expect(emptyAddress.state == .error)
