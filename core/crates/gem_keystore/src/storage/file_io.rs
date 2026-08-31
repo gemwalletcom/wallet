@@ -1,9 +1,17 @@
-use std::fs::{self, File, OpenOptions};
+#[cfg(unix)]
+use std::fs;
+use std::fs::{File, OpenOptions};
 use std::io::{Read, Take};
+#[cfg(unix)]
 use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::Path;
 
 use crate::KeystoreError;
+
+#[cfg(unix)]
+const OWNER_READ_WRITE: u32 = 0o600;
+#[cfg(not(unix))]
+const UNSUPPORTED_SECRET_FILES: &str = "owner-only secret files";
 
 pub(crate) fn read_capped(path: &Path, cap: usize) -> Result<Vec<u8>, KeystoreError> {
     let mut file = File::open(path)?;
@@ -16,20 +24,27 @@ pub(crate) fn read_capped(path: &Path, cap: usize) -> Result<Vec<u8>, KeystoreEr
     Ok(bytes)
 }
 
-pub(super) fn new_secret_file_options() -> OpenOptions {
+#[cfg(unix)]
+pub(super) fn new_secret_file_options() -> Result<OpenOptions, KeystoreError> {
     let mut options = OpenOptions::new();
-    options.write(true).create_new(true);
-    set_secret_file_mode(&mut options);
-    options
+    options.write(true).create_new(true).mode(OWNER_READ_WRITE);
+    Ok(options)
 }
 
-fn set_secret_file_mode(options: &mut OpenOptions) {
-    options.mode(0o600);
+#[cfg(not(unix))]
+pub(super) fn new_secret_file_options() -> Result<OpenOptions, KeystoreError> {
+    Err(KeystoreError::unsupported(UNSUPPORTED_SECRET_FILES))
 }
 
+#[cfg(unix)]
 pub(super) fn set_owner_read_write(path: &Path) -> Result<(), KeystoreError> {
-    fs::set_permissions(path, fs::Permissions::from_mode(0o600))?;
+    fs::set_permissions(path, fs::Permissions::from_mode(OWNER_READ_WRITE))?;
     Ok(())
+}
+
+#[cfg(not(unix))]
+pub(super) fn set_owner_read_write(_path: &Path) -> Result<(), KeystoreError> {
+    Err(KeystoreError::unsupported(UNSUPPORTED_SECRET_FILES))
 }
 
 pub(super) fn sync_directory(path: &Path) -> Result<(), KeystoreError> {

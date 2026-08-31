@@ -10,7 +10,7 @@ Gem Keystore v4 stores one encrypted secret file per controlled wallet. Wallet/a
 
 ## Core Ownership
 
-- `gem_keystore`: BIP-39 helpers, v4 encrypted file format, v3 WalletCore reader, raw secret storage.
+- `gem_keystore`: BIP-39 helpers, v4 encrypted file format, v3 WalletCore reader, raw secret storage. The `Keystore` trait is the backend-neutral contract (import, decrypt, verify, change password, list, delete); `FileKeystore` is its unix file backend (owner-only files, atomic rename, process-global lock). Sealing and opening a v4 secret lives in `storage/secret.rs`, so a browser backend only has to supply record IO. `open`, `import_v3`, `delete_v3`, `inspect_path`, and `verify_path` are file-backend-only.
 - `gem_derivation`: wallet id derivation, account derivation, private-key import validation, chain address creation, account public keys (`Account.extended_public_key`).
 - `gem_auth`: shared device-auth header format (Ed25519 build + verify), used by both the client and the backend.
 - `gemstone`: UniFFI boundary over `gem_keystore` and `gem_derivation`, plus keystore-internal signing (`GemKeystore.sign`/`sign_auth`, `MessageSigner.sign_with_keystore`) routed over the per-chain `gem_*` signer crates, and the client device-auth wrappers.
@@ -260,3 +260,4 @@ v4 files are plaintext JSON, so `cat`/`jq` work directly for debugging. The meta
 ## Known Follow-Ups
 
 - Migration failures are logged and retried on next launch; decide whether they also need durable telemetry or user-visible recovery.
+- Adding another platform backend (web over IndexedDB): implement the `Keystore` trait over that platform's record storage, reusing `storage/secret.rs` to seal and open the v4 envelope and the `SecretPayload` constructors to validate input. The trait is synchronous today, so a browser backend needs an in-memory mirror or an async variant.

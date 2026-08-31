@@ -2,6 +2,7 @@ use std::fs;
 
 use super::super::types::SecretKind;
 use super::testkit::{PHRASE, test_keystore, v4_path};
+use crate::Keystore;
 use crate::v3_testkit::{V3_MNEMONIC_FIXTURE, V3_MNEMONIC_PHRASE, V3_PASSWORD, V3_PRIVATE_KEY_FIXTURE};
 
 #[test]

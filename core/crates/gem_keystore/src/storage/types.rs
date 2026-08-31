@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use strum::{AsRefStr, EnumString};
 use zeroize::{Zeroize, Zeroizing};
 
-use super::constants::{AES_GCM_NONCE_LEN, ARGON2_SALT_LEN};
-use crate::KeystoreError;
+use super::constants::{AES_GCM_NONCE_LEN, ARGON2_SALT_LEN, ENCRYPTED_BODY_CAP};
+use crate::{KeystoreError, Mnemonic};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, AsRefStr, EnumString)]
 #[strum(serialize_all = "snake_case")]
@@ -32,8 +32,8 @@ pub struct KeystoreInspection {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct KeystoreFileError {
-    pub path: PathBuf,
+pub struct KeystoreEntryError {
+    pub entry: String,
     pub error: String,
 }
 
@@ -91,6 +91,25 @@ impl Drop for SecretPayload {
 }
 
 impl SecretPayload {
+    pub(super) fn mnemonic(phrase: &str) -> Result<Self, KeystoreError> {
+        let phrase = Mnemonic::clean(phrase)?;
+        Ok(SecretPayload::Mnemonic { phrase: phrase.to_string() })
+    }
+
+    pub(super) fn private_key(bytes: &[u8]) -> Result<Self, KeystoreError> {
+        if bytes.is_empty() || bytes.len() > ENCRYPTED_BODY_CAP {
+            return Err(KeystoreError::invalid_input("private key"));
+        }
+        Ok(SecretPayload::PrivateKey { bytes: bytes.to_vec() })
+    }
+
+    pub(super) fn kind(&self) -> SecretKind {
+        match self {
+            SecretPayload::Mnemonic { .. } => SecretKind::Mnemonic,
+            SecretPayload::PrivateKey { .. } => SecretKind::PrivateKey,
+        }
+    }
+
     pub(super) fn from_bytes(kind: SecretKind, bytes: Vec<u8>) -> Result<Self, KeystoreError> {
         match kind {
             SecretKind::Mnemonic => match String::from_utf8(bytes) {

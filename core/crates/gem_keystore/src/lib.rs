@@ -18,4 +18,4 @@ pub use id::KeystoreId;
 #[cfg(feature = "mnemonic")]
 pub use mnemonic::Mnemonic;
 #[cfg(feature = "storage")]
-pub use storage::{FileKeystore, KeystoreFileError, KeystoreInspection, SecretKind, StoredSecretMeta};
+pub use storage::{FileKeystore, Keystore, KeystoreEntryError, KeystoreInspection, SecretKind, StoredSecretMeta};
