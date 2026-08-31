@@ -109,7 +109,7 @@ public final class SwapSceneViewModel {
     }
 
     public var swapDetailsViewModel: SwapDetailsViewModel? {
-        guard let selectedSwapQuote, let fromAsset, let toAsset, let selectedQuote = try? selectedSwapQuote.map() else { return nil }
+        guard let selectedSwapQuote, let fromAsset, let toAsset, let selectedQuote = try? selectedSwapQuote.map(swapQuoteService: swapQuoteService) else { return nil }
         return SwapDetailsViewModel(
             state: swapState.quotes,
             fromAssetPrice: AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price),
@@ -118,6 +118,7 @@ public final class SwapSceneViewModel {
             slippage: selectedSlippage,
             currency: preferencesService.currencyCode,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
+            swapQuoteService: swapQuoteService,
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
             },

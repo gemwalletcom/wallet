@@ -142,6 +142,7 @@ public struct ViewModelFactory: Sendable {
             onComplete: onComplete,
             assetConfig: assetConfig,
             feeService: feeService,
+            swapQuoteService: swapQuoteService,
         )
     }
 

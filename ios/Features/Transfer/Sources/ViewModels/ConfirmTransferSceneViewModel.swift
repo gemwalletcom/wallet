@@ -3,6 +3,7 @@
 import struct Gemstone.GemConfirmData
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemFeeService
+import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemTransferService
 import GemstoneServices
 import BigInt
@@ -54,6 +55,7 @@ public final class ConfirmTransferSceneViewModel {
     private let assetConfig: GemAssetConfigService
     private let transferService: GemTransferService
     private let feeService: GemFeeService
+    private let swapQuoteService: GemSwapQuoteService
 
     public init(
         request: ConfirmTransferRequest,
@@ -62,11 +64,13 @@ public final class ConfirmTransferSceneViewModel {
         onComplete: VoidAction,
         assetConfig: GemAssetConfigService,
         feeService: GemFeeService,
+        swapQuoteService: GemSwapQuoteService,
     ) {
         self.request = request
         self.confirmService = confirmService
         self.transferService = transferService
         self.feeService = feeService
+        self.swapQuoteService = swapQuoteService
         self.onComplete = onComplete
 
         let currency = confirmService.currency
@@ -147,7 +151,13 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     public var detailsViewModel: ConfirmDetailsViewModel {
-        ConfirmDetailsViewModel(type: request.data.type, metadata: state.metadata, currency: currency.rawValue, perpetualService: confirmService.perpetualService)
+        ConfirmDetailsViewModel(
+            type: request.data.type,
+            metadata: state.metadata,
+            currency: currency.rawValue,
+            perpetualService: confirmService.perpetualService,
+            swapQuoteService: swapQuoteService,
+        )
     }
 
     var balanceChangeModels: [ConfirmBalanceChangeViewModel] {

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemSwapQuoteService
 import Primitives
 import PrimitivesTestKit
 @testable import Swap
@@ -61,6 +62,7 @@ extension PriceImpactViewModel {
             fromValue: fromValue,
             toAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
             toValue: toValue,
+            swapQuoteService: GemSwapQuoteService(),
         )
     }
 }

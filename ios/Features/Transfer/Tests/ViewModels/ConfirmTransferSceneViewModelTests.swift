@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemTransferService
 import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitivesTestKit
@@ -693,6 +694,7 @@ private extension ConfirmTransferSceneViewModel {
             onComplete: {},
             assetConfig: GemAssetConfigService(),
             feeService: GemFeeService(),
+            swapQuoteService: GemSwapQuoteService(),
         )
     }
 
@@ -728,6 +730,7 @@ private extension ConfirmTransferSceneViewModel {
             onComplete: {},
             assetConfig: GemAssetConfigService(),
             feeService: GemFeeService(),
+            swapQuoteService: GemSwapQuoteService(),
         )
     }
 }
