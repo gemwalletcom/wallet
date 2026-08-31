@@ -1,10 +1,8 @@
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::{AssetId, Chain};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare]
 pub struct QuoteAsset {
     pub id: String,
     pub symbol: String,

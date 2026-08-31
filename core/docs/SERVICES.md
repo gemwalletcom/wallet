@@ -290,15 +290,15 @@ Each is one question. Nothing below is blocked on investigation.
 
 ### 2. Unused generated models to remove
 
-A sweep of the 271 `#[typeshare]` types in `core/crates/primitives` against both apps' non-generated sources finds **26 with no app reference**. Ten are standalone and can lose `#[typeshare]` directly:
+A sweep of the `#[typeshare]` types in `core/crates/primitives` against both apps' non-generated sources found 26 with no app reference. The nine standalone ones are removed (`CosmosDenom`, `QuoteAsset`, `SlippageMode`, `SwapProviderMode`, `SwapResult`, `SwapStatus`, `WCEthereumTransaction`, `WalletImport`). What is left:
 
-`CosmosDenom`, `QuoteAsset`, `RewardLevel`, `SlippageMode`, `SwapProviderMode`, `SwapResult` (and `SwapStatus`, which only `SwapResult` hosts), `WCEthereumTransaction`, `WalletImport`.
+- **Sixteen are nested** inside a type the apps do use — `StreamEvent` hosts six, `Markets` two, plus `CoreListItem`, `WalletSubscription`, `PortfolioAssets`, `FiatProvider`/`FiatQuote`, `RewardRedemptionOption`, `StreamMessage`, `WalletConfigurationResult`. Their generated model is still required; they go only when the host does.
+- **`TransactionInputType`** is unreferenced but stays — it is the target of the transfer-model collapse in section 4.
 
-`TransactionInputType` is also unreferenced but **keep it** — it is the target of the transfer-model collapse in section 4.
-
-The other sixteen are nested inside a type the apps do use (`StreamEvent` hosts six of them, `Markets` two, `CoreListItem`, `WalletSubscription`, `PortfolioAssets`, `FiatProvider`/`FiatQuote`, `RewardRedemptionOption`, `StreamMessage`, `WalletConfigurationResult`) — their generated model is still required, so leave them until the host goes.
-
-Method, learned on the push-notification payloads: a `#[typeshare(skip)]` on a *field* stops compiling once the struct attribute is removed, so it has to go with it. Reproduce the sweep before trusting these names — `grep` for the bare identifier across app sources excluding `Generated/`.
+Three gotchas if you repeat the sweep, all met on this pass:
+1. A `#[typeshare(skip)]` on a *field* stops compiling once the struct attribute is removed, so it has to go with it.
+2. Removing the last attribute in a file leaves `use typeshare::typeshare;` unused — clippy fails on it.
+3. **The generator does not delete a file that now emits nothing.** `WalletImport.swift`, `WalletConnect.swift` and `swap/Result.kt` survived `just generate-models` with stale contents and had to be deleted by hand. Check `git status` for generated files that *did not* change and confirm they still have a source.
 
 ### 3. Rules still written once per platform
 

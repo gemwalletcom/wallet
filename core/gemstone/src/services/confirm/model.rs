@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::custom_types::GemBigInt;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
@@ -95,11 +95,16 @@ pub struct GemConfirmPreload {
     pub amount: GemTransferAmountResult,
 }
 
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemApprovalValue {
+    Exact { value: GemBigUint },
+    Unlimited,
+}
+
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemSimulationValue {
     pub asset: Asset,
-    pub value: String,
-    pub is_unlimited: bool,
+    pub value: GemApprovalValue,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

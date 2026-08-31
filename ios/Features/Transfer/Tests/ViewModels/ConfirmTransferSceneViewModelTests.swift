@@ -474,7 +474,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func scanTransactionMaliciousError() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: .scan(.malicious))
+        model.onSelectListError(error: .scan(.ScanMalicious))
 
         guard case .info(.maliciousTransaction) = model.isPresentingSheet else {
             Issue.record("Expected maliciousTransaction sheet")
@@ -485,7 +485,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func scanTransactionMemoRequiredError() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: .scan(.memoRequired(symbol: "BTC")))
+        model.onSelectListError(error: .scan(.ScanMemoRequired(symbol: "BTC")))
 
         guard case let .info(.memoRequired(symbol)) = model.isPresentingSheet else {
             Issue.record("Expected memoRequired sheet")

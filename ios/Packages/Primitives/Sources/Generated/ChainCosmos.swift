@@ -14,14 +14,3 @@ public enum CosmosChain: String, Codable, CaseIterable, Equatable, Sendable {
 	case sei
 	case noble
 }
-
-public enum CosmosDenom: String, Codable, CaseIterable, Equatable, Sendable {
-	case rune
-	case cacao
-	case uatom
-	case uosmo
-	case utia
-	case inj
-	case usei
-	case uusdc
-}

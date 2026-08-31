@@ -5,8 +5,11 @@ use primitives::{
 };
 
 use super::error::GemConfirmError;
-use super::model::{GemAcquireAssetFlow, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemSendInput, GemTransferAmountResult};
+use super::model::{
+    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemSendInput, GemTransferAmountResult,
+};
 use crate::fee::custom_gas_price;
+use crate::models::custom_types::GemBigUint;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::balance::GemAssetBalance;
@@ -80,10 +83,20 @@ pub fn simulation_asset_ids(simulation: &Option<SimulationResult>) -> Vec<AssetI
         .collect()
 }
 
-pub fn approval_value(input_type: &GemTransactionInputType) -> Option<(AssetId, String, bool)> {
+pub fn approval_value(input_type: &GemTransactionInputType) -> Option<(AssetId, GemApprovalValue)> {
     match input_type {
-        GemTransactionInputType::TokenApprove { asset, approval_data } => Some((asset.id.clone(), approval_data.value.clone(), approval_data.is_unlimited)),
+        GemTransactionInputType::TokenApprove { asset, approval_data } => Some((asset.id.clone(), gem_approval_value(&approval_data.value, approval_data.is_unlimited))),
         _ => None,
+    }
+}
+
+pub fn gem_approval_value(value: &str, is_unlimited: bool) -> GemApprovalValue {
+    if is_unlimited {
+        return GemApprovalValue::Unlimited;
+    }
+    match value.parse::<GemBigUint>() {
+        Ok(value) => GemApprovalValue::Exact { value },
+        Err(_) => GemApprovalValue::Unlimited,
     }
 }
 
@@ -828,8 +841,10 @@ mod tests {
             },
         };
 
-        assert_eq!(approval_value(&approval), Some((asset.id.clone(), "42".to_string(), true)));
-        assert_eq!(approval_value(&GemTransactionInputType::Transfer { asset }), None);
+        assert!(matches!(approval_value(&approval), Some((id, GemApprovalValue::Unlimited)) if id == asset.id));
+        assert!(approval_value(&GemTransactionInputType::Transfer { asset }).is_none());
+        assert!(matches!(gem_approval_value("42", false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
+        assert!(matches!(gem_approval_value("not-a-number", false), GemApprovalValue::Unlimited));
     }
 
     #[test]

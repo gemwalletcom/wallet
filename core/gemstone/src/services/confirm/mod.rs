@@ -97,16 +97,14 @@ impl GemConfirmService {
             .simulation_formatter
             .payload_fields(simulation.clone().map(|simulation| simulation.payload).unwrap_or_default(), shows_header);
         let header = match approval {
-            Some((asset_id, value, is_unlimited)) => assets.iter().find(|asset| asset.id == asset_id).map(|asset| GemSimulationValue {
-                asset: asset.clone(),
-                value,
-                is_unlimited,
-            }),
+            Some((asset_id, value)) => assets
+                .iter()
+                .find(|asset| asset.id == asset_id)
+                .map(|asset| GemSimulationValue { asset: asset.clone(), value }),
             None => self.simulation_formatter.header(simulation.clone()).and_then(|header| {
                 assets.iter().find(|asset| asset.id == header.asset_id).map(|asset| GemSimulationValue {
                     asset: asset.clone(),
-                    value: header.value,
-                    is_unlimited: header.is_unlimited,
+                    value: rules::gem_approval_value(&header.value, header.is_unlimited),
                 })
             }),
         };

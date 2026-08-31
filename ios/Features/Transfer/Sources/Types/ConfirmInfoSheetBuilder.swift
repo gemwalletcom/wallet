@@ -4,6 +4,7 @@ import Components
 import Foundation
 import GemstonePrimitives
 import InfoSheet
+import enum Gemstone.GemConfirmError
 import Primitives
 import PrimitivesComponents
 import Validators
@@ -46,12 +47,11 @@ enum ConfirmInfoSheetBuilder {
         }
     }
 
-    private static func scanSheet(for error: ScanTransactionError) -> InfoSheetType {
+    private static func scanSheet(for error: GemConfirmError) -> InfoSheetType? {
         switch error {
-        case .malicious:
-            .maliciousTransaction
-        case let .memoRequired(symbol):
-            .memoRequired(symbol: symbol)
+        case .ScanMalicious: .maliciousTransaction
+        case let .ScanMemoRequired(symbol): .memoRequired(symbol: symbol)
+        default: nil
         }
     }
 

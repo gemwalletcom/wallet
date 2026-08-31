@@ -60,13 +60,3 @@ data class SwapData (
 	val data: SwapQuoteData
 )
 
-@Serializable
-enum class SwapStatus(val string: String) {
-	@SerialName("pending")
-	Pending("pending"),
-	@SerialName("completed")
-	Completed("completed"),
-	@SerialName("failed")
-	Failed("failed"),
-}
-

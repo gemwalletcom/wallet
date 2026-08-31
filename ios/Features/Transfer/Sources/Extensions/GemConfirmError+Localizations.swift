@@ -16,3 +16,12 @@ extension GemConfirmError: @retroactive LocalizedError {
         }
     }
 }
+
+extension GemConfirmError {
+    var isScanRejection: Bool {
+        switch self {
+        case .ScanMalicious, .ScanMemoRequired: true
+        default: false
+        }
+    }
+}

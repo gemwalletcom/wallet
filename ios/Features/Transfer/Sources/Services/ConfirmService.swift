@@ -112,7 +112,7 @@ public struct ConfirmService: Sendable {
                 ),
             )
         } catch let error as GemConfirmError {
-            throw preloadFailureError(metadata: metadata) ?? error.map(symbol: request.data.type.asset.symbol)
+            throw preloadFailureError(metadata: metadata) ?? error
         }
         let feeAsset = try Asset(preload.feeAsset)
         return try ConfirmTransferPreload(
@@ -233,17 +233,6 @@ private extension ConfirmService {
             try recentAssetsService.add(data, walletId: walletId)
         } catch {
             debugLog("Failed to update recent activity: \(error)")
-        }
-    }
-}
-
-private extension GemConfirmError {
-    func map(symbol: String) -> Error {
-        switch self {
-        case .ScanMalicious: ScanTransactionError.malicious
-        case .ScanMemoRequired: ScanTransactionError.memoRequired(symbol: symbol)
-        case .FeeRatesMissing: ChainCoreError.feeRateMissed
-        case .Load, .Broadcast, .Network, .Offline, .Record, .AccountMissing, .BalanceMissing, .SenderMismatch, .Sign, .ApprovalInvalid: self
         }
     }
 }
