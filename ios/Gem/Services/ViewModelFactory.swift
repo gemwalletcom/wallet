@@ -38,11 +38,13 @@ import Contacts
 import FiatConnect
 import Foundation
 import GemstoneServices
+import LockManager
 import ManageWallets
 import Onboarding
 import Preferences
 import Primitives
 import PrimitivesComponents
+import Settings
 import Stake
 import Store
 import Swap
@@ -86,6 +88,7 @@ public struct ViewModelFactory: Sendable {
     let walletSessionService: GemWalletSessionService
 
     // Platform services Core cannot own
+    let biometryService: any BiometryAuthenticatable
     let keystore: any Keystore
     let observablePreferences: ObservablePreferences
     let recentAssetsService: RecentAssetsService
@@ -95,6 +98,16 @@ public struct ViewModelFactory: Sendable {
     // Stores
     let addressStore: AddressStore
     let assetStore: AssetStore
+
+    @MainActor
+    public func lockScene() -> LockSceneViewModel {
+        LockSceneViewModel(service: biometryService)
+    }
+
+    @MainActor
+    public func securityScene() -> SecurityViewModel {
+        SecurityViewModel(service: biometryService, preferences: observablePreferences)
+    }
 
     @MainActor
     public func walletsScene(

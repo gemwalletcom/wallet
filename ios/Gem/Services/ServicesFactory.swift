@@ -374,6 +374,10 @@ struct ServicesFactory {
             transferService: Gemstone.GemTransferService(),
             walletService: walletService,
             walletSessionService: walletSessionService,
+            biometryService: BiometryAuthenticationService(
+                keystorePassword: LocalKeystorePassword(),
+                securityService: Gemstone.GemSecurityService(),
+            ),
             keystore: storages.keystore,
             observablePreferences: observablePreferences,
             recentAssetsService: RecentAssetsService(store: storeManager.recentActivityStore),

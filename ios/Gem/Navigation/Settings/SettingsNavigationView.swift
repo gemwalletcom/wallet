@@ -91,7 +91,7 @@ struct SettingsNavigationView: View {
         )
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(for: Scenes.Security.self) { _ in
-            SecurityScene(model: SecurityViewModel(preferences: observablePreferences))
+            SecurityScene(model: viewModelFactory.securityScene())
         }
         .navigationDestination(for: Scenes.Notifications.self) { _ in
             NotificationsScene(
