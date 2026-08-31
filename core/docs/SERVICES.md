@@ -336,7 +336,6 @@ Found by reading both platforms side by side. Ranked within each group by value:
 
 | # | What | iOS | Android | The difference |
 |---|---|---|---|---|
-| V14 | Reserved-fee hint | shown when the typed amount equals max | only when the Max button was pressed | Typing the max by hand shows the note on iOS only. |
 
 Found while landing the batches above, not yet fixed:
 
