@@ -161,7 +161,7 @@ An adapter writes rows and nothing more — **no rules, no entity mapping inline
 
 ### iOS
 
-The app service forwards to Core and maps Core records into app types. It holds Core services and the app's own presentation collaborators — never a store Core owns.
+There is no app-side service wrapping a Core service. The view model holds Core services and calls them; each call is one line in, one mapping out.
 
 ```swift
 func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
@@ -173,11 +173,11 @@ func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetS
     )
     let feeAsset = try Asset(preload.feeAsset)
     return try ConfirmTransferPreload(
-        metadata: preload.metadata.map(assetId: request.data.type.asset.id, feeAssetId: feeAsset.id),
+        metadata: preload.metadata,
         input: ConfirmTransferInput(
             confirmData: preload.confirmData,
             fee: preload.confirmData.fee.map(),
-            transferAmount: transferAmount(preload.amount, asset: request.data.type.asset, feeAsset: feeAsset),
+            transferAmount: preload.amount.map(asset: request.data.type.asset, feeAsset: feeAsset),
             feeAsset: feeAsset,
         ),
         feeRates: preload.confirmData.feeRates.map { try $0.map() },
@@ -186,7 +186,7 @@ func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetS
 }
 ```
 
-Core → app mappings live in `GemstonePrimitives` as extensions (`GemConfirmMetadata.map(assetId:feeAssetId:)`). A mapping onto a *feature-internal* type stays in the feature.
+Core → app mappings live in `GemstonePrimitives` as extensions. A mapping onto a *feature-internal* type stays in the feature — `GemstonePrimitives` cannot import a feature module, and reaching for one is the signal that the mapping belongs in the feature.
 
 ### Android
 
@@ -207,7 +207,77 @@ override fun getFeeAssets(): Flow<List<AssetInfo>> = getCurrentWalletId().flatMa
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
 
-## 6. Services are injected, never constructed at a call site
+## 6. One service per scene, always private
+
+A scene's view model holds **exactly one** Core service, and it is **`private`**. A non-private service is a code smell: it means something outside the model — usually the view — is reaching through the model to get at a dependency.
+
+When a scene needs more than one Core service, **Core composes them**, in that feature's `services/<feature>/mod.rs`:
+
+```rust
+#[derive(uniffi::Object)]
+pub struct GemManageContactService {
+    contacts: Arc<GemContactService>,
+    names: Arc<GemNameService>,
+    addresses: Arc<GemAddressService>,
+    chains: Arc<GemChainService>,
+}
+
+#[uniffi::export]
+impl GemManageContactService {
+    #[uniffi::constructor]
+    pub fn new(contacts: Arc<GemContactService>, names: Arc<GemNameService>, addresses: Arc<GemAddressService>, chains: Arc<GemChainService>) -> Self { ... }
+
+    pub fn default_chain(&self) -> Chain { self.contacts.default_chain() }
+    pub fn add_address(&self, addresses: Vec<ContactAddress>, input: GemContactAddressInput) -> Vec<ContactAddress> { ... }
+    pub fn format_address(&self, address: String, chain: Chain, style: GemAddressFormatStyle) -> String { ... }
+
+    pub fn names(&self) -> Arc<GemNameService> { self.names.clone() }
+    pub fn chains(&self) -> Arc<GemChainService> { self.chains.clone() }
+}
+```
+
+The scene service exposes the scene's **operations** as flat methods. It vends a sub-service only where a *shared* component genuinely needs one — those are reusable across scenes and take a narrow Core protocol, which is fine.
+
+A scene service is **built when the scene opens**, not held for the app's lifetime. It is a handful of `Arc` clones, so there is no reason to keep one alive from launch:
+
+```swift
+public func manageContactScene(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
+    ManageContactViewModel(service: manageContactService(), mode: mode)
+}
+
+private func manageContactService() -> GemManageContactService {
+    GemManageContactService(contacts: contactService, names: gemNameService, addresses: addressService, chains: chainService)
+}
+```
+
+### The parent vends the child, the view never reaches in
+
+```swift
+// wrong — the view assembles the child from the parent's internals
+ManageContactAddressScene(
+    model: ManageContactAddressViewModel(
+        defaultChain: model.defaultChain,
+        nameService: model.nameService,
+        addressService: model.addressService,
+        chainService: model.chainService,
+        onComplete: model.onAddressComplete,
+    ),
+)
+
+// right — the parent owns the wiring, the view asks for a model
+ManageContactAddressScene(model: model.addressModel(mode: mode))
+```
+
+The same applies to state: a view switching on the model's `mode` forces `mode` to be non-private. Name the decision on the model instead — `var rowAction: RowAction` — and the view switches on the answer, not the input.
+
+### Use the generated protocol, not the concrete object
+
+UniFFI generates a protocol for every exported object. `GemAddressServiceProtocol` exists; importing `class Gemstone.GemAddressService` at a consumer means that consumer cannot be substituted in a test.
+
+- **Consumers** (view models, components, validators) take `any GemFooServiceProtocol`.
+- **The composition root** (`ServicesFactory`, `ViewModelFactory`) holds the concrete type — a UniFFI constructor needs it, and the root is the one place allowed to construct.
+
+## 7. Services are injected, never constructed at a call site
 
 A `GemFooService()` in a field initialiser or at file scope is a second instance the graph does not know about, and it is where an app-side variant creeps back in.
 
@@ -217,7 +287,7 @@ A `GemFooService()` in a field initialiser or at file scope is a second instance
 
 Prefer an interface (`GemConfirmServiceInterface`) over the concrete UniFFI object wherever a test needs to substitute it — mocking the concrete object dereferences native handles a mock does not have and takes the JVM down.
 
-## 7. Errors
+## 8. Errors
 
 One error enum per feature, in `error.rs`, carrying what the app needs to render:
 
@@ -244,7 +314,7 @@ extension GemConfirmError: @retroactive LocalizedError {
 
 A duplicate taxonomy costs a mapping function, re-derives data Core already carries, and drifts. Classify Core's error where a screen needs to branch; do not re-wrap it.
 
-## 8. Tests
+## 9. Tests
 
 | Layer | What it tests | Where |
 |---|---|---|
@@ -254,6 +324,22 @@ A duplicate taxonomy costs a mapping function, re-derives data Core already carr
 
 Neither app tests a rule that lives in Core. If an app test would fail when a Core rule flips, the rule is in the wrong place or the test is asserting the mock.
 
+### Do not test the same rule twice through a thicker stack
+
+An app test that stands up a real Core service over a real store and then asserts *Core's decision* is a second copy of a Core test, paid for in database setup and simulator time. It fails for the same reasons the Core test does, and it goes stale in a different file.
+
+What is worth an app test at that seam is the **store adapter** — that `GemstoneFooStore` maps Core's trait onto the app's table, with the right columns and the right round-trip. Assert what was written and read back, not which value Core chose to write.
+
+```swift
+// double layer — Core's rules.rs already asserts created-vs-imported
+try await service.setupWallet(wallet: created.json())
+#expect(try store.getBanner(id: "\(created.id.id)_onboarding")?.state == .active)
+
+// worth keeping — the adapter and schema, which Core cannot reach
+try store.addBanners([NewBanner(id: id, walletId: walletId, assetId: assetId, event: .stake, state: .active)])
+#expect(try store.getBanner(id: id)?.state == .active)
+```
+
 Two more:
 
 - **Never mock a constructible service** (`GemChainService`, `GemAssetConfigService`, …). Construct the real one, or the test asserts the mock.
@@ -261,7 +347,7 @@ Two more:
 
 A mock's defaults should be the *usual* case. A mock that fails by default becomes a trap the moment another method starts depending on it.
 
-## 9. Landing a change
+## 10. Landing a change
 
 1. Implement in Core with the rule test.
 2. Regenerate bindings **only if an exported signature changed** — `just generate-stone` and `just generate-android-stone` from the repo root. Never against a half-edited Core: a generate run mid-edit yields bindings that fail somewhere unrelated.

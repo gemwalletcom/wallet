@@ -338,6 +338,67 @@ swap slippage bounds · min-receive BPS math · swap ETA truncation · the criti
 - `NavigationHandler`'s `.stake` deep link is an unimplemented branch and `TransactionScene`'s corner radius is an open iOS 26 styling question — both mark real gaps, keep the TODOs until closed.
 - The two "delete in 2026" `FileMigrator` calls (`LocalKeystore`, `DB.swift`) move the keystore and database from documents to application support on launch. Deleting them strands anyone who has not opened the app since the move — losing their keystore — so this needs install-base data, not a code decision.
 
+### 8. iOS view models holding more than one Core service
+
+Each scene view model should hold exactly one Core service, `private`, per [ARCHITECTURE.md](ARCHITECTURE.md) § 6. `ManageContactViewModel` / `ContactsViewModel` / `ManageContactAddressViewModel` are done — Core's `GemManageContactService` composes contact + name + address + chain and `ViewModelFactory` builds it per scene.
+
+41 view models still take more than one, and 28 expose at least one non-privately. A non-private service means the view is reaching through the model — fix that first, by having the parent vend the child view model.
+
+| view model | services | non-private |
+|---|---|---|
+| `Transfer/ConfirmTransferSceneViewModel.swift` | 12 | 0 |
+| `Gem/ViewModels/RootSceneViewModel.swift` | 11 | 4 |
+| `Assets/AssetSceneViewModel.swift` | 9 | 2 |
+| `Assets/SelectAssetViewModel.swift` | 6 | 5 |
+| `WalletTab/AssetsResultsSceneViewModel.swift` | 5 | 2 |
+| `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
+| `Onboarding/ImportWalletViewModel.swift` | 4 | 4 |
+| `Transactions/TransactionsViewModel.swift` | 4 | 2 |
+| `WalletTab/WalletSearchSceneViewModel.swift` | 4 | 2 |
+| `MarketInsight/ChartSceneViewModel.swift` | 4 | 1 |
+| `WalletTab/WalletSceneViewModel.swift` | 4 | 1 |
+| `Settings/Settings/ViewModels/NotificationsViewModel.swift` | 4 | 0 |
+| `Swap/SwapSceneViewModel.swift` | 4 | 0 |
+| `Settings/ChainSettings/ViewModels/ChainSettingsSceneViewModel.swift` | 3 | 2 |
+| `NFT/CollectibleViewModel.swift` | 3 | 1 |
+| `Perpetuals/PerpetualSceneViewModel.swift` | 3 | 1 |
+| `Transactions/TransactionSceneViewModel.swift` | 3 | 0 |
+| `Transfer/ReceiveViewModel.swift` | 3 | 0 |
+| `Transfer/RecipientSceneViewModel.swift` | 3 | 0 |
+| `WalletConnector/WalletConnector/ViewModels/SignMessageSceneViewModel.swift` | 3 | 0 |
+| `Onboarding/ImportWalletTypeViewModel.swift` | 2 | 2 |
+| `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 2 |
+| `PriceAlerts/AssetPriceAlertsViewModel.swift` | 2 | 2 |
+| `FiatConnect/FiatSceneViewModel.swift` | 2 | 1 |
+| `ManageWallets/WalletIDetailViewModel.swift` | 2 | 1 |
+| `Transfer/AmountEarnViewModel.swift` | 2 | 1 |
+| `WalletConnector/WalletConnector/ViewModels/ConnectionsViewModel.swift` | 2 | 1 |
+| `WalletTab/NetworkAssetsSceneViewModel.swift` | 2 | 1 |
+| `Assets/AddAssetSceneViewModel.swift` | 2 | 0 |
+| `Assets/AssetsFilterViewModel.swift` | 2 | 0 |
+| `PriceAlerts/PriceAlertsSceneViewModel.swift` | 2 | 0 |
+| `PriceAlerts/SetPriceAlertViewModel.swift` | 2 | 0 |
+| `Settings/ChainSettings/ViewModels/AddNodeSceneViewModel.swift` | 2 | 0 |
+| `Settings/Currency/ViewModels/CurrencySceneViewModel.swift` | 2 | 0 |
+| `Settings/Settings/ViewModels/RewardsViewModel.swift` | 2 | 0 |
+| `Stake/DelegationViewModel.swift` | 2 | 0 |
+| `Stake/EarnSceneViewModel.swift` | 2 | 0 |
+| `Stake/StakeSceneViewModel.swift` | 2 | 0 |
+| `Stake/ValidatorSelectSceneViewModel.swift` | 2 | 0 |
+| `Transfer/ConfirmDetailsViewModel.swift` | 2 | 0 |
+| `PrimitivesComponents/AddressInputViewModel.swift` | 2 | 0 |
+
+Single-service view models that only need the property made `private`:
+
+- `Assets/AddAssetViewModel.swift` — `explorerService`
+- `Settings/ChainSettings/ViewModels/ChainListSettingsViewModel.swift` — `chainService`
+- `Swap/PriceImpactViewModel.swift` — `swapQuoteService`
+- `Transfer/AmountPerpetualViewModel.swift` — `amountService`
+- `Transfer/AmountStakeViewModel.swift` — `amountService`
+- `Transfer/AmountTransferViewModel.swift` — `amountService`
+- `WalletConnector/WalletConnector/ViewModels/ConnectionSceneViewModel.swift` — `connector`
+- `WalletConnector/WalletConnector/ViewModels/WalletConnectionViewModel.swift` — `applicationMetadataService`
+
 ### Things that look like work and are not
 
 Do not re-add these from a survey; each was checked against the code and found wrong or already done: **V5, N4, N6, V7, T4, S5, S6, V6**, backlog rows **1, 2, 4, 5, 7**, **T8**, the swap-pay recents row, and the `Transaction` typeshare model (`com.wallet.core.primitives.Transaction` is used across Android — do not drop its attribute).
