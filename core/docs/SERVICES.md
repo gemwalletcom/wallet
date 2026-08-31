@@ -326,7 +326,7 @@ The four left were each measured, and they are all 50+ sites:
 | Holder | Size | Why it is its own pass |
 |---|---|---|
 | `TransferDataType+GemstonePrimitives` (iOS) | app-wide | Backs `feeAsset`, `assetIds`, `outputType`, `outputAction`, `metadata`, `approvalData` — computed properties on a core domain type. |
-| `AddressFormatter` (iOS) | 23 uses, ~60 construction sites | Used by value-type view models (`WalletViewModel` 20 sites, `CopyTypeViewModel` 11) that are built inside view bodies, so the service threads through each. |
+| `AddressFormatter` (iOS) | 23 uses, ~60 construction sites | **Attempted and reverted — read this before trying again.** Threading the service compiles as far as `WalletViewModel`, then spreads somewhere it does not belong: `extension Wallet: SimpleListItemViewable` builds a `WalletViewModel` only to read `avatarImage`, which never touches the formatter, so the conformance would carry a service it does not use; the same happens in previews. It also needs a first `@Entry` in `PrimitivesComponents`, and `CopyTypeViewModel`/`WalletViewModel` lose synthesised `Equatable`/`Hashable` once a service is stored. The real fix is smaller than the threading: split the display-only parts (`avatarImage`, `name`) from the parts that format an address, so only the latter needs the service. That is a design change, so it wants a decision, not a mechanical pass. |
 | `ext/Chain.kt` (Android) | ~52 callers | `assetConfig` backs a `by lazy` table read by `Chain.asset()` and `Chain.networkName()`. |
 | `Chain+GemstonePrimitives` (iOS) | mirrors the above | Same table, same shape. |
 
