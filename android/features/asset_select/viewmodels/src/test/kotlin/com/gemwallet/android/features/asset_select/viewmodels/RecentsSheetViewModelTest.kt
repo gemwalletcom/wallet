@@ -77,7 +77,7 @@ class RecentsSheetViewModelTest {
     @Test
     fun `uiModel keeps content after dismiss`() = runTest(testDispatcher) {
         every { getRecentAssets(any()) } returns flowOf(recentItems)
-        val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets)
+        val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets, GemAssetConfigService())
 
         vm.show()
         vm.uiModel.first { it.items.isNotEmpty() }
