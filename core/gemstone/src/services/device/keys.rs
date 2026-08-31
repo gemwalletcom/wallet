@@ -25,14 +25,15 @@ impl GemDeviceKeyService {
     }
 
     pub fn key_pair(&self) -> Result<GemDeviceKeyPair, GemServiceError> {
-        if let Some(key_pair) = self.cached.lock().expect("device keys lock").clone() {
+        let cached = &mut *self.cached.lock().expect("device keys lock");
+        if let Some(key_pair) = cached.clone() {
             return Ok(key_pair);
         }
         let key_pair = match self.stored_private_key()? {
             Some(private_key) => self.key_pair_from(private_key)?,
             None => self.create()?,
         };
-        *self.cached.lock().expect("device keys lock") = Some(key_pair.clone());
+        *cached = Some(key_pair.clone());
         Ok(key_pair)
     }
 }
@@ -67,6 +68,8 @@ impl GemDeviceKeyService {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+    use std::sync::Barrier;
+    use std::thread;
 
     use super::*;
 
@@ -142,5 +145,36 @@ mod tests {
         let service = GemDeviceKeyService::new(Arc::new(MemoryStore::with(DEVICE_PRIVATE_KEY, "not hex")));
 
         assert!(service.key_pair().is_err());
+    }
+
+    #[test]
+    fn test_concurrent_first_use_creates_one_identity() {
+        const CALLERS: usize = 8;
+
+        let store = Arc::new(MemoryStore::default());
+        let service = Arc::new(GemDeviceKeyService::new(store.clone()));
+        let barrier = Arc::new(Barrier::new(CALLERS));
+
+        let callers: Vec<_> = (0..CALLERS)
+            .map(|_| {
+                let service = service.clone();
+                let barrier = barrier.clone();
+                thread::spawn(move || {
+                    barrier.wait();
+                    service.key_pair().unwrap().private_key
+                })
+            })
+            .collect();
+        let key_pairs: Vec<Vec<u8>> = callers.into_iter().map(|caller| caller.join().unwrap()).collect();
+
+        assert!(
+            key_pairs.windows(2).all(|pair| pair[0] == pair[1]),
+            "concurrent callers were handed different device identities"
+        );
+        assert_eq!(
+            store.values.lock().unwrap().get(DEVICE_PRIVATE_KEY),
+            Some(&hex::encode(&key_pairs[0])),
+            "the identity handed to callers is not the one left in the store",
+        );
     }
 }
