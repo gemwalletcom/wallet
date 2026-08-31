@@ -45,6 +45,13 @@ public final class ContactsViewModel {
         Localized.Contacts.title
     }
 
+    var addContactMode: ManageContactViewModel.Mode {
+        switch mode {
+        case .list: .add()
+        case let .addAddress(recipient): .add(recipient)
+        }
+    }
+
     func add(to contact: ContactData) {
         guard case let .addAddress(recipient) = mode else { return }
         Task {
