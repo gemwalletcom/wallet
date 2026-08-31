@@ -1,6 +1,6 @@
 use num_bigint::BigInt;
-use serde::{Deserialize, Deserializer, Serialize};
-use serde_serializers::{deserialize_bigint_from_str, deserialize_u64_from_str, serialize_bigint, serialize_option_bigint};
+use serde::{Deserialize, Serialize};
+use serde_serializers::{deserialize_bigint_from_str, deserialize_option_bigint_or_none, deserialize_u64_from_str, serialize_bigint, serialize_option_bigint};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PolkadotAccountBalance {
@@ -8,20 +8,12 @@ pub struct PolkadotAccountBalance {
     pub free: BigInt,
     #[serde(serialize_with = "serialize_bigint", deserialize_with = "deserialize_bigint_from_str")]
     pub reserved: BigInt,
-    #[serde(default, serialize_with = "serialize_option_bigint", deserialize_with = "deserialize_bigint_or_none")]
+    #[serde(default, serialize_with = "serialize_option_bigint", deserialize_with = "deserialize_option_bigint_or_none")]
     pub frozen: Option<BigInt>,
-    #[serde(default, serialize_with = "serialize_option_bigint", deserialize_with = "deserialize_bigint_or_none")]
+    #[serde(default, serialize_with = "serialize_option_bigint", deserialize_with = "deserialize_option_bigint_or_none")]
     pub transferable: Option<BigInt>,
     #[serde(deserialize_with = "deserialize_u64_from_str")]
     pub nonce: u64,
-}
-
-fn deserialize_bigint_or_none<'de, D>(deserializer: D) -> Result<Option<BigInt>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let value: Option<String> = Option::deserialize(deserializer)?;
-    Ok(value.and_then(|value| value.parse::<BigInt>().ok()))
 }
 
 #[cfg(test)]
