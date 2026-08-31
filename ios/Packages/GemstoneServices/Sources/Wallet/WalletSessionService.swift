@@ -34,6 +34,15 @@ public struct WalletSessionService: WalletSessionManageable {
         try service.setCurrentWalletId(walletId: walletId?.id)
     }
 
+    public func showsRewards() -> Bool {
+        do {
+            return try service.showsRewards()
+        } catch {
+            debugLog("rewards availability unavailable: \(error)")
+            return false
+        }
+    }
+
     public func getWallets() throws -> [Wallet] {
         try service.getWallets().map { try Wallet($0) }
     }

@@ -9,6 +9,7 @@ public protocol WalletSessionManageable: Sendable {
     var currentWalletId: WalletId? { get }
 
     func getWallets() throws -> [Wallet]
+    func showsRewards() -> Bool
     func getWallet(walletId: WalletId) throws -> Wallet
     func getCurrentWallet() throws -> Wallet
     func setCurrent(walletId: WalletId?) throws
@@ -46,14 +47,5 @@ public extension WalletSessionManageable {
 
     func walletsCount() throws -> Int {
         try getWallets().count
-    }
-
-    func hasMulticoinWallet() -> Bool {
-        do {
-            return try getWallets().contains { $0.type == .multicoin }
-        } catch {
-            debugLog("wallets unavailable: \(error)")
-            return false
-        }
     }
 }

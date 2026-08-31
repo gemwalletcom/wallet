@@ -95,7 +95,7 @@ public final class SettingsViewModel {
     }
 
     var showsRewards: Bool {
-        walletSessionService.hasMulticoinWallet()
+        walletSessionService.showsRewards()
     }
 
     var aboutUsTitle: String {
