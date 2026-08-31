@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.navigation
 
+import com.gemwallet.android.ui.LocalDeeplinkService
 import com.gemwallet.android.ui.LocalTransferService
 import uniffi.gemstone.GemTransferService
 import androidx.compose.runtime.Composable
@@ -95,8 +96,6 @@ import kotlinx.serialization.Serializable
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.GemDeeplinkService
 
-private val deeplinkService = GemDeeplinkService()
-
 @Serializable
 data object WalletRootRoute : NavKey
 
@@ -113,14 +112,16 @@ fun rememberWalletNavigationState(
     assetNavigationPolicy: AssetNavigationPolicy,
 ): WalletNavigator {
     val transferService = LocalTransferService.current
+    val deeplinkService = LocalDeeplinkService.current
     return key(startDestination) {
         val backStack = rememberWalletNavBackStack(startDestination)
-        remember(backStack, currentTab, assetNavigationPolicy, transferService) {
+        remember(backStack, currentTab, assetNavigationPolicy, transferService, deeplinkService) {
             WalletNavigator(
                 backStack = backStack,
                 currentTab = currentTab,
                 assetNavigationPolicy = assetNavigationPolicy,
                 transferService = transferService,
+                deeplinkService = deeplinkService,
             )
         }
     }
@@ -131,6 +132,7 @@ class WalletNavigator(
     val currentTab: MutableState<String>,
     private val assetNavigationPolicy: AssetNavigationPolicy,
     private val transferService: GemTransferService,
+    private val deeplinkService: GemDeeplinkService,
 ) {
     private val toastMessages = mutableStateMapOf<NavKey, String>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()

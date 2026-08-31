@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.filters
 
+import com.gemwallet.android.ui.LocalChainService
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +24,7 @@ fun AssetsFilter(
     onClearFilters: () -> Unit,
 ) {
     val query = rememberTextFieldState()
+    val chainService = LocalChainService.current
 
     FormDialog(
         title = stringResource(R.string.filter_title),
@@ -32,7 +34,7 @@ fun AssetsFilter(
         availableChains.takeIf { it.size > 1 }?.let { SearchBar(query) }
         HasBalances(isActive = balanceFilter, onBalanceFilter)
         LazyColumn(modifier = Modifier.Companion.fillMaxSize()) {
-            selectFilterChain(availableChains, chainFilter, query.text.toString(), onChainFilter)
+            selectFilterChain(availableChains, chainFilter, query.text.toString(), chainService, onChainFilter)
         }
     }
 }

@@ -9,7 +9,11 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import com.gemwallet.android.ui.LocalAddressService
 import com.gemwallet.android.ui.LocalApplicationMetadataService
+import com.gemwallet.android.ui.LocalChainService
+import com.gemwallet.android.ui.LocalDeeplinkService
 import com.gemwallet.android.ui.LocalTransferService
+import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemTransferService
 import uniffi.gemstone.GemApplicationMetadataService
 import uniffi.gemstone.GemAddressService
@@ -44,6 +48,8 @@ class MainActivity : FragmentActivity(), AuthRequester {
     @Inject lateinit var addressService: GemAddressService
     @Inject lateinit var applicationMetadataService: GemApplicationMetadataService
     @Inject lateinit var transferService: GemTransferService
+    @Inject lateinit var deeplinkService: GemDeeplinkService
+    @Inject lateinit var chainService: GemChainService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -81,6 +87,8 @@ class MainActivity : FragmentActivity(), AuthRequester {
                 LocalAddressService provides addressService,
                 LocalApplicationMetadataService provides applicationMetadataService,
                 LocalTransferService provides transferService,
+                LocalDeeplinkService provides deeplinkService,
+                LocalChainService provides chainService,
             ) {
                 MainContent(
                     state = state,
