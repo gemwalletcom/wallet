@@ -64,14 +64,14 @@ struct AssetIdViewModelTests {
         let btcPerpetualAssetId = AssetId(chain: .hyperCore, tokenId: "perpetual::BTC")
         let btcPerpetualImage = AssetIdViewModel(assetId: btcPerpetualAssetId).assetImage
 
-        #expect(btcPerpetualImage.type == .text("ERC20"))
+        #expect(btcPerpetualImage.type == .text("TOKEN"))
         #expect(btcPerpetualImage.placeholder == ChainImage(chain: .bitcoin).image)
         #expect(btcPerpetualImage.chainPlaceholder == ChainImage(chain: .hyperCore).placeholder)
 
         let ethPerpetualAssetId = AssetId(chain: .hyperCore, tokenId: "perpetual::ETH")
         let ethPerpetualImage = AssetIdViewModel(assetId: ethPerpetualAssetId).assetImage
 
-        #expect(ethPerpetualImage.type == .text("ERC20"))
+        #expect(ethPerpetualImage.type == .text("TOKEN"))
         #expect(ethPerpetualImage.placeholder == ChainImage(chain: .ethereum).image)
         #expect(ethPerpetualImage.chainPlaceholder == ChainImage(chain: .hyperCore).placeholder)
     }
